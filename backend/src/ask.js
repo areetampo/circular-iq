@@ -16,7 +16,7 @@ export async function generateReasoning(idea, scores, parameters, similarDocs = 
 
   const systemRole = `
 You are a Senior Circular Economy Auditor. You output ONLY JSON.
-You have access to a database of existing Circular Economy projects and research. 
+You have access to a database of existing Circular Economy projects and research.
 
 STRICT RULES:
 1. If 'idea' is junk (like 'xyz', '---'), set is_junk_input: true and confidence_score: 0.
