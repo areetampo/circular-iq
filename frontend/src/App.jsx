@@ -68,7 +68,10 @@ export default function App() {
 
       // Handle junk input case
       if (data.audit?.is_junk_input) {
-        setError(data.audit.audit_verdict || 'Input was too vague to analyze. Please provide more details.');
+        setError(
+          data.audit.audit_verdict ||
+            'Input was too vague to analyze. Please provide more details.',
+        );
         setLoading(false);
         return;
       }
@@ -163,11 +166,11 @@ export default function App() {
   // Calculate business viability score (derived from overall score and confidence)
   const businessViabilityScore = result
     ? Math.round(
-        (result.overall_score * 0.7 +
+        result.overall_score * 0.7 +
           (result.audit?.confidence_score <= 1
             ? result.audit.confidence_score * 100
             : result.audit?.confidence_score || 0) *
-            0.3)
+            0.3,
       )
     : 0;
 
@@ -270,7 +273,9 @@ function LandingView({
             </svg>
           </div>
           <h1 className="main-title">Circular Economy Business Evaluator</h1>
-          <p className="subtitle">Evaluate your business idea's circularity potential using AI-driven analysis</p>
+          <p className="subtitle">
+            Evaluate your business idea's circularity potential using AI-driven analysis
+          </p>
         </div>
 
         {/* Feature Cards */}
@@ -279,7 +284,12 @@ function LandingView({
             <div className="feature-icon" style={{ background: '#fff4e6' }}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="#ff9800" strokeWidth="2" />
-                <path d="M12 6 L12 12 L16 14" stroke="#ff9800" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M12 6 L12 12 L16 14"
+                  stroke="#ff9800"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
             <h3>AI-Powered</h3>
@@ -334,7 +344,9 @@ function LandingView({
           <div className="char-hint">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="#999" strokeWidth="2" />
-              <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#999">i</text>
+              <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#999">
+                i
+              </text>
             </svg>
             Minimum 50 characters recommended for accurate analysis.
           </div>
@@ -424,11 +436,7 @@ function LandingView({
             )}
           </div>
 
-          <button
-            className="submit-button"
-            onClick={onSubmit}
-            disabled={loading || !idea.trim()}
-          >
+          <button className="submit-button" onClick={onSubmit} disabled={loading || !idea.trim()}>
             {loading ? (
               <span className="loading-spinner">
                 <span></span>
@@ -444,7 +452,9 @@ function LandingView({
         </div>
 
         {/* Footer */}
-        <p className="footer-disclaimer">Based on research synthesis of AI applications in circular economy domains.</p>
+        <p className="footer-disclaimer">
+          Based on research synthesis of AI applications in circular economy domains.
+        </p>
       </div>
     </div>
   );
@@ -510,7 +520,9 @@ function ResultsView({
         {/* Overall Score Card */}
         <div className="score-card">
           <h2>Overall Circularity Score</h2>
-          <p className="score-description">Based on multi-dimensional analysis across key circular economy domains</p>
+          <p className="score-description">
+            Based on multi-dimensional analysis across key circular economy domains
+          </p>
           <div className="score-display">
             <div className="rating-badge">{rating}</div>
             <div className="score-value">
@@ -519,10 +531,7 @@ function ResultsView({
             </div>
           </div>
           <div className="score-progress-bar">
-            <div
-              className="score-progress-fill"
-              style={{ width: `${overallScore}%` }}
-            ></div>
+            <div className="score-progress-fill" style={{ width: `${overallScore}%` }}></div>
           </div>
         </div>
 
@@ -547,7 +556,9 @@ function ResultsView({
                     <h3>{category.name}</h3>
                     <p>{category.desc}</p>
                   </div>
-                  <span className={`category-score ${numValue >= 75 ? 'high' : ''}`}>{numValue}</span>
+                  <span className={`category-score ${numValue >= 75 ? 'high' : ''}`}>
+                    {numValue}
+                  </span>
                 </div>
                 <div className="category-progress-bar">
                   <div
@@ -587,11 +598,12 @@ function ResultsView({
               <ResponsiveContainer width="100%" height={400}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="#e0e0e0" />
-                  <PolarAngleAxis
-                    dataKey="subject"
-                    tick={{ fill: '#666', fontSize: 12 }}
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#666', fontSize: 12 }} />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fill: '#999', fontSize: 10 }}
                   />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#999', fontSize: 10 }} />
                   <Radar
                     name="Market Average"
                     dataKey="marketAvg"
@@ -647,7 +659,9 @@ function ResultsView({
                   <li key={i}>
                     <span className="insight-text">{strength.issue || strength}</span>
                     {strength.evidence_source_id && (
-                      <span className="source-badge">Source: Case #{strength.evidence_source_id}</span>
+                      <span className="source-badge">
+                        Source: Case #{strength.evidence_source_id}
+                      </span>
                     )}
                   </li>
                 ))}
@@ -687,7 +701,14 @@ function ResultsView({
             <div className="insight-header">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="#4a90e2" strokeWidth="2" />
-                <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#4a90e2" fontWeight="bold">
+                <text
+                  x="12"
+                  y="16"
+                  textAnchor="middle"
+                  fontSize="12"
+                  fill="#4a90e2"
+                  fontWeight="bold"
+                >
                   i
                 </text>
               </svg>
@@ -713,10 +734,17 @@ function ResultsView({
             <div className="evidence-header">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="evidence-icon">
                 <rect x="4" y="4" width="16" height="16" rx="2" stroke="#34a83a" strokeWidth="2" />
-                <path d="M8 8 L16 8 M8 12 L16 12 M8 16 L12 16" stroke="#34a83a" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M8 8 L16 8 M8 12 L16 12 M8 16 L12 16"
+                  stroke="#34a83a"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
               <h2>Database Evidence</h2>
-              <p className="evidence-subtitle">Similar cases from the circular economy research database</p>
+              <p className="evidence-subtitle">
+                Similar cases from the circular economy research database
+              </p>
             </div>
             <div className="evidence-cases">
               {result.similar_cases.map((caseItem, index) => {
@@ -724,22 +752,36 @@ function ResultsView({
                 const matchPercentage = ((caseItem.similarity || 0) * 100).toFixed(1);
 
                 // Get source case ID - try multiple possible fields
-                const sourceCaseId = caseItem.id || caseItem.case_id || caseItem.source_id || `#${index + 1}`;
+                const sourceCaseId =
+                  caseItem.id || caseItem.case_id || caseItem.source_id || `#${index + 1}`;
 
                 // Get content snippet
-                const content = caseItem.content || caseItem.text || caseItem.summary || 'No content available';
-                const contentSnippet = content.length > 200 ? content.substring(0, 200) + '...' : content;
+                const content =
+                  caseItem.content || caseItem.text || caseItem.summary || 'No content available';
+                const contentSnippet =
+                  content.length > 200 ? content.substring(0, 200) + '...' : content;
 
                 return (
                   <div key={index} className="evidence-case-card">
                     <div className="case-header">
-                      <div className="similarity-badge">
-                        {matchPercentage}% Match
-                      </div>
+                      <div className="similarity-badge">{matchPercentage}% Match</div>
                       <div className="case-id-badge">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-                          <path d="M8 8 L16 8 M8 12 L16 12 M8 16 L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <rect
+                            x="4"
+                            y="4"
+                            width="16"
+                            height="16"
+                            rx="2"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M8 8 L16 8 M8 12 L16 12 M8 16 L12 16"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
                         </svg>
                         Source Case {sourceCaseId}
                       </div>
@@ -827,7 +869,15 @@ function EvaluationCriteriaView({ onBack }) {
             <div className="factor-card">
               <div className="factor-icon blue-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="4" y="4" width="16" height="16" rx="2" stroke="#4a90e2" strokeWidth="2" />
+                  <rect
+                    x="4"
+                    y="4"
+                    width="16"
+                    height="16"
+                    rx="2"
+                    stroke="#4a90e2"
+                    strokeWidth="2"
+                  />
                   <circle cx="9" cy="9" r="2" fill="#4a90e2" />
                   <path d="M16 12 L20 12" stroke="#4a90e2" strokeWidth="2" />
                 </svg>
@@ -842,7 +892,11 @@ function EvaluationCriteriaView({ onBack }) {
               <div className="factor-icon blue-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="8" stroke="#4a90e2" strokeWidth="2" />
-                  <path d="M12 4 L12 8 M12 16 L12 20 M4 12 L8 12 M16 12 L20 12" stroke="#4a90e2" strokeWidth="2" />
+                  <path
+                    d="M12 4 L12 8 M12 16 L12 20 M4 12 L8 12 M16 12 L20 12"
+                    stroke="#4a90e2"
+                    strokeWidth="2"
+                  />
                 </svg>
               </div>
               <h3>Infrastructure & Accessibility</h3>
@@ -859,14 +913,23 @@ function EvaluationCriteriaView({ onBack }) {
           <div className="value-header">
             <div className="value-icon green-icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <text x="12" y="18" textAnchor="middle" fontSize="20" fill="#34a83a" fontWeight="bold">
+                <text
+                  x="12"
+                  y="18"
+                  textAnchor="middle"
+                  fontSize="20"
+                  fill="#34a83a"
+                  fontWeight="bold"
+                >
                   $
                 </text>
               </svg>
             </div>
             <div>
               <h2>Embedded Value</h2>
-              <p className="value-description">Evaluates inherent and economic value of resources</p>
+              <p className="value-description">
+                Evaluates inherent and economic value of resources
+              </p>
             </div>
           </div>
           <div className="factors-grid">
@@ -880,7 +943,8 @@ function EvaluationCriteriaView({ onBack }) {
               </div>
               <h3>Market Price</h3>
               <p>
-                Evaluates the economic value and market demand for recovered or repurposed materials.
+                Evaluates the economic value and market demand for recovered or repurposed
+                materials.
               </p>
             </div>
             <div className="factor-card">
@@ -913,8 +977,8 @@ function EvaluationCriteriaView({ onBack }) {
               </div>
               <h3>Uniqueness</h3>
               <p>
-                Measures the rarity, specialty, or distinctive value of materials and their potential
-                for reuse.
+                Measures the rarity, specialty, or distinctive value of materials and their
+                potential for reuse.
               </p>
             </div>
           </div>
@@ -972,7 +1036,15 @@ function EvaluationCriteriaView({ onBack }) {
             <div className="factor-card">
               <div className="factor-icon teal-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <rect x="4" y="4" width="16" height="16" rx="2" stroke="#26a69a" strokeWidth="2" />
+                  <rect
+                    x="4"
+                    y="4"
+                    width="16"
+                    height="16"
+                    rx="2"
+                    stroke="#26a69a"
+                    strokeWidth="2"
+                  />
                   <circle cx="9" cy="9" r="1" fill="#26a69a" />
                   <circle cx="15" cy="9" r="1" fill="#26a69a" />
                   <circle cx="9" cy="15" r="1" fill="#26a69a" />
@@ -996,7 +1068,10 @@ function EvaluationCriteriaView({ onBack }) {
               <div className="step-number">1</div>
               <div>
                 <h3>AI Analysis</h3>
-                <p>Our machine learning model analyzes your business description against each of the 8 factors</p>
+                <p>
+                  Our machine learning model analyzes your business description against each of the
+                  8 factors
+                </p>
               </div>
             </div>
             <div className="calculation-step">
@@ -1010,7 +1085,10 @@ function EvaluationCriteriaView({ onBack }) {
               <div className="step-number">3</div>
               <div>
                 <h3>Comprehensive Report</h3>
-                <p>Receive detailed insights, strengths, and actionable recommendations for improvement</p>
+                <p>
+                  Receive detailed insights, strengths, and actionable recommendations for
+                  improvement
+                </p>
               </div>
             </div>
           </div>
