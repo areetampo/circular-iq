@@ -50,17 +50,43 @@ app.post('/score', async (req, res) => {
     // 3. CALCULATE SCORES
     const scores = calculateScores(parameters);
 
-    // 4. GENERATE REASONING (Pass similarDocs as context)
-    // Update generateReasoning in ask.js to accept this 4th argument
-    const auditResult = await generateReasoning(idea, scores, parameters, similarDocs || []);
+    // 4. VALIDATE AND FILTER sub_scores to ensure only the 8 correct keys
+    const validKeys = [
+      'public_participation',
+      'infrastructure',
+      'market_price',
+      'maintenance',
+      'uniqueness',
+      'size_efficiency',
+      'chemical_safety',
+      'tech_readiness',
+    ];
 
-    // 5. SEND RESPONSE
-    res.json({
-      overall_score: scores.overall_score,
-      sub_scores: scores.sub_scores,
-      audit: auditResult,
-      similar_cases: similarDocs, // Sending this so frontend can show "Related Projects"
+    // Filter sub_scores to only include valid keys
+    const filteredSubScores = {};
+    validKeys.forEach((key) => {
+      if (scores.sub_scores && key in scores.sub_scores) {
+        filteredSubScores[key] = scores.sub_scores[key];
+      }
     });
+
+    // 5. GENERATE REASONING (Pass similarDocs as context)
+    // Pass the filtered scores to ensure consistency
+    const auditResult = await generateReasoning(idea, { ...scores, sub_scores: filteredSubScores }, parameters, similarDocs || []);
+
+    // 6. SEND RESPONSE - Only include the 8 valid keys
+    const response = {
+      overall_score: scores.overall_score || 0,
+      sub_scores: filteredSubScores,
+      audit: auditResult,
+      similar_cases: similarDocs || [], // Sending this so frontend can show "Related Projects"
+    };
+
+    // Log for debugging - verify no old keys are present
+    console.log('API Response - sub_scores keys:', Object.keys(filteredSubScores));
+    console.log('API Response - sub_scores:', filteredSubScores);
+
+    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
