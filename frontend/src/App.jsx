@@ -218,7 +218,158 @@ export default function App() {
       onSubmit={submit}
       loading={loading}
       error={error}
+      showInfoIcons={!result}
     />
+  );
+}
+
+// Info Modal Component
+function InfoModal({ onClose, type }) {
+  const factorDefinitions = {
+    public_participation: {
+      title: 'Public Participation',
+      desc: 'Measures how easily stakeholders, communities, and end-users can engage with and contribute to the circular system. Higher scores indicate better accessibility for public involvement.',
+      category: 'Access Value',
+    },
+    infrastructure: {
+      title: 'Infrastructure & Accessibility',
+      desc: 'Assesses the availability of necessary infrastructure and ease of access to circular economy resources and processes. Considers physical, digital, and logistical infrastructure.',
+      category: 'Access Value',
+    },
+    market_price: {
+      title: 'Market Price',
+      desc: 'Evaluates the economic value and market demand for recovered or repurposed materials. Higher scores indicate stronger market viability and revenue potential.',
+      category: 'Embedded Value',
+    },
+    maintenance: {
+      title: 'Maintenance',
+      desc: 'Assesses the ease and cost of maintaining products, materials, or systems throughout their lifecycle. Lower maintenance complexity scores higher.',
+      category: 'Embedded Value',
+    },
+    uniqueness: {
+      title: 'Uniqueness',
+      desc: 'Measures the rarity, specialty, or distinctive value of materials and their potential for reuse. Unique materials often have higher circular economy potential.',
+      category: 'Embedded Value',
+    },
+    size_efficiency: {
+      title: 'Size Efficiency',
+      desc: 'Considers the physical dimensions and volume, affecting handling, storage, and transportation efficiency. Compact designs score higher.',
+      category: 'Processing Value',
+    },
+    chemical_safety: {
+      title: 'Chemical Safety',
+      desc: 'Assesses potential environmental and health hazards, impacting safe processing and disposal methods. Non-toxic materials score higher.',
+      category: 'Processing Value',
+    },
+    tech_readiness: {
+      title: 'Technology Readiness',
+      desc: 'Evaluates the complexity and availability of technology required for effective processing and recovery. Readily available technology scores higher.',
+      category: 'Processing Value',
+    },
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{type === 'description' ? 'Business Description Guide' : 'Evaluation Factors'}</h2>
+          <button className="modal-close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          {type === 'description' ? (
+            <div>
+              <p style={{ marginBottom: '16px' }}>
+                Provide a detailed description of your circular economy business idea. Include:
+              </p>
+              <ul style={{ paddingLeft: '24px', lineHeight: '1.8' }}>
+                <li>
+                  <strong>Materials:</strong> What materials or resources are being reused,
+                  recycled, or recovered?
+                </li>
+                <li>
+                  <strong>Process:</strong> How does your business model close the loop?
+                </li>
+                <li>
+                  <strong>Stakeholders:</strong> Who are the key participants (suppliers, customers,
+                  partners)?
+                </li>
+                <li>
+                  <strong>Value Proposition:</strong> What environmental and economic benefits does
+                  it provide?
+                </li>
+                <li>
+                  <strong>Scale:</strong> What is the intended scope (local, regional, global)?
+                </li>
+              </ul>
+              <p style={{ marginTop: '16px', fontStyle: 'italic', color: '#666' }}>
+                A minimum of 50 characters is required for accurate AI analysis.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p style={{ marginBottom: '20px' }}>
+                Our evaluation framework assesses your business across 8 key factors grouped into 3
+                value categories:
+              </p>
+              {Object.entries(factorDefinitions).map(([key, factor]) => (
+                <div
+                  key={key}
+                  style={{
+                    marginBottom: '20px',
+                    paddingBottom: '16px',
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <h3 style={{ margin: 0, color: '#34a83a' }}>{factor.title}</h3>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: '#666',
+                        backgroundColor: '#f5f5f5',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      {factor.category}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, color: '#555', lineHeight: '1.6' }}>{factor.desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Context Modal Component for Database Evidence
+function ContextModal({ onClose, content, title }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{title || 'Full Context'}</h2>
+          <button className="modal-close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <p style={{ lineHeight: '1.8', color: '#333' }}>{content}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -233,7 +384,10 @@ function LandingView({
   onSubmit,
   loading,
   error,
+  showInfoIcons,
 }) {
+  const [showInfoModal, setShowInfoModal] = useState(null);
+
   const parameterLabels = {
     public_participation: { label: 'Public Participation', category: 'Access Value' },
     infrastructure: { label: 'Infrastructure & Accessibility', category: 'Access Value' },
@@ -251,6 +405,7 @@ function LandingView({
       [key]: parseInt(value, 10),
     }));
   };
+
   return (
     <div className="app-container">
       <div className="landing-view">
@@ -328,7 +483,33 @@ function LandingView({
 
         {/* Input Form */}
         <div className="input-card">
-          <h2>Describe Your Business Idea</h2>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '8px',
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Describe Your Business Idea</h2>
+            {showInfoIcons && (
+              <button
+                className="info-icon-btn"
+                onClick={() => setShowInfoModal('description')}
+                title="Help with business description"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#34a83a" strokeWidth="2" />
+                  <path
+                    d="M12 16v-4M12 8h.01"
+                    stroke="#34a83a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
           <p className="input-instructions">
             Provide details about your circular economy business concept. Include information about
             materials, processes, waste management, and sustainability goals.
@@ -354,13 +535,32 @@ function LandingView({
 
           {/* Advanced Parameters Section */}
           <div className="advanced-parameters">
-            <button
-              type="button"
-              className="advanced-toggle"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              {showAdvanced ? '▼' : '▶'} Advanced Parameters
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                className="advanced-toggle"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                {showAdvanced ? '▼' : '▶'} Advanced Parameters
+              </button>
+              {showInfoIcons && (
+                <button
+                  className="info-icon-btn"
+                  onClick={() => setShowInfoModal('factors')}
+                  title="Learn about evaluation factors"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#34a83a" strokeWidth="2" />
+                    <path
+                      d="M12 16v-4M12 8h.01"
+                      stroke="#34a83a"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
 
             {showAdvanced && (
               <div className="parameters-grid">
@@ -456,6 +656,79 @@ function LandingView({
           Based on research synthesis of AI applications in circular economy domains.
         </p>
       </div>
+
+      {/* Info Modals */}
+      {showInfoModal && <InfoModal onClose={() => setShowInfoModal(null)} type={showInfoModal} />}
+
+      <style jsx>{`
+        .info-icon-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s;
+        }
+        .info-icon-btn:hover {
+          transform: scale(1.1);
+        }
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+        }
+        .modal-content {
+          background: white;
+          border-radius: 12px;
+          max-width: 700px;
+          width: 100%;
+          max-height: 80vh;
+          overflow-y: auto;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 24px;
+          border-bottom: 1px solid #eee;
+        }
+        .modal-header h2 {
+          margin: 0;
+          color: #34a83a;
+        }
+        .modal-close {
+          background: none;
+          border: none;
+          font-size: 28px;
+          cursor: pointer;
+          color: #999;
+          padding: 0;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+        }
+        .modal-close:hover {
+          background: #f5f5f5;
+          color: #333;
+        }
+        .modal-body {
+          padding: 24px;
+        }
+      `}</style>
     </div>
   );
 }
@@ -471,6 +744,8 @@ function ResultsView({
   onBack,
   onViewCriteria,
 }) {
+  const [contextModal, setContextModal] = useState(null);
+
   // Ensure overall_score is a valid number
   const overallScore = result?.overall_score != null ? Number(result.overall_score) : 0;
   const rating = getRatingBadge(overallScore);
@@ -489,6 +764,9 @@ function ResultsView({
   // If no explicit gaps, treat all as potential strengths or show positive aspects
   const displayStrengths = strengths.length > 0 ? strengths : [];
   const displayGaps = gaps.length > 0 ? gaps : [];
+
+  // Get similar cases summaries from audit
+  const casesSummaries = result.audit?.similar_cases_summaries || [];
 
   return (
     <div className="app-container">
@@ -758,13 +1036,14 @@ function ResultsView({
                 // Get content snippet
                 const content =
                   caseItem.content || caseItem.text || caseItem.summary || 'No content available';
-                const contentSnippet =
-                  content.length > 200 ? content.substring(0, 200) + '...' : content;
+
+                // Get AI-generated summary for this case
+                const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
 
                 return (
                   <div key={index} className="evidence-case-card">
                     <div className="case-header">
-                      <div className="similarity-badge">{matchPercentage}% Match</div>
+                      <div className="similarity-badge-bold">{matchPercentage}% Match</div>
                       <div className="case-id-badge">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                           <rect
@@ -786,7 +1065,14 @@ function ResultsView({
                         Source Case {sourceCaseId}
                       </div>
                     </div>
-                    <p className="case-content">{contentSnippet}</p>
+                    <h3 className="case-title">{caseTitle}</h3>
+                    <p className="case-content-clamped">{content}</p>
+                    <button
+                      className="view-context-btn"
+                      onClick={() => setContextModal({ content, title: caseTitle })}
+                    >
+                      View Full Context →
+                    </button>
                   </div>
                 );
               })}
@@ -805,6 +1091,111 @@ function ResultsView({
           <button className="download-button">Download Report</button>
         </div>
       </div>
+
+      {/* Context Modal */}
+      {contextModal && (
+        <ContextModal
+          onClose={() => setContextModal(null)}
+          content={contextModal.content}
+          title={contextModal.title}
+        />
+      )}
+
+      <style jsx>{`
+        .similarity-badge-bold {
+          background: #34a83a;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 12px;
+          font-size: 13px;
+          font-weight: bold;
+        }
+        .case-title {
+          margin: 12px 0 8px 0;
+          font-size: 16px;
+          color: #333;
+          font-weight: 600;
+          line-height: 1.4;
+        }
+        .case-content-clamped {
+          display: -webkit-box;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          line-height: 1.6;
+          color: #555;
+          margin: 0;
+        }
+        .view-context-btn {
+          margin-top: 12px;
+          background: none;
+          border: none;
+          color: #34a83a;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 8px 0;
+          font-size: 14px;
+          transition: color 0.2s;
+        }
+        .view-context-btn:hover {
+          color: #2d8f32;
+          text-decoration: underline;
+        }
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+        }
+        .modal-content {
+          background: white;
+          border-radius: 12px;
+          max-width: 700px;
+          width: 100%;
+          max-height: 80vh;
+          overflow-y: auto;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 24px;
+          border-bottom: 1px solid #eee;
+        }
+        .modal-header h2 {
+          margin: 0;
+          color: #34a83a;
+        }
+        .modal-close {
+          background: none;
+          border: none;
+          font-size: 28px;
+          cursor: pointer;
+          color: #999;
+          padding: 0;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+        }
+        .modal-close:hover {
+          background: #f5f5f5;
+          color: #333;
+        }
+        .modal-body {
+          padding: 24px;
+        }
+      `}</style>
     </div>
   );
 }

@@ -10,7 +10,10 @@ export async function generateReasoning(idea, scores, parameters, similarDocs = 
   const contextText =
     similarDocs.length > 0
       ? similarDocs
-          .map((doc) => `- Match (Score: ${doc.similarity.toFixed(2)}): ${doc.content}`)
+          .map(
+            (doc, idx) =>
+              `- Case ${idx + 1} (Similarity: ${doc.similarity.toFixed(2)}): ${doc.content}`,
+          )
           .join('\n')
       : 'No direct matches found in the specialized dataset.';
 
@@ -22,6 +25,7 @@ STRICT RULES:
 1. If 'idea' is junk (like 'xyz', '---'), set is_junk_input: true and confidence_score: 0.
 2. Use the provided DATABASE CONTEXT to see if the user's idea is realistic.
 3. If the user's scores are significantly higher than similar successful projects in the context, flag this as an "Integrity Gap".
+4. For each database case provided, generate a ONE-SENTENCE semantic summary explaining why it's relevant to the user's idea.
 `;
 
   const userPrompt = `
@@ -29,7 +33,7 @@ USER DATA:
 Idea: ${idea}
 Calculated Scores: ${JSON.stringify(scores)}
 
-DATABASE CONTEXT:
+DATABASE CONTEXT (${similarDocs.length} cases):
 ${contextText}
 
 Return EXACTLY this JSON structure:
@@ -41,8 +45,11 @@ Return EXACTLY this JSON structure:
   "integrity_gaps": [
     { "issue": "string", "evidence_source_id": "number_or_null" }
   ],
-  "technical_recommendations": ["string"]
+  "technical_recommendations": ["string"],
+  "similar_cases_summaries": ["One sentence explaining relevance of case 1", "One sentence for case 2", "One sentence for case 3"]
 }
+
+IMPORTANT: similar_cases_summaries must be an array with exactly ${similarDocs.length} strings, each a concise one-sentence headline explaining why that database case is relevant to the user's business idea.
 `;
 
   const response = await client.chat.completions.create({
