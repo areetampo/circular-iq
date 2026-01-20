@@ -1,154 +1,358 @@
-# Circular Economy Business Idea Scorer
+# Circular Economy Business Idea Auditor
 
-RAG + Deterministic Scoring Architecture
+**An AI-powered evaluation platform combining Retrieval-Augmented Generation (RAG) with deterministic scoring for reproducible, explainable circular economy assessments.**
 
-This project implements a Circular Economy (CE) evaluation system that combines deterministic scoring with Retrieval-Augmented Generation (RAG) to produce reproducible, explainable, and grounded evaluations of business ideas.
+---
 
-Rule:
-All numeric scores are computed by code. The LLM only explains the results.
+## 📋 Project Overview
 
-## HIGH-LEVEL ARCHITECTURE
+The Circular Economy Business Auditor is a full-stack web application that evaluates business ideas based on circular economy principles. The system uses a hybrid architecture:
 
-Dataset → Chunking → Embeddings → Vector DB (Supabase)
-↓
-Frontend → Backend API → Scoring Logic → RAG Search → LLM Explanation
+- **Deterministic Scoring Engine**: Computes all numeric metrics using code-based algorithms
+- **RAG-Powered Insights**: Leverages OpenAI embeddings and Supabase vector search to provide context-aware qualitative analysis
+- **Evidence-Based Validation**: Cross-references user inputs against a curated dataset of real circular economy projects
 
-## DATASET
+**Core Principle**: All numeric scores are calculated deterministically. The LLM only explains and contextualizes results—it never invents metrics.
 
-Source:
-https://github.com/techandy42/GreenTechGuardians
+---
 
-Local placement:
-backend/dataset/GreenTechGuardians/
-└── AI_EarthHack_Dataset.csv
+## 🏗️ Technical Stack
 
-The dataset is ingested once and never queried directly at runtime.
+### Frontend
 
-## DATASET INGESTION PIPELINE (ONE-TIME)
+- **Framework**: React 18 + Vite
+- **Visualization**: Recharts (Radar charts for multi-dimensional analysis)
+- **Styling**: Custom CSS with emerald (#34a83a) theme
+- **State Management**: React Hooks (useState)
 
-### STEP 1: CHUNKING
+### Backend
 
-Purpose:
-Large documents are split into small semantic chunks to improve embedding quality and retrieval accuracy.
+- **Runtime**: Node.js with Express.js
+- **AI Integration**: OpenAI GPT-4o-mini + text-embedding-3-small
+- **Vector Database**: Supabase (pgvector for semantic search)
+- **Data Processing**: Custom chunking and embedding pipeline
 
-Script:
-backend/scripts/chunk.js
+### Dataset
 
-Command:
-node scripts/chunk.js
+- **Source**: [GreenTechGuardians AI_EarthHack Dataset](https://github.com/techandy42/GreenTechGuardians)
+- **Format**: CSV → Chunked JSON → Vector embeddings
+- **Location**: `backend/dataset/GreenTechGuardians/AI_EarthHack_Dataset.csv`
 
-Output:
-Structured JSON chunks with source metadata.
+---
 
-### STEP 2: EMBEDDING AND STORAGE
+## 🧮 The 8-Factor Evaluation Methodology
 
-Purpose:
-Convert each chunk into a vector embedding and store it in Supabase (pgvector).
+Our scoring framework evaluates business ideas across **three core value dimensions** and **eight specific factors**:
 
-Script:
-backend/scripts/embed_and_store.js
+### 1️⃣ Access Value (Social & Logistical Accessibility)
 
-Command:
-node scripts/embed_and_store.js
+| Factor                             | Description                                                                                               | Weight |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
+| **Public Participation**           | How easily stakeholders, communities, and end-users can engage with and contribute to the circular system | High   |
+| **Infrastructure & Accessibility** | Availability of necessary infrastructure and ease of access to circular economy resources and processes   | High   |
 
-This step runs once unless the dataset changes.
+### 2️⃣ Embedded Value (Economic & Material Worth)
 
-## SUPABASE VECTOR DATABASE SETUP
+| Factor           | Description                                                                             | Weight   |
+| ---------------- | --------------------------------------------------------------------------------------- | -------- |
+| **Market Price** | Economic value and market demand for recovered or repurposed materials                  | Critical |
+| **Maintenance**  | Ease and cost of maintaining products, materials, or systems throughout their lifecycle | Medium   |
+| **Uniqueness**   | Rarity, specialty, or distinctive value of materials and their potential for reuse      | Medium   |
 
-create table + similarity search function: backend/supabase/setup.sql
+### 3️⃣ Processing Value (Technical & Operational Feasibility)
 
-## DETERMINISTIC SCORING LOGIC
+| Factor              | Description                                                                                | Weight   |
+| ------------------- | ------------------------------------------------------------------------------------------ | -------- |
+| **Size Efficiency** | Physical dimensions and volume, affecting handling, storage, and transportation efficiency | Medium   |
+| **Chemical Safety** | Potential environmental and health hazards, impacting safe processing and disposal methods | Critical |
+| **Tech Readiness**  | Complexity and availability of technology required for effective processing and recovery   | High     |
 
-File:
-backend/src/scoring.js
+**Scoring Range**: Each factor is scored 0-100. The overall circularity score is a weighted composite of all factors.
 
-Responsibilities:
+---
 
-- Compute all numeric Circular Economy metrics
-- Ensure reproducibility and mathematical correctness
+## 🔄 System Architecture
 
-Inputs:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       USER INTERFACE (React)                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │ Input Form   │  │ Results View │  │ Criteria View│         │
+│  │ (8 sliders)  │  │ (Radar chart)│  │ (Documentation)│        │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    API SERVER (Express.js)                      │
+│                      POST /score endpoint                        │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+┌──────────────────────────┐  ┌──────────────────────────┐
+│  DETERMINISTIC SCORING   │  │  RAG PIPELINE            │
+│  (scoring.js)            │  │  (ask.js)                │
+│                          │  │                          │
+│  • Computes sub_scores   │  │  1. Embed user idea      │
+│  • Calculates overall    │  │  2. Query Supabase       │
+│  • Returns numeric data  │  │  3. Inject context       │
+│                          │  │  4. Generate reasoning   │
+└──────────────────────────┘  └──────────────────────────┘
+                                        │
+                                        ▼
+                              ┌──────────────────────┐
+                              │  SUPABASE PGVECTOR   │
+                              │  match_documents()   │
+                              │  (Top 3 similar)     │
+                              └──────────────────────┘
+                                        │
+                                        ▼
+                              ┌──────────────────────┐
+                              │  OPENAI API          │
+                              │  • Embeddings        │
+                              │  • GPT-4o-mini       │
+                              └──────────────────────┘
+```
 
-- Recyclability
-- Energy efficiency
-- Product lifespan
-- Reuse cycles
+---
 
-Outputs:
+## 📦 Setup Instructions
 
-- Overall CE score
-- Sub-scores
+### Prerequisites
 
-No AI involvement.
+- Node.js 18+
+- Supabase account (free tier works)
+- OpenAI API key
 
-## RAG-BASED EXPLANATION
+### 1. Clone Repository
 
-File:
-backend/src/ask.js
+```bash
+git clone <your-repo-url>
+cd circular-economy-auditor
+```
 
-Process:
+### 2. Backend Setup
 
-1. Embed user business idea
-2. Retrieve top-K relevant dataset chunks from Supabase
-3. Inject retrieved context and computed scores into the LLM prompt
-4. Generate qualitative explanation
-
-The LLM:
-
-- Does NOT calculate numbers
-- Does NOT invent metrics
-- Only explains strengths and weaknesses
-
-## API SERVER
-
-File:
-backend/api/server.js
-
-Endpoint:
-POST /score
-
-Example request:
-{
-"idea": "Modular housing using recycled steel and solar energy",
-"parameters": {
-"recyclability": 85,
-"energy_efficiency": 70,
-"reuse_cycles": 6,
-"lifespan_years": 40
-}
-}
-
-Example response:
-{
-"overall_score": 0.27,
-"sub_scores": {
-"public_participation": 0.3,
-"infrastructure_and_accessibility": 0.24
-},
-"reasoning": "The proposed modular housing aligns well with circular construction principles..."
-}
-
-## FRONTEND
-
-Built using React + Vite.
-
-Responsibilities:
-
-- Collect business idea text
-- Collect numeric CE parameters
-- Send POST request to backend
-- Display scores and explanations
-
-## RUNNING THE PROJECT
-
-Backend:
+```bash
 cd backend
 npm install
-node api/server.js
-Runs on http://localhost:3001
 
-Frontend:
-cd frontend
+# Create .env file
+cat > .env << EOF
+OPENAI_API_KEY=sk-your-api-key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+EOF
+```
+
+### 3. Database Setup
+
+**Run Supabase SQL:**
+
+```sql
+-- Execute backend/supabase/setup.sql in your Supabase SQL editor
+-- This creates the documents table and match_documents function
+```
+
+**Ingest Dataset:**
+
+```bash
+# Step 1: Chunk the CSV dataset
+node scripts/chunk.js
+
+# Step 2: Generate embeddings and store in Supabase
+node scripts/embed_and_store.js
+```
+
+### 4. Frontend Setup
+
+```bash
+cd ../frontend
 npm install
+```
+
+### 5. Run the Application
+
+**Terminal 1 - Backend:**
+
+```bash
+cd backend
+node api/server.js
+# Runs on http://localhost:3001
+```
+
+**Terminal 2 - Frontend:**
+
+```bash
+cd frontend
 npm run dev
-Runs on http://localhost:5173
+# Runs on http://localhost:5173
+```
+
+Navigate to `http://localhost:5173` in your browser.
+
+---
+
+## 🚀 Usage Guide
+
+### Basic Workflow
+
+1. **Describe Your Idea**: Enter a detailed description (minimum 50 characters) of your circular economy business concept
+
+2. **Adjust Parameters** (Optional): Click "Advanced Parameters" to fine-tune the 8 evaluation factors using sliders
+
+3. **View Results**: Receive:
+   - Overall circularity score (0-100)
+   - 8 sub-scores with descriptions
+   - Radar chart comparing your idea vs. market average
+   - AI-generated audit verdict
+   - Strengths and gaps analysis
+   - Actionable technical recommendations
+   - Database evidence with semantic summaries
+
+4. **Explore Evidence**: Click "View Full Context" on any database case to read the complete reference
+
+### Features
+
+- **📊 Multi-Dimensional Scoring**: Evaluate across Access, Embedded, and Processing value dimensions
+- **🔍 Semantic Search**: Find similar projects from the research database
+- **📈 Visual Analytics**: Radar chart for performance comparison
+- **🤖 AI Explanations**: Context-aware reasoning for all scores
+- **🎯 Integrity Checks**: Flags unrealistic claims based on database evidence
+- **ℹ️ Interactive Help**: Info icons provide guidance on factors and inputs
+
+---
+
+## 📂 Project Structure
+
+```
+circular-economy-auditor/
+├── backend/
+│   ├── api/
+│   │   └── server.js              # Express API server
+│   ├── src/
+│   │   ├── scoring.js             # Deterministic score calculation
+│   │   └── ask.js                 # RAG-based AI reasoning
+│   ├── scripts/
+│   │   ├── chunk.js               # Dataset chunking
+│   │   └── embed_and_store.js     # Embedding generation
+│   ├── supabase/
+│   │   └── setup.sql              # Database schema
+│   ├── dataset/
+│   │   └── GreenTechGuardians/    # CSV dataset
+│   └── .env                       # Environment variables
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx                # Main React component
+│   │   └── App.css                # Styling
+│   └── package.json
+└── README.md
+```
+
+---
+
+## 🔬 How It Works
+
+### Deterministic Scoring (`scoring.js`)
+
+```javascript
+export function calculateScores(parameters) {
+  // Pure mathematical computation
+  const weights = {
+    public_participation: 0.15,
+    infrastructure: 0.15,
+    market_price: 0.2,
+    // ... etc
+  };
+
+  const overall_score = Object.keys(weights).reduce((sum, key) => {
+    return sum + parameters[key] * weights[key];
+  }, 0);
+
+  return { overall_score, sub_scores: parameters };
+}
+```
+
+### RAG Pipeline (`ask.js`)
+
+1. **Embed user input**: `text-embedding-3-small` converts business description to 1536-dim vector
+2. **Similarity search**: Supabase `match_documents()` finds top 3 most similar cases
+3. **Context injection**: Retrieved cases are formatted into the LLM prompt
+4. **Structured output**: GPT-4o-mini generates JSON with:
+   - `confidence_score`: AI's confidence in the evaluation
+   - `audit_verdict`: Overall assessment
+   - `comparative_analysis`: How it compares to similar projects
+   - `integrity_gaps`: Identified inconsistencies
+   - `technical_recommendations`: Actionable improvements
+   - `similar_cases_summaries`: One-sentence relevance explanations
+
+---
+
+## 🎨 UI Features
+
+### Input Phase
+
+- **Info Icons**: Contextual help for business description and evaluation factors
+- **Parameter Sliders**: Grouped by value category (Access, Embedded, Processing)
+- **Validation**: Minimum character requirements, junk input detection
+
+### Results Phase
+
+- **Score Cards**: Overall score + 8 sub-scores with progress bars
+- **Radar Chart**: Multi-dimensional comparison (your idea vs. market)
+- **Database Evidence**:
+  - Match percentage (bold, emerald theme)
+  - AI-generated semantic summary as card title
+  - 4-line content preview with CSS clamping
+  - "View Full Context" modal for complete text
+- **Insights**: Strengths, gaps, and recommendations
+
+---
+
+## 🔐 Security & Best Practices
+
+<!-- - ✅ API keys stored in `.env` (never committed)
+- ✅ Input validation (length, format, junk detection)
+- ✅ Supabase Row-Level Security (RLS) enabled
+- ✅ CORS configured for local development
+- ✅ Error handling with user-friendly messages -->
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+<!-- This project is licensed under the MIT License. -->
+
+---
+
+## 🙏 Acknowledgments
+
+- Dataset: [GreenTechGuardians](https://github.com/techandy42/GreenTechGuardians)
+- Circular Economy Framework: Based on Ellen MacArthur Foundation principles
+- Icons: Custom SVG designs
+
+---
+
+## 📞 Support
+
+For issues, questions, or suggestions:
+
+- Open a GitHub issue
+<!-- - Email: support@circulareconomyauditor.com -->
+
+---
+
+**Built with ♻️ for a sustainable future**
