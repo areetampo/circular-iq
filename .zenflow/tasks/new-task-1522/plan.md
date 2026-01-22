@@ -213,6 +213,7 @@ Technical specification created in `spec.md` with:
 ---
 
 ### [ ] Step: Build Reusable Components
+<!-- chat-id: 42bb9d0f-e562-4da2-8021-7b8bddd491f0 -->
 
 **Objective**: Create UI building blocks
 
