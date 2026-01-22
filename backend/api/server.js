@@ -17,27 +17,44 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.post('/score', async (req, res) => {
   try {
-    const { idea, parameters } = req.body;
+    const { businessProblem, businessSolution, parameters } = req.body;
 
     // 1. INPUT VALIDATION
-    if (!idea || idea.trim().length < 10) {
-      return res.status(400).json({ error: 'Please provide a detailed business description.' });
+    if (!businessProblem || businessProblem.trim().length < 200) {
+      return res.status(400).json({ 
+        error: 'Business problem must be at least 200 characters. Please provide detailed context about the environmental or circular economy challenge.' 
+      });
     }
 
-    const isJunk = /^(.)\1*$/.test(idea.trim()) || idea.trim().length < 5;
-    if (isJunk) {
-      return res.status(400).json({ error: 'Invalid description. Use real words.' });
+    if (!businessSolution || businessSolution.trim().length < 200) {
+      return res.status(400).json({ 
+        error: 'Business solution must be at least 200 characters. Please describe your approach, materials, and circularity strategy in detail.' 
+      });
+    }
+
+    // Check for junk input
+    const isJunkProblem = /^(.)\1*$/.test(businessProblem.trim());
+    const isJunkSolution = /^(.)\1*$/.test(businessSolution.trim());
+    if (isJunkProblem || isJunkSolution) {
+      return res.status(400).json({ error: 'Invalid description. Use real words to describe your business.' });
+    }
+
+    // Validate parameters object exists
+    if (!parameters || typeof parameters !== 'object') {
+      return res.status(400).json({ error: 'Missing required parameters for evaluation.' });
     }
 
     // 2. VECTOR SEARCH (RAG Step)
-    // Convert the user's idea into a math vector
+    // Combine problem and solution for embedding
+    const combinedText = `Problem: ${businessProblem}. Solution: ${businessSolution}`;
+    
     const embeddingRes = await openai.embeddings.create({
       model: 'text-embedding-3-small',
-      input: idea,
+      input: combinedText,
     });
     const queryVector = embeddingRes.data[0].embedding;
 
-    // Query Supabase using the match_documents function you created
+    // Query Supabase using the match_documents function
     const { data: similarDocs, error: searchError } = await supabase.rpc('match_documents', {
       query_embedding: queryVector,
       match_count: 3,
@@ -70,26 +87,50 @@ app.post('/score', async (req, res) => {
       }
     });
 
-    // 5. GENERATE REASONING (Pass similarDocs as context)
-    // Pass the filtered scores to ensure consistency
-    const auditResult = await generateReasoning(idea, { ...scores, sub_scores: filteredSubScores }, parameters, similarDocs || []);
+    // 5. GENERATE REASONING (Pass separate problem/solution with context)
+    const auditResult = await generateReasoning(
+      businessProblem, 
+      businessSolution, 
+      { ...scores, sub_scores: filteredSubScores }, 
+      parameters, 
+      similarDocs || []
+    );
 
-    // 6. SEND RESPONSE - Only include the 8 valid keys
+    // 6. SEND RESPONSE - Include metadata from similar_cases
     const response = {
       overall_score: scores.overall_score || 0,
       sub_scores: filteredSubScores,
       audit: auditResult,
-      similar_cases: similarDocs || [], // Sending this so frontend can show "Related Projects"
+      similar_cases: (similarDocs || []).map(doc => ({
+        id: doc.id,
+        content: doc.content,
+        metadata: doc.metadata || {},
+        similarity: doc.similarity
+      })),
     };
 
-    // Log for debugging - verify no old keys are present
+    // Log for debugging
     console.log('API Response - sub_scores keys:', Object.keys(filteredSubScores));
-    console.log('API Response - sub_scores:', filteredSubScores);
+    console.log('Similar cases count:', response.similar_cases.length);
 
     res.json(response);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Server Error:', err);
+    
+    // Enhanced error handling for specific cases
+    if (err.message && err.message.includes('OpenAI')) {
+      return res.status(500).json({ 
+        error: 'AI service temporarily unavailable. Please try again.' 
+      });
+    }
+    
+    if (err.message && err.message.includes('Supabase')) {
+      return res.status(500).json({ 
+        error: 'Database service temporarily unavailable. Please try again.' 
+      });
+    }
+    
+    res.status(500).json({ error: 'Internal server error. Please try again later.' });
   }
 });
 
