@@ -1,4 +1,4 @@
-# Circular Economy Business Idea Auditor
+# 🌍 Circular Economy Business Auditor
 
 **An AI-powered evaluation platform combining Retrieval-Augmented Generation (RAG) with deterministic scoring for reproducible, explainable circular economy assessments.**
 
@@ -10,9 +10,20 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 
 - **Deterministic Scoring Engine**: Computes all numeric metrics using code-based algorithms
 - **RAG-Powered Insights**: Leverages OpenAI embeddings and Supabase vector search to provide context-aware qualitative analysis
-- **Evidence-Based Validation**: Cross-references user inputs against a curated dataset of real circular economy projects
+- **Evidence-Based Validation**: Cross-references user inputs against a curated dataset of 1,108 high-quality circular economy projects (filtered from 1,300 for data quality)
 
 **Core Principle**: All numeric scores are calculated deterministically. The LLM only explains and contextualizes results—it never invents metrics.
+
+### Key Features
+
+✅ **Professional Assessment Tool** - No gamification, designed for consultants/investors
+✅ **Two-Field Input System** - Separate Problem (200+ chars) and Solution (200+ chars) descriptions
+✅ **8 Evaluation Parameters** - Weighted scoring across circular economy dimensions
+✅ **Evidence-Based Analysis** - Every finding cites database projects
+✅ **Enhanced Evidence Cards** - Shows problem + solution with visual similarity indicators
+✅ **Smart Similarity Metrics** - Color-coded match strength (Excellent/Strong/Good/Moderate) with progress bars
+✅ **Comprehensive Details Modal** - Full context with similarity percentage, match strength, and source case ID
+✅ **Emerald Theme** - Professional color scheme (#34a83a primary)
 
 ---
 
@@ -40,32 +51,67 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 
 ---
 
+## 🚀 Quick Start
+
+### 1. Backend Setup
+
+```bash
+cd backend
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your API keys:
+# - OPENAI_API_KEY
+# - SUPABASE_URL
+# - SUPABASE_ANON_KEY
+
+# Process dataset
+npm run chunk      # Creates chunks.json
+npm run embed      # Generates embeddings and stores in Supabase
+
+# Start API server
+npm start          # http://localhost:3001
+```
+
+### 2. Frontend Setup
+
+```bash
+cd frontend
+npm install
+
+# Start development server
+npm run dev        # http://localhost:5173
+```
+
+---
+
 ## 🧮 The 8-Factor Evaluation Methodology
 
 Our scoring framework evaluates business ideas across **three core value dimensions** and **eight specific factors**:
 
-### 1️⃣ Access Value (Social & Logistical Accessibility)
+### 1️⃣ Access Value (30% of overall score) - Social & Logistical Accessibility
 
-| Factor                             | Description                                                                                               | Weight |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
-| **Public Participation**           | How easily stakeholders, communities, and end-users can engage with and contribute to the circular system | High   |
-| **Infrastructure & Accessibility** | Availability of necessary infrastructure and ease of access to circular economy resources and processes   | High   |
+| Factor                   | Description                                                               | Weight |
+| ------------------------ | ------------------------------------------------------------------------- | ------ |
+| **Public Participation** | How easily can stakeholders engage? (ease of participation, transparency) | 15%    |
+| **Infrastructure**       | Is supporting infrastructure available? (facilities, transport, systems)  | 15%    |
 
-### 2️⃣ Embedded Value (Economic & Material Worth)
+### 2️⃣ Embedded Value (35% of overall score) - Economic & Material Worth
 
-| Factor           | Description                                                                             | Weight   |
-| ---------------- | --------------------------------------------------------------------------------------- | -------- |
-| **Market Price** | Economic value and market demand for recovered or repurposed materials                  | Critical |
-| **Maintenance**  | Ease and cost of maintaining products, materials, or systems throughout their lifecycle | Medium   |
-| **Uniqueness**   | Rarity, specialty, or distinctive value of materials and their potential for reuse      | Medium   |
+| Factor           | Description                                                                             | Weight |
+| ---------------- | --------------------------------------------------------------------------------------- | ------ |
+| **Market Price** | Economic value and market demand for recovered or repurposed materials                  | 20%    |
+| **Maintenance**  | Ease and cost of maintaining products, materials, or systems throughout their lifecycle | 10%    |
+| **Uniqueness**   | Rarity, specialty, or distinctive value of materials and their potential for reuse      | 5%     |
 
-### 3️⃣ Processing Value (Technical & Operational Feasibility)
+### 3️⃣ Processing Value (35% of overall score) - Technical & Operational Feasibility
 
-| Factor              | Description                                                                                | Weight   |
-| ------------------- | ------------------------------------------------------------------------------------------ | -------- |
-| **Size Efficiency** | Physical dimensions and volume, affecting handling, storage, and transportation efficiency | Medium   |
-| **Chemical Safety** | Potential environmental and health hazards, impacting safe processing and disposal methods | Critical |
-| **Tech Readiness**  | Complexity and availability of technology required for effective processing and recovery   | High     |
+| Factor              | Description                                                                                | Weight |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------ |
+| **Size Efficiency** | Physical dimensions and volume, affecting handling, storage, and transportation efficiency | 10%    |
+| **Chemical Safety** | Potential environmental and health hazards, impacting safe processing and disposal methods | 15%    |
+| **Tech Readiness**  | Complexity and availability of technology required for effective processing and recovery   | 10%    |
 
 **Scoring Range**: Each factor is scored 0-100. The overall circularity score is a weighted composite of all factors.
 
@@ -198,29 +244,47 @@ Navigate to `http://localhost:5173` in your browser.
 
 ### Basic Workflow
 
-1. **Describe Your Idea**: Enter a detailed description (minimum 50 characters) of your circular economy business concept
+1. **Enter Business Problem**: Describe the environmental/sustainability issue (minimum 200 characters) with specific metrics and context
 
-2. **Adjust Parameters** (Optional): Click "Advanced Parameters" to fine-tune the 8 evaluation factors using sliders
+2. **Enter Business Solution**: Explain your circular economy approach (minimum 200 characters) with materials, processes, and business model details
 
-3. **View Results**: Receive:
-   - Overall circularity score (0-100)
-   - 8 sub-scores with descriptions
-   - Radar chart comparing your idea vs. market average
-   - AI-generated audit verdict
-   - Strengths and gaps analysis
-   - Actionable technical recommendations
-   - Database evidence with semantic summaries
+3. **Adjust Parameters** (Optional): Click "Advanced Parameter Calibration" to fine-tune the 8 evaluation factors using sliders (0-100)
 
-4. **Explore Evidence**: Click "View Full Context" on any database case to read the complete reference
+4. **Load Test Cases** (Optional): Expand "Select Test Case" section to quickly load one of 12 pre-configured circular economy scenarios
 
-### Features
+5. **Evaluate**: Click "Evaluate Circularity" to receive:
 
+- Overall circularity score (0-100) with confidence assessment
+- 8 sub-scores with detailed breakdowns and improvement tips
+- Interactive radar chart visualizing performance across all parameters
+- AI-generated audit analysis with evidence-based reasoning
+- Strengths and gaps categorization
+- Actionable technical recommendations
+- **Enhanced Similar Cases** with:
+  - Color-coded similarity metrics (80%+ Excellent, 65%+ Strong, 50%+ Good)
+  - Visual progress bars showing match percentage
+  - Problem Addressed and Solution Approach preview (~200 chars each)
+- Comprehensive methodology section explaining the scoring process
+
+6. **Explore Evidence**: Click "View Full Details" on any evidence card to see:
+
+- Full problem and solution text with section dividers
+- Similarity percentage and match strength in header
+- Source case ID for reference
+
+### Key Features
+
+- **📋 Two-Field Input System**: Separate problem and solution descriptions for clarity
+- **🧪 12 Test Cases**: Quick evaluation across diverse circular economy domains
 - **📊 Multi-Dimensional Scoring**: Evaluate across Access, Embedded, and Processing value dimensions
-- **🔍 Semantic Search**: Find similar projects from the research database
-- **📈 Visual Analytics**: Radar chart for performance comparison
-- **🤖 AI Explanations**: Context-aware reasoning for all scores
+- **🔍 Semantic Search**: Find similar projects from 1,108 high-quality verified circular economy cases
+- **📈 Visual Analytics**: Interactive radar chart for performance comparison
+- **🤖 AI Explanations**: Context-aware reasoning with strict integrity validation
 - **🎯 Integrity Checks**: Flags unrealistic claims based on database evidence
-- **ℹ️ Interactive Help**: Info icons provide guidance on factors and inputs
+- **💡 Comprehensive Evidence**: Each similar case shows both problem addressed and solution approach
+- **💡 Enhanced Evidence Cards**: Similarity metrics, progress bars, problem + solution sections with comprehensive modal
+- **ℹ️ Educational Modals**: Detailed guidance for writing problems, solutions, and understanding parameters
+- **📚 Methodology Transparency**: Full explanation of scoring approach and data sources
 
 ---
 
@@ -230,24 +294,46 @@ Navigate to `http://localhost:5173` in your browser.
 circular-economy-auditor/
 ├── backend/
 │   ├── api/
-│   │   └── server.js              # Express API server
+│   │   └── server.js              # Express API server (port 3001)
 │   ├── src/
 │   │   ├── scoring.js             # Deterministic score calculation
-│   │   └── ask.js                 # RAG-based AI reasoning
+│   │   └── ask.js                 # RAG-based AI reasoning with GPT-4o-mini
 │   ├── scripts/
-│   │   ├── chunk.js               # Dataset chunking
-│   │   └── embed_and_store.js     # Embedding generation
+│   │   ├── chunk.js               # Dataset chunking (CSV → JSON)
+│   │   └── embed_and_store.js     # Embedding generation & Supabase storage
 │   ├── supabase/
-│   │   └── setup.sql              # Database schema
+│   │   └── setup.sql              # Database schema & vector search function
+│   ├── data/
+│   │   └── test-cases.json        # 12 pre-configured test scenarios
 │   ├── dataset/
-│   │   └── GreenTechGuardians/    # CSV dataset
-│   └── .env                       # Environment variables
+│   │   ├── chunks.json            # Processed chunks (generated)
+│   │   └── GreenTechGuardians/
+│   │       └── AI_EarthHack_Dataset.csv  # 1,300 records (1,108 high-quality after filtering)
+│   └── .env                       # Environment variables (create this)
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                # Main React component
-│   │   └── App.css                # Styling
+│   │   ├── App.jsx                # Main orchestration component
+│   │   ├── App.css                # Global styles
+│   │   ├── views/
+│   │   │   ├── LandingView.jsx    # Input form with problem/solution fields
+│   │   │   ├── ResultsView.jsx    # Results display with evidence cards
+│   │   │   └── EvaluationCriteriaView.jsx  # Parameter documentation
+│   │   ├── components/
+│   │   │   ├── EvidenceCard.jsx   # Similar case display (problem + solution)
+│   │   │   ├── ContextModal.jsx   # Full case details modal
+│   │   │   ├── MetricInfoModal.jsx  # Educational guidance modals
+│   │   │   ├── ParameterSliders.jsx # Parameter adjustment UI
+│   │   │   ├── RadarChartSection.jsx # Radar chart visualization
+│   │   │   └── TestCaseSelector.jsx  # Test case loader
+│   │   ├── constants/
+│   │   │   └── evaluationData.js  # Parameter definitions
+│   │   └── utils/
+│   │       └── helpers.js         # Utility functions
 │   └── package.json
-└── README.md
+├── README.md                      # This file
+├── ARCHITECTURE.md                # Detailed system design
+├── API_DOCUMENTATION.md           # Complete API reference
+└── DEVELOPER_ONBOARDING.md        # Onboarding guide
 ```
 
 ---
@@ -276,37 +362,85 @@ export function calculateScores(parameters) {
 
 ### RAG Pipeline (`ask.js`)
 
-1. **Embed user input**: `text-embedding-3-small` converts business description to 1536-dim vector
-2. **Similarity search**: Supabase `match_documents()` finds top 3 most similar cases
-3. **Context injection**: Retrieved cases are formatted into the LLM prompt
+1. **Embed user input**: `text-embedding-3-small` converts combined problem + solution to 1536-dim vector
+2. **Similarity search**: Supabase `match_documents()` finds top 5 most similar cases
+3. **Context injection**: Retrieved cases are formatted into the LLM prompt with strict integrity rules
 4. **Structured output**: GPT-4o-mini generates JSON with:
    - `confidence_score`: AI's confidence in the evaluation
-   - `audit_verdict`: Overall assessment
-   - `comparative_analysis`: How it compares to similar projects
-   - `integrity_gaps`: Identified inconsistencies
-   - `technical_recommendations`: Actionable improvements
-   - `similar_cases_summaries`: One-sentence relevance explanations
+   - `audit_verdict`: Overall assessment summary
+   - `alignment`: Circular economy principles alignment analysis
+   - `strengths`: List of identified strong points
+   - `gaps`: List of improvement areas
+   - `recommendations`: Actionable technical improvements
+   - `is_junk_input`: Boolean flag for invalid/vague inputs
 
 ---
 
 ## 🎨 UI Features
 
-### Input Phase
+### Input Phase (LandingView)
 
-- **Info Icons**: Contextual help for business description and evaluation factors
-- **Parameter Sliders**: Grouped by value category (Access, Embedded, Processing)
-- **Validation**: Minimum character requirements, junk input detection
+- **Two-Field System**: Separate Business Problem and Business Solution inputs
+- **Character Validation**: Minimum 200 characters per field with live counter
+- **Info Icons**: Educational modals with comprehensive writing guidance
+- **Test Case Selector**: Inline collapsible section with 12 pre-configured scenarios
+- **Parameter Sliders**: 8 adjustable weights (0-100) with descriptions and methodology tips
+- **Professional Design**: GitHub-inspired neutral colors for test selector
 
-### Results Phase
+### Results Phase (ResultsView)
 
-- **Score Cards**: Overall score + 8 sub-scores with progress bars
-- **Radar Chart**: Multi-dimensional comparison (your idea vs. market)
-- **Database Evidence**:
-  - Match percentage (bold, emerald theme)
-  - AI-generated semantic summary as card title
-  - 4-line content preview with CSS clamping
-  - "View Full Context" modal for complete text
-- **Insights**: Strengths, gaps, and recommendations
+- **Executive Summary**:
+  - Overall circularity score with confidence badge
+  - Quick stats grid (score, cases analyzed, strengths, improvements)
+  - Light gray background with dark text for readability
+- **Radar Chart**: Interactive 8-dimensional performance visualization
+- **Score Breakdown**: 8 parameter cards with scores, descriptions, and improvement tips
+- **Enhanced Database Evidence Cards**:
+  - **Similarity Metrics**: Percentage badge + color-coded match strength label (Excellent/Strong/Good/Moderate)
+  - **Visual Progress Bar**: Animated similarity indicator with color matching
+  - 🎯 **Problem Addressed** section (~200 chars)
+  - 💡 **Solution Approach** section (~200 chars)
+  - **"View Full Details" Modal**: Complete context with:
+    - Similarity percentage and match strength in header
+    - Source case ID badge
+    - Full problem and solution text with section dividers
+- **Audit Analysis**: AI-generated insights with alignment, strengths, gaps, recommendations
+- **Methodology Section**: Transparent explanation of scoring approach and data sources
+
+---
+
+## 🧪 Test Cases
+
+The system includes **12 comprehensive test cases** covering diverse circular economy domains. These are located in `backend/data/test-cases.json` and can be loaded via the "Select Test Case" section in the input form.
+
+### Available Test Cases
+
+1. **Bio-Industrial Lubricants** - Transforming industrial waste into high-performance lubricants
+2. **Smart Bin Network** - Urban logistics optimization with IoT-enabled waste collection
+3. **Circuit-Harvest Robotics** - Automated e-waste recovery with AI-powered disassembly
+4. **Textile Regeneration** - Fashion industry circularity with fiber-to-fiber recycling
+5. **Anaerobic Digestion Hub** - Food waste to renewable energy conversion
+6. **Building Material Passport** - Construction material tracking and reuse platform
+7. **Ocean Plastic Intercept** - Marine waste recovery at river mouths
+8. **EV Battery Second-Life** - Energy storage systems from retired vehicle batteries
+9. **Agricultural Bioplastics** - Farm waste conversion to biodegradable packaging
+10. **Water Membrane Regeneration** - Industrial water treatment system with circular design
+11. **Coffee Waste Materials** - Hospitality waste utilization for consumer products
+12. **Tire Pyrolysis Plant** - Automotive waste processing into valuable materials
+
+Each test case includes:
+
+- Comprehensive problem description (200+ characters)
+- Detailed solution approach (200+ characters)
+- Pre-configured parameter weights optimized for that domain
+
+**Usage:**
+
+1. Expand "Select Test Case" below the Evaluate button
+2. Browse cases in grid layout
+3. Click "Load" to populate all fields
+4. Advanced parameters auto-expand with pre-set values
+5. Evaluate as-is or modify before submission
 
 ---
 
