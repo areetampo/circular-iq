@@ -1,3 +1,23 @@
+const WEIGHTS = {
+  public_participation: 0.15,
+  infrastructure: 0.15,
+  market_price: 0.20,
+  maintenance: 0.10,
+  uniqueness: 0.10,
+  size_efficiency: 0.10,
+  chemical_safety: 0.10,
+  tech_readiness: 0.10,
+};
+
+function validateWeights() {
+  const sum = Object.values(WEIGHTS).reduce((acc, w) => acc + w, 0);
+  if (Math.abs(sum - 1.0) > 0.0001) {
+    throw new Error(`Weight validation failed: sum = ${sum}, expected 1.0`);
+  }
+}
+
+validateWeights();
+
 export function calculateScores({
   public_participation,
   infrastructure,
@@ -8,7 +28,6 @@ export function calculateScores({
   chemical_safety,
   tech_readiness,
 }) {
-  // Ensure all values are numbers and within valid range (0-100)
   const values = {
     public_participation: Math.max(0, Math.min(100, Number(public_participation) || 0)),
     infrastructure: Math.max(0, Math.min(100, Number(infrastructure) || 0)),
@@ -20,20 +39,12 @@ export function calculateScores({
     tech_readiness: Math.max(0, Math.min(100, Number(tech_readiness) || 0)),
   };
 
-  // Calculate overall score with equal weighting for all 8 factors
-  const overall =
-    (values.public_participation +
-      values.infrastructure +
-      values.market_price +
-      values.maintenance +
-      values.uniqueness +
-      values.size_efficiency +
-      values.chemical_safety +
-      values.tech_readiness) /
-    8;
+  const overall_score = Object.keys(WEIGHTS).reduce((sum, key) => {
+    return sum + (values[key] * WEIGHTS[key]);
+  }, 0);
 
   return {
-    overall_score: Math.round(overall),
+    overall_score: Math.round(overall_score),
     sub_scores: {
       public_participation: values.public_participation,
       infrastructure: values.infrastructure,
