@@ -40,7 +40,8 @@ Technical specification created in `spec.md` with:
 
 ---
 
-### [ ] Step: CSV-Specific Chunking Implementation
+### [x] Step: CSV-Specific Chunking Implementation
+<!-- chat-id: ed4db566-e629-4d04-81eb-e6dc3fd1a102 -->
 
 **Objective**: Rewrite `backend/scripts/chunk.js` for semantic chunking
 
@@ -60,10 +61,10 @@ Technical specification created in `spec.md` with:
 - `backend/package.json` (add csv-parse dependency)
 
 **Verification**:
-- [ ] Run `node scripts/chunk.js`
-- [ ] Check output shows chunk count
-- [ ] Verify problem/solution pairs preserved
-- [ ] Confirm metadata extraction works
+- [x] Run `node scripts/chunk.js`
+- [x] Check output shows chunk count
+- [x] Verify problem/solution pairs preserved
+- [x] Confirm metadata extraction works
 
 ---
 
