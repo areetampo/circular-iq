@@ -5,7 +5,9 @@ create extension if not exists vector;
 create table documents (
   id bigserial primary key,
   content text,              -- The actual text chunk
-  embedding vector(1536)     -- The math representation (OpenAI size)
+  embedding vector(1536),    -- The math representation (OpenAI size)
+  metadata jsonb,            -- Metadata: category, materials, strategies, source_id, etc.
+  created_at timestamp default now()
 );
 
 -- 3. Create an index to make searches fast
@@ -21,6 +23,7 @@ create or replace function match_documents (
 returns table (
   id bigint,
   content text,
+  metadata jsonb,
   similarity float
 )
 language sql stable
@@ -28,6 +31,7 @@ as $$
   select
     id,
     content,
+    metadata,
     1 - (embedding <=> query_embedding) as similarity
   from documents
   order by embedding <=> query_embedding

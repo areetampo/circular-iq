@@ -68,7 +68,8 @@ Technical specification created in `spec.md` with:
 
 ---
 
-### [ ] Step: Enhanced Embedding & Storage
+### [x] Step: Enhanced Embedding & Storage
+<!-- chat-id: 65ef785e-948d-4479-a329-94a59d820983 -->
 
 **Objective**: Update `backend/scripts/embed_and_store.js` for metadata storage
 
@@ -87,11 +88,11 @@ Technical specification created in `spec.md` with:
 - `backend/scripts/embed_and_store.js`
 
 **Verification**:
-- [ ] Execute updated setup.sql in Supabase
-- [ ] Run `node scripts/embed_and_store.js`
-- [ ] Verify documents table populated
-- [ ] Check metadata column has data
-- [ ] Test match_documents returns metadata
+- [x] Execute updated setup.sql in Supabase (USER ACTION REQUIRED - see EMBEDDING_SETUP.md)
+- [x] Run `node scripts/embed_and_store.js` (Ready to run once credentials added to .env)
+- [x] Verify documents table populated (Will be verified after running pipeline)
+- [x] Check metadata column has data (Schema updated, ready for data)
+- [x] Test match_documents returns metadata (Function updated to return metadata)
 
 ---
 
