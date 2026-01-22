@@ -32,6 +32,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const PORT = process.env.PORT || 3001;
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -42,7 +43,13 @@ const PORT = process.env.PORT || 3001;
  * @private
  */
 function logRequest(method, path, status, duration) {
-  console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
+  if (!IS_PROD) {
+    console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
+  }
+}
+
+function debugLog(...args) {
+  if (!IS_PROD) console.log(...args);
 }
 
 /**
@@ -185,11 +192,11 @@ app.post('/score', async (req, res) => {
       }
     }
 
-    console.log(`[${requestId}] Starting score calculation...`);
+    debugLog(`[${requestId}] Starting score calculation...`);
 
     // ========== STEP 1: CALCULATE DETERMINISTIC SCORES ==========
     const scores = calculateScores(parameters);
-    console.log(`[${requestId}] Scores calculated: ${scores.overall_score}/100`);
+    debugLog(`[${requestId}] Scores calculated: ${scores.overall_score}/100`);
 
     // ========== STEP 2: VECTOR SEARCH FOR SIMILAR CASES ==========
     let similarCases = [];
@@ -197,7 +204,7 @@ app.post('/score', async (req, res) => {
       // Combine problem and solution for embedding
       const queryText = `Problem: ${businessProblem}\n\nSolution: ${businessSolution}`;
 
-      console.log(`[${requestId}] Generating query embedding...`);
+      debugLog(`[${requestId}] Generating query embedding...`);
       const embeddingRes = await openai.embeddings.create({
         model: 'text-embedding-3-small',
         input: queryText,
@@ -206,7 +213,7 @@ app.post('/score', async (req, res) => {
       const queryVector = embeddingRes.data[0].embedding;
 
       // Search database for similar documents
-      console.log(`[${requestId}] Searching database for similar cases...`);
+      debugLog(`[${requestId}] Searching database for similar cases...`);
       const { data: results, error: searchError } = await supabase.rpc('match_documents', {
         query_embedding: queryVector,
         match_count: 3,
@@ -217,9 +224,9 @@ app.post('/score', async (req, res) => {
         console.warn(`[${requestId}] Database search warning:`, searchError.message);
       } else if (results && results.length > 0) {
         similarCases = results;
-        console.log(`[${requestId}] Found ${results.length} similar cases`);
+        debugLog(`[${requestId}] Found ${results.length} similar cases`);
       } else {
-        console.log(`[${requestId}] No similar cases found in database`);
+        debugLog(`[${requestId}] No similar cases found in database`);
       }
     } catch (error) {
       console.error(`[${requestId}] Vector search error:`, error.message);
@@ -228,10 +235,10 @@ app.post('/score', async (req, res) => {
 
     // ========== STEP 3: IDENTIFY INTEGRITY GAPS ==========
     const integrityGaps = identifyIntegrityGaps(scores.sub_scores);
-    console.log(`[${requestId}] Identified ${integrityGaps.length} potential integrity gaps`);
+    debugLog(`[${requestId}] Identified ${integrityGaps.length} potential integrity gaps`);
 
     // ========== STEP 4: GENERATE AI-POWERED AUDIT ==========
-    console.log(`[${requestId}] Generating audit analysis...`);
+    debugLog(`[${requestId}] Generating audit analysis...`);
     const auditResult = await generateReasoning(
       businessProblem,
       businessSolution,

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import MetricInfoModal from '../components/MetricInfoModal';
 import InfoIconButton from '../components/InfoIconButton';
 import ParameterSliders from '../components/ParameterSliders';
+import AssessmentMethodologyModal from '../components/AssessmentMethodologyModal';
+import EvaluationCriteriaModal from '../components/EvaluationCriteriaModal';
 
 export default function LandingView({
   businessProblem,
@@ -19,6 +21,8 @@ export default function LandingView({
   testCaseSelector,
 }) {
   const [showInfoModal, setShowInfoModal] = useState(null);
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
+  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
 
   const handleParameterChange = (key, value) => {
     setParameters((prev) => ({
@@ -54,6 +58,26 @@ export default function LandingView({
           <p className="subtitle">
             Evaluate your business idea's circularity potential using AI-driven analysis
           </p>
+
+          {/* Info Buttons */}
+          <div
+            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}
+          >
+            <button
+              className="criteria-button"
+              onClick={() => setShowMethodologyModal(true)}
+              style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+            >
+              📊 View Assessment Methodology
+            </button>
+            <button
+              className="criteria-button"
+              onClick={() => setShowCriteriaModal(true)}
+              style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+            >
+              📋 View Evaluation Criteria
+            </button>
+          </div>
         </div>
 
         {/* Feature Cards */}
@@ -231,6 +255,14 @@ export default function LandingView({
       {showInfoModal && (
         <MetricInfoModal onClose={() => setShowInfoModal(null)} type={showInfoModal} />
       )}
+
+      {/* Assessment Methodology Modal */}
+      {showMethodologyModal && (
+        <AssessmentMethodologyModal onClose={() => setShowMethodologyModal(false)} />
+      )}
+
+      {/* Evaluation Criteria Modal */}
+      {showCriteriaModal && <EvaluationCriteriaModal onClose={() => setShowCriteriaModal(false)} />}
     </div>
   );
 }
