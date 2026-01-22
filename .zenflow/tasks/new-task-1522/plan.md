@@ -184,7 +184,8 @@ Technical specification created in `spec.md` with:
 
 ## Phase 3: Frontend Architecture
 
-### [ ] Step: Create Constants & Utilities
+### [x] Step: Create Constants & Utilities
+<!-- chat-id: 8e507d5a-a73b-4365-a09f-edad76e9b578 -->
 
 **Objective**: Set up shared data and helper functions
 
@@ -206,8 +207,8 @@ Technical specification created in `spec.md` with:
 - `frontend/src/utils/helpers.js`
 
 **Verification**:
-- [ ] Import constants in App.jsx without errors
-- [ ] Test helper functions with sample data
+- [x] Import constants in App.jsx without errors
+- [x] Test helper functions with sample data
 
 ---
 
