@@ -2,6 +2,8 @@ import { useState } from 'react';
 import RadarChartSection from '../components/RadarChartSection';
 import EvidenceCard from '../components/EvidenceCard';
 import ContextModal from '../components/ContextModal';
+import AssessmentMethodologyModal from '../components/AssessmentMethodologyModal';
+import EvaluationCriteriaModal from '../components/EvaluationCriteriaModal';
 import { validKeys, categoryMapping } from '../constants/evaluationData';
 import { categorizeIntegrityGaps } from '../utils/helpers';
 
@@ -11,9 +13,10 @@ export default function ResultsView({
   businessViabilityScore,
   getRatingBadge,
   onBack,
-  onViewCriteria,
 }) {
   const [contextModal, setContextModal] = useState(null);
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
+  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
 
   const overallScore = result?.overall_score != null ? Number(result.overall_score) : 0;
   const rating = getRatingBadge(overallScore);
@@ -45,6 +48,26 @@ export default function ResultsView({
           </div>
           <h1 className="main-title">Circularity Assessment Results</h1>
           <p className="subtitle">AI-powered evaluation of your business idea</p>
+
+          {/* Info Buttons */}
+          <div
+            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}
+          >
+            <button
+              className="criteria-button"
+              onClick={() => setShowMethodologyModal(true)}
+              style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+            >
+              📊 View Assessment Methodology
+            </button>
+            <button
+              className="criteria-button"
+              onClick={() => setShowCriteriaModal(true)}
+              style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+            >
+              📋 View Evaluation Criteria
+            </button>
+          </div>
         </div>
 
         {/* Executive Summary Card */}
@@ -477,136 +500,10 @@ export default function ResultsView({
           </div>
         )}
 
-        {/* Assessment Methodology Section */}
-        <div className="methodology-card">
-          <h2>Assessment Methodology</h2>
-          <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-            This evaluation uses a proprietary AI-powered framework combining vector similarity
-            search with GPT-4o-mini reasoning against a database of 1,299 verified circular economy
-            projects.
-          </p>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '1.25rem',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <div
-              style={{
-                background: '#f8f9fa',
-                padding: '1.25rem',
-                borderRadius: '10px',
-                borderLeft: '4px solid #4a90e2',
-              }}
-            >
-              <h4 style={{ margin: '0 0 0.75rem 0', color: '#2c3e50', fontSize: '1rem' }}>
-                🔍 Semantic Analysis
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>
-                Uses OpenAI text-embedding-3-small (1536 dimensions) to find the most relevant
-                projects matching your business model and problem space.
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: '#f8f9fa',
-                padding: '1.25rem',
-                borderRadius: '10px',
-                borderLeft: '4px solid #34a83a',
-              }}
-            >
-              <h4 style={{ margin: '0 0 0.75rem 0', color: '#2c3e50', fontSize: '1rem' }}>
-                🤖 AI Reasoning
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>
-                GPT-4o-mini analyzes your submission against {casesSummaries.length || 3} similar
-                cases with strict evidence-based reasoning and integrity checking.
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: '#f8f9fa',
-                padding: '1.25rem',
-                borderRadius: '10px',
-                borderLeft: '4px solid #ff9800',
-              }}
-            >
-              <h4 style={{ margin: '0 0 0.75rem 0', color: '#2c3e50', fontSize: '1rem' }}>
-                📊 Multi-Dimensional Scoring
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>
-                Evaluates across 8 weighted parameters covering material innovation, circularity
-                loops, market viability, and environmental impact.
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: '#f8f9fa',
-                padding: '1.25rem',
-                borderRadius: '10px',
-                borderLeft: '4px solid #9c27b0',
-              }}
-            >
-              <h4 style={{ margin: '0 0 0.75rem 0', color: '#2c3e50', fontSize: '1rem' }}>
-                ✓ Integrity Validation
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>
-                Cross-references your self-assessed scores against real-world benchmarks to identify
-                overestimations and provide honest feedback.
-              </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: '#e8f5e9',
-              padding: '1.25rem',
-              borderRadius: '10px',
-              border: '2px solid #34a83a',
-            }}
-          >
-            <h4 style={{ margin: '0 0 0.75rem 0', color: '#2d5f2e', fontSize: '1rem' }}>
-              📚 Data Source
-            </h4>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#2d5f2e', lineHeight: '1.6' }}>
-              <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection of
-              1,299 circular economy solutions spanning waste reduction, resource optimization,
-              renewable energy, sustainable materials, and regenerative agriculture across multiple
-              industries and geographic regions.
-            </p>
-          </div>
-
-          <div
-            style={{
-              marginTop: '1.5rem',
-              padding: '1rem',
-              background: '#fff3e0',
-              borderRadius: '8px',
-              borderLeft: '4px solid #ff9800',
-            }}
-          >
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#e65100', lineHeight: '1.6' }}>
-              <strong>⚠️ Disclaimer:</strong> This assessment is designed to provide constructive
-              feedback for early-stage ideation. Scores reflect alignment with established circular
-              economy principles and should be used as guidance, not as definitive validation of
-              commercial viability.
-            </p>
-          </div>
-        </div>
-
         {/* Footer Buttons */}
         <div className="results-footer">
           <button className="back-button" onClick={onBack}>
             ← Evaluate Another Idea
-          </button>
-          <button className="criteria-button" onClick={onViewCriteria}>
-            View Evaluation Criteria
           </button>
           <button className="download-button">Download Report</button>
         </div>
@@ -620,6 +517,14 @@ export default function ResultsView({
           title={contextModal.title}
         />
       )}
+
+      {/* Assessment Methodology Modal */}
+      {showMethodologyModal && (
+        <AssessmentMethodologyModal onClose={() => setShowMethodologyModal(false)} />
+      )}
+
+      {/* Evaluation Criteria Modal */}
+      {showCriteriaModal && <EvaluationCriteriaModal onClose={() => setShowCriteriaModal(false)} />}
     </div>
   );
 }

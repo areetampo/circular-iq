@@ -74,6 +74,12 @@ npm run embed      # Generates embeddings and stores in Supabase
 npm start          # http://localhost:3001
 ```
 
+# Create a .env file in frontend/ with:
+
+# VITE_API_URL=http://localhost:3001
+
+````
+
 ### 2. Frontend Setup
 
 ```bash
@@ -82,7 +88,7 @@ npm install
 
 # Start development server
 npm run dev        # http://localhost:5173
-```
+````
 
 ---
 
@@ -264,7 +270,7 @@ Navigate to `http://localhost:5173` in your browser.
   - Color-coded similarity metrics (80%+ Excellent, 65%+ Strong, 50%+ Good)
   - Visual progress bars showing match percentage
   - Problem Addressed and Solution Approach preview (~200 chars each)
-- Comprehensive methodology section explaining the scoring process
+- Comprehensive methodology and criteria available via modals on both the input and results pages (top buttons)
 
 6. **Explore Evidence**: Click "View Full Details" on any evidence card to see:
 
@@ -315,9 +321,9 @@ circular-economy-auditor/
 │   │   ├── App.jsx                # Main orchestration component
 │   │   ├── App.css                # Global styles
 │   │   ├── views/
-│   │   │   ├── LandingView.jsx    # Input form with problem/solution fields
-│   │   │   ├── ResultsView.jsx    # Results display with evidence cards
-│   │   │   └── EvaluationCriteriaView.jsx  # Parameter documentation
+│   │   │   ├── LandingView.jsx    # Input form with top buttons to open Methodology/Criteria modals
+│   │   │   ├── ResultsView.jsx    # Results display; same top buttons open Methodology/Criteria modals
+│   │   │   └── EvaluationCriteriaView.jsx  # (Referenced) documentation, now also available as a modal
 │   │   ├── components/
 │   │   │   ├── EvidenceCard.jsx   # Similar case display (problem + solution)
 │   │   │   ├── ContextModal.jsx   # Full case details modal
