@@ -110,6 +110,9 @@ export function createChunks(records) {
       continue;
     }
 
+    // Extract metadata for classification
+    const metadata = extractMetadata(problemText, solutionText, materials, category);
+
     // Create primary chunk: Problem + Solution (always together)
     const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
     const primaryChunk = {
@@ -121,6 +124,11 @@ export function createChunks(records) {
         category: category,
         chunk_type: 'primary',
         source_id: record['ID'] || `row_${i}`,
+        industry: metadata.industry,
+        scale: metadata.scale,
+        r_strategy: metadata.r_strategy,
+        primary_material: metadata.primary_material,
+        geographic_focus: metadata.geographic_focus,
         fields: {
           problem: problemText,
           solution: solutionText,
@@ -158,6 +166,11 @@ export function createChunks(records) {
               chunk_type: 'secondary',
               source_id: record['ID'] || `row_${i}`,
               parent_chunk: primaryChunk.id,
+              industry: metadata.industry,
+              scale: metadata.scale,
+              r_strategy: metadata.r_strategy,
+              primary_material: metadata.primary_material,
+              geographic_focus: metadata.geographic_focus,
               fields: {
                 problem: problemText,
                 solution: solutionText,
@@ -180,6 +193,11 @@ export function createChunks(records) {
             chunk_type: 'secondary',
             source_id: record['ID'] || `row_${i}`,
             parent_chunk: primaryChunk.id,
+            industry: metadata.industry,
+            scale: metadata.scale,
+            r_strategy: metadata.r_strategy,
+            primary_material: metadata.primary_material,
+            geographic_focus: metadata.geographic_focus,
             fields: {
               problem: problemText,
               solution: solutionText,
@@ -196,6 +214,108 @@ export function createChunks(records) {
 
   console.log(`✓ Created ${chunks.length} semantic chunks from ${records.length} records`);
   return chunks;
+}
+
+/**
+ * Extract metadata from problem/solution text
+ * Classifies industry, scale, strategy, and material focus
+ * @private
+ */
+function extractMetadata(problemText, solutionText, materials, category) {
+  const combinedText = `${problemText} ${solutionText} ${materials}`.toLowerCase();
+
+  // Industry classification
+  let industry = 'general';
+  const industries = {
+    agriculture: ['agriculture', 'farming', 'crop', 'pesticide', 'fertilizer', 'harvest', 'soil'],
+    textiles: ['textile', 'fabric', 'clothing', 'apparel', 'fashion', 'yarn', 'dye', 'garment'],
+    packaging: ['packaging', 'container', 'plastic bag', 'wrap', 'carton', 'box', 'foam'],
+    electronics: ['electronics', 'e-waste', 'circuit', 'semiconductor', 'device', 'battery'],
+    construction: ['construction', 'building', 'concrete', 'cement', 'demolition', 'brick'],
+    energy: ['energy', 'renewable', 'solar', 'wind', 'power', 'grid', 'efficiency'],
+    water: ['water', 'wastewater', 'sewage', 'treatment', 'desalination', 'pollution'],
+  };
+
+  for (const [ind, keywords] of Object.entries(industries)) {
+    if (keywords.some((kw) => combinedText.includes(kw))) {
+      industry = ind;
+      break;
+    }
+  }
+
+  // Scale classification
+  let scale = 'medium';
+  const scaleKeywords = {
+    micro: ['micro', 'small', 'startup', 'individual', 'artisan', 'local'],
+    small: ['small', 'sme', 'craft', 'shop', 'limited'],
+    medium: ['medium', 'mid-size', 'regional'],
+    large: ['large', 'enterprise', 'corporate', 'multinational', 'global'],
+  };
+
+  for (const [scaleLevel, keywords] of Object.entries(scaleKeywords)) {
+    if (keywords.some((kw) => combinedText.includes(kw))) {
+      scale = scaleLevel;
+      break;
+    }
+  }
+
+  // Circular strategy classification
+  let r_strategy = 'reduction';
+  const strategies = {
+    reduction: ['reduce', 'minimize', 'less', 'efficient', 'optimize'],
+    reuse: ['reuse', 'refurbish', 'recondition', 'second-hand', 'resale'],
+    recycling: ['recycle', 'recycling', 'recover', 'material recovery'],
+    regeneration: ['regenerate', 'restore', 'regenerative', 'natural'],
+  };
+
+  for (const [strat, keywords] of Object.entries(strategies)) {
+    if (keywords.some((kw) => combinedText.includes(kw))) {
+      r_strategy = strat;
+      break;
+    }
+  }
+
+  // Primary material focus
+  let primary_material = 'mixed';
+  const materialMap = {
+    plastic: ['plastic', 'polymer', 'pvc', 'polyethylene'],
+    metal: ['metal', 'aluminum', 'steel', 'copper', 'iron'],
+    textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool'],
+    organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
+    paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
+    glass: ['glass', 'ceramic', 'silica'],
+  };
+
+  for (const [material, keywords] of Object.entries(materialMap)) {
+    if (keywords.some((kw) => combinedText.includes(kw))) {
+      primary_material = material;
+      break;
+    }
+  }
+
+  // Geographic focus
+  let geographic_focus = 'global';
+  const geoKeywords = {
+    asia: ['asia', 'india', 'china', 'southeast asia', 'vietnam', 'philippines'],
+    africa: ['africa', 'kenya', 'south africa', 'uganda'],
+    europe: ['europe', 'uk', 'germany', 'france', 'eu'],
+    americas: ['america', 'usa', 'canada', 'latin america', 'brazil'],
+  };
+
+  for (const [geo, keywords] of Object.entries(geoKeywords)) {
+    if (keywords.some((kw) => combinedText.includes(kw))) {
+      geographic_focus = geo;
+      break;
+    }
+  }
+
+  return {
+    industry,
+    scale,
+    r_strategy,
+    primary_material,
+    geographic_focus,
+  };
 }
 
 /**

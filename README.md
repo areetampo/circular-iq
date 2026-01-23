@@ -20,9 +20,12 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 ✅ **Two-Field Input System** - Separate Problem (200+ chars) and Solution (200+ chars) descriptions
 ✅ **8 Evaluation Parameters** - Weighted scoring across circular economy dimensions
 ✅ **Evidence-Based Analysis** - Every finding cites database projects
+✅ **Gap Analysis & Benchmarking** - Real-time comparison vs. similar industry projects
+✅ **Project Classification** - AI-extracted metadata (industry, scale, strategy, materials)
+✅ **Industry-Filtered Search** - Semantic search preferred by classification category
+✅ **Multi-Format Reports** - Download results as CSV or PDF
 ✅ **Enhanced Evidence Cards** - Shows problem + solution with visual similarity indicators
-✅ **Smart Similarity Metrics** - Color-coded match strength (Excellent/Strong/Good/Moderate) with progress bars
-✅ **Comprehensive Details Modal** - Full context with similarity percentage, match strength, and source case ID
+✅ **Comprehensive Details Modal** - Full context with similarity percentage and source case ID
 ✅ **Emerald Theme** - Professional color scheme (#34a83a primary)
 
 ---
