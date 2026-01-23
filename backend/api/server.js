@@ -419,7 +419,203 @@ app.get('/docs/methodology', (req, res) => {
 });
 
 // ============================================
-// 404 HANDLER
+// ASSESSMENT HISTORY ENDPOINTS (Phase 2)
+// ============================================
+
+/**
+ * POST /assessments
+ * Save a completed assessment result for historical tracking
+ */
+app.post('/assessments', async (req, res) => {
+  const startTime = Date.now();
+  const requestId = Math.random().toString(36).substr(2, 9);
+
+  try {
+    const { title, businessProblem, businessSolution, result, userId } = req.body;
+
+    if (!title || !result || !result.overall_score) {
+      return res.status(400).json(
+        errorResponse({
+          message: 'title and result with overall_score are required',
+          code: 'MISSING_ASSESSMENT_DATA',
+        }),
+      );
+    }
+
+    const assessmentData = {
+      title: title.substring(0, 255),
+      user_id: userId || null,
+      business_problem: businessProblem || '',
+      business_solution: businessSolution || '',
+      result_json: result,
+      industry: result.metadata?.industry || 'general',
+      overall_score: Math.round(result.overall_score),
+      business_viability_score: result.sub_scores?.business_viability || 0,
+    };
+
+    const { data, error } = await supabase
+      .from('assessments')
+      .insert([assessmentData])
+      .select();
+
+    if (error) throw error;
+
+    debugLog(`[${requestId}] Assessment saved: ${data[0].id}`);
+    logRequest('POST', '/assessments', 201, Date.now() - startTime);
+
+    res.status(201).json({
+      id: data[0].id,
+      message: 'Assessment saved successfully',
+      assessment: data[0],
+    });
+  } catch (error) {
+    console.error(`[${requestId}] Assessment save error:`, error);
+    logRequest('POST', '/assessments', 500, Date.now() - startTime);
+    res.status(500).json(errorResponse(error, 'Failed to save assessment'));
+  }
+});
+
+/**
+ * GET /assessments
+ * Retrieve list of saved assessments with filtering and sorting
+ */
+app.get('/assessments', async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const { userId, industry, sortBy = 'created_at', order = 'desc', limit = 50 } = req.query;
+
+    let query = supabase.from('assessments').select('*');
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    if (industry) {
+      query = query.eq('industry', industry);
+    }
+
+    const { data, error, count } = await query
+      .order(sortBy, { ascending: order === 'asc' })
+      .limit(parseInt(limit));
+
+    if (error) throw error;
+
+    logRequest('GET', '/assessments', 200, Date.now() - startTime);
+
+    res.json({
+      assessments: data || [],
+      total: count || 0,
+      limit: parseInt(limit),
+    });
+  } catch (error) {
+    console.error('Error fetching assessments:', error);
+    logRequest('GET', '/assessments', 500, Date.now() - startTime);
+    res.status(500).json(errorResponse(error, 'Failed to fetch assessments'));
+  }
+});
+
+/**
+ * GET /assessments/:id
+ * Retrieve a single assessment by ID
+ */
+app.get('/assessments/:id', async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    if (!data) {
+      return res.status(404).json(
+        errorResponse({
+          message: 'Assessment not found',
+          code: 'NOT_FOUND',
+        }),
+      );
+    }
+
+    logRequest('GET', `/assessments/${id}`, 200, Date.now() - startTime);
+    res.json({ assessment: data });
+  } catch (error) {
+    console.error('Error fetching assessment:', error);
+    logRequest('GET', `/assessments/${id}`, 500, Date.now() - startTime);
+    res.status(500).json(errorResponse(error, 'Failed to fetch assessment'));
+  }
+});
+
+/**
+ * DELETE /assessments/:id
+ * Delete a saved assessment
+ */
+app.delete('/assessments/:id', async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase.from('assessments').delete().eq('id', id);
+
+    if (error) throw error;
+
+    logRequest('DELETE', `/assessments/${id}`, 200, Date.now() - startTime);
+    res.json({ message: 'Assessment deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting assessment:', error);
+    logRequest('DELETE', `/assessments/${id}`, 500, Date.now() - startTime);
+    res.status(500).json(errorResponse(error, 'Failed to delete assessment'));
+  }
+});
+
+/**
+ * GET /analytics/market
+ * Retrieve market analysis data (aggregate stats by industry/scale for competitive analysis)
+ */
+app.get('/analytics/market', async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+
+    if (marketError) {
+      console.warn('Market data query warning:', marketError.message);
+      // Return empty structure if function not available yet
+      return res.json({
+        market_data: [],
+        stats: null,
+      });
+    }
+
+    const { data: stats, error: statsError } = await supabase.rpc(
+      'get_assessment_statistics',
+    );
+
+    if (statsError) {
+      console.warn('Assessment statistics query warning:', statsError.message);
+    }
+
+    logRequest('GET', '/analytics/market', 200, Date.now() - startTime);
+
+    res.json({
+      market_data: marketData || [],
+      stats: stats?.[0] || null,
+    });
+  } catch (error) {
+    console.error('Error fetching market data:', error);
+    logRequest('GET', '/analytics/market', 500, Date.now() - startTime);
+    res.status(500).json(errorResponse(error, 'Failed to fetch market data'));
+  }
+});
+
+// ============================================
+// 404 HANDLER (must be after all routes)
 // ============================================
 
 app.use((req, res) => {
@@ -439,13 +635,18 @@ app.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║   Circular Economy Business Auditor API                    ║
-║   Server running on http://localhost:${PORT}                    ║
+║   Server running on http://localhost:${PORT}               ║
 ╚════════════════════════════════════════════════════════════╝
 
 Endpoints:
   GET  /health                    - Health check
   POST /score                     - Score and audit a business idea
   GET  /docs/methodology          - View methodology documentation
+  POST /assessments               - Save an assessment (Phase 2)
+  GET  /assessments               - List assessments (Phase 2)
+  GET  /assessments/:id           - Get assessment detail (Phase 2)
+  DELETE /assessments/:id         - Delete assessment (Phase 2)
+  GET  /analytics/market          - Market analysis (Phase 2)
 
 Environment:
   Node: ${process.version}

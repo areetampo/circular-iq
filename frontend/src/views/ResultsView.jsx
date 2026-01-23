@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import RadarChartSection from '../components/RadarChartSection';
 import EvidenceCard from '../components/EvidenceCard';
 import ContextModal from '../components/ContextModal';
@@ -12,17 +13,64 @@ export default function ResultsView({
   radarData,
   businessViabilityScore,
   getRatingBadge,
+  categoryMapping: passedCategoryMapping,
+  validKeys: passedValidKeys,
+  isDetailView,
   onBack,
+  onSaveAssessment,
+  onViewHistory,
+  onViewMarketAnalysis,
 }) {
+  const { id } = useParams();
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [detailData, setDetailData] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(isDetailView && id);
+
   const [contextModal, setContextModal] = useState(null);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
+  const [assessmentTitle, setAssessmentTitle] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-  const overallScore = result?.overall_score != null ? Number(result.overall_score) : 0;
+  // Load detail view if needed
+  useEffect(() => {
+    if (isDetailView && id) {
+      fetch(`${apiBase}/assessments/${id}`)
+        .then((r) => r.json())
+        .then((data) => {
+          setDetailData(data.assessment);
+          setDetailLoading(false);
+        })
+        .catch(() => setDetailLoading(false));
+    }
+  }, [id, isDetailView, apiBase]);
+
+  const currentData = isDetailView ? detailData : result;
+  const currentTitle = passedCategoryMapping || categoryMapping;
+  const currentValidKeys = passedValidKeys || validKeys;
+
+  if (detailLoading) {
+    return (
+      <div className="app-container">
+        <p>Loading assessment...</p>
+      </div>
+    );
+  }
+
+  if (isDetailView && !currentData) {
+    return (
+      <div className="app-container">
+        <p>Assessment not found</p>
+      </div>
+    );
+  }
+
+  const actualResult = currentData?.result_json || currentData;
+  const overallScore = actualResult?.overall_score != null ? Number(actualResult.overall_score) : 0;
   const rating = getRatingBadge(overallScore);
 
-  const { strengths, gaps } = categorizeIntegrityGaps(result.audit?.integrity_gaps);
-  const casesSummaries = result.audit?.similar_cases_summaries || [];
+  const { strengths, gaps } = categorizeIntegrityGaps(actualResult.audit?.integrity_gaps);
+  const casesSummaries = actualResult.audit?.similar_cases_summaries || [];
 
   const getConfidenceLevel = (score) => {
     if (!score) return 'low';
@@ -56,7 +104,7 @@ export default function ResultsView({
 
   const getFileNameBase = () => {
     return (
-      (result.metadata?.industry || 'circularity-report')
+      (actualResult.metadata?.industry || 'circularity-report')
         .toString()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -74,28 +122,28 @@ export default function ResultsView({
       ['SCORES'],
       ['Overall Score', overallScore],
       ['Business Viability', businessViabilityScore],
-      ...(result.sub_scores
-        ? Object.entries(result.sub_scores).map(([key, val]) => [key.replace(/_/g, ' '), val])
+      ...(actualResult.sub_scores
+        ? Object.entries(actualResult.sub_scores).map(([key, val]) => [key.replace(/_/g, ' '), val])
         : []),
       [],
       ['METADATA'],
-      ['Industry', result.metadata?.industry || 'N/A'],
-      ['Scale', result.metadata?.scale || 'N/A'],
-      ['Circular Strategy', result.metadata?.r_strategy || 'N/A'],
-      ['Material Focus', result.metadata?.primary_material || 'N/A'],
-      ['Geographic Focus', result.metadata?.geographic_focus || 'N/A'],
+      ['Industry', actualResult.metadata?.industry || 'N/A'],
+      ['Scale', actualResult.metadata?.scale || 'N/A'],
+      ['Circular Strategy', actualResult.metadata?.r_strategy || 'N/A'],
+      ['Material Focus', actualResult.metadata?.primary_material || 'N/A'],
+      ['Geographic Focus', actualResult.metadata?.geographic_focus || 'N/A'],
       [],
       ['BENCHMARKS'],
       ['Your Score', overallScore],
-      ['Similar Projects Average', result.gap_analysis?.overall_benchmarks?.average || 'N/A'],
-      ['Top 10% Threshold', result.gap_analysis?.overall_benchmarks?.top_10_percentile || 'N/A'],
-      ['Median', result.gap_analysis?.overall_benchmarks?.median || 'N/A'],
+      ['Similar Projects Average', actualResult.gap_analysis?.overall_benchmarks?.average || 'N/A'],
+      ['Top 10% Threshold', actualResult.gap_analysis?.overall_benchmarks?.top_10_percentile || 'N/A'],
+      ['Median', actualResult.gap_analysis?.overall_benchmarks?.median || 'N/A'],
       [],
       ['AUDIT VERDICT'],
-      [result.audit?.audit_verdict || 'No verdict available'],
+      [actualResult.audit?.audit_verdict || 'No verdict available'],
       [],
       ['RECOMMENDATIONS'],
-      ...(result.audit?.technical_recommendations || []).map((rec) => [rec]),
+      ...(actualResult.audit?.technical_recommendations || []).map((rec) => [rec]),
     ];
 
     const csvContent =
@@ -150,18 +198,18 @@ export default function ResultsView({
           <h2>Overall Score</h2>
           <div class="score-display">${overallScore}/100</div>
           <h2>Executive Summary</h2>
-          <div class="verdict"><p>${result.audit?.audit_verdict || 'No verdict available'}</p></div>
+          <div class="verdict"><p>${actualResult.audit?.audit_verdict || 'No verdict available'}</p></div>
           <h2>Project Classification</h2>
           <div class="metadata-grid">
-            <div class="metadata-item"><strong>Industry:</strong> ${titleize(result.metadata?.industry || 'N/A')}</div>
-            <div class="metadata-item"><strong>Scale:</strong> ${titleize(result.metadata?.scale || 'N/A')}</div>
-            <div class="metadata-item"><strong>Strategy:</strong> ${titleize(result.metadata?.r_strategy || 'N/A')}</div>
-            <div class="metadata-item"><strong>Material:</strong> ${titleize(result.metadata?.primary_material || 'N/A')}</div>
+            <div class="metadata-item"><strong>Industry:</strong> ${titleize(actualResult.metadata?.industry || 'N/A')}</div>
+            <div class="metadata-item"><strong>Scale:</strong> ${titleize(actualResult.metadata?.scale || 'N/A')}</div>
+            <div class="metadata-item"><strong>Strategy:</strong> ${titleize(actualResult.metadata?.r_strategy || 'N/A')}</div>
+            <div class="metadata-item"><strong>Material:</strong> ${titleize(actualResult.metadata?.primary_material || 'N/A')}</div>
           </div>
           <h2>Detailed Scores</h2>
           <table>
             <tr><th>Factor</th><th>Score</th></tr>
-            ${Object.entries(result.sub_scores || {})
+            ${Object.entries(actualResult.sub_scores || {})
               .map(([key, val]) => `<tr><td>${key.replace(/_/g, ' ')}</td><td>${val}</td></tr>`)
               .join('')}
             <tr><td><strong>Business Viability</strong></td><td><strong>${businessViabilityScore}</strong></td></tr>
@@ -221,17 +269,17 @@ export default function ResultsView({
           <div className="summary-header">
             <h2>Executive Summary</h2>
             <div
-              className={`confidence-badge confidence-${getConfidenceLevel(result.audit?.confidence_score)}`}
+              className={`confidence-badge confidence-${getConfidenceLevel(actualResult.audit?.confidence_score)}`}
             >
-              {result.audit?.confidence_score || 0}% Confidence
+              {actualResult.audit?.confidence_score || 0}% Confidence
             </div>
           </div>
-          {result.audit?.audit_verdict && (
-            <p className="verdict-text">{result.audit.audit_verdict}</p>
+          {actualResult.audit?.audit_verdict && (
+            <p className="verdict-text">{actualResult.audit.audit_verdict}</p>
           )}
-          {result.audit?.comparative_analysis && (
+          {actualResult.audit?.comparative_analysis && (
             <div className="key-finding">
-              <strong>Key Finding:</strong> {result.audit.comparative_analysis}
+              <strong>Key Finding:</strong> {actualResult.audit.comparative_analysis}
             </div>
           )}
 
@@ -336,15 +384,15 @@ export default function ResultsView({
         </div>
 
         {/* Audit Verdict */}
-        {result.audit?.audit_verdict && (
+        {actualResult.audit?.audit_verdict && (
           <div className="verdict-card prominent">
             <h2>Auditor's Verdict</h2>
-            <p className="verdict-text">{result.audit.audit_verdict}</p>
+            <p className="verdict-text">{actualResult.audit.audit_verdict}</p>
           </div>
         )}
 
         {/* Gap Analysis & Benchmarks Section */}
-        {result.gap_analysis?.has_benchmarks && (
+        {actualResult.gap_analysis?.has_benchmarks && (
           <div
             style={{
               background: '#f0f4f8',
@@ -371,7 +419,7 @@ export default function ResultsView({
                   Your Score
                 </div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#34a83a' }}>
-                  {result.overall_score}
+                  {actualResult.overall_score}
                 </div>
               </div>
               <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
@@ -379,7 +427,7 @@ export default function ResultsView({
                   Similar Projects Average
                 </div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4a90e2' }}>
-                  {Math.round(result.gap_analysis.overall_benchmarks.average)}
+                  {Math.round(actualResult.gap_analysis.overall_benchmarks.average)}
                 </div>
               </div>
               <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
@@ -387,7 +435,7 @@ export default function ResultsView({
                   Top 10% Threshold
                 </div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9c27b0' }}>
-                  {result.gap_analysis.overall_benchmarks.top_10_percentile}
+                  {actualResult.gap_analysis.overall_benchmarks.top_10_percentile}
                 </div>
               </div>
               <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
@@ -395,12 +443,12 @@ export default function ResultsView({
                   Median
                 </div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#26a69a' }}>
-                  {result.gap_analysis.overall_benchmarks.median}
+                  {actualResult.gap_analysis.overall_benchmarks.median}
                 </div>
               </div>
             </div>
 
-            {Object.keys(result.gap_analysis.sub_score_gaps).length > 0 && (
+            {Object.keys(actualResult.gap_analysis.sub_score_gaps).length > 0 && (
               <div>
                 <h3 style={{ margin: '1.5rem 0 1rem 0', color: '#2c3e50' }}>
                   Factor-by-Factor Analysis
@@ -412,7 +460,7 @@ export default function ResultsView({
                     gap: '1rem',
                   }}
                 >
-                  {Object.entries(result.gap_analysis.sub_score_gaps).map(([factor, gap]) => (
+                  {Object.entries(actualResult.gap_analysis.sub_score_gaps).map(([factor, gap]) => (
                     <div
                       key={factor}
                       style={{
@@ -473,7 +521,7 @@ export default function ResultsView({
         )}
 
         {/* Industry & Metadata Section */}
-        {result.metadata && (
+        {actualResult.metadata && (
           <div
             style={{
               background: '#e8f5e9',
@@ -512,7 +560,7 @@ export default function ResultsView({
                     fontWeight: 700,
                   }}
                 >
-                  {titleize(result.metadata.industry)}
+                  {titleize(actualResult.metadata.industry)}
                 </div>
                 <div
                   style={{
@@ -546,7 +594,7 @@ export default function ResultsView({
                     fontWeight: 700,
                   }}
                 >
-                  {titleize(result.metadata.scale)}
+                  {titleize(actualResult.metadata.scale)}
                 </div>
                 <div
                   style={{
@@ -580,7 +628,7 @@ export default function ResultsView({
                     fontWeight: 700,
                   }}
                 >
-                  {titleize(result.metadata.r_strategy)}
+                  {titleize(actualResult.metadata.r_strategy)}
                 </div>
                 <div
                   style={{
@@ -614,7 +662,7 @@ export default function ResultsView({
                     fontWeight: 700,
                   }}
                 >
-                  {titleize(result.metadata.primary_material)}
+                  {titleize(actualResult.metadata.primary_material)}
                 </div>
                 <div
                   style={{
@@ -648,7 +696,7 @@ export default function ResultsView({
                     fontWeight: 700,
                   }}
                 >
-                  {titleize(result.metadata.geographic_focus)}
+                  {titleize(actualResult.metadata.geographic_focus)}
                 </div>
                 <div
                   style={{
@@ -751,8 +799,8 @@ export default function ResultsView({
         <div className="category-card">
           <h2>Category Analysis</h2>
           {validKeys.map((key) => {
-            const value = result.sub_scores?.[key];
-            if (!(result.sub_scores && key in result.sub_scores)) return null;
+            const value = actualResult.sub_scores?.[key];
+            if (!(actualResult.sub_scores && key in actualResult.sub_scores)) return null;
 
             const category = categoryMapping[key];
             if (!category) return null;
@@ -803,38 +851,38 @@ export default function ResultsView({
         <RadarChartSection radarData={radarData} />
 
         {/* Comparative Metrics Dashboard */}
-        {result.audit?.key_metrics_comparison && (
+        {actualResult.audit?.key_metrics_comparison && (
           <div className="metrics-comparison-card">
             <h2>Key Metrics Comparison</h2>
             <p className="metrics-explanation">
               How your assessed metrics compare to similar projects in our database
             </p>
             <div className="comparison-grid">
-              {result.audit.key_metrics_comparison.market_readiness && (
+              {actualResult.audit.key_metrics_comparison.market_readiness && (
                 <div className="metric-card">
                   <h3>Market Readiness</h3>
                   <p className="metric-insight">
-                    {result.audit.key_metrics_comparison.market_readiness}
+                    {actualResult.audit.key_metrics_comparison.market_readiness}
                   </p>
-                  <div className="metric-score">{result.sub_scores?.tech_readiness || 0}/100</div>
+                  <div className="metric-score">{actualResult.sub_scores?.tech_readiness || 0}/100</div>
                 </div>
               )}
-              {result.audit.key_metrics_comparison.scalability && (
+              {actualResult.audit.key_metrics_comparison.scalability && (
                 <div className="metric-card">
                   <h3>Scalability</h3>
                   <p className="metric-insight">
-                    {result.audit.key_metrics_comparison.scalability}
+                    {actualResult.audit.key_metrics_comparison.scalability}
                   </p>
-                  <div className="metric-score">{result.sub_scores?.infrastructure || 0}/100</div>
+                  <div className="metric-score">{actualResult.sub_scores?.infrastructure || 0}/100</div>
                 </div>
               )}
-              {result.audit.key_metrics_comparison.economic_viability && (
+              {actualResult.audit.key_metrics_comparison.economic_viability && (
                 <div className="metric-card">
                   <h3>Economic Viability</h3>
                   <p className="metric-insight">
-                    {result.audit.key_metrics_comparison.economic_viability}
+                    {actualResult.audit.key_metrics_comparison.economic_viability}
                   </p>
-                  <div className="metric-score">{result.sub_scores?.market_price || 0}/100</div>
+                  <div className="metric-score">{actualResult.sub_scores?.market_price || 0}/100</div>
                 </div>
               )}
             </div>
@@ -920,8 +968,8 @@ export default function ResultsView({
               <h3>Recommendations</h3>
             </div>
             <ul className="insight-list">
-              {result.audit?.technical_recommendations?.length > 0 ? (
-                result.audit.technical_recommendations.map((rec, i) => <li key={i}>{rec}</li>)
+              {actualResult.audit?.technical_recommendations?.length > 0 ? (
+                actualResult.audit.technical_recommendations.map((rec, i) => <li key={i}>{rec}</li>)
               ) : (
                 <>
                   <li>Consider incorporating predictive maintenance strategies</li>
@@ -934,7 +982,7 @@ export default function ResultsView({
         </div>
 
         {/* Database Evidence Section */}
-        {result.similar_cases && result.similar_cases.length > 0 && (
+        {actualResult.similar_cases && actualResult.similar_cases.length > 0 && (
           <div className="database-evidence-card">
             <div className="evidence-header">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="evidence-icon">
@@ -952,7 +1000,7 @@ export default function ResultsView({
               </p>
             </div>
             <div className="evidence-cases">
-              {result.similar_cases.map((caseItem, index) => {
+              {actualResult.similar_cases.map((caseItem, index) => {
                 const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
                 return (
                   <EvidenceCard
@@ -970,9 +1018,17 @@ export default function ResultsView({
 
         {/* Footer Buttons */}
         <div className="results-footer">
-          <button className="back-button" onClick={onBack}>
-            ← Evaluate Another Idea
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <button className="back-button" onClick={onBack}>
+              ← Evaluate Another Idea
+            </button>
+            <button className="secondary-button" onClick={onViewHistory}>
+              📋 My Assessments
+            </button>
+            <button className="secondary-button" onClick={onViewMarketAnalysis}>
+              📊 Market Analysis
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button className="download-button" onClick={handleDownloadCSV}>
               📥 Download as CSV
@@ -980,8 +1036,64 @@ export default function ResultsView({
             <button className="download-button" onClick={handleDownloadPDF}>
               📄 Download as PDF
             </button>
+            <button className="save-button" onClick={() => setShowSaveDialog(true)}>
+              💾 Save Assessment
+            </button>
           </div>
         </div>
+
+        {/* Save Assessment Dialog */}
+        {showSaveDialog && (
+          <div className="modal-overlay">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h2>Save This Assessment</h2>
+                  <button className="modal-close" onClick={() => setShowSaveDialog(false)}>
+                    ×
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <label>
+                    <strong>Assessment Title:</strong>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Q1 2026 - Textile Recycling Initiative"
+                    value={assessmentTitle}
+                    onChange={(e) => setAssessmentTitle(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      marginBottom: '1rem',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                    }}
+                  />
+                </div>
+                <div className="modal-footer">
+                  <button className="modal-cancel-button" onClick={() => setShowSaveDialog(false)}>
+                    Cancel
+                  </button>
+                  <button
+                    className="modal-save-button"
+                    onClick={() => {
+                      if (assessmentTitle.trim()) {
+                        onSaveAssessment(assessmentTitle);
+                        setShowSaveDialog(false);
+                        setAssessmentTitle('');
+                      } else {
+                        alert('Please enter a title');
+                      }
+                    }}
+                  >
+                    Save Assessment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Context Modal */}

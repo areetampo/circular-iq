@@ -19,6 +19,7 @@ export default function LandingView({
   error,
   showInfoIcons,
   testCaseSelector,
+  onViewHistory,
 }) {
   const [showInfoModal, setShowInfoModal] = useState(null);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
@@ -61,7 +62,13 @@ export default function LandingView({
 
           {/* Info Buttons */}
           <div
-            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'center',
+              marginTop: '1.5rem',
+              flexWrap: 'wrap',
+            }}
           >
             <button
               className="criteria-button"
@@ -77,6 +84,15 @@ export default function LandingView({
             >
               📋 View Evaluation Criteria
             </button>
+            {onViewHistory && (
+              <button
+                className="secondary-button"
+                onClick={onViewHistory}
+                style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
+              >
+                📈 My Assessments
+              </button>
+            )}
           </div>
         </div>
 

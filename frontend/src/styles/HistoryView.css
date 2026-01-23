@@ -1,0 +1,247 @@
+/* HistoryView.css */
+
+.history-view {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.main-title {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0.5rem 0;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Controls */
+.history-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.control-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.control-group label {
+  font-weight: 600;
+  color: #2c3e50;
+  white-space: nowrap;
+}
+
+.control-group select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+}
+
+.compare-wrapper {
+  margin-left: auto;
+}
+
+.compare-button {
+  background: #34a83a;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.compare-button:hover:not(:disabled) {
+  background: #2a8a2f;
+  box-shadow: 0 2px 8px rgba(52, 168, 58, 0.3);
+}
+
+.compare-button:disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Stats Card */
+.stats-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #e3f2fd;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #34a83a;
+}
+
+/* Table */
+.assessments-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.loading,
+.error {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.error {
+  color: #dc3545;
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: #999;
+}
+
+.assessments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.assessments-table thead {
+  background: #f5f5f5;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.assessments-table th,
+.assessments-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.assessments-table th {
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.assessments-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.title-cell {
+  font-weight: 600;
+}
+
+.industry-cell .badge {
+  display: inline-block;
+  background: #e8f5e9;
+  color: #1b5e20;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.score-cell {
+  font-weight: bold;
+}
+
+.score-badge {
+  display: inline-block;
+  padding: 0.5rem;
+}
+
+.date-cell {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.view-btn {
+  background: #4a90e2;
+  color: white;
+}
+
+.view-btn:hover {
+  background: #357abd;
+}
+
+.delete-btn {
+  background: #f5f5f5;
+  color: #dc3545;
+  border: 1px solid #ddd;
+}
+
+.delete-btn:hover {
+  background: #ffe6e6;
+}
+
+/* Footer */
+.history-footer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2rem;
+}
+
+.back-button {
+  background: #f5f5f5;
+  color: #2c3e50;
+  border: 1px solid #ddd;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: #e8e8e8;
+}
