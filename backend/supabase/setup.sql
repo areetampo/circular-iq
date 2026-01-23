@@ -102,6 +102,7 @@ COMMENT ON FUNCTION match_documents IS 'Find most similar documents using cosine
 -- Drop existing functions if they exist
 DROP FUNCTION IF EXISTS search_documents_by_category(VECTOR, TEXT, INT) CASCADE;
 DROP FUNCTION IF EXISTS search_documents_hybrid(VECTOR, TEXT, INT, FLOAT) CASCADE;
+DROP FUNCTION IF EXISTS search_documents_by_industry(VECTOR, TEXT, INT, FLOAT) CASCADE;
 
 -- Search by category + similarity
 CREATE FUNCTION search_documents_by_category(
@@ -128,6 +129,39 @@ AS $$
   ORDER BY documents.embedding <=> query_embedding
   LIMIT match_count;
 $$;
+
+-- Search by industry + similarity (for benchmarking)
+CREATE FUNCTION search_documents_by_industry(
+  query_embedding VECTOR(1536),
+  industry_filter TEXT,
+  match_count INT DEFAULT 10,
+  similarity_threshold FLOAT DEFAULT 0.0
+)
+RETURNS TABLE (
+  id BIGINT,
+  content TEXT,
+  metadata JSONB,
+  industry TEXT,
+  similarity FLOAT
+)
+LANGUAGE SQL
+STABLE
+AS $$
+  SELECT
+    documents.id,
+    documents.content,
+    documents.metadata,
+    documents.metadata->>'industry' AS industry,
+    ROUND(CAST((1 - (documents.embedding <=> query_embedding)) AS NUMERIC), 4)::FLOAT AS similarity
+  FROM documents
+  WHERE
+    (documents.metadata->>'industry' = industry_filter OR industry_filter = 'all') AND
+    (1 - (documents.embedding <=> query_embedding)) >= similarity_threshold
+  ORDER BY documents.embedding <=> query_embedding
+  LIMIT match_count;
+$$;
+
+COMMENT ON FUNCTION search_documents_by_industry IS 'Find similar documents within a specific industry for benchmarking and comparison.';
 
 -- Hybrid search: vector similarity + keyword matching
 CREATE FUNCTION search_documents_hybrid(

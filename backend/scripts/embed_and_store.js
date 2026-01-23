@@ -125,6 +125,12 @@ export async function storeInSupabase(embeddedChunks) {
         source_id: chunk.metadata.source_id,
         fields: chunk.metadata.fields,
         word_count: chunk.word_count,
+        // Extracted metadata for filtering and benchmarking
+        industry: chunk.metadata.industry || 'general',
+        scale: chunk.metadata.scale || 'medium',
+        r_strategy: chunk.metadata.r_strategy || 'reduction',
+        primary_material: chunk.metadata.primary_material || 'mixed',
+        geographic_focus: chunk.metadata.geographic_focus || 'global',
       },
     }));
 

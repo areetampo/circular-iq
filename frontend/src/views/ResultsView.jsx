@@ -31,6 +31,152 @@ export default function ResultsView({
     return 'low';
   };
 
+  // Human-friendly helpers for metadata display
+  const titleize = (txt) =>
+    txt
+      ? String(txt)
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, (l) => l.toUpperCase())
+      : 'N/A';
+
+  const fieldHelp = {
+    industry: 'Sector we matched from your description',
+    scale: 'Maturity/footprint: prototype, pilot, regional, commercial, global',
+    r_strategy: 'Dominant circular economy strategy (e.g., Reduce, Reuse, Recycle)',
+    primary_material: 'Main material or waste stream this solution targets',
+    geographic_focus: 'Primary market or region you aim to serve',
+  };
+
+  const classificationItemStyle = {
+    background: '#fff',
+    padding: '1rem',
+    borderRadius: '8px',
+    border: '1px solid #c8e6c9',
+  };
+
+  const getFileNameBase = () => {
+    return (
+      (result.metadata?.industry || 'circularity-report')
+        .toString()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'circularity-report'
+    );
+  };
+
+  const handleDownloadCSV = () => {
+    if (!result) return alert('No result data available to download.');
+
+    const rows = [
+      ['Circularity Assessment Report'],
+      ['Generated', new Date().toISOString()],
+      [],
+      ['SCORES'],
+      ['Overall Score', overallScore],
+      ['Business Viability', businessViabilityScore],
+      ...(result.sub_scores
+        ? Object.entries(result.sub_scores).map(([key, val]) => [key.replace(/_/g, ' '), val])
+        : []),
+      [],
+      ['METADATA'],
+      ['Industry', result.metadata?.industry || 'N/A'],
+      ['Scale', result.metadata?.scale || 'N/A'],
+      ['Circular Strategy', result.metadata?.r_strategy || 'N/A'],
+      ['Material Focus', result.metadata?.primary_material || 'N/A'],
+      ['Geographic Focus', result.metadata?.geographic_focus || 'N/A'],
+      [],
+      ['BENCHMARKS'],
+      ['Your Score', overallScore],
+      ['Similar Projects Average', result.gap_analysis?.overall_benchmarks?.average || 'N/A'],
+      ['Top 10% Threshold', result.gap_analysis?.overall_benchmarks?.top_10_percentile || 'N/A'],
+      ['Median', result.gap_analysis?.overall_benchmarks?.median || 'N/A'],
+      [],
+      ['AUDIT VERDICT'],
+      [result.audit?.audit_verdict || 'No verdict available'],
+      [],
+      ['RECOMMENDATIONS'],
+      ...(result.audit?.technical_recommendations || []).map((rec) => [rec]),
+    ];
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      rows
+        .map((row) =>
+          row
+            .map((cell) =>
+              typeof cell === 'string' && cell.includes(',')
+                ? `"${cell.replace(/"/g, '""')}"`
+                : cell,
+            )
+            .join(','),
+        )
+        .join('\n');
+
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', `${getFileNameBase()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadPDF = () => {
+    if (!result) return alert('No result data available to download.');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Circularity Assessment Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
+            h1 { color: #34a83a; border-bottom: 3px solid #34a83a; padding-bottom: 10px; }
+            h2 { color: #2c3e50; margin-top: 30px; border-left: 4px solid #34a83a; padding-left: 10px; }
+            .score-display { font-size: 28px; font-weight: bold; color: #34a83a; margin: 20px 0; }
+            .metadata-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+            .metadata-item { border: 1px solid #e0e0e0; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
+            .metadata-item strong { color: #1b5e20; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            th { background-color: #34a83a; color: white; font-weight: bold; }
+            .verdict { background-color: #e8f5e9; border-left: 4px solid #34a83a; padding: 15px; margin: 20px 0; border-radius: 4px; }
+            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #999; }
+          </style>
+        </head>
+        <body>
+          <h1>Circularity Assessment Report</h1>
+          <p>Generated: ${new Date().toLocaleString()}</p>
+          <h2>Overall Score</h2>
+          <div class="score-display">${overallScore}/100</div>
+          <h2>Executive Summary</h2>
+          <div class="verdict"><p>${result.audit?.audit_verdict || 'No verdict available'}</p></div>
+          <h2>Project Classification</h2>
+          <div class="metadata-grid">
+            <div class="metadata-item"><strong>Industry:</strong> ${titleize(result.metadata?.industry || 'N/A')}</div>
+            <div class="metadata-item"><strong>Scale:</strong> ${titleize(result.metadata?.scale || 'N/A')}</div>
+            <div class="metadata-item"><strong>Strategy:</strong> ${titleize(result.metadata?.r_strategy || 'N/A')}</div>
+            <div class="metadata-item"><strong>Material:</strong> ${titleize(result.metadata?.primary_material || 'N/A')}</div>
+          </div>
+          <h2>Detailed Scores</h2>
+          <table>
+            <tr><th>Factor</th><th>Score</th></tr>
+            ${Object.entries(result.sub_scores || {})
+              .map(([key, val]) => `<tr><td>${key.replace(/_/g, ' ')}</td><td>${val}</td></tr>`)
+              .join('')}
+            <tr><td><strong>Business Viability</strong></td><td><strong>${businessViabilityScore}</strong></td></tr>
+          </table>
+          <div class="footer"><p>Report generated by Circular Economy Business Auditor</p></div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   return (
     <div className="app-container">
       <div className="results-view">
@@ -194,6 +340,328 @@ export default function ResultsView({
           <div className="verdict-card prominent">
             <h2>Auditor's Verdict</h2>
             <p className="verdict-text">{result.audit.audit_verdict}</p>
+          </div>
+        )}
+
+        {/* Gap Analysis & Benchmarks Section */}
+        {result.gap_analysis?.has_benchmarks && (
+          <div
+            style={{
+              background: '#f0f4f8',
+              padding: '2rem',
+              borderRadius: '12px',
+              marginBottom: '2rem',
+              border: '2px solid #4a90e2',
+            }}
+          >
+            <h2 style={{ margin: '0 0 1.5rem 0', color: '#2c3e50' }}>
+              📊 Your Performance vs. Similar Projects
+            </h2>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                  Your Score
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#34a83a' }}>
+                  {result.overall_score}
+                </div>
+              </div>
+              <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                  Similar Projects Average
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4a90e2' }}>
+                  {Math.round(result.gap_analysis.overall_benchmarks.average)}
+                </div>
+              </div>
+              <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                  Top 10% Threshold
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9c27b0' }}>
+                  {result.gap_analysis.overall_benchmarks.top_10_percentile}
+                </div>
+              </div>
+              <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
+                  Median
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#26a69a' }}>
+                  {result.gap_analysis.overall_benchmarks.median}
+                </div>
+              </div>
+            </div>
+
+            {Object.keys(result.gap_analysis.sub_score_gaps).length > 0 && (
+              <div>
+                <h3 style={{ margin: '1.5rem 0 1rem 0', color: '#2c3e50' }}>
+                  Factor-by-Factor Analysis
+                </h3>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gap: '1rem',
+                  }}
+                >
+                  {Object.entries(result.gap_analysis.sub_score_gaps).map(([factor, gap]) => (
+                    <div
+                      key={factor}
+                      style={{
+                        background: '#fff',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        borderLeft: gap.gap > 5 ? '4px solid #ff9800' : '4px solid #4caf50',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '0.9rem',
+                          fontWeight: 'bold',
+                          color: '#2c3e50',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        {factor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        <div>
+                          <span style={{ fontSize: '0.8rem', color: '#666' }}>Your Score:</span>
+                          <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#34a83a' }}>
+                            {gap.user_score}
+                          </div>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.8rem', color: '#666' }}>Benchmark:</span>
+                          <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#4a90e2' }}>
+                            {gap.benchmark_average}
+                          </div>
+                        </div>
+                      </div>
+                      {gap.gap > 0 ? (
+                        <div style={{ fontSize: '0.85rem', color: '#ff9800', fontWeight: 'bold' }}>
+                          ↑ Opportunity: +{gap.gap} points possible
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.85rem', color: '#4caf50', fontWeight: 'bold' }}>
+                          ✓ Above benchmark by {Math.abs(gap.gap)} points
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.8rem', color: '#999', marginTop: '0.5rem' }}>
+                        {gap.percentile}th percentile vs. similar projects
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Industry & Metadata Section */}
+        {result.metadata && (
+          <div
+            style={{
+              background: '#e8f5e9',
+              padding: '1.5rem',
+              borderRadius: '10px',
+              marginBottom: '2rem',
+              border: '2px solid #34a83a',
+            }}
+          >
+            <h3 style={{ margin: '0 0 1rem 0', color: '#2d5f2e' }}>📋 Project Classification</h3>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '1rem',
+              }}
+            >
+              <div style={classificationItemStyle}>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#2d5f2e',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                  }}
+                  title={fieldHelp.industry}
+                >
+                  Industry
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    color: '#1b5e20',
+                    marginTop: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {titleize(result.metadata.industry)}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#2d5f2e99',
+                    marginTop: '0.25rem',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {fieldHelp.industry}
+                </div>
+              </div>
+              <div style={classificationItemStyle}>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#2d5f2e',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                  }}
+                  title={fieldHelp.scale}
+                >
+                  Scale
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    color: '#1b5e20',
+                    marginTop: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {titleize(result.metadata.scale)}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#2d5f2e99',
+                    marginTop: '0.25rem',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {fieldHelp.scale}
+                </div>
+              </div>
+              <div style={classificationItemStyle}>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#2d5f2e',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                  }}
+                  title={fieldHelp.r_strategy}
+                >
+                  Circular Strategy
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    color: '#1b5e20',
+                    marginTop: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {titleize(result.metadata.r_strategy)}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#2d5f2e99',
+                    marginTop: '0.25rem',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {fieldHelp.r_strategy}
+                </div>
+              </div>
+              <div style={classificationItemStyle}>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#2d5f2e',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                  }}
+                  title={fieldHelp.primary_material}
+                >
+                  Material Focus
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    color: '#1b5e20',
+                    marginTop: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {titleize(result.metadata.primary_material)}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#2d5f2e99',
+                    marginTop: '0.25rem',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {fieldHelp.primary_material}
+                </div>
+              </div>
+              <div style={classificationItemStyle}>
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#2d5f2e',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                  }}
+                  title={fieldHelp.geographic_focus}
+                >
+                  Geographic Focus
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.2rem',
+                    color: '#1b5e20',
+                    marginTop: '0.25rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {titleize(result.metadata.geographic_focus)}
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#2d5f2e99',
+                    marginTop: '0.25rem',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {fieldHelp.geographic_focus}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -505,7 +973,14 @@ export default function ResultsView({
           <button className="back-button" onClick={onBack}>
             ← Evaluate Another Idea
           </button>
-          <button className="download-button">Download Report</button>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="download-button" onClick={handleDownloadCSV}>
+              📥 Download as CSV
+            </button>
+            <button className="download-button" onClick={handleDownloadPDF}>
+              📄 Download as PDF
+            </button>
+          </div>
         </div>
       </div>
 

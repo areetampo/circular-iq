@@ -18,7 +18,13 @@ import {
   identifyIntegrityGaps,
   generateScoreExplanations,
 } from '../src/scoring.js';
-import { generateReasoning, validateInput } from '../src/ask.js';
+import {
+  generateReasoning,
+  validateInput,
+  extractMetadata,
+  calculateGapAnalysis,
+  generateCompleteAudit,
+} from '../src/ask.js';
 
 const app = express();
 
@@ -199,6 +205,7 @@ app.post('/score', async (req, res) => {
     debugLog(`[${requestId}] Scores calculated: ${scores.overall_score}/100`);
 
     // ========== STEP 2: VECTOR SEARCH FOR SIMILAR CASES ==========
+    let metadata = null; // will populate and reuse in response
     let similarCases = [];
     try {
       // Combine problem and solution for embedding
@@ -212,13 +219,44 @@ app.post('/score', async (req, res) => {
 
       const queryVector = embeddingRes.data[0].embedding;
 
-      // Search database for similar documents
+      // Extract metadata to enable industry-filtered search
+      try {
+        debugLog(`[${requestId}] Extracting metadata (industry, scale, strategy)...`);
+        metadata = await extractMetadata(businessProblem, businessSolution);
+        debugLog(
+          `[${requestId}] Metadata extracted: ${metadata.industry}, ${metadata.scale}, ${metadata.r_strategy}`,
+        );
+      } catch (error) {
+        console.warn(`[${requestId}] Metadata extraction warning:`, error.message);
+        metadata = null;
+      }
+
+      // Prefer industry-filtered search when metadata is available
       debugLog(`[${requestId}] Searching database for similar cases...`);
-      const { data: results, error: searchError } = await supabase.rpc('match_documents', {
-        query_embedding: queryVector,
-        match_count: 3,
-        similarity_threshold: 0.0,
-      });
+      let results = null;
+      let searchError = null;
+      if (metadata?.industry) {
+        const industryFilter = metadata.industry || 'all';
+        const res = await supabase.rpc('search_documents_by_industry', {
+          query_embedding: queryVector,
+          industry_filter: industryFilter,
+          match_count: 3,
+          similarity_threshold: 0.0,
+        });
+        results = res.data;
+        searchError = res.error;
+      }
+
+      // Fallback to generic match if no results or no metadata
+      if (!results || results.length === 0) {
+        const res2 = await supabase.rpc('match_documents', {
+          query_embedding: queryVector,
+          match_count: 3,
+          similarity_threshold: 0.0,
+        });
+        if (!results) results = res2.data;
+        if (!searchError) searchError = res2.error;
+      }
 
       if (searchError) {
         console.warn(`[${requestId}] Database search warning:`, searchError.message);
@@ -232,6 +270,9 @@ app.post('/score', async (req, res) => {
       console.error(`[${requestId}] Vector search error:`, error.message);
       // Continue without database context - don't fail the request
     }
+
+    // ========== STEP 2B: EXTRACT METADATA ==========
+    // Metadata already extracted above; continue
 
     // ========== STEP 3: IDENTIFY INTEGRITY GAPS ==========
     const integrityGaps = identifyIntegrityGaps(scores.sub_scores);
@@ -254,7 +295,11 @@ app.post('/score', async (req, res) => {
       auditResult.integrity_gaps = integrityGaps;
     }
 
-    // ========== STEP 5: COMPILE FINAL RESPONSE ==========
+    // ========== STEP 5: CALCULATE GAP ANALYSIS ==========
+    debugLog(`[${requestId}] Calculating gap analysis and benchmarks...`);
+    const gapAnalysis = calculateGapAnalysis(scores, similarCases);
+
+    // ========== STEP 6: COMPILE FINAL RESPONSE ==========
     const response = {
       overall_score: scores.overall_score,
       confidence_level: scores.confidence_level,
@@ -262,6 +307,8 @@ app.post('/score', async (req, res) => {
       score_breakdown: scores.score_breakdown,
       audit: auditResult,
       similar_cases: similarCases,
+      metadata: metadata,
+      gap_analysis: gapAnalysis,
       processing_info: {
         request_id: requestId,
         processing_time_ms: Date.now() - startTime,
