@@ -1,0 +1,247 @@
+/* ComparisonView.css */
+
+.comparison-view {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.main-title {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0.5rem 0;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Comparison Header */
+.comparison-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.assessment-title {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #e3f2fd;
+}
+
+.assessment-title h2 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+
+.assessment-title p {
+  margin: 0;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.assessment-title.assessment1 {
+  border-color: #c8e6c9;
+}
+
+.assessment-title.assessment2 {
+  border-color: #bbdefb;
+}
+
+.comparison-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #999;
+  text-align: center;
+}
+
+/* Comparison Cards */
+.comparison-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.comparison-card h3 {
+  margin: 0 0 1.5rem 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  border-bottom: 2px solid #34a83a;
+  padding-bottom: 0.5rem;
+}
+
+/* Comparison Table */
+.comparison-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metric-row,
+.comparison-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 0.8fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.metric-label {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.metric-value {
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.metric-value.assessment1 {
+  background: #e8f5e9;
+  border-radius: 4px;
+}
+
+.metric-value.assessment2 {
+  background: #e3f2fd;
+  border-radius: 4px;
+}
+
+.metric-change {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Verdict Comparison */
+.verdict-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.verdict-box {
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+
+.verdict-box.assessment1 {
+  background: #e8f5e9;
+  border-color: #34a83a;
+}
+
+.verdict-box.assessment2 {
+  background: #e3f2fd;
+  border-color: #4a90e2;
+}
+
+.verdict-box h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.verdict-box p {
+  margin: 0;
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Insights */
+.comparison-card.insights {
+  background: #f0f4f8;
+  border: 2px solid #4a90e2;
+}
+
+.comparison-card.insights h3 {
+  color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.comparison-card.insights ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #555;
+}
+
+.comparison-card.insights li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.comparison-card.insights strong {
+  color: #2c3e50;
+}
+
+/* Footer */
+.comparison-footer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2rem;
+}
+
+.back-button {
+  background: #f5f5f5;
+  color: #2c3e50;
+  border: 1px solid #ddd;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: #e8e8e8;
+}
+
+/* Recharts Customization */
+.comparison-card .recharts-surface {
+  background: transparent !important;
+}
+
+.comparison-card .recharts-wrapper {
+  margin: 0 auto;
+}
+
+/* Legend styling */
+.recharts-legend-wrapper {
+  padding-top: 1rem !important;
+}
+
+@media (max-width: 768px) {
+  .comparison-header {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-title {
+    display: none;
+  }
+
+  .metric-row,
+  .comparison-row {
+    grid-template-columns: 1fr;
+  }
+
+  .verdict-comparison {
+    grid-template-columns: 1fr;
+  }
+}

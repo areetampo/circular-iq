@@ -28,6 +28,13 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 ✅ **Comprehensive Details Modal** - Full context with similarity percentage and source case ID
 ✅ **Emerald Theme** - Professional color scheme (#34a83a primary)
 
+**Phase 2 - Portfolio & Comparison (NEW):**
+✅ **Assessment History** - Save and manage evaluation history with filtering/sorting
+✅ **Side-by-Side Comparison** - Compare 2 assessments with visual charts (bar, radar)
+✅ **Market Analytics** - Competitive benchmarking dashboard with scatter plots and trends
+✅ **Real URLs & Browser History** - Multi-page routing with React Router (not just UI toggling)
+✅ **Full CRUD Operations** - Create, read, update, delete assessments
+
 ---
 
 ## 🏗️ Technical Stack
@@ -35,9 +42,10 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 ### Frontend
 
 - **Framework**: React 18 + Vite
-- **Visualization**: Recharts (Radar charts for multi-dimensional analysis)
+- **Routing**: React Router v7 (full multi-page SPA with real URLs)
+- **Visualization**: Recharts (Radar, Bar, Scatter, Line charts)
 - **Styling**: Custom CSS with emerald (#34a83a) theme
-- **State Management**: React Hooks (useState)
+- **State Management**: React Hooks (useState, useNavigate, useParams)
 
 ### Backend
 
@@ -45,6 +53,7 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 - **AI Integration**: OpenAI GPT-4o-mini + text-embedding-3-small
 - **Vector Database**: Supabase (pgvector for semantic search)
 - **Data Processing**: Custom chunking and embedding pipeline
+- **Assessment System**: PostgreSQL via Supabase with Row-Level Security
 
 ### Dataset
 
@@ -203,12 +212,24 @@ EOF
 
 ### 3. Database Setup
 
-**Run Supabase SQL:**
+**Supabase Schema Initialization:**
 
-```sql
--- Execute backend/supabase/setup.sql in your Supabase SQL editor
--- This creates the documents table and match_documents function
-```
+The database has been split into phases for better organization:
+
+1. **Phase 1 - Initial Setup** (run once):
+
+   ```bash
+   # Execute backend/supabase/setup.sql in your Supabase SQL editor
+   # This creates: pgvector extension, documents table, search functions, RLS policies
+   ```
+
+2. **Phase 2 - Assessment System** (optional, for portfolio tracking):
+   ```bash
+   # Execute backend/supabase/migrations/001_assessments_system.sql
+   # This creates: assessments table, analytics functions, comparison features
+   ```
+
+📚 **See [backend/supabase/README.md](backend/supabase/README.md) for detailed migration guide**
 
 **Ingest Dataset:**
 

@@ -1,12 +1,17 @@
 /**
- * Supabase Schema Setup for Circular Economy Business Auditor
+ * Supabase Schema Setup - Phase 1 (Initial Setup)
+ *
+ * This file sets up the base infrastructure for the Circular Economy Business Auditor.
+ * RUN THIS ONCE during initial deployment.
  *
  * Creates:
  * - pgvector extension for semantic search
  * - documents table with embeddings and metadata
- * - Vector similarity search function (RPC)
+ * - Vector similarity search functions (RPC)
  * - Indexes for fast retrieval
  * - Helper functions for analysis
+ *
+ * After running this, proceed to migrations/ folder for additional features.
  */
 
 -- ============================================
@@ -290,7 +295,7 @@ CREATE POLICY documents_write_policy ON documents
   USING (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 
 -- ============================================
--- 9. Initial Data Validation Queries
+-- Verification Queries
 -- ============================================
 
 -- After running embed_and_store.js, verify data:
@@ -302,3 +307,5 @@ CREATE POLICY documents_write_policy ON documents
 --   (SELECT embedding FROM documents LIMIT 1),
 --   5
 -- ) WHERE similarity > 0.7;
+
+

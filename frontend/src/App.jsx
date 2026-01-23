@@ -1,37 +1,29 @@
 import { useState } from 'react';
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-} from 'recharts';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 
 // Import view components
 import LandingView from './views/LandingView';
 import ResultsView from './views/ResultsView';
 import EvaluationCriteriaView from './views/EvaluationCriteriaView';
+import HistoryView from './views/HistoryView';
+import ComparisonView from './views/ComparisonView';
+import MarketAnalysisView from './views/MarketAnalysisView';
 import TestCaseSelector from './components/TestCaseSelector';
 
-// View states
-const VIEWS = {
-  LANDING: 'landing',
-  RESULTS: 'results',
-  CRITERIA: 'criteria',
-};
-
 export default function App() {
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const navigate = useNavigate();
+
+  // Global state for evaluation workflow
   const [businessProblem, setBusinessProblem] = useState('');
   const [businessSolution, setBusinessSolution] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState(VIEWS.LANDING);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // 8 evaluation parameters - all initialized to 50
+  // 8 evaluation parameters
   const [parameters, setParameters] = useState({
     public_participation: 50,
     infrastructure: 50,
@@ -43,59 +35,6 @@ export default function App() {
     tech_readiness: 50,
   });
 
-  async function submit() {
-    if (!businessProblem.trim() || businessProblem.trim().length < 200) {
-      setError('Business Problem must be at least 200 characters.');
-      return;
-    }
-
-    if (!businessSolution.trim() || businessSolution.trim().length < 200) {
-      setError('Business Solution must be at least 200 characters.');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const res = await fetch(`${apiUrl}/score`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          businessProblem,
-          businessSolution,
-          parameters,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'API error');
-      }
-
-      const data = await res.json();
-
-      // Handle junk input case
-      if (data.audit?.is_junk_input) {
-        setError(
-          data.audit.audit_verdict ||
-            'Input was too vague to analyze. Please provide more details.',
-        );
-        setLoading(false);
-        return;
-      }
-
-      setResult(data);
-      setCurrentView(VIEWS.RESULTS);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Define the 8 valid keys
   const validKeys = [
     'public_participation',
     'infrastructure',
@@ -107,7 +46,6 @@ export default function App() {
     'tech_readiness',
   ];
 
-  // Map sub_scores to category names for display
   const categoryMapping = {
     public_participation: {
       name: 'Public Participation',
@@ -143,10 +81,59 @@ export default function App() {
     },
   };
 
-  // Calculate market average from similar_cases similarity scores
+  async function submit() {
+    if (!businessProblem.trim() || businessProblem.trim().length < 200) {
+      setError('Business Problem must be at least 200 characters.');
+      return;
+    }
+
+    if (!businessSolution.trim() || businessSolution.trim().length < 200) {
+      setError('Business Solution must be at least 200 characters.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessProblem,
+          businessSolution,
+          parameters,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'API error');
+      }
+
+      const data = await res.json();
+
+      if (data.audit?.is_junk_input) {
+        setError(
+          data.audit.audit_verdict ||
+            'Input was too vague to analyze. Please provide more details.',
+        );
+        setLoading(false);
+        return;
+      }
+
+      setResult(data);
+      navigate('/results');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const calculateMarketAvg = () => {
     if (!result?.similar_cases || result.similar_cases.length === 0) {
-      return 65; // Default fallback
+      return 65;
     }
     return (
       result.similar_cases.reduce((acc, curr) => acc + (curr.similarity || 0) * 100, 0) /
@@ -156,14 +143,11 @@ export default function App() {
 
   const marketAvg = calculateMarketAvg();
 
-  // Prepare radar chart data using sub_scores from response
-  // Ensure we only use the 8 valid keys and handle null values
   const radarData = result?.sub_scores
     ? validKeys
         .filter((key) => key in (result.sub_scores || {}))
         .map((key) => {
           const value = result.sub_scores[key];
-          // Handle null, undefined, or invalid values - default to 0
           const numValue = value != null && !isNaN(value) ? Number(value) : 0;
           return {
             subject: categoryMapping[key]?.name || key.replace(/_/g, ' '),
@@ -173,7 +157,6 @@ export default function App() {
         })
     : [];
 
-  // Calculate business viability score (derived from overall score and confidence)
   const businessViabilityScore = result
     ? Math.round(
         result.overall_score * 0.7 +
@@ -184,7 +167,6 @@ export default function App() {
       )
     : 0;
 
-  // Get rating badge text
   const getRatingBadge = (score) => {
     if (score >= 90) return 'Excellent';
     if (score >= 75) return 'Very Good';
@@ -193,54 +175,131 @@ export default function App() {
     return 'Needs Improvement';
   };
 
-  // Render based on current view
-  if (currentView === VIEWS.CRITERIA) {
-    return <EvaluationCriteriaView onBack={() => setCurrentView(VIEWS.RESULTS)} />;
-  }
+  const handleClear = () => {
+    setBusinessProblem('');
+    setBusinessSolution('');
+    setResult(null);
+    setError(null);
+    setShowAdvanced(false);
+    setParameters({
+      public_participation: 50,
+      infrastructure: 50,
+      market_price: 50,
+      maintenance: 50,
+      uniqueness: 50,
+      size_efficiency: 50,
+      chemical_safety: 50,
+      tech_readiness: 50,
+    });
+  };
 
-  if (currentView === VIEWS.RESULTS && result) {
-    return (
-      <ResultsView
-        result={result}
-        radarData={radarData}
-        categoryMapping={categoryMapping}
-        validKeys={validKeys}
-        businessViabilityScore={businessViabilityScore}
-        getRatingBadge={getRatingBadge}
-        onBack={() => {
-          setCurrentView(VIEWS.LANDING);
-          setResult(null);
-          setBusinessProblem('');
-          setBusinessSolution('');
-        }}
-      />
-    );
-  }
+  const handleSaveAssessment = async (title) => {
+    if (!result) {
+      setError('No evaluation result to save');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/assessments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          businessProblem,
+          businessSolution,
+          result,
+          userId: null,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to save assessment');
+
+      navigate('/assessments');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
-    <LandingView
-      businessProblem={businessProblem}
-      setBusinessProblem={setBusinessProblem}
-      businessSolution={businessSolution}
-      setBusinessSolution={setBusinessSolution}
-      parameters={parameters}
-      setParameters={setParameters}
-      showAdvanced={showAdvanced}
-      setShowAdvanced={setShowAdvanced}
-      onSubmit={submit}
-      loading={loading}
-      error={error}
-      showInfoIcons={!result}
-      testCaseSelector={
-        <TestCaseSelector
-          onSelectTestCase={(testCaseData) => {
-            setBusinessProblem(testCaseData.businessProblem);
-            setBusinessSolution(testCaseData.businessSolution);
-            setParameters(testCaseData.parameters);
-            setShowAdvanced(true); // Auto-expand advanced parameters
-          }}
-        />
-      }
-    />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <LandingView
+            businessProblem={businessProblem}
+            setBusinessProblem={setBusinessProblem}
+            businessSolution={businessSolution}
+            setBusinessSolution={setBusinessSolution}
+            parameters={parameters}
+            setParameters={setParameters}
+            showAdvanced={showAdvanced}
+            setShowAdvanced={setShowAdvanced}
+            onSubmit={submit}
+            loading={loading}
+            error={error}
+            showInfoIcons={!result}
+            onViewHistory={() => navigate('/assessments')}
+            testCaseSelector={
+              <TestCaseSelector
+                onSelectTestCase={(testCaseData) => {
+                  setBusinessProblem(testCaseData.businessProblem);
+                  setBusinessSolution(testCaseData.businessSolution);
+                  setParameters(testCaseData.parameters);
+                  setShowAdvanced(true);
+                }}
+              />
+            }
+          />
+        }
+      />
+      <Route
+        path="/results"
+        element={
+          <ResultsView
+            result={result}
+            radarData={radarData}
+            categoryMapping={categoryMapping}
+            validKeys={validKeys}
+            businessViabilityScore={businessViabilityScore}
+            getRatingBadge={getRatingBadge}
+            onBack={() => {
+              handleClear();
+              navigate('/');
+            }}
+            onSaveAssessment={handleSaveAssessment}
+            onViewHistory={() => navigate('/assessments')}
+            onViewMarketAnalysis={() => navigate('/market-analysis')}
+          />
+        }
+      />
+      <Route path="/criteria" element={<EvaluationCriteriaView onBack={() => navigate(-1)} />} />
+      <Route
+        path="/assessments"
+        element={
+          <HistoryView
+            onBack={() => navigate('/')}
+            onViewDetail={(id) => navigate(`/assessments/${id}`)}
+          />
+        }
+      />
+      <Route
+        path="/assessments/:id"
+        element={<ResultsView isDetailView={true} onBack={() => navigate('/assessments')} />}
+      />
+      <Route
+        path="/compare/:id1/:id2"
+        element={<ComparisonView onBack={() => navigate('/assessments')} />}
+      />
+      <Route
+        path="/market-analysis"
+        element={
+          <MarketAnalysisView
+            currentAssessmentScore={result?.overall_score}
+            currentIndustry={result?.metadata?.industry}
+            onBack={() => navigate(-1)}
+          />
+        }
+      />
+    </Routes>
   );
 }
