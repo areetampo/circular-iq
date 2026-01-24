@@ -35,7 +35,6 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
       setError(null);
     } catch (err) {
       setError('Failed to load market data');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -100,6 +99,67 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
           100,
       )
     : 0;
+
+  // Calculate additional insights
+  const generateMarketInsights = () => {
+    if (!stats || !marketData.length) return [];
+
+    const insights = [];
+
+    // If current score exists
+    if (currentAssessmentScore) {
+      const avgScore = stats.avg_score || 0;
+      const median = stats.median_score || 0;
+
+      if (currentAssessmentScore > avgScore + 10) {
+        insights.push({
+          icon: '🏆',
+          title: 'Top Performer',
+          description: `Your score (${currentAssessmentScore}) is significantly above average (${Math.round(avgScore)})`,
+        });
+      } else if (currentAssessmentScore > avgScore) {
+        insights.push({
+          icon: '📈',
+          title: 'Above Market',
+          description: `Your score exceeds the market average by ${currentAssessmentScore - Math.round(avgScore)} points`,
+        });
+      } else if (currentAssessmentScore < avgScore - 10) {
+        insights.push({
+          icon: '🎯',
+          title: 'Growth Opportunity',
+          description: `With focused improvements, you could match the average score of ${Math.round(avgScore)}`,
+        });
+      }
+    }
+
+    // Market concentration
+    const topIndustries = marketData.slice(0, 3);
+    if (topIndustries.length > 0) {
+      insights.push({
+        icon: '📊',
+        title: 'Market Leaders',
+        description: topIndustries
+          .map((ind) => `${ind.industry} (${Math.round(ind.avg_score)}/100)`)
+          .join(', '),
+      });
+    }
+
+    // Variability
+    if (stats.max_score && stats.min_score) {
+      const range = stats.max_score - stats.min_score;
+      if (range > 30) {
+        insights.push({
+          icon: '💡',
+          title: 'High Variability',
+          description: `Scores range from ${stats.min_score} to ${stats.max_score}, showing diverse maturity levels`,
+        });
+      }
+    }
+
+    return insights;
+  };
+
+  const marketInsights = generateMarketInsights();
 
   if (loading)
     return (
@@ -210,6 +270,22 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
                 <div className="stat-number">{stats.total_industries}</div>
                 <div className="stat-name">Industries Tracked</div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Market Insights */}
+        {marketInsights && marketInsights.length > 0 && (
+          <div className="insights-card">
+            <h2>📈 Key Market Insights</h2>
+            <div className="insights-grid">
+              {marketInsights.map((insight, idx) => (
+                <div key={idx} className="insight-box">
+                  <div className="insight-icon">{insight.icon}</div>
+                  <div className="insight-title">{insight.title}</div>
+                  <div className="insight-description">{insight.description}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}

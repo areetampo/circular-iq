@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/HistoryView.css';
+import { getSessionId } from '../utils/session';
+import { useToast } from '../hooks/useToast';
 
 export default function HistoryView({ onViewDetail }) {
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -11,6 +13,7 @@ export default function HistoryView({ onViewDetail }) {
   const [sortBy, setSortBy] = useState('created_at');
   const [filterIndustry, setFilterIndustry] = useState('all');
   const [error, setError] = useState(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchAssessments();
@@ -29,13 +32,14 @@ export default function HistoryView({ onViewDetail }) {
         queryParams.append('industry', filterIndustry);
       }
 
+      // Filter by sessionId to show only current session's assessments
+      queryParams.append('sessionId', getSessionId());
       const response = await fetch(`${apiBase}/assessments?${queryParams}`);
       const data = await response.json();
       setAssessments(data.assessments || []);
       setError(null);
     } catch (err) {
       setError('Failed to load assessments');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -54,8 +58,9 @@ export default function HistoryView({ onViewDetail }) {
       setAssessments(assessments.filter((a) => a.id !== id));
       selectedIds.delete(id);
       setSelectedIds(new Set(selectedIds));
+      addToast('Assessment deleted', 'success');
     } catch (err) {
-      alert('Failed to delete assessment');
+      addToast('Failed to delete assessment', 'error');
       console.error(err);
     }
   };
@@ -72,7 +77,7 @@ export default function HistoryView({ onViewDetail }) {
 
   const handleCompareSelected = () => {
     if (selectedIds.size !== 2) {
-      alert('Please select exactly 2 assessments to compare');
+      addToast('Select exactly 2 assessments to compare', 'warning');
       return;
     }
 
@@ -150,6 +155,23 @@ export default function HistoryView({ onViewDetail }) {
               Compare Selected ({selectedIds.size}/2)
             </button>
           </div>
+        </div>
+
+        {/* Quick Tip */}
+        <div
+          style={{
+            background: '#f5f9ff',
+            border: '2px dashed #4a90e2',
+            borderRadius: '12px',
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            fontSize: '0.95rem',
+            color: '#555',
+          }}
+        >
+          <strong style={{ color: '#1976d2' }}>💡 Tip:</strong> Select exactly 2 assessments and
+          click "Compare Selected" to see how your initiative evolved over time, or compare
+          different strategies side-by-side.
         </div>
 
         {/* Stats Card */}

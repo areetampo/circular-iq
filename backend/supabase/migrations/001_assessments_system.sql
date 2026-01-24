@@ -7,7 +7,7 @@
  * Creates:
  * - assessments table (portfolio storage)
  * - RPC functions: get_assessment_statistics(), get_market_data()
- * - RLS policies for multi-user support
+ * - RLS policies (public, session-based)
  * - Indexes for fast queries
  */
 
@@ -17,7 +17,7 @@
 
 CREATE TABLE IF NOT EXISTS assessments (
   id BIGSERIAL PRIMARY KEY,
-  user_id TEXT, -- Can be UUID or email for now
+  session_id TEXT, -- Per-session grouping (no auth)
   title TEXT NOT NULL,
   business_problem TEXT NOT NULL,
   business_solution TEXT NOT NULL,
@@ -36,7 +36,7 @@ COMMENT ON COLUMN assessments.result_json IS 'Full /score endpoint response (sco
 -- 2. Create Indexes for Fast Queries
 -- ============================================
 
-CREATE INDEX IF NOT EXISTS idx_assessments_user_id ON assessments(user_id);
+CREATE INDEX IF NOT EXISTS idx_assessments_session_id ON assessments(session_id);
 CREATE INDEX IF NOT EXISTS idx_assessments_industry ON assessments(industry);
 CREATE INDEX IF NOT EXISTS idx_assessments_overall_score ON assessments(overall_score);
 CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at DESC);
@@ -47,15 +47,18 @@ CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at 
 
 ALTER TABLE assessments ENABLE ROW LEVEL SECURITY;
 
--- Read policy: users can see their own assessments or public ones
-CREATE POLICY assessments_read_own ON assessments
-  FOR SELECT
-  USING (user_id IS NULL OR user_id = COALESCE(auth.uid()::TEXT, ''));
+-- Permissive policies: public access without auth
+DROP POLICY IF EXISTS assessments_read_own ON assessments;
+DROP POLICY IF EXISTS assessments_write_own ON assessments;
+DROP POLICY IF EXISTS assessments_select_all ON assessments;
+DROP POLICY IF EXISTS assessments_insert_all ON assessments;
+DROP POLICY IF EXISTS assessments_update_all ON assessments;
+DROP POLICY IF EXISTS assessments_delete_all ON assessments;
 
--- Write policy: users can create/update/delete their own assessments
-CREATE POLICY assessments_write_own ON assessments
-  FOR ALL
-  USING (user_id IS NULL OR user_id = COALESCE(auth.uid()::TEXT, ''));
+CREATE POLICY assessments_select_all ON assessments FOR SELECT USING (true);
+CREATE POLICY assessments_insert_all ON assessments FOR INSERT WITH CHECK (true);
+CREATE POLICY assessments_update_all ON assessments FOR UPDATE USING (true);
+CREATE POLICY assessments_delete_all ON assessments FOR DELETE USING (true);
 
 -- ============================================
 -- 4. Analytics Functions (Phase 2)

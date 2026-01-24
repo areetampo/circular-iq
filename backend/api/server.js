@@ -431,7 +431,7 @@ app.post('/assessments', async (req, res) => {
   const requestId = Math.random().toString(36).substr(2, 9);
 
   try {
-    const { title, businessProblem, businessSolution, result, userId } = req.body;
+    const { title, businessProblem, businessSolution, result, sessionId } = req.body;
 
     if (!title || !result || !result.overall_score) {
       return res.status(400).json(
@@ -444,7 +444,7 @@ app.post('/assessments', async (req, res) => {
 
     const assessmentData = {
       title: title.substring(0, 255),
-      user_id: userId || null,
+      session_id: sessionId || null,
       business_problem: businessProblem || '',
       business_solution: businessSolution || '',
       result_json: result,
@@ -453,10 +453,7 @@ app.post('/assessments', async (req, res) => {
       business_viability_score: result.sub_scores?.business_viability || 0,
     };
 
-    const { data, error } = await supabase
-      .from('assessments')
-      .insert([assessmentData])
-      .select();
+    const { data, error } = await supabase.from('assessments').insert([assessmentData]).select();
 
     if (error) throw error;
 
@@ -483,12 +480,12 @@ app.get('/assessments', async (req, res) => {
   const startTime = Date.now();
 
   try {
-    const { userId, industry, sortBy = 'created_at', order = 'desc', limit = 50 } = req.query;
+    const { sessionId, industry, sortBy = 'created_at', order = 'desc', limit = 50 } = req.query;
 
     let query = supabase.from('assessments').select('*');
 
-    if (userId) {
-      query = query.eq('user_id', userId);
+    if (sessionId) {
+      query = query.eq('session_id', sessionId);
     }
 
     if (industry) {
@@ -525,11 +522,7 @@ app.get('/assessments/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from('assessments')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('assessments').select('*').eq('id', id).single();
 
     if (error) throw error;
 
@@ -593,9 +586,7 @@ app.get('/analytics/market', async (req, res) => {
       });
     }
 
-    const { data: stats, error: statsError } = await supabase.rpc(
-      'get_assessment_statistics',
-    );
+    const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
 
     if (statsError) {
       console.warn('Assessment statistics query warning:', statsError.message);

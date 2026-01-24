@@ -253,7 +253,6 @@ export async function generateReasoning(
     // Validate and enhance the response
     return enhanceAnalysis(analysis, similarDocs, scores);
   } catch (error) {
-    console.error('Error generating reasoning:', error);
     throw new Error(`Failed to generate audit analysis: ${error.message}`);
   }
 }
