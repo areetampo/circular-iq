@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { React, useState } from 'react';
 import testCases from '../../../backend/data/test-cases.json';
+import TestCaseInfoModal from './TestCaseInfoModal';
+import InfoIconButton from './InfoIconButton';
 
 export default function TestCaseSelector({ onSelectTestCase }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [previewTestCase, setPreviewTestCase] = useState(null);
 
   const handleSelectCase = (testCase) => {
     setSelectedCase(testCase.id);
@@ -16,6 +20,14 @@ export default function TestCaseSelector({ onSelectTestCase }) {
 
   return (
     <div style={{ marginTop: '24px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <span style={{ fontSize: '13px', fontWeight: '600', color: '#555' }}>Test Cases</span>
+        <InfoIconButton
+          onClick={() => setShowInfoModal(true)}
+          title="Learn about test cases"
+          size={18}
+        />
+      </div>
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
@@ -87,8 +99,9 @@ export default function TestCaseSelector({ onSelectTestCase }) {
                   borderRadius: '8px',
                   border: selectedCase === testCase.id ? '2px solid #5a6c7d' : '1px solid #d0d7de',
                   background: selectedCase === testCase.id ? '#f0f3f6' : 'white',
-                  cursor: 'pointer',
                   transition: 'all 0.2s ease',
+                  position: 'relative',
+                  cursor: 'pointer',
                 }}
                 onMouseOver={(e) => {
                   if (selectedCase !== testCase.id) {
@@ -123,19 +136,27 @@ export default function TestCaseSelector({ onSelectTestCase }) {
                   >
                     {testCase.title}
                   </h4>
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      color: '#656d76',
-                      marginLeft: '8px',
-                      background: '#f0f3f6',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    #{index + 1}
-                  </span>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <InfoIconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewTestCase(testCase);
+                      }}
+                      title="Preview this test case"
+                    />
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        color: '#656d76',
+                        background: '#f0f3f6',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                      }}
+                    >
+                      #{index + 1}
+                    </span>
+                  </div>
                 </div>
                 <p
                   style={{
@@ -199,6 +220,11 @@ export default function TestCaseSelector({ onSelectTestCase }) {
             </p>
           </div>
         </div>
+      )}
+
+      {showInfoModal && <TestCaseInfoModal onClose={() => setShowInfoModal(false)} />}
+      {previewTestCase && (
+        <TestCaseInfoModal testCase={previewTestCase} onClose={() => setPreviewTestCase(null)} />
       )}
     </div>
   );

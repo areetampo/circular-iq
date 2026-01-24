@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import RadarChartSection from '../components/RadarChartSection';
 import EvidenceCard from '../components/EvidenceCard';
 import ContextModal from '../components/ContextModal';
 import AssessmentMethodologyModal from '../components/AssessmentMethodologyModal';
 import EvaluationCriteriaModal from '../components/EvaluationCriteriaModal';
+import TipCard from '../components/TipCard';
+import ExportButton from '../components/ExportButton';
 import { validKeys, categoryMapping } from '../constants/evaluationData';
 import { categorizeIntegrityGaps } from '../utils/helpers';
+import { exportSimilarCasesToCSV, exportAuditReportToPDF } from '../utils/exportSimple';
+import { useToast } from '../hooks/useToast';
+import { useExportState } from '../hooks/useExportState';
 
 export default function ResultsView({
   result,
@@ -23,14 +29,10 @@ export default function ResultsView({
 }) {
   const { id } = useParams();
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const { addToast } = useToast();
+  const { isExporting, executeExport } = useExportState();
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(isDetailView && id);
-
-  const [contextModal, setContextModal] = useState(null);
-  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
-  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
-  const [assessmentTitle, setAssessmentTitle] = useState('');
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   // Load detail view if needed
   useEffect(() => {
@@ -102,6 +104,23 @@ export default function ResultsView({
     border: '1px solid #c8e6c9',
   };
 
+  const subScoreEntries = Object.entries(actualResult?.sub_scores || {});
+  const topFactor =
+    subScoreEntries.length > 0
+      ? subScoreEntries.reduce((best, curr) => (curr[1] > best[1] ? curr : best))
+      : null;
+  const focusFactor =
+    subScoreEntries.length > 0
+      ? subScoreEntries.reduce((worst, curr) => (curr[1] < worst[1] ? curr : worst))
+      : null;
+  const avgFactorScore =
+    subScoreEntries.length > 0
+      ? Math.round(
+          subScoreEntries.reduce((sum, [, val]) => sum + (Number(val) || 0), 0) /
+            subScoreEntries.length,
+        )
+      : 0;
+
   const getFileNameBase = () => {
     return (
       (actualResult.metadata?.industry || 'circularity-report')
@@ -112,117 +131,30 @@ export default function ResultsView({
     );
   };
 
-  const handleDownloadCSV = () => {
-    if (!result) return alert('No result data available to download.');
+  const handleDownloadCSV = async () => {
+    const actualResult = currentData?.result_json || currentData;
+    if (!actualResult) {
+      addToast('No result data available to export', 'error');
+      return;
+    }
 
-    const rows = [
-      ['Circularity Assessment Report'],
-      ['Generated', new Date().toISOString()],
-      [],
-      ['SCORES'],
-      ['Overall Score', overallScore],
-      ['Business Viability', businessViabilityScore],
-      ...(actualResult.sub_scores
-        ? Object.entries(actualResult.sub_scores).map(([key, val]) => [key.replace(/_/g, ' '), val])
-        : []),
-      [],
-      ['METADATA'],
-      ['Industry', actualResult.metadata?.industry || 'N/A'],
-      ['Scale', actualResult.metadata?.scale || 'N/A'],
-      ['Circular Strategy', actualResult.metadata?.r_strategy || 'N/A'],
-      ['Material Focus', actualResult.metadata?.primary_material || 'N/A'],
-      ['Geographic Focus', actualResult.metadata?.geographic_focus || 'N/A'],
-      [],
-      ['BENCHMARKS'],
-      ['Your Score', overallScore],
-      ['Similar Projects Average', actualResult.gap_analysis?.overall_benchmarks?.average || 'N/A'],
-      ['Top 10% Threshold', actualResult.gap_analysis?.overall_benchmarks?.top_10_percentile || 'N/A'],
-      ['Median', actualResult.gap_analysis?.overall_benchmarks?.median || 'N/A'],
-      [],
-      ['AUDIT VERDICT'],
-      [actualResult.audit?.audit_verdict || 'No verdict available'],
-      [],
-      ['RECOMMENDATIONS'],
-      ...(actualResult.audit?.technical_recommendations || []).map((rec) => [rec]),
-    ];
-
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      rows
-        .map((row) =>
-          row
-            .map((cell) =>
-              typeof cell === 'string' && cell.includes(',')
-                ? `"${cell.replace(/"/g, '""')}"`
-                : cell,
-            )
-            .join(','),
-        )
-        .join('\n');
-
-    const link = document.createElement('a');
-    link.setAttribute('href', encodeURI(csvContent));
-    link.setAttribute('download', `${getFileNameBase()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    await executeExport(
+      () => exportSimilarCasesToCSV(casesSummaries, actualResult.similar_cases || [], actualResult),
+      'CSV',
+    );
   };
 
-  const handleDownloadPDF = () => {
-    if (!result) return alert('No result data available to download.');
+  const handleDownloadPDF = async () => {
+    const actualResult = currentData?.result_json || currentData;
+    if (!actualResult) {
+      addToast('No result data available to export', 'error');
+      return;
+    }
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Circularity Assessment Report</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-            h1 { color: #34a83a; border-bottom: 3px solid #34a83a; padding-bottom: 10px; }
-            h2 { color: #2c3e50; margin-top: 30px; border-left: 4px solid #34a83a; padding-left: 10px; }
-            .score-display { font-size: 28px; font-weight: bold; color: #34a83a; margin: 20px 0; }
-            .metadata-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
-            .metadata-item { border: 1px solid #e0e0e0; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
-            .metadata-item strong { color: #1b5e20; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-            th { background-color: #34a83a; color: white; font-weight: bold; }
-            .verdict { background-color: #e8f5e9; border-left: 4px solid #34a83a; padding: 15px; margin: 20px 0; border-radius: 4px; }
-            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #999; }
-          </style>
-        </head>
-        <body>
-          <h1>Circularity Assessment Report</h1>
-          <p>Generated: ${new Date().toLocaleString()}</p>
-          <h2>Overall Score</h2>
-          <div class="score-display">${overallScore}/100</div>
-          <h2>Executive Summary</h2>
-          <div class="verdict"><p>${actualResult.audit?.audit_verdict || 'No verdict available'}</p></div>
-          <h2>Project Classification</h2>
-          <div class="metadata-grid">
-            <div class="metadata-item"><strong>Industry:</strong> ${titleize(actualResult.metadata?.industry || 'N/A')}</div>
-            <div class="metadata-item"><strong>Scale:</strong> ${titleize(actualResult.metadata?.scale || 'N/A')}</div>
-            <div class="metadata-item"><strong>Strategy:</strong> ${titleize(actualResult.metadata?.r_strategy || 'N/A')}</div>
-            <div class="metadata-item"><strong>Material:</strong> ${titleize(actualResult.metadata?.primary_material || 'N/A')}</div>
-          </div>
-          <h2>Detailed Scores</h2>
-          <table>
-            <tr><th>Factor</th><th>Score</th></tr>
-            ${Object.entries(actualResult.sub_scores || {})
-              .map(([key, val]) => `<tr><td>${key.replace(/_/g, ' ')}</td><td>${val}</td></tr>`)
-              .join('')}
-            <tr><td><strong>Business Viability</strong></td><td><strong>${businessViabilityScore}</strong></td></tr>
-          </table>
-          <div class="footer"><p>Report generated by Circular Economy Business Auditor</p></div>
-        </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '', 'height=600,width=800');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.print();
+    await executeExport(
+      () => exportAuditReportToPDF(currentData, radarData, businessViabilityScore, getRatingBadge),
+      'PDF',
+    );
   };
 
   return (
@@ -380,6 +312,135 @@ export default function ResultsView({
                 {gaps.length || 0}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Score Highlights */}
+        <div
+          style={{
+            background: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+          }}
+        >
+          <h3 style={{ margin: '0 0 1rem 0', color: '#2c3e50' }}>Score Highlights</h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1rem',
+            }}
+          >
+            <div
+              style={{
+                background: '#e8f5e9',
+                border: '1px solid #c8e6c9',
+                borderRadius: '10px',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ fontSize: '0.85rem', color: '#2d5f2e', fontWeight: 700 }}>
+                Strongest Factor
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1b5e20' }}>
+                {topFactor ? titleize(topFactor[0]) : 'Not available'}
+              </div>
+              <div style={{ marginTop: '0.35rem', color: '#2d5f2e' }}>
+                {topFactor ? `${topFactor[1]}/100` : 'Awaiting data'}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: '#fff3e0',
+                border: '1px solid #ffe0b2',
+                borderRadius: '10px',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ fontSize: '0.85rem', color: '#e65100', fontWeight: 700 }}>
+                Focus Area
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#bf360c' }}>
+                {focusFactor ? titleize(focusFactor[0]) : 'Not available'}
+              </div>
+              <div style={{ marginTop: '0.35rem', color: '#bf360c' }}>
+                {focusFactor ? `${focusFactor[1]}/100` : 'Awaiting data'}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: '#e3f2fd',
+                border: '1px solid #bbdefb',
+                borderRadius: '10px',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ fontSize: '0.85rem', color: '#1565c0', fontWeight: 700 }}>
+                Average Factor Score
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0d47a1' }}>
+                {avgFactorScore || 'Not available'} / 100
+              </div>
+              <div style={{ marginTop: '0.35rem', color: '#0d47a1' }}>
+                Business Viability: {businessViabilityScore || 'N/A'} / 100
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Tips for New Users */}
+        <div
+          style={{
+            background: '#f5f9ff',
+            border: '2px dashed #4a90e2',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+          }}
+        >
+          <h3 style={{ margin: '0 0 1rem 0', color: '#1976d2' }}>💡 How to Use This Report</h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1.5rem',
+            }}
+          >
+            <TipCard
+              icon="📊"
+              title="Your Score"
+              description="The overall circularity rating out of 100. Compare this with similar projects to identify your competitive position."
+            />
+            <TipCard
+              icon="✅"
+              title="Strengths"
+              description="Areas where your initiative excels. Leverage these as competitive advantages and marketing points."
+            />
+            <TipCard
+              icon="⚡"
+              title="Focus Areas"
+              description="Priority improvements that could boost your score. Start with high-impact, low-effort changes first."
+            />
+            <TipCard
+              icon="📈"
+              title="Benchmarking"
+              description="See how you compare to similar projects. Use this to set realistic improvement targets."
+            />
+            <TipCard
+              icon="📥"
+              title="Export Options"
+              description="Save this assessment and download a PDF report to share with stakeholders or track changes over time."
+            />
+            <TipCard
+              icon="🔄"
+              title="Next Steps"
+              description="Address the identified improvement areas and reassess after implementing changes to track progress."
+            />
           </div>
         </div>
 
@@ -810,11 +871,14 @@ export default function ResultsView({
             return (
               <div key={key} className="category-item">
                 <div className="category-header">
-                  <div>
+                  <div title={`Click to learn more about ${category.name}`}>
                     <h3>{category.name}</h3>
                     <p>{category.desc}</p>
                   </div>
-                  <span className={`category-score ${numValue >= 75 ? 'high' : ''}`}>
+                  <span
+                    className={`category-score ${numValue >= 75 ? 'high' : ''}`}
+                    title={`Score: ${numValue}/100`}
+                  >
                     {numValue}
                   </span>
                 </div>
@@ -864,7 +928,9 @@ export default function ResultsView({
                   <p className="metric-insight">
                     {actualResult.audit.key_metrics_comparison.market_readiness}
                   </p>
-                  <div className="metric-score">{actualResult.sub_scores?.tech_readiness || 0}/100</div>
+                  <div className="metric-score">
+                    {actualResult.sub_scores?.tech_readiness || 0}/100
+                  </div>
                 </div>
               )}
               {actualResult.audit.key_metrics_comparison.scalability && (
@@ -873,7 +939,9 @@ export default function ResultsView({
                   <p className="metric-insight">
                     {actualResult.audit.key_metrics_comparison.scalability}
                   </p>
-                  <div className="metric-score">{actualResult.sub_scores?.infrastructure || 0}/100</div>
+                  <div className="metric-score">
+                    {actualResult.sub_scores?.infrastructure || 0}/100
+                  </div>
                 </div>
               )}
               {actualResult.audit.key_metrics_comparison.economic_viability && (
@@ -882,7 +950,9 @@ export default function ResultsView({
                   <p className="metric-insight">
                     {actualResult.audit.key_metrics_comparison.economic_viability}
                   </p>
-                  <div className="metric-score">{actualResult.sub_scores?.market_price || 0}/100</div>
+                  <div className="metric-score">
+                    {actualResult.sub_scores?.market_price || 0}/100
+                  </div>
                 </div>
               )}
             </div>
@@ -1029,14 +1099,26 @@ export default function ResultsView({
               📊 Market Analysis
             </button>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="download-button" onClick={handleDownloadCSV}>
-              📥 Download as CSV
-            </button>
-            <button className="download-button" onClick={handleDownloadPDF}>
-              📄 Download as PDF
-            </button>
-            <button className="save-button" onClick={() => setShowSaveDialog(true)}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <ExportButton
+              isLoading={isExporting}
+              icon="📥"
+              label="Similar Cases CSV"
+              loadingLabel="Exporting..."
+              onClick={handleDownloadCSV}
+            />
+            <ExportButton
+              isLoading={isExporting}
+              icon="📄"
+              label="Download as PDF"
+              loadingLabel="Generating..."
+              onClick={handleDownloadPDF}
+            />
+            <button
+              className="save-button"
+              onClick={() => setShowSaveDialog(true)}
+              disabled={isExporting}
+            >
               💾 Save Assessment
             </button>
           </div>
@@ -1083,7 +1165,7 @@ export default function ResultsView({
                         setShowSaveDialog(false);
                         setAssessmentTitle('');
                       } else {
-                        alert('Please enter a title');
+                        addToast('Please enter a title before saving', 'error');
                       }
                     }}
                   >
@@ -1115,3 +1197,32 @@ export default function ResultsView({
     </div>
   );
 }
+
+// PropTypes validation for component props
+ResultsView.propTypes = {
+  result: PropTypes.object,
+  radarData: PropTypes.array,
+  businessViabilityScore: PropTypes.number,
+  getRatingBadge: PropTypes.func,
+  categoryMapping: PropTypes.object,
+  validKeys: PropTypes.array,
+  isDetailView: PropTypes.bool,
+  onBack: PropTypes.func,
+  onSaveAssessment: PropTypes.func,
+  onViewHistory: PropTypes.func,
+  onViewMarketAnalysis: PropTypes.func,
+};
+
+ResultsView.defaultProps = {
+  result: null,
+  radarData: [],
+  businessViabilityScore: 0,
+  getRatingBadge: () => 'Unknown',
+  categoryMapping: {},
+  validKeys: [],
+  isDetailView: false,
+  onBack: () => {},
+  onSaveAssessment: () => {},
+  onViewHistory: () => {},
+  onViewMarketAnalysis: () => {},
+};

@@ -2,8 +2,9 @@
 
 .market-analysis-view {
   padding: 2rem 1rem;
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
+  background: #f8f9fa;
 }
 
 .header-section {
@@ -26,10 +27,11 @@
 
 /* Position Card */
 .position-card {
-  background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
-  padding: 2rem;
-  border-radius: 8px;
-  border: 2px solid #34a83a;
+  background: #ffffff;
+  padding: 1.75rem;
+  border-radius: 10px;
+  border: 1px solid #dfe7ef;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   margin-bottom: 2rem;
 }
 
@@ -80,9 +82,10 @@
 /* Stats Card */
 .stats-card {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 1.75rem;
+  border-radius: 10px;
   border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
 }
 
@@ -95,6 +98,54 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1rem;
+}
+
+/* Insights Card */
+.insights-card {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+  padding: 1.75rem;
+  border-radius: 10px;
+  border: 2px solid #ff9800;
+  box-shadow: 0 8px 24px rgba(255, 152, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.insights-card h2 {
+  margin: 0 0 1.5rem 0;
+  color: #ff6f00;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.insight-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.insight-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.insight-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.insight-description {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.5;
+}
 }
 
 .stat-box {
@@ -143,9 +194,10 @@
 /* Chart Card */
 .chart-card {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 1.75rem;
+  border-radius: 10px;
   border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
 }
 
@@ -202,9 +254,10 @@
 /* Benchmarks Table */
 .benchmarks-card {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 1.75rem;
+  border-radius: 10px;
   border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
   overflow-x: auto;
 }

@@ -82,17 +82,20 @@ cp .env.example .env
 npm run chunk      # Creates chunks.json
 npm run embed      # Generates embeddings and stores in Supabase
 
+```bash
 # Start API server
 npm start          # http://localhost:3001
 ```
 
-# Create a .env file in frontend/ with:
+### 2. Frontend Setup - Environment
 
-# VITE_API_URL=http://localhost:3001
+Create a `.env` file in `frontend/` with:
 
-````
+```env
+VITE_API_URL=http://localhost:3001
+```
 
-### 2. Frontend Setup
+### 3. Frontend Setup
 
 ```bash
 cd frontend
@@ -137,7 +140,7 @@ Our scoring framework evaluates business ideas across **three core value dimensi
 
 ## 🔄 System Architecture
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────────┐
 │                       USER INTERFACE (React)                    │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
@@ -296,13 +299,7 @@ Navigate to `http://localhost:5173` in your browser.
   - Problem Addressed and Solution Approach preview (~200 chars each)
 - Comprehensive methodology and criteria available via modals on both the input and results pages (top buttons)
 
-6. **Explore Evidence**: Click "View Full Details" on any evidence card to see:
-
-- Full problem and solution text with section dividers
-- Similarity percentage and match strength in header
-- Source case ID for reference
-
-### Key Features
+#### Feature Highlights
 
 - **📋 Two-Field Input System**: Separate problem and solution descriptions for clarity
 - **🧪 12 Test Cases**: Quick evaluation across diverse circular economy domains
@@ -361,10 +358,33 @@ circular-economy-auditor/
 │   │       └── helpers.js         # Utility functions
 │   └── package.json
 ├── README.md                      # This file
-├── ARCHITECTURE.md                # Detailed system design
-├── API_DOCUMENTATION.md           # Complete API reference
-└── DEVELOPER_ONBOARDING.md        # Onboarding guide
+├── PROJECT_MANIFEST.md            # Project metadata
+├── DOCUMENTATION_INDEX.md         # Documentation guide
+└── docs/                          # Full documentation
+    ├── INDEX.md                   # Documentation index
+    ├── architecture/              # System design & API docs
+    ├── guides/                    # Implementation guides
+    ├── phase1/                    # Phase 1 development
+    ├── phase2/                    # Phase 2 UX enhancements
+    └── phase3/                    # Phase 3 planning
 ```
+
+---
+
+## 📚 Documentation
+
+**New to the project?** Start here:
+
+- 📖 [docs/INDEX.md](docs/INDEX.md) - Full documentation index
+- 🚀 [docs/guides/QUICKSTART.md](docs/guides/QUICKSTART.md) - Quick start guide
+- 👥 [docs/guides/DEVELOPER_ONBOARDING.md](docs/guides/DEVELOPER_ONBOARDING.md) - Setup guide
+
+**Key References**:
+
+- 🏗️ [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) - System design
+- 📡 [docs/architecture/API_DOCUMENTATION.md](docs/architecture/API_DOCUMENTATION.md) - API reference
+- 🗄️ [docs/architecture/DATABASE_ARCHITECTURE.md](docs/architecture/DATABASE_ARCHITECTURE.md) - Database schema
+- ✅ [docs/guides/TESTING_GUIDE.md](docs/guides/TESTING_GUIDE.md) - Testing procedures
 
 ---
 
@@ -519,4 +539,4 @@ For issues, questions, or suggestions:
 
 ---
 
-**Built with ♻️ for a sustainable future**
+#### Built with ♻️ for a Sustainable Future

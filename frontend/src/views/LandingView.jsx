@@ -4,6 +4,7 @@ import InfoIconButton from '../components/InfoIconButton';
 import ParameterSliders from '../components/ParameterSliders';
 import AssessmentMethodologyModal from '../components/AssessmentMethodologyModal';
 import EvaluationCriteriaModal from '../components/EvaluationCriteriaModal';
+import { getCharacterCount } from '../utils/text';
 
 export default function LandingView({
   businessProblem,
@@ -177,8 +178,8 @@ export default function LandingView({
                 disabled={loading}
               />
               <div className="char-count">
-                {businessProblem.length}/200 minimum required
-                {businessProblem.length >= 200 && ' ✓'}
+                {getCharacterCount(businessProblem)}/200 minimum required
+                {getCharacterCount(businessProblem) >= 200 && ' ✓'}
               </div>
             </div>
 
@@ -206,8 +207,8 @@ export default function LandingView({
                 disabled={loading}
               />
               <div className="char-count">
-                {businessSolution.length}/200 minimum required
-                {businessSolution.length >= 200 && ' ✓'}
+                {getCharacterCount(businessSolution)}/200 minimum required
+                {getCharacterCount(businessSolution) >= 200 && ' ✓'}
               </div>
             </div>
           </div>
