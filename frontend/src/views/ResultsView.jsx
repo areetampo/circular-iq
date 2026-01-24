@@ -37,6 +37,7 @@ export default function ResultsView({
   const [contextModal, setContextModal] = useState(null);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
+  const [assessmentTitle, setAssessmentTitle] = useState('');
 
   // Load detail view if needed
   useEffect(() => {
@@ -1158,7 +1159,7 @@ export default function ResultsView({
 
         {/* Save Assessment Dialog */}
         {showSaveDialog && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" style={{ zIndex: 2000 }}>
             <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
@@ -1168,20 +1169,24 @@ export default function ResultsView({
                   </button>
                 </div>
                 <div className="modal-body">
-                  <label>
+                  <label htmlFor="assessment-title">
                     <strong>Assessment Title:</strong>
                   </label>
                   <input
+                    id="assessment-title"
                     type="text"
                     placeholder="e.g., Q1 2026 - Textile Recycling Initiative"
                     value={assessmentTitle}
                     onChange={(e) => setAssessmentTitle(e.target.value)}
+                    autoFocus
                     style={{
                       width: '100%',
                       padding: '0.75rem',
                       marginBottom: '1rem',
                       border: '1px solid #ddd',
                       borderRadius: '4px',
+                      fontSize: '1rem',
+                      cursor: 'text',
                     }}
                   />
                 </div>

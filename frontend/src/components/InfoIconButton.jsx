@@ -8,7 +8,7 @@ export default function InfoIconButton({ onClick, title, size = 20 }) {
         </svg>
       </button>
 
-      <style jsx>{`
+      <style jsx="true">{`
         .info-icon-btn {
           background: none;
           border: none;
