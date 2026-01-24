@@ -10,6 +10,7 @@ const HistoryView = lazy(() => import('./views/HistoryView'));
 const ComparisonView = lazy(() => import('./views/ComparisonView'));
 const MarketAnalysisView = lazy(() => import('./views/MarketAnalysisView'));
 import TestCaseSelector from './components/TestCaseSelector';
+import SessionRestorePrompt from './components/SessionRestorePrompt';
 import { getSessionId } from './utils/session';
 import { loadEvaluationState, saveEvaluationState, clearEvaluationState } from './utils/storage';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -28,6 +29,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+  const [savedSession, setSavedSession] = useState(null);
 
   // 8 evaluation parameters
   const [parameters, setParameters] = useState({
@@ -90,22 +93,33 @@ export default function App() {
   // Session continuity: restore saved evaluation on load
   useEffect(() => {
     const saved = loadEvaluationState();
+    // Show prompt if we have a saved session and no current result
     if (saved && !result) {
-      const confirmRestore = window.confirm('Restore your last evaluation session?');
-      if (confirmRestore) {
-        setBusinessProblem(saved.businessProblem || '');
-        setBusinessSolution(saved.businessSolution || '');
-        setParameters(saved.parameters || parameters);
-        if (saved.result) {
-          setResult(saved.result);
-          navigate('/results');
-        }
-      } else {
-        clearEvaluationState();
-      }
+      setSavedSession(saved);
+      setShowRestorePrompt(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRestoreSession = () => {
+    if (savedSession) {
+      setBusinessProblem(savedSession.businessProblem || '');
+      setBusinessSolution(savedSession.businessSolution || '');
+      setParameters(savedSession.parameters || parameters);
+      if (savedSession.result) {
+        setResult(savedSession.result);
+        navigate('/results');
+      }
+      setShowRestorePrompt(false);
+      setSavedSession(null);
+    }
+  };
+
+  const handleDismissRestore = () => {
+    clearEvaluationState();
+    setShowRestorePrompt(false);
+    setSavedSession(null);
+  };
 
   async function submit() {
     if (!businessProblem.trim() || businessProblem.trim().length < 200) {
@@ -360,6 +374,11 @@ export default function App() {
           />
         </Routes>
       </Suspense>
+
+      {/* Session Restore Prompt */}
+      {showRestorePrompt && (
+        <SessionRestorePrompt onRestore={handleRestoreSession} onDismiss={handleDismissRestore} />
+      )}
     </ErrorBoundary>
   );
 }

@@ -33,6 +33,10 @@ export default function ResultsView({
   const { isExporting, executeExport } = useExportState();
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(isDetailView && id);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [contextModal, setContextModal] = useState(null);
+  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
+  const [showCriteriaModal, setShowCriteriaModal] = useState(false);
 
   // Load detail view if needed
   useEffect(() => {
@@ -63,6 +67,34 @@ export default function ResultsView({
     return (
       <div className="app-container">
         <p>Assessment not found</p>
+      </div>
+    );
+  }
+
+  // If not in detail view and no result data, redirect to home
+  if (!isDetailView && !currentData) {
+    return (
+      <div className="app-container">
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <h2>No Assessment Data</h2>
+          <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+            Please complete an evaluation first.
+          </p>
+          <button
+            onClick={onBack}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: '#34a83a',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+            }}
+          >
+            ← Go to Evaluation
+          </button>
+        </div>
       </div>
     );
   }
