@@ -1352,6 +1352,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  pointer-events: auto;
 }
 
 .modal-dialog {
@@ -1361,6 +1362,9 @@
   max-width: 500px;
   width: 90%;
   animation: slideUp 0.3s ease-out;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1001;
 }
 
 @keyframes slideUp {
@@ -1428,6 +1432,10 @@
   border-radius: 4px;
   font-size: 1rem;
   box-sizing: border-box;
+  cursor: text;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .modal-body input:focus {
