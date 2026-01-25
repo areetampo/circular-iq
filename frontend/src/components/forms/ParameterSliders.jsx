@@ -26,7 +26,7 @@ export default function ParameterSliders({ parameters, onParameterChange, loadin
             return (
               <div key={key} className="parameter-item">
                 <div className="parameter-label-row">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="flex items-center gap-2">
                     <label htmlFor={key}>{parameterLabels[key].label}</label>
                     {onShowInfo && (
                       <InfoIconButton
