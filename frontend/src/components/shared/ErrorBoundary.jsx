@@ -20,9 +20,9 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="app-container" style={{ textAlign: 'center', padding: '2rem' }}>
+        <div className="app-container text-center p-8">
           <h1>Something went wrong</h1>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>{this.state.error?.message}</p>
+          <p className="text-gray-600 mb-4">{this.state.error?.message}</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
