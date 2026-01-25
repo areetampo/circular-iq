@@ -241,65 +241,59 @@ export default function HistoryView({ onViewDetail, onBack }) {
         {/* Controls */}
 
         {renderDeleteModal()}
-        <div className="history-controls">
-          <div className="control-group">
-            <label>Filter by Industry:</label>
-            <select
-              value={filterIndustry}
-              onChange={(e) => {
-                setFilterIndustry(e.target.value);
-                setPage(1);
-              }}
-            >
-              {getIndustries().map((ind) => (
-                <option key={ind} value={ind}>
-                  {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="control-group">
-            <label>Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="created_at">Latest</option>
-              <option value="overall_score">Highest Score</option>
-              <option value="title">Title (A-Z)</option>
-            </select>
-          </div>
-
-          <div className="control-group" style={{ minWidth: '220px' }}>
-            <label>Search:</label>
-            <input
-              type="search"
-              value={searchTerm}
-              placeholder="Search title or industry"
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button
-                className="action-btn"
-                style={{ marginTop: '0.5rem' }}
-                onClick={() => {
-                  setSearchTerm('');
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-slate-700 mb-2">
+                Filter by Industry:
+              </label>
+              <select
+                value={filterIndustry}
+                onChange={(e) => {
+                  setFilterIndustry(e.target.value);
                   setPage(1);
-                  fetchAssessments();
                 }}
+                className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
               >
-                Clear
-              </button>
-            )}
+                {getIndustries().map((ind) => (
+                  <option key={ind} value={ind}>
+                    {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-slate-700 mb-2">Sort by:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
+              >
+                <option value="created_at">Latest</option>
+                <option value="overall_score">Highest Score</option>
+                <option value="title">Title (A-Z)</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-slate-700 mb-2">Search:</label>
+              <input
+                type="search"
+                value={searchTerm}
+                placeholder="Search title or industry"
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
+              />
+            </div>
           </div>
 
-          <div className="control-group compare-wrapper">
+          <div className="flex gap-3 flex-wrap">
             <button
-              className="compare-button"
+              className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105"
               onClick={handleCompareSelected}
               disabled={selectedIds.size !== 2 || loading}
               title={
@@ -308,19 +302,17 @@ export default function HistoryView({ onViewDetail, onBack }) {
                   : 'Compare selected assessments'
               }
             >
-              Compare Selected ({selectedIds.size}/2)
+              🔄 Compare Selected ({selectedIds.size}/2)
             </button>
-          </div>
-
-          <div className="control-group" style={{ alignItems: 'flex-end' }}>
-            <button className="compare-button" onClick={fetchAssessments} disabled={loading}>
-              {loading ? 'Refreshing…' : 'Refresh'}
-            </button>
-          </div>
-
-          <div className="control-group" style={{ alignItems: 'flex-end' }}>
             <button
-              className="compare-button"
+              className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:scale-105"
+              onClick={fetchAssessments}
+              disabled={loading}
+            >
+              {loading ? '↻ Refreshing…' : '↻ Refresh'}
+            </button>
+            <button
+              className="px-5 py-2.5 bg-slate-500 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-md hover:shadow-lg hover:scale-105"
               onClick={() => {
                 setFilterIndustry('all');
                 setSortBy('created_at');
@@ -331,53 +323,52 @@ export default function HistoryView({ onViewDetail, onBack }) {
               }}
               disabled={loading}
             >
-              Clear Filters
+              ✖ Clear Filters
             </button>
           </div>
         </div>
 
         {/* Quick Tip */}
-        <div
-          style={{
-            background: '#f5f9ff',
-            border: '2px dashed #4a90e2',
-            borderRadius: '12px',
-            padding: '1rem',
-            marginBottom: '1.5rem',
-            fontSize: '0.95rem',
-            color: '#555',
-          }}
-        >
-          <strong style={{ color: '#1976d2' }}>💡 Tip:</strong> Select exactly 2 assessments and
-          click "Compare Selected" to see how your initiative evolved over time, or compare
-          different strategies side-by-side.
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5 mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">💡</span>
+            <div>
+              <span className="font-bold text-blue-800">Tip:</span>
+              <span className="text-slate-700 ml-2">
+                Select exactly 2 assessments and click "Compare Selected" to see how your initiative
+                evolved over time, or compare different strategies side-by-side.
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Stats Card */}
         {assessments.length > 0 && (
-          <div className="stats-card">
-            <div className="stat">
-              <div className="stat-label">Total Assessments</div>
-              <div className="stat-value">{assessments.length}</div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-6 text-center">
+              <div className="text-sm font-semibold text-emerald-700 mb-2">Total Assessments</div>
+              <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
             </div>
-            <div className="stat">
-              <div className="stat-label">Average Score</div>
-              <div className="stat-value">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 text-center">
+              <div className="text-sm font-semibold text-blue-700 mb-2">Average Score</div>
+              <div className="text-4xl font-bold text-blue-600">
                 {Math.round(
                   assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
                     assessments.length,
                 )}
               </div>
             </div>
-            <div className="stat">
-              <div className="stat-label">Highest Score</div>
-              <div className="stat-value">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 text-center">
+              <div className="text-sm font-semibold text-purple-700 mb-2">Highest Score</div>
+              <div className="text-4xl font-bold text-purple-600">
                 {Math.max(...assessments.map((a) => a.overall_score || 0))}
               </div>
             </div>
-            <div className="stat">
-              <div className="stat-label">Unique Industries</div>
-              <div className="stat-value">{new Set(assessments.map((a) => a.industry)).size}</div>
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-6 text-center">
+              <div className="text-sm font-semibold text-orange-700 mb-2">Unique Industries</div>
+              <div className="text-4xl font-bold text-orange-600">
+                {new Set(assessments.map((a) => a.industry)).size}
+              </div>
             </div>
           </div>
         )}
@@ -425,120 +416,143 @@ export default function HistoryView({ onViewDetail, onBack }) {
           )}
 
           {!loading && !error && filteredAssessments.length > 0 && (
-            <table className="assessments-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '40px' }}>
-                    <input
-                      type="checkbox"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedIds(new Set(assessments.map((a) => a.id)));
-                        } else {
-                          setSelectedIds(new Set());
-                        }
-                      }}
-                    />
-                  </th>
-                  <th>Title</th>
-                  <th>Industry</th>
-                  <th>Score</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAssessments.map((assessment) => (
-                  <tr key={assessment.id}>
-                    <td>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-slate-100 to-slate-200">
+                  <tr>
+                    <th className="px-4 py-4 text-left">
                       <input
                         type="checkbox"
-                        checked={selectedIds.has(assessment.id)}
-                        onChange={() => handleToggleSelect(assessment.id)}
+                        className="w-4 h-4 accent-emerald-600 cursor-pointer"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(new Set(assessments.map((a) => a.id)));
+                          } else {
+                            setSelectedIds(new Set());
+                          }
+                        }}
                       />
-                    </td>
-                    <td className="title-cell">
-                      <strong>{assessment.title || 'Untitled'}</strong>
-                    </td>
-                    <td className="industry-cell">
-                      <span className="badge">{assessment.industry || 'General'}</span>
-                    </td>
-                    <td className="score-cell">
-                      <div
-                        className="score-badge"
-                        style={{ color: getRatingColor(assessment.overall_score) }}
-                      >
-                        <strong>{assessment.overall_score}/100</strong>
-                      </div>
-                    </td>
-                    <td className="date-cell">
-                      {new Date(assessment.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="actions-cell">
-                      <button
-                        className="action-btn view-btn"
-                        onClick={() => handleViewDetail(assessment.id)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="action-btn delete-btn"
-                        onClick={() => handleDelete(assessment.id)}
-                        disabled={deletingIds.has(assessment.id)}
-                      >
-                        {deletingIds.has(assessment.id) ? 'Deleting…' : 'Delete'}
-                      </button>
-                    </td>
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">
+                      Title
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">
+                      Industry
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-700 uppercase tracking-wider">
+                      Score
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-700 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {filteredAssessments.map((assessment) => (
+                    <tr key={assessment.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 accent-emerald-600 cursor-pointer"
+                          checked={selectedIds.has(assessment.id)}
+                          onChange={() => handleToggleSelect(assessment.id)}
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-slate-800">
+                          {assessment.title || 'Untitled'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase">
+                          {assessment.industry || 'General'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div
+                          className={`inline-block px-4 py-2 rounded-lg font-bold text-lg ${
+                            assessment.overall_score >= 75
+                              ? 'bg-green-100 text-green-700'
+                              : assessment.overall_score >= 50
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {assessment.overall_score}/100
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 text-sm">
+                        {new Date(assessment.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-all hover:scale-105 shadow-md"
+                            onClick={() => handleViewDetail(assessment.id)}
+                          >
+                            View
+                          </button>
+                          <button
+                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-all hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleDelete(assessment.id)}
+                            disabled={deletingIds.has(assessment.id)}
+                          >
+                            {deletingIds.has(assessment.id) ? 'Deleting…' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* Pagination */}
           {!loading && !error && total > 0 && (
-            <div
-              className="pagination-controls"
-              style={{
-                marginTop: '1rem',
-                display: 'flex',
-                gap: '0.75rem',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-              }}
-            >
-              <span style={{ color: '#666' }}>
-                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total} ·
-                Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
-              </span>
-              <button
-                className="action-btn"
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page <= 1 || loading}
-              >
-                ← Prev
-              </button>
-              <button
-                className="action-btn"
-                onClick={() => setPage(page + 1)}
-                disabled={page * pageSize >= total || loading}
-              >
-                Next →
-              </button>
-              <label style={{ marginLeft: '0.5rem' }}>Per page:</label>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(1);
-                }}
-              >
-                {[10, 20, 50, 100].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
+            <div className="bg-white rounded-xl shadow-md p-5 mt-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="text-sm text-slate-600 font-medium">
+                  Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}{' '}
+                  · Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page <= 1 || loading}
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
+                    onClick={() => setPage(page + 1)}
+                    disabled={page * pageSize >= total || loading}
+                  >
+                    Next →
+                  </button>
+                  <div className="flex items-center gap-2 ml-2">
+                    <label className="text-sm font-semibold text-slate-700">Per page:</label>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(1);
+                      }}
+                      className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
+                    >
+                      {[10, 20, 50, 100].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

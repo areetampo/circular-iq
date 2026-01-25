@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import { React, useState, useEffect } from 'react';
 import testCases from '../../../../backend/data/test-cases.json';
 import TestCaseInfoModal from '../modals/TestCaseInfoModal';
 import InfoIconButton from './InfoIconButton';
@@ -8,6 +8,16 @@ export default function TestCaseSelector({ onSelectTestCase }) {
   const [selectedCase, setSelectedCase] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [previewTestCase, setPreviewTestCase] = useState(null);
+  const [isMobileLayout, setIsMobileLayout] = useState(window.innerWidth <= 820);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileLayout(window.innerWidth <= 820);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSelectCase = (testCase) => {
     setSelectedCase(testCase.id);
@@ -27,12 +37,14 @@ export default function TestCaseSelector({ onSelectTestCase }) {
   return (
     <div className="mt-6 mb-4">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-semibold text-gray-600">Test Cases</span>
-        <InfoIconButton
-          onClick={() => setShowInfoModal(true)}
-          title="Learn about test cases"
-          size={18}
-        />
+        <span className="text-m font-semibold text-gray-600">Test Cases</span>
+        <div className="mt-0.5">
+          <InfoIconButton
+            onClick={() => setShowInfoModal(true)}
+            title="Learn about test cases"
+            size={18}
+          />
+        </div>
       </div>
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -51,7 +63,12 @@ export default function TestCaseSelector({ onSelectTestCase }) {
 
       {isOpen && (
         <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-gray-300">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
+          <div
+            className="grid gap-3 max-h-96 overflow-y-auto p-1"
+            style={{
+              gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(2, 1fr)',
+            }}
+          >
             {testCases.testCases.map((testCase, index) => (
               <div
                 key={testCase.id}
@@ -120,10 +137,12 @@ export default function TestCaseSelector({ onSelectTestCase }) {
         </div>
       )}
 
-      {showInfoModal && <TestCaseInfoModal onClose={() => setShowInfoModal(false)} />}
-      {previewTestCase && (
-        <TestCaseInfoModal testCase={previewTestCase} onClose={() => setPreviewTestCase(null)} />
-      )}
+      <TestCaseInfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />
+      <TestCaseInfoModal
+        isOpen={!!previewTestCase}
+        testCase={previewTestCase}
+        onClose={() => setPreviewTestCase(null)}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { extractProblemSolution } from '../../utils/helpers';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function ContextModal({
   onClose,
@@ -23,22 +24,18 @@ export default function ContextModal({
     solutionPart !== 'Solution data not clearly formatted';
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="flex justify-between items-start p-6 border-b border-slate-200">
-          <div className="flex-1">
-            <h2 className="m-0 mb-3 text-emerald-600 text-2xl font-semibold">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogHeader className="border-b border-slate-200">
+          <div>
+            <DialogTitle className="text-emerald-600 text-2xl font-bold">
               {title || 'Full Context'}
-            </h2>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Detailed context about the similar case including problem and solution
+            </DialogDescription>
             {matchPercentage && (
-              <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2.5 flex-wrap mt-3">
                 <div
                   className="text-white px-3.5 py-1.5 rounded-full text-sm font-semibold"
                   style={{ background: matchColor || '#34a83a' }}
@@ -59,16 +56,10 @@ export default function ContextModal({
               </div>
             )}
           </div>
-          <button
-            className="bg-none border-none text-3xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-slate-800"
-            onClick={onClose}
-          >
-            ×
-          </button>
-        </div>
+        </DialogHeader>
 
         {/* Modal Body */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto">
           {hasSeparateSections ? (
             <>
               <div className="mb-7 last:mb-0">
@@ -91,7 +82,7 @@ export default function ContextModal({
             <p className="leading-relaxed text-slate-800 m-0">{content}</p>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

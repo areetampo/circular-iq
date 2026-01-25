@@ -40,7 +40,7 @@ export default function MetricInfoModal({ onClose, type }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="m-0 text-emerald-600">{getModalTitle()}</h2>
+          <h2 className="m-0 text-emerald-600 text-2xl font-bold">{getModalTitle()}</h2>
           <button
             className="bg-none border-none text-2xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-gray-700"
             onClick={onClose}
@@ -64,7 +64,9 @@ function ProblemGuide() {
       </p>
 
       <div className="bg-gray-100 p-4 rounded mb-5">
-        <h4 className="m-0 mb-3 text-emerald-600">Essential Elements to Include:</h4>
+        <h4 className="m-0 mb-3 text-emerald-600 text-lg font-bold">
+          Essential Elements to Include:
+        </h4>
         <ul className="pl-6 leading-relaxed m-0">
           <li>
             <strong>Environmental Impact:</strong> Specific waste, pollution, or resource depletion
@@ -101,7 +103,11 @@ function ProblemGuide() {
           marginBottom: '20px',
         }}
       >
-        <h4 style={{ margin: '0 0 12px 0', color: '#4a90e2' }}>Writing Tips:</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', color: '#4a90e2', fontWeight: 'bold', fontSize: '18px' }}
+        >
+          Writing Tips:
+        </h4>
         <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
           <li>Start with a compelling statistic or fact</li>
           <li>Use specific numbers rather than vague terms ("30% waste" not "lots of waste")</li>
@@ -112,7 +118,7 @@ function ProblemGuide() {
       </div>
 
       <div className="mb-5">
-        <h4 className="m-0 mb-3 text-blue-500">Example Problem Statement:</h4>
+        <h4 className="m-0 mb-3 text-blue-500 text-lg font-bold">Example Problem Statement:</h4>
         <p className="italic text-gray-700 leading-relaxed p-3 bg-blue-50 rounded">
           "Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting
           marine ecosystems and poisoning food chains. Current alternatives are either
@@ -147,7 +153,11 @@ function SolutionGuide() {
           marginBottom: '20px',
         }}
       >
-        <h4 style={{ margin: '0 0 12px 0', color: '#34a83a' }}>Critical Components to Address:</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}
+        >
+          Critical Components to Address:
+        </h4>
         <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
           <li>
             <strong>Materials & Inputs:</strong> Exact materials used with specifications
@@ -195,7 +205,11 @@ function SolutionGuide() {
           marginBottom: '20px',
         }}
       >
-        <h4 style={{ margin: '0 0 12px 0', color: '#ff9800' }}>Common Pitfalls to Avoid:</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', color: '#ff9800', fontWeight: 'bold', fontSize: '18px' }}
+        >
+          Common Pitfalls to Avoid:
+        </h4>
         <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
           <li>
             ❌ Vague descriptions ("We recycle plastic" → ✅ "We convert HDPE milk jugs into outdoor
@@ -224,7 +238,11 @@ function SolutionGuide() {
           marginBottom: '20px',
         }}
       >
-        <h4 style={{ margin: '0 0 12px 0', color: '#34a83a' }}>Pro Tips for Strong Solutions:</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}
+        >
+          Pro Tips for Strong Solutions:
+        </h4>
         <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
           <li>✓ Use industry-standard terminology and certifications</li>
           <li>✓ Include both environmental AND economic metrics</li>
@@ -237,7 +255,11 @@ function SolutionGuide() {
       </div>
 
       <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ margin: '0 0 12px 0', color: '#4a90e2' }}>Example Solution Statement:</h4>
+        <h4
+          style={{ margin: '0 0 12px 0', color: '#4a90e2', fontWeight: 'bold', fontSize: '18px' }}
+        >
+          Example Solution Statement:
+        </h4>
         <p
           style={{
             fontStyle: 'italic',
@@ -321,7 +343,9 @@ function FactorsGuide() {
               marginBottom: '8px',
             }}
           >
-            <h3 style={{ margin: 0, color: '#34a83a' }}>{factor.title}</h3>
+            <h3 style={{ margin: 0, color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}>
+              {factor.title}
+            </h3>
             <span
               style={{
                 fontSize: '12px',
@@ -367,7 +391,9 @@ function ParameterDetailGuide({ paramKey }) {
             marginBottom: '12px',
           }}
         >
-          <h3 style={{ margin: 0, color: '#34a83a' }}>{param.name}</h3>
+          <h3 style={{ margin: 0, color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}>
+            {param.name}
+          </h3>
           <span
             style={{
               fontSize: '14px',
@@ -397,6 +423,7 @@ function ParameterDetailGuide({ paramKey }) {
             margin: '0 0 12px 0',
             color: '#2c3e50',
             fontSize: '16px',
+            fontWeight: 'bold',
             borderBottom: '2px solid #e0e0e0',
             paddingBottom: '8px',
           }}
@@ -414,6 +441,7 @@ function ParameterDetailGuide({ paramKey }) {
             margin: '0 0 12px 0',
             color: '#2c3e50',
             fontSize: '16px',
+            fontWeight: 'bold',
             borderBottom: '2px solid #e0e0e0',
             paddingBottom: '8px',
           }}
@@ -444,6 +472,7 @@ function ParameterDetailGuide({ paramKey }) {
             margin: '0 0 12px 0',
             color: '#2c3e50',
             fontSize: '16px',
+            fontWeight: 'bold',
             borderBottom: '2px solid #e0e0e0',
             paddingBottom: '8px',
           }}
@@ -536,6 +565,7 @@ function ParameterDetailGuide({ paramKey }) {
               margin: '0 0 12px 0',
               color: '#2c3e50',
               fontSize: '16px',
+              fontWeight: 'bold',
               borderBottom: '2px solid #e0e0e0',
               paddingBottom: '8px',
             }}
