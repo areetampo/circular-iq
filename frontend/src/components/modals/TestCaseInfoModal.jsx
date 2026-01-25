@@ -1,69 +1,93 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export default function TestCaseInfoModal({ onClose, testCase }) {
-  // If testCase is provided, show individual test case details
+export default function TestCaseInfoModal({ isOpen, onClose, testCase }) {
+  if (!isOpen) return null;
+
+  // Test case preview modal
   if (testCase) {
     return (
       <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
         onClick={onClose}
       >
         <div
-          className="bg-white rounded-lg max-w-2xl w-full overflow-hidden shadow-lg"
+          className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-between items-center p-6 border-b border-gray-200">
-            <h2 className="m-0">{testCase.title}</h2>
+          <div className="flex justify-between items-center p-6 bg-gradient-to-r from-emerald-500 to-teal-600">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">🧪</span>
+              </div>
+              <h2 className="m-0 text-white text-xl font-bold">{testCase.title}</h2>
+            </div>
             <button
-              className="bg-none border-none text-2xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-gray-700"
+              className="bg-white/20 hover:bg-white/30 border-none text-white p-2 w-9 h-9 flex items-center justify-center rounded-lg transition-all cursor-pointer"
               onClick={onClose}
             >
-              ×
+              <span className="text-2xl leading-none">×</span>
             </button>
           </div>
-          <div className="p-6 max-h-[70vh] overflow-y-auto">
+          <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
             <div className="mb-6">
-              <h3 className="text-base text-slate-800 mb-3">Business Problem</h3>
-              <p className="bg-gray-50 p-4 rounded leading-relaxed text-sm text-gray-700">
-                {testCase.problem}
-              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🎯</span>
+                <h3 className="text-lg text-slate-800 font-bold m-0">Business Problem</h3>
+              </div>
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-5 rounded-xl border border-slate-200">
+                <p className="text-sm text-slate-700 leading-relaxed">{testCase.problem}</p>
+              </div>
             </div>
 
             <div className="mb-6">
-              <h3 className="text-base text-slate-800 mb-3">Business Solution</h3>
-              <p className="bg-gray-50 p-4 rounded leading-relaxed text-sm text-gray-700">
-                {testCase.solution}
-              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">💡</span>
+                <h3 className="text-lg text-slate-800 font-bold m-0">Business Solution</h3>
+              </div>
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-xl border border-emerald-200">
+                <p className="text-sm text-slate-700 leading-relaxed">{testCase.solution}</p>
+              </div>
             </div>
 
             <div>
-              <h3 className="text-base text-slate-800 mb-3">Parameter Scores</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg">📊</span>
+                <h3 className="text-lg text-slate-800 font-bold m-0">Parameter Scores</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {Object.entries(testCase.parameters).map(([key, value]) => {
                   const isGood = value >= 75;
                   const isMedium = value >= 50;
                   return (
                     <div
                       key={key}
-                      className={`p-3 rounded border ${
+                      className={`p-4 rounded-xl transition-all hover:scale-105 ${
                         isGood
-                          ? 'bg-green-100 border-green-300'
+                          ? 'bg-gradient-to-br from-emerald-100 to-green-100 border-2 border-emerald-300'
                           : isMedium
-                            ? 'bg-yellow-100 border-yellow-300'
-                            : 'bg-red-100 border-red-300'
+                            ? 'bg-gradient-to-br from-yellow-100 to-amber-100 border-2 border-yellow-300'
+                            : 'bg-gradient-to-br from-red-100 to-rose-100 border-2 border-red-300'
                       }`}
                     >
                       <div
-                        className={`text-xs font-bold uppercase tracking-wider mb-1 ${
-                          isGood ? 'text-green-900' : isMedium ? 'text-yellow-900' : 'text-red-900'
+                        className={`text-xs font-bold uppercase tracking-wider mb-2 ${
+                          isGood
+                            ? 'text-emerald-700'
+                            : isMedium
+                              ? 'text-yellow-700'
+                              : 'text-red-700'
                         }`}
                       >
                         {key.replace(/_/g, ' ')}
                       </div>
                       <div
-                        className={`text-2xl font-bold ${
-                          isGood ? 'text-green-900' : isMedium ? 'text-yellow-900' : 'text-red-900'
+                        className={`text-3xl font-bold ${
+                          isGood
+                            ? 'text-emerald-600'
+                            : isMedium
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
                         }`}
                       >
                         {value}
@@ -73,14 +97,15 @@ export default function TestCaseInfoModal({ onClose, testCase }) {
                 })}
               </div>
             </div>
-          </div>
-          <div className="flex justify-end p-4 border-t border-gray-200">
-            <button
-              className="px-4 py-2 bg-emerald-600 text-white rounded cursor-pointer hover:bg-emerald-700 font-semibold text-sm"
-              onClick={onClose}
-            >
-              Close
-            </button>
+
+            <div className="flex justify-end pt-6 mt-6 border-t border-gray-200">
+              <button
+                onClick={onClose}
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-8 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -90,23 +115,28 @@ export default function TestCaseInfoModal({ onClose, testCase }) {
   // General test cases info modal
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-lg"
+        className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="m-0">Test Cases Guide</h2>
+        <div className="flex justify-between items-center p-6 bg-gradient-to-r from-blue-500 to-indigo-600 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">📚</span>
+            </div>
+            <h2 className="m-0 text-white text-2xl font-bold">Test Cases Guide</h2>
+          </div>
           <button
-            className="bg-none border-none text-2xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-gray-700"
+            className="bg-white/20 hover:bg-white/30 border-none text-white p-2 w-9 h-9 flex items-center justify-center rounded-lg transition-all cursor-pointer"
             onClick={onClose}
           >
-            ×
+            <span className="text-2xl leading-none">×</span>
           </button>
         </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
           <p className="mb-4 leading-relaxed">
             <strong>Test Cases</strong> are pre-filled form submissions representing real circular
             economy business models. They help you:
@@ -117,7 +147,7 @@ export default function TestCaseInfoModal({ onClose, testCase }) {
             <li className="mb-2">Quickly test the evaluation framework</li>
           </ul>
 
-          <h3 className="text-base text-slate-800 mb-3">How They Work:</h3>
+          <h3 className="text-base text-slate-800 font-bold mb-3">How They Work:</h3>
           <ol className="ml-5 mb-6">
             <li className="mb-2">
               <strong>Select:</strong> Pick any test case from the dropdown
@@ -126,7 +156,7 @@ export default function TestCaseInfoModal({ onClose, testCase }) {
               <strong>Auto-fill:</strong> Your form populates automatically
             </li>
             <li className="mb-2">
-              <strong>Submit:</strong> Click "Get Evaluation" to see scores
+              <strong>Submit:</strong> Click &ldquo;Get Evaluation&rdquo; to see scores
             </li>
             <li className="mb-2">
               <strong>Learn:</strong> Review the evaluation against known results
@@ -146,6 +176,7 @@ export default function TestCaseInfoModal({ onClose, testCase }) {
 }
 
 TestCaseInfoModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   testCase: PropTypes.object,
 };

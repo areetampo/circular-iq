@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { React, useState } from 'react';
 import MetricInfoModal from '../components/modals/MetricInfoModal';
 import InfoIconButton from '../components/shared/InfoIconButton';
 import ParameterSliders from '../components/forms/ParameterSliders';
@@ -62,34 +62,23 @@ export default function LandingView({
           </p>
 
           {/* Info Buttons */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              marginTop: '1.5rem',
-              flexWrap: 'wrap',
-            }}
-          >
+          <div className="flex gap-4 justify-center mt-6 flex-wrap">
             <button
-              className="criteria-button"
+              className="criteria-button text-sm px-5 py-2.5 hover:scale-105 transition-transform"
               onClick={() => setShowMethodologyModal(true)}
-              style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
             >
               📊 View Assessment Methodology
             </button>
             <button
-              className="criteria-button"
+              className="criteria-button text-sm px-5 py-2.5 hover:scale-105 transition-transform"
               onClick={() => setShowCriteriaModal(true)}
-              style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
             >
               📋 View Evaluation Criteria
             </button>
             {onViewHistory && (
               <button
-                className="secondary-button"
+                className="secondary-button text-sm px-5 py-2.5 hover:scale-105 transition-transform"
                 onClick={onViewHistory}
-                style={{ fontSize: '0.9rem', padding: '0.6rem 1.2rem' }}
               >
                 📈 My Assessments
               </button>
@@ -100,7 +89,7 @@ export default function LandingView({
         {/* Feature Cards */}
         <div className="feature-cards">
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: '#fff4e6' }}>
+            <div className="feature-icon bg-orange-50">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="#ff9800" strokeWidth="2" />
                 <path
@@ -116,7 +105,7 @@ export default function LandingView({
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: '#e3f2fd' }}>
+            <div className="feature-icon bg-blue-50">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="3" width="6" height="6" stroke="#2196f3" strokeWidth="2" />
                 <rect x="13" y="3" width="6" height="6" stroke="#2196f3" strokeWidth="2" />
@@ -129,7 +118,7 @@ export default function LandingView({
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: '#e8f5e9' }}>
+            <div className="feature-icon bg-green-50">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M5 12 L10 17 L20 7"
@@ -147,7 +136,7 @@ export default function LandingView({
 
         {/* Input Form */}
         <div className="input-card">
-          <h2 style={{ margin: '0 0 12px 0' }}>Evaluate Your Circular Economy Business</h2>
+          <h2 className="m-0 mb-3 text-2xl font-bold">Evaluate Your Circular Economy Business</h2>
           <p className="input-instructions">
             Describe your business idea using the same structure as real circular economy projects:
             what problem you solve, and how your solution addresses it.
@@ -158,7 +147,9 @@ export default function LandingView({
             {/* Problem Input */}
             <div className="input-field">
               <div className="field-header">
-                <h3>Business Problem</h3>
+                <label htmlFor="business-problem">
+                  <p className="font-semibold text-lg">Business Problem</p>
+                </label>
                 {showInfoIcons && (
                   <InfoIconButton
                     onClick={() => setShowInfoModal('problem')}
@@ -166,23 +157,25 @@ export default function LandingView({
                   />
                 )}
               </div>
-              <p className="field-guidance">
+              <p className="field-guidance" id="problem-guidance">
                 What environmental or circular economy challenge does your business address?
               </p>
               <textarea
+                id="business-problem"
                 className="idea-textarea"
                 rows="4"
                 placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
                 value={businessProblem}
                 onChange={(e) => setBusinessProblem(e.target.value)}
                 disabled={loading}
+                aria-describedby="problem-guidance"
               />
               <div
-                className="char-count"
-                style={{
-                  color: getCharacterCount(businessProblem) >= 200 ? '#34a83a' : 'rgb(146, 62, 62)',
-                  fontWeight: getCharacterCount(businessProblem) >= 200 ? '600' : 'normal',
-                }}
+                className={`char-count ${
+                  getCharacterCount(businessProblem) >= 200
+                    ? 'text-emerald-600 font-semibold'
+                    : 'text-red-700'
+                }`}
               >
                 {getCharacterCount(businessProblem)}/200 characters
                 {getCharacterCount(businessProblem) >= 200 && ' ✓'}
@@ -192,7 +185,9 @@ export default function LandingView({
             {/* Solution Input */}
             <div className="input-field">
               <div className="field-header">
-                <h3>Business Solution</h3>
+                <label htmlFor="business-solution">
+                  <p className="font-semibold text-lg">Business Solution</p>
+                </label>
                 {showInfoIcons && (
                   <InfoIconButton
                     onClick={() => setShowInfoModal('solution')}
@@ -200,25 +195,26 @@ export default function LandingView({
                   />
                 )}
               </div>
-              <p className="field-guidance">
+              <p className="field-guidance" id="solution-guidance">
                 How does your business solve this problem? Include materials, processes, and
                 circularity strategy.
               </p>
               <textarea
+                id="business-solution"
                 className="idea-textarea"
                 rows="4"
                 placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
                 value={businessSolution}
                 onChange={(e) => setBusinessSolution(e.target.value)}
                 disabled={loading}
+                aria-describedby="solution-guidance"
               />
               <div
-                className="char-count"
-                style={{
-                  color:
-                    getCharacterCount(businessSolution) >= 200 ? '#34a83a' : 'rgb(146, 62, 62)',
-                  fontWeight: getCharacterCount(businessSolution) >= 200 ? '600' : 'normal',
-                }}
+                className={`char-count ${
+                  getCharacterCount(businessSolution) >= 200
+                    ? 'text-emerald-600 font-semibold'
+                    : 'text-red-700'
+                }`}
               >
                 {getCharacterCount(businessSolution)}/200 characters
                 {getCharacterCount(businessSolution) >= 200 && ' ✓'}
@@ -227,25 +223,15 @@ export default function LandingView({
           </div>
 
           {error && (
-            <div
-              className="error-message"
-              style={{
-                background: '#ffebee',
-                border: '2px solid #ff6b6b',
-                padding: '1rem',
-                borderRadius: '8px',
-                color: '#c62828',
-                marginBottom: '1.5rem',
-              }}
-            >
+            <div className="bg-red-50 border-2 border-red-400 p-4 rounded-lg text-red-800 mb-6">
               <strong>⚠ Validation Error:</strong>
-              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.95rem' }}>{error}</p>
+              <p className="mt-2 text-sm">{error}</p>
             </div>
           )}
 
           {/* Advanced Parameters Section */}
           <div className="advanced-parameters">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 className="advanced-toggle"
@@ -254,11 +240,12 @@ export default function LandingView({
                 {showAdvanced ? '▼' : '▶'} Advanced Parameters
               </button>
               {showInfoIcons && (
-                <InfoIconButton
-                  onClick={() => setShowInfoModal('factors')}
-                  title="Learn about evaluation factors"
-                  size={18}
-                />
+                <div className="mt-0.5 -ml-2">
+                  <InfoIconButton
+                    onClick={() => setShowInfoModal('factors')}
+                    title="Learn about evaluation factors"
+                  />
+                </div>
               )}
             </div>
 
@@ -302,12 +289,16 @@ export default function LandingView({
       )}
 
       {/* Assessment Methodology Modal */}
-      {showMethodologyModal && (
-        <AssessmentMethodologyModal onClose={() => setShowMethodologyModal(false)} />
-      )}
+      <AssessmentMethodologyModal
+        isOpen={showMethodologyModal}
+        onClose={() => setShowMethodologyModal(false)}
+      />
 
       {/* Evaluation Criteria Modal */}
-      {showCriteriaModal && <EvaluationCriteriaModal onClose={() => setShowCriteriaModal(false)} />}
+      <EvaluationCriteriaModal
+        isOpen={showCriteriaModal}
+        onClose={() => setShowCriteriaModal(false)}
+      />
     </div>
   );
 }

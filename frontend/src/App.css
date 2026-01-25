@@ -83,7 +83,7 @@
 }
 
 .feature-card h3 {
-  @apply text-xl font-semibold text-slate-800 mb-2;
+  @apply text-xl font-bold text-slate-800 mb-2;
 }
 
 .feature-card p {
@@ -685,25 +685,25 @@
 .download-button,
 .secondary-button,
 .save-button {
-  @apply px-6 py-3 rounded-lg text-base font-semibold cursor-pointer transition-all border border-slate-300 bg-white text-slate-600;
+  @apply px-6 py-3 rounded-lg text-base font-semibold cursor-pointer transition-all duration-200 border border-slate-300 bg-white text-slate-600 shadow-sm hover:shadow-md;
 }
 
 .back-button:hover,
 .criteria-button:hover,
 .secondary-button:hover {
-  @apply bg-slate-100 border-slate-400;
+  @apply bg-slate-100 border-slate-400 scale-105;
 }
 
 .download-button {
-  @apply bg-emerald-600 text-white border-none;
+  @apply bg-emerald-600 text-white border-none shadow-lg;
 }
 
 .download-button:hover:not(:disabled) {
-  @apply bg-emerald-700 -translate-y-0.5 shadow-lg;
+  @apply bg-emerald-700 -translate-y-1 shadow-xl scale-105;
 }
 
 .download-button:disabled {
-  @apply bg-emerald-400 opacity-80 cursor-not-allowed;
+  @apply bg-emerald-400 opacity-80 cursor-not-allowed shadow-md;
 }
 
 .secondary-button {
@@ -711,11 +711,11 @@
 }
 
 .secondary-button:hover {
-  @apply bg-blue-50 border-blue-600;
+  @apply bg-blue-50 border-blue-600 scale-105;
 }
 
 .save-button {
-  @apply bg-orange-500 text-white border-none;
+  @apply bg-orange-500 text-white border-none shadow-lg;
 }
 
 .save-button:hover:not(:disabled) {
