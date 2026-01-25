@@ -8,13 +8,13 @@ const ResultsView = lazy(() => import('./views/ResultsView'));
 const EvaluationCriteriaView = lazy(() => import('./views/EvaluationCriteriaView'));
 const HistoryView = lazy(() => import('./views/HistoryView'));
 const ComparisonView = lazy(() => import('./views/ComparisonView'));
-const MarketAnalysisView = lazy(() => import('./views/MarketAnalysisView'));
-import TestCaseSelector from './components/TestCaseSelector';
-import SessionRestorePrompt from './components/SessionRestorePrompt';
+const NotFoundView = lazy(() => import('./views/NotFoundView'));
+import TestCaseSelector from './components/shared/TestCaseSelector';
+import SessionRestorePrompt from './components/shared/SessionRestorePrompt';
 import { getSessionId } from './utils/session';
 import { loadEvaluationState, saveEvaluationState, clearEvaluationState } from './utils/storage';
-import ErrorBoundary from './components/ErrorBoundary';
-import Toast from './components/Toast';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+import Toast from './components/shared/Toast';
 import { useToast } from './hooks/useToast';
 
 export default function App() {
@@ -261,6 +261,7 @@ export default function App() {
           title,
           businessProblem,
           businessSolution,
+          parameters,
           result,
           sessionId: getSessionId(),
         }),
@@ -274,6 +275,33 @@ export default function App() {
       setError(err.message);
       addToast(`Failed to save: ${err.message}`, 'error');
     }
+  };
+
+  const handleReevaluateFromAssessment = (assessment) => {
+    if (!assessment) return;
+
+    const nextProblem = assessment.business_problem || '';
+    const nextSolution = assessment.business_solution || '';
+    const savedParams = assessment.result_json?.input_parameters;
+
+    setBusinessProblem(nextProblem);
+    setBusinessSolution(nextSolution);
+    setResult(null);
+    setError(null);
+    setShowAdvanced(true);
+    if (savedParams && typeof savedParams === 'object') {
+      setParameters({ ...parameters, ...savedParams });
+    }
+
+    saveEvaluationState({
+      businessProblem: nextProblem,
+      businessSolution: nextSolution,
+      parameters: savedParams && typeof savedParams === 'object' ? savedParams : parameters,
+      result: null,
+    });
+
+    addToast('Loaded saved assessment. You can update and re-run the evaluation.', 'info');
+    navigate('/');
   };
 
   return (
@@ -337,7 +365,6 @@ export default function App() {
                 }}
                 onSaveAssessment={handleSaveAssessment}
                 onViewHistory={() => navigate('/assessments')}
-                onViewMarketAnalysis={() => navigate('/market-analysis')}
               />
             }
           />
@@ -356,22 +383,19 @@ export default function App() {
           />
           <Route
             path="/assessments/:id"
-            element={<ResultsView isDetailView={true} onBack={() => navigate('/assessments')} />}
+            element={
+              <ResultsView
+                isDetailView={true}
+                onBack={() => navigate('/assessments')}
+                onReevaluate={handleReevaluateFromAssessment}
+              />
+            }
           />
           <Route
             path="/compare/:id1/:id2"
             element={<ComparisonView onBack={() => navigate('/assessments')} />}
           />
-          <Route
-            path="/market-analysis"
-            element={
-              <MarketAnalysisView
-                currentAssessmentScore={result?.overall_score}
-                currentIndustry={result?.metadata?.industry}
-                onBack={() => navigate(-1)}
-              />
-            }
-          />
+          <Route path="*" element={<NotFoundView />} />
         </Routes>
       </Suspense>
 

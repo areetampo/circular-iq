@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import MetricInfoModal from '../components/MetricInfoModal';
-import InfoIconButton from '../components/InfoIconButton';
-import ParameterSliders from '../components/ParameterSliders';
-import AssessmentMethodologyModal from '../components/AssessmentMethodologyModal';
-import EvaluationCriteriaModal from '../components/EvaluationCriteriaModal';
+import MetricInfoModal from '../components/modals/MetricInfoModal';
+import InfoIconButton from '../components/shared/InfoIconButton';
+import ParameterSliders from '../components/forms/ParameterSliders';
+import AssessmentMethodologyModal from '../components/modals/AssessmentMethodologyModal';
+import EvaluationCriteriaModal from '../components/modals/EvaluationCriteriaModal';
 import { getCharacterCount } from '../utils/text';
 
 export default function LandingView({
@@ -177,8 +177,14 @@ export default function LandingView({
                 onChange={(e) => setBusinessProblem(e.target.value)}
                 disabled={loading}
               />
-              <div className="char-count">
-                {getCharacterCount(businessProblem)}/200 minimum required
+              <div
+                className="char-count"
+                style={{
+                  color: getCharacterCount(businessProblem) >= 200 ? '#34a83a' : 'rgb(146, 62, 62)',
+                  fontWeight: getCharacterCount(businessProblem) >= 200 ? '600' : 'normal',
+                }}
+              >
+                {getCharacterCount(businessProblem)}/200 characters
                 {getCharacterCount(businessProblem) >= 200 && ' ✓'}
               </div>
             </div>
@@ -206,14 +212,36 @@ export default function LandingView({
                 onChange={(e) => setBusinessSolution(e.target.value)}
                 disabled={loading}
               />
-              <div className="char-count">
-                {getCharacterCount(businessSolution)}/200 minimum required
+              <div
+                className="char-count"
+                style={{
+                  color:
+                    getCharacterCount(businessSolution) >= 200 ? '#34a83a' : 'rgb(146, 62, 62)',
+                  fontWeight: getCharacterCount(businessSolution) >= 200 ? '600' : 'normal',
+                }}
+              >
+                {getCharacterCount(businessSolution)}/200 characters
                 {getCharacterCount(businessSolution) >= 200 && ' ✓'}
               </div>
             </div>
           </div>
 
-          {error && <div className="error-message">{error}</div>}
+          {error && (
+            <div
+              className="error-message"
+              style={{
+                background: '#ffebee',
+                border: '2px solid #ff6b6b',
+                padding: '1rem',
+                borderRadius: '8px',
+                color: '#c62828',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <strong>⚠ Validation Error:</strong>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.95rem' }}>{error}</p>
+            </div>
+          )}
 
           {/* Advanced Parameters Section */}
           <div className="advanced-parameters">

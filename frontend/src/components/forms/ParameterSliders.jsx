@@ -1,5 +1,9 @@
-import { parameterLabels, parameterGroups, parameterGuidance } from '../constants/evaluationData';
-import InfoIconButton from './InfoIconButton';
+import {
+  parameterLabels,
+  parameterGroups,
+  parameterGuidance,
+} from '../../constants/evaluationData';
+import InfoIconButton from '../shared/InfoIconButton';
 
 export default function ParameterSliders({ parameters, onParameterChange, loading, onShowInfo }) {
   const getScaleMarkers = (key) => {

@@ -1,4 +1,4 @@
-import { factorDefinitions, parameterGuidance } from '../constants/evaluationData';
+import { factorDefinitions, parameterGuidance } from '../../constants/evaluationData';
 
 export default function MetricInfoModal({ onClose, type }) {
   const getModalTitle = () => {

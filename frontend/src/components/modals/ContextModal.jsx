@@ -1,4 +1,4 @@
-import { extractProblemSolution } from '../utils/helpers';
+import { extractProblemSolution } from '../../utils/helpers';
 
 export default function ContextModal({
   onClose,

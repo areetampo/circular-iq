@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -14,16 +15,39 @@ import {
 import '../styles/MarketAnalysisView.css';
 
 export default function MarketAnalysisView({ currentAssessmentScore, currentIndustry, onBack }) {
+  const { id } = useParams();
   const [marketData, setMarketData] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterScale, setFilterScale] = useState('all');
+  const [userScore, setUserScore] = useState(currentAssessmentScore || null);
+  const [userIndustry, setUserIndustry] = useState(currentIndustry || null);
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     fetchMarketData();
   }, []);
+
+  useEffect(() => {
+    const maybeFetchAssessment = async () => {
+      if ((userScore == null || userIndustry == null) && id) {
+        try {
+          const response = await fetch(`${apiBase}/assessments/${id}`);
+          const payload = await response.json();
+          const assessment = payload?.assessment?.result_json || payload?.assessment;
+          if (assessment) {
+            setUserScore(assessment?.overall_score || null);
+            setUserIndustry(assessment?.metadata?.industry || null);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+    maybeFetchAssessment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const fetchMarketData = async () => {
     setLoading(true);
@@ -94,7 +118,7 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
 
   const userPercentile = stats
     ? Math.round(
-        (((currentAssessmentScore || 0) - (stats.min_score || 0)) /
+        (((userScore || 0) - (stats.min_score || 0)) /
           ((stats.max_score || 100) - (stats.min_score || 0))) *
           100,
       )
@@ -107,23 +131,23 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
     const insights = [];
 
     // If current score exists
-    if (currentAssessmentScore) {
+    if (userScore != null) {
       const avgScore = stats.avg_score || 0;
       const median = stats.median_score || 0;
 
-      if (currentAssessmentScore > avgScore + 10) {
+      if (userScore > avgScore + 10) {
         insights.push({
           icon: '🏆',
           title: 'Top Performer',
-          description: `Your score (${currentAssessmentScore}) is significantly above average (${Math.round(avgScore)})`,
+          description: `Your score (${userScore}) is significantly above average (${Math.round(avgScore)})`,
         });
-      } else if (currentAssessmentScore > avgScore) {
+      } else if (userScore > avgScore) {
         insights.push({
           icon: '📈',
           title: 'Above Market',
-          description: `Your score exceeds the market average by ${currentAssessmentScore - Math.round(avgScore)} points`,
+          description: `Your score exceeds the market average by ${userScore - Math.round(avgScore)} points`,
         });
-      } else if (currentAssessmentScore < avgScore - 10) {
+      } else if (userScore < avgScore - 10) {
         insights.push({
           icon: '🎯',
           title: 'Growth Opportunity',
@@ -179,63 +203,112 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
       <div className="market-analysis-view">
         {/* Header */}
         <div className="header-section">
-          <div className="logo-icon">
-            <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="28" stroke="#34a83a" strokeWidth="3" fill="none" />
-              <path
-                d="M20 40 L32 20 L44 35"
-                stroke="#34a83a"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div className="logo-icon">
+                <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+                  <circle cx="32" cy="32" r="28" stroke="#34a83a" strokeWidth="3" fill="none" />
+                  <path
+                    d="M20 40 L32 20 L44 35"
+                    stroke="#34a83a"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 className="main-title" style={{ margin: 0 }}>
+                  Market Analysis Dashboard
+                </h1>
+                <p className="subtitle" style={{ margin: '0.25rem 0 0 0' }}>
+                  Competitive positioning & industry benchmarks
+                </p>
+              </div>
+            </div>
+            <button className="back-button" onClick={onBack} style={{ height: 'fit-content' }}>
+              ← Back
+            </button>
           </div>
-          <h1 className="main-title">Market Analysis Dashboard</h1>
-          <p className="subtitle">Competitive positioning & industry benchmarks</p>
         </div>
 
         {/* User Position Card */}
-        {currentAssessmentScore && (
+        {userScore && (
           <div className="position-card">
-            <h2>Your Position in Market</h2>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <h2 style={{ margin: 0 }}>📍 Your Position in Market</h2>
+              <div style={{ fontSize: '0.9rem', color: '#34a83a', fontWeight: '700' }}>
+                Percentile: {userPercentile}%
+              </div>
+            </div>
             <div className="position-grid">
               <div className="position-stat">
                 <div className="stat-label">Your Score</div>
                 <div className="stat-value" style={{ color: '#34a83a', fontSize: '2rem' }}>
-                  {currentAssessmentScore}/100
+                  {userScore}
+                  <span style={{ fontSize: '1rem', color: '#999' }}>/100</span>
                 </div>
               </div>
               <div className="position-stat">
                 <div className="stat-label">Industry</div>
-                <div className="stat-value">{titleize(currentIndustry || 'General')}</div>
-              </div>
-              <div className="position-stat">
-                <div className="stat-label">vs. All Projects</div>
-                <div className="stat-value" style={{ color: '#4a90e2' }}>
-                  {userPercentile}th Percentile
+                <div className="stat-value" style={{ fontSize: '1.25rem' }}>
+                  {titleize(userIndustry || 'General')}
                 </div>
               </div>
               <div className="position-stat">
                 <div className="stat-label">Market Average</div>
-                <div className="stat-value" style={{ color: '#ff9800' }}>
-                  {Math.round(stats?.avg_score || 0)}/100
+                <div className="stat-value" style={{ color: '#ff9800', fontSize: '1.8rem' }}>
+                  {Math.round(stats?.avg_score || 0)}
+                  <span style={{ fontSize: '0.9rem', color: '#999' }}>/100</span>
+                </div>
+              </div>
+              <div className="position-stat">
+                <div className="stat-label">Difference</div>
+                <div
+                  className="stat-value"
+                  style={{
+                    color: userScore > (stats?.avg_score || 0) ? '#34a83a' : '#f44336',
+                    fontSize: '1.8rem',
+                  }}
+                >
+                  {userScore > (stats?.avg_score || 0) ? '+' : ''}
+                  {Math.round((userScore || 0) - (stats?.avg_score || 0))}
                 </div>
               </div>
             </div>
 
             {/* Positioning Insight */}
             <div className="positioning-insight">
-              {currentAssessmentScore > (stats?.avg_score || 0) ? (
-                <p>
-                  ✓ <strong>Above average:</strong> Your assessment scores higher than the typical
-                  circular economy project in the database.
-                </p>
+              {userScore > (stats?.avg_score || 0) ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>✓</span>
+                  <div>
+                    <strong style={{ color: '#34a83a' }}>Above average:</strong> Your assessment
+                    scores higher than the typical circular economy project in the database.
+                  </div>
+                </div>
               ) : (
-                <p>
-                  → <strong>At or below average:</strong> There's opportunity to improve. Review
-                  recommendations to strengthen your proposal.
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.5rem' }}>→</span>
+                  <div>
+                    <strong style={{ color: '#ff9800' }}>Opportunity ahead:</strong> Review
+                    recommendations to strengthen your proposal and reach the market average.
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -244,31 +317,53 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
         {/* Market Statistics */}
         {stats && (
           <div className="stats-card">
-            <h2>Market Overview (All Assessments)</h2>
+            <h2
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: '0 0 1.5rem 0',
+              }}
+            >
+              📊 Market Overview{' '}
+              <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: '400' }}>
+                (All {stats.total_assessments} Assessments)
+              </span>
+            </h2>
             <div className="stats-grid">
               <div className="stat-box">
-                <div className="stat-number">{stats.total_assessments}</div>
                 <div className="stat-name">Total Assessments</div>
+                <div className="stat-number">{stats.total_assessments}</div>
               </div>
               <div className="stat-box">
-                <div className="stat-number">{Math.round(stats.avg_score)}/100</div>
                 <div className="stat-name">Average Score</div>
+                <div className="stat-number" style={{ color: '#ff9800' }}>
+                  {Math.round(stats.avg_score)}/100
+                </div>
               </div>
               <div className="stat-box">
-                <div className="stat-number">{Math.round(stats.median_score)}/100</div>
                 <div className="stat-name">Median Score</div>
+                <div className="stat-number" style={{ color: '#4a90e2' }}>
+                  {Math.round(stats.median_score)}/100
+                </div>
               </div>
               <div className="stat-box">
-                <div className="stat-number">{stats.max_score}/100</div>
                 <div className="stat-name">Top Score</div>
+                <div className="stat-number" style={{ color: '#34a83a' }}>
+                  {stats.max_score}/100
+                </div>
               </div>
               <div className="stat-box">
-                <div className="stat-number">{stats.min_score}/100</div>
                 <div className="stat-name">Lowest Score</div>
+                <div className="stat-number" style={{ color: '#999' }}>
+                  {stats.min_score}/100
+                </div>
               </div>
               <div className="stat-box">
-                <div className="stat-number">{stats.total_industries}</div>
                 <div className="stat-name">Industries Tracked</div>
+                <div className="stat-number" style={{ color: '#9c27b0' }}>
+                  {stats.total_industries}
+                </div>
               </div>
             </div>
           </div>
@@ -291,9 +386,13 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
         )}
 
         {/* Filter Controls */}
-        <div className="analysis-controls">
-          <label>Filter by Scale:</label>
-          <select value={filterScale} onChange={(e) => setFilterScale(e.target.value)}>
+        <div className="analysis-controls-enhanced">
+          <label style={{ fontWeight: '600', color: '#2c3e50' }}>🔍 Filter by Scale:</label>
+          <select
+            value={filterScale}
+            onChange={(e) => setFilterScale(e.target.value)}
+            className="filter-select"
+          >
             {getScales().map((scale) => (
               <option key={scale} value={scale}>
                 {scale === 'all' ? 'All Scales' : titleize(scale)}
@@ -305,19 +404,34 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
         {/* Scatter Plot */}
         {scatterChartData.length > 0 && (
           <div className="chart-card">
-            <h2>Score Distribution by Industry</h2>
+            <h2
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: '0 0 1.5rem 0',
+              }}
+            >
+              📈 Score Distribution by Industry
+            </h2>
             <ResponsiveContainer width="100%" height={400}>
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis
                   dataKey="x"
                   name="Average Score"
-                  label={{ value: 'Average Score', position: 'insideBottomRight', offset: -5 }}
+                  label={{
+                    value: 'Average Score (0-100)',
+                    position: 'insideBottomRight',
+                    offset: -5,
+                  }}
+                  type="number"
+                  domain={[0, 100]}
                 />
                 <YAxis
                   dataKey="y"
                   name="Project Index"
-                  label={{ value: 'Industry/Scale Segment', angle: -90, position: 'insideLeft' }}
+                  label={{ value: 'Industry/Scale Groups', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip
                   cursor={{ strokeDasharray: '3 3' }}
@@ -326,11 +440,15 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
                       const data = payload[0].payload;
                       return (
                         <div className="tooltip-box">
-                          <p>
-                            <strong>{titleize(data.industry)}</strong> ({data.scale})
+                          <p style={{ fontWeight: '700', color: '#34a83a' }}>
+                            {titleize(data.industry)} • {data.scale}
                           </p>
-                          <p>Avg: {data.x.toFixed(1)}/100</p>
-                          <p>Projects: {data.count}</p>
+                          <p style={{ color: '#666' }}>
+                            Average Score: <strong>{data.x.toFixed(1)}/100</strong>
+                          </p>
+                          <p style={{ color: '#666' }}>
+                            Projects Evaluated: <strong>{data.count}</strong>
+                          </p>
                         </div>
                       );
                     }
@@ -357,15 +475,24 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
         {/* Industry Benchmarks Table */}
         {marketData.length > 0 && (
           <div className="benchmarks-card">
-            <h2>Industry Benchmarks</h2>
+            <h2
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: '0 0 1.5rem 0',
+              }}
+            >
+              🏆 Industry Benchmarks
+            </h2>
             <table className="benchmarks-table">
               <thead>
                 <tr>
-                  <th>Industry</th>
+                  <th style={{ paddingLeft: '1rem' }}>Industry</th>
                   <th>Scale</th>
                   <th>Projects</th>
                   <th>Avg Score</th>
-                  <th>Range</th>
+                  <th style={{ paddingRight: '1rem' }}>Range</th>
                 </tr>
               </thead>
               <tbody>
@@ -373,19 +500,43 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
                   .filter((item) => filterScale === 'all' || item.scale === filterScale)
                   .sort((a, b) => b.avg_score - a.avg_score)
                   .map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="industry-name">
-                        <strong>{titleize(item.industry)}</strong>
+                    <tr key={idx} className="benchmark-row">
+                      <td className="industry-name" style={{ paddingLeft: '1rem' }}>
+                        <span
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                          <div
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              backgroundColor: getIndustryColor(item.industry),
+                            }}
+                          />
+                          {titleize(item.industry)}
+                        </span>
                       </td>
                       <td>{titleize(item.scale)}</td>
                       <td className="count">{item.count}</td>
                       <td className="score">
-                        <strong style={{ color: '#34a83a' }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            backgroundColor: '#f0f7f0',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '4px',
+                            fontWeight: '700',
+                            color: '#34a83a',
+                          }}
+                        >
                           {item.avg_score.toFixed(1)}/100
-                        </strong>
+                        </span>
                       </td>
-                      <td className="range">
-                        {item.min_score} - {item.max_score}
+                      <td
+                        className="range"
+                        style={{ paddingRight: '1rem', fontSize: '0.9rem', color: '#999' }}
+                      >
+                        {item.min_score} → {item.max_score}
                       </td>
                     </tr>
                   ))}
@@ -394,31 +545,144 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
           </div>
         )}
 
-        {/* Insights */}
+        {/* Key Insights */}
         <div className="insights-card">
-          <h2>Market Insights</h2>
-          <ul>
-            <li>
-              <strong>Top Performers:</strong> Projects in <strong>Energy</strong> and{' '}
-              <strong>Water</strong> industries tend to score highest
-            </li>
-            <li>
-              <strong>Growth Areas:</strong> Emerging industries show varied scores—opportunity for
-              specialized innovation
-            </li>
-            <li>
-              <strong>Scale Factor:</strong> Larger, commercial-stage projects generally score
-              higher than prototypes
-            </li>
-            <li>
-              <strong>Your Advantage:</strong> Focus on your unique circular strategy to
-              differentiate in your market segment
-            </li>
-          </ul>
+          <h2
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              margin: '0 0 1.5rem 0',
+              color: '#4a90e2',
+            }}
+          >
+            💡 Key Market Insights
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.25rem',
+            }}
+          >
+            <div
+              style={{
+                background: 'white',
+                padding: '1.25rem',
+                borderRadius: '8px',
+                borderLeft: '4px solid #34a83a',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>🎯</div>
+              <div
+                style={{
+                  fontWeight: '700',
+                  color: '#2c3e50',
+                  marginBottom: '0.5rem',
+                  fontSize: '1rem',
+                }}
+              >
+                Top Performers
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#555', lineHeight: '1.5' }}>
+                Projects in <strong>Energy</strong> and <strong>Water</strong> industries tend to
+                score highest on circular economy metrics
+              </div>
+            </div>
+            <div
+              style={{
+                background: 'white',
+                padding: '1.25rem',
+                borderRadius: '8px',
+                borderLeft: '4px solid #ff9800',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>📈</div>
+              <div
+                style={{
+                  fontWeight: '700',
+                  color: '#2c3e50',
+                  marginBottom: '0.5rem',
+                  fontSize: '1rem',
+                }}
+              >
+                Growth Opportunity
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#555', lineHeight: '1.5' }}>
+                Emerging industries show varied scores—there's significant room for specialized
+                innovation and differentiation
+              </div>
+            </div>
+            <div
+              style={{
+                background: 'white',
+                padding: '1.25rem',
+                borderRadius: '8px',
+                borderLeft: '4px solid #9c27b0',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>💼</div>
+              <div
+                style={{
+                  fontWeight: '700',
+                  color: '#2c3e50',
+                  marginBottom: '0.5rem',
+                  fontSize: '1rem',
+                }}
+              >
+                Scale Factor
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#555', lineHeight: '1.5' }}>
+                Larger, commercial-stage projects generally score higher than prototypes and
+                early-stage initiatives
+              </div>
+            </div>
+            <div
+              style={{
+                background: 'white',
+                padding: '1.25rem',
+                borderRadius: '8px',
+                borderLeft: '4px solid #f44336',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+              }}
+            >
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>⭐</div>
+              <div
+                style={{
+                  fontWeight: '700',
+                  color: '#2c3e50',
+                  marginBottom: '0.5rem',
+                  fontSize: '1rem',
+                }}
+              >
+                Your Advantage
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#555', lineHeight: '1.5' }}>
+                Focus on your unique circular strategy and value proposition to differentiate in
+                your market segment
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="market-footer">
+        <div
+          className="market-footer"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid #e0e0e0',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '0.9rem', color: '#999' }}>
+            Last updated: {new Date().toLocaleDateString()}
+          </p>
           <button className="back-button" onClick={onBack}>
             ← Back to Assessments
           </button>

@@ -40,6 +40,7 @@ CREATE INDEX IF NOT EXISTS idx_assessments_session_id ON assessments(session_id)
 CREATE INDEX IF NOT EXISTS idx_assessments_industry ON assessments(industry);
 CREATE INDEX IF NOT EXISTS idx_assessments_overall_score ON assessments(overall_score);
 CREATE INDEX IF NOT EXISTS idx_assessments_created_at ON assessments(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_assessments_title ON assessments(title);
 
 -- ============================================
 -- 3. Enable Row Level Security

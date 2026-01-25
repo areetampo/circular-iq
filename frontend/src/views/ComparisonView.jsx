@@ -15,6 +15,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
+import { exportComparisonCSV } from '../utils/exportSimple';
 import '../styles/ComparisonView.css';
 
 export default function ComparisonView({ onBack }) {
@@ -212,15 +213,41 @@ export default function ComparisonView({ onBack }) {
     <div className="app-container">
       <div className="comparison-view">
         {/* Header */}
-        <div className="header-section">
-          <h1 className="main-title">Assessment Comparison</h1>
-          <p className="subtitle">Side-by-side analysis of two evaluations</p>
+        <div
+          className="header-section"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2.5rem',
+          }}
+        >
+          <div>
+            <h1 className="main-title" style={{ margin: 0 }}>
+              Assessment Comparison
+            </h1>
+            <p className="subtitle" style={{ margin: '0.5rem 0 0 0' }}>
+              Side-by-side analysis of two evaluations
+            </p>
+          </div>
+          <button className="back-button" onClick={onBack} style={{ height: 'fit-content' }}>
+            ← Back
+          </button>
         </div>
 
         {/* Key Insights Section */}
         {insights && insights.length > 0 && (
           <div className="comparison-card insights-card">
-            <h3>🔍 Key Insights</h3>
+            <h3
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                margin: '0 0 1.5rem 0',
+              }}
+            >
+              💡 Key Insights
+            </h3>
             <div className="insights-list">
               {insights.map((insight, idx) => (
                 <div key={idx} className={`insight-item insight-${insight.type}`}>
@@ -234,11 +261,18 @@ export default function ComparisonView({ onBack }) {
 
         {/* Change Snapshot */}
         <div className="comparison-card delta-card">
-          <h3>Change Snapshot</h3>
+          <h3
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1.5rem 0' }}
+          >
+            📈 Change Snapshot
+          </h3>
           <div className="summary-grid">
             <div
               className="summary-tile"
               title="Total change in overall score from assessment 1 to assessment 2"
+              style={{
+                borderLeft: `4px solid ${overallDelta > 0 ? '#34a83a' : overallDelta < 0 ? '#f44336' : '#999'}`,
+              }}
             >
               <div className="summary-label">Overall Change</div>
               <div
@@ -256,6 +290,7 @@ export default function ComparisonView({ onBack }) {
               <div
                 className="summary-tile"
                 title={`${biggestGain.label} showed the largest improvement`}
+                style={{ borderLeft: '4px solid #34a83a' }}
               >
                 <div className="summary-label">Biggest Gain</div>
                 <div className="summary-value positive">
@@ -270,6 +305,7 @@ export default function ComparisonView({ onBack }) {
               <div
                 className="summary-tile"
                 title={`${biggestDrop.label} showed the largest decline`}
+                style={{ borderLeft: '4px solid #f44336' }}
               >
                 <div className="summary-label">Largest Drop</div>
                 <div className="summary-value negative">
@@ -280,7 +316,13 @@ export default function ComparisonView({ onBack }) {
               </div>
             )}
 
-            <div className="summary-tile" title="Average change across all evaluation factors">
+            <div
+              className="summary-tile"
+              title="Average change across all evaluation factors"
+              style={{
+                borderLeft: `4px solid ${averageDelta > 0 ? '#34a83a' : averageDelta < 0 ? '#f44336' : '#999'}`,
+              }}
+            >
               <div className="summary-label">Average Factor Shift</div>
               <div
                 className={`summary-value ${averageDelta > 0 ? 'positive' : averageDelta < 0 ? 'negative' : 'neutral'}`}
@@ -374,7 +416,11 @@ export default function ComparisonView({ onBack }) {
 
         {/* Sub-Scores Comparison */}
         <div className="comparison-card">
-          <h3>📊 Factor Scores</h3>
+          <h3
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1.5rem 0' }}
+          >
+            📊 Factor Scores Comparison
+          </h3>
           <div className="comparison-table">
             {Object.entries(assessment1.result_json?.sub_scores || {}).map(([factor, val1]) => {
               const val2 = assessment2.result_json?.sub_scores?.[factor] || 0;
@@ -389,7 +435,11 @@ export default function ComparisonView({ onBack }) {
 
         {/* Metadata Comparison */}
         <div className="comparison-card">
-          <h3>🏢 Project Classification</h3>
+          <h3
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1.5rem 0' }}
+          >
+            🏢 Project Details
+          </h3>
           <div className="comparison-table">
             {compareMetric(
               'Industry',
@@ -546,10 +596,32 @@ export default function ComparisonView({ onBack }) {
         </div>
 
         {/* Footer */}
-        <div className="comparison-footer">
-          <button className="back-button" onClick={onBack}>
-            ← Back to Assessments
-          </button>
+        <div
+          className="comparison-footer"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid #e0e0e0',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '0.9rem', color: '#999' }}>
+            Last updated: {new Date().toLocaleDateString()}
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              className="secondary-button"
+              title="Export comparison as CSV"
+              onClick={() => exportComparisonCSV(assessment1, assessment2)}
+            >
+              📤 Export Comparison (CSV)
+            </button>
+            <button className="back-button" onClick={onBack}>
+              ← Back to Assessments
+            </button>
+          </div>
         </div>
       </div>
     </div>

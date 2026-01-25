@@ -1,4 +1,4 @@
-import { extractCaseInfo, extractProblemSolution } from '../utils/helpers';
+import { extractCaseInfo, extractProblemSolution } from '../../utils/helpers';
 
 export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext }) {
   const { matchPercentage, sourceCaseId, content } = extractCaseInfo(caseItem, index);

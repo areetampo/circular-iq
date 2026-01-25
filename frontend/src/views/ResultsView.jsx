@@ -1,18 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import RadarChartSection from '../components/RadarChartSection';
-import EvidenceCard from '../components/EvidenceCard';
-import ContextModal from '../components/ContextModal';
-import AssessmentMethodologyModal from '../components/AssessmentMethodologyModal';
-import EvaluationCriteriaModal from '../components/EvaluationCriteriaModal';
-import TipCard from '../components/TipCard';
-import ExportButton from '../components/ExportButton';
+import RadarChartSection from '../components/shared/RadarChartSection';
+import EvidenceCard from '../components/shared/EvidenceCard';
+import ContextModal from '../components/modals/ContextModal';
+import AssessmentMethodologyModal from '../components/modals/AssessmentMethodologyModal';
+import EvaluationCriteriaModal from '../components/modals/EvaluationCriteriaModal';
+import MarketAnalysisModal from '../components/modals/MarketAnalysisModal';
+import TipCard from '../components/shared/TipCard';
+import ExportButton from '../components/shared/ExportButton';
 import { validKeys, categoryMapping } from '../constants/evaluationData';
 import { categorizeIntegrityGaps } from '../utils/helpers';
-import { exportSimilarCasesToCSV, exportAuditReportToPDF } from '../utils/exportSimple';
+import { exportAssessmentCSV, exportAssessmentPDF } from '../utils/exportSimple';
 import { useToast } from '../hooks/useToast';
 import { useExportState } from '../hooks/useExportState';
+
+const fallbackGetRatingBadge = (score) => {
+  if (score >= 90) return 'Excellent';
+  if (score >= 75) return 'Very Good';
+  if (score >= 60) return 'Good';
+  if (score >= 40) return 'Fair';
+  return 'Needs Improvement';
+};
 
 export default function ResultsView({
   result,
@@ -25,7 +34,7 @@ export default function ResultsView({
   onBack,
   onSaveAssessment,
   onViewHistory,
-  onViewMarketAnalysis,
+  onReevaluate,
 }) {
   const { id } = useParams();
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -33,33 +42,146 @@ export default function ResultsView({
   const { isExporting, executeExport } = useExportState();
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(isDetailView && id);
+  const [detailError, setDetailError] = useState(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [contextModal, setContextModal] = useState(null);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
+  const [showMarketAnalysisModal, setShowMarketAnalysisModal] = useState(false);
   const [assessmentTitle, setAssessmentTitle] = useState('');
 
+  // Smart market analysis: use modal instead of routing
+  const handleMarketAnalysis = useCallback(() => {
+    setShowMarketAnalysisModal(true);
+  }, []);
+
   // Load detail view if needed
-  useEffect(() => {
-    if (isDetailView && id) {
-      fetch(`${apiBase}/assessments/${id}`)
-        .then((r) => r.json())
-        .then((data) => {
-          setDetailData(data.assessment);
-          setDetailLoading(false);
-        })
-        .catch(() => setDetailLoading(false));
+  const loadDetail = useCallback(async () => {
+    if (!isDetailView || !id) return;
+
+    setDetailLoading(true);
+    setDetailError(null);
+
+    try {
+      const response = await fetch(`${apiBase}/assessments/${id}`);
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = payload?.error || payload?.message || 'Failed to load assessment';
+        throw new Error(message);
+      }
+
+      setDetailData(payload.assessment);
+    } catch (err) {
+      const message = err?.message || 'Failed to load assessment';
+      setDetailError(message);
+      addToast(message, 'error');
+    } finally {
+      setDetailLoading(false);
     }
-  }, [id, isDetailView, apiBase]);
+  }, [addToast, apiBase, id, isDetailView]);
+
+  useEffect(() => {
+    loadDetail();
+  }, [loadDetail]);
 
   const currentData = isDetailView ? detailData : result;
-  const currentTitle = passedCategoryMapping || categoryMapping;
-  const currentValidKeys = passedValidKeys || validKeys;
+
+  const resolvedCategoryMapping =
+    passedCategoryMapping && Object.keys(passedCategoryMapping).length > 0
+      ? passedCategoryMapping
+      : categoryMapping;
+
+  const resolvedValidKeys =
+    Array.isArray(passedValidKeys) && passedValidKeys.length > 0 ? passedValidKeys : validKeys;
+
+  const ratingFn = getRatingBadge || fallbackGetRatingBadge;
+
+  const actualResult = currentData?.result_json || currentData || null;
+
+  const computeMarketAvg = (res) => {
+    if (!res?.similar_cases || res.similar_cases.length === 0) return 65;
+    return (
+      res.similar_cases.reduce((acc, curr) => acc + (curr.similarity || 0) * 100, 0) /
+      res.similar_cases.length
+    );
+  };
+
+  const resolvedRadarData = useMemo(() => {
+    if (!actualResult?.sub_scores) return [];
+    const marketAvg = computeMarketAvg(actualResult);
+
+    return resolvedValidKeys
+      .filter((key) => key in (actualResult.sub_scores || {}))
+      .map((key) => {
+        const value = actualResult.sub_scores[key];
+        const numValue = value != null && !isNaN(value) ? Number(value) : 0;
+        return {
+          subject: resolvedCategoryMapping[key]?.name || key.replace(/_/g, ' '),
+          userValue: numValue,
+          marketAvg,
+        };
+      });
+  }, [actualResult, resolvedCategoryMapping, resolvedValidKeys]);
+
+  const computeBusinessViabilityScore = (res) => {
+    if (!res) return 0;
+    const confidence = res.audit?.confidence_score;
+    const normalizedConfidence =
+      confidence != null && confidence <= 1
+        ? (Number(confidence) || 0) * 100
+        : Number(confidence) || 0;
+
+    return Math.round((Number(res.overall_score) || 0) * 0.7 + normalizedConfidence * 0.3);
+  };
+
+  const resolvedBusinessViabilityScore = computeBusinessViabilityScore(actualResult);
 
   if (detailLoading) {
     return (
       <div className="app-container">
         <p>Loading assessment...</p>
+      </div>
+    );
+  }
+
+  if (isDetailView && detailError) {
+    return (
+      <div className="app-container">
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <h2>Unable to load assessment</h2>
+          <p style={{ color: '#666', marginBottom: '1.5rem' }}>{detailError}</p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={loadDetail}
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: '#34a83a',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+              }}
+            >
+              Retry
+            </button>
+            <button
+              onClick={onBack}
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: '#e0e0e0',
+                color: '#333',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+              }}
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -100,9 +222,8 @@ export default function ResultsView({
     );
   }
 
-  const actualResult = currentData?.result_json || currentData;
   const overallScore = actualResult?.overall_score != null ? Number(actualResult.overall_score) : 0;
-  const rating = getRatingBadge(overallScore);
+  const rating = ratingFn(overallScore);
 
   const { strengths, gaps } = categorizeIntegrityGaps(actualResult.audit?.integrity_gaps);
   const casesSummaries = actualResult.audit?.similar_cases_summaries || [];
@@ -165,29 +286,21 @@ export default function ResultsView({
   };
 
   const handleDownloadCSV = async () => {
-    const actualResult = currentData?.result_json || currentData;
     if (!actualResult) {
       addToast('No result data available to export', 'error');
       return;
     }
 
-    await executeExport(
-      () => exportSimilarCasesToCSV(casesSummaries, actualResult.similar_cases || [], actualResult),
-      'CSV',
-    );
+    await executeExport(() => exportAssessmentCSV(currentData), 'CSV');
   };
 
   const handleDownloadPDF = async () => {
-    const actualResult = currentData?.result_json || currentData;
     if (!actualResult) {
       addToast('No result data available to export', 'error');
       return;
     }
 
-    await executeExport(
-      () => exportAuditReportToPDF(currentData, radarData, businessViabilityScore, getRatingBadge),
-      'PDF',
-    );
+    await executeExport(() => exportAssessmentPDF(currentData, ratingFn), 'PDF');
   };
 
   return (
@@ -420,7 +533,7 @@ export default function ResultsView({
                 {avgFactorScore || 'Not available'} / 100
               </div>
               <div style={{ marginTop: '0.35rem', color: '#0d47a1' }}>
-                Business Viability: {businessViabilityScore || 'N/A'} / 100
+                Business Viability: {resolvedBusinessViabilityScore || 'N/A'} / 100
               </div>
             </div>
           </div>
@@ -892,11 +1005,11 @@ export default function ResultsView({
         {/* Category Analysis */}
         <div className="category-card">
           <h2>Category Analysis</h2>
-          {validKeys.map((key) => {
+          {resolvedValidKeys.map((key) => {
             const value = actualResult.sub_scores?.[key];
             if (!(actualResult.sub_scores && key in actualResult.sub_scores)) return null;
 
-            const category = categoryMapping[key];
+            const category = resolvedCategoryMapping[key];
             if (!category) return null;
 
             const numValue = value != null && !isNaN(value) ? Number(value) : 0;
@@ -931,21 +1044,25 @@ export default function ResultsView({
                 <h3>Business Viability</h3>
                 <p>Economic feasibility and scalability</p>
               </div>
-              <span className={`category-score ${businessViabilityScore >= 75 ? 'high' : ''}`}>
-                {businessViabilityScore}
+              <span
+                className={`category-score ${resolvedBusinessViabilityScore >= 75 ? 'high' : ''}`}
+              >
+                {resolvedBusinessViabilityScore}
               </span>
             </div>
             <div className="category-progress-bar">
               <div
-                className={`category-progress-fill ${businessViabilityScore >= 75 ? 'high' : ''}`}
-                style={{ width: `${businessViabilityScore}%` }}
+                className={`category-progress-fill ${
+                  resolvedBusinessViabilityScore >= 75 ? 'high' : ''
+                }`}
+                style={{ width: `${resolvedBusinessViabilityScore}%` }}
               ></div>
             </div>
           </div>
         </div>
 
         {/* Radar Chart */}
-        <RadarChartSection radarData={radarData} />
+        <RadarChartSection radarData={resolvedRadarData} />
 
         {/* Comparative Metrics Dashboard */}
         {actualResult.audit?.key_metrics_comparison && (
@@ -1123,14 +1240,19 @@ export default function ResultsView({
         <div className="results-footer">
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <button className="back-button" onClick={onBack}>
-              ← Evaluate Another Idea
+              {isDetailView ? '← Back to History' : '← Evaluate Another Idea'}
             </button>
             <button className="secondary-button" onClick={onViewHistory}>
               📋 My Assessments
             </button>
-            <button className="secondary-button" onClick={onViewMarketAnalysis}>
+            <button className="secondary-button" onClick={handleMarketAnalysis}>
               📊 Market Analysis
             </button>
+            {isDetailView && currentData && onReevaluate && (
+              <button className="secondary-button" onClick={() => onReevaluate(currentData)}>
+                🔄 Re-evaluate
+              </button>
+            )}
           </div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <ExportButton
@@ -1147,18 +1269,20 @@ export default function ResultsView({
               loadingLabel="Generating..."
               onClick={handleDownloadPDF}
             />
-            <button
-              className="save-button"
-              onClick={() => setShowSaveDialog(true)}
-              disabled={isExporting}
-            >
-              💾 Save Assessment
-            </button>
+            {!isDetailView && (
+              <button
+                className="save-button"
+                onClick={() => setShowSaveDialog(true)}
+                disabled={isExporting}
+              >
+                💾 Save Assessment
+              </button>
+            )}
           </div>
         </div>
 
         {/* Save Assessment Dialog */}
-        {showSaveDialog && (
+        {showSaveDialog && !isDetailView && (
           <div className="modal-overlay" style={{ zIndex: 2000 }}>
             <div className="modal-dialog">
               <div className="modal-content">
@@ -1228,9 +1352,16 @@ export default function ResultsView({
       {showMethodologyModal && (
         <AssessmentMethodologyModal onClose={() => setShowMethodologyModal(false)} />
       )}
-
       {/* Evaluation Criteria Modal */}
       {showCriteriaModal && <EvaluationCriteriaModal onClose={() => setShowCriteriaModal(false)} />}
+
+      {/* Market Analysis Modal */}
+      <MarketAnalysisModal
+        isOpen={showMarketAnalysisModal}
+        onClose={() => setShowMarketAnalysisModal(false)}
+        currentAssessmentScore={actualResult?.overall_score}
+        currentIndustry={actualResult?.metadata?.industry}
+      />
     </div>
   );
 }
@@ -1247,19 +1378,19 @@ ResultsView.propTypes = {
   onBack: PropTypes.func,
   onSaveAssessment: PropTypes.func,
   onViewHistory: PropTypes.func,
-  onViewMarketAnalysis: PropTypes.func,
+  onReevaluate: PropTypes.func,
 };
 
 ResultsView.defaultProps = {
   result: null,
   radarData: [],
   businessViabilityScore: 0,
-  getRatingBadge: () => 'Unknown',
-  categoryMapping: {},
-  validKeys: [],
+  getRatingBadge: fallbackGetRatingBadge,
+  categoryMapping,
+  validKeys,
   isDetailView: false,
   onBack: () => {},
   onSaveAssessment: () => {},
   onViewHistory: () => {},
-  onViewMarketAnalysis: () => {},
+  onReevaluate: () => {},
 };
