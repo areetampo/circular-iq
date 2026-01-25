@@ -17,15 +17,20 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
   const matchStrength = getMatchStrength(matchPercentage);
 
   return (
-    <div className="evidence-case-card">
-      <div className="case-header">
-        <div className="similarity-metrics">
-          <div className="similarity-badge-bold">{matchPercentage}% Match</div>
-          <div className="match-strength" style={{ color: matchStrength.color }}>
+    <div>
+      <div className="flex justify-between items-start gap-3 mb-2">
+        <div className="flex items-center gap-2">
+          <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+            {matchPercentage}% Match
+          </div>
+          <div
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: matchStrength.color }}
+          >
             {matchStrength.label}
           </div>
         </div>
-        <div className="case-id-badge">
+        <div className="flex items-center gap-2 text-sm text-gray-700">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
             <path
@@ -40,34 +45,40 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
       </div>
 
       {/* Visual similarity bar */}
-      <div className="similarity-bar-container">
+      <div className="w-full h-1 bg-gray-300 rounded overflow-hidden mb-3">
         <div
-          className="similarity-bar"
+          className="h-full rounded transition-all duration-300"
           style={{ width: `${matchPercentage}%`, background: matchStrength.color }}
         ></div>
       </div>
 
-      <h3 className="case-title">{caseTitle}</h3>
+      <h3 className="m-0 mb-4 text-base text-gray-900 font-semibold leading-relaxed">
+        {caseTitle}
+      </h3>
 
-      <div className="case-sections">
-        <div className="case-section">
-          <div className="section-label">
-            <span className="icon">🎯</span>
+      <div className="flex flex-col gap-3">
+        <div className="bg-gray-50 p-3 rounded border-l-4 border-emerald-600">
+          <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
+            <span className="text-sm">🎯</span>
             <strong>Problem Addressed:</strong>
           </div>
-          <p className="section-content">{problemText.substring(0, 200)}...</p>
+          <p className="m-0 text-xs leading-relaxed text-gray-700">
+            {problemText.substring(0, 200)}...
+          </p>
         </div>
-        <div className="case-section">
-          <div className="section-label">
-            <span className="icon">💡</span>
+        <div className="bg-gray-50 p-3 rounded border-l-4 border-emerald-600">
+          <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
+            <span className="text-sm">💡</span>
             <strong>Solution Approach:</strong>
           </div>
-          <p className="section-content">{solutionText.substring(0, 200)}...</p>
+          <p className="m-0 text-xs leading-relaxed text-gray-700">
+            {solutionText.substring(0, 200)}...
+          </p>
         </div>
       </div>
 
       <button
-        className="view-context-btn"
+        className="mt-3.5 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline"
         onClick={() =>
           onViewContext({
             caseItem,
@@ -82,98 +93,6 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
       >
         View Full Details →
       </button>
-
-      <style jsx>{`
-        .case-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 12px;
-          margin-bottom: 8px;
-        }
-        .similarity-metrics {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .similarity-badge-bold {
-          background: #34a83a;
-          color: white;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-size: 13px;
-          font-weight: bold;
-        }
-        .match-strength {
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .similarity-bar-container {
-          width: 100%;
-          height: 4px;
-          background: #e5e7eb;
-          border-radius: 2px;
-          overflow: hidden;
-          margin-bottom: 12px;
-        }
-        .similarity-bar {
-          height: 100%;
-          border-radius: 2px;
-          transition: width 0.3s ease;
-        }
-        .case-title {
-          margin: 0 0 16px 0;
-          font-size: 16px;
-          color: #333;
-          font-weight: 600;
-          line-height: 1.4;
-        }
-        .case-sections {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .case-section {
-          background: #f8f9fa;
-          padding: 12px;
-          border-radius: 8px;
-          border-left: 3px solid #34a83a;
-        }
-        .section-label {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin-bottom: 6px;
-          color: #2c3e50;
-          font-size: 13px;
-        }
-        .icon {
-          font-size: 14px;
-        }
-        .section-content {
-          margin: 0;
-          font-size: 13px;
-          line-height: 1.6;
-          color: #555;
-        }
-        .view-context-btn {
-          margin-top: 14px;
-          background: none;
-          border: none;
-          color: #34a83a;
-          font-weight: 600;
-          cursor: pointer;
-          padding: 8px 0;
-          font-size: 14px;
-          transition: color 0.2s;
-        }
-        .view-context-btn:hover {
-          color: #2d8f32;
-          text-decoration: underline;
-        }
-      `}</style>
     </div>
   );
 }

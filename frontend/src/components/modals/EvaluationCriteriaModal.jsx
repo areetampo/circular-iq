@@ -1,174 +1,66 @@
 export default function EvaluationCriteriaModal({ onClose }) {
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '20px',
-      }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
       onClick={onClose}
     >
       <div
-        style={{
-          background: 'white',
-          borderRadius: '12px',
-          maxWidth: '900px',
-          width: '100%',
-          maxHeight: '80vh',
-          overflow: 'hidden',
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
+        className="bg-white rounded-lg max-w-3xl w-full max-h-[80vh] overflow-hidden shadow-lg flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '24px',
-            borderBottom: '1px solid #eee',
-          }}
-        >
-          <h2 style={{ margin: 0, color: '#34a83a' }}>Evaluation Criteria</h2>
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="m-0 text-emerald-600">Evaluation Criteria</h2>
           <button
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '28px',
-              cursor: 'pointer',
-              color: '#999',
-              padding: 0,
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '4px',
-            }}
+            className="bg-none border-none text-2xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-gray-700"
             onClick={onClose}
-            onMouseEnter={(e) => {
-              e.target.style.background = '#f5f5f5';
-              e.target.style.color = '#333';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'none';
-              e.target.style.color = '#999';
-            }}
           >
             ×
           </button>
         </div>
-        <div style={{ padding: '24px', overflowY: 'auto' }}>
-          <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+        <div className="p-6 overflow-y-auto">
+          <p className="text-gray-600 mb-6 leading-relaxed">
             Our AI-powered evaluation framework assesses business ideas across three core value
             dimensions, each comprising specific factors.
           </p>
 
           {/* Key Metrics */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '1rem',
-              marginBottom: '2rem',
-            }}
-          >
-            <div
-              style={{
-                background: '#e3f2fd',
-                padding: '1.5rem',
-                borderRadius: '10px',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#4a90e2' }}>3</div>
-              <div style={{ fontSize: '0.9rem', color: '#666' }}>Core Value Types</div>
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-blue-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-blue-500">3</div>
+              <div className="text-sm text-gray-600">Core Value Types</div>
             </div>
-            <div
-              style={{
-                background: '#e8f5e9',
-                padding: '1.5rem',
-                borderRadius: '10px',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#34a83a' }}>8</div>
-              <div style={{ fontSize: '0.9rem', color: '#666' }}>Evaluation Factors</div>
+            <div className="bg-emerald-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-emerald-600">8</div>
+              <div className="text-sm text-gray-600">Evaluation Factors</div>
             </div>
-            <div
-              style={{
-                background: '#e8f5e9',
-                padding: '1.5rem',
-                borderRadius: '10px',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#34a83a' }}>100</div>
-              <div style={{ fontSize: '0.9rem', color: '#666' }}>Maximum Score</div>
+            <div className="bg-emerald-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-emerald-600">100</div>
+              <div className="text-sm text-gray-600">Maximum Score</div>
             </div>
           </div>
 
           {/* Access Value Section */}
-          <div style={{ marginBottom: '2rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem' }}>🔗</div>
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-2xl">🔗</div>
               <div>
-                <h3 style={{ margin: 0, color: '#4a90e2' }}>Access Value</h3>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+                <h3 className="m-0 text-blue-500">Access Value</h3>
+                <p className="m-0 text-sm text-gray-600">
                   Evaluates accessibility and participation aspects
                 </p>
               </div>
             </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '1rem',
-              }}
-            >
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #4a90e2',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Public Participation</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
+                <h4 className="m-0 mb-2 text-slate-800">Public Participation</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Measures how easily stakeholders, communities, and end-users can engage with and
                   contribute to the circular system.
                 </p>
               </div>
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #4a90e2',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>
-                  Infrastructure & Accessibility
-                </h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
+                <h4 className="m-0 mb-2 text-slate-800">Infrastructure & Accessibility</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Assesses the availability of necessary infrastructure and ease of access to
                   circular economy resources and processes.
                 </p>
@@ -177,68 +69,34 @@ export default function EvaluationCriteriaModal({ onClose }) {
           </div>
 
           {/* Embedded Value Section */}
-          <div style={{ marginBottom: '2rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem' }}>💰</div>
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-2xl">💰</div>
               <div>
-                <h3 style={{ margin: 0, color: '#34a83a' }}>Embedded Value</h3>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+                <h3 className="m-0 text-emerald-600">Embedded Value</h3>
+                <p className="m-0 text-sm text-gray-600">
                   Evaluates inherent and economic value of resources
                 </p>
               </div>
             </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-              }}
-            >
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #34a83a',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Market Price</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-600">
+                <h4 className="m-0 mb-2 text-slate-800">Market Price</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Evaluates the economic value and market demand for recovered or repurposed
                   materials.
                 </p>
               </div>
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #34a83a',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Maintenance</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-600">
+                <h4 className="m-0 mb-2 text-slate-800">Maintenance</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Assesses the ease and cost of maintaining products, materials, or systems
                   throughout their lifecycle.
                 </p>
               </div>
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #34a83a',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Uniqueness</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-600">
+                <h4 className="m-0 mb-2 text-slate-800">Uniqueness</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Measures the rarity, specialty, or distinctive value of materials and their
                   potential for reuse.
                 </p>
@@ -247,68 +105,34 @@ export default function EvaluationCriteriaModal({ onClose }) {
           </div>
 
           {/* Processing Value Section */}
-          <div style={{ marginBottom: '2rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem',
-              }}
-            >
-              <div style={{ fontSize: '1.5rem' }}>⚙️</div>
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-2xl">⚙️</div>
               <div>
-                <h3 style={{ margin: 0, color: '#26a69a' }}>Processing Value</h3>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>
+                <h3 className="m-0 text-teal-600">Processing Value</h3>
+                <p className="m-0 text-sm text-gray-600">
                   Evaluates technical and operational factors
                 </p>
               </div>
             </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-              }}
-            >
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #26a69a',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Size</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-teal-600">
+                <h4 className="m-0 mb-2 text-slate-800">Size</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Considers the physical dimensions and volume, affecting handling, storage, and
                   transportation efficiency.
                 </p>
               </div>
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #26a69a',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Chemical Toxicity</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-teal-600">
+                <h4 className="m-0 mb-2 text-slate-800">Chemical Toxicity</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Assesses potential environmental and health hazards, impacting safe processing and
                   disposal methods.
                 </p>
               </div>
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  padding: '1rem',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #26a69a',
-                }}
-              >
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Technology Needed</h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#555' }}>
+              <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-teal-600">
+                <h4 className="m-0 mb-2 text-slate-800">Technology Needed</h4>
+                <p className="m-0 text-sm text-gray-700">
                   Evaluates the complexity and availability of technology required for effective
                   processing and recovery.
                 </p>
@@ -317,80 +141,39 @@ export default function EvaluationCriteriaModal({ onClose }) {
           </div>
 
           {/* How We Calculate Section */}
-          <div style={{ background: '#f0f4f8', padding: '1.5rem', borderRadius: '10px' }}>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#2c3e50' }}>How We Calculate Your Score</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                <div
-                  style={{
-                    background: '#34a83a',
-                    color: 'white',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    fontWeight: 'bold',
-                  }}
-                >
+          <div className="bg-slate-100 p-6 rounded-lg">
+            <h3 className="m-0 mb-4 text-slate-800">How We Calculate Your Score</h3>
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-4 items-start">
+                <div className="bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">
                   1
                 </div>
                 <div>
-                  <h4 style={{ margin: '0 0 0.25rem 0', color: '#2c3e50' }}>AI Analysis</h4>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}>
+                  <h4 className="m-0 mb-1 text-slate-800">AI Analysis</h4>
+                  <p className="m-0 text-sm text-gray-700">
                     Our machine learning model analyzes your business description against each of
                     the 8 factors
                   </p>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                <div
-                  style={{
-                    background: '#34a83a',
-                    color: 'white',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    fontWeight: 'bold',
-                  }}
-                >
+              <div className="flex gap-4 items-start">
+                <div className="bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">
                   2
                 </div>
                 <div>
-                  <h4 style={{ margin: '0 0 0.25rem 0', color: '#2c3e50' }}>Weighted Scoring</h4>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}>
+                  <h4 className="m-0 mb-1 text-slate-800">Weighted Scoring</h4>
+                  <p className="m-0 text-sm text-gray-700">
                     Each value type contributes proportionally to the overall circularity score
                   </p>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                <div
-                  style={{
-                    background: '#34a83a',
-                    color: 'white',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    fontWeight: 'bold',
-                  }}
-                >
+              <div className="flex gap-4 items-start">
+                <div className="bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">
                   3
                 </div>
                 <div>
-                  <h4 style={{ margin: '0 0 0.25rem 0', color: '#2c3e50' }}>
-                    Comprehensive Report
-                  </h4>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}>
+                  <h4 className="m-0 mb-1 text-slate-800">Comprehensive Report</h4>
+                  <p className="m-0 text-sm text-gray-700">
                     Receive detailed insights, strengths, and actionable recommendations for
                     improvement
                   </p>
