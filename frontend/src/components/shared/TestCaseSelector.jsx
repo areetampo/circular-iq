@@ -18,10 +18,16 @@ export default function TestCaseSelector({ onSelectTestCase }) {
     });
   };
 
+  const getParameterColor = (value) => {
+    if (value >= 75) return { bg: '#d4edda', text: '#155724', border: '#c3e6cb' };
+    if (value >= 50) return { bg: '#fff3cd', text: '#856404', border: '#ffeaa7' };
+    return { bg: '#f8d7da', text: '#721c24', border: '#f5c6cb' };
+  };
+
   return (
-    <div style={{ marginTop: '24px', marginBottom: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <span style={{ fontSize: '13px', fontWeight: '600', color: '#555' }}>Test Cases</span>
+    <div className="mt-6 mb-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-semibold text-gray-600">Test Cases</span>
         <InfoIconButton
           onClick={() => setShowInfoModal(true)}
           title="Learn about test cases"
@@ -30,113 +36,37 @@ export default function TestCaseSelector({ onSelectTestCase }) {
       </div>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: '100%',
-          background: isOpen ? '#f8f9fa' : 'white',
-          border: '2px solid #e0e0e0',
-          borderRadius: '10px',
-          padding: '14px 20px',
-          fontSize: '14px',
-          fontWeight: '600',
-          color: '#555',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          transition: 'all 0.2s ease',
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.borderColor = '#999';
-          e.currentTarget.style.background = '#f8f9fa';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.borderColor = '#e0e0e0';
-          if (!isOpen) e.currentTarget.style.background = 'white';
-        }}
+        className="w-full bg-white border-2 border-gray-300 rounded-lg px-5 py-3.5 text-sm font-semibold text-gray-600 cursor-pointer flex items-center justify-between transition-all duration-200 hover:border-gray-600 hover:bg-gray-50"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '18px' }}>🧪</span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-lg">🧪</span>
           <span>Load Test Case for Quick Testing</span>
         </div>
         <span
-          style={{
-            fontSize: '18px',
-            color: '#999',
-            transition: 'transform 0.2s ease',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
+          className={`text-lg text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
         >
           ▼
         </span>
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            marginTop: '12px',
-            padding: '16px',
-            background: '#fafbfc',
-            borderRadius: '10px',
-            border: '1px solid #e0e0e0',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '12px',
-              maxHeight: '400px',
-              overflowY: 'auto',
-              padding: '4px',
-            }}
-          >
+        <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-gray-300">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
             {testCases.testCases.map((testCase, index) => (
               <div
                 key={testCase.id}
                 onClick={() => handleSelectCase(testCase)}
-                style={{
-                  padding: '14px',
-                  borderRadius: '8px',
-                  border: selectedCase === testCase.id ? '2px solid #5a6c7d' : '1px solid #d0d7de',
-                  background: selectedCase === testCase.id ? '#f0f3f6' : 'white',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
-                  cursor: 'pointer',
-                }}
-                onMouseOver={(e) => {
-                  if (selectedCase !== testCase.id) {
-                    e.currentTarget.style.background = '#f6f8fa';
-                    e.currentTarget.style.borderColor = '#8b96a1';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (selectedCase !== testCase.id) {
-                    e.currentTarget.style.background = 'white';
-                    e.currentTarget.style.borderColor = '#d0d7de';
-                  }
-                }}
+                className={`p-3.5 rounded-lg cursor-pointer transition-all duration-200 relative ${
+                  selectedCase === testCase.id
+                    ? 'border-2 border-slate-500 bg-slate-100'
+                    : 'border border-gray-300 bg-white hover:bg-slate-50 hover:border-slate-500'
+                }`}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <h4
-                    style={{
-                      margin: 0,
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      color: '#24292f',
-                      flex: 1,
-                      lineHeight: '1.4',
-                    }}
-                  >
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="text-xs font-semibold text-gray-900 flex-1 leading-tight">
                     {testCase.title}
                   </h4>
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <div className="flex gap-1.5 items-center">
                     <InfoIconButton
                       onClick={(e) => {
                         e.stopPropagation();
@@ -144,76 +74,44 @@ export default function TestCaseSelector({ onSelectTestCase }) {
                       }}
                       title="Preview this test case"
                     />
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: '700',
-                        color: '#656d76',
-                        background: '#f0f3f6',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                      }}
-                    >
+                    <span className="text-xs font-bold text-gray-500 bg-slate-100 px-2 py-0.5 rounded-full">
                       #{index + 1}
                     </span>
                   </div>
                 </div>
-                <p
-                  style={{
-                    margin: '8px 0 0 0',
-                    fontSize: '11px',
-                    color: '#656d76',
-                    lineHeight: '1.5',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
+                <p className="mt-2 text-xs text-gray-500 leading-relaxed line-clamp-2">
                   {testCase.problem.substring(0, 100)}...
                 </p>
 
-                <div
-                  style={{
-                    marginTop: '10px',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '4px',
-                  }}
-                >
+                <div className="mt-2.5 flex flex-wrap gap-1">
                   {Object.entries(testCase.parameters)
                     .slice(0, 4)
-                    .map(([key, value]) => (
-                      <span
-                        key={key}
-                        style={{
-                          fontSize: '9px',
-                          padding: '3px 6px',
-                          background: value >= 75 ? '#d4edda' : value >= 50 ? '#fff3cd' : '#f8d7da',
-                          color: value >= 75 ? '#155724' : value >= 50 ? '#856404' : '#721c24',
-                          borderRadius: '3px',
-                          fontWeight: '600',
-                          border: `1px solid ${value >= 75 ? '#c3e6cb' : value >= 50 ? '#ffeaa7' : '#f5c6cb'}`,
-                        }}
-                      >
-                        {key.replace(/_/g, ' ')}: {value}
-                      </span>
-                    ))}
+                    .map(([key, value]) => {
+                      const color = getParameterColor(value);
+                      return (
+                        <span
+                          key={key}
+                          style={{
+                            fontSize: '9px',
+                            padding: '3px 6px',
+                            background: color.bg,
+                            color: color.text,
+                            borderRadius: '3px',
+                            fontWeight: '600',
+                            border: `1px solid ${color.border}`,
+                          }}
+                        >
+                          {key.replace(/_/g, ' ')}: {value}
+                        </span>
+                      );
+                    })}
                 </div>
               </div>
             ))}
           </div>
 
-          <div
-            style={{
-              marginTop: '12px',
-              padding: '10px',
-              background: '#fff8e6',
-              borderRadius: '6px',
-              border: '1px solid #ffeaa7',
-            }}
-          >
-            <p style={{ margin: 0, fontSize: '11px', color: '#856404', lineHeight: '1.5' }}>
+          <div className="mt-3 p-2.5 bg-yellow-50 rounded border border-yellow-300">
+            <p className="m-0 text-xs text-yellow-700 leading-relaxed">
               <strong>💡 Tip:</strong> Select a test case to auto-fill the form with realistic
               circular economy data. Great for testing the evaluator or seeing examples of
               well-structured submissions.

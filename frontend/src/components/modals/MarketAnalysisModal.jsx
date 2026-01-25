@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import React, { Suspense, lazy } from 'react';
 
 const MarketAnalysisView = lazy(() => import('../../views/MarketAnalysisView'));
 
@@ -12,77 +12,27 @@ export default function MarketAnalysisModal({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2000,
-        padding: '20px',
-        overflowY: 'auto',
-      }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] p-5 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        style={{
-          background: 'white',
-          borderRadius: '12px',
-          maxWidth: '1000px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-        }}
+        className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
-          style={{
-            position: 'absolute',
-            top: '16px',
-            right: '16px',
-            background: 'white',
-            border: 'none',
-            fontSize: '28px',
-            cursor: 'pointer',
-            color: '#999',
-            padding: '4px 8px',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '4px',
-            zIndex: 10,
-            transition: 'all 0.2s ease',
-          }}
+          className="absolute top-4 right-4 bg-white border-none text-2xl cursor-pointer text-gray-400 p-1 w-10 h-10 flex items-center justify-center rounded z-10 transition-all duration-200 hover:bg-gray-100 hover:text-gray-700"
           onClick={onClose}
-          onMouseEnter={(e) => {
-            e.target.style.background = '#f5f5f5';
-            e.target.style.color = '#333';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'white';
-            e.target.style.color = '#999';
-          }}
         >
           ✕
         </button>
 
         {/* Content */}
-        <div style={{ overflowY: 'auto', flex: 1, paddingTop: '40px' }}>
+        <div className="overflow-y-auto flex-1 pt-10">
           <Suspense
             fallback={
-              <div style={{ padding: '3rem', textAlign: 'center' }}>
-                <p style={{ color: '#666' }}>Loading market analysis...</p>
+              <div className="p-12 text-center">
+                <p className="text-gray-500">Loading market analysis...</p>
               </div>
             }
           >

@@ -31,73 +31,25 @@ export default function MetricInfoModal({ onClose, type }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{getModalTitle()}</h2>
-          <button className="modal-close" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-5"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="m-0 text-emerald-600">{getModalTitle()}</h2>
+          <button
+            className="bg-none border-none text-2xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-gray-700"
+            onClick={onClose}
+          >
             ×
           </button>
         </div>
-        <div className="modal-body">{getModalContent()}</div>
+        <div className="p-6">{getModalContent()}</div>
       </div>
-
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 20px;
-        }
-        .modal-content {
-          background: white;
-          border-radius: 12px;
-          max-width: 700px;
-          width: 100%;
-          max-height: 80vh;
-          overflow-y: auto;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 24px;
-          border-bottom: 1px solid #eee;
-        }
-        .modal-header h2 {
-          margin: 0;
-          color: #34a83a;
-        }
-        .modal-close {
-          background: none;
-          border: none;
-          font-size: 28px;
-          cursor: pointer;
-          color: #999;
-          padding: 0;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-        }
-        .modal-close:hover {
-          background: #f5f5f5;
-          color: #333;
-        }
-        .modal-body {
-          padding: 24px;
-        }
-      `}</style>
     </div>
   );
 }
@@ -105,22 +57,15 @@ export default function MetricInfoModal({ onClose, type }) {
 function ProblemGuide() {
   return (
     <div>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+      <p className="mb-4 leading-relaxed">
         Describe the <strong>environmental or circular economy challenge</strong> your business
         addresses. This should be a clear, quantified problem statement that demonstrates
         understanding of the issue's scope and impact.
       </p>
 
-      <div
-        style={{
-          background: '#f5f5f5',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}
-      >
-        <h4 style={{ margin: '0 0 12px 0', color: '#34a83a' }}>Essential Elements to Include:</h4>
-        <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
+      <div className="bg-gray-100 p-4 rounded mb-5">
+        <h4 className="m-0 mb-3 text-emerald-600">Essential Elements to Include:</h4>
+        <ul className="pl-6 leading-relaxed m-0">
           <li>
             <strong>Environmental Impact:</strong> Specific waste, pollution, or resource depletion
             issue (e.g., "8M tons of plastic waste entering oceans annually")
@@ -166,18 +111,9 @@ function ProblemGuide() {
         </ul>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ margin: '0 0 12px 0', color: '#4a90e2' }}>Example Problem Statement:</h4>
-        <p
-          style={{
-            fontStyle: 'italic',
-            color: '#555',
-            lineHeight: '1.6',
-            padding: '12px',
-            background: '#e3f2fd',
-            borderRadius: '6px',
-          }}
-        >
+      <div className="mb-5">
+        <h4 className="m-0 mb-3 text-blue-500">Example Problem Statement:</h4>
+        <p className="italic text-gray-700 leading-relaxed p-3 bg-blue-50 rounded">
           "Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting
           marine ecosystems and poisoning food chains. Current alternatives are either
           cost-prohibitive (&gt;$2/unit) or require complex industrial composting infrastructure
@@ -186,7 +122,7 @@ function ProblemGuide() {
         </p>
       </div>
 
-      <p style={{ marginTop: '16px', fontStyle: 'italic', color: '#666' }}>
+      <p className="mt-4 italic text-gray-500">
         <strong>Minimum 200 characters required</strong> for accurate database matching and AI
         analysis.
       </p>
