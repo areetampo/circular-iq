@@ -117,6 +117,7 @@
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  position: relative;
 }
 
 .loading,
@@ -128,6 +129,44 @@
 
 .error {
   color: #dc3545;
+}
+
+.loading-block {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.loading-sub {
+  color: #888;
+  margin-top: 0.35rem;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #34a83a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 0.5rem auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {
@@ -222,6 +261,24 @@
 
 .delete-btn:hover {
   background: #ffe6e6;
+}
+
+.danger-button {
+  background: #dc3545;
+  color: #ffffff;
+  border: 1px solid #c82333;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.danger-button:hover {
+  background: #c82333;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
 }
 
 /* Footer */

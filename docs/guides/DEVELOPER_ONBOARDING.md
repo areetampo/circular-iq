@@ -1,6 +1,6 @@
 # Developer Onboarding Checklist
 
-**For new developers joining the Circular Economy Business Auditor project**
+For new developers joining the Circular Economy Business Auditor project
 
 ---
 
@@ -50,6 +50,7 @@
 - [ ] Add OpenAI API key to .env
 - [ ] Add Supabase credentials to .env
 - [ ] Verify .env is in .gitignore (never commit!)
+- [ ] If enabling API auth, set `API_AUTH_ENABLED=true` and `API_KEY=<secret>`; server will refuse to start in production without both. Missing Supabase vars will log warnings.
 
 ### Database Setup
 
@@ -63,7 +64,7 @@
 - [ ] Start backend: `cd backend && npm start`
 - [ ] Verify health: `curl http://localhost:3001/health`
 - [ ] Start frontend: `cd ../frontend && npm run dev`
-- [ ] Open http://localhost:5173 in browser
+- [ ] Open [http://localhost:5173](http://localhost:5173) in browser
 - [ ] Check browser console for errors (F12)
 
 ---
@@ -112,22 +113,24 @@
 
 ### For Backend Development
 
-#### Making Changes
+#### Making Changes (Backend)
 
 1. [ ] Create feature branch: `git checkout -b feature/your-feature`
 2. [ ] Make changes in backend/ files
 3. [ ] Test with: `npm start`
 4. [ ] Verify with sample request:
+
    ```bash
    curl -X POST http://localhost:3001/score \
      -H "Content-Type: application/json" \
      -d '{"businessProblem": "...", "businessSolution": "...", "parameters": {...}}'
    ```
+
 5. [ ] Check terminal for errors and logs
 6. [ ] Commit: `git add . && git commit -m "Your message"`
 7. [ ] Push: `git push origin feature/your-feature`
 
-#### Testing Changes
+#### Testing Changes (Backend)
 
 - [ ] No console errors in terminal
 - [ ] GET /health returns 200 OK
@@ -138,7 +141,7 @@
 
 ### For Frontend Development
 
-#### Making Changes
+#### Making Changes (Frontend)
 
 1. [ ] Create feature branch: `git checkout -b feature/your-feature`
 2. [ ] Make changes in frontend/src/ files
@@ -149,7 +152,7 @@
 7. [ ] Commit: `git add . && git commit -m "Your message"`
 8. [ ] Push: `git push origin feature/your-feature`
 
-#### Testing Changes
+#### Testing Changes (Frontend)
 
 - [ ] No red errors in browser console
 - [ ] Visual changes appear correctly
@@ -397,7 +400,7 @@ curl -X POST http://localhost:3001/score \
   -d '{"businessProblem": "...", "businessSolution": "...", "parameters": {...}}'
 ```
 
-#### Common Issues
+#### Common Issues (Debugging)
 
 | Error                       | Solution                                       |
 | --------------------------- | ---------------------------------------------- |
@@ -529,12 +532,12 @@ curl -X POST http://localhost:3001/score \
 
 ---
 
-**Welcome to the team! 🚀**
+### Welcome to the team! 🚀
 
-**Start with: QUICKSTART.md → README.md → IMPLEMENTATION_GUIDE.md**
+Start with: QUICKSTART.md → README.md → IMPLEMENTATION_GUIDE.md
 
-**Questions? Check the relevant documentation file first!**
+Questions? Check the relevant documentation file first!
 
 ---
 
-_Built with ♻️ for a circular economy future_
+Built with ♻️ for a circular economy future

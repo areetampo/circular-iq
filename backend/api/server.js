@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* global process */
 /**
  * Express API Server for Circular Economy Business Auditor
  *
@@ -7,23 +9,18 @@
  * - GET /docs/methodology - Methodology documentation
  */
 
-import dotenv from 'dotenv/config';
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
-import {
-  calculateScores,
-  identifyIntegrityGaps,
-  generateScoreExplanations,
-} from '../src/scoring.js';
+import { calculateScores, identifyIntegrityGaps } from '../src/scoring.js';
 import {
   generateReasoning,
   validateInput,
   extractMetadata,
   calculateGapAnalysis,
-  generateCompleteAudit,
 } from '../src/ask.js';
 
 const app = express();
@@ -32,6 +29,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(apiKeyGuard);
 
 // Initialize Supabase & OpenAI
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -39,6 +37,9 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const PORT = process.env.PORT || 3001;
 const IS_PROD = process.env.NODE_ENV === 'production';
+const API_AUTH_ENABLED = process.env.API_AUTH_ENABLED === 'true';
+const API_KEY = process.env.API_KEY || '';
+validateConfig();
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -56,6 +57,56 @@ function logRequest(method, path, status, duration) {
 
 function debugLog(...args) {
   if (!IS_PROD) console.log(...args);
+}
+
+const OPEN_ENDPOINTS = new Set(['/health']);
+
+function apiKeyGuard(req, res, next) {
+  if (!API_AUTH_ENABLED) return next();
+  if (OPEN_ENDPOINTS.has(req.path)) return next();
+
+  if (!API_KEY) {
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          { message: 'API auth enabled but API_KEY is not configured', code: 'API_KEY_MISSING' },
+          'API auth misconfigured',
+        ),
+      );
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const apiKeyHeader = (req.headers['x-api-key'] || '').toString().trim();
+  const token = bearerToken || apiKeyHeader;
+
+  if (token && token === API_KEY) {
+    return next();
+  }
+
+  return res
+    .status(401)
+    .json(
+      errorResponse(
+        { message: 'Invalid or missing API key', code: 'UNAUTHORIZED' },
+        'Unauthorized',
+      ),
+    );
+}
+
+function validateConfig() {
+  if (API_AUTH_ENABLED && !API_KEY) {
+    const message = 'API_AUTH_ENABLED=true but API_KEY is not set';
+    if (IS_PROD) {
+      throw new Error(message);
+    }
+    console.warn(message);
+  }
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    console.warn('Supabase URL or anon key is missing; database calls will fail.');
+  }
 }
 
 /**
@@ -136,7 +187,7 @@ app.post('/score', async (req, res) => {
     if (businessProblem.length < MIN_LENGTH) {
       return res.status(400).json(
         errorResponse({
-          message: `Business problem must be at least ${MIN_LENGTH} characters`,
+          message: `Business Problem is too short. Please provide ${MIN_LENGTH - businessProblem.length} more characters (currently ${businessProblem.length}/${MIN_LENGTH}).`,
           code: 'PROBLEM_TOO_SHORT',
         }),
       );
@@ -145,7 +196,7 @@ app.post('/score', async (req, res) => {
     if (businessSolution.length < MIN_LENGTH) {
       return res.status(400).json(
         errorResponse({
-          message: `Business solution must be at least ${MIN_LENGTH} characters`,
+          message: `Business Solution is too short. Please provide ${MIN_LENGTH - businessSolution.length} more characters (currently ${businessSolution.length}/${MIN_LENGTH}).`,
           code: 'SOLUTION_TOO_SHORT',
         }),
       );
@@ -189,9 +240,17 @@ app.post('/score', async (req, res) => {
         parameters[param] < 0 ||
         parameters[param] > 100
       ) {
+        let msg = `${param.replace(/_/g, ' ')} must be a number between 0 and 100`;
+        if (typeof parameters[param] !== 'number') {
+          msg = `${param.replace(/_/g, ' ')} must be a number (received: ${typeof parameters[param]})`;
+        } else if (parameters[param] < 0) {
+          msg = `${param.replace(/_/g, ' ')} cannot be negative (received: ${parameters[param]})`;
+        } else if (parameters[param] > 100) {
+          msg = `${param.replace(/_/g, ' ')} cannot exceed 100 (received: ${parameters[param]})`;
+        }
         return res.status(400).json(
           errorResponse({
-            message: `${param} must be a number between 0 and 100`,
+            message: msg,
             code: 'INVALID_PARAMETER_VALUE',
           }),
         );
@@ -431,7 +490,7 @@ app.post('/assessments', async (req, res) => {
   const requestId = Math.random().toString(36).substr(2, 9);
 
   try {
-    const { title, businessProblem, businessSolution, result, sessionId } = req.body;
+    const { title, businessProblem, businessSolution, result, parameters, sessionId } = req.body;
 
     if (!title || !result || !result.overall_score) {
       return res.status(400).json(
@@ -447,7 +506,12 @@ app.post('/assessments', async (req, res) => {
       session_id: sessionId || null,
       business_problem: businessProblem || '',
       business_solution: businessSolution || '',
-      result_json: result,
+      result_json: result
+        ? {
+            ...result,
+            input_parameters: parameters || null,
+          }
+        : result,
       industry: result.metadata?.industry || 'general',
       overall_score: Math.round(result.overall_score),
       business_viability_score: result.sub_scores?.business_viability || 0,
@@ -480,9 +544,30 @@ app.get('/assessments', async (req, res) => {
   const startTime = Date.now();
 
   try {
-    const { sessionId, industry, sortBy = 'created_at', order = 'desc', limit = 50 } = req.query;
+    const {
+      sessionId,
+      industry,
+      sortBy: sortByRaw = 'created_at',
+      order: orderRaw = 'desc',
+      page = 1,
+      pageSize = 20,
+      search,
+      createdFrom,
+      createdTo,
+      minScore,
+      maxScore,
+    } = req.query;
 
-    let query = supabase.from('assessments').select('*');
+    const currentPage = Math.max(1, parseInt(page));
+    const size = Math.max(1, Math.min(100, parseInt(pageSize)));
+    const from = (currentPage - 1) * size;
+    const to = from + size - 1;
+
+    const allowedSort = new Set(['created_at', 'overall_score', 'title']);
+    const sortBy = allowedSort.has(String(sortByRaw)) ? String(sortByRaw) : 'created_at';
+    const order = String(orderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
+
+    let query = supabase.from('assessments').select('*', { count: 'exact' });
 
     if (sessionId) {
       query = query.eq('session_id', sessionId);
@@ -492,9 +577,28 @@ app.get('/assessments', async (req, res) => {
       query = query.eq('industry', industry);
     }
 
+    if (search && String(search).trim().length > 0) {
+      const term = String(search).trim().toLowerCase();
+      // OR filter across title and industry fields using ilike
+      query = query.or(`title.ilike.%${term}%,industry.ilike.%${term}%`);
+    }
+
+    if (createdFrom) {
+      query = query.gte('created_at', new Date(createdFrom).toISOString());
+    }
+    if (createdTo) {
+      query = query.lte('created_at', new Date(createdTo).toISOString());
+    }
+    if (minScore != null && !Number.isNaN(Number(minScore))) {
+      query = query.gte('overall_score', Number(minScore));
+    }
+    if (maxScore != null && !Number.isNaN(Number(maxScore))) {
+      query = query.lte('overall_score', Number(maxScore));
+    }
+
     const { data, error, count } = await query
       .order(sortBy, { ascending: order === 'asc' })
-      .limit(parseInt(limit));
+      .range(from, to);
 
     if (error) throw error;
 
@@ -503,7 +607,8 @@ app.get('/assessments', async (req, res) => {
     res.json({
       assessments: data || [],
       total: count || 0,
-      limit: parseInt(limit),
+      page: currentPage,
+      pageSize: size,
     });
   } catch (error) {
     console.error('Error fetching assessments:', error);
@@ -539,7 +644,12 @@ app.get('/assessments/:id', async (req, res) => {
     res.json({ assessment: data });
   } catch (error) {
     console.error('Error fetching assessment:', error);
-    logRequest('GET', `/assessments/${id}`, 500, Date.now() - startTime);
+    logRequest(
+      'GET',
+      `/assessments/${req && req.params && req.params.id ? req.params.id : 'unknown'}`,
+      500,
+      Date.now() - startTime,
+    );
     res.status(500).json(errorResponse(error, 'Failed to fetch assessment'));
   }
 });
@@ -562,7 +672,12 @@ app.delete('/assessments/:id', async (req, res) => {
     res.json({ message: 'Assessment deleted successfully' });
   } catch (error) {
     console.error('Error deleting assessment:', error);
-    logRequest('DELETE', `/assessments/${id}`, 500, Date.now() - startTime);
+    logRequest(
+      'DELETE',
+      `/assessments/${req && req.params && req.params.id ? req.params.id : 'unknown'}`,
+      500,
+      Date.now() - startTime,
+    );
     res.status(500).json(errorResponse(error, 'Failed to delete assessment'));
   }
 });
@@ -619,11 +734,12 @@ app.use((req, res) => {
 });
 
 // ============================================
-// START SERVER
+// START SERVER (skip when running tests)
 // ============================================
 
-app.listen(PORT, () => {
-  console.log(`
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║   Circular Economy Business Auditor API                    ║
 ║   Server running on http://localhost:${PORT}               ║
@@ -640,18 +756,23 @@ Endpoints:
   GET  /analytics/market          - Market analysis (Phase 2)
 
 Environment:
-  Node: ${process.version}
+  Node: ${typeof process !== 'undefined' && process.version ? process.version : 'unknown'}
   Port: ${PORT}
   OpenAI Model: GPT-4o-mini (reasoning), text-embedding-3-small (embeddings)
 
 Database:
-  Supabase: ${process.env.SUPABASE_URL ? '✓ Connected' : '✗ Not configured'}
+  Supabase: ${typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL ? '✓ Connected' : '✗ Not configured'}
 
 Ready for requests. Press Ctrl+C to stop.
-  `);
-});
+    `);
+  });
+}
 
 // Error handling for unhandled rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
+if (typeof process !== 'undefined' && process.on) {
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  });
+}
+
+export default app;

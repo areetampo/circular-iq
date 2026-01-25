@@ -4,28 +4,48 @@ import '../styles/HistoryView.css';
 import { getSessionId } from '../utils/session';
 import { useToast } from '../hooks/useToast';
 
-export default function HistoryView({ onViewDetail }) {
+export default function HistoryView({ onViewDetail, onBack }) {
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const navigate = useNavigate();
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sortBy, setSortBy] = useState('created_at');
   const [filterIndustry, setFilterIndustry] = useState('all');
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [deletingIds, setDeletingIds] = useState(new Set());
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { addToast } = useToast();
 
   useEffect(() => {
     fetchAssessments();
-  }, [sortBy, filterIndustry]);
+  }, [sortBy, filterIndustry, page, pageSize]);
+
+  // Debounce search to avoid excessive requests
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1);
+      fetchAssessments();
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   const fetchAssessments = async () => {
     setLoading(true);
+    setError(null);
     try {
       const queryParams = new URLSearchParams({
         sortBy,
         order: 'desc',
-        limit: 100,
+        page: String(page),
+        pageSize: String(pageSize),
       });
 
       if (filterIndustry !== 'all') {
@@ -34,21 +54,37 @@ export default function HistoryView({ onViewDetail }) {
 
       // Filter by sessionId to show only current session's assessments
       queryParams.append('sessionId', getSessionId());
+      if (searchTerm && searchTerm.trim()) {
+        queryParams.append('search', searchTerm.trim());
+      }
+
       const response = await fetch(`${apiBase}/assessments?${queryParams}`);
+
+      if (!response.ok) {
+        const message = `Request failed (${response.status})`;
+        throw new Error(message);
+      }
+
       const data = await response.json();
       setAssessments(data.assessments || []);
+      setTotal(Number(data.total || 0));
       setError(null);
     } catch (err) {
-      setError('Failed to load assessments');
+      const message = err?.message || 'Failed to load assessments';
+      setError(message);
+      addToast(message, 'error');
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this assessment?')) return;
-
+  const proceedDelete = async (id) => {
     try {
+      const nextDeleting = new Set(deletingIds);
+      nextDeleting.add(id);
+      setDeletingIds(nextDeleting);
+
       const response = await fetch(`${apiBase}/assessments/${id}`, {
         method: 'DELETE',
       });
@@ -62,7 +98,18 @@ export default function HistoryView({ onViewDetail }) {
     } catch (err) {
       addToast('Failed to delete assessment', 'error');
       console.error(err);
+    } finally {
+      const nextDeleting = new Set(deletingIds);
+      nextDeleting.delete(id);
+      setDeletingIds(nextDeleting);
+      setConfirmDeleteId(null);
+      setShowDeleteModal(false);
     }
+  };
+
+  const handleDelete = (id) => {
+    setConfirmDeleteId(id);
+    setShowDeleteModal(true);
   };
 
   const handleToggleSelect = (id) => {
@@ -86,6 +133,10 @@ export default function HistoryView({ onViewDetail }) {
   };
 
   const handleViewDetail = (id) => {
+    if (onViewDetail) {
+      onViewDetail(id);
+      return;
+    }
     navigate(`/assessments/${id}`);
   };
 
@@ -93,6 +144,74 @@ export default function HistoryView({ onViewDetail }) {
     const industries = new Set(assessments.map((a) => a.industry).filter(Boolean));
     return ['all', ...Array.from(industries)];
   };
+
+  // Delete confirmation modal
+  const renderDeleteModal = () => {
+    if (!showDeleteModal || !confirmDeleteId) return null;
+    const target = assessments.find((a) => a.id === confirmDeleteId);
+    return (
+      <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+        <div
+          className="modal-dialog"
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: '520px' }}
+        >
+          <div className="modal-header">
+            <h2>Delete Assessment</h2>
+            <button className="modal-close" onClick={() => setShowDeleteModal(false)}>
+              ×
+            </button>
+          </div>
+          <div className="modal-body" style={{ lineHeight: 1.7 }}>
+            <p style={{ marginBottom: '0.75rem' }}>
+              Are you sure you want to delete this assessment?
+            </p>
+            {target && (
+              <div
+                style={{
+                  background: '#f8f9fa',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '6px',
+                  padding: '0.75rem',
+                }}
+              >
+                <div style={{ fontWeight: 600, color: '#2c3e50' }}>
+                  {target.title || 'Untitled Assessment'}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                  {new Date(target.created_at).toLocaleString()} • {target.industry || 'General'}
+                </div>
+              </div>
+            )}
+            <p style={{ marginTop: '0.75rem', color: '#b00020' }}>This action cannot be undone.</p>
+          </div>
+          <div
+            className="modal-footer"
+            style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}
+          >
+            <button className="modal-cancel-button" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </button>
+            <button
+              className="danger-button"
+              onClick={() => proceedDelete(confirmDeleteId)}
+              disabled={deletingIds.has(confirmDeleteId)}
+            >
+              {deletingIds.has(confirmDeleteId) ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const filteredAssessments = assessments.filter((assessment) => {
+    if (!searchTerm.trim()) return true;
+    const search = searchTerm.toLowerCase();
+    const titleMatch = (assessment.title || '').toLowerCase().includes(search);
+    const industryMatch = (assessment.industry || '').toLowerCase().includes(search);
+    return titleMatch || industryMatch;
+  });
 
   const getRatingColor = (score) => {
     if (score >= 75) return '#28a745';
@@ -120,10 +239,18 @@ export default function HistoryView({ onViewDetail }) {
         </div>
 
         {/* Controls */}
+
+        {renderDeleteModal()}
         <div className="history-controls">
           <div className="control-group">
             <label>Filter by Industry:</label>
-            <select value={filterIndustry} onChange={(e) => setFilterIndustry(e.target.value)}>
+            <select
+              value={filterIndustry}
+              onChange={(e) => {
+                setFilterIndustry(e.target.value);
+                setPage(1);
+              }}
+            >
               {getIndustries().map((ind) => (
                 <option key={ind} value={ind}>
                   {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
@@ -134,18 +261,47 @@ export default function HistoryView({ onViewDetail }) {
 
           <div className="control-group">
             <label>Sort by:</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setPage(1);
+              }}
+            >
               <option value="created_at">Latest</option>
               <option value="overall_score">Highest Score</option>
               <option value="title">Title (A-Z)</option>
             </select>
           </div>
 
+          <div className="control-group" style={{ minWidth: '220px' }}>
+            <label>Search:</label>
+            <input
+              type="search"
+              value={searchTerm}
+              placeholder="Search title or industry"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                className="action-btn"
+                style={{ marginTop: '0.5rem' }}
+                onClick={() => {
+                  setSearchTerm('');
+                  setPage(1);
+                  fetchAssessments();
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
           <div className="control-group compare-wrapper">
             <button
               className="compare-button"
               onClick={handleCompareSelected}
-              disabled={selectedIds.size !== 2}
+              disabled={selectedIds.size !== 2 || loading}
               title={
                 selectedIds.size !== 2
                   ? 'Select exactly 2 assessments to compare'
@@ -153,6 +309,29 @@ export default function HistoryView({ onViewDetail }) {
               }
             >
               Compare Selected ({selectedIds.size}/2)
+            </button>
+          </div>
+
+          <div className="control-group" style={{ alignItems: 'flex-end' }}>
+            <button className="compare-button" onClick={fetchAssessments} disabled={loading}>
+              {loading ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
+
+          <div className="control-group" style={{ alignItems: 'flex-end' }}>
+            <button
+              className="compare-button"
+              onClick={() => {
+                setFilterIndustry('all');
+                setSortBy('created_at');
+                setSearchTerm('');
+                setPage(1);
+                setPageSize(10);
+                fetchAssessments();
+              }}
+              disabled={loading}
+            >
+              Clear Filters
             </button>
           </div>
         </div>
@@ -205,17 +384,47 @@ export default function HistoryView({ onViewDetail }) {
 
         {/* Assessments Table */}
         <div className="assessments-table-container">
-          {loading && <p className="loading">Loading assessments...</p>}
-          {error && <p className="error">{error}</p>}
-
-          {!loading && assessments.length === 0 && (
-            <div className="empty-state">
-              <p>No assessments saved yet.</p>
-              <p>Complete an evaluation and click "Save Assessment" to start tracking.</p>
+          {loading && initialLoad && (
+            <div className="loading-block">
+              <div className="loading-spinner" />
+              <p className="loading">Loading assessments...</p>
+              <p className="loading-sub">Fetching your saved evaluations.</p>
             </div>
           )}
 
-          {!loading && assessments.length > 0 && (
+          {!initialLoad && loading && (
+            <div className="loading-overlay">
+              <div className="loading-spinner" />
+              <p>Refreshing…</p>
+            </div>
+          )}
+          {error && (
+            <div className="error">
+              <p>{error}</p>
+              <button className="action-btn view-btn" onClick={fetchAssessments}>
+                Retry
+              </button>
+              {onBack && (
+                <button className="action-btn" onClick={onBack}>
+                  Back
+                </button>
+              )}
+            </div>
+          )}
+
+          {!loading && !error && filteredAssessments.length === 0 && (
+            <div className="empty-state">
+              <p>No assessments match the current filters.</p>
+              <p>Try clearing filters or run a new evaluation and save it.</p>
+              {onBack && (
+                <button className="action-btn view-btn" onClick={onBack}>
+                  Start an Evaluation
+                </button>
+              )}
+            </div>
+          )}
+
+          {!loading && !error && filteredAssessments.length > 0 && (
             <table className="assessments-table">
               <thead>
                 <tr>
@@ -239,7 +448,7 @@ export default function HistoryView({ onViewDetail }) {
                 </tr>
               </thead>
               <tbody>
-                {assessments.map((assessment) => (
+                {filteredAssessments.map((assessment) => (
                   <tr key={assessment.id}>
                     <td>
                       <input
@@ -275,14 +484,62 @@ export default function HistoryView({ onViewDetail }) {
                       <button
                         className="action-btn delete-btn"
                         onClick={() => handleDelete(assessment.id)}
+                        disabled={deletingIds.has(assessment.id)}
                       >
-                        Delete
+                        {deletingIds.has(assessment.id) ? 'Deleting…' : 'Delete'}
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+
+          {/* Pagination */}
+          {!loading && !error && total > 0 && (
+            <div
+              className="pagination-controls"
+              style={{
+                marginTop: '1rem',
+                display: 'flex',
+                gap: '0.75rem',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span style={{ color: '#666' }}>
+                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total} ·
+                Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
+              </span>
+              <button
+                className="action-btn"
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page <= 1 || loading}
+              >
+                ← Prev
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => setPage(page + 1)}
+                disabled={page * pageSize >= total || loading}
+              >
+                Next →
+              </button>
+              <label style={{ marginLeft: '0.5rem' }}>Per page:</label>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+              >
+                {[10, 20, 50, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
       </div>

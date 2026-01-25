@@ -1,6 +1,6 @@
 import { React, useState } from 'react';
-import testCases from '../../../backend/data/test-cases.json';
-import TestCaseInfoModal from './TestCaseInfoModal';
+import testCases from '../../../../backend/data/test-cases.json';
+import TestCaseInfoModal from '../modals/TestCaseInfoModal';
 import InfoIconButton from './InfoIconButton';
 
 export default function TestCaseSelector({ onSelectTestCase }) {

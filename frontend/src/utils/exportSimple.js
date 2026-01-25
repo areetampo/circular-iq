@@ -1,98 +1,446 @@
 /**
- * Simple, practical exports that deliver real value
+ * Enhanced export utilities with professional PDF download and improved CSV formatting
  */
 
-// CSV Export - Comprehensive assessment summary (not relying on incomplete backend data)
-export function exportSimilarCasesToCSV(casesSummaries, similarCases, result) {
-  const actualResult = result?.result_json || result;
-  const csvLines = [];
+/**
+ * Export assessment as professional PDF (downloads instead of print dialog)
+ */
+export async function exportAssessmentPDF(result, getRatingBadge) {
+  try {
+    const actualResult = result?.result_json || result;
+    const overallScore = actualResult?.overall_score || 0;
+    const rating = getRatingBadge ? getRatingBadge(overallScore) : 'Excellent';
+    const timestamp = new Date().toLocaleString();
 
-  // Header
-  csvLines.push('CIRCULAR ECONOMY ASSESSMENT EXPORT');
-  csvLines.push(`Generated: ${new Date().toLocaleString()}`);
-  csvLines.push('');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Circular Economy Assessment Report</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #1f2933;
+            background: #fff;
+            padding: 20px;
+          }
+          .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+          }
+          .header {
+            border-bottom: 3px solid #34a83a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+          }
+          .header p {
+            color: #666;
+            font-size: 0.95rem;
+          }
+          .score-section {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f5 100%);
+            border-left: 5px solid #34a83a;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+          }
+          .score-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+          }
+          .score-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #ddd;
+          }
+          .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #34a83a;
+            margin: 10px 0;
+          }
+          .score-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+          }
+          h2 {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin: 25px 0 15px 0;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+          }
+          .section {
+            margin: 20px 0;
+          }
+          ul { margin-left: 20px; }
+          li { margin: 8px 0; line-height: 1.6; color: #555; }
+          .strengths {
+            background: #f0f7f0;
+            border-left: 4px solid #34a83a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+          }
+          .challenges {
+            background: #fff5f0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+          }
+          .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+          }
+          .metadata-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+          }
+          .metadata-label {
+            font-size: 0.85rem;
+            color: #999;
+            font-weight: 600;
+            margin-bottom: 5px;
+          }
+          .metadata-value {
+            font-size: 1rem;
+            color: #2c3e50;
+            font-weight: 500;
+          }
+          .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 0.85rem;
+            text-align: center;
+          }
+          .component-scores {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+          }
+          .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+          }
+          .score-item-label { font-weight: 500; color: #2c3e50; }
+          .score-item-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🌱 Circular Economy Assessment</h1>
+            <p>Professional Evaluation Report</p>
+            <p style="font-size: 0.9rem; color: #999; margin-top: 10px;">Generated: ${timestamp}</p>
+          </div>
 
-  // Assessment Details
-  csvLines.push('=== ASSESSMENT OVERVIEW ===');
-  csvLines.push(`Overall Score,${actualResult?.overall_score || 'N/A'}/100`);
-  csvLines.push(`Industry,${actualResult?.metadata?.industry || 'Not specified'}`);
-  csvLines.push(`Scale,${actualResult?.metadata?.scale || 'Not specified'}`);
-  csvLines.push(`Circular Strategy,${actualResult?.metadata?.r_strategy || 'Not specified'}`);
-  csvLines.push(`Primary Material,${actualResult?.metadata?.primary_material || 'Not specified'}`);
-  csvLines.push('');
+          <div class="score-section">
+            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 15px;">Overall Assessment Results</div>
+            <div class="score-grid">
+              <div class="score-box">
+                <div class="score-label">Overall Score</div>
+                <div class="score-value">${overallScore}</div>
+                <div class="score-label" style="color: #34a83a; font-weight: 700;">${rating}</div>
+              </div>
+              <div class="score-box">
+                <div class="score-label">Industry</div>
+                <div class="score-value" style="color: #4a90e2; font-size: 1.2rem;">${(actualResult?.metadata?.industry || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</div>
+              </div>
+              <div class="score-box">
+                <div class="score-label">Scale</div>
+                <div class="score-value" style="color: #9c27b0; font-size: 1.2rem;">${(actualResult?.metadata?.scale || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</div>
+              </div>
+              <div class="score-box">
+                <div class="score-label">Status</div>
+                <div class="score-value" style="color: #ff9800; font-size: 1.2rem;">✓ Complete</div>
+              </div>
+            </div>
+          </div>
 
-  // Factor Scores
-  if (actualResult?.sub_scores && Object.keys(actualResult.sub_scores).length) {
-    csvLines.push('=== FACTOR SCORES ===');
-    Object.entries(actualResult.sub_scores).forEach(([key, value]) => {
-      const label = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-      csvLines.push(`${label},${value}/100`);
+          <h2>Assessment Details</h2>
+          <div class="metadata-grid">
+            <div class="metadata-item">
+              <div class="metadata-label">Primary Material</div>
+              <div class="metadata-value">${(actualResult?.metadata?.primary_material || 'Not specified').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</div>
+            </div>
+            <div class="metadata-item">
+              <div class="metadata-label">Circular Strategy</div>
+              <div class="metadata-value">${(actualResult?.metadata?.r_strategy || 'Not specified').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</div>
+            </div>
+          </div>
+
+          ${
+            actualResult?.sub_scores && Object.keys(actualResult.sub_scores).length
+              ? `
+          <h2>Component Scores</h2>
+          <div class="component-scores">
+            ${Object.entries(actualResult.sub_scores)
+              .map(
+                ([key, value]) => `
+              <div class="score-item">
+                <span class="score-item-label">${key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}</span>
+                <span class="score-item-value" style="color: ${value >= 75 ? '#34a83a' : value >= 50 ? '#ff9800' : '#f44336'};">${value}/100</span>
+              </div>
+            `,
+              )
+              .join('')}
+          </div>
+          `
+              : ''
+          }
+
+          ${
+            actualResult?.audit?.audit_verdict
+              ? `
+          <h2>Auditor's Assessment</h2>
+          <div style="background: #f0f4f8; padding: 20px; border-left: 4px solid #4a90e2; border-radius: 4px; color: #555; line-height: 1.8;">
+            ${actualResult.audit.audit_verdict}
+          </div>
+          `
+              : ''
+          }
+
+          ${
+            actualResult?.audit?.strengths && actualResult.audit.strengths.length
+              ? `
+          <h2>Identified Strengths</h2>
+          <div class="strengths">
+            <ul style="margin: 0; padding-left: 20px;">
+              ${actualResult.audit.strengths.map((strength) => `<li>${strength}</li>`).join('')}
+            </ul>
+          </div>
+          `
+              : ''
+          }
+
+          ${
+            actualResult?.audit?.challenges && actualResult.audit.challenges.length
+              ? `
+          <h2>Areas for Improvement</h2>
+          <div class="challenges">
+            <ul style="margin: 0; padding-left: 20px;">
+              ${actualResult.audit.challenges.map((challenge) => `<li>${challenge}</li>`).join('')}
+            </ul>
+          </div>
+          `
+              : ''
+          }
+
+          <div class="footer">
+            <p>This report was generated by the Circular Economy Assessment Platform.</p>
+            <p>For questions or more information, contact support.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create downloadable HTML (browsers can save as PDF)
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `assessment-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    return { success: true, message: 'Report downloaded successfully' };
+  } catch (error) {
+    console.error('PDF export failed:', error);
+    return { success: false, message: 'Failed to export report' };
+  }
+}
+
+/**
+ * Export assessment as CSV with professional formatting
+ */
+export function exportAssessmentCSV(result) {
+  try {
+    const actualResult = result?.result_json || result;
+    const csvLines = [];
+    const timestamp = new Date().toLocaleString();
+
+    // Header
+    csvLines.push('CIRCULAR ECONOMY ASSESSMENT REPORT');
+    csvLines.push(`Generated: ${timestamp}`);
+    csvLines.push('');
+
+    // Overall Scores
+    csvLines.push('=== ASSESSMENT SUMMARY ===');
+    csvLines.push(`Overall Score,${actualResult?.overall_score || 'N/A'}/100`);
+    csvLines.push(`Assessment Date,${new Date(result?.created_at).toLocaleDateString()}`);
+    csvLines.push('');
+
+    // Project Details
+    csvLines.push('=== PROJECT DETAILS ===');
+    csvLines.push(
+      `Industry,${(actualResult?.metadata?.industry || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}`,
+    );
+    csvLines.push(
+      `Scale,${(actualResult?.metadata?.scale || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}`,
+    );
+    csvLines.push(
+      `Circular Strategy,${(actualResult?.metadata?.r_strategy || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}`,
+    );
+    csvLines.push(
+      `Primary Material,${(actualResult?.metadata?.primary_material || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}`,
+    );
+    csvLines.push('');
+
+    // Component Scores
+    if (actualResult?.sub_scores && Object.keys(actualResult.sub_scores).length) {
+      csvLines.push('=== COMPONENT SCORES ===');
+      csvLines.push('Component,Score');
+      Object.entries(actualResult.sub_scores).forEach(([key, value]) => {
+        csvLines.push(
+          `"${key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}",${value}/100`,
+        );
+      });
+      csvLines.push('');
+    }
+
+    // Audit Details
+    if (actualResult?.audit) {
+      if (actualResult.audit.audit_verdict) {
+        csvLines.push('=== AUDITOR VERDICT ===');
+        csvLines.push(`"${actualResult.audit.audit_verdict}"`);
+        csvLines.push('');
+      }
+
+      if (actualResult.audit.strengths && actualResult.audit.strengths.length) {
+        csvLines.push('=== IDENTIFIED STRENGTHS ===');
+        actualResult.audit.strengths.forEach((strength, idx) => {
+          csvLines.push(`"${idx + 1}. ${strength}"`);
+        });
+        csvLines.push('');
+      }
+
+      if (actualResult.audit.challenges && actualResult.audit.challenges.length) {
+        csvLines.push('=== AREAS FOR IMPROVEMENT ===');
+        actualResult.audit.challenges.forEach((challenge, idx) => {
+          csvLines.push(`"${idx + 1}. ${challenge}"`);
+        });
+        csvLines.push('');
+      }
+
+      if (
+        actualResult.audit.technical_recommendations &&
+        actualResult.audit.technical_recommendations.length
+      ) {
+        csvLines.push('=== RECOMMENDATIONS ===');
+        actualResult.audit.technical_recommendations.forEach((rec, idx) => {
+          csvLines.push(`"${idx + 1}. ${rec}"`);
+        });
+        csvLines.push('');
+      }
+    }
+
+    // Footer
+    csvLines.push('---');
+    csvLines.push('This report was generated by the Circular Economy Assessment Platform');
+
+    // Create and download
+    const csvContent = csvLines.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `assessment-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    return { success: true, message: 'CSV exported successfully' };
+  } catch (error) {
+    console.error('CSV export failed:', error);
+    return { success: false, message: 'Failed to export CSV' };
+  }
+}
+
+/**
+ * Export comparison of two assessments as CSV
+ */
+export function exportComparisonCSV(assessment1, assessment2) {
+  try {
+    const csvLines = [];
+    const timestamp = new Date().toLocaleString();
+
+    csvLines.push('ASSESSMENT COMPARISON REPORT');
+    csvLines.push(`Generated: ${timestamp}`);
+    csvLines.push('');
+
+    csvLines.push('=== OVERALL SCORES ===');
+    csvLines.push(`Assessment,Score,Industry,Scale,Status`);
+    csvLines.push(
+      `"${assessment1.title || 'Assessment 1'}",${assessment1.result_json?.overall_score},"${(assessment1.result_json?.metadata?.industry || 'N/A').replace(/_/g, ' ')}","${(assessment1.result_json?.metadata?.scale || 'N/A').replace(/_/g, ' ')}",${new Date(assessment1.created_at).toLocaleDateString()}`,
+    );
+    csvLines.push(
+      `"${assessment2.title || 'Assessment 2'}",${assessment2.result_json?.overall_score},"${(assessment2.result_json?.metadata?.industry || 'N/A').replace(/_/g, ' ')}","${(assessment2.result_json?.metadata?.scale || 'N/A').replace(/_/g, ' ')}",${new Date(assessment2.created_at).toLocaleDateString()}`,
+    );
+    const scoreDiff =
+      (assessment2.result_json?.overall_score || 0) - (assessment1.result_json?.overall_score || 0);
+    csvLines.push(
+      `Change,${scoreDiff > 0 ? '+' : ''}${scoreDiff},,,"${scoreDiff > 0 ? 'Improvement' : scoreDiff < 0 ? 'Decline' : 'No change'}"`,
+    );
+    csvLines.push('');
+
+    csvLines.push('=== COMPONENT SCORES COMPARISON ===');
+    csvLines.push(`Component,"Assessment 1","Assessment 2",Change`);
+    Object.entries(assessment1.result_json?.sub_scores || {}).forEach(([key, val1]) => {
+      const val2 = assessment2.result_json?.sub_scores?.[key] || 0;
+      const diff = val2 - val1;
+      csvLines.push(
+        `"${key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}",${val1},${val2},${diff > 0 ? '+' : ''}${diff}`,
+      );
     });
-    csvLines.push('');
+
+    const csvContent = csvLines.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `comparison-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    return { success: true, message: 'Comparison exported successfully' };
+  } catch (error) {
+    console.error('Comparison export failed:', error);
+    return { success: false, message: 'Failed to export comparison' };
   }
-
-  // Audit Verdict
-  if (actualResult?.audit?.audit_verdict) {
-    csvLines.push("=== AUDITOR'S VERDICT ===");
-    csvLines.push(`"${actualResult.audit.audit_verdict}"`);
-    csvLines.push('');
-  }
-
-  // Strengths
-  if (actualResult?.audit?.strengths && actualResult.audit.strengths.length) {
-    csvLines.push('=== IDENTIFIED STRENGTHS ===');
-    actualResult.audit.strengths.forEach((strength, idx) => {
-      csvLines.push(`"${idx + 1}. ${strength}"`);
-    });
-    csvLines.push('');
-  }
-
-  // Challenges
-  if (actualResult?.audit?.challenges && actualResult.audit.challenges.length) {
-    csvLines.push('=== AREAS FOR IMPROVEMENT ===');
-    actualResult.audit.challenges.forEach((challenge, idx) => {
-      csvLines.push(`"${idx + 1}. ${challenge}"`);
-    });
-    csvLines.push('');
-  }
-
-  // Benchmarking
-  if (actualResult?.gap_analysis?.overall_benchmarks) {
-    csvLines.push('=== BENCHMARKING ===');
-    const b = actualResult.gap_analysis.overall_benchmarks;
-    csvLines.push(`Your Score,${actualResult.overall_score}/100`);
-    csvLines.push(`Similar Projects Average,${Math.round(b.average)}/100`);
-    csvLines.push(`Median Score,${b.median}/100`);
-    csvLines.push(`Top 10% Threshold,${b.top_10_percentile}/100`);
-    csvLines.push('');
-  }
-
-  // Reference Cases
-  if (similarCases && similarCases.length) {
-    csvLines.push('=== SIMILAR CASES FROM DATABASE ===');
-    csvLines.push('Case #,Case Name,Industry,Scale,Strategy');
-    similarCases.forEach((caseItem, idx) => {
-      const name = casesSummaries[idx] || `Reference Case ${idx + 1}`;
-      const industry = caseItem.metadata?.industry || 'General';
-      const scale = caseItem.metadata?.scale || 'Standard';
-      const strategy = caseItem.metadata?.r_strategy || 'Mixed';
-      csvLines.push(`"${idx + 1}","${name}","${industry}","${scale}","${strategy}"`);
-    });
-  }
-
-  // Build and download
-  const csvContent = csvLines.join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `assessment-summary-${new Date().toISOString().split('T')[0]}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-
-  return { success: true, message: 'Assessment exported as CSV' };
 }
 
 // Simple text-based PDF (no html2pdf image rendering issues)
