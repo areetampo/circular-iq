@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import '../styles/HistoryView.css';
 import { getSessionId } from '../utils/session';
 import { useToast } from '../hooks/useToast';
+import Logo from '../components/shared/Logo';
+import Loader from '../components/feedback/Loader';
 
 export default function HistoryView({ onViewDetail, onBack }) {
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -97,7 +100,6 @@ export default function HistoryView({ onViewDetail, onBack }) {
       addToast('Assessment deleted', 'success');
     } catch (err) {
       addToast('Failed to delete assessment', 'error');
-      console.error(err);
     } finally {
       const nextDeleting = new Set(deletingIds);
       nextDeleting.delete(id);
@@ -225,14 +227,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
         {/* Header */}
         <div className="header-section">
           <div className="logo-icon">
-            <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="28" stroke="#34a83a" strokeWidth="3" fill="none" />
-              <path
-                d="M32 4 L32 20 M32 44 L32 60 M4 32 L20 32 M44 32 L60 32"
-                stroke="#34a83a"
-                strokeWidth="2"
-              />
-            </svg>
+            <Logo />
           </div>
           <h1 className="main-title">My Assessments</h1>
           <p className="subtitle">Portfolio of saved circular economy evaluations</p>
@@ -241,10 +236,10 @@ export default function HistoryView({ onViewDetail, onBack }) {
         {/* Controls */}
 
         {renderDeleteModal()}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div className="p-6 mb-6 bg-white shadow-md rounded-xl">
+          <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col">
-              <label className="text-sm font-semibold text-slate-700 mb-2">
+              <label className="mb-2 text-sm font-semibold text-slate-700">
                 Filter by Industry:
               </label>
               <select
@@ -264,7 +259,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
             </div>
 
             <div className="flex flex-col">
-              <label className="text-sm font-semibold text-slate-700 mb-2">Sort by:</label>
+              <label className="mb-2 text-sm font-semibold text-slate-700">Sort by:</label>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -280,7 +275,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
             </div>
 
             <div className="flex flex-col">
-              <label className="text-sm font-semibold text-slate-700 mb-2">Search:</label>
+              <label className="mb-2 text-sm font-semibold text-slate-700">Search:</label>
               <input
                 type="search"
                 value={searchTerm}
@@ -291,7 +286,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
             </div>
           </div>
 
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex flex-wrap gap-3">
             <button
               className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg hover:scale-105"
               onClick={handleCompareSelected}
@@ -329,12 +324,12 @@ export default function HistoryView({ onViewDetail, onBack }) {
         </div>
 
         {/* Quick Tip */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5 mb-6">
+        <div className="p-5 mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
           <div className="flex items-start gap-3">
             <span className="text-2xl">💡</span>
             <div>
               <span className="font-bold text-blue-800">Tip:</span>
-              <span className="text-slate-700 ml-2">
+              <span className="ml-2 text-slate-700">
                 Select exactly 2 assessments and click "Compare Selected" to see how your initiative
                 evolved over time, or compare different strategies side-by-side.
               </span>
@@ -344,13 +339,13 @@ export default function HistoryView({ onViewDetail, onBack }) {
 
         {/* Stats Card */}
         {assessments.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-6 text-center">
-              <div className="text-sm font-semibold text-emerald-700 mb-2">Total Assessments</div>
+          <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
+            <div className="p-6 text-center border-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-emerald-700">Total Assessments</div>
               <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 text-center">
-              <div className="text-sm font-semibold text-blue-700 mb-2">Average Score</div>
+            <div className="p-6 text-center border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-blue-700">Average Score</div>
               <div className="text-4xl font-bold text-blue-600">
                 {Math.round(
                   assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
@@ -358,14 +353,14 @@ export default function HistoryView({ onViewDetail, onBack }) {
                 )}
               </div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 text-center">
-              <div className="text-sm font-semibold text-purple-700 mb-2">Highest Score</div>
+            <div className="p-6 text-center border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-purple-700">Highest Score</div>
               <div className="text-4xl font-bold text-purple-600">
                 {Math.max(...assessments.map((a) => a.overall_score || 0))}
               </div>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-6 text-center">
-              <div className="text-sm font-semibold text-orange-700 mb-2">Unique Industries</div>
+            <div className="p-6 text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-orange-700">Unique Industries</div>
               <div className="text-4xl font-bold text-orange-600">
                 {new Set(assessments.map((a) => a.industry)).size}
               </div>
@@ -376,18 +371,14 @@ export default function HistoryView({ onViewDetail, onBack }) {
         {/* Assessments Table */}
         <div className="assessments-table-container">
           {loading && initialLoad && (
-            <div className="loading-block">
-              <div className="loading-spinner" />
-              <p className="loading">Loading assessments...</p>
-              <p className="loading-sub">Fetching your saved evaluations.</p>
-            </div>
+            <Loader heading="Loading assessments..." message="Fetching your saved evaluations." />
           )}
 
           {!initialLoad && loading && (
-            <div className="loading-overlay">
-              <div className="loading-spinner" />
-              <p>Refreshing…</p>
-            </div>
+            <Loader
+              heading="Refreshing assessments..."
+              message="Please wait while we update the list."
+            />
           )}
           {error && (
             <div className="error">
@@ -408,7 +399,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
               <p>No assessments match the current filters.</p>
               <p>Try clearing filters or run a new evaluation and save it.</p>
               {onBack && (
-                <button className="action-btn view-btn" onClick={onBack}>
+                <button className="mt-4 action-btn view-btn" onClick={onBack}>
                   Start an Evaluation
                 </button>
               )}
@@ -416,14 +407,14 @@ export default function HistoryView({ onViewDetail, onBack }) {
           )}
 
           {!loading && !error && filteredAssessments.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="relative overflow-x-auto bg-white border-2 border-gray-300 rounded-lg">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-slate-100 to-slate-200">
                   <tr>
                     <th className="px-4 py-4 text-left">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 accent-emerald-600 cursor-pointer"
+                        className="w-4 h-4 cursor-pointer accent-emerald-600"
                         onChange={(e) => {
                           if (e.target.checked) {
                             setSelectedIds(new Set(assessments.map((a) => a.id)));
@@ -433,30 +424,33 @@ export default function HistoryView({ onViewDetail, onBack }) {
                         }}
                       />
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-sm font-bold tracking-wider text-left uppercase text-slate-700">
                       Title
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-sm font-bold tracking-wider text-left uppercase text-slate-700">
                       Industry
                     </th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-sm font-bold tracking-wider text-center uppercase text-slate-700">
                       Score
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-sm font-bold tracking-wider text-left uppercase text-slate-700">
                       Created
                     </th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-sm font-bold tracking-wider text-center uppercase text-slate-700">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredAssessments.map((assessment) => (
-                    <tr key={assessment.id} className="hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={assessment.id}
+                      className="transition-colors even:bg-slate-100 hover:bg-slate-200"
+                    >
                       <td className="px-4 py-4">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 accent-emerald-600 cursor-pointer"
+                          className="w-4 h-4 cursor-pointer accent-emerald-600"
                           checked={selectedIds.has(assessment.id)}
                           onChange={() => handleToggleSelect(assessment.id)}
                         />
@@ -467,13 +461,13 @@ export default function HistoryView({ onViewDetail, onBack }) {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase">
-                          {assessment.industry || 'General'}
+                        <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-700 uppercase bg-blue-100 rounded-full text-nowrap">
+                          {assessment.industry.replace(/_/g, ' ') || 'General'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div
-                          className={`inline-block px-4 py-2 rounded-lg font-bold text-lg ${
+                          className={`inline-block px-2 py-1 rounded-lg font-semibold text-lg text-nowrap ${
                             assessment.overall_score >= 75
                               ? 'bg-green-100 text-green-700'
                               : assessment.overall_score >= 50
@@ -481,22 +475,29 @@ export default function HistoryView({ onViewDetail, onBack }) {
                                 : 'bg-red-100 text-red-700'
                           }`}
                         >
-                          {assessment.overall_score}/100
+                          {assessment.overall_score} / 100
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 text-sm">
-                        {new Date(assessment.created_at).toLocaleDateString()}
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {new Date(assessment.created_at).toLocaleString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex gap-2 justify-center">
+                        <div className="flex flex-col justify-center gap-2">
                           <button
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-all hover:scale-105 shadow-md"
+                            className="p-2 text-sm font-medium text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 hover:scale-105"
                             onClick={() => handleViewDetail(assessment.id)}
                           >
                             View
                           </button>
                           <button
-                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-all hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 text-sm font-medium text-white transition-all bg-red-500 rounded-lg shadow-md hover:bg-red-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => handleDelete(assessment.id)}
                             disabled={deletingIds.has(assessment.id)}
                           >
@@ -513,44 +514,44 @@ export default function HistoryView({ onViewDetail, onBack }) {
 
           {/* Pagination */}
           {!loading && !error && total > 0 && (
-            <div className="bg-white rounded-xl shadow-md p-5 mt-6">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="text-sm text-slate-600 font-medium">
-                  Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}{' '}
-                  · Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page <= 1 || loading}
+            <div className="flex flex-row flex-wrap items-center justify-center p-5 mt-6 gap-y-2 gap-x-10 ">
+              <div className="flex justify-center items-center min-h-[40px]">
+                <p className="text-sm font-medium text-center text-slate-600">
+                  Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}
+                  &nbsp; · Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page <= 1 || loading}
+                >
+                  ← Previous
+                </button>
+                <button
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page * pageSize >= total || loading}
+                >
+                  Next →
+                </button>
+                <div className="flex items-center gap-2 ml-2">
+                  <label className="text-sm font-semibold text-slate-700">Per page:</label>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="px-3 py-2 text-sm transition-all bg-white border rounded-lg border-slate-300 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
                   >
-                    ← Previous
-                  </button>
-                  <button
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
-                    onClick={() => setPage(page + 1)}
-                    disabled={page * pageSize >= total || loading}
-                  >
-                    Next →
-                  </button>
-                  <div className="flex items-center gap-2 ml-2">
-                    <label className="text-sm font-semibold text-slate-700">Per page:</label>
-                    <select
-                      value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(Number(e.target.value));
-                        setPage(1);
-                      }}
-                      className="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-                    >
-                      {[10, 20, 50, 100].map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    {[10, 20, 50, 100].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -560,3 +561,13 @@ export default function HistoryView({ onViewDetail, onBack }) {
     </div>
   );
 }
+
+HistoryView.propTypes = {
+  onViewDetail: PropTypes.func,
+  onBack: PropTypes.func,
+};
+
+HistoryView.defaultProps = {
+  onViewDetail: null,
+  onBack: null,
+};

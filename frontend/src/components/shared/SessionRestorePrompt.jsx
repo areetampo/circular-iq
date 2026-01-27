@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
   Dialog,
@@ -22,11 +23,11 @@ export default function SessionRestorePrompt({ onRestore, onDismiss }) {
           <p className="mb-4 leading-relaxed">
             We found your previous evaluation session. Would you like to restore it?
           </p>
-          <p className="text-gray-600 text-sm m-0">
+          <p className="m-0 text-sm text-gray-600">
             This includes your problem description, solution, and parameter settings.
           </p>
         </div>
-        <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <Button variant="outline" onClick={onDismiss}>
             Start Fresh
           </Button>

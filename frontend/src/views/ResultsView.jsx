@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import RadarChartSection from '../components/shared/RadarChartSection';
@@ -14,6 +14,8 @@ import { categorizeIntegrityGaps } from '../utils/helpers';
 import { exportAssessmentCSV, exportAssessmentPDF } from '../utils/exportSimple';
 import { useToast } from '../hooks/useToast';
 import { useExportState } from '../hooks/useExportState';
+import Logo from '../components/shared/Logo';
+import Loader from '../components/feedback/Loader';
 
 const fallbackGetRatingBadge = (score) => {
   if (score >= 90) return 'Excellent';
@@ -139,9 +141,7 @@ export default function ResultsView({
 
   if (detailLoading) {
     return (
-      <div className="app-container">
-        <p>Loading assessment...</p>
-      </div>
+      <Loader heading="Loading Assessment" message="Please wait while we retrieve your data..." />
     );
   }
 
@@ -150,7 +150,7 @@ export default function ResultsView({
       <div className="app-container">
         <div style={{ textAlign: 'center', padding: '3rem' }}>
           <h2>Unable to load assessment</h2>
-          <p style={{ color: '#666', marginBottom: '1.5rem' }}>{detailError}</p>
+          <p style={{ color: '#666', marginBottom: '1.5rem' }}>Error: {detailError}</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <button
               onClick={loadDetail}
@@ -309,22 +309,13 @@ export default function ResultsView({
         {/* Header */}
         <div className="header-section">
           <div className="logo-icon">
-            <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="28" stroke="#34a83a" strokeWidth="3" fill="none" />
-              <path
-                d="M32 4 L32 20 M32 44 L32 60 M4 32 L20 32 M44 32 L60 32"
-                stroke="#34a83a"
-                strokeWidth="2"
-              />
-            </svg>
+            <Logo />
           </div>
           <h1 className="main-title">Circularity Assessment Results</h1>
           <p className="subtitle">AI-powered evaluation of your business idea</p>
 
           {/* Info Buttons */}
-          <div
-            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}
-          >
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
             <button
               className="criteria-button"
               onClick={() => setShowMethodologyModal(true)}
@@ -357,7 +348,7 @@ export default function ResultsView({
           )}
           {actualResult.audit?.comparative_analysis && (
             <div className="key-finding">
-              <strong>Key Finding:</strong> {actualResult.audit.comparative_analysis}
+              <strong>Key Finding:</strong> <span>{actualResult.audit.comparative_analysis}</span>
             </div>
           )}
 
@@ -954,7 +945,7 @@ export default function ResultsView({
             {/* Gaps/Issues */}
             {gaps.length > 0 && (
               <div className="gaps-group">
-                <h3 className="group-title">⚠ Areas for Improvement</h3>
+                <h3 className="group-title">⚠️ Areas for Improvement</h3>
                 <div className="gap-items">
                   {gaps.map((gap, i) => (
                     <div
@@ -963,12 +954,12 @@ export default function ResultsView({
                     >
                       <span className="gap-icon">!</span>
                       <div className="gap-content">
-                        <p className="gap-issue">{gap.issue || gap}</p>
+                        <p className="gap-issue">{(gap.issue || gap).replace(/_/g, ' ')}</p>
                         <p className="gap-severity">
                           {gap.severity
                             ? gap.severity.charAt(0).toUpperCase() + gap.severity.slice(1)
-                            : 'Medium'}{' '}
-                          severity
+                            : 'Medium'}
+                          &nbsp; severity
                         </p>
                         {gap.evidence_source_id && (
                           <span className="evidence-badge">
@@ -1340,20 +1331,19 @@ export default function ResultsView({
       </div>
 
       {/* Context Modal */}
-      {contextModal && (
-        <ContextModal
-          onClose={() => setContextModal(null)}
-          content={contextModal.content}
-          title={contextModal.title}
-        />
-      )}
+      {contextModal && <ContextModal {...contextModal} onClose={() => setContextModal(null)} />}
 
       {/* Assessment Methodology Modal */}
-      {showMethodologyModal && (
-        <AssessmentMethodologyModal onClose={() => setShowMethodologyModal(false)} />
-      )}
+      <AssessmentMethodologyModal
+        isOpen={showMethodologyModal}
+        onClose={() => setShowMethodologyModal(false)}
+      />
+
       {/* Evaluation Criteria Modal */}
-      {showCriteriaModal && <EvaluationCriteriaModal onClose={() => setShowCriteriaModal(false)} />}
+      <EvaluationCriteriaModal
+        isOpen={showCriteriaModal}
+        onClose={() => setShowCriteriaModal(false)}
+      />
 
       {/* Market Analysis Modal */}
       <MarketAnalysisModal
@@ -1366,7 +1356,6 @@ export default function ResultsView({
   );
 }
 
-// PropTypes validation for component props
 ResultsView.propTypes = {
   result: PropTypes.object,
   radarData: PropTypes.array,

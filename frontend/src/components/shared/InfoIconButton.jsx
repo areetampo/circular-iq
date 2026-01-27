@@ -1,7 +1,13 @@
-export default function InfoIconButton({ onClick, title, size = 20 }) {
+import React from 'react';
+import PropTypes from 'prop-types';
+
+export default function InfoIconButton({ onClick, title, size = 20, className }) {
   return (
     <button
-      className="bg-none border-none cursor-pointer p-1 flex items-center justify-center transition-transform hover:scale-110"
+      className={
+        'border-none cursor-pointer flex items-center justify-center transition-transform hover:scale-110' +
+        (className ? ` ${className}` : '')
+      }
       onClick={onClick}
       title={title}
     >
@@ -12,3 +18,16 @@ export default function InfoIconButton({ onClick, title, size = 20 }) {
     </button>
   );
 }
+
+InfoIconButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  title: PropTypes.string,
+  size: PropTypes.number,
+  className: PropTypes.string,
+};
+
+InfoIconButton.defaultProps = {
+  title: '',
+  size: 20,
+  className: '',
+};

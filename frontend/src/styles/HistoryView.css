@@ -1,304 +1,187 @@
-/* HistoryView.css */
+/* HistoryView.css - Tailwind Conversion */
 
 .history-view {
-  padding: 2rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  @apply py-8 px-4 max-w-[1200px] mx-auto;
 }
 
 .header-section {
-  text-align: center;
-  margin-bottom: 2.5rem;
+  @apply mb-10 text-center;
 }
 
 .main-title {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin: 0.5rem 0;
-  font-weight: 700;
+  @apply text-[2rem] text-[#2c3e50] my-2 font-bold;
 }
 
 .subtitle {
-  font-size: 1rem;
-  color: #666;
-  margin: 0.5rem 0 0 0;
+  @apply mt-2 mb-0 text-base text-gray-600;
 }
 
 /* Controls */
 .history-controls {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  align-items: center;
+  @apply flex flex-wrap items-center gap-4 mb-8;
 }
 
 .control-group {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
+  @apply flex items-center gap-2;
 }
 
 .control-group label {
-  font-weight: 600;
-  color: #2c3e50;
-  white-space: nowrap;
+  @apply font-semibold text-[#2c3e50] whitespace-nowrap;
 }
 
 .control-group select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  background: white;
-  cursor: pointer;
+  @apply px-4 py-2 text-sm bg-white border border-gray-300 rounded-md cursor-pointer;
 }
 
 .compare-wrapper {
-  margin-left: auto;
+  @apply ml-auto;
 }
 
 .compare-button {
-  background: #34a83a;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  @apply bg-[#34a83a] text-white border-none py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out;
 }
 
 .compare-button:hover:not(:disabled) {
-  background: #2a8a2f;
-  box-shadow: 0 2px 8px rgba(52, 168, 58, 0.3);
+  @apply bg-[#2a8a2f] shadow-[0_2px_8px_rgba(52,168,58,0.3)];
 }
 
 .compare-button:disabled {
-  background: #ccc;
-  color: #666;
-  cursor: not-allowed;
-  opacity: 0.6;
+  @apply text-gray-600 bg-gray-300 cursor-not-allowed opacity-60;
 }
 
 /* Stats Card */
 .stats-card {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  @apply grid gap-4 mb-8;
 }
 
 .stat {
-  background: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 2px solid #e3f2fd;
-  text-align: center;
+  @apply bg-white py-6 px-6 rounded-lg border-2 border-[#e3f2fd] text-center;
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+  @apply text-[0.85rem] text-gray-600 mb-2 font-semibold;
 }
 
 .stat-value {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #34a83a;
+  @apply text-[1.8rem] font-bold text-[#34a83a];
 }
 
 /* Table */
 .assessments-table-container {
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-  position: relative;
+  @apply relative mb-8 overflow-hidden rounded-lg;
 }
 
 .loading,
 .error {
-  padding: 2rem;
-  text-align: center;
-  color: #666;
+  @apply py-8 text-center text-gray-600;
 }
 
 .error {
-  color: #dc3545;
+  @apply text-[#dc3545];
 }
 
 .loading-block {
-  padding: 2.5rem 1.5rem;
-  text-align: center;
+  @apply px-6 py-10 text-center;
 }
 
 .loading-sub {
-  color: #888;
-  margin-top: 0.35rem;
+  @apply text-gray-500 mt-1.5;
 }
 
 .loading-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.85);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  z-index: 2;
+  @apply absolute inset-0 bg-white/85 flex flex-col items-center justify-center gap-2 z-[2];
 }
 
 .loading-spinner {
-  width: 36px;
-  height: 36px;
-  border: 4px solid #e0e0e0;
-  border-top-color: #34a83a;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 0.5rem auto;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  @apply w-9 h-9 border-4 border-gray-300 border-t-[#34a83a] rounded-full animate-spin mx-auto mb-2;
 }
 
 .empty-state {
-  padding: 3rem;
-  text-align: center;
-  color: #999;
+  @apply py-12 text-center text-gray-400;
 }
 
 .assessments-table {
-  width: 100%;
-  border-collapse: collapse;
+  @apply w-full border-collapse;
 }
 
 .assessments-table thead {
-  background: #f5f5f5;
-  border-bottom: 2px solid #e0e0e0;
+  @apply bg-gray-100 border-b-2 border-gray-300;
 }
 
 .assessments-table th,
 .assessments-table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  @apply px-4 py-4 text-left border-b border-gray-300;
 }
 
 .assessments-table th {
-  font-weight: 700;
-  color: #2c3e50;
+  @apply font-bold text-[#2c3e50];
 }
 
 .assessments-table tbody tr:hover {
-  background: #fafafa;
+  @apply bg-gray-50;
 }
 
 .title-cell {
-  font-weight: 600;
+  @apply font-semibold;
 }
 
 .industry-cell .badge {
-  display: inline-block;
-  background: #e8f5e9;
-  color: #1b5e20;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  @apply inline-block bg-[#e8f5e9] text-[#1b5e20] py-1 px-3 rounded-xl text-[0.85rem] font-semibold;
 }
 
 .score-cell {
-  font-weight: bold;
+  @apply font-bold;
 }
 
 .score-badge {
-  display: inline-block;
-  padding: 0.5rem;
+  @apply inline-block px-2 py-2;
 }
 
 .date-cell {
-  color: #999;
-  font-size: 0.9rem;
+  @apply text-sm text-gray-400;
 }
 
 .actions-cell {
-  display: flex;
-  gap: 0.5rem;
+  @apply flex gap-2;
 }
 
 .action-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: background 0.2s;
+  @apply py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200;
 }
 
 .view-btn {
-  background: #4a90e2;
-  color: white;
+  @apply bg-[#4a90e2] text-white;
 }
 
 .view-btn:hover {
-  background: #357abd;
+  @apply bg-[#357abd];
 }
 
 .delete-btn {
-  background: #f5f5f5;
-  color: #dc3545;
-  border: 1px solid #ddd;
+  @apply bg-gray-100 text-[#dc3545] border border-gray-300;
 }
 
 .delete-btn:hover {
-  background: #ffe6e6;
+  @apply bg-[#ffe6e6];
 }
 
 .danger-button {
-  background: #dc3545;
-  color: #ffffff;
-  border: 1px solid #c82333;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    box-shadow 0.2s;
+  @apply bg-[#dc3545] text-white border border-[#c82333] py-2 px-4 rounded-md font-bold cursor-pointer transition-[background,box-shadow] duration-200;
 }
 
 .danger-button:hover {
-  background: #c82333;
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+  @apply bg-[#c82333] shadow-[0_2px_8px_rgba(220,53,69,0.2)];
 }
 
 /* Footer */
 .history-footer {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 2rem;
+  @apply flex justify-start mt-8;
 }
 
 .back-button {
-  background: #f5f5f5;
-  color: #2c3e50;
-  border: 1px solid #ddd;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+  @apply bg-gray-100 text-[#2c3e50] border border-gray-300 py-3 px-6 rounded-md font-semibold cursor-pointer transition-[background] duration-200;
 }
 
 .back-button:hover {
-  background: #e8e8e8;
+  @apply bg-[#e8e8e8];
 }

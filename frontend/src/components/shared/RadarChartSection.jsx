@@ -1,3 +1,5 @@
+import React from 'react';
+import PropTypes from 'prop-types';
 import {
   Radar,
   RadarChart,
@@ -11,10 +13,10 @@ export default function RadarChartSection({ radarData }) {
   if (!radarData || radarData.length === 0) return null;
 
   return (
-    <div className="radar-card">
-      <h2>Performance Comparison</h2>
-      <p className="radar-description">Your idea vs. market average</p>
-      <div className="radar-chart-container">
+    <div className="p-8 mb-6 bg-white shadow-md rounded-2xl">
+      <h2 className="mb-2 text-2xl font-semibold text-slate-800">Performance Comparison</h2>
+      <p className="mb-6 text-slate-600">Your idea vs. market average</p>
+      <div className="my-4">
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart data={radarData}>
             <PolarGrid stroke="#e0e0e0" />
@@ -39,16 +41,30 @@ export default function RadarChartSection({ radarData }) {
           </RadarChart>
         </ResponsiveContainer>
       </div>
-      <div className="radar-legend">
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#34a83a' }}></div>
+      <div className="flex flex-wrap justify-center gap-8 mt-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+          <div className="w-4 h-4 rounded" style={{ background: '#34a83a' }}></div>
           <span>Your Idea</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#4a90e2' }}></div>
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+          <div className="w-4 h-4 rounded" style={{ background: '#4a90e2' }}></div>
           <span>Market Average</span>
         </div>
       </div>
     </div>
   );
 }
+
+RadarChartSection.propTypes = {
+  radarData: PropTypes.arrayOf(
+    PropTypes.shape({
+      subject: PropTypes.string.isRequired,
+      marketAvg: PropTypes.number,
+      userValue: PropTypes.number,
+    }),
+  ),
+};
+
+RadarChartSection.defaultProps = {
+  radarData: [],
+};

@@ -1,3 +1,6 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+
 export default function EvaluationCriteriaView({ onBack }) {
   return (
     <div className="app-container">
@@ -292,3 +295,11 @@ export default function EvaluationCriteriaView({ onBack }) {
     </div>
   );
 }
+
+EvaluationCriteriaView.propTypes = {
+  onBack: PropTypes.func,
+};
+
+EvaluationCriteriaView.defaultProps = {
+  onBack: null,
+};
