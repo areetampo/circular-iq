@@ -1,10 +1,14 @@
-import { React, useState } from 'react';
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import MetricInfoModal from '../components/modals/MetricInfoModal';
 import InfoIconButton from '../components/shared/InfoIconButton';
 import ParameterSliders from '../components/forms/ParameterSliders';
 import AssessmentMethodologyModal from '../components/modals/AssessmentMethodologyModal';
 import EvaluationCriteriaModal from '../components/modals/EvaluationCriteriaModal';
 import { getCharacterCount } from '../utils/text';
+import { motion, AnimatePresence } from 'framer-motion';
+import Logo from '../components/shared/Logo';
+import { cn } from '@/lib/utils';
 
 export default function LandingView({
   businessProblem,
@@ -41,38 +45,19 @@ export default function LandingView({
         {/* Header */}
         <div className="header-section">
           <div className="logo-icon">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="28" stroke="#34a83a" strokeWidth="3" fill="none" />
-              <path
-                d="M32 4 L32 20 M32 44 L32 60 M4 32 L20 32 M44 32 L60 32"
-                stroke="#34a83a"
-                strokeWidth="2"
-              />
-              <path
-                d="M20 20 Q32 28 44 20 M20 44 Q32 36 44 44"
-                stroke="#34a83a"
-                strokeWidth="2"
-                fill="none"
-              />
-            </svg>
+            <Logo />
           </div>
           <h1 className="main-title">Circular Economy Business Evaluator</h1>
           <p className="subtitle">
-            Evaluate your business idea's circularity potential using AI-driven analysis
+            Evaluate your business idea&apos;s circularity potential using AI-driven analysis
           </p>
 
           {/* Info Buttons */}
-          <div className="flex gap-4 justify-center mt-6 flex-wrap">
-            <button
-              className="criteria-button text-sm px-5 py-2.5 hover:scale-105 transition-transform"
-              onClick={() => setShowMethodologyModal(true)}
-            >
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
+            <button className="criteria-button" onClick={() => setShowMethodologyModal(true)}>
               📊 View Assessment Methodology
             </button>
-            <button
-              className="criteria-button text-sm px-5 py-2.5 hover:scale-105 transition-transform"
-              onClick={() => setShowCriteriaModal(true)}
-            >
+            <button className="criteria-button" onClick={() => setShowCriteriaModal(true)}>
               📋 View Evaluation Criteria
             </button>
             {onViewHistory && (
@@ -135,31 +120,33 @@ export default function LandingView({
         </div>
 
         {/* Input Form */}
-        <div className="input-card">
-          <h2 className="m-0 mb-3 text-2xl font-bold">Evaluate Your Circular Economy Business</h2>
+        <div className="p-8 mb-8 text-left bg-white shadow-md rounded-2xl">
+          <h2 className="mb-2 text-2xl font-bold">Evaluate Your Circular Economy Business</h2>
           <p className="input-instructions">
             Describe your business idea using the same structure as real circular economy projects:
             what problem you solve, and how your solution addresses it.
           </p>
 
-          {/* Two-Column Input Container */}
+          {/* One-Column Input Container */}
           <div className="input-fields-container">
             {/* Problem Input */}
             <div className="input-field">
-              <div className="field-header">
-                <label htmlFor="business-problem">
-                  <p className="font-semibold text-lg">Business Problem</p>
-                </label>
-                {showInfoIcons && (
-                  <InfoIconButton
-                    onClick={() => setShowInfoModal('problem')}
-                    title="Help with problem description"
-                  />
-                )}
+              <div className="ml-2">
+                <div className="field-header">
+                  <label htmlFor="business-problem">
+                    <p className="text-lg font-semibold">Business Problem</p>
+                  </label>
+                  {showInfoIcons && (
+                    <InfoIconButton
+                      onClick={() => setShowInfoModal('problem')}
+                      title="Help with problem description"
+                    />
+                  )}
+                </div>
+                <p className="field-guidance" id="problem-guidance">
+                  What environmental or circular economy challenge does your business address?
+                </p>
               </div>
-              <p className="field-guidance" id="problem-guidance">
-                What environmental or circular economy challenge does your business address?
-              </p>
               <textarea
                 id="business-problem"
                 className="idea-textarea"
@@ -171,34 +158,34 @@ export default function LandingView({
                 aria-describedby="problem-guidance"
               />
               <div
-                className={`char-count ${
-                  getCharacterCount(businessProblem) >= 200
-                    ? 'text-emerald-600 font-semibold'
-                    : 'text-red-700'
-                }`}
+                className={cn(
+                  'font-semibold text-sm ml-2 mt-2',
+                  getCharacterCount(businessProblem) >= 200 ? 'text-emerald-500' : 'text-red-800',
+                )}
               >
-                {getCharacterCount(businessProblem)}/200 characters
-                {getCharacterCount(businessProblem) >= 200 && ' ✓'}
+                {getCharacterCount(businessProblem)} / 200 characters
               </div>
             </div>
 
             {/* Solution Input */}
             <div className="input-field">
-              <div className="field-header">
-                <label htmlFor="business-solution">
-                  <p className="font-semibold text-lg">Business Solution</p>
-                </label>
-                {showInfoIcons && (
-                  <InfoIconButton
-                    onClick={() => setShowInfoModal('solution')}
-                    title="Help with solution description"
-                  />
-                )}
+              <div className="ml-2">
+                <div className="field-header">
+                  <label htmlFor="business-solution">
+                    <p className="text-lg font-semibold">Business Solution</p>
+                  </label>
+                  {showInfoIcons && (
+                    <InfoIconButton
+                      onClick={() => setShowInfoModal('solution')}
+                      title="Help with solution description"
+                    />
+                  )}
+                </div>
+                <p className="field-guidance" id="solution-guidance">
+                  How does your business solve this problem? Include materials, processes, and
+                  circularity strategy.
+                </p>
               </div>
-              <p className="field-guidance" id="solution-guidance">
-                How does your business solve this problem? Include materials, processes, and
-                circularity strategy.
-              </p>
               <textarea
                 id="business-solution"
                 className="idea-textarea"
@@ -210,20 +197,18 @@ export default function LandingView({
                 aria-describedby="solution-guidance"
               />
               <div
-                className={`char-count ${
-                  getCharacterCount(businessSolution) >= 200
-                    ? 'text-emerald-600 font-semibold'
-                    : 'text-red-700'
-                }`}
+                className={cn(
+                  'font-semibold text-sm ml-2 mt-2',
+                  getCharacterCount(businessSolution) >= 200 ? 'text-emerald-500' : 'text-red-800',
+                )}
               >
-                {getCharacterCount(businessSolution)}/200 characters
-                {getCharacterCount(businessSolution) >= 200 && ' ✓'}
+                {getCharacterCount(businessSolution)} / 200 characters
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-400 p-4 rounded-lg text-red-800 mb-6">
+            <div className="p-4 mb-6 text-red-800 border-2 border-red-400 rounded-lg bg-red-50">
               <strong>⚠ Validation Error:</strong>
               <p className="mt-2 text-sm">{error}</p>
             </div>
@@ -234,13 +219,18 @@ export default function LandingView({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="advanced-toggle"
+                className="flex items-center gap-2 p-2 mt-0.5 text-base font-semibold transition-colors border-none cursor-pointer bg-none text-emerald-600 hover:text-emerald-700"
                 onClick={() => setShowAdvanced(!showAdvanced)}
               >
-                {showAdvanced ? '▼' : '▶'} Advanced Parameters
+                <span
+                  className={`transition-transform duration-200 ${showAdvanced ? 'rotate-90' : 'rotate-0'}`}
+                >
+                  ▶
+                </span>
+                Advanced Parameters
               </button>
               {showInfoIcons && (
-                <div className="mt-0.5 -ml-2">
+                <div className="mt-[1.75px] -ml-2">
                   <InfoIconButton
                     onClick={() => setShowInfoModal('factors')}
                     title="Learn about evaluation factors"
@@ -249,14 +239,24 @@ export default function LandingView({
               )}
             </div>
 
-            {showAdvanced && (
-              <ParameterSliders
-                parameters={parameters}
-                onParameterChange={handleParameterChange}
-                loading={loading}
-                onShowInfo={setShowInfoModal}
-              />
-            )}
+            <AnimatePresence initial={false}>
+              {showAdvanced && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <ParameterSliders
+                    parameters={parameters}
+                    onParameterChange={handleParameterChange}
+                    loading={loading}
+                    onShowInfo={setShowInfoModal}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <button className="submit-button" onClick={onSubmit} disabled={loading || !isFormValid}>
@@ -302,3 +302,27 @@ export default function LandingView({
     </div>
   );
 }
+
+LandingView.propTypes = {
+  businessProblem: PropTypes.string.isRequired,
+  setBusinessProblem: PropTypes.func.isRequired,
+  businessSolution: PropTypes.string.isRequired,
+  setBusinessSolution: PropTypes.func.isRequired,
+  parameters: PropTypes.object.isRequired,
+  setParameters: PropTypes.func.isRequired,
+  showAdvanced: PropTypes.bool.isRequired,
+  setShowAdvanced: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  showInfoIcons: PropTypes.bool,
+  testCaseSelector: PropTypes.node,
+  onViewHistory: PropTypes.func,
+};
+
+LandingView.defaultProps = {
+  error: null,
+  showInfoIcons: true,
+  testCaseSelector: null,
+  onViewHistory: null,
+};

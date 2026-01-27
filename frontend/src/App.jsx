@@ -1,4 +1,4 @@
-import { useEffect, useState, Suspense, lazy } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 
@@ -16,6 +16,7 @@ import { loadEvaluationState, saveEvaluationState, clearEvaluationState } from '
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import Toast from './components/shared/Toast';
 import { useToast } from './hooks/useToast';
+import Loader from './components/feedback/Loader';
 
 export default function App() {
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -313,9 +314,7 @@ export default function App() {
       </div>
       <Suspense
         fallback={
-          <div className="app-container">
-            <p>Loading…</p>
-          </div>
+          <Loader heading="Loading..." message="Please wait while the application loads." />
         }
       >
         <Routes>
@@ -386,14 +385,15 @@ export default function App() {
             element={
               <ResultsView
                 isDetailView={true}
-                onBack={() => navigate('/assessments')}
+                onBack={() => navigate(-1)}
                 onReevaluate={handleReevaluateFromAssessment}
+                onViewHistory={() => navigate('/assessments')}
               />
             }
           />
           <Route
             path="/compare/:id1/:id2"
-            element={<ComparisonView onBack={() => navigate('/assessments')} />}
+            element={<ComparisonView onBack={() => navigate(-1)} />}
           />
           <Route path="*" element={<NotFoundView />} />
         </Routes>

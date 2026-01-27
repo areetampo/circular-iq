@@ -1,33 +1,139 @@
+import React from 'react';
+import PropTypes from 'prop-types';
 import { factorDefinitions, parameterGuidance } from '../../constants/evaluationData';
+
+const PROBLEM_ELEMENTS = [
+  {
+    title: 'Environmental Impact',
+    description:
+      'Specific waste, pollution, or resource depletion issue (e.g., "8M tons of plastic waste entering oceans annually").',
+  },
+  {
+    title: 'Quantified Scale',
+    description:
+      'Use real numbers, percentages, or measurements to show magnitude (tons, percent of market, number of people affected).',
+  },
+  {
+    title: 'Current Gaps',
+    description:
+      'Why existing solutions fail (cost barriers, infrastructure limits, behavior challenges, regulation issues).',
+  },
+  {
+    title: 'Stakeholders Affected',
+    description:
+      'Who experiences this problem and how (consumers, businesses, communities, ecosystems).',
+  },
+  {
+    title: 'Geographic Context',
+    description: 'Where this problem is most acute (local, regional, national, global).',
+  },
+  {
+    title: 'Urgency Indicators',
+    description:
+      'Why this needs solving now (regulatory pressure, market demand, environmental tipping points).',
+  },
+];
+
+const PROBLEM_WRITING_TIPS = [
+  'Start with a compelling statistic or fact.',
+  'Use specific numbers instead of vague terms.',
+  'Connect the problem to economic or social costs.',
+  'Reference industry standards or regulations when relevant.',
+  'Cite sources if available (e.g., EPA, industry studies).',
+];
+
+const SOLUTION_COMPONENTS = [
+  {
+    title: 'Materials and Inputs',
+    description:
+      'Exact materials used with specifications (post-consumer PET, agricultural hemp fiber, recycled aluminum).',
+  },
+  {
+    title: 'Process and Technology',
+    description:
+      'Step-by-step transformation process and standards met (e.g., mechanical sorting, washing, pelletizing at 230C).',
+  },
+  {
+    title: 'Business Model and Logistics',
+    description:
+      'How you collect, process, and distribute (hub-and-spoke, delivery-as-a-service, reverse logistics network).',
+  },
+  {
+    title: 'Circularity Loop',
+    description:
+      'How materials return to use (composted material sold to farms, returning to feedstock for your product).',
+  },
+  {
+    title: 'Key Performance Metrics',
+    description:
+      'Quantified results (recovery rate, unit cost, composting time, carbon footprint vs virgin materials).',
+  },
+  {
+    title: 'Partnerships and Infrastructure',
+    description:
+      'Key collaborators (waste management partners, processing facilities, certification bodies, distribution channels).',
+  },
+  {
+    title: 'Scalability Path',
+    description:
+      'How the solution grows (pilot to regional to national; target units per month by year 2).',
+  },
+  {
+    title: 'Economic Viability',
+    description: 'Revenue model, cost structure, and comparison to conventional alternatives.',
+  },
+];
+
+const SOLUTION_PITFALLS = [
+  'Avoid vague descriptions; provide specific materials and processes.',
+  'Avoid missing technical details; include equipment, temperatures, and cycle times.',
+  'Avoid absent metrics; include recovery rates, costs, and carbon impact.',
+  'Avoid unclear loop closure; explain how materials re-enter the system.',
+];
+
+const SOLUTION_PRO_TIPS = [
+  'Use industry-standard terminology and note certifications.',
+  'Include both environmental and economic metrics.',
+  'Mention regulatory compliance (FDA, EPA, ISO, etc.).',
+  'Compare to conventional alternatives (cost, performance, impact).',
+  'Show real-world validation (pilots, customers, third-party testing).',
+];
+
+const PROBLEM_EXAMPLE =
+  'Single-use plastic packaging creates 8 million tons of ocean waste annually, disrupting marine ecosystems and food chains. Current alternatives are cost-prohibitive (> $2/unit) or require industrial composting infrastructure that 75% of municipalities lack. This leaves a gap between demand for sustainable packaging and practical implementation at scale.';
+
+const SOLUTION_EXAMPLE =
+  'We convert agricultural hemp waste into compostable mailers and run a hub-and-spoke collection model. Customers use prepaid mailers; 15 regional hubs aggregate returns; certified composters process 95% of materials within 90 days into soil amendments. Those amendments are sold back to hemp farms, creating a closed loop. Cost: $0.85 per unit at scale; home-compostable in 180 days.';
+
+const DESCRIPTION_POINTS = [
+  'Materials: What materials or resources are being reused, recycled, or recovered?',
+  'Process: How does your business model close the loop?',
+  'Stakeholders: Who are the key participants (suppliers, customers, partners)?',
+  'Value Proposition: What environmental and economic benefits does it provide?',
+  'Scale: What is the intended scope (local, regional, global)?',
+];
+
+const SELF_ASSESSMENT_GUIDELINES = [
+  'Be realistic; AI validation will check against evidence.',
+  'Consider both current state and 12-month potential.',
+  'Use the examples as reference points when calibrating detail.',
+];
 
 export default function MetricInfoModal({ onClose, type }) {
   const getModalTitle = () => {
-    switch (type) {
-      case 'problem':
-        return 'Business Problem Guide';
-      case 'solution':
-        return 'Business Solution Guide';
-      case 'factors':
-        return 'Evaluation Factors';
-      default:
-        return 'Guide';
-    }
+    if (type === 'problem') return 'Business Problem Guide';
+    if (type === 'solution') return 'Business Solution Guide';
+    if (type === 'factors') return 'Evaluation Factors';
+    if (parameterGuidance[type]) return `${parameterGuidance[type].name} Details`;
+    return 'Guide';
   };
 
   const getModalContent = () => {
-    switch (type) {
-      case 'problem':
-        return <ProblemGuide />;
-      case 'solution':
-        return <SolutionGuide />;
-      case 'factors':
-        return <FactorsGuide />;
-      default:
-        if (parameterGuidance[type]) {
-          return <ParameterDetailGuide paramKey={type} />;
-        }
-        return <DescriptionGuide />;
-    }
+    if (type === 'problem') return <ProblemGuide />;
+    if (type === 'solution') return <SolutionGuide />;
+    if (type === 'factors') return <FactorsGuide />;
+    if (parameterGuidance[type]) return <ParameterDetailGuide paramKey={type} />;
+    return <DescriptionGuide />;
   };
 
   return (
@@ -39,13 +145,14 @@ export default function MetricInfoModal({ onClose, type }) {
         className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="m-0 text-emerald-600 text-2xl font-bold">{getModalTitle()}</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="m-0 text-2xl font-bold text-emerald-600">{getModalTitle()}</h2>
           <button
-            className="bg-none border-none text-2xl cursor-pointer text-gray-400 p-0 w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-gray-700"
+            className="flex items-center justify-center w-8 h-8 p-0 pb-1 text-xl font-bold text-gray-500 border-none rounded cursor-pointer hover:bg-gray-100 hover:text-gray-700"
             onClick={onClose}
+            aria-label="Close modal"
           >
-            ×
+            x
           </button>
         </div>
         <div className="p-6">{getModalContent()}</div>
@@ -54,83 +161,50 @@ export default function MetricInfoModal({ onClose, type }) {
   );
 }
 
+MetricInfoModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  type: PropTypes.string.isRequired,
+};
+
 function ProblemGuide() {
   return (
-    <div>
-      <p className="mb-4 leading-relaxed">
+    <div className="space-y-5">
+      <p className="leading-relaxed">
         Describe the <strong>environmental or circular economy challenge</strong> your business
-        addresses. This should be a clear, quantified problem statement that demonstrates
-        understanding of the issue's scope and impact.
+        addresses. Provide a clear, quantified problem statement that shows the scope and impact.
       </p>
 
-      <div className="bg-gray-100 p-4 rounded mb-5">
-        <h4 className="m-0 mb-3 text-emerald-600 text-lg font-bold">
+      <div className="p-4 bg-gray-100 rounded">
+        <h4 className="m-0 mb-3 text-lg font-bold text-emerald-600">
           Essential Elements to Include:
         </h4>
-        <ul className="pl-6 leading-relaxed m-0">
-          <li>
-            <strong>Environmental Impact:</strong> Specific waste, pollution, or resource depletion
-            issue (e.g., "8M tons of plastic waste entering oceans annually")
-          </li>
-          <li>
-            <strong>Quantified Scale:</strong> Use real numbers, percentages, or measurements to
-            show magnitude (tons, percentage of market, number of people affected)
-          </li>
-          <li>
-            <strong>Current Gaps:</strong> Why existing solutions fail (cost barriers,
-            infrastructure limitations, behavioral challenges, regulatory issues)
-          </li>
-          <li>
-            <strong>Stakeholders Affected:</strong> Who experiences this problem and how (consumers,
-            businesses, communities, ecosystems)
-          </li>
-          <li>
-            <strong>Geographic Context:</strong> Where is this problem most acute? (local, regional,
-            national, global)
-          </li>
-          <li>
-            <strong>Urgency Indicators:</strong> Why this problem needs solving now (regulatory
-            pressure, market demand, environmental tipping points)
-          </li>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {PROBLEM_ELEMENTS.map(({ title, description }) => (
+            <li key={title}>
+              <strong>{title}:</strong> {description}
+            </li>
+          ))}
         </ul>
       </div>
 
-      <div
-        style={{
-          background: '#e3f2fd',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}
-      >
-        <h4
-          style={{ margin: '0 0 12px 0', color: '#4a90e2', fontWeight: 'bold', fontSize: '18px' }}
-        >
-          Writing Tips:
-        </h4>
-        <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
-          <li>Start with a compelling statistic or fact</li>
-          <li>Use specific numbers rather than vague terms ("30% waste" not "lots of waste")</li>
-          <li>Connect the problem to economic or social costs</li>
-          <li>Reference industry standards or regulations where relevant</li>
-          <li>Cite sources if you have them ("According to EPA...", "Industry studies show...")</li>
+      <div className="p-4 rounded bg-blue-50">
+        <h4 className="m-0 mb-3 text-lg font-bold text-blue-600">Writing Tips:</h4>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {PROBLEM_WRITING_TIPS.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
         </ul>
       </div>
 
-      <div className="mb-5">
-        <h4 className="m-0 mb-3 text-blue-500 text-lg font-bold">Example Problem Statement:</h4>
-        <p className="italic text-gray-700 leading-relaxed p-3 bg-blue-50 rounded">
-          "Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting
-          marine ecosystems and poisoning food chains. Current alternatives are either
-          cost-prohibitive (&gt;$2/unit) or require complex industrial composting infrastructure
-          unavailable to 75% of municipalities. This creates a critical gap between consumer demand
-          for sustainable packaging and practical implementation at scale."
+      <div className="space-y-3">
+        <h4 className="m-0 text-lg font-bold text-blue-500">Example Problem Statement:</h4>
+        <p className="p-3 italic leading-relaxed text-gray-700 rounded bg-blue-50">
+          {PROBLEM_EXAMPLE}
         </p>
       </div>
 
-      <p className="mt-4 italic text-gray-500">
-        <strong>Minimum 200 characters required</strong> for accurate database matching and AI
-        analysis.
+      <p className="mt-2 italic text-gray-500">
+        <strong>Minimum 200 characters required</strong> for accurate matching and analysis.
       </p>
     </div>
   );
@@ -138,149 +212,55 @@ function ProblemGuide() {
 
 function SolutionGuide() {
   return (
-    <div>
-      <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+    <div className="space-y-5">
+      <p className="leading-relaxed">
         Describe <strong>how your business solves the problem</strong> with a detailed, technical
         explanation of your circular economy approach. Be specific about materials, processes,
         partnerships, and measurable outcomes.
       </p>
 
-      <div
-        style={{
-          background: '#f5f5f5',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}
-      >
-        <h4
-          style={{ margin: '0 0 12px 0', color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}
-        >
+      <div className="p-4 bg-gray-100 rounded">
+        <h4 className="m-0 mb-3 text-lg font-bold text-emerald-600">
           Critical Components to Address:
         </h4>
-        <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
-          <li>
-            <strong>Materials & Inputs:</strong> Exact materials used with specifications
-            ("post-consumer PET bottles," "Grade A agricultural hemp fiber," "certified recycled
-            aluminum - ISO 14021")
-          </li>
-          <li>
-            <strong>Process & Technology:</strong> Step-by-step transformation process, equipment
-            used, technical standards met ("mechanical sorting → washing → pelletizing at 230°C")
-          </li>
-          <li>
-            <strong>Business Model & Logistics:</strong> How you collect, process, and distribute
-            (hub-and-spoke, DaaS model, reverse logistics network, collection points)
-          </li>
-          <li>
-            <strong>Circularity Loop:</strong> Precise description of how materials return to use
-            ("composted material sold to organic farms → used to grow hemp → hemp becomes packaging
-            → cycle repeats")
-          </li>
-          <li>
-            <strong>Key Performance Metrics:</strong> Quantified results ("95% recovery rate,"
-            "$0.85/unit at 10K scale," "180-day home composting," "30% lower carbon footprint vs
-            virgin materials")
-          </li>
-          <li>
-            <strong>Partnerships & Infrastructure:</strong> Key collaborators (waste management
-            companies, processing facilities, certification bodies, distribution channels)
-          </li>
-          <li>
-            <strong>Scalability Path:</strong> How the solution grows (pilot → regional → national,
-            target: X units/month by Year 2)
-          </li>
-          <li>
-            <strong>Economic Viability:</strong> Revenue model, cost structure, price point
-            comparison to conventional alternatives
-          </li>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {SOLUTION_COMPONENTS.map(({ title, description }) => (
+            <li key={title}>
+              <strong>{title}:</strong> {description}
+            </li>
+          ))}
         </ul>
       </div>
 
-      <div
-        style={{
-          background: '#fff3e0',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}
-      >
-        <h4
-          style={{ margin: '0 0 12px 0', color: '#ff9800', fontWeight: 'bold', fontSize: '18px' }}
-        >
-          Common Pitfalls to Avoid:
-        </h4>
-        <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
-          <li>
-            ❌ Vague descriptions ("We recycle plastic" → ✅ "We convert HDPE milk jugs into outdoor
-            furniture lumber")
-          </li>
-          <li>
-            ❌ Missing technical details ("special process" → ✅ "enzymatic depolymerization at
-            60°C, 4-hour cycle")
-          </li>
-          <li>
-            ❌ No metrics ("high efficiency" → ✅ "87% material recovery, 92% energy efficiency vs
-            thermal processing")
-          </li>
-          <li>
-            ❌ Unclear loop closure ("reuse materials" → ✅ "fiber returned to textile manufacturers
-            for new garment production")
-          </li>
+      <div className="p-4 border border-orange-200 rounded bg-orange-50">
+        <h4 className="m-0 mb-3 text-lg font-bold text-orange-600">Common Pitfalls to Avoid:</h4>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {SOLUTION_PITFALLS.map((pitfall) => (
+            <li key={pitfall}>{pitfall}</li>
+          ))}
         </ul>
       </div>
 
-      <div
-        style={{
-          background: '#e8f5e9',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}
-      >
-        <h4
-          style={{ margin: '0 0 12px 0', color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}
-        >
+      <div className="p-4 border rounded bg-emerald-50 border-emerald-200">
+        <h4 className="m-0 mb-3 text-lg font-bold text-emerald-700">
           Pro Tips for Strong Solutions:
         </h4>
-        <ul style={{ paddingLeft: '24px', lineHeight: '1.8', margin: 0 }}>
-          <li>✓ Use industry-standard terminology and certifications</li>
-          <li>✓ Include both environmental AND economic metrics</li>
-          <li>✓ Mention regulatory compliance (FDA, EPA, ISO standards)</li>
-          <li>✓ Compare to conventional alternatives (cost, performance, environmental impact)</li>
-          <li>
-            ✓ Show real-world validation (pilot results, customer testimonials, third-party testing)
-          </li>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {SOLUTION_PRO_TIPS.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
         </ul>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h4
-          style={{ margin: '0 0 12px 0', color: '#4a90e2', fontWeight: 'bold', fontSize: '18px' }}
-        >
-          Example Solution Statement:
-        </h4>
-        <p
-          style={{
-            fontStyle: 'italic',
-            color: '#555',
-            lineHeight: '1.6',
-            padding: '12px',
-            background: '#e3f2fd',
-            borderRadius: '6px',
-          }}
-        >
-          "Our platform uses compostable packaging from agricultural hemp waste, combined with a
-          hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we
-          aggregate returns at 15 regional hubs; certified composting facilities process 95% of
-          materials within 90 days into soil amendments. These amendments are sold back to hemp
-          farms, creating a closed loop. Cost: $0.85/unit at scale, home-compostable in 180 days."
+      <div className="space-y-3">
+        <h4 className="m-0 text-lg font-bold text-blue-500">Example Solution Statement:</h4>
+        <p className="p-3 italic leading-relaxed text-gray-700 rounded bg-blue-50">
+          {SOLUTION_EXAMPLE}
         </p>
       </div>
 
-      <p style={{ marginTop: '16px', fontStyle: 'italic', color: '#666' }}>
-        <strong>Minimum 200 characters required</strong> for accurate database matching and AI
-        analysis.
+      <p className="mt-2 italic text-gray-500">
+        <strong>Minimum 200 characters required</strong> for accurate matching and analysis.
       </p>
     </div>
   );
@@ -288,32 +268,32 @@ function SolutionGuide() {
 
 function DescriptionGuide() {
   return (
-    <div>
-      <p style={{ marginBottom: '16px' }}>
-        Provide a detailed description of your circular economy business idea. Include:
+    <div className="space-y-5">
+      <p className="leading-relaxed">
+        Provide a concise description that summarizes your circular solution. Touch on materials,
+        process, stakeholders, value, and scale so our models can calibrate your score accurately.
       </p>
-      <ul style={{ paddingLeft: '24px', lineHeight: '1.8' }}>
-        <li>
-          <strong>Materials:</strong> What materials or resources are being reused, recycled, or
-          recovered?
-        </li>
-        <li>
-          <strong>Process:</strong> How does your business model close the loop?
-        </li>
-        <li>
-          <strong>Stakeholders:</strong> Who are the key participants (suppliers, customers,
-          partners)?
-        </li>
-        <li>
-          <strong>Value Proposition:</strong> What environmental and economic benefits does it
-          provide?
-        </li>
-        <li>
-          <strong>Scale:</strong> What is the intended scope (local, regional, global)?
-        </li>
-      </ul>
-      <p style={{ marginTop: '16px', fontStyle: 'italic', color: '#666' }}>
-        A minimum of 200 characters is required for accurate AI analysis.
+
+      <div className="p-4 bg-gray-100 rounded">
+        <h4 className="m-0 mb-3 text-lg font-bold text-emerald-600">Cover These Points:</h4>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {DESCRIPTION_POINTS.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="p-4 border border-blue-100 rounded bg-blue-50">
+        <h4 className="m-0 mb-3 text-lg font-bold text-blue-600">Self-Assessment Tips:</h4>
+        <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+          {SELF_ASSESSMENT_GUIDELINES.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
+        </ul>
+      </div>
+
+      <p className="mt-2 italic text-gray-500">
+        <strong>Minimum 200 characters required</strong> for accurate matching and analysis.
       </p>
     </div>
   );
@@ -321,301 +301,101 @@ function DescriptionGuide() {
 
 function FactorsGuide() {
   return (
-    <div>
-      <p style={{ marginBottom: '20px' }}>
-        Our evaluation framework assesses your business across 8 key factors grouped into 3 value
-        categories:
+    <div className="space-y-5">
+      <p className="leading-relaxed">
+        These are the factors we use to evaluate circularity potential. Use the definitions to align
+        your self-assessed scores with our scoring model.
       </p>
-      {Object.entries(factorDefinitions).map(([key, factor]) => (
-        <div
-          key={key}
-          style={{
-            marginBottom: '20px',
-            paddingBottom: '16px',
-            borderBottom: '1px solid #eee',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '8px',
-            }}
-          >
-            <h3 style={{ margin: 0, color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}>
-              {factor.title}
-            </h3>
-            <span
-              style={{
-                fontSize: '12px',
-                color: '#666',
-                backgroundColor: '#f5f5f5',
-                padding: '4px 8px',
-                borderRadius: '4px',
-              }}
-            >
-              {factor.category}
-            </span>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {Object.entries(factorDefinitions).map(([key, factor]) => (
+          <div key={key} className="p-4 border rounded-lg bg-slate-50 border-slate-200">
+            <h4 className="m-0 text-lg font-semibold text-emerald-700">{factor.title}</h4>
+            <p className="m-0 text-sm text-slate-500">Category: {factor.category}</p>
+            <p className="mt-2 leading-relaxed text-slate-700">{factor.desc}</p>
           </div>
-          <p style={{ margin: 0, color: '#555', lineHeight: '1.6' }}>{factor.desc}</p>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      <p className="text-sm italic text-gray-500">
+        Stronger detail helps the model differentiate between nearby scores.
+      </p>
     </div>
   );
 }
 
 function ParameterDetailGuide({ paramKey }) {
-  const param = parameterGuidance[paramKey];
+  const guidance = parameterGuidance[paramKey];
+  if (!guidance) return null;
 
-  if (!param) {
-    return <div>Parameter guidance not available.</div>;
-  }
+  const weightLabel = guidance.weightPercent || `${Math.round((guidance.weight || 0) * 100)}%`;
 
   return (
-    <div>
-      <div
-        style={{
-          marginBottom: '24px',
-          padding: '16px',
-          background: '#f5f7fa',
-          borderRadius: '8px',
-          borderLeft: '4px solid #34a83a',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '12px',
-          }}
-        >
-          <h3 style={{ margin: 0, color: '#34a83a', fontWeight: 'bold', fontSize: '18px' }}>
-            {param.name}
-          </h3>
-          <span
-            style={{
-              fontSize: '14px',
-              color: '#666',
-              backgroundColor: '#fff',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              fontWeight: '600',
-              border: '2px solid #34a83a',
-            }}
-          >
-            Weight: {param.weightPercent}
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h3 className="m-0 text-xl font-bold text-emerald-700">{guidance.name}</h3>
+          <p className="m-0 text-md text-slate-600">{guidance.category}</p>
+        </div>
+        {guidance.weight && (
+          <span className="flex items-center justify-center px-4 py-2 text-lg border-2 border-gray-400 rounded-lg bg-emerald-50 text-slate-600">
+            Weight: {weightLabel}
           </span>
-        </div>
-        <p style={{ margin: '0 0 8px 0', color: '#666', fontSize: '14px', fontStyle: 'italic' }}>
-          {param.category}
-        </p>
-        <p style={{ margin: '8px 0 0 0', color: '#555', fontSize: '13px', lineHeight: '1.5' }}>
-          This parameter contributes <strong>{param.weightPercent}</strong> to your overall circular
-          economy score.
-        </p>
+        )}
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <h4
-          style={{
-            margin: '0 0 12px 0',
-            color: '#2c3e50',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            borderBottom: '2px solid #e0e0e0',
-            paddingBottom: '8px',
-          }}
-        >
-          📋 Definition
-        </h4>
-        <p style={{ margin: 0, lineHeight: '1.7', color: '#555', fontSize: '15px' }}>
-          {param.definition}
-        </p>
-      </div>
-
-      <div style={{ marginBottom: '24px' }}>
-        <h4
-          style={{
-            margin: '0 0 12px 0',
-            color: '#2c3e50',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            borderBottom: '2px solid #e0e0e0',
-            paddingBottom: '8px',
-          }}
-        >
-          🔬 Methodology
-        </h4>
-        <p style={{ margin: 0, lineHeight: '1.7', color: '#555', fontSize: '15px' }}>
-          {param.methodology}
-        </p>
-        <div
-          style={{
-            background: '#e8f5e9',
-            padding: '12px 16px',
-            borderRadius: '6px',
-            marginTop: '12px',
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '14px', color: '#2d5f2e', lineHeight: '1.6' }}>
-            <strong>💡 Tip:</strong> Our AI evaluates this against proven circular economy projects
-            in our database.
+      <div className="space-y-3">
+        {guidance.definition && (
+          <p className="leading-relaxed">
+            <strong>Definition:</strong> {guidance.definition}
           </p>
-        </div>
+        )}
+        {guidance.methodology && (
+          <p className="leading-relaxed">
+            <strong>Methodology:</strong> {guidance.methodology}
+          </p>
+        )}
+        {guidance.calibration && (
+          <p className="leading-relaxed">
+            <strong>Calibration:</strong> {guidance.calibration}
+          </p>
+        )}
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        <h4
-          style={{
-            margin: '0 0 12px 0',
-            color: '#2c3e50',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            borderBottom: '2px solid #e0e0e0',
-            paddingBottom: '8px',
-          }}
-        >
-          🎯 Calibration Guide
-        </h4>
-        <p
-          style={{
-            margin: '0 0 16px 0',
-            fontStyle: 'italic',
-            color: '#555',
-            fontSize: '15px',
-            lineHeight: '1.7',
-          }}
-        >
-          {param.calibration}
-        </p>
-
-        <div
-          style={{
-            background: '#fff3e0',
-            padding: '14px 16px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-          }}
-        >
-          <h5 style={{ margin: '0 0 8px 0', color: '#f57c00', fontSize: '14px' }}>
-            ⚠️ Self-Assessment Guidelines:
-          </h5>
-          <ul
-            style={{
-              margin: '0',
-              paddingLeft: '20px',
-              color: '#555',
-              fontSize: '14px',
-              lineHeight: '1.8',
-            }}
-          >
-            <li>Be realistic - our AI will validate against database evidence</li>
-            <li>Consider both current state AND 12-month potential</li>
-            <li>Use the examples below as anchoring reference points</li>
+      {guidance.scale && (
+        <div className="p-4 border rounded bg-slate-50 border-slate-200">
+          <h4 className="m-0 mb-3 text-lg font-semibold text-slate-800">Score Guide:</h4>
+          <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+            {guidance.scale.map(({ score, label, description }) => (
+              <li key={`${score}-${label}`}>
+                <strong>
+                  {score} - {label}:
+                </strong>
+                &nbsp;
+                {description}
+              </li>
+            ))}
           </ul>
         </div>
+      )}
 
-        <div style={{ background: '#f5f5f5', padding: '16px', borderRadius: '8px' }}>
-          <h5 style={{ margin: '0 0 14px 0', color: '#34a83a', fontSize: '15px' }}>
-            📊 Score Scale:
-          </h5>
-          {param.scale &&
-            param.scale.map((item, idx) => (
-              <div
-                key={idx}
-                style={{
-                  marginBottom: '12px',
-                  padding: '12px',
-                  background: 'white',
-                  borderRadius: '6px',
-                  border: '1px solid #e0e0e0',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '6px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: '700', color: '#34a83a', fontSize: '18px' }}>
-                      {item.score}
-                    </span>
-                    <span style={{ fontWeight: '600', color: '#2c3e50', fontSize: '15px' }}>
-                      {item.label}
-                    </span>
-                  </div>
-                </div>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666', lineHeight: '1.5' }}>
-                  {item.description}
-                </p>
-              </div>
+      {guidance.examples && (
+        <div className="p-4 border rounded bg-emerald-50 border-emerald-200">
+          <h4 className="m-0 mb-3 text-lg font-semibold text-emerald-800">Benchmarks:</h4>
+          <ul className="pl-6 m-0 space-y-2 leading-relaxed">
+            {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
+              <li key={`${exampleCase}-${score}-${idx}`}>
+                <strong>{exampleCase}</strong> - {score}
+                {reason ? ` (${reason})` : ''}
+              </li>
             ))}
-        </div>
-      </div>
-
-      {param.examples && param.examples.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <h4
-            style={{
-              margin: '0 0 12px 0',
-              color: '#2c3e50',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              borderBottom: '2px solid #e0e0e0',
-              paddingBottom: '8px',
-            }}
-          >
-            📚 Real-World Examples
-          </h4>
-          <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
-            Verified examples from our GreenTechGuardians database to calibrate your score.
-          </p>
-          {param.examples.map((example, idx) => (
-            <div
-              key={idx}
-              style={{
-                marginBottom: '14px',
-                padding: '14px 16px',
-                background: '#e3f2fd',
-                borderLeft: '4px solid #4a90e2',
-                borderRadius: '6px',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '8px',
-                }}
-              >
-                <strong style={{ color: '#2c3e50', fontSize: '15px' }}>{example.case}</strong>
-                <span style={{ fontWeight: '700', color: '#4a90e2', fontSize: '18px' }}>
-                  Score: {example.score}
-                </span>
-              </div>
-              {example.reason && (
-                <p
-                  style={{
-                    margin: '6px 0 0 0',
-                    fontSize: '14px',
-                    color: '#555',
-                    fontStyle: 'italic',
-                    lineHeight: '1.6',
-                  }}
-                >
-                  <strong>Why:</strong> {example.reason}
-                </p>
-              )}
-            </div>
-          ))}
+          </ul>
         </div>
       )}
     </div>
   );
 }
+
+ParameterDetailGuide.propTypes = {
+  paramKey: PropTypes.string.isRequired,
+};

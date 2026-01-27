@@ -1,4 +1,5 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -11,24 +12,20 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Log error details for debugging purposes
-    if (!import.meta.env.PROD) {
-      console.error('ErrorBoundary caught:', error, info);
-    }
+    // Error boundary caught an error - handled gracefully
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="app-container text-center p-8">
+        <div className="p-8 text-center app-container">
           <h1>Something went wrong</h1>
-          <p className="text-gray-600 mb-4">{this.state.error?.message}</p>
+          <p className="mb-4 text-gray-600">{this.state.error?.message}</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.href = '/';
             }}
-            className="primary-button"
           >
             Return Home
           </button>
@@ -39,3 +36,7 @@ export default class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};

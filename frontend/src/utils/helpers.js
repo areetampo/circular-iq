@@ -366,7 +366,7 @@ export function extractProblemSolution(caseItem) {
  * @returns {Object} Formatted case info
  */
 export function extractCaseInfo(caseItem, index) {
-  const matchPercentage = caseItem.similarity ? Math.round(caseItem.similarity * 100) : 0;
+  const matchPercentage = caseItem.similarity ? Math.round(caseItem.similarity * 10000) / 100 : 0;
   const sourceCaseId = caseItem.id || index + 1;
   const content = caseItem.content || '';
 

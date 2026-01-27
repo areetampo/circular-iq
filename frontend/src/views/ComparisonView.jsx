@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   BarChart,
@@ -17,6 +18,7 @@ import {
 } from 'recharts';
 import { exportComparisonCSV } from '../utils/exportSimple';
 import '../styles/ComparisonView.css';
+import Loader from '../components/feedback/Loader';
 
 export default function ComparisonView({ onBack }) {
   const { id1, id2 } = useParams();
@@ -54,9 +56,7 @@ export default function ComparisonView({ onBack }) {
 
   if (loading)
     return (
-      <div className="app-container">
-        <p>Loading assessments...</p>
-      </div>
+      <Loader heading="Loading comparison..." message="Fetching assessment data for comparison." />
     );
   if (error)
     return (
@@ -103,7 +103,7 @@ export default function ComparisonView({ onBack }) {
 
   const compareMetric = (label, val1, val2, unit = '') => {
     const diff = val2 - val1;
-    const change = diff > 0 ? `+${diff}` : `${diff}`;
+    const change = diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '0';
     const changeClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
 
     return (
@@ -222,17 +222,12 @@ export default function ComparisonView({ onBack }) {
             marginBottom: '2.5rem',
           }}
         >
-          <div>
-            <h1 className="main-title" style={{ margin: 0 }}>
-              Assessment Comparison
-            </h1>
-            <p className="subtitle" style={{ margin: '0.5rem 0 0 0' }}>
-              Side-by-side analysis of two evaluations
-            </p>
-          </div>
-          <button className="back-button" onClick={onBack} style={{ height: 'fit-content' }}>
-            ← Back
-          </button>
+          <h1 className="main-title" style={{ margin: 0 }}>
+            Assessment Comparison
+          </h1>
+          <p className="subtitle" style={{ margin: '0.5rem 0 0 0' }}>
+            Side-by-side analysis of {assessment1.title} and {assessment2.title}
+          </p>
         </div>
 
         {/* Key Insights Section */}
@@ -340,12 +335,30 @@ export default function ComparisonView({ onBack }) {
         <div className="comparison-header">
           <div className="assessment-title assessment1">
             <h2>{assessment1.title || 'Assessment 1'}</h2>
-            <p>{new Date(assessment1.created_at).toLocaleDateString()}</p>
+            <p>
+              {new Date(assessment1.created_at).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+            </p>
           </div>
           <div className="comparison-title">vs.</div>
           <div className="assessment-title assessment2">
             <h2>{assessment2.title || 'Assessment 2'}</h2>
-            <p>{new Date(assessment2.created_at).toLocaleDateString()}</p>
+            <p>
+              {new Date(assessment2.created_at).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+            </p>
           </div>
         </div>
 
@@ -486,14 +499,14 @@ export default function ComparisonView({ onBack }) {
 
         {/* Audit Verdicts */}
         <div className="comparison-card">
-          <h3>🔍 Auditor's Verdict</h3>
+          <h3>🔍 Auditor&apos;s Verdict</h3>
           <div className="verdict-comparison">
             <div className="verdict-box assessment1">
-              <h4>Assessment 1</h4>
+              <h4>{assessment1.title}</h4>
               <p>{assessment1.result_json?.audit?.audit_verdict || 'No verdict available'}</p>
             </div>
             <div className="verdict-box assessment2">
-              <h4>Assessment 2</h4>
+              <h4>{assessment2.title}</h4>
               <p>{assessment2.result_json?.audit?.audit_verdict || 'No verdict available'}</p>
             </div>
           </div>
@@ -506,16 +519,16 @@ export default function ComparisonView({ onBack }) {
             <ResponsiveContainer width="100%" height={350}>
               <BarChart
                 data={Object.keys(assessment1.result_json.sub_scores).map((key) => ({
-                  name: key.replace(/_/g, ' ').slice(0, 12),
-                  'Assessment 1': assessment1.result_json.sub_scores[key],
-                  'Assessment 2': assessment2.result_json.sub_scores[key],
+                  name: key.replace(/_/g, ' '),
+                  [assessment1.title]: assessment1.result_json.sub_scores[key],
+                  [assessment2.title]: assessment2.result_json.sub_scores[key],
                 }))}
-                margin={{ top: 20, right: 30, left: 0, bottom: 60 }}
+                margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="name"
-                  angle={-45}
+                  angle={-30}
                   textAnchor="end"
                   height={100}
                   interval={0}
@@ -524,8 +537,8 @@ export default function ComparisonView({ onBack }) {
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="Assessment 1" fill="#34a83a" />
-                <Bar dataKey="Assessment 2" fill="#007bff" />
+                <Bar dataKey={assessment1.title} fill="#34a83a" barSize={28} />
+                <Bar dataKey={assessment2.title} fill="#007bff" barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -535,33 +548,35 @@ export default function ComparisonView({ onBack }) {
         {assessment1.result_json?.sub_scores && assessment2.result_json?.sub_scores && (
           <div className="comparison-card">
             <h3>🎯 Multi-Factor Profile</h3>
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={500}>
               <RadarChart
                 data={Object.keys(assessment1.result_json.sub_scores).map((key) => ({
-                  factor: key.replace(/_/g, ' ').slice(0, 15),
+                  factor: key.replace(/_/g, ' '),
                   'Assessment 1': assessment1.result_json.sub_scores[key],
                   'Assessment 2': assessment2.result_json.sub_scores[key],
                 }))}
-                margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
+                margin={{ top: 30, right: 120, bottom: 30, left: 120 }}
               >
                 <PolarGrid />
-                <PolarAngleAxis dataKey="factor" />
+                <PolarAngleAxis dataKey="factor" tick={{ fontSize: 16 }} />
                 <PolarRadiusAxis angle={90} domain={[0, 100]} />
                 <Radar
-                  name="Assessment 1"
+                  name={assessment1.title}
                   dataKey="Assessment 1"
                   stroke="#34a83a"
                   fill="#34a83a"
-                  fillOpacity={0.6}
+                  fillOpacity={0.4}
+                  strokeWidth={2}
                 />
                 <Radar
-                  name="Assessment 2"
+                  name={assessment2.title}
                   dataKey="Assessment 2"
                   stroke="#007bff"
                   fill="#007bff"
-                  fillOpacity={0.6}
+                  fillOpacity={0.4}
+                  strokeWidth={2}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
                 <Tooltip />
               </RadarChart>
             </ResponsiveContainer>
@@ -573,7 +588,7 @@ export default function ComparisonView({ onBack }) {
           <h3>Key Insights</h3>
           <ul>
             <li>
-              <strong>Score Trend:</strong>{' '}
+              <strong>Score Trend:</strong>&nbsp;
               {assessment2.result_json?.overall_score > assessment1.result_json?.overall_score
                 ? '📈 Score improved'
                 : assessment2.result_json?.overall_score < assessment1.result_json?.overall_score
@@ -583,34 +598,51 @@ export default function ComparisonView({ onBack }) {
             {assessment1.result_json?.metadata?.industry !==
               assessment2.result_json?.metadata?.industry && (
               <li>
-                <strong>Industry Change:</strong>{' '}
-                {titleize(assessment1.result_json?.metadata?.industry)} →{' '}
+                <strong>Industry Change:</strong>&nbsp;
+                {titleize(assessment1.result_json?.metadata?.industry)} →&nbsp;
                 {titleize(assessment2.result_json?.metadata?.industry)}
               </li>
             )}
             <li>
-              <strong>Assessed:</strong> {new Date(assessment1.created_at).toLocaleDateString()} vs.{' '}
-              {new Date(assessment2.created_at).toLocaleDateString()}
+              <strong>Assessed:</strong>&nbsp;<span className="font-bold">{assessment1.title}</span>
+              &nbsp;(
+              {new Date(assessment1.created_at).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+              )&nbsp;&nbsp;vs.&nbsp;&nbsp;<span className="font-bold">{assessment2.title}</span>
+              &nbsp;(
+              {new Date(assessment2.created_at).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+              )
             </li>
           </ul>
         </div>
 
         {/* Footer */}
-        <div
-          className="comparison-footer"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '2rem',
-            paddingTop: '1.5rem',
-            borderTop: '1px solid #e0e0e0',
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#999' }}>
-            Last updated: {new Date().toLocaleDateString()}
+        <div className="flex flex-col items-center justify-center gap-4 pt-8 mt-12 border-t-2 border-gray-300 assessmentComparisionFooter:flex-row assessmentComparisionFooter:justify-between">
+          <p className="font-medium text-slate-400">
+            Last updated:&nbsp;
+            {new Date().toLocaleString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            })}
           </p>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               className="secondary-button"
               title="Export comparison as CSV"
@@ -627,3 +659,11 @@ export default function ComparisonView({ onBack }) {
     </div>
   );
 }
+
+ComparisonView.propTypes = {
+  onBack: PropTypes.func,
+};
+
+ComparisonView.defaultProps = {
+  onBack: null,
+};

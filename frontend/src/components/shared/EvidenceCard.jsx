@@ -1,3 +1,5 @@
+import React from 'react';
+import PropTypes from 'prop-types';
 import { extractCaseInfo, extractProblemSolution } from '../../utils/helpers';
 
 export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext }) {
@@ -10,27 +12,28 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
   const getMatchStrength = (percentage) => {
     if (percentage >= 80) return { label: 'Excellent Match', color: '#059669' };
     if (percentage >= 65) return { label: 'Strong Match', color: '#34a83a' };
-    if (percentage >= 50) return { label: 'Good Match', color: '#65a30d' };
-    return { label: 'Moderate Match', color: '#ca8a04' };
+    if (percentage >= 50) return { label: 'Decent Match', color: '#65a30d' };
+    return { label: 'Poor Match', color: '#ca8a04' };
   };
 
   const matchStrength = getMatchStrength(matchPercentage);
 
   return (
     <div>
-      <div className="flex justify-between items-start gap-3 mb-2">
+      <div className="flex items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
-          <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-            {matchPercentage}% Match
+          <div className="px-3 py-2 text-xs font-bold text-white rounded-full bg-emerald-600">
+            {matchPercentage}%&nbsp;&nbsp;Similarity
           </div>
+          &middot;
           <div
-            className="text-xs font-semibold uppercase tracking-wide"
-            style={{ color: matchStrength.color }}
+            className={`pt-0.5 text-xs font-semibold tracking-wide uppercase text-[${matchStrength.color}]`}
           >
             {matchStrength.label}
           </div>
+          &middot;
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-700">
+        <div className="flex items-center justify-center gap-2 text-sm py-1 px-2 mt-0.5 text-gray-700 rounded-sm bg-[#f3f4f6] font-semibold">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
             <path
@@ -40,24 +43,24 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
               strokeLinecap="round"
             />
           </svg>
-          Source Case {sourceCaseId}
+          <span className="pt-[0.5px]">Source Case {sourceCaseId}</span>
         </div>
       </div>
 
       {/* Visual similarity bar */}
-      <div className="w-full h-1 bg-gray-300 rounded overflow-hidden mb-3">
+      <div className="w-full h-1 mb-3 overflow-hidden bg-gray-300 rounded">
         <div
-          className="h-full rounded transition-all duration-300"
+          className="h-full transition-all duration-300 rounded"
           style={{ width: `${matchPercentage}%`, background: matchStrength.color }}
         ></div>
       </div>
 
-      <h3 className="m-0 mb-4 text-base text-gray-900 font-semibold leading-relaxed">
+      <h3 className="m-0 mb-4 text-base font-semibold leading-relaxed text-gray-900">
         {caseTitle}
       </h3>
 
       <div className="flex flex-col gap-3">
-        <div className="bg-gray-50 p-3 rounded border-l-4 border-emerald-600">
+        <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
           <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
             <span className="text-sm">🎯</span>
             <strong>Problem Addressed:</strong>
@@ -66,7 +69,7 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
             {problemText.substring(0, 200)}...
           </p>
         </div>
-        <div className="bg-gray-50 p-3 rounded border-l-4 border-emerald-600">
+        <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
           <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
             <span className="text-sm">💡</span>
             <strong>Solution Approach:</strong>
@@ -96,3 +99,10 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
     </div>
   );
 }
+
+EvidenceCard.propTypes = {
+  caseItem: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
+  caseTitle: PropTypes.string.isRequired,
+  onViewContext: PropTypes.func.isRequired,
+};
