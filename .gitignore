@@ -1,42 +1,69 @@
-# Dependency directories
+################################
+# Dependencies
+################################
 node_modules/
 jspm_packages/
-package-lock.json
 
-# Environment Variables (Keep your secrets safe!)
+################################
+# Environment variables (SECRETS)
+################################
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 backend/.env
 
+################################
 # Build outputs
+################################
 dist/
 build/
-.next/
 out/
+.next/
+dist-ssr/
+
+# Explicit project builds (safe but optional)
 frontend/dist/
 backend/build/
 
-# Debug logs
+################################
+# Logs
+################################
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# Testing
+################################
+# Testing & Coverage
+################################
 coverage/
 .nyc_output/
 
-# Cache directories
+################################
+# Caches
+################################
 .cache/
 .parcel-cache/
 .eslintcache
 .vite/
 
-# Operating System files
+################################
+# IDE / Editor
+################################
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+################################
+# OS files
+################################
 .DS_Store
 .DS_Store?
 ._*
@@ -44,25 +71,19 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+################################
+# Temp files
+################################
+*.tmp
+*.temp
 *.swp
 *.swo
 *~
-
-# IDE directories
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# Temporary files
-*.log
-*.tmp
-*.temp
 .tmp/
 temp/
 
-# Backend specific
+################################
+# Backend-specific
+################################
 backend/dataset/chunks.json
-backend/.env
-
-# Miscellaneous

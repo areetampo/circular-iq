@@ -23,7 +23,7 @@ export default function TestCaseInfoModal({ isOpen, onClose, testCase }) {
               <h2 className="m-0 mt-1 text-xl font-bold text-white">{testCase.title}</h2>
             </div>
             <button
-              className="flex items-center justify-center p-2 text-white transition-all border-none rounded-lg cursor-pointer bg-white/20 hover:bg-white/30 w-9 h-9"
+              className="flex items-center justify-center p-2 pt-2.5 text-white transition-all border-none rounded-lg cursor-pointer bg-white/20 hover:bg-white/30 w-9 h-9"
               onClick={onClose}
             >
               <span className="mb-1 text-3xl font-extrabold leading-none">×</span>
@@ -101,7 +101,7 @@ export default function TestCaseInfoModal({ isOpen, onClose, testCase }) {
             <div className="flex justify-end pt-6 mt-6 border-t border-gray-200">
               <button
                 onClick={onClose}
-                className="px-8 py-3 font-semibold text-white transition-all shadow-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl hover:shadow-xl hover:scale-105"
+                className="px-8 py-3 mb-6 font-semibold text-white transition-all shadow-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl hover:shadow-xl hover:scale-105"
               >
                 Close
               </button>

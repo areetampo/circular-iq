@@ -22,6 +22,7 @@ export default class ErrorBoundary extends Component {
           <h1>Something went wrong</h1>
           <p className="mb-4 text-gray-600">{this.state.error?.message}</p>
           <button
+            className="back-button"
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.href = '/';

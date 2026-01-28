@@ -225,7 +225,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
     <div className="app-container">
       <div className="history-view">
         {/* Header */}
-        <div className="header-section">
+        <div className="mb-8">
           <div className="logo-icon">
             <Logo />
           </div>
@@ -233,8 +233,52 @@ export default function HistoryView({ onViewDetail, onBack }) {
           <p className="subtitle">Portfolio of saved circular economy evaluations</p>
         </div>
 
-        {/* Controls */}
+        {/* Stats Card */}
+        {assessments.length > 0 && (
+          <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
+            <div className="p-6 text-center border-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-emerald-700">Total Assessments</div>
+              <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
+            </div>
+            <div className="p-6 text-center border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-blue-700">Average Score</div>
+              <div className="text-4xl font-bold text-blue-600">
+                {Math.round(
+                  assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
+                    assessments.length,
+                )}
+              </div>
+            </div>
+            <div className="p-6 text-center border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-purple-700">Highest Score</div>
+              <div className="text-4xl font-bold text-purple-600">
+                {Math.max(...assessments.map((a) => a.overall_score || 0))}
+              </div>
+            </div>
+            <div className="p-6 text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
+              <div className="mb-2 text-sm font-semibold text-orange-700">Unique Industries</div>
+              <div className="text-4xl font-bold text-orange-600">
+                {new Set(assessments.map((a) => a.industry)).size}
+              </div>
+            </div>
+          </div>
+        )}
 
+        {/* Quick Tip */}
+        <div className="p-5 mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">💡</span>
+            <div>
+              <span className="font-bold text-blue-800">Tip:</span>
+              <span className="ml-2 text-slate-700">
+                Select exactly 2 assessments and click "Compare Selected" to see how your initiative
+                evolved over time, or compare different strategies side-by-side.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
         {renderDeleteModal()}
         <div className="p-6 mb-6 bg-white shadow-md rounded-xl">
           <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
@@ -322,51 +366,6 @@ export default function HistoryView({ onViewDetail, onBack }) {
             </button>
           </div>
         </div>
-
-        {/* Quick Tip */}
-        <div className="p-5 mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">💡</span>
-            <div>
-              <span className="font-bold text-blue-800">Tip:</span>
-              <span className="ml-2 text-slate-700">
-                Select exactly 2 assessments and click "Compare Selected" to see how your initiative
-                evolved over time, or compare different strategies side-by-side.
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Card */}
-        {assessments.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
-            <div className="p-6 text-center border-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 rounded-xl">
-              <div className="mb-2 text-sm font-semibold text-emerald-700">Total Assessments</div>
-              <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
-            </div>
-            <div className="p-6 text-center border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-              <div className="mb-2 text-sm font-semibold text-blue-700">Average Score</div>
-              <div className="text-4xl font-bold text-blue-600">
-                {Math.round(
-                  assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
-                    assessments.length,
-                )}
-              </div>
-            </div>
-            <div className="p-6 text-center border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
-              <div className="mb-2 text-sm font-semibold text-purple-700">Highest Score</div>
-              <div className="text-4xl font-bold text-purple-600">
-                {Math.max(...assessments.map((a) => a.overall_score || 0))}
-              </div>
-            </div>
-            <div className="p-6 text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
-              <div className="mb-2 text-sm font-semibold text-orange-700">Unique Industries</div>
-              <div className="text-4xl font-bold text-orange-600">
-                {new Set(assessments.map((a) => a.industry)).size}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Assessments Table */}
         <div className="assessments-table-container">

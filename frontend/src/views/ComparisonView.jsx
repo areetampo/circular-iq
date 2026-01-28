@@ -29,6 +29,93 @@ export default function ComparisonView({ onBack }) {
   const [error, setError] = useState(null);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+  //for <ResponsiveContainer> radar chart...........................
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
+
+  // Smart label formatting with abbreviations
+  const formatLabel = (label) => {
+    if (!isMobile) return label;
+
+    // Common word abbreviations for mobile
+    const abbreviations = {
+      participation: 'particip.',
+      efficiency: 'effic.',
+      infrastructure: 'infrastr.',
+      readiness: 'ready.',
+      maintenance: 'maint.',
+      chemical: 'chem.',
+      safety: 'safe.',
+    };
+
+    let formatted = label;
+    Object.entries(abbreviations).forEach(([full, abbr]) => {
+      formatted = formatted.replace(new RegExp(full, 'gi'), abbr);
+    });
+
+    // Truncate if still too long
+    return formatted.length > 12 ? formatted.substring(0, 11) + '.' : formatted;
+  };
+  // Custom tick component for multi-line labels on mobile
+  const CustomTick = ({ payload, x, y, textAnchor, isMobile }) => {
+    const label = payload.value;
+    const words = label.split(' ');
+
+    // Split into two lines if mobile and label is long
+    if (isMobile && words.length > 1) {
+      return (
+        <g transform={`translate(${x},${y})`}>
+          <text
+            x={0}
+            y={0}
+            dy={-5}
+            textAnchor={textAnchor}
+            fill="#555"
+            fontSize={10}
+            fontWeight={500}
+          >
+            {words[0]}
+          </text>
+          <text
+            x={0}
+            y={0}
+            dy={8}
+            textAnchor={textAnchor}
+            fill="#555"
+            fontSize={10}
+            fontWeight={500}
+          >
+            {words.slice(1).join(' ')}
+          </text>
+        </g>
+      );
+    }
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          textAnchor={textAnchor}
+          fill="#555"
+          fontSize={isMobile ? 10 : 14}
+          fontWeight={500}
+        >
+          {label}
+        </text>
+      </g>
+    );
+  };
+  //..................................................................
+
   useEffect(() => {
     fetchAssessments();
   }, [id1, id2]);
@@ -548,36 +635,70 @@ export default function ComparisonView({ onBack }) {
         {assessment1.result_json?.sub_scores && assessment2.result_json?.sub_scores && (
           <div className="comparison-card">
             <h3>🎯 Multi-Factor Profile</h3>
-            <ResponsiveContainer width="100%" height={500}>
+            <ResponsiveContainer width="100%" height={isMobile ? 380 : isTablet ? 450 : 500}>
               <RadarChart
                 data={Object.keys(assessment1.result_json.sub_scores).map((key) => ({
-                  factor: key.replace(/_/g, ' '),
+                  factor: formatLabel(key.replace(/_/g, ' ')),
+                  fullFactor: key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()), // Title case for tooltip
                   'Assessment 1': assessment1.result_json.sub_scores[key],
                   'Assessment 2': assessment2.result_json.sub_scores[key],
                 }))}
-                margin={{ top: 30, right: 120, bottom: 30, left: 120 }}
+                margin={{
+                  top: isMobile ? 25 : 30,
+                  right: isMobile ? 25 : isTablet ? 70 : 120,
+                  bottom: isMobile ? 25 : 30,
+                  left: isMobile ? 25 : isTablet ? 70 : 120,
+                }}
               >
-                <PolarGrid />
-                <PolarAngleAxis dataKey="factor" tick={{ fontSize: 16 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} />
+                <PolarGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <PolarAngleAxis
+                  dataKey="factor"
+                  tick={<CustomTick isMobile={isMobile} />}
+                  tickLine={false}
+                />
+                <PolarRadiusAxis
+                  angle={90}
+                  domain={[0, 100]}
+                  tick={{ fontSize: isMobile ? 9 : 10 }}
+                  tickCount={5}
+                  stroke="#ddd"
+                />
                 <Radar
                   name={assessment1.title}
                   dataKey="Assessment 1"
                   stroke="#34a83a"
                   fill="#34a83a"
-                  fillOpacity={0.4}
-                  strokeWidth={2}
+                  fillOpacity={0.5}
+                  strokeWidth={isMobile ? 2 : 2.5}
                 />
                 <Radar
                   name={assessment2.title}
                   dataKey="Assessment 2"
                   stroke="#007bff"
                   fill="#007bff"
-                  fillOpacity={0.4}
-                  strokeWidth={2}
+                  fillOpacity={0.5}
+                  strokeWidth={isMobile ? 2 : 2.5}
                 />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Tooltip />
+                <Legend
+                  wrapperStyle={{
+                    paddingTop: isMobile ? '15px' : '20px',
+                    fontSize: isMobile ? '12px' : '14px',
+                  }}
+                  iconSize={isMobile ? 10 : 14}
+                  iconType="square"
+                />
+                <Tooltip
+                  contentStyle={{
+                    fontSize: isMobile ? '12px' : '14px',
+                    padding: isMobile ? '8px' : '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                  }}
+                  labelFormatter={(label) => {
+                    const item = data.find((d) => d.factor === label);
+                    return item?.fullFactor || label;
+                  }}
+                />
               </RadarChart>
             </ResponsiveContainer>
           </div>

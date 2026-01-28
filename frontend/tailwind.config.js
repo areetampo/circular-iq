@@ -154,6 +154,7 @@ export default {
           'color, background-color, border-color, fill, stroke, opacity, box-shadow, transform',
       },
       screens: {
+        sm_md: '680px',
         assessmentComparisionFooter: '864px',
       },
     },
