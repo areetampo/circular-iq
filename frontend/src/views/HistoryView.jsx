@@ -8,7 +8,7 @@ import Logo from '../components/shared/Logo';
 import Loader from '../components/feedback/Loader';
 
 export default function HistoryView({ onViewDetail, onBack }) {
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const navigate = useNavigate();
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +61,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
         queryParams.append('search', searchTerm.trim());
       }
 
-      const response = await fetch(`${apiBase}/assessments?${queryParams}`);
+      const response = await fetch(`${API_URL}/assessments?${queryParams}`);
 
       if (!response.ok) {
         const message = `Request failed (${response.status})`;
@@ -88,7 +88,7 @@ export default function HistoryView({ onViewDetail, onBack }) {
       nextDeleting.add(id);
       setDeletingIds(nextDeleting);
 
-      const response = await fetch(`${apiBase}/assessments/${id}`, {
+      const response = await fetch(`${API_URL}/assessments/${id}`, {
         method: 'DELETE',
       });
 

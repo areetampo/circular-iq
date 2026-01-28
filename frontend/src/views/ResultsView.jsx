@@ -39,7 +39,7 @@ export default function ResultsView({
   onReevaluate,
 }) {
   const { id } = useParams();
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
   const [detailData, setDetailData] = useState(null);
@@ -65,7 +65,7 @@ export default function ResultsView({
     setDetailError(null);
 
     try {
-      const response = await fetch(`${apiBase}/assessments/${id}`);
+      const response = await fetch(`${API_URL}/assessments/${id}`);
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -81,7 +81,7 @@ export default function ResultsView({
     } finally {
       setDetailLoading(false);
     }
-  }, [addToast, apiBase, id, isDetailView]);
+  }, [addToast, API_URL, id, isDetailView]);
 
   useEffect(() => {
     loadDetail();

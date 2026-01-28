@@ -27,7 +27,7 @@ export default function ComparisonView({ onBack }) {
   const [assessment2, setAssessment2] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     fetchAssessments();
@@ -37,8 +37,8 @@ export default function ComparisonView({ onBack }) {
     setLoading(true);
     try {
       const [res1, res2] = await Promise.all([
-        fetch(`${apiBase}/assessments/${id1}`),
-        fetch(`${apiBase}/assessments/${id2}`),
+        fetch(`${API_URL}/assessments/${id1}`),
+        fetch(`${API_URL}/assessments/${id2}`),
       ]);
 
       const data1 = await res1.json();
