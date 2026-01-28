@@ -43,7 +43,7 @@ export default function LandingView({
     <div className="app-container">
       <div className="landing-view">
         {/* Header */}
-        <div className="header-section">
+        <div className="mb-8">
           <div className="logo-icon">
             <Logo />
           </div>

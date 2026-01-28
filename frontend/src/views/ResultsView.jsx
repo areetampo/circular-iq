@@ -307,7 +307,7 @@ export default function ResultsView({
     <div className="app-container">
       <div className="results-view">
         {/* Header */}
-        <div className="header-section">
+        <div className="mb-8">
           <div className="logo-icon">
             <Logo />
           </div>
@@ -380,7 +380,7 @@ export default function ResultsView({
                 Overall Score
               </div>
               <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#34a83a' }}>
-                {overallScore}/100
+                {overallScore} / 100
               </div>
             </div>
             <div
@@ -1218,6 +1218,7 @@ export default function ResultsView({
                     key={index}
                     caseItem={caseItem}
                     index={index}
+                    totalCases={actualResult.similar_cases.length}
                     caseTitle={caseTitle}
                     onViewContext={setContextModal}
                   />

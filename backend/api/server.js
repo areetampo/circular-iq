@@ -167,7 +167,7 @@ app.get('/health', (req, res) => {
  */
 app.post('/score', async (req, res) => {
   const startTime = Date.now();
-  const requestId = Math.random().toString(36).substr(2, 9);
+  const requestId = Math.random().toString(36).slice(2, 9);
 
   try {
     const { businessProblem, businessSolution, parameters } = req.body;
@@ -487,7 +487,7 @@ app.get('/docs/methodology', (req, res) => {
  */
 app.post('/assessments', async (req, res) => {
   const startTime = Date.now();
-  const requestId = Math.random().toString(36).substr(2, 9);
+  const requestId = Math.random().toString(36).slice(2, 9);
 
   try {
     const { title, businessProblem, businessSolution, result, parameters, sessionId } = req.body;

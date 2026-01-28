@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 export default function Toast({ id, message, type, onClose }) {
   return (
-    <div className={`toast toast-${type}`} role="alert">
+    <div className={`toast toast-${type} mx-4 sm:mx-0`} role="alert">
       <div className="toast-content">{message}</div>
       <button
         className="mb-1 text-lg font-bold toast-close"

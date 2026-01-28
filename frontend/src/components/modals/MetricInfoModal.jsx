@@ -148,7 +148,7 @@ export default function MetricInfoModal({ onClose, type }) {
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="m-0 text-2xl font-bold text-emerald-600">{getModalTitle()}</h2>
           <button
-            className="flex items-center justify-center w-8 h-8 p-0 pb-1 text-xl font-bold text-gray-500 border-none rounded cursor-pointer hover:bg-gray-100 hover:text-gray-700"
+            className="flex items-center justify-center w-8 h-8 pb-0.5 text-xl font-bold text-gray-500 border-none rounded cursor-pointer hover:bg-gray-100 hover:text-gray-700"
             onClick={onClose}
             aria-label="Close modal"
           >

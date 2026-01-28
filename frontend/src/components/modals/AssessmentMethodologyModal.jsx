@@ -55,7 +55,7 @@ export default function AssessmentMethodologyModal({ isOpen, onClose }) {
             className="flex items-center justify-center p-2 text-white transition-all border-none rounded-lg cursor-pointer bg-white/20 hover:bg-white/30 w-9 h-9"
             onClick={onClose}
           >
-            <span className="mb-1 text-3xl font-extrabold leading-none">×</span>
+            <span className="mb-0.5 text-3xl font-extrabold leading-none">×</span>
           </button>
         </div>
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">

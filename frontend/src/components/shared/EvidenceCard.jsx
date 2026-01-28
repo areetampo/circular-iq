@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { extractCaseInfo, extractProblemSolution } from '../../utils/helpers';
 
-export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext }) {
+export default function EvidenceCard({ caseItem, index, totalCases, caseTitle, onViewContext }) {
   const { matchPercentage, sourceCaseId, content } = extractCaseInfo(caseItem, index);
 
   // Use structured metadata if available, otherwise parse content
@@ -19,8 +19,9 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
   const matchStrength = getMatchStrength(matchPercentage);
 
   return (
-    <div>
-      <div className="flex items-start gap-2 mb-2">
+    <div className="">
+      {index > 0 && <div className="mb-6 h-[1.5px] w-[50%] mx-auto bg-slate-300" />}
+      <div className="flex flex-wrap items-start gap-2 mb-2">
         <div className="flex items-center gap-2">
           <div className="px-3 py-2 text-xs font-bold text-white rounded-full bg-emerald-600">
             {matchPercentage}%&nbsp;&nbsp;Similarity
@@ -80,22 +81,24 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
         </div>
       </div>
 
-      <button
-        className="mt-3.5 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline"
-        onClick={() =>
-          onViewContext({
-            caseItem,
-            content,
-            title: caseTitle,
-            matchPercentage,
-            matchStrength: matchStrength.label,
-            matchColor: matchStrength.color,
-            sourceCaseId,
-          })
-        }
-      >
-        View Full Details →
-      </button>
+      <div className="flex items-center justify-center sm:justify-start">
+        <button
+          className="mt-3.5 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline"
+          onClick={() =>
+            onViewContext({
+              caseItem,
+              content,
+              title: caseTitle,
+              matchPercentage,
+              matchStrength: matchStrength.label,
+              matchColor: matchStrength.color,
+              sourceCaseId,
+            })
+          }
+        >
+          View Full Details →
+        </button>
+      </div>
     </div>
   );
 }
@@ -103,6 +106,7 @@ export default function EvidenceCard({ caseItem, index, caseTitle, onViewContext
 EvidenceCard.propTypes = {
   caseItem: PropTypes.object.isRequired,
   index: PropTypes.number.isRequired,
+  totalCases: PropTypes.number.isRequired,
   caseTitle: PropTypes.string.isRequired,
   onViewContext: PropTypes.func.isRequired,
 };
