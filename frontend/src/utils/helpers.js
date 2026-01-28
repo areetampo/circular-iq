@@ -89,10 +89,10 @@ export function formatSimilarity(similarity) {
  */
 export async function submitForScoring(businessProblem, businessSolution, parameters) {
   // Vite uses import.meta.env instead of process.env
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   try {
-    const response = await fetch(`${apiUrl}/score`, {
+    const response = await fetch(`${API_URL}/score`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

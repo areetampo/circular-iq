@@ -19,7 +19,7 @@ import { useToast } from './hooks/useToast';
 import Loader from './components/feedback/Loader';
 
 export default function App() {
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
 
@@ -139,7 +139,7 @@ export default function App() {
     setError(null);
 
     try {
-      const res = await fetch(`${API_BASE}/score`, {
+      const res = await fetch(`${API_URL}/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -255,7 +255,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/assessments`, {
+      const res = await fetch(`${API_URL}/assessments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

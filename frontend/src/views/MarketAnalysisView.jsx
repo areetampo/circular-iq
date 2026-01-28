@@ -25,7 +25,7 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
   const [filterScale, setFilterScale] = useState('all');
   const [userScore, setUserScore] = useState(currentAssessmentScore || null);
   const [userIndustry, setUserIndustry] = useState(currentIndustry || null);
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     fetchMarketData();
@@ -35,7 +35,7 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
     const maybeFetchAssessment = async () => {
       if ((userScore == null || userIndustry == null) && id) {
         try {
-          const response = await fetch(`${apiBase}/assessments/${id}`);
+          const response = await fetch(`${API_URL}/assessments/${id}`);
           const payload = await response.json();
           const assessment = payload?.assessment?.result_json || payload?.assessment;
           if (assessment) {
@@ -53,7 +53,7 @@ export default function MarketAnalysisView({ currentAssessmentScore, currentIndu
   const fetchMarketData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${apiBase}/analytics/market`);
+      const response = await fetch(`${API_URL}/analytics/market`);
       const data = await response.json();
       setMarketData(data.market_data || []);
       setStats(data.stats);
