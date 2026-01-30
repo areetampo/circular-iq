@@ -54,22 +54,22 @@ Database (Supabase PostgreSQL + pgvector)
 
 ### Views (7 Total)
 
-- ✅ `LandingView.jsx` - Input form with test cases and parameter adjustment
-- ✅ `ResultsView.jsx` - Results display with radar charts and evidence cards
+- ✅ `LandingPage.jsx` - Input form with test cases and parameter adjustment
+- ✅ `ResultsPage.jsx` - Results display with radar charts and evidence cards
 - ✅ `EvaluationCriteriaView.jsx` - Methodology documentation
-- ✅ `HistoryView.jsx` - Assessment history management with filtering
+- ✅ `MyAssessmentsPage.jsx` - Assessment history management with filtering
 - ✅ `ComparisonView.jsx` - Side-by-side assessment comparison
 - ✅ `MarketAnalysisView.jsx` - Competitive benchmarking dashboard
-- ✅ `NotFoundView.jsx` - 404 page handler
+- ✅ `NotFoundPage.jsx` - 404 page handler
 
 ### Components (15+ Total)
 
 - ✅ `ParameterSliders.jsx` - 8-factor adjustment interface
 - ✅ `RadarChartSection.jsx` - Multi-dimensional visualization
 - ✅ `EvidenceCard.jsx` - Database match display with similarity metrics
-- ✅ `ContextModal.jsx` - Full case details modal
+- ✅ `ResultSimilarityMatchModal.jsx` - Full case details modal
 - ✅ `MetricInfoModal.jsx` - Educational guidance modals
-- ✅ `TestCaseSelector.jsx` - Test case loader
+- ✅ `SampleTestCasesContainer.jsx` - Test case loader
 - ✅ Multiple additional modal dialogs and utility components
 
 ### Styling & Design (Complete)

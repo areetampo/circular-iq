@@ -1,0 +1,336 @@
+.results-view {
+  @apply max-w-4xl mx-auto;
+}
+
+/* Executive Summary */
+.executive-summary-card {
+  @apply p-6 mb-6 border-4 shadow-lg sm:p-8 bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 rounded-2xl border-emerald-600;
+}
+
+.summary-header {
+  @apply flex flex-wrap items-center justify-between gap-2 mb-4;
+}
+
+.summary-header h2 {
+  @apply m-0 text-2xl font-bold text-slate-800;
+}
+
+.confidence-badge {
+  @apply px-4 py-2 text-sm font-bold text-white rounded-lg;
+}
+
+.confidence-badge.confidence-high {
+  @apply bg-emerald-500;
+}
+
+.confidence-badge.confidence-medium {
+  @apply bg-yellow-500;
+}
+
+.confidence-badge.confidence-low {
+  @apply bg-red-500;
+}
+
+.executive-summary-card .verdict-text {
+  @apply my-4 text-lg font-medium leading-relaxed text-slate-800;
+}
+
+.key-finding {
+  @apply p-4 mt-4 text-sm leading-relaxed border-l-4 rounded-lg bg-emerald-50 border-emerald-600 text-emerald-900;
+}
+
+/* Integrity Analysis */
+.integrity-analysis-card {
+  @apply p-6 mb-6 bg-white shadow-md sm:p-8 rounded-2xl;
+}
+
+.integrity-analysis-card h2 {
+  @apply mb-2 text-2xl font-semibold text-slate-800;
+}
+
+.integrity-explanation {
+  @apply mb-6 leading-relaxed text-slate-600;
+}
+
+.strengths-group {
+  @apply mb-8;
+}
+
+.gaps-group {
+  @apply mb-0;
+}
+
+.group-title {
+  @apply mb-4 text-lg font-semibold text-slate-800;
+}
+
+.strength-items,
+.gap-items {
+  @apply flex flex-col gap-4;
+}
+
+.strength-item {
+  @apply flex gap-4 p-4 border-l-4 rounded-lg bg-emerald-50 border-emerald-600;
+}
+
+.strength-icon {
+  @apply flex-shrink-0 text-xl font-bold text-emerald-600;
+}
+
+.strength-content {
+  @apply flex-grow;
+}
+
+.strength-aspect {
+  @apply m-0 mb-1 font-medium text-slate-800;
+}
+
+.integrity-gap {
+  @apply flex gap-4 p-4 mb-3 border-l-4 border-yellow-500 rounded-lg bg-yellow-50;
+}
+
+.integrity-gap.gap-severity-high {
+  @apply bg-red-50 border-l-red-500;
+}
+
+.integrity-gap.gap-severity-low {
+  @apply bg-yellow-50 border-l-yellow-400;
+}
+
+.gap-icon {
+  @apply flex items-center justify-center flex-shrink-0 w-6 text-xl font-bold text-yellow-500;
+}
+
+.integrity-gap.gap-severity-high .gap-icon {
+  @apply text-red-500;
+}
+
+.gap-content {
+  @apply flex-grow;
+}
+
+.gap-issue {
+  @apply m-0 mb-1 font-medium text-slate-800;
+}
+
+.gap-severity {
+  @apply m-0 text-xs font-medium tracking-wide uppercase text-slate-600;
+}
+
+.evidence-badge {
+  @apply inline-block px-2 py-1 mt-2 text-xs text-blue-600 rounded bg-blue-50;
+}
+
+/* Metrics Comparison */
+.metrics-comparison-card {
+  @apply p-8 mb-6 bg-white shadow-md rounded-2xl;
+}
+
+.metrics-comparison-card h2 {
+  @apply mb-2 text-2xl font-semibold text-slate-800;
+}
+
+.metrics-explanation {
+  @apply mb-6 leading-relaxed text-slate-600;
+}
+
+.comparison-grid {
+  @apply grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3;
+}
+
+.metric-card {
+  @apply p-6 border bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-slate-200;
+}
+
+.metric-card h3 {
+  @apply mb-3 text-lg font-semibold text-slate-800;
+}
+
+.metric-insight {
+  @apply mb-4 leading-relaxed text-slate-600;
+}
+
+.metric-score {
+  @apply text-xl font-bold text-emerald-600;
+}
+
+.score-card {
+  @apply p-8 mb-6 bg-white shadow-md rounded-2xl;
+}
+
+.score-card h2 {
+  @apply mb-2 text-2xl font-semibold text-slate-800;
+}
+
+.score-description {
+  @apply mb-6 text-slate-600;
+}
+
+.score-display {
+  @apply flex flex-col flex-wrap items-start justify-between gap-4 mb-4 md:flex-row md:items-center;
+}
+
+.rating-badge {
+  @apply px-4 py-2 text-sm font-semibold text-white rounded-lg bg-emerald-600;
+}
+
+.score-value {
+  @apply text-left md:text-right;
+}
+
+.score-number {
+  @apply block text-4xl font-bold leading-tight sm:text-5xl text-emerald-600;
+}
+
+.score-out-of {
+  @apply block mt-1 text-base text-slate-600;
+}
+
+.score-progress-bar {
+  @apply w-full h-2 mt-4 overflow-hidden rounded-full bg-slate-200;
+}
+
+.score-progress-fill {
+  @apply h-full transition-all duration-1000 rounded-full bg-emerald-600;
+}
+
+/* Category Analysis */
+.category-card {
+  @apply p-8 mb-6 bg-white shadow-md rounded-2xl;
+}
+
+.category-card h2 {
+  @apply mb-6 text-2xl font-semibold text-slate-800;
+}
+
+.category-item {
+  @apply mb-6 last:mb-0;
+}
+
+.category-header {
+  @apply flex flex-wrap items-start justify-between gap-2 mb-2;
+}
+
+.category-header h3 {
+  @apply m-0 mb-1 text-lg font-semibold text-slate-800;
+}
+
+.category-header p {
+  @apply m-0 text-slate-600;
+}
+
+.category-score {
+  @apply text-xl font-bold text-right text-blue-500 min-w-max;
+}
+
+.category-score.high {
+  @apply text-emerald-600;
+}
+
+.category-progress-bar {
+  @apply w-full h-1.5 bg-slate-200 rounded-full overflow-hidden;
+}
+
+.category-progress-fill {
+  @apply h-full transition-all duration-1000 bg-blue-500 rounded-full;
+}
+
+.category-progress-fill.high {
+  @apply bg-emerald-600;
+}
+
+/* Verdict Card */
+.verdict-card {
+  @apply p-8 mb-6 bg-white shadow-md rounded-2xl;
+}
+
+.verdict-card.prominent {
+  @apply mb-8 text-white border-l-4 bg-gradient-to-r from-emerald-600 to-emerald-700 border-emerald-500;
+}
+
+.verdict-card.prominent h2 {
+  @apply m-0 mb-4 text-2xl font-semibold text-white;
+}
+
+.verdict-card h3 {
+  @apply mb-4 text-xl font-semibold text-slate-800;
+}
+
+.verdict-card.prominent .verdict-text {
+  @apply text-lg leading-relaxed text-white opacity-95;
+}
+
+.verdict-text {
+  @apply m-0 italic leading-relaxed text-slate-700;
+}
+
+/* Insights Grid */
+.insights-grid {
+  @apply grid grid-cols-1 gap-6 mb-8 md:grid-cols-2;
+}
+
+.insight-card {
+  @apply p-6 bg-white shadow-md rounded-2xl;
+}
+
+.insight-header {
+  @apply flex items-center gap-3 mb-4;
+}
+
+.insight-header h3 {
+  @apply m-0 text-xl font-semibold text-slate-800;
+}
+
+.insight-list {
+  @apply pl-1.5 m-0 list-none;
+}
+
+.insight-list li {
+  @apply relative flex flex-col gap-2 pl-6 mb-3 text-sm leading-relaxed last:mb-0 text-slate-700;
+}
+
+.insight-text {
+  @apply flex-1;
+}
+
+.source-badge {
+  @apply self-start inline-block px-2 py-1 mt-1 text-xs font-medium text-blue-600 rounded bg-blue-50;
+}
+
+.gaps-list .source-badge {
+  @apply text-yellow-700 bg-yellow-50;
+}
+
+.source-id {
+  @apply text-xs italic text-slate-500;
+}
+
+.insight-list li::before {
+  @apply content-[''] absolute left-0 top-1.5 w-2 h-2 rounded-full bg-emerald-600;
+}
+
+.strengths-card .insight-list li::before {
+  @apply bg-emerald-600;
+}
+
+.recommendations-card .insight-list li::before {
+  @apply bg-blue-500;
+}
+
+.gaps-list li::before {
+  @apply bg-yellow-500;
+}
+
+/* Database Evidence Section */
+.database-evidence-card {
+  @apply p-8 mb-6 bg-white shadow-md rounded-2xl;
+}
+
+.evidence-cases {
+  @apply flex flex-col gap-4;
+}
+
+/* Results Footer */
+.results-footer {
+  @apply flex flex-col flex-wrap items-center justify-between gap-4 p-6 mt-8 border-t rounded-lg md:flex-row bg-slate-50 border-slate-200;
+}

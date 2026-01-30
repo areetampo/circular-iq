@@ -66,8 +66,8 @@ This adds assessment history, comparison, and market analysis features.
 **After running**:
 
 - Assessment save/history features are now available
-- Backend endpoints for `/assessments` and `/analytics/market` work
-- Frontend views (HistoryView, ComparisonView, MarketAnalysisView) are functional
+- Backend endpoints for `/assessments` and `/market-analysis` work
+- Frontend views (MyAssessmentsPage, ComparisonView, MarketAnalysisView) are functional
 
 ---
 

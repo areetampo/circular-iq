@@ -261,7 +261,7 @@ app.post('/score', async (req, res) => {
 
     // ========== STEP 1: CALCULATE DETERMINISTIC SCORES ==========
     const scores = calculateScores(parameters);
-    debugLog(`[${requestId}] Scores calculated: ${scores.overall_score}/100`);
+    debugLog(`[${requestId}] Scores calculated: ${scores.overall_score} / 100`);
 
     // ========== STEP 2: VECTOR SEARCH FOR SIMILAR CASES ==========
     let metadata = null; // will populate and reuse in response
@@ -683,10 +683,10 @@ app.delete('/assessments/:id', async (req, res) => {
 });
 
 /**
- * GET /analytics/market
+ * GET /market-analysis
  * Retrieve market analysis data (aggregate stats by industry/scale for competitive analysis)
  */
-app.get('/analytics/market', async (req, res) => {
+app.get('/market-analysis', async (req, res) => {
   const startTime = Date.now();
 
   try {
@@ -707,7 +707,7 @@ app.get('/analytics/market', async (req, res) => {
       console.warn('Assessment statistics query warning:', statsError.message);
     }
 
-    logRequest('GET', '/analytics/market', 200, Date.now() - startTime);
+    logRequest('GET', '/market-analysis', 200, Date.now() - startTime);
 
     res.json({
       market_data: marketData || [],
@@ -715,7 +715,7 @@ app.get('/analytics/market', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching market data:', error);
-    logRequest('GET', '/analytics/market', 500, Date.now() - startTime);
+    logRequest('GET', '/market-analysis', 500, Date.now() - startTime);
     res.status(500).json(errorResponse(error, 'Failed to fetch market data'));
   }
 });
@@ -753,7 +753,7 @@ Endpoints:
   GET  /assessments               - List assessments (Phase 2)
   GET  /assessments/:id           - Get assessment detail (Phase 2)
   DELETE /assessments/:id         - Delete assessment (Phase 2)
-  GET  /analytics/market          - Market analysis (Phase 2)
+  GET  /market-analysis          - Market analysis (Phase 2)
 
 Environment:
   Node: ${typeof process !== 'undefined' && process.version ? process.version : 'unknown'}

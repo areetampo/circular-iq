@@ -100,12 +100,6 @@ export default {
         xl: '16px',
         '2xl': '20px',
       },
-      animation: {
-        slideIn: 'slideIn 0.3s ease-out',
-        slideUp: 'slideUp 0.3s ease-out',
-        bounce: 'bounce 1.4s infinite ease-in-out',
-        pulse: 'pulse 1.5s ease-in-out infinite',
-      },
       keyframes: {
         slideIn: {
           from: {
@@ -127,7 +121,7 @@ export default {
             opacity: '1',
           },
         },
-        bounce: {
+        bounceScale: {
           '0%, 80%, 100%': {
             transform: 'scale(0)',
           },
@@ -135,7 +129,7 @@ export default {
             transform: 'scale(1)',
           },
         },
-        pulse: {
+        softPulse: {
           '0%, 100%': {
             opacity: '1',
           },
@@ -143,6 +137,12 @@ export default {
             opacity: '0.7',
           },
         },
+      },
+      animation: {
+        'slide-in': 'slideIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'bounce-scale': 'bounceScale 1s ease-in-out',
+        'soft-pulse': 'softPulse 1.5s ease-in-out infinite',
       },
       boxShadow: {
         md: '0 4px 12px rgba(0, 0, 0, 0.08)',
@@ -155,9 +155,12 @@ export default {
       },
       screens: {
         sm_md: '680px',
-        assessmentComparisionFooter: '864px',
+        assessmentComparisonFooter: '864px',
+      },
+      transitionTimingFunction: {
+        soft: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  // plugins: [require('tailwindcss-animate')],
 };

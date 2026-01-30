@@ -144,7 +144,7 @@ User Assessment
    ↓
 /score endpoint  ──→  Result JSON
    ↓                    ↓
-ResultsView            │
+ResultsPage            │
    ├─ Display result   │
    └─ Save button  ────┤
        ↓               │ Stored in:
@@ -152,7 +152,7 @@ ResultsView            │
        ↓               ▼
    assessments table
        │
-       ├─→ HistoryView (list saved assessments)
+       ├─→ MyAssessmentsPage (list saved assessments)
        ├─→ ComparisonView (compare 2 assessments)
        └─→ MarketAnalysisView (market positioning)
            via: get_assessment_statistics()

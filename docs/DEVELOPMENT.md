@@ -86,9 +86,9 @@ circular-economy/
 
 ### Key Views
 
-1. **LandingView** - Assessment input form
-2. **ResultsView** - Detailed results with charts and analysis
-3. **HistoryView** - Saved assessments portfolio
+1. **LandingPage** - Assessment input form
+2. **ResultsPage** - Detailed results with charts and analysis
+3. **MyAssessmentsPage** - Saved assessments portfolio
 4. **ComparisonView** - Side-by-side comparison of 2 assessments
 5. **MarketAnalysisView** - Competitive benchmarking
 6. **EvaluationCriteriaView** - Criteria reference

@@ -234,9 +234,9 @@ circular-economy-auditor/
 │   ├── src/
 │   │   ├── App.jsx                # Main orchestration
 │   │   ├── views/
-│   │   │   ├── LandingView.jsx    # Input form
-│   │   │   ├── ResultsView.jsx    # Results display
-│   │   │   ├── HistoryView.jsx    # Assessment history
+│   │   │   ├── LandingPage.jsx    # Input form
+│   │   │   ├── ResultsPage.jsx    # Results display
+│   │   │   ├── MyAssessmentsPage.jsx    # Assessment history
 │   │   │   ├── ComparisonView.jsx # Side-by-side comparison
 │   │   │   ├── MarketAnalysisView.jsx # Analytics dashboard
 │   │   │   └── EvaluationCriteriaView.jsx # Methodology
@@ -329,7 +329,7 @@ export function calculateScores(parameters) {
 
 ## 🎨 User Interface
 
-### Input Phase (LandingView)
+### Input Phase (LandingPage)
 
 - Two-field system for clarity (Problem & Solution)
 - Character validation (200+ chars minimum)
@@ -337,7 +337,7 @@ export function calculateScores(parameters) {
 - 12 pre-configured test cases
 - Educational modals with comprehensive guidance
 
-### Results Phase (ResultsView)
+### Results Phase (ResultsPage)
 
 - Executive summary with overall score
 - Interactive 8-dimensional radar chart
@@ -348,7 +348,7 @@ export function calculateScores(parameters) {
 
 ### Additional Views
 
-- **HistoryView**: Manage assessment history with filtering/sorting
+- **MyAssessmentsPage**: Manage assessment history with filtering/sorting
 - **ComparisonView**: Side-by-side comparison of assessments
 - **MarketAnalysisView**: Competitive benchmarking dashboard
 - **EvaluationCriteriaView**: Methodology documentation

@@ -192,12 +192,12 @@ GET /docs/methodology
 
 ## Analytics
 
-### GET /analytics/market
+### GET /market-analysis
 
 Retrieve aggregate market data and statistics. Returns `market_data` (array) and `stats` (object or null).
 
 ```http
-GET /analytics/market
+GET /market-analysis
 ```
 
 ## Error Format

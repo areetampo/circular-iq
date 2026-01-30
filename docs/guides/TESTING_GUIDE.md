@@ -70,7 +70,7 @@
 - [ ] "Key Insights" section appears with 📈 icon
 - [ ] Shows message like "Significant improvement: +X point gain"
 - [ ] Shows strongest improvement area: "Strongest improvement in [Factor] (+X points)"
-- [ ] Shows top performer: "💪 [Factor] is a strength (X/100)"
+- [ ] Shows top performer: "💪 [Factor] is a strength (X / 100)"
 - [ ] Icons and colors are correct (green for positive)
 
 **What to Verify - When Assessment 2 is LOWER than Assessment 1:**
