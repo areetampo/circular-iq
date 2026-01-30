@@ -1,0 +1,76 @@
+.landing-page-container {
+  @apply max-w-3xl mx-auto text-center;
+}
+
+/* Feature Cards */
+.feature-cards {
+  @apply grid grid-cols-1 gap-6 mb-12 md:grid-cols-2 lg:grid-cols-3;
+}
+
+.feature-card {
+  @apply p-8 text-center transition-all bg-white border border-slate-200 rounded-xl hover:shadow-lg hover:-translate-y-1;
+}
+
+.feature-icon {
+  @apply flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-lg;
+}
+
+.feature-card h3 {
+  @apply mb-2 text-xl font-bold text-slate-800;
+}
+
+.feature-card p {
+  @apply leading-relaxed text-slate-600;
+}
+
+/* Input Card */
+.input-instructions {
+  @apply mb-6 leading-relaxed text-slate-600;
+}
+
+.input-field {
+  @apply mb-8;
+}
+
+.input-fields-container {
+  @apply grid-cols-1 md:flex-col;
+}
+
+.field-header {
+  @apply flex items-center gap-2 mb-2;
+}
+
+.field-header h3 {
+  @apply flex-1 m-0 text-lg font-semibold text-slate-800;
+}
+
+.field-guidance {
+  @apply mb-3 leading-relaxed text-slate-600;
+}
+
+.idea-textarea {
+  @apply w-full px-4 py-3 border-2 border-slate-200 rounded-lg text-base min-h-[150px] transition-colors focus:outline-none focus:border-emerald-600;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.idea-textarea::placeholder {
+  @apply italic text-slate-400;
+}
+
+/* Evaluation Parameters */
+.evaluation-parameters {
+  @apply pt-6 my-6 border-t border-slate-200;
+}
+
+.submit-button {
+  @apply flex items-center justify-center w-full gap-2 px-8 py-4 text-lg font-semibold transition-all border-none rounded-lg cursor-pointer bg-slate-300 text-slate-600;
+}
+
+.submit-button:not(:disabled) {
+  @apply bg-emerald-600 text-white hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-lg;
+}
+
+.submit-button:disabled {
+  @apply cursor-not-allowed opacity-60;
+}

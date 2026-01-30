@@ -7,7 +7,7 @@ src/
 ├── components/
 │   ├── modals/              # Modal dialogs for complex interactions
 │   │   ├── AssessmentMethodologyModal.jsx
-│   │   ├── ContextModal.jsx
+│   │   ├── ResultSimilarityMatchModal.jsx
 │   │   ├── EvaluationCriteriaModal.jsx
 │   │   ├── MarketAnalysisModal.jsx          # NEW: Wraps MarketAnalysisView in modal
 │   │   ├── MetricInfoModal.jsx
@@ -21,7 +21,7 @@ src/
 │       ├── InfoIconButton.jsx
 │       ├── RadarChartSection.jsx
 │       ├── SessionRestorePrompt.jsx
-│       ├── TestCaseSelector.jsx
+│       ├── SampleTestCasesContainer.jsx
 │       ├── TipCard.jsx
 │       └── Toast.jsx
 ├── constants/
@@ -38,11 +38,11 @@ src/
 ├── views/                   # Full-page views
 │   ├── ComparisonView.jsx
 │   ├── EvaluationCriteriaView.jsx
-│   ├── HistoryView.jsx
-│   ├── LandingView.jsx
+│   ├── MyAssessmentsPage.jsx
+│   ├── LandingPage.jsx
 │   ├── MarketAnalysisView.jsx
-│   ├── NotFoundView.jsx
-│   └── ResultsView.jsx
+│   ├── NotFoundPage.jsx
+│   └── ResultsPage.jsx
 ├── styles/                  # Component-specific styles
 ├── App.jsx                  # Main app router
 ├── App.css                  # Global styles
@@ -79,7 +79,7 @@ src/
 ### From Views
 
 ```jsx
-import ResultsView from '../views/ResultsView';
+import ResultsPage from '../views/ResultsPage';
 import MarketAnalysisView from '../views/MarketAnalysisView';
 ```
 
@@ -87,7 +87,7 @@ import MarketAnalysisView from '../views/MarketAnalysisView';
 
 ```jsx
 import MarketAnalysisModal from '../components/modals/MarketAnalysisModal';
-import ContextModal from '../components/modals/ContextModal';
+import ResultSimilarityMatchModal from '../components/modals/ResultSimilarityMatchModal';
 ```
 
 ### From Components/Shared
@@ -115,7 +115,7 @@ import { useToast } from '../hooks/useToast';
 Instead of navigating to a separate route, `MarketAnalysisModal` renders inline:
 
 ```jsx
-// In ResultsView.jsx
+// In ResultsPage.jsx
 const [showMarketAnalysisModal, setShowMarketAnalysisModal] = useState(false);
 
 const handleMarketAnalysis = () => setShowMarketAnalysisModal(true);

@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file.
 
 **Assessment Management:**
 
-- New HistoryView component for portfolio tracking
+- New MyAssessmentsPage component for portfolio tracking
   - Filter assessments by industry
   - Sort by date, score, or title
   - Bulk selection with compare functionality
@@ -59,7 +59,7 @@ All notable changes to this project will be documented in this file.
   - `GET /assessments` - List saved assessments with filtering
   - `GET /assessments/:id` - Retrieve individual assessment
   - `DELETE /assessments/:id` - Remove assessment from portfolio
-  - `GET /analytics/market` - Fetch market analysis data
+  - `GET /market-analysis` - Fetch market analysis data
 
 **Database:**
 
@@ -86,7 +86,7 @@ All notable changes to this project will be documented in this file.
 
 **Code Quality:**
 
-- Removed unused props (e.g., `onBack` from HistoryView)
+- Removed unused props (e.g., `onBack` from MyAssessmentsPage)
 - Cleaned up unused imports and dead code
 - Consistent error handling across API calls
 - Proper dependency arrays in useEffect hooks

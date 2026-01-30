@@ -1,0 +1,4 @@
+/* App Container */
+.app-container {
+  @apply min-h-screen px-3 py-4 sm:px-4 sm:py-8 bg-gradient-to-br from-slate-100 to-slate-200;
+}

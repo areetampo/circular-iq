@@ -9,9 +9,9 @@ High-level system design and technical decisions.
 ```
 ┌─────────────────┐
 │  React Frontend │ (Vite, Router, Tailwind)
-│   - LandingView │
-│  - ResultsView  │
-│  - HistoryView  │
+│   - LandingPage │
+│  - ResultsPage  │
+│  - MyAssessmentsPage  │
 │ComparisonView   │
 └────────┬────────┘
          │

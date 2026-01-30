@@ -180,7 +180,7 @@ Real Examples:
 
 ---
 
-#### 5. **ContextModal.jsx**
+#### 5. **ResultSimilarityMatchModal.jsx**
 
 **Purpose**: Full-screen modal displaying complete evidence case
 
@@ -248,7 +248,7 @@ Real Examples:
 
 These are the three main pages of the application.
 
-#### 1. **LandingView.jsx**
+#### 1. **LandingPage.jsx**
 
 **Purpose**: Initial input screen for business problem and solution
 
@@ -272,7 +272,7 @@ These are the three main pages of the application.
 
 1. Validate inputs (50+ chars, not junk via helpers.validateInput())
 2. Call helpers.submitForScoring(problem, solution, parameters)
-3. On success: Navigate to ResultsView with data
+3. On success: Navigate to ResultsPage with data
 4. On error: Show error message with retry option
 
 **Estimated Lines**: 150-200
@@ -306,14 +306,14 @@ These are the three main pages of the application.
   - 2 real examples with scores
   - Info icon → MetricInfoModal
 - Navigation:
-  - Back button to LandingView
-  - "Continue to Evaluation" button → LandingView with auto-scroll to Advanced Parameters
+  - Back button to LandingPage
+  - "Continue to Evaluation" button → LandingPage with auto-scroll to Advanced Parameters
 
 **Estimated Lines**: 200-250
 
 ---
 
-#### 3. **ResultsView.jsx**
+#### 3. **ResultsPage.jsx**
 
 **Purpose**: Comprehensive results display with scores, analysis, and evidence
 
@@ -362,7 +362,7 @@ These are the three main pages of the application.
 
 **F. Navigation**
 
-- "Modify Parameters" button → LandingView
+- "Modify Parameters" button → LandingPage
 - "View Full Methodology" link → EvaluationCriteriaView
 - "Share Results" button (optional)
 - Export as PDF button (optional)
@@ -379,7 +379,7 @@ These are the three main pages of the application.
 
 **Features**:
 
-- React Router setup for 3 views: LandingView, EvaluationCriteriaView, ResultsView
+- React Router setup for 3 views: LandingPage, EvaluationCriteriaView, ResultsPage
 - Global state (useState) for:
   - currentView (landing/evaluation/results)
   - businessProblem
@@ -389,8 +389,8 @@ These are the three main pages of the application.
   - loading
   - error
 - Navigation logic:
-  - LandingView → Submit → ResultsView (with data)
-  - ResultsView → "Modify" → LandingView (preserve previous inputs)
+  - LandingPage → Submit → ResultsPage (with data)
+  - ResultsPage → "Modify" → LandingPage (preserve previous inputs)
   - Both views → "Criteria" → EvaluationCriteriaView
 - Error boundary for graceful error handling
 - Loading overlay during API calls
@@ -437,14 +437,14 @@ These are the three main pages of the application.
 - [ ] MetricInfoModal.jsx (100 lines)
 - [ ] RadarChartSection.jsx (100 lines)
 - [ ] EvidenceCard.jsx (70 lines)
-- [ ] ContextModal.jsx (100 lines)
+- [ ] ResultSimilarityMatchModal.jsx (100 lines)
 - [ ] InfoIconButton.jsx enhancements (50 lines)
 
 ### Views (Week 2)
 
-- [ ] LandingView.jsx (180 lines)
+- [ ] LandingPage.jsx (180 lines)
 - [ ] EvaluationCriteriaView.jsx (220 lines)
-- [ ] ResultsView.jsx (300 lines)
+- [ ] ResultsPage.jsx (300 lines)
 
 ### App & Styling (Week 2)
 
