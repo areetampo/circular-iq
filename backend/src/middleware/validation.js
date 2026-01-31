@@ -16,7 +16,6 @@ import { z } from 'zod';
  * - name: Display name for the assessment (1-255 chars)
  * - industry: Industry classification (min 1 char)
  * - result_json: Full evaluation result object (non-empty)
- * - session_id: Unique user session identifier
  *
  * Strict mode: Rejects any unknown/extra fields in the request
  */
@@ -27,7 +26,6 @@ export const assessmentSchema = z
     result_json: z.record(z.unknown()).refine((val) => Object.keys(val).length > 0, {
       message: 'result_json must not be empty',
     }),
-    session_id: z.string().min(1, 'Session ID is required'),
   })
   .strict();
 
