@@ -9,6 +9,24 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
+/**
+ * SessionRestorePrompt component
+ * 
+ * Usage with useSession hook:
+ * ```jsx
+ * const { hasEvaluationState, restoreEvaluation, clearEvaluation } = useSession();
+ * 
+ * {hasEvaluationState && (
+ *   <SessionRestorePrompt 
+ *     onRestore={() => {
+ *       const state = restoreEvaluation();
+ *       // Apply state to form...
+ *     }}
+ *     onDismiss={() => clearEvaluation()}
+ *   />
+ * )}
+ * ```
+ */
 export default function SessionRestorePrompt({ onRestore, onDismiss }) {
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onDismiss()}>
