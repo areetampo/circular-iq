@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
 import Loader from '@/components/common/Loader';
@@ -51,17 +51,21 @@ export default function MarketAnalysisModal({
     return colors[industry] || '#999';
   };
 
-  // Prepare data for scatter plot
-  const scatterChartData = marketData
-    .filter((item) => filterScale === 'all' || item.scale === filterScale)
-    .map((item, idx) => ({
-      x: item.avg_score || 0,
-      y: idx,
-      industry: item.industry || 'General',
-      scale: item.scale || 'Medium',
-      count: item.count,
-      fill: getIndustryColor(item.industry),
-    }));
+  // Prepare data for scatter plot - memoized to prevent expensive recalculations
+  const scatterChartData = useMemo(
+    () =>
+      marketData
+        .filter((item) => filterScale === 'all' || item.scale === filterScale)
+        .map((item, idx) => ({
+          x: item.avg_score || 0,
+          y: idx,
+          industry: item.industry || 'General',
+          scale: item.scale || 'Medium',
+          count: item.count,
+          fill: getIndustryColor(item.industry),
+        })),
+    [marketData, filterScale],
+  );
 
   const getScales = () => {
     const scales = new Set(marketData.map((d) => d.scale).filter(Boolean));
@@ -76,16 +80,20 @@ export default function MarketAnalysisModal({
       )
     : 0;
 
-  // Prepare data for BarChart component
-  const barChartData = marketData
-    .filter((item) => filterScale === 'all' || item.scale === filterScale)
-    .sort((a, b) => b.avg_score - a.avg_score)
-    .slice(0, 10)
-    .map((item) => ({
-      name: titleize(item.industry),
-      avgScore: item.avg_score,
-      count: item.count,
-    }));
+  // Prepare data for BarChart component - memoized to prevent expensive recalculations
+  const barChartData = useMemo(
+    () =>
+      marketData
+        .filter((item) => filterScale === 'all' || item.scale === filterScale)
+        .sort((a, b) => b.avg_score - a.avg_score)
+        .slice(0, 10)
+        .map((item) => ({
+          name: titleize(item.industry),
+          avgScore: item.avg_score,
+          count: item.count,
+        })),
+    [marketData, filterScale],
+  );
 
   const barConfigs = [
     {
@@ -199,6 +207,7 @@ export default function MarketAnalysisModal({
                     showGrid={true}
                     yAxisDomain={[0, 100]}
                     yAxisLabel="Average Score"
+                    isLoading={isLoading}
                   />
                 </div>
               )}
@@ -216,6 +225,7 @@ export default function MarketAnalysisModal({
                     xDomain={[0, 100]}
                     yDomain={[0, scatterChartData.length]}
                     showGrid={true}
+                    isLoading={isLoading}
                     customTooltip={({ active, payload }) => {
                       if (!active || !payload || !payload.length) return null;
                       const data = payload[0].payload;

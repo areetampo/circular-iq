@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   BarChart as RechartsBarChart,
@@ -21,81 +21,96 @@ export default function BarChart({
   yAxisDomain,
   xAxisLabel,
   yAxisLabel,
+  isLoading,
 }) {
-  // Format data for display
-  const chartData = data.map((item) => ({
-    ...item,
-    name: item.name || item.factor || item.subject || 'Unknown',
-  }));
+  // Memoize data transformation to prevent expensive re-calculations
+  const chartData = useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        name: item.name || item.factor || item.subject || 'Unknown',
+      })),
+    [data],
+  );
 
   return (
-    <ResponsiveContainer width="100%" height={height || 400}>
-      <RechartsBarChart data={chartData} margin={{ top: 20, right: 30, bottom: 80, left: 60 }}>
-        {showGrid && (
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="#e5e7eb"
-            vertical={false}
-            strokeOpacity={0.6}
+    <div
+      style={{
+        position: 'relative',
+        opacity: isLoading ? 0.6 : 1,
+        transition: 'opacity 0.3s ease',
+      }}
+    >
+      <ResponsiveContainer width="100%" height={height || 400}>
+        <RechartsBarChart data={chartData} margin={{ top: 20, right: 30, bottom: 80, left: 60 }}>
+          {showGrid && (
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#e5e7eb"
+              vertical={false}
+              strokeOpacity={0.6}
+            />
+          )}
+          <XAxis
+            dataKey="name"
+            label={
+              xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined
+            }
+            tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500, angle: -30, textAnchor: 'end' }}
+            height={80}
+            interval={0}
+            stroke="#94a3b8"
+            tickLine={false}
           />
-        )}
-        <XAxis
-          dataKey="name"
-          label={
-            xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined
-          }
-          tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500, angle: -30, textAnchor: 'end' }}
-          height={80}
-          interval={0}
-          stroke="#94a3b8"
-          tickLine={false}
-        />
-        <YAxis
-          domain={yAxisDomain}
-          label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
-          tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
-          stroke="#94a3b8"
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip
-          cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
-          contentStyle={{
-            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-            padding: '12px 16px',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          }}
-        />
-        {showLegend && (
-          <Legend
-            wrapperStyle={{
-              paddingTop: '15px',
-              fontSize: '13px',
-              fontWeight: '600',
+          <YAxis
+            domain={yAxisDomain}
+            label={
+              yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined
+            }
+            tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+            stroke="#94a3b8"
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip
+            cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.98)',
+              padding: '12px 16px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             }}
-            iconSize={14}
-            iconType="square"
           />
-        )}
+          {showLegend && (
+            <Legend
+              wrapperStyle={{
+                paddingTop: '15px',
+                fontSize: '13px',
+                fontWeight: '600',
+              }}
+              iconSize={14}
+              iconType="square"
+            />
+          )}
 
-        {barConfigs.map((config, index) => (
-          <Bar
-            key={index}
-            dataKey={config.dataKey}
-            fill={config.fill}
-            name={config.name || config.dataKey}
-            radius={[4, 4, 0, 0]}
-          >
-            {config.useCustomColors &&
-              chartData.map((entry, idx) => (
-                <Cell key={`cell-${idx}`} fill={config.fill} opacity={0.9} />
-              ))}
-          </Bar>
-        ))}
-      </RechartsBarChart>
-    </ResponsiveContainer>
+          {barConfigs.map((config, index) => (
+            <Bar
+              key={index}
+              dataKey={config.dataKey}
+              fill={config.fill}
+              name={config.name || config.dataKey}
+              radius={[4, 4, 0, 0]}
+            >
+              {config.useCustomColors &&
+                chartData.map((entry, idx) => (
+                  <Cell key={`cell-${idx}`} fill={config.fill} opacity={0.9} />
+                ))}
+            </Bar>
+          ))}
+        </RechartsBarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 

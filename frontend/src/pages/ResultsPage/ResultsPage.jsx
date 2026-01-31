@@ -56,6 +56,7 @@ export default function ResultsPage({
   // Fetch assessment data for detail view using hook
   const { assessment, isLoading, isError, error, refetch } = useAssessment(id, {
     enabled: isDetailView && !!id,
+    placeholderData: (previousData) => previousData, // Keep previous data while loading new data
   });
 
   const detailLoading = isLoading;

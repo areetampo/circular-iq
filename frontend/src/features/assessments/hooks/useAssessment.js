@@ -2,12 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAssessmentById, createAssessment } from '@/features/assessments';
 
 export function useAssessment(id, options = {}) {
-  const { enabled = true } = options;
+  const { enabled = true, placeholderData } = options;
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error, refetch, isPlaceholderData } = useQuery({
     queryKey: ['assessment', id],
     queryFn: () => getAssessmentById(id),
     enabled: enabled && !!id,
+    placeholderData,
   });
 
   return {
@@ -18,6 +19,7 @@ export function useAssessment(id, options = {}) {
     isError,
     refetch,
     data,
+    isPlaceholderData, // Expose to components for subtle loading indicators
   };
 }
 
