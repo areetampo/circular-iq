@@ -1,17 +1,35 @@
 /**
- * Supabase Schema Setup - Phase 1 (Initial Setup)
+ * ============================================
+ * MIGRATION: 01_vector_infrastructure.sql
+ * ============================================
  *
- * This file sets up the base infrastructure for the Circular Economy Business Auditor.
- * RUN THIS ONCE during initial deployment.
+ * PHASE 1 - Core Infrastructure Setup
+ * STATUS: Required for all deployments
+ * RUN ONCE during initial deployment
  *
- * Creates:
- * - pgvector extension for semantic search
- * - documents table with embeddings and metadata
- * - Vector similarity search functions (RPC)
- * - Indexes for fast retrieval
- * - Helper functions for analysis
+ * WHAT THIS DOES:
+ * - Enables pgvector extension (semantic search)
+ * - Creates documents table for chunked data + embeddings
+ * - Creates vector search functions (RPC callable from backend)
+ * - Creates document analytics functions
+ * - Sets up indexes for fast retrieval
+ * - Configures Row Level Security for documents
  *
- * After running this, proceed to migrations/ folder for additional features.
+ * WHEN TO RUN:
+ * - First deployment (REQUIRED)
+ * - Safe to re-run (uses CREATE IF NOT EXISTS, DROP IF EXISTS)
+ *
+ * DEPENDENCIES: None (initial setup)
+ *
+ * NEXT STEPS:
+ * 1. After this migration completes, run:
+ *    - backend/scripts/chunk.js (chunking pipeline)
+ *    - backend/scripts/embed_and_store.js (embedding pipeline)
+ * 2. Then run next migration: 02_user_assessments.sql
+ *
+ * VERIFY AFTER RUNNING:
+ *   SELECT COUNT(*) as total_docs FROM documents;
+ *   SELECT * FROM get_document_statistics();
  */
 
 -- ============================================
@@ -204,7 +222,7 @@ AS $$
 $$;
 
 -- ============================================
--- 6. Analytical Functions
+-- 6. Document Analytical Functions
 -- ============================================
 
 -- Drop analytical functions if they exist
@@ -254,7 +272,7 @@ AS $$
 $$;
 
 -- ============================================
--- 7. Maintenance Functions
+-- 7. Maintenance Functions & Triggers
 -- ============================================
 
 -- Drop trigger and function if they exist
@@ -271,20 +289,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create trigger for automatic updated_at
-DROP TRIGGER IF EXISTS update_documents_updated_at ON documents;
 CREATE TRIGGER update_documents_updated_at
   BEFORE UPDATE ON documents
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
--- 8. Row Level Security (Optional - Recommended)
+-- 8. Row Level Security for Documents
 -- ============================================
 
 -- Enable RLS on documents table
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
--- Allow public read access (adjust as needed for your security model)
+-- Allow public read access for document retrieval
 CREATE POLICY documents_read_policy ON documents
   FOR SELECT
   USING (TRUE);
@@ -298,7 +315,7 @@ CREATE POLICY documents_write_policy ON documents
 -- Verification Queries
 -- ============================================
 
--- After running embed_and_store.js, verify data:
+-- After running this migration, verify setup:
 --
 -- SELECT COUNT(*) as total_docs FROM documents;
 -- SELECT * FROM get_document_statistics();
@@ -307,5 +324,3 @@ CREATE POLICY documents_write_policy ON documents
 --   (SELECT embedding FROM documents LIMIT 1),
 --   5
 -- ) WHERE similarity > 0.7;
-
-
