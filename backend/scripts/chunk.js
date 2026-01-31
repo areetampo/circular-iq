@@ -5,6 +5,13 @@
  * - Business problem + solution pairs
  * - Metadata for traceability
  * - Context for RAG retrieval
+ *
+ * OUTPUT: Writes chunks.json to backend/dataset/
+ * NEXT STEP: Run embed_and_store.js to generate embeddings and store in Supabase
+ *
+ * NOTE: This script only processes CSV files locally.
+ *       Supabase storage happens in embed_and_store.js using SUPABASE_SERVICE_ROLE_KEY
+ *       (Service role is required because RLS policies protect the documents table)
  */
 
 import fs from 'fs';
