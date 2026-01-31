@@ -115,6 +115,10 @@ export default function MyAssessmentsPage() {
     navigate(`/compare/${ids[0]}/${ids[1]}`);
   };
 
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
   const handleViewDetail = (id) => {
     navigate(`/assessments/${id}`);
   };
@@ -311,13 +315,23 @@ export default function MyAssessmentsPage() {
           <div className="text-sm font-medium text-slate-600">
             {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
           </div>
-          <button
-            onClick={handleCompareSelected}
-            disabled={selectedIds.size !== 2}
-            className="bg-[#34a83a] text-white border-none py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#2a8a2f] hover:shadow-[0_2px_8px_rgba(52,168,58,0.3)] disabled:text-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Compare Selected
-          </button>
+          <div className="flex gap-2">
+            {selectedIds.size > 0 && (
+              <button
+                onClick={handleClearSelection}
+                className="bg-gray-100 text-gray-700 border border-gray-300 py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-200 hover:border-gray-400"
+              >
+                Clear Selection
+              </button>
+            )}
+            <button
+              onClick={handleCompareSelected}
+              disabled={selectedIds.size !== 2}
+              className="bg-[#34a83a] text-white border-none py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#2a8a2f] hover:shadow-[0_2px_8px_rgba(52,168,58,0.3)] disabled:text-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Compare Selected
+            </button>
+          </div>
         </div>
       </div>
 
