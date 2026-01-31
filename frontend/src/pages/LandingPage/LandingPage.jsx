@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,11 +68,11 @@ export default function LandingPage() {
       setError(null);
       const result = await scoreAssessment(formData);
 
-      // Save to session for refresh persistence
-      saveEvaluation({ result, formData });
-
-      // Clear the session prompt since we have a fresh result
+      // Clear the draft form data from session
       clearEvaluation();
+
+      // Save the final result to session for refresh persistence
+      saveEvaluation({ result, formData });
 
       // Navigate to results page with the result data
       navigate('/results', { state: { result, formData } });
@@ -307,5 +306,3 @@ export default function LandingPage() {
     </FormProvider>
   );
 }
-
-LandingPage.propTypes = {};
