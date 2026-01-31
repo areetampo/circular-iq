@@ -30,7 +30,8 @@ export function useMarketAnalysis({ assessmentId, enabled = true } = {}) {
   });
 
   // Extract user score and industry from assessment
-  const assessment = assessmentQuery.data?.assessment?.result_json || assessmentQuery.data?.assessment;
+  const assessment =
+    assessmentQuery.data?.assessment?.result_json || assessmentQuery.data?.assessment;
   const userScore = assessment?.overall_score || null;
   const userIndustry = assessment?.metadata?.industry || null;
 
