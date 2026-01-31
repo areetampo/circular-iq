@@ -1,9 +1,12 @@
 /**
  * PDF Export Functions
- * Handles exporting assessment and audit reports to PDF format
+ * Handles exporting assessment and audit reports to PDF format using jsPDF and html2canvas
  *
  * Location: src/features/export/exportPDF.js
  */
+
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 /**
  * Formats text for PDF display
@@ -13,9 +16,9 @@
 function formatTextForPDF(text) {
   if (!text) return '';
   return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
     .substring(0, 1000); // Limit length for PDF
 }
 
@@ -226,176 +229,214 @@ function downloadPDF(htmlContent, filename) {
 }
 
 /**
- * Exports an assessment as a formatted PDF report
+ * Exports an assessment as a formatted PDF report with charts
  * @param {Object} assessment - Assessment data to export
  * @param {Function} getRatingBadge - Function to get rating badge text
- * @returns {void}
+ * @param {Object} options - Export options
+ * @param {string} options.elementId - ID of the DOM element to capture (default: 'results-content')
+ * @returns {Promise<void>}
  */
-export function exportAssessmentPDF(assessment, getRatingBadge) {
+export async function exportAssessmentPDF(assessment, getRatingBadge, options = {}) {
   if (!assessment) {
     throw new Error('Assessment data is required');
   }
 
+  const { elementId = 'results-content' } = options;
   const result = assessment.result_json || assessment;
   const metadata = result.metadata || {};
-  const subScores = result.sub_scores || {};
-  const audit = result.audit || {};
-  const gapAnalysis = result.gap_analysis || {};
-
   const overallScore = result.overall_score || 0;
   const rating = getRatingBadge ? getRatingBadge(overallScore) : 'N/A';
-  const confidenceScore = audit.confidence_score
-    ? `${(audit.confidence_score * 100).toFixed(1)}%`
-    : 'N/A';
 
+  // A4 dimensions in mm
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 15;
+  const contentWidth = pageWidth - 2 * margin;
+
+  // Create PDF
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  let currentY = margin;
+
+  // Add Header
+  pdf.setFillColor(52, 168, 58); // #34a83a
+  pdf.rect(0, 0, pageWidth, 30, 'F');
+
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(24);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('🌍 Circular Economy Assessment', pageWidth / 2, 15, { align: 'center' });
+
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(`Professional Evaluation Report`, pageWidth / 2, 23, { align: 'center' });
+
+  currentY = 40;
+
+  // Add Summary Section
+  pdf.setTextColor(44, 62, 80); // #2c3e50
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Assessment Summary', margin, currentY);
+  currentY += 10;
+
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'normal');
+
+  // Score boxes
+  const boxWidth = (contentWidth - 10) / 3;
+  const boxHeight = 25;
+  const boxY = currentY;
+
+  // Overall Score Box
+  pdf.setFillColor(240, 247, 240);
+  pdf.rect(margin, boxY, boxWidth, boxHeight, 'F');
+  pdf.setDrawColor(52, 168, 58);
+  pdf.setLineWidth(0.5);
+  pdf.rect(margin, boxY, boxWidth, boxHeight);
+
+  pdf.setFontSize(20);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(52, 168, 58);
+  pdf.text(String(overallScore), margin + boxWidth / 2, boxY + 12, { align: 'center' });
+
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(102, 102, 102);
+  pdf.text('Overall Score', margin + boxWidth / 2, boxY + 20, { align: 'center' });
+
+  // Rating Box
+  pdf.setFillColor(240, 247, 240);
+  pdf.rect(margin + boxWidth + 5, boxY, boxWidth, boxHeight, 'F');
+  pdf.setDrawColor(52, 168, 58);
+  pdf.rect(margin + boxWidth + 5, boxY, boxWidth, boxHeight);
+
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(52, 168, 58);
+  pdf.text(rating, margin + boxWidth + 5 + boxWidth / 2, boxY + 12, { align: 'center' });
+
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(102, 102, 102);
+  pdf.text('Rating', margin + boxWidth + 5 + boxWidth / 2, boxY + 20, { align: 'center' });
+
+  // Metadata Box
+  pdf.setFillColor(240, 247, 240);
+  pdf.rect(margin + 2 * boxWidth + 10, boxY, boxWidth, boxHeight, 'F');
+  pdf.setDrawColor(52, 168, 58);
+  pdf.rect(margin + 2 * boxWidth + 10, boxY, boxWidth, boxHeight);
+
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(44, 62, 80);
+  pdf.text(
+    formatTextForPDF(metadata.industry || 'General'),
+    margin + 2 * boxWidth + 10 + boxWidth / 2,
+    boxY + 12,
+    { align: 'center' },
+  );
+
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(102, 102, 102);
+  pdf.text('Industry', margin + 2 * boxWidth + 10 + boxWidth / 2, boxY + 20, { align: 'center' });
+
+  currentY += boxHeight + 15;
+
+  // Try to capture charts and content from the page
+  const contentElement = document.getElementById(elementId);
+
+  if (contentElement) {
+    try {
+      // Find the main content sections to capture
+      const caseSummary = contentElement.querySelector('[data-export-section="case-summary"]');
+      const radarChart = contentElement.querySelector('[data-export-section="radar-chart"]');
+
+      // Capture Case Summary if exists
+      if (caseSummary) {
+        const canvas = await html2canvas(caseSummary, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = contentWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Check if we need a new page
+        if (currentY + imgHeight > pageHeight - 20) {
+          pdf.addPage();
+          currentY = margin;
+        }
+
+        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 10;
+      }
+
+      // Capture Radar Chart if exists
+      if (radarChart) {
+        // Add a new page for the chart
+        pdf.addPage();
+        currentY = margin;
+
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(44, 62, 80);
+        pdf.text('Performance Analysis', margin, currentY);
+        currentY += 10;
+
+        const canvas = await html2canvas(radarChart, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = contentWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 10;
+      }
+    } catch (error) {
+      console.error('Error capturing charts:', error);
+      // Continue with PDF generation even if chart capture fails
+    }
+  }
+
+  // Add footer to all pages
+  const pageCount = pdf.internal.getNumberOfPages();
+  const timestamp = new Date().toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+
+    // Footer line
+    pdf.setDrawColor(224, 224, 224);
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+
+    // Footer text
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(153, 153, 153);
+    pdf.text(`Generated: ${timestamp}`, margin, pageHeight - 10);
+    pdf.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+  }
+
+  // Save the PDF
   const dateStr = new Date().toISOString().split('T')[0];
-  const filename = `assessment-report-${dateStr}.pdf`;
-
-  let htmlContent = `
-    <div class="header">
-      <h1>🌍 Circular Economy Assessment Report</h1>
-      <p>Evaluation Date: ${formatDate(new Date())}</p>
-    </div>
-
-    <div class="section">
-      <div class="score-box">
-        <div class="score-value">${overallScore}</div>
-        <div class="score-label">Overall Score</div>
-      </div>
-      <div class="score-box">
-        <div class="score-value">${rating}</div>
-        <div class="score-label">Rating</div>
-      </div>
-      <div class="confidence-badge">Confidence: ${confidenceScore}</div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">📋 Project Metadata</div>
-      <table class="metadata-table">
-        <tr>
-          <td>Industry</td>
-          <td>${formatTextForPDF(metadata.industry || 'N/A')}</td>
-        </tr>
-        <tr>
-          <td>Scale</td>
-          <td>${formatTextForPDF(metadata.scale || 'N/A')}</td>
-        </tr>
-        <tr>
-          <td>Strategy</td>
-          <td>${formatTextForPDF(metadata.r_strategy || 'N/A')}</td>
-        </tr>
-        <tr>
-          <td>Primary Material</td>
-          <td>${formatTextForPDF(metadata.primary_material || 'N/A')}</td>
-        </tr>
-        <tr>
-          <td>Geographic Focus</td>
-          <td>${formatTextForPDF(metadata.geographic_focus || 'N/A')}</td>
-        </tr>
-      </table>
-    </div>
-  `;
-
-  // Factor Scores
-  if (Object.keys(subScores).length > 0) {
-    htmlContent += `<div class="section"><div class="section-title">📊 Factor Scores</div><div class="factor-grid">`;
-
-    Object.entries(subScores).forEach(([factor, score]) => {
-      htmlContent += `
-        <div class="factor-item">
-          <div class="factor-name">${formatTextForPDF(factor.replace(/_/g, ' '))}</div>
-          <div class="factor-score">${score || 0} / 100</div>
-        </div>
-      `;
-    });
-
-    htmlContent += `</div></div>`;
-  }
-
-  // Benchmarks
-  if (gapAnalysis.overall_benchmarks) {
-    htmlContent += `
-      <div class="section">
-        <div class="section-title">🎯 Benchmark Comparison</div>
-        <p><strong>Your Score:</strong> ${overallScore} / 100</p>
-        <p><strong>Similar Projects Average:</strong> ${gapAnalysis.overall_benchmarks.average || 'N/A'}</p>
-        <p><strong>Top 10% Percentile:</strong> ${gapAnalysis.overall_benchmarks.top_10_percentile || 'N/A'}</p>
-      </div>
-    `;
-  }
-
-  // Audit Verdict
-  if (audit.audit_verdict) {
-    htmlContent += `
-      <div class="section">
-        <div class="section-title">🔍 Auditor's Verdict</div>
-        <div class="audit-box">
-          <p>${formatTextForPDF(audit.audit_verdict)}</p>
-        </div>
-      </div>
-    `;
-  }
-
-  // Strengths
-  if (audit.integrity_gaps?.strengths && audit.integrity_gaps.strengths.length > 0) {
-    htmlContent += `
-      <div class="section">
-        <div class="section-title">✅ Identified Strengths</div>
-        <div class="strength-box">
-          <ul>
-    `;
-
-    audit.integrity_gaps.strengths.forEach((strength) => {
-      htmlContent += `<li>${formatTextForPDF(strength)}</li>`;
-    });
-
-    htmlContent += `</ul></div></div>`;
-  }
-
-  // Areas for Improvement
-  if (audit.integrity_gaps?.gaps && audit.integrity_gaps.gaps.length > 0) {
-    htmlContent += `
-      <div class="section">
-        <div class="section-title">🎯 Areas for Improvement</div>
-        <div class="gap-box">
-          <ul>
-    `;
-
-    audit.integrity_gaps.gaps.forEach((gap) => {
-      htmlContent += `<li>${formatTextForPDF(gap)}</li>`;
-    });
-
-    htmlContent += `</ul></div></div>`;
-  }
-
-  // Similar Cases
-  if (audit.similar_cases_summaries && audit.similar_cases_summaries.length > 0) {
-    htmlContent += `
-      <div class="section">
-        <div class="section-title">📚 Reference Cases</div>
-        <ul>
-    `;
-
-    audit.similar_cases_summaries.forEach((caseItem) => {
-      const caseName = caseItem.case_name || caseItem.name || 'Unknown';
-      const similarity = caseItem.similarity
-        ? `${(caseItem.similarity * 100).toFixed(1)}% similar`
-        : '';
-      htmlContent += `<li><strong>${formatTextForPDF(caseName)}</strong> ${similarity}</li>`;
-    });
-
-    htmlContent += `</ul></div>`;
-  }
-
-  htmlContent += `
-    <div class="footer">
-      <p>This assessment was generated using the Circular Economy Business Evaluator.</p>
-      <p>Report generated on ${new Date().toLocaleString()}</p>
-    </div>
-  `;
-
-  const finalHTML = createPDFHTML('Circular Economy Assessment Report', htmlContent);
-  downloadPDF(finalHTML, filename);
+  const filename = `circular-economy-assessment-${dateStr}.pdf`;
+  pdf.save(filename);
 }
 
 /**
