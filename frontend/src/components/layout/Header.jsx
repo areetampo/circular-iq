@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Logo from '@/components/common/Logo';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Header({
   showLogo = true,
@@ -12,6 +12,9 @@ export default function Header({
   showMyAssessmentsButton = false,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <div className="mb-8 text-center">
@@ -43,7 +46,9 @@ export default function Header({
 
         {showMyAssessmentsButton && (
           <button
-            className="secondary-button text-sm px-5 py-2.5 hover:scale-105 transition-transform"
+            className={`secondary-button text-sm px-5 py-2.5 hover:scale-105 transition-transform ${
+              isActive('/assessments') ? 'ring-2 ring-offset-2 ring-[#34a83a] bg-emerald-50' : ''
+            }`}
             onClick={() => navigate('/assessments')}
             type="button"
           >
