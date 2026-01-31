@@ -9,7 +9,7 @@ import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp } from '@/lib/formatting';
 import { useAssessments, getAssessmentById } from '@/features/assessments';
 
-export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = () => {} }) {
+export default function MyAssessmentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [initialLoad, setInitialLoad] = useState(true);
@@ -117,11 +117,11 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
   };
 
   const handleViewDetail = (id) => {
-    if (onViewDetail) {
-      onViewDetail(id);
-      return;
-    }
     navigate(`/assessments/${id}`);
+  };
+
+  const handleBack = () => {
+    navigate('/');
   };
 
   const getIndustries = () => {
@@ -342,14 +342,12 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
             >
               Retry
             </button>
-            {onBack && (
-              <button
-                className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
-                onClick={onBack}
-              >
-                Back
-              </button>
-            )}
+            <button
+              className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
+              onClick={handleBack}
+            >
+              Back
+            </button>
           </div>
         )}
 
@@ -357,14 +355,12 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
           <div className="py-12 text-center text-gray-400">
             <p>No assessments match the current filters.</p>
             <p>Try clearing filters or run a new evaluation and save it.</p>
-            {onBack && (
-              <button
-                className="mt-4 py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
-                onClick={onBack}
-              >
-                Start an Evaluation
-              </button>
-            )}
+            <button
+              className="mt-4 py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
+              onClick={handleBack}
+            >
+              Start an Evaluation
+            </button>
           </div>
         )}
 
@@ -511,21 +507,16 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
       </div>
 
       {/* Footer */}
-      {onBack && (
-        <div className="flex justify-start mt-8">
-          <button
-            className="bg-gray-100 text-[#2c3e50] border border-gray-300 py-3 px-6 rounded-md font-semibold cursor-pointer transition-[background] duration-200 hover:bg-[#e8e8e8]"
-            onClick={onBack}
-          >
-            ← Back to Home
-          </button>
-        </div>
-      )}
+      <div className="flex justify-start mt-8">
+        <button
+          className="bg-gray-100 text-[#2c3e50] border border-gray-300 py-3 px-6 rounded-md font-semibold cursor-pointer transition-[background] duration-200 hover:bg-[#e8e8e8]"
+          onClick={handleBack}
+        >
+          ← Back to Home
+        </button>
+      </div>
     </AppContainer>
   );
 }
 
-MyAssessmentsPage.propTypes = {
-  onViewDetail: PropTypes.func,
-  onBack: PropTypes.func,
-};
+MyAssessmentsPage.propTypes = {};
