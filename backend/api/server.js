@@ -702,6 +702,59 @@ app.delete('/assessments/:id', requireAuth(supabase), async (req, res) => {
   }
 });
 
+// ============================================
+// USER PROFILE ENDPOINT
+// ============================================
+
+/**
+ * GET /profile
+ * Retrieve the authenticated user's profile information
+ */
+app.get('/profile', requireAuth(supabase), async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const userId = req.user.id;
+
+    // Query the profiles table for the authenticated user
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('username, created_at, updated_at')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned - profile doesn't exist
+        logRequest('GET', '/profile', 404, Date.now() - startTime);
+        return res.status(404).json(
+          errorResponse({
+            message: 'Profile not found',
+            code: 'PROFILE_NOT_FOUND',
+          }),
+        );
+      }
+      throw error;
+    }
+
+    // Combine profile data with email from auth
+    const profileData = {
+      id: userId,
+      username: profile.username,
+      email: req.user.email,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at,
+    };
+
+    logRequest('GET', '/profile', 200, Date.now() - startTime);
+    res.json(profileData);
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    logRequest('GET', '/profile', 500, Date.now() - startTime);
+    res.status(500).json(errorResponse(error, 'Failed to fetch profile'));
+  }
+});
+
 /**
  * GET /market-analysis
  * Retrieve market analysis data (aggregate stats by industry/scale for competitive analysis)
