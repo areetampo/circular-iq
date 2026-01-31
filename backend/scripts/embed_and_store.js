@@ -103,11 +103,14 @@ export async function generateEmbeddings(chunks) {
 /**
  * Store embedded chunks in Supabase
  * @param {Array} embeddedChunks - Chunks with embedding vectors
+ * @returns {Promise<number>} Number of documents successfully stored
  */
 export async function storeInSupabase(embeddedChunks) {
   console.log(`\nStoring ${embeddedChunks.length} documents in Supabase...`);
+  console.log('  Note: Using SUPABASE_SERVICE_ROLE_KEY (required due to RLS on documents table)\n');
 
   const SUPABASE_BATCH_SIZE = 100; // Supabase insert batch limit
+  let totalStored = 0;
 
   for (let i = 0; i < embeddedChunks.length; i += SUPABASE_BATCH_SIZE) {
     const batch = embeddedChunks.slice(i, Math.min(i + SUPABASE_BATCH_SIZE, embeddedChunks.length));
@@ -142,6 +145,7 @@ export async function storeInSupabase(embeddedChunks) {
         throw error;
       }
 
+      totalStored += data.length;
       console.log(
         `  ✓ Inserted batch ${Math.floor(i / SUPABASE_BATCH_SIZE) + 1}/${Math.ceil(embeddedChunks.length / SUPABASE_BATCH_SIZE)} (${data.length} documents)`,
       );
@@ -151,7 +155,8 @@ export async function storeInSupabase(embeddedChunks) {
     }
   }
 
-  console.log(`✓ Successfully stored ${embeddedChunks.length} documents in Supabase`);
+  console.log(`\n✓ Successfully stored ${totalStored} documents in Supabase\n`);
+  return totalStored;
 }
 
 /**
@@ -203,16 +208,31 @@ export async function main() {
     // Step 1: Load chunks
     const chunks = loadChunks(chunksPath);
 
+    // Step 1.5: Clear existing documents to avoid duplicates
+    // BEFORE Step 2 to avoid wasting OpenAI credits if DB connection fails
+    console.log('Clearing existing documents from Supabase...');
+    const { error: deleteError } = await supabase.from('documents').delete().neq('id', 0);
+
+    if (deleteError) {
+      console.error('✗ Error clearing documents:', deleteError.message);
+      throw deleteError;
+    }
+    console.log('✓ Table cleared successfully.\n');
+
     // Step 2: Generate embeddings
     const embeddedChunks = await generateEmbeddings(chunks);
 
     // Step 3: Store in Supabase
-    await storeInSupabase(embeddedChunks);
+    const storedCount = await storeInSupabase(embeddedChunks);
 
     // Step 4: Validate
     await validateStorage();
 
-    console.log('\n✓ Pipeline complete! Ready for RAG retrieval.');
+    console.log('╔════════════════════════════════════════════════════════╗');
+    console.log(`║ ✓ Pipeline Complete!                                  ║`);
+    console.log(`║ Successfully stored ${storedCount} chunks in documents table        ║`);
+    console.log('║ Ready for RAG retrieval and vector search              ║');
+    console.log('╚════════════════════════════════════════════════════════╝\n');
   } catch (error) {
     console.error('\n✗ Pipeline failed:', error.message);
     process.exit(1);
