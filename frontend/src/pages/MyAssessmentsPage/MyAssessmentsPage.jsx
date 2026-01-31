@@ -107,7 +107,7 @@ export default function MyAssessmentsPage() {
 
   const handleCompareSelected = () => {
     if (selectedIds.size !== 2) {
-      addToast('Select exactly 2 assessments to compare', 'warning');
+      addToast('Please select exactly 2 assessments to compare', 'info');
       return;
     }
 
