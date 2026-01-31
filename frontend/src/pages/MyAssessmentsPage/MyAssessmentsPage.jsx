@@ -45,12 +45,6 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
   const loading = isLoading;
 
   useEffect(() => {
-    if (error) {
-      addToast(error, 'error');
-    }
-  }, [addToast, error]);
-
-  useEffect(() => {
     if (!isLoading) {
       setInitialLoad(false);
     }
@@ -79,8 +73,10 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
       setConfirmDeleteId(null);
       setShowDeleteModal(false);
     } catch (err) {
-      const errorMessage = deleteError?.message || err?.message || 'Failed to delete assessment';
-      addToast(errorMessage, 'error');
+      // Global error handler will show the error toast
+      // Just cleanup the UI state
+      setConfirmDeleteId(null);
+      setShowDeleteModal(false);
     }
   };
 
