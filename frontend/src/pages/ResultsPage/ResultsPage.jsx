@@ -86,7 +86,10 @@ export default function ResultsPage({
     setShowMarketAnalysisModal(true);
   }, []);
 
-  const currentData = isDetailView ? detailData : result;
+  // Smart data resolution: detail view > navigation state > session restoration
+  const currentData = isDetailView
+    ? detailData
+    : navigationResult || restoreEvaluation()?.result || null;
 
   const resolvedCategoryMapping =
     passedCategoryMapping && Object.keys(passedCategoryMapping).length > 0
@@ -206,44 +209,21 @@ export default function ResultsPage({
     );
   }
 
-  // If not in detail view and no result data, try to restore from session first
-  if (!isDetailView && !currentData) {
-    const restoredState = restoreEvaluation();
-    if (restoredState?.result) {
-      // If session has data but it's not in currentData, we can proceed with rendering
-      // The result should be used from the restoredState
-      // For now, show the full error only if no session data exists
-      if (!restoredState) {
-        return (
-          <AppContainer
-            headerProps={{
-              showLogo: false,
-              title: 'No Assessment Data',
-              subtitle: 'Please complete an assessment to view results. Session data not found.',
-            }}
-          >
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button onClick={() => navigate('/')}>Back to Evaluate</Button>
-            </div>
-          </AppContainer>
-        );
-      }
-    } else {
-      // No session data and no navigation result
-      return (
-        <AppContainer
-          headerProps={{
-            showLogo: false,
-            title: 'No Assessment Data',
-            subtitle: 'Please complete an assessment to view results.',
-          }}
-        >
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button onClick={() => navigate('/')}>Back to Evaluate</Button>
-          </div>
-        </AppContainer>
-      );
-    }
+  // If no assessment data found in any source, show error
+  if (!currentData) {
+    return (
+      <AppContainer
+        headerProps={{
+          showLogo: false,
+          title: 'No Assessment Data',
+          subtitle: 'Please complete an assessment to view results.',
+        }}
+      >
+        <div className="flex flex-wrap justify-center gap-4">
+          <Button onClick={() => navigate('/')}>Back to Evaluate</Button>
+        </div>
+      </AppContainer>
+    );
   }
 
   const overallScore = actualResult?.overall_score != null ? Number(actualResult.overall_score) : 0;
