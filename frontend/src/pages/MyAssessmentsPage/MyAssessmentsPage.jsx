@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
 import Loader from '@/components/common/Loader';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp } from '@/lib/formatting';
-import { useAssessments } from '@/features/assessments';
+import { useAssessments, getAssessmentById } from '@/features/assessments';
 
 export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = () => {} }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [initialLoad, setInitialLoad] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sortBy, setSortBy] = useState('created_at');
@@ -43,6 +45,15 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
   });
 
   const loading = isLoading;
+
+  // Prefetch assessment data on hover for instant navigation
+  const prefetchAssessment = (id) => {
+    queryClient.prefetchQuery({
+      queryKey: ['assessment', id],
+      queryFn: () => getAssessmentById(id),
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    });
+  };
 
   useEffect(() => {
     if (!isLoading) {
@@ -397,6 +408,7 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
                   <tr
                     key={assessment.id}
                     className="transition-colors even:bg-slate-100 hover:bg-slate-200"
+                    onMouseEnter={() => prefetchAssessment(assessment.id)}
                   >
                     <td className="px-4 py-4 text-left border-b border-gray-300">
                       <input
