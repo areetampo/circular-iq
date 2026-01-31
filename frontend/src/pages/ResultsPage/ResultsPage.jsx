@@ -14,6 +14,7 @@ import { useToast } from '../../src/hooks/useToast';
 import { useExportState } from '../../hooks/useExportState';
 import Loader from '../components/feedback/Loader';
 import { SaveAssessmentDialog } from '@/components/dialogs';
+import { CaseSummary } from '@/components/results';
 import { extractCaseInfo, extractProblemSolution } from '../../../src/utils/helpers';
 import { Frown, FileText, NotebookText } from 'lucide-react';
 import AppContainer from '../components/layout/AppContainer';
@@ -438,6 +439,12 @@ export default function ResultsPage({
           </div>
         </div>
       </div>
+
+      {/* Case Summary */}
+      <CaseSummary
+        caseInfo={extractCaseInfo(currentData)}
+        problemSolution={extractProblemSolution(currentData)}
+      />
 
       {/* Score Highlights */}
       <div
