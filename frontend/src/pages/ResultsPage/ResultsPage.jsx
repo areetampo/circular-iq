@@ -62,12 +62,6 @@ export default function ResultsPage({
   const detailError = error;
   const detailData = assessment;
 
-  useEffect(() => {
-    if (error) {
-      addToast(error, 'error');
-    }
-  }, [error, addToast]);
-
   // Smart market analysis: use modal instead of routing
   const handleMarketAnalysis = useCallback(() => {
     setShowMarketAnalysisModal(true);
