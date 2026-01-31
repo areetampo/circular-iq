@@ -276,7 +276,10 @@ export default function ResultsPage({
       return;
     }
 
-    await executeExport(() => exportAssessmentPDF(currentData, ratingFn), 'PDF');
+    await executeExport(
+      () => exportAssessmentPDF(currentData, { elementId: 'results-content' }),
+      'PDF',
+    );
   };
 
   const handleShareLink = useCallback(async () => {

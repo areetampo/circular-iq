@@ -229,14 +229,13 @@ function downloadPDF(htmlContent, filename) {
 }
 
 /**
- * Exports an assessment as a formatted PDF report with charts
+ * Exports an assessment as a high-fidelity PDF report with charts and summary
  * @param {Object} assessment - Assessment data to export
- * @param {Function} getRatingBadge - Function to get rating badge text
  * @param {Object} options - Export options
  * @param {string} options.elementId - ID of the DOM element to capture (default: 'results-content')
  * @returns {Promise<void>}
  */
-export async function exportAssessmentPDF(assessment, getRatingBadge, options = {}) {
+export async function exportAssessmentPDF(assessment, options = {}) {
   if (!assessment) {
     throw new Error('Assessment data is required');
   }
@@ -244,198 +243,85 @@ export async function exportAssessmentPDF(assessment, getRatingBadge, options = 
   const { elementId = 'results-content' } = options;
   const result = assessment.result_json || assessment;
   const metadata = result.metadata || {};
-  const overallScore = result.overall_score || 0;
-  const rating = getRatingBadge ? getRatingBadge(overallScore) : 'N/A';
+
+  const assessmentName =
+    assessment.title ||
+    assessment.caseName ||
+    assessment.projectTitle ||
+    metadata.industry ||
+    'Assessment';
+  const assessmentDate = assessment.created_at || metadata.date || result.created_at;
+  const formattedDate = assessmentDate ? formatDate(assessmentDate) : null;
+
+  const contentElement = document.getElementById(elementId);
+  if (!contentElement) {
+    throw new Error(`Export element not found: ${elementId}`);
+  }
 
   // A4 dimensions in mm
   const pageWidth = 210;
   const pageHeight = 297;
   const margin = 15;
+  const headerHeight = 28;
   const contentWidth = pageWidth - 2 * margin;
+  const availableHeight = pageHeight - headerHeight - margin;
 
   // Create PDF
   const pdf = new jsPDF('p', 'mm', 'a4');
-  let currentY = margin;
 
   // Add Header
   pdf.setFillColor(52, 168, 58); // #34a83a
-  pdf.rect(0, 0, pageWidth, 30, 'F');
+  pdf.rect(0, 0, pageWidth, headerHeight, 'F');
 
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(24);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('🌍 Circular Economy Assessment', pageWidth / 2, 15, { align: 'center' });
-
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'normal');
-  pdf.text(`Professional Evaluation Report`, pageWidth / 2, 23, { align: 'center' });
-
-  currentY = 40;
-
-  // Add Summary Section
-  pdf.setTextColor(44, 62, 80); // #2c3e50
   pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Assessment Summary', margin, currentY);
-  currentY += 10;
+  pdf.text('Circular Economy Assessment Report', pageWidth / 2, 12, { align: 'center' });
 
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'normal');
-
-  // Score boxes
-  const boxWidth = (contentWidth - 10) / 3;
-  const boxHeight = 25;
-  const boxY = currentY;
-
-  // Overall Score Box
-  pdf.setFillColor(240, 247, 240);
-  pdf.rect(margin, boxY, boxWidth, boxHeight, 'F');
-  pdf.setDrawColor(52, 168, 58);
-  pdf.setLineWidth(0.5);
-  pdf.rect(margin, boxY, boxWidth, boxHeight);
-
-  pdf.setFontSize(20);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(52, 168, 58);
-  pdf.text(String(overallScore), margin + boxWidth / 2, boxY + 12, { align: 'center' });
-
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(102, 102, 102);
-  pdf.text('Overall Score', margin + boxWidth / 2, boxY + 20, { align: 'center' });
-
-  // Rating Box
-  pdf.setFillColor(240, 247, 240);
-  pdf.rect(margin + boxWidth + 5, boxY, boxWidth, boxHeight, 'F');
-  pdf.setDrawColor(52, 168, 58);
-  pdf.rect(margin + boxWidth + 5, boxY, boxWidth, boxHeight);
-
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(52, 168, 58);
-  pdf.text(rating, margin + boxWidth + 5 + boxWidth / 2, boxY + 12, { align: 'center' });
-
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(102, 102, 102);
-  pdf.text('Rating', margin + boxWidth + 5 + boxWidth / 2, boxY + 20, { align: 'center' });
-
-  // Metadata Box
-  pdf.setFillColor(240, 247, 240);
-  pdf.rect(margin + 2 * boxWidth + 10, boxY, boxWidth, boxHeight, 'F');
-  pdf.setDrawColor(52, 168, 58);
-  pdf.rect(margin + 2 * boxWidth + 10, boxY, boxWidth, boxHeight);
-
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(44, 62, 80);
-  pdf.text(
-    formatTextForPDF(metadata.industry || 'General'),
-    margin + 2 * boxWidth + 10 + boxWidth / 2,
-    boxY + 12,
-    { align: 'center' },
-  );
-
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(102, 102, 102);
-  pdf.text('Industry', margin + 2 * boxWidth + 10 + boxWidth / 2, boxY + 20, { align: 'center' });
-
-  currentY += boxHeight + 15;
-
-  // Try to capture charts and content from the page
-  const contentElement = document.getElementById(elementId);
-
-  if (contentElement) {
-    try {
-      // Find the main content sections to capture
-      const caseSummary = contentElement.querySelector('[data-export-section="case-summary"]');
-      const radarChart = contentElement.querySelector('[data-export-section="radar-chart"]');
-
-      // Capture Case Summary if exists
-      if (caseSummary) {
-        const canvas = await html2canvas(caseSummary, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = contentWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        // Check if we need a new page
-        if (currentY + imgHeight > pageHeight - 20) {
-          pdf.addPage();
-          currentY = margin;
-        }
-
-        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
-        currentY += imgHeight + 10;
-      }
-
-      // Capture Radar Chart if exists
-      if (radarChart) {
-        // Add a new page for the chart
-        pdf.addPage();
-        currentY = margin;
-
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(44, 62, 80);
-        pdf.text('Performance Analysis', margin, currentY);
-        currentY += 10;
-
-        const canvas = await html2canvas(radarChart, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = contentWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
-        currentY += imgHeight + 10;
-      }
-    } catch (error) {
-      console.error('Error capturing charts:', error);
-      // Continue with PDF generation even if chart capture fails
-    }
+  const subtitleParts = [formatTextForPDF(assessmentName)];
+  if (formattedDate && formattedDate !== 'N/A') {
+    subtitleParts.push(formattedDate);
   }
 
-  // Add footer to all pages
-  const pageCount = pdf.internal.getNumberOfPages();
-  const timestamp = new Date().toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(subtitleParts.join(' • '), pageWidth / 2, 20, { align: 'center' });
+
+  // Capture full results container
+  const canvas = await html2canvas(contentElement, {
+    scale: 2,
+    logging: false,
+    useCORS: true,
+    backgroundColor: '#ffffff',
   });
 
-  for (let i = 1; i <= pageCount; i++) {
-    pdf.setPage(i);
+  const imgData = canvas.toDataURL('image/png');
+  const imgWidth = contentWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Footer line
-    pdf.setDrawColor(224, 224, 224);
-    pdf.setLineWidth(0.5);
-    pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+  // Scale to fit within available page height if needed
+  let renderWidth = imgWidth;
+  let renderHeight = imgHeight;
 
-    // Footer text
-    pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(153, 153, 153);
-    pdf.text(`Generated: ${timestamp}`, margin, pageHeight - 10);
-    pdf.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+  if (renderHeight > availableHeight) {
+    const scale = availableHeight / renderHeight;
+    renderHeight = availableHeight;
+    renderWidth = imgWidth * scale;
   }
+
+  const renderX = (pageWidth - renderWidth) / 2;
+  const renderY = headerHeight + 8;
+
+  pdf.addImage(imgData, 'PNG', renderX, renderY, renderWidth, renderHeight, undefined, 'FAST');
 
   // Save the PDF
   const dateStr = new Date().toISOString().split('T')[0];
-  const filename = `circular-economy-assessment-${dateStr}.pdf`;
+  const safeName = String(assessmentName)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  const filename = `${safeName || 'assessment'}-${dateStr}.pdf`;
   pdf.save(filename);
 }
 
