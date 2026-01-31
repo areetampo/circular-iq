@@ -68,7 +68,13 @@ export default function LandingPage() {
       setLoading(true);
       setError(null);
       const result = await scoreAssessment(formData);
+
+      // Save to session for refresh persistence
+      saveEvaluation({ result, formData });
+
+      // Clear the session prompt since we have a fresh result
       clearEvaluation();
+
       // Navigate to results page with the result data
       navigate('/results', { state: { result, formData } });
     } catch (err) {
