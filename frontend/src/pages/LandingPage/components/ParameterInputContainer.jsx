@@ -1,14 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useFormContext, Controller } from 'react-hook-form';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
 import InfoIconButton from '@/components/common/InfoIconButton';
 
-export default function ParameterInputContainer({
-  parameters,
-  onParameterChange,
-  loading,
-  onShowInfo,
-}) {
+export default function ParameterInputContainer({ loading, onShowInfo }) {
+  const { control } = useFormContext();
+
   const getScaleMarkers = (key) => {
     const guidance = parameterGuidance[key];
     if (!guidance || !guidance.scale) return null;
@@ -47,30 +45,36 @@ export default function ParameterInputContainer({
                         <span className="text-sm sm:text-base">{parameterLabels[key].label}</span>
                       </label>
                     </div>
-                    <input
-                      type="number"
-                      id={key}
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={parameters[key] ?? 0}
-                      onChange={(e) => {
-                        let val = e.target.value;
-                        if (val === '') {
-                          onParameterChange(key, 0);
-                          return;
-                        }
-                        const numVal = Math.min(100, Math.max(0, Number(val)));
-                        onParameterChange(key, numVal);
-                      }}
-                      onInput={(e) => {
-                        // Remove leading zeros
-                        if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '') || '0';
-                        }
-                      }}
-                      className="px-2 py-1 mx-auto text-base font-semibold border-2 rounded-md border-lime-600 text-emerald-600 min-w-max"
-                      disabled={loading}
+                    <Controller
+                      name={`parameters.${key}`}
+                      control={control}
+                      render={({ field }) => (
+                        <input
+                          type="number"
+                          id={key}
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={field.value ?? 0}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            if (val === '') {
+                              field.onChange(0);
+                              return;
+                            }
+                            const numVal = Math.min(100, Math.max(0, Number(val)));
+                            field.onChange(numVal);
+                          }}
+                          onInput={(e) => {
+                            // Remove leading zeros
+                            if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
+                              e.target.value = e.target.value.replace(/^0+/, '') || '0';
+                            }
+                          }}
+                          className="px-2 py-1 mx-auto text-base font-semibold border-2 rounded-md border-lime-600 text-emerald-600 min-w-max"
+                          disabled={loading}
+                        />
+                      )}
                     />
                   </div>
 
@@ -119,8 +123,6 @@ export default function ParameterInputContainer({
 }
 
 ParameterInputContainer.propTypes = {
-  parameters: PropTypes.object.isRequired,
-  onParameterChange: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   onShowInfo: PropTypes.func,
 };
