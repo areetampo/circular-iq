@@ -31,21 +31,12 @@ export default function LandingPage({
   const {
     register,
     watch,
-    setValue,
     handleSubmit,
     formState: { isValid },
   } = methods;
 
   const businessProblem = watch('businessProblem') || '';
   const businessSolution = watch('businessSolution') || '';
-  const parameters = watch('parameters') || defaultValues.parameters;
-
-  const handleParameterChange = (key, value) => {
-    setValue(`parameters.${key}`, parseInt(value, 10), {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  };
 
   const handleFormSubmit = (data) => {
     onSubmit(data);
@@ -244,12 +235,7 @@ export default function LandingPage({
                   transition={{ duration: 0.35, ease: 'easeInOut' }}
                   className="overflow-hidden"
                 >
-                  <ParameterInputContainer
-                    parameters={parameters}
-                    onParameterChange={handleParameterChange}
-                    loading={loading}
-                    // onShowInfo={setShowInfoModal}
-                  />
+                  <ParameterInputContainer loading={loading} />
                 </motion.div>
               )}
             </AnimatePresence>
