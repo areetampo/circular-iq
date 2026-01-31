@@ -2,8 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { extractProblemSolution } from '@/utils/helpers';
 import { NotebookText } from 'lucide-react';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { RESULTS_MODALS } from '@/components/modals/core/modalTypes';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 export default function ResultsDatabaseEvidenceDetailsModal({
   onClose,
@@ -16,8 +22,6 @@ export default function ResultsDatabaseEvidenceDetailsModal({
   matchColor,
   sourceCaseId,
 }) {
-  if (!isModalOpen) return null;
-
   // Use structured metadata if available (preferred), otherwise parse content
   const { problem: problemPart, solution: solutionPart } = extractProblemSolution(
     caseItem || content,
@@ -31,40 +35,18 @@ export default function ResultsDatabaseEvidenceDetailsModal({
     solutionPart !== 'Solution data not clearly formatted';
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-3xl max-h-[80vh] bg-white shadow-2xl rounded-2xl animate-in zoom-in-95 duration-200 overflow-y-auto hide-scrollbar"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <style>{`
-          /* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
-          .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
-
-          /* Hide scrollbar for Firefox */
-          .hide-scrollbar {
-            scrollbar-width: none;
-          }
-
-          /* Hide scrollbar for IE/Edge */
-          .hide-scrollbar {
-            -ms-overflow-style: none;
-          }
-        `}</style>
-
-        <ModalHeading
-          title={title || 'Evidence Details'}
-          icon={NotebookText}
-          onClose={onClose}
-          type={RESULTS_MODALS.DATABASE_EVIDENCE_DETAILS}
-        />
-
-        {/* Body */}
-        <div className="p-6">
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-3xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
+            <NotebookText /> {title || 'Evidence Details'}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Database evidence from similar circular economy projects
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           {/* Metadata badges */}
           {matchPercentage && (
             <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -121,8 +103,8 @@ export default function ResultsDatabaseEvidenceDetailsModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

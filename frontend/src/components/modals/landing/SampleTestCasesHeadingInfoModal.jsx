@@ -1,28 +1,29 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardPenLine } from 'lucide-react';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 export default function SampleTestCasesHeadingInfoModal({ onClose, isOpen }) {
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ModalHeading
-          title="About Sample Test Cases"
-          icon={ClipboardPenLine}
-          onClose={onClose}
-          type={LANDING_MODALS.SAMPLE_TEST_CASES_HEADING_INFO}
-        />
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
+            <ClipboardPenLine /> About Sample Test Cases
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Pre-filled form submissions representing real business models
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <p className="mb-4 leading-relaxed">
             <strong>Test Cases</strong> are pre-filled form submissions representing real circular
             economy business models. They help you:
@@ -56,8 +57,8 @@ export default function SampleTestCasesHeadingInfoModal({ onClose, isOpen }) {
             </p>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

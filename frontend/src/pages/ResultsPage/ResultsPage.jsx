@@ -6,13 +6,14 @@ import AssessmentMethodologyModal from '@/components/modals/header/AssessmentMet
 import EvaluationCriteriaModal from '@/components/modals/header/EvaluationCriteriaModal';
 import MarketAnalysisModal from '@/components/modals/results/MarketAnalysisModal';
 import TipCard from '@/components/shared/TipCard';
-import { ExportButton, exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
+import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { validKeys, categoryMapping } from '@/constants/evaluationData';
 import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/helpers';
 import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import Loader from '@/components/feedback/Loader';
 import { SaveAssessmentDialog } from '@/components/dialogs';
+import { Button } from '@/components/ui/button';
 import { CaseSummary } from '@/components/results';
 import { Frown, FileText, NotebookText } from 'lucide-react';
 import AppContainer from '@/components/layout/AppContainer';
@@ -1363,20 +1364,12 @@ export default function ResultsPage({
           )}
         </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <ExportButton
-            isLoading={isExporting}
-            icon="📥"
-            label="Similar Cases CSV"
-            loadingLabel="Exporting..."
-            onClick={handleDownloadCSV}
-          />
-          <ExportButton
-            isLoading={isExporting}
-            icon="📄"
-            label="Download as PDF"
-            loadingLabel="Generating..."
-            onClick={handleDownloadPDF}
-          />
+          <Button disabled={isExporting} onClick={handleDownloadCSV} variant="outline">
+            {isExporting ? '⏳ Exporting...' : '📥 Similar Cases CSV'}
+          </Button>
+          <Button disabled={isExporting} onClick={handleDownloadPDF} variant="outline">
+            {isExporting ? '⏳ Generating...' : '📄 Download as PDF'}
+          </Button>
           {!isDetailView && (
             <button
               className="save-button"

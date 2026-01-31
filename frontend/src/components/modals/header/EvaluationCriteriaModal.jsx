@@ -1,8 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link, CircleDollarSign, Settings, ClipboardMinus } from 'lucide-react';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { HEADER_MODALS } from '@/components/modals/core/modalTypes';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 const METRICS = [
   { number: 3, label: 'Core Value Types', color: 'blue' },
@@ -104,24 +110,19 @@ const CALCULATION_STEPS = [
 ];
 
 export default function EvaluationCriteriaModal({ isModalOpen, onClose }) {
-  if (!isModalOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ModalHeading
-          title="Evaluation Criteria"
-          onClose={onClose}
-          icon={<ClipboardMinus className="mb-0.5" />}
-          type={HEADER_MODALS.EVALUATION_CRITERIA}
-        />
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-3xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
+            <ClipboardMinus className="mb-0.5" /> Evaluation Criteria
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Three core value dimensions with specific factors
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <p className="mb-6 leading-relaxed text-gray-600">
             Our AI-powered evaluation framework assesses business ideas across three core value
             dimensions, each comprising specific factors.
@@ -189,8 +190,8 @@ export default function EvaluationCriteriaModal({ isModalOpen, onClose }) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -1,8 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardMinus } from 'lucide-react';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 const SOLUTION_COMPONENTS = [
   {
@@ -65,26 +71,19 @@ const SOLUTION_EXAMPLE =
   'We convert agricultural hemp waste into compostable mailers and run a hub-and-spoke collection model. Customers use prepaid mailers; 15 regional hubs aggregate returns; certified composters process 95% of materials within 90 days into soil amendments. Those amendments are sold back to hemp farms, creating a closed loop. Cost: $0.85 per unit at scale; home-compostable in 180 days.';
 
 export default function BusinessSolutionInfoModal({ onClose, isModalOpen }) {
-  if (!isModalOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-4xl max-h-[85vh] bg-white shadow-2xl rounded-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ModalHeading
-          title="Business Solution Statement Guide"
-          onClose={onClose}
-          icon={<ClipboardMinus />}
-          type={LANDING_MODALS.BUSINESS_SOLUTION_INFO}
-        />
-
-        {/* Content */}
-        <div className="flex-1 p-6 overflow-y-auto">
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
+            <ClipboardMinus /> Business Solution Statement Guide
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Describe how your business solves the problem
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="space-y-5">
             <p className="leading-relaxed">
               Describe <strong>how your business solves the problem</strong> with a detailed,
@@ -139,8 +138,8 @@ export default function BusinessSolutionInfoModal({ onClose, isModalOpen }) {
             </p>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

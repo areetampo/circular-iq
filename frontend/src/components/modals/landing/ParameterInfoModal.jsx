@@ -2,35 +2,34 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { parameterGuidance } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 export default function ParameterInfoModal({ onClose, isOpen, paramKey }) {
-  if (!isOpen) return null;
-
   const guidance = parameterGuidance[paramKey];
   if (!guidance) return null;
 
   const weightLabel = guidance.weightPercent || `${Math.round((guidance.weight || 0) * 100)}%`;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-4xl max-h-[85vh] bg-white shadow-2xl rounded-2xl animate-in zoom-in-95 duration-200 overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ModalHeading
-          title="Parameter Information"
-          icon={ClipboardMinus}
-          onClose={onClose}
-          type={LANDING_MODALS.PARAMETER_INFO}
-        />
-
-        {/* Content */}
-        <div className="flex-1 p-6 overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
+            <ClipboardMinus /> Parameter Information
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Detailed guidance for evaluation parameters
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -94,8 +93,8 @@ export default function ParameterInfoModal({ onClose, isOpen, paramKey }) {
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
