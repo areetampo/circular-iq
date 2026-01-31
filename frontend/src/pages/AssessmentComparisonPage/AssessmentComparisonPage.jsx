@@ -12,16 +12,14 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
   const { id1, id2 } = useParams();
 
   // Fetch both assessments and comparison data using hook
-  const { assessment1, assessment2, comparisonData, loading, error } = useAssessmentComparison(
-    id1,
-    id2,
-  );
+  const { assessment1, assessment2, comparisonData, isLoading, isError, error } =
+    useAssessmentComparison(id1, id2);
 
-  if (loading)
+  if (isLoading)
     return (
       <Loader heading="Loading comparison..." message="Fetching assessment data for comparison." />
     );
-  if (error)
+  if (isError)
     return (
       <div className="app-container">
         <p className="text-[#dc3545] py-8 text-center">{error}</p>

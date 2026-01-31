@@ -1,88 +1,61 @@
-import { useEffect, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { getAssessmentById } from '@/features/assessments';
 
 export default function useAssessmentComparison(id1, id2) {
-  const [assessment1, setAssessment1] = useState(null);
-  const [assessment2, setAssessment2] = useState(null);
-  const [comparisonData, setComparisonData] = useState({
-    factorDiffs: {},
-    overallDiff: 0,
-    biggestGain: null,
-    biggestDrop: null,
+  // Fetch both assessments in parallel using useQueries
+  const queries = useQueries({
+    queries: [
+      {
+        queryKey: ['assessment', id1],
+        queryFn: () => getAssessmentById(id1),
+        enabled: !!id1,
+      },
+      {
+        queryKey: ['assessment', id2],
+        queryFn: () => getAssessmentById(id2),
+        enabled: !!id2,
+      },
+    ],
   });
-  const [loading, setLoading] = useState(!!id1 && !!id2);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!id1 || !id2) {
-      setAssessment1(null);
-      setAssessment2(null);
-      setComparisonData({
-        factorDiffs: {},
-        overallDiff: 0,
-        biggestGain: null,
-        biggestDrop: null,
-      });
-      setLoading(false);
-      return;
-    }
+  const [query1, query2] = queries;
 
-    let isActive = true;
+  // Extract assessment data
+  const assessment1 = query1.data?.assessment ?? query1.data ?? null;
+  const assessment2 = query2.data?.assessment ?? query2.data ?? null;
 
-    const fetchAssessments = async () => {
-      setLoading(true);
-      setError(null);
+  // Determine loading and error states
+  const isLoading = query1.isLoading || query2.isLoading;
+  const isError = query1.isError || query2.isError;
+  const error = query1.error?.message || query2.error?.message || null;
 
-      try {
-        // Fetch both assessments in parallel
-        const [result1, result2] = await Promise.all([
-          getAssessmentById(id1),
-          getAssessmentById(id2),
-        ]);
-
-        // Extract assessment data (handle both direct and wrapped responses)
-        const a1 = result1.assessment || result1;
-        const a2 = result2.assessment || result2;
-
-        if (!isActive) return;
-        setAssessment1(a1);
-        setAssessment2(a2);
-
-        // Derive comparison metrics
-        const comparison = deriveComparison(a1, a2);
-        setComparisonData(
-          comparison ?? {
-            factorDiffs: {},
-            overallDiff: 0,
-            biggestGain: null,
-            biggestDrop: null,
-          },
-        );
-      } catch (err) {
-        setError(err?.message || 'Failed to compare assessments');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAssessments();
-
-    return () => {
-      isActive = false;
-    };
-  }, [id1, id2]);
+  // Derive comparison metrics
+  const comparisonData = deriveComparison(assessment1, assessment2);
 
   return {
     assessment1,
     assessment2,
     comparisonData,
-    loading,
+    loading: isLoading,
+    isLoading,
     error,
+    isError,
+    refetch: () => {
+      query1.refetch();
+      query2.refetch();
+    },
   };
 }
 
 function deriveComparison(a1, a2) {
-  if (!a1?.result_json || !a2?.result_json) return null;
+  if (!a1?.result_json || !a2?.result_json) {
+    return {
+      factorDiffs: {},
+      overallDiff: 0,
+      biggestGain: null,
+      biggestDrop: null,
+    };
+  }
 
   const sub1 = a1.result_json.sub_scores || {};
   const sub2 = a2.result_json.sub_scores || {};
