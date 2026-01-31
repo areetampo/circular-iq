@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import InfoIconButton from '@/components/common/InfoIconButton';
 import ParameterInputContainer from '@/pages/LandingPage/components/ParameterInputContainer';
+import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 import { getCharacterCount } from '@/lib/validation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -11,17 +13,15 @@ import BusinessProblemInfoModal from '@/components/modals/landing/BusinessProble
 import Loader from '@/components/common/Loader';
 import AppContainer from '@/components/layout/AppContainer';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
+import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
 import './LandingPage.css';
 
-export default function LandingPage({
-  showAdvanced,
-  setShowAdvanced,
-  onSubmit,
-  loading,
-  error = null,
-  showInfoIcons = true,
-  SampleTestCasesContainer = null,
-}) {
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const methods = useForm({
     resolver: zodResolver(assessmentSchema),
     mode: 'onChange',
@@ -38,8 +38,18 @@ export default function LandingPage({
   const businessProblem = watch('businessProblem') || '';
   const businessSolution = watch('businessSolution') || '';
 
-  const handleFormSubmit = (data) => {
-    onSubmit(data);
+  const handleFormSubmit = async (formData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await scoreAssessment(formData);
+      // Navigate to results page with the result data
+      navigate('/results', { state: { result, formData } });
+    } catch (err) {
+      setError(err.message || 'Failed to evaluate. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -120,12 +130,10 @@ export default function LandingPage({
                   <label htmlFor="business-problem">
                     <p className="text-lg font-semibold">Business Problem</p>
                   </label>
-                  {showInfoIcons && (
-                    <InfoIconButton
-                      // onClick={() => setShowInfoModal('problem')}
-                      title="Help with problem description"
-                    />
-                  )}
+                  <InfoIconButton
+                    // onClick={() => setShowInfoModal('problem')}
+                    title="Help with problem description"
+                  />
                   {/* Info Modal */}
                   <BusinessProblemInfoModal
                   // isOpen={showInfoModal === 'problem'}
@@ -162,12 +170,10 @@ export default function LandingPage({
                   <label htmlFor="business-solution">
                     <p className="text-lg font-semibold">Business Solution</p>
                   </label>
-                  {showInfoIcons && (
-                    <InfoIconButton
-                      // onClick={() => setShowInfoModal('solution')}
-                      title="Help with solution description"
-                    />
-                  )}
+                  <InfoIconButton
+                    // onClick={() => setShowInfoModal('solution')}
+                    title="Help with solution description"
+                  />
                 </div>
                 <p className="field-guidance" id="solution-guidance">
                   How does your business solve this problem? Include materials, processes, and
@@ -216,14 +222,12 @@ export default function LandingPage({
                 </span>
                 Advanced Parameters
               </button>
-              {showInfoIcons && (
-                <div className="mt-[1.75px] -ml-2">
-                  <InfoIconButton
-                    // onClick={() => setShowInfoModal('factors')}
-                    title="Learn about evaluation factors"
-                  />
-                </div>
-              )}
+              <div className="mt-[1.75px] -ml-2">
+                <InfoIconButton
+                  // onClick={() => setShowInfoModal('factors')}
+                  title="Learn about evaluation factors"
+                />
+              </div>
             </div>
 
             <AnimatePresence initial={false}>
@@ -256,19 +260,11 @@ export default function LandingPage({
           </button>
 
           {/* Test Case Selector */}
-          {SampleTestCasesContainer}
+          <SampleTestCasesContainer />
         </div>
       </AppContainer>
     </FormProvider>
   );
 }
 
-LandingPage.propTypes = {
-  showAdvanced: PropTypes.bool.isRequired,
-  setShowAdvanced: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  loading: PropTypes.bool.isRequired,
-  error: PropTypes.string,
-  showInfoIcons: PropTypes.bool,
-  SampleTestCasesContainer: PropTypes.element,
-};
+LandingPage.propTypes = {};
