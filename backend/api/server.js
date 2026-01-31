@@ -123,6 +123,18 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
   };
 }
 
+/**
+ * Async handler wrapper to catch errors in async route handlers
+ * Ensures errors are passed to the global error middleware
+ * @param {Function} fn - Async route handler
+ * @returns {Function} Express middleware that catches errors
+ */
+function asyncHandler(fn) {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
+
 // ============================================
 // HEALTH CHECK ENDPOINT
 // ============================================
@@ -740,6 +752,44 @@ app.use((req, res) => {
       code: 'NOT_FOUND',
     }),
   );
+});
+
+// ============================================
+// GLOBAL ERROR HANDLER MIDDLEWARE
+// ============================================
+// This middleware catches all errors from route handlers and returns a clean JSON response
+// It MUST be defined after all other middleware and route handlers
+// Express recognizes error handlers by their 4-parameter signature: (err, req, res, next)
+
+app.use((err, req, res, next) => {
+  const requestId = Math.random().toString(36).slice(2, 9);
+  const statusCode = err.statusCode || err.status || 500;
+  const isServerError = statusCode >= 500;
+
+  // Log error details (server errors are important to track)
+  if (isServerError) {
+    console.error(`[${requestId}] ERROR:`, {
+      method: req.method,
+      path: req.path,
+      status: statusCode,
+      message: err.message,
+      code: err.code || 'UNKNOWN',
+      stack: err.stack,
+      timestamp: new Date().toISOString(),
+    });
+  } else if (!IS_PROD) {
+    // Client errors (4xx) - log in development only
+    console.warn(`[${requestId}] WARNING [${statusCode}]:`, err.message);
+  }
+
+  // Return clean JSON error response
+  res.status(statusCode).json({
+    error: isServerError ? 'Internal Server Error' : err.message || 'Request failed',
+    message: err.message,
+    code: err.code || (isServerError ? 'INTERNAL_ERROR' : 'REQUEST_ERROR'),
+    timestamp: new Date().toISOString(),
+    requestId, // Helps with debugging
+  });
 });
 
 // ============================================
