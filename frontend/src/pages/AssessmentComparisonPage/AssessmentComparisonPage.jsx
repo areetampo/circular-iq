@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { exportComparisonCSV } from '@/features/export';
 import Loader from '@/components/common/Loader';
 import AppContainer from '@/components/layout/AppContainer';
@@ -8,12 +8,17 @@ import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/f
 import { useAssessmentComparison } from '@/features/assessments';
 import { Button } from '@/components/ui/button';
 
-export default function AssessmentComparisonPage({ onBack = () => {} }) {
+export default function AssessmentComparisonPage() {
   const { id1, id2 } = useParams();
+  const navigate = useNavigate();
 
   // Fetch both assessments and comparison data using hook
   const { assessment1, assessment2, comparisonData, isLoading, isError, error } =
     useAssessmentComparison(id1, id2);
+
+  const handleBack = () => {
+    navigate('/assessments');
+  };
 
   if (isLoading)
     return (
@@ -582,7 +587,7 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
           </Button>
           <button
             className="bg-white text-[#34a83a] border-2 border-[#34a83a] py-3 px-6 rounded-md font-semibold cursor-pointer text-base transition-all duration-300 ease-in-out hover:bg-[#34a83a] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(52,168,58,0.3)]"
-            onClick={onBack}
+            onClick={handleBack}
           >
             ← Back to Assessments
           </button>
@@ -592,6 +597,4 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
   );
 }
 
-AssessmentComparisonPage.propTypes = {
-  onBack: PropTypes.func.isRequired,
-};
+AssessmentComparisonPage.propTypes = {};
