@@ -1,35 +1,153 @@
 /**
- * ============================================
- * MIGRATION: 01_vector_infrastructure.sql
- * ============================================
+ * ╔════════════════════════════════════════════════════════════════════════════════╗
+ * ║                                                                                ║
+ * ║  MIGRATION: 01_vector_infrastructure.sql                                      ║
+ * ║  PHASE 1 - Vector Search & Document Infrastructure                            ║
+ * ║  STATUS: Required for all deployments                                         ║
+ * ║                                                                                ║
+ * ╚════════════════════════════════════════════════════════════════════════════════╝
  *
- * PHASE 1 - Core Infrastructure Setup
- * STATUS: Required for all deployments
- * RUN ONCE during initial deployment
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * WHAT THIS MIGRATION DOES
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  *
- * WHAT THIS DOES:
- * - Enables pgvector extension (semantic search)
- * - Creates documents table for chunked data + embeddings
- * - Creates vector search functions (RPC callable from backend)
- * - Creates document analytics functions
- * - Sets up indexes for fast retrieval
- * - Configures Row Level Security for documents
+ * This migration sets up the core infrastructure for semantic search and document
+ * storage in the circular economy application. It enables:
  *
- * WHEN TO RUN:
- * - First deployment (REQUIRED)
- * - Safe to re-run (uses CREATE IF NOT EXISTS, DROP IF EXISTS)
+ * 1. pgvector Extension
+ *    - Enables semantic vector search on OpenAI embeddings
+ *    - Supports similarity search across 1536-dimensional vectors
+ *    - Uses efficient IVFFlat indexes for fast retrieval
  *
- * DEPENDENCIES: None (initial setup)
+ * 2. Documents Table
+ *    - Stores chunked circular economy business data
+ *    - Metadata includes: source ID, chunk type, category, word count, etc.
+ *    - Optimized for RAG (Retrieval Augmented Generation) workflows
  *
- * NEXT STEPS:
- * 1. After this migration completes, run:
- *    - backend/scripts/chunk.js (chunking pipeline)
- *    - backend/scripts/embed_and_store.js (embedding pipeline)
- * 2. Then run next migration: 02_user_assessments.sql
+ * 3. Vector Search Functions (RPC)
+ *    - match_documents(query_embedding, match_count, match_threshold)
+ *    - search_documents_by_industry(industry_name, match_count)
+ *    - search_documents_hybrid(query_embedding, search_term, industry)
+ *    - search_documents_by_category(category_name, match_count)
  *
- * VERIFY AFTER RUNNING:
- *   SELECT COUNT(*) as total_docs FROM documents;
- *   SELECT * FROM get_document_statistics();
+ * 4. Analytics Functions
+ *    - get_document_statistics() - Overall document stats
+ *    - count_documents_by_category() - Breakdown by category
+ *
+ * 5. Performance Indexes
+ *    - IVFFlat index on vector column (1000 lists, cosine similarity)
+ *    - TRGM (trigram) index on content for text search
+ *    - GIN (Generalized Inverted Index) on metadata for JSONB queries
+ *    - BRIN index on created_at for time-based queries
+ *
+ * 6. Row Level Security (RLS)
+ *    - Public read-only access to all documents
+ *    - Service role only for writes (embeddings from backend)
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * PREREQUISITES - BEFORE RUNNING THIS MIGRATION
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * ✓ Supabase Project Created
+ *   - Project URL and Anon Key ready
+ *   - Database connection available
+ *   - Can execute SQL via Supabase dashboard
+ *
+ * ✓ pgvector Extension Enabled
+ *   - In Supabase dashboard: Database → Extensions
+ *   - Search for "vector" and enable it
+ *   - Required before running this migration
+ *
+ * ✓ Service Role Key Available
+ *   - Needed for embedding scripts: backend/scripts/embed_and_store.js
+ *   - Found in Supabase project settings → API
+ *   - Add to backend/.env as SUPABASE_SERVICE_ROLE_KEY
+ *
+ * ✓ OpenAI API Key
+ *   - For generating embeddings
+ *   - Add to backend/.env as OPENAI_API_KEY
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * WHEN TO RUN THIS MIGRATION
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * First deployment:
+ *   - REQUIRED during initial setup
+ *   - Must run BEFORE 02_user_assessments.sql
+ *   - Must run BEFORE embedding scripts
+ *
+ * Safe to re-run:
+ *   - Uses CREATE IF NOT EXISTS (no errors if already exists)
+ *   - Uses DROP IF EXISTS for functions (safe to recreate)
+ *   - Existing data will be preserved
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * STEP-BY-STEP VERIFICATION QUERIES
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * Run these queries AFTER executing this migration to verify everything is set up:
+ *
+ * 1. Check extensions are enabled:
+ *    SELECT * FROM pg_extension WHERE extname IN ('vector', 'pg_trgm', 'btree_gin');
+ *
+ * 2. Verify documents table exists:
+ *    SELECT column_name, data_type FROM information_schema.columns
+ *    WHERE table_name = 'documents' ORDER BY ordinal_position;
+ *
+ * 3. Check vector index is created:
+ *    SELECT indexname, tablename FROM pg_indexes
+ *    WHERE tablename = 'documents' AND indexname LIKE '%embedding%';
+ *
+ * 4. Verify RLS is enabled:
+ *    SELECT tablename, rowsecurity FROM pg_tables
+ *    WHERE tablename = 'documents';
+ *
+ * 5. Count current documents (should be 0 after migration only):
+ *    SELECT COUNT(*) as total_documents FROM documents;
+ *
+ * 6. Test analytics function exists:
+ *    SELECT * FROM get_document_statistics();
+ *    (Expected: Returns 0 rows initially, will show stats once docs are added)
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * RUNNING THE NODE.JS EMBEDDING PIPELINE
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * After this migration completes successfully, populate documents with embeddings:
+ *
+ * Step 1: Ensure backend/.env is configured
+ *   SUPABASE_URL=https://your-project.supabase.co
+ *   SUPABASE_ANON_KEY=your-anon-key
+ *   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+ *   OPENAI_API_KEY=your-openai-key
+ *
+ * Step 2: Run chunking pipeline (creates chunks from raw data)
+ *   cd backend
+ *   node scripts/chunk.js
+ *   (Outputs: backend/dataset/chunks.json)
+ *
+ * Step 3: Run embedding pipeline (generates embeddings and stores in Supabase)
+ *   node scripts/embed_and_store.js
+ *   (Inserts rows into documents table)
+ *
+ * Step 4: Verify embeddings were stored
+ *   SELECT COUNT(*) as total_embedded FROM documents
+ *   WHERE embedding IS NOT NULL;
+ *   (Should show thousands of documents depending on data size)
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * NEXT STEPS
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * After this migration and embedding pipeline complete:
+ *   1. Run 02_user_assessments.sql (user auth and assessment portfolio system)
+ *   2. See backend/supabase/README.md for complete deployment order
+ *   3. Backend endpoints will then be ready to query documents and save assessments
  */
 
 -- ============================================

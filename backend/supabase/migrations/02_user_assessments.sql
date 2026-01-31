@@ -1,37 +1,230 @@
 /**
- * ============================================
- * MIGRATION: 02_user_assessments.sql
- * ============================================
+ * ╔════════════════════════════════════════════════════════════════════════════════╗
+ * ║                                                                                ║
+ * ║  MIGRATION: 02_user_assessments.sql                                           ║
+ * ║  PHASE 2 - User Authentication & Assessment Portfolio System                  ║
+ * ║  STATUS: Required for user-facing features                                    ║
+ * ║                                                                                ║
+ * ╚════════════════════════════════════════════════════════════════════════════════╝
  *
- * PHASE 2 - Assessment System & User Authentication
- * STATUS: Required for portfolio & user features
- * RUN AFTER 01_vector_infrastructure.sql is complete
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * WHAT THIS MIGRATION DOES
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  *
- * WHAT THIS DOES:
- * - Creates assessments table with user-based access control
- * - Implements strict Row Level Security (RLS) policies
- * - Links assessments to auth.users (user ownership)
- * - Creates analytics RPC functions for market analysis
- * - Sets up indexes for efficient user queries
+ * This migration sets up user authentication and assessment portfolio management.
+ * It implements Supabase's built-in auth system with Row Level Security to ensure
+ * users can only access their own data. Key components:
  *
- * WHEN TO RUN:
- * - After 01_vector_infrastructure.sql completes
- * - When deploying Phase 2 features (user authentication, portfolios)
- * - Safe to re-run (uses DROP IF EXISTS, CREATE IF NOT EXISTS)
+ * 1. Assessments Table
+ *    - Stores assessment results for historical tracking
+ *    - Links to auth.users via user_id foreign key
+ *    - Includes session_id for optional guest mode (currently disabled)
+ *    - Metadata: industry, scores, business problem/solution, JSON results
  *
- * DEPENDENCIES: 01_vector_infrastructure.sql must run first
+ * 2. User Ownership & Foreign Keys
+ *    - user_id: UUID reference to Supabase auth.users table
+ *    - ON DELETE CASCADE: Deleting user also deletes their assessments
+ *    - NOT NULL: Ensures every assessment has an owner
+ *    - Index on user_id for fast lookups
  *
- * KEY FEATURES:
- * - user_id: UUID foreign key to auth.users (owner of assessment)
- * - session_id: Optional, for guest access (can be enabled later)
- * - Strict RLS: Users can ONLY see/edit/delete their own assessments
- * - get_assessment_statistics(): Dashboard stats
- * - get_market_data(): Industry/scale/strategy benchmarking
+ * 3. Row Level Security (RLS) - The Core Privacy Feature
+ *    ┌─────────────────────────────────────────────────────────────┐
+ *    │ How RLS Works:                                              │
+ *    │                                                             │
+ *    │ - RLS is a database-level security mechanism                │
+ *    │ - Every query is evaluated against RLS policies             │
+ *    │ - Policies use auth context (current user ID)               │
+ *    │ - Only rows matching policy conditions are visible          │
+ *    │                                                             │
+ *    │ Example:                                                    │
+ *    │   User 123 tries: SELECT * FROM assessments;               │
+ *    │   Database policy checks: WHERE user_id = auth.uid()       │
+ *    │   Result: Only assessments with user_id = 123 are shown    │
+ *    │                                                             │
+ *    │ Benefit:                                                    │
+ *    │   - Cannot be bypassed by frontend or backend bugs         │
+ *    │   - Privacy enforced at the database layer                 │
+ *    │   - Users literally cannot query other users' data         │
+ *    └─────────────────────────────────────────────────────────────┘
  *
- * VERIFY AFTER RUNNING:
- *   SELECT * FROM pg_policies WHERE tablename = 'assessments';
- *   SELECT * FROM get_assessment_statistics();
- *   SELECT * FROM get_market_data() LIMIT 5;
+ * 4. Active RLS Policies
+ *    - SELECT: Users can only see their own assessments
+ *    - INSERT: Users can only insert with their own user_id
+ *    - UPDATE: Users can only update their own assessments
+ *    - DELETE: Users can only delete their own assessments
+ *    - Service role bypass: Backend can write with full access
+ *
+ * 5. Analytics Functions (RPC)
+ *    - get_assessment_statistics() - User's portfolio stats
+ *    - get_market_data() - Industry/scale/strategy benchmarks
+ *
+ * 6. Performance Indexes
+ *    - Index on user_id (fast user lookups)
+ *    - Index on session_id (optional guest session grouping)
+ *    - Index on industry (filtering by sector)
+ *    - Index on overall_score (sorting/filtering by score)
+ *    - Composite index on (user_id, created_at DESC) for listings
+ *    - BRIN index on created_at DESC (efficient time-based queries)
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * AUTH.USERS RELATIONSHIP - Understanding the Connection
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * Supabase provides auth.users table automatically:
+ *
+ *   auth.users (Supabase managed)
+ *   ├── id (UUID primary key)
+ *   ├── email (unique email)
+ *   ├── encrypted_password
+ *   ├── last_sign_in_at
+ *   └── ... (other Supabase fields)
+ *
+ *   assessments (This migration)
+ *   ├── id (BIGSERIAL primary key)
+ *   ├── user_id (UUID → FOREIGN KEY auth.users.id)
+ *   ├── title
+ *   ├── result_json
+ *   └── ... (assessment fields)
+ *
+ * Connection:
+ *   - When user signs up via frontend, Supabase creates auth.users record
+ *   - Frontend gets access token containing user's UUID
+ *   - Backend uses token to identify user via auth.uid()
+ *   - When saving assessment, backend sets user_id = auth.uid()
+ *   - RLS policies use auth.uid() to enforce data access
+ *
+ * Frontend Auth Flow:
+ *   1. User clicks "Sign Up" → Calls supabase.auth.signUp()
+ *   2. Supabase creates user in auth.users table
+ *   3. Session token with UUID is returned to frontend
+ *   4. Frontend stores token and sends with API requests
+ *   5. Backend middleware extracts UUID and calls supabase.auth.getUser(token)
+ *   6. auth.uid() in RLS policies returns the authenticated UUID
+ *   7. User can only see rows where assessments.user_id = auth.uid()
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * HOW ROW LEVEL SECURITY (RLS) PROTECTS YOUR DATA
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * RLS is a database-level enforcement that protects from:
+ *
+ * ✓ Frontend bugs:
+ *   If frontend forgets to filter by user_id, RLS still protects data
+ *   User cannot see other users' assessments even with a direct query
+ *
+ * ✓ Compromised API keys:
+ *   Even if anon key is exposed, attacker cannot query other users' data
+ *   Database enforces that only YOUR rows are accessible
+ *
+ * ✓ Malicious backend:
+ *   Backend cannot use anon key to access user X's data as user Y
+ *   auth.uid() always returns the authenticated user making the request
+ *
+ * ✓ Intentional data leaks:
+ *   Developer cannot accidentally include "WHERE 1=1" to bypass filters
+ *   RLS is enforced regardless of SQL written
+ *
+ * Policy Structure for assessments table:
+ *
+ *   Policy: "Users can SELECT their own assessments"
+ *   SQL: CREATE POLICY ... FOR SELECT TO authenticated
+ *        USING (user_id = auth.uid());
+ *   Effect: SELECT * FROM assessments returns only rows where
+ *           assessments.user_id = (current user's UUID)
+ *
+ *   Policy: "Users can INSERT their own assessments"
+ *   SQL: CREATE POLICY ... FOR INSERT TO authenticated
+ *        WITH CHECK (user_id = auth.uid());
+ *   Effect: INSERT is rejected if user_id != auth.uid()
+ *           User literally cannot insert a row with different user_id
+ *
+ *   Policy: "Users can UPDATE their own assessments"
+ *   SQL: CREATE POLICY ... FOR UPDATE TO authenticated
+ *        USING (user_id = auth.uid())
+ *        WITH CHECK (user_id = auth.uid());
+ *   Effect: Can only modify rows where user_id = auth.uid()
+ *           Cannot change user_id to another user's UUID
+ *
+ *   Policy: "Users can DELETE their own assessments"
+ *   SQL: CREATE POLICY ... FOR DELETE TO authenticated
+ *        USING (user_id = auth.uid());
+ *   Effect: Can only delete rows where user_id = auth.uid()
+ *
+ * Disabled (Optional):
+ *   - Guest mode policies (commented out below)
+ *   - Can be enabled in future for session_id based access
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * VERIFICATION QUERIES - Check RLS is Active
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * Run these queries AFTER executing this migration to verify setup:
+ *
+ * 1. Check RLS is enabled on assessments table:
+ *    SELECT tablename, rowsecurity FROM pg_tables
+ *    WHERE tablename = 'assessments';
+ *    (Expected: rowsecurity = true)
+ *
+ * 2. List all policies on assessments:
+ *    SELECT policyname, cmd, qual, with_check FROM pg_policies
+ *    WHERE tablename = 'assessments'
+ *    ORDER BY policyname;
+ *    (Expected: 4 policies for SELECT, INSERT, UPDATE, DELETE)
+ *
+ * 3. Verify foreign key constraint:
+ *    SELECT constraint_name, table_name, column_name,
+ *           foreign_table_name, foreign_column_name
+ *    FROM information_schema.key_column_usage
+ *    WHERE table_name = 'assessments' AND column_name = 'user_id';
+ *    (Expected: Shows FK to auth.users.id with ON DELETE CASCADE)
+ *
+ * 4. Check indexes exist:
+ *    SELECT indexname, tablename, indexdef FROM pg_indexes
+ *    WHERE tablename = 'assessments'
+ *    ORDER BY indexname;
+ *    (Expected: Indexes on user_id, industry, overall_score, created_at)
+ *
+ * 5. Test RLS enforcement (requires authenticated session):
+ *    -- As authenticated user, try to see assessments:
+ *    SELECT COUNT(*) FROM assessments;
+ *    (Expected: 0 initially, increases as user saves assessments)
+ *
+ *    -- As service role (backend), bypass RLS:
+ *    SELECT COUNT(*) FROM assessments;
+ *    (Expected: Can see all assessments from all users)
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * DEPENDENCIES & EXECUTION ORDER
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * MUST RUN AFTER:
+ *   ✓ 01_vector_infrastructure.sql (creates documents table, enables extensions)
+ *   ✓ Supabase auth is configured (automatic with Supabase project)
+ *
+ * CAN RUN BEFORE:
+ *   ✓ Embedding pipeline (independent of assessment data)
+ *   ✓ Frontend deployment (users can sign up anytime)
+ *   ✓ Assessment data loading (assessments are user-generated)
+ *
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * WHEN TO RUN THIS MIGRATION
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * First deployment:
+ *   - REQUIRED when deploying user authentication features
+ *   - Must run AFTER 01_vector_infrastructure.sql
+ *   - Run before frontend sign-up goes live
+ *
+ * Safe to re-run:
+ *   - Uses DROP IF EXISTS for functions and policies
+ *   - Uses CREATE IF NOT EXISTS for table
+ *   - Existing assessment data is preserved
+ *   - Policies are safely recreated
  */
 
 -- ============================================
