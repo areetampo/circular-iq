@@ -109,6 +109,15 @@ export default function ResultsPage({
     setShowMarketAnalysisModal(true);
   }, []);
 
+  // Smart data resolution: detail view > navigation state > session restoration
+  // Memoized to prevent unnecessary re-renders
+  const currentData = useMemo(() => {
+    if (isDetailView) {
+      return detailData;
+    }
+    return navigationResult || restoreEvaluation()?.result || null;
+  }, [isDetailView, detailData, navigationResult, restoreEvaluation]);
+
   // Save assessment handler
   const handleSave = useCallback(
     async (name) => {
@@ -131,11 +140,6 @@ export default function ResultsPage({
     },
     [currentData, navigationFormData, createAssessmentAsync, addToast, navigate],
   );
-
-  // Smart data resolution: detail view > navigation state > session restoration
-  const currentData = isDetailView
-    ? detailData
-    : navigationResult || restoreEvaluation()?.result || null;
 
   const resolvedCategoryMapping =
     passedCategoryMapping && Object.keys(passedCategoryMapping).length > 0
