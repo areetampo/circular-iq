@@ -5,7 +5,7 @@
  * Location: src/components/dialogs/ConfirmDialog.jsx
  */
 
-import { React } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import {

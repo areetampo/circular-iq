@@ -13,6 +13,7 @@ import { exportAssessmentCSV, exportAssessmentPDF } from '../../../src/utils/exp
 import { useToast } from '../../src/hooks/useToast';
 import { useExportState } from '../../hooks/useExportState';
 import Loader from '../components/feedback/Loader';
+import { SaveAssessmentDialog } from '@/components/dialogs';
 import { extractCaseInfo, extractProblemSolution } from '../../../src/utils/helpers';
 import { Frown, FileText, NotebookText } from 'lucide-react';
 import AppContainer from '../components/layout/AppContainer';
@@ -55,7 +56,6 @@ export default function ResultsPage({
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
   const [showMarketAnalysisModal, setShowMarketAnalysisModal] = useState(false);
-  const [assessmentTitle, setAssessmentTitle] = useState('');
 
   // Fetch assessment data for detail view using hook
   const {
@@ -297,6 +297,17 @@ export default function ResultsPage({
 
     await executeExport(() => exportAssessmentPDF(currentData, ratingFn), 'PDF');
   };
+
+  const defaultAssessmentName = useMemo(() => {
+    const source = isDetailView ? fetchedAssessment : currentData;
+    if (!source) return '';
+
+    const base =
+      source.caseName || source.projectTitle || source.metadata?.industry || 'Assessment';
+
+    const date = new Date().toISOString().split('T')[0];
+    return `${base} - ${date}`;
+  }, [isDetailView, fetchedAssessment, currentData]);
 
   return (
     <AppContainer
@@ -1375,61 +1386,12 @@ export default function ResultsPage({
       </div>
 
       {/* Save Assessment Dialog */}
-      {showSaveDialog && !isDetailView && (
-        <div className="modal-overlay" style={{ zIndex: 2000 }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h2>Save This Assessment</h2>
-                <button className="modal-close" onClick={() => setShowSaveDialog(false)}>
-                  ×
-                </button>
-              </div>
-              <div className="modal-body">
-                <label htmlFor="assessment-title">
-                  <strong>Assessment Title:</strong>
-                </label>
-                <input
-                  id="assessment-title"
-                  type="text"
-                  placeholder="e.g., Q1 2026 - Textile Recycling Initiative"
-                  value={assessmentTitle}
-                  onChange={(e) => setAssessmentTitle(e.target.value)}
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    marginBottom: '1rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '1rem',
-                    cursor: 'text',
-                  }}
-                />
-              </div>
-              <div className="modal-footer">
-                <button className="modal-cancel-button" onClick={() => setShowSaveDialog(false)}>
-                  Cancel
-                </button>
-                <button
-                  className="modal-save-button"
-                  onClick={() => {
-                    if (assessmentTitle.trim()) {
-                      onSaveAssessment(assessmentTitle);
-                      setShowSaveDialog(false);
-                      setAssessmentTitle('');
-                    } else {
-                      addToast('Please enter a title before saving', 'error');
-                    }
-                  }}
-                >
-                  Save Assessment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SaveAssessmentDialog
+        open={showSaveDialog && !isDetailView}
+        onOpenChange={setShowSaveDialog}
+        defaultName={defaultAssessmentName}
+        onSave={onSaveAssessment}
+      />
     </AppContainer>
   );
 }
