@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
 import Loader from '@/components/common/Loader';
@@ -12,6 +13,7 @@ import { useAssessments, getAssessmentById } from '@/features/assessments';
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [initialLoad, setInitialLoad] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sortBy, setSortBy] = useState('created_at');
@@ -215,319 +217,353 @@ export default function MyAssessmentsPage() {
         subtitle: 'Review and manage your saved circularity evaluations.',
       }}
     >
-      {/* Stats Card */}
-      {assessments.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
-          <div className="p-6 text-center border-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 rounded-xl">
-            <div className="mb-2 text-sm font-semibold text-emerald-700">Total Assessments</div>
-            <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
-          </div>
-          <div className="p-6 text-center border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-            <div className="mb-2 text-sm font-semibold text-blue-700">Average Score</div>
-            <div className="text-4xl font-bold text-blue-600">
-              {Math.round(
-                assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
-                  assessments.length,
-              )}
-            </div>
-          </div>
-          <div className="p-6 text-center border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
-            <div className="mb-2 text-sm font-semibold text-purple-700">Highest Score</div>
-            <div className="text-4xl font-bold text-purple-600">
-              {Math.max(...assessments.map((a) => a.overall_score || 0))}
-            </div>
-          </div>
-          <div className="p-6 text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
-            <div className="mb-2 text-sm font-semibold text-orange-700">Unique Industries</div>
-            <div className="text-4xl font-bold text-orange-600">
-              {new Set(assessments.map((a) => a.industry)).size}
-            </div>
-          </div>
+      {/* Authentication check */}
+      {!authLoading && !isAuthenticated && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-6 text-6xl">🔐</div>
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Authentication Required</h2>
+          <p className="mb-8 text-gray-600">
+            You need to log in to view and manage your assessments.
+          </p>
+          <button
+            onClick={() => navigate('/login')}
+            className="px-6 py-3 text-white transition duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            Go to Login
+          </button>
         </div>
       )}
 
-      {/* Quick Tip */}
-      <div className="p-5 mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">💡</span>
-          <div>
-            <span className="font-bold text-blue-800">Tip:</span>
-            <span className="ml-2 text-slate-700">
-              Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how your
-              initiative evolved over time, or compare different strategies side-by-side.
-            </span>
-          </div>
+      {/* Loading state while auth is being checked */}
+      {authLoading && (
+        <div className="flex justify-center py-12">
+          <Loader size="large" color="blue" />
         </div>
-      </div>
+      )}
 
-      {/* Controls */}
-      {renderDeleteModal()}
-      <div className="p-6 mb-6 bg-white shadow-md rounded-xl">
-        <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
-          <div className="flex flex-col">
-            <label className="mb-2 text-sm font-semibold text-slate-700">Filter by Industry:</label>
-            <select
-              value={filterIndustry}
-              onChange={(e) => {
-                setFilterIndustry(e.target.value);
-                setPage(1);
-              }}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-            >
-              {getIndustries().map((ind) => (
-                <option key={ind} value={ind}>
-                  {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col">
-            <label className="mb-2 text-sm font-semibold text-slate-700">Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setPage(1);
-              }}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-            >
-              <option value="created_at">Date Created</option>
-              <option value="overall_score">Score</option>
-              <option value="title">Title</option>
-              <option value="industry">Industry</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col">
-            <label className="mb-2 text-sm font-semibold text-slate-700">Search:</label>
-            <input
-              type="text"
-              placeholder="Search by title or industry..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200">
-          <div className="text-sm font-medium text-slate-600">
-            {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
-          </div>
-          <div className="flex gap-2">
-            {selectedIds.size > 0 && (
-              <button
-                onClick={handleClearSelection}
-                className="bg-gray-100 text-gray-700 border border-gray-300 py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-200 hover:border-gray-400"
-              >
-                Clear Selection
-              </button>
-            )}
-            <button
-              onClick={handleCompareSelected}
-              disabled={selectedIds.size !== 2}
-              className="bg-[#34a83a] text-white border-none py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#2a8a2f] hover:shadow-[0_2px_8px_rgba(52,168,58,0.3)] disabled:text-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Compare Selected
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative">
-        {initialLoad && loading && (
-          <Loader heading="Loading assessments..." message="Fetching your saved evaluations." />
-        )}
-        {!initialLoad && loading && (
-          <Loader
-            heading="Refreshing assessments..."
-            message="Please wait while we update the list."
-          />
-        )}
-        {error && (
-          <div className="py-8 text-center text-[#dc3545]">
-            <p>{error}</p>
-            <button
-              className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd] mr-2"
-              onClick={fetchAssessments}
-            >
-              Retry
-            </button>
-            <button
-              className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
-              onClick={handleBack}
-            >
-              Back
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && filteredAssessments.length === 0 && (
-          <div className="py-12 text-center text-gray-400">
-            <p>No assessments match the current filters.</p>
-            <p>Try clearing filters or run a new evaluation and save it.</p>
-            <button
-              className="mt-4 py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
-              onClick={handleBack}
-            >
-              Start an Evaluation
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && filteredAssessments.length > 0 && (
-          <div className="relative overflow-x-auto bg-white border-2 border-gray-300 rounded-lg">
-            <table className="w-full border-collapse">
-              <thead className="border-b-2 border-gray-300 bg-gradient-to-r from-slate-100 to-slate-200">
-                <tr>
-                  <th className="px-4 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 cursor-pointer accent-emerald-600"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedIds(new Set(assessments.map((a) => a.id)));
-                        } else {
-                          setSelectedIds(new Set());
-                        }
-                      }}
-                    />
-                  </th>
-                  <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                    Title
-                  </th>
-                  <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                    Industry
-                  </th>
-                  <th className="px-4 md:px-6 py-4 text-center border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                    Score
-                  </th>
-                  <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                    Created
-                  </th>
-                  <th className="px-4 md:px-6 py-4 text-center border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {filteredAssessments.map((assessment) => (
-                  <tr
-                    key={assessment.id}
-                    className="transition-colors even:bg-slate-100 hover:bg-slate-200"
-                    onMouseEnter={() => prefetchAssessment(assessment.id)}
-                  >
-                    <td className="px-4 py-4 text-left border-b border-gray-300">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 cursor-pointer accent-emerald-600"
-                        checked={selectedIds.has(assessment.id)}
-                        onChange={() => handleToggleSelect(assessment.id)}
-                      />
-                    </td>
-                    <td className="px-4 py-4 text-left border-b border-gray-300 md:px-6">
-                      <div className="font-semibold text-slate-800">
-                        {assessment.title || 'Untitled'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-left border-b border-gray-300 md:px-6">
-                      <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-700 uppercase bg-blue-100 rounded-full text-nowrap">
-                        {assessment.industry.replace(/_/g, ' ') || 'General'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-center border-b border-gray-300 md:px-6">
-                      <div
-                        className={`inline-block px-2 py-1 rounded-lg font-semibold text-lg text-nowrap ${getRatingColor(
-                          assessment.overall_score,
-                        )}`}
-                      >
-                        {assessment.overall_score} / 100
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-left border-b border-gray-300 md:px-6 text-slate-600">
-                      {formatTimestamp(assessment.created_at)}
-                    </td>
-                    <td className="px-4 py-4 border-b border-gray-300 md:px-6">
-                      <div className="flex flex-col justify-center gap-2">
-                        <button
-                          className="p-2 text-sm font-medium text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 hover:scale-105"
-                          onClick={() => handleViewDetail(assessment.id)}
-                        >
-                          View
-                        </button>
-                        <button
-                          className="p-2 text-sm font-medium text-white transition-all bg-red-500 rounded-lg shadow-md hover:bg-red-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                          onClick={() => handleDelete(assessment.id)}
-                          disabled={isDeleting && confirmDeleteId === assessment.id}
-                        >
-                          {isDeleting && confirmDeleteId === assessment.id ? 'Deleting…' : 'Delete'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination */}
-        {!loading && !error && total > 0 && (
-          <div className="flex flex-row flex-wrap items-center justify-center p-5 mt-6 gap-y-2 gap-x-10">
-            <div className="flex justify-center items-center min-h-[40px]">
-              <p className="text-sm font-medium text-center text-slate-600">
-                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}
-                &nbsp; · Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
-              </p>
+      {/* Assessments content - only show if authenticated */}
+      {isAuthenticated && !authLoading && (
+        <>
+          {/* Stats Card */}
+          {assessments.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
+              <div className="p-6 text-center border-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 rounded-xl">
+                <div className="mb-2 text-sm font-semibold text-emerald-700">Total Assessments</div>
+                <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
+              </div>
+              <div className="p-6 text-center border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                <div className="mb-2 text-sm font-semibold text-blue-700">Average Score</div>
+                <div className="text-4xl font-bold text-blue-600">
+                  {Math.round(
+                    assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
+                      assessments.length,
+                  )}
+                </div>
+              </div>
+              <div className="p-6 text-center border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+                <div className="mb-2 text-sm font-semibold text-purple-700">Highest Score</div>
+                <div className="text-4xl font-bold text-purple-600">
+                  {Math.max(...assessments.map((a) => a.overall_score || 0))}
+                </div>
+              </div>
+              <div className="p-6 text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
+                <div className="mb-2 text-sm font-semibold text-orange-700">Unique Industries</div>
+                <div className="text-4xl font-bold text-orange-600">
+                  {new Set(assessments.map((a) => a.industry)).size}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-center gap-3">
-              <button
-                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page <= 1 || loading}
-              >
-                ← Previous
-              </button>
-              <button
-                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
-                onClick={() => setPage(page + 1)}
-                disabled={page * pageSize >= total || loading}
-              >
-                Next →
-              </button>
-              <div className="flex items-center gap-2 ml-2">
-                <label className="text-sm font-semibold text-slate-700">Per page:</label>
+          )}
+
+          {/* Quick Tip */}
+          <div className="p-5 mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">💡</span>
+              <div>
+                <span className="font-bold text-blue-800">Tip:</span>
+                <span className="ml-2 text-slate-700">
+                  Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how
+                  your initiative evolved over time, or compare different strategies side-by-side.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          {renderDeleteModal()}
+          <div className="p-6 mb-6 bg-white shadow-md rounded-xl">
+            <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col">
+                <label className="mb-2 text-sm font-semibold text-slate-700">
+                  Filter by Industry:
+                </label>
                 <select
-                  value={pageSize}
+                  value={filterIndustry}
                   onChange={(e) => {
-                    setPageSize(Number(e.target.value));
+                    setFilterIndustry(e.target.value);
                     setPage(1);
                   }}
-                  className="px-3 py-2 text-sm transition-all bg-white border rounded-lg border-slate-300 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+                  className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
                 >
-                  {[10, 20, 50, 100].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
+                  {getIndustries().map((ind) => (
+                    <option key={ind} value={ind}>
+                      {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
                     </option>
                   ))}
                 </select>
               </div>
+
+              <div className="flex flex-col">
+                <label className="mb-2 text-sm font-semibold text-slate-700">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    setPage(1);
+                  }}
+                  className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
+                >
+                  <option value="created_at">Date Created</option>
+                  <option value="overall_score">Score</option>
+                  <option value="title">Title</option>
+                  <option value="industry">Industry</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-2 text-sm font-semibold text-slate-700">Search:</label>
+                <input
+                  type="text"
+                  placeholder="Search by title or industry..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200">
+              <div className="text-sm font-medium text-slate-600">
+                {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
+              </div>
+              <div className="flex gap-2">
+                {selectedIds.size > 0 && (
+                  <button
+                    onClick={handleClearSelection}
+                    className="bg-gray-100 text-gray-700 border border-gray-300 py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-200 hover:border-gray-400"
+                  >
+                    Clear Selection
+                  </button>
+                )}
+                <button
+                  onClick={handleCompareSelected}
+                  disabled={selectedIds.size !== 2}
+                  className="bg-[#34a83a] text-white border-none py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#2a8a2f] hover:shadow-[0_2px_8px_rgba(52,168,58,0.3)] disabled:text-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Compare Selected
+                </button>
+              </div>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Footer */}
-      <div className="flex justify-start mt-8">
-        <button
-          className="bg-gray-100 text-[#2c3e50] border border-gray-300 py-3 px-6 rounded-md font-semibold cursor-pointer transition-[background] duration-200 hover:bg-[#e8e8e8]"
-          onClick={handleBack}
-        >
-          ← Back to Home
-        </button>
-      </div>
+          {/* Main Content */}
+          <div className="relative">
+            {initialLoad && loading && (
+              <Loader heading="Loading assessments..." message="Fetching your saved evaluations." />
+            )}
+            {!initialLoad && loading && (
+              <Loader
+                heading="Refreshing assessments..."
+                message="Please wait while we update the list."
+              />
+            )}
+            {error && (
+              <div className="py-8 text-center text-[#dc3545]">
+                <p>{error}</p>
+                <button
+                  className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd] mr-2"
+                  onClick={fetchAssessments}
+                >
+                  Retry
+                </button>
+                <button
+                  className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
+                  onClick={handleBack}
+                >
+                  Back
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && filteredAssessments.length === 0 && (
+              <div className="py-12 text-center text-gray-400">
+                <p>No assessments match the current filters.</p>
+                <p>Try clearing filters or run a new evaluation and save it.</p>
+                <button
+                  className="mt-4 py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
+                  onClick={handleBack}
+                >
+                  Start an Evaluation
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && filteredAssessments.length > 0 && (
+              <div className="relative overflow-x-auto bg-white border-2 border-gray-300 rounded-lg">
+                <table className="w-full border-collapse">
+                  <thead className="border-b-2 border-gray-300 bg-gradient-to-r from-slate-100 to-slate-200">
+                    <tr>
+                      <th className="px-4 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 cursor-pointer accent-emerald-600"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds(new Set(assessments.map((a) => a.id)));
+                            } else {
+                              setSelectedIds(new Set());
+                            }
+                          }}
+                        />
+                      </th>
+                      <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
+                        Title
+                      </th>
+                      <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
+                        Industry
+                      </th>
+                      <th className="px-4 md:px-6 py-4 text-center border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
+                        Score
+                      </th>
+                      <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
+                        Created
+                      </th>
+                      <th className="px-4 md:px-6 py-4 text-center border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {filteredAssessments.map((assessment) => (
+                      <tr
+                        key={assessment.id}
+                        className="transition-colors even:bg-slate-100 hover:bg-slate-200"
+                        onMouseEnter={() => prefetchAssessment(assessment.id)}
+                      >
+                        <td className="px-4 py-4 text-left border-b border-gray-300">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 cursor-pointer accent-emerald-600"
+                            checked={selectedIds.has(assessment.id)}
+                            onChange={() => handleToggleSelect(assessment.id)}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-left border-b border-gray-300 md:px-6">
+                          <div className="font-semibold text-slate-800">
+                            {assessment.title || 'Untitled'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-left border-b border-gray-300 md:px-6">
+                          <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-700 uppercase bg-blue-100 rounded-full text-nowrap">
+                            {assessment.industry.replace(/_/g, ' ') || 'General'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center border-b border-gray-300 md:px-6">
+                          <div
+                            className={`inline-block px-2 py-1 rounded-lg font-semibold text-lg text-nowrap ${getRatingColor(
+                              assessment.overall_score,
+                            )}`}
+                          >
+                            {assessment.overall_score} / 100
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-left border-b border-gray-300 md:px-6 text-slate-600">
+                          {formatTimestamp(assessment.created_at)}
+                        </td>
+                        <td className="px-4 py-4 border-b border-gray-300 md:px-6">
+                          <div className="flex flex-col justify-center gap-2">
+                            <button
+                              className="p-2 text-sm font-medium text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 hover:scale-105"
+                              onClick={() => handleViewDetail(assessment.id)}
+                            >
+                              View
+                            </button>
+                            <button
+                              className="p-2 text-sm font-medium text-white transition-all bg-red-500 rounded-lg shadow-md hover:bg-red-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleDelete(assessment.id)}
+                              disabled={isDeleting && confirmDeleteId === assessment.id}
+                            >
+                              {isDeleting && confirmDeleteId === assessment.id
+                                ? 'Deleting…'
+                                : 'Delete'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && !error && total > 0 && (
+              <div className="flex flex-row flex-wrap items-center justify-center p-5 mt-6 gap-y-2 gap-x-10">
+                <div className="flex justify-center items-center min-h-[40px]">
+                  <p className="text-sm font-medium text-center text-slate-600">
+                    Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of{' '}
+                    {total}
+                    &nbsp; · Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page <= 1 || loading}
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
+                    onClick={() => setPage(page + 1)}
+                    disabled={page * pageSize >= total || loading}
+                  >
+                    Next →
+                  </button>
+                  <div className="flex items-center gap-2 ml-2">
+                    <label className="text-sm font-semibold text-slate-700">Per page:</label>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(1);
+                      }}
+                      className="px-3 py-2 text-sm transition-all bg-white border rounded-lg border-slate-300 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
+                    >
+                      {[10, 20, 50, 100].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-start mt-8">
+            <button
+              className="bg-gray-100 text-[#2c3e50] border border-gray-300 py-3 px-6 rounded-md font-semibold cursor-pointer transition-[background] duration-200 hover:bg-[#e8e8e8]"
+              onClick={handleBack}
+            >
+              ← Back to Home
+            </button>
+          </div>
+        </>
+      )}
     </AppContainer>
   );
 }

@@ -1,7 +1,37 @@
+import { supabase } from '@/lib/supabase';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+/**
+ * Add Authorization header with bearer token if session exists
+ * @private
+ */
+async function getAuthHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.access_token) {
+      headers.Authorization = `Bearer ${data.session.access_token}`;
+    }
+  } catch (error) {
+    console.error('[AUTH_HEADER_ERROR]', error);
+  }
+
+  return headers;
+}
+
 async function request(path, options = {}) {
-  const response = await fetch(`${API_URL}${path}`, options);
+  const headers = await getAuthHeaders();
+  const finalOptions = {
+    ...options,
+    headers: {
+      ...headers,
+      ...options.headers,
+    },
+  };
+
+  const response = await fetch(`${API_URL}${path}`, finalOptions);
   return response;
 }
 
@@ -18,13 +48,16 @@ async function requestJson(path, options = {}) {
 export async function scoreAssessment({ businessProblem, businessSolution, parameters }) {
   return requestJson('/score', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ businessProblem, businessSolution, parameters }),
   });
 }
 
 export async function getAssessments(params = {}) {
-  const query = new URLSearchParams(params);
+  // Remove sessionId from params - auth is now handled by token
+  const cleanParams = { ...params };
+  delete cleanParams.sessionId;
+
+  const query = new URLSearchParams(cleanParams);
   const path = query.toString() ? `/assessments?${query}` : '/assessments';
   return requestJson(path);
 }
@@ -39,7 +72,6 @@ export async function getAssessmentById(id) {
 export async function createAssessment(payload) {
   return requestJson('/assessments', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
 }
