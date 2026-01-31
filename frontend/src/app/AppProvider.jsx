@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { Toaster } from '@/components/ui/toaster';
 
 /**
