@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  getAssessments as fetchAssessments,
-  deleteAssessment,
-} from '@/features/assessments/api/assessmentApi';
+import { getAssessments as fetchAssessments, deleteAssessment } from '@/features/assessments';
 
 export function useAssessments({
   sessionId,

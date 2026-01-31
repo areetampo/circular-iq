@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { extractProblemSolution } from '../../../../src/utils/helpers';
+import { extractProblemSolution } from '@/utils/helpers';
 import { NotebookText } from 'lucide-react';
 import ModalHeading from '@/components/modals/core/ModalHeading';
-import { RESULTS_MODALS } from '../core/modalTypes';
+import { RESULTS_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function ResultsDatabaseEvidenceDetailsModal({
   onClose,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAssessmentById } from '../api/assessmentApi';
+import { getAssessmentById } from '@/features/assessments';
 
 export default function useAssessmentComparison(id1, id2) {
   const [assessment1, setAssessment1] = useState(null);

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { parameterGuidance } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';
 import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '../core/modalTypes';
+import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function ParameterInfoModal({ onClose, isOpen, paramKey }) {
   if (!isOpen) return null;

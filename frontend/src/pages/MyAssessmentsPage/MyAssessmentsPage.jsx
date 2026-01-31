@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import { getSessionId } from '../../utils/session';
-import { useToast } from '../../src/hooks/useToast';
-import Loader from '../components/feedback/Loader';
-import AppContainer from '../components/layout/AppContainer';
-import { formatTimestamp } from '../../lib/formatting';
-import { useAssessments } from '@/features/assessments/hooks/useAssessments';
+import { getSessionId } from '@/utils/session';
+import { useToast } from '@/hooks/useToast';
+import Loader from '@/components/feedback/Loader';
+import AppContainer from '@/components/layout/AppContainer';
+import { formatTimestamp } from '@/lib/formatting';
+import { useAssessments } from '@/features/assessments';
 
 export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = () => {} }) {
   const navigate = useNavigate();

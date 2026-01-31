@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { factorDefinitions } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';
-import ModalHeading from '../core/ModalHeading';
-import { LANDING_MODALS } from '../core/modalTypes';
+import ModalHeading from '@/components/modals/core/ModalHeading';
+import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function EvaluationParametersInfoModal({ onClose, isModalOpen }) {
   if (!isModalOpen) return null;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getAssessmentById as fetchAssessmentById } from '@/features/assessments/api/assessmentApi';
+import { getAssessmentById as fetchAssessmentById } from '@/features/assessments';
 
 export function useAssessment(id, options = {}) {
   const { autoFetch = true, initialData = null } = options;

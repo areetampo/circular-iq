@@ -1,11 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-  parameterLabels,
-  parameterGroups,
-  parameterGuidance,
-} from '../../constants/evaluationData';
-import InfoIconButton from '../shared/InfoIconButton';
+import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
+import InfoIconButton from '@/components/common/InfoIconButton';
 
 export default function ParameterInputContainer({
   parameters,

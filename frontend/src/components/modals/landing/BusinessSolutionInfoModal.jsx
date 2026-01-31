@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardMinus } from 'lucide-react';
-import ModalHeading from '../core/ModalHeading';
-import { LANDING_MODALS } from '../core/modalTypes';
+import ModalHeading from '@/components/modals/core/ModalHeading';
+import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
 
 const SOLUTION_COMPONENTS = [
   {
