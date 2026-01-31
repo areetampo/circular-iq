@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
 import RadarChartSection from '../components/shared/RadarChartSection';
@@ -7,36 +7,16 @@ import { exportComparisonCSV } from '../../utils/exportSimple';
 import Loader from '../components/feedback/Loader';
 import AppContainer from '../../components/layout/AppContainer';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '../../lib/formatting';
-import { compareAssessments } from '@/features/assessments/api/assessmentApi';
+import { useAssessmentComparison } from '@/features/assessments';
 
 export default function AssessmentComparisonPage({ onBack = () => {} }) {
   const { id1, id2 } = useParams();
-  const [assessment1, setAssessment1] = useState(null);
-  const [assessment2, setAssessment2] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchAssessments();
-  }, [id1, id2]);
-
-  const fetchAssessments = async () => {
-    setLoading(true);
-    try {
-      const data = await compareAssessments(id1, id2);
-      const a1 = data?.assessment1 || data?.assessments?.[0] || data?.left || null;
-      const a2 = data?.assessment2 || data?.assessments?.[1] || data?.right || null;
-
-      setAssessment1(a1);
-      setAssessment2(a2);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching assessments:', err);
-      setError('Failed to load assessments. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch both assessments and comparison data using hook
+  const { assessment1, assessment2, comparisonData, loading, error } = useAssessmentComparison(
+    id1,
+    id2,
+  );
 
   if (loading)
     return (
@@ -55,24 +35,32 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
       </div>
     );
 
-  const factorDiffs = Object.keys(assessment1.result_json?.sub_scores || {}).map((key) => {
-    const a1 = assessment1.result_json?.sub_scores?.[key] || 0;
-    const a2 = assessment2.result_json?.sub_scores?.[key] || 0;
+  // Use comparison data from hook and derive additional metrics for UI
+  const factorDiffs = Object.entries(comparisonData.factorDiffs || {}).map(([factor, diff]) => {
+    const a1 = assessment1.result_json?.sub_scores?.[factor] || 0;
+    const a2 = assessment2.result_json?.sub_scores?.[factor] || 0;
     return {
-      factor: key,
-      label: titleize(key),
-      diff: a2 - a1,
+      factor,
+      label: titleize(factor),
+      diff,
       a1,
       a2,
     };
   });
 
-  const overallDelta =
-    (assessment2.result_json?.overall_score || 0) - (assessment1.result_json?.overall_score || 0);
-  const biggestGain =
-    factorDiffs.filter((f) => f.diff > 0).sort((a, b) => b.diff - a.diff)[0] || null;
-  const biggestDrop =
-    factorDiffs.filter((f) => f.diff < 0).sort((a, b) => a.diff - b.diff)[0] || null;
+  const overallDelta = comparisonData.overallDiff;
+  const biggestGain = comparisonData.biggestGain
+    ? {
+        ...comparisonData.biggestGain,
+        label: titleize(comparisonData.biggestGain.factor),
+      }
+    : null;
+  const biggestDrop = comparisonData.biggestDrop
+    ? {
+        ...comparisonData.biggestDrop,
+        label: titleize(comparisonData.biggestDrop.factor),
+      }
+    : null;
   const averageDelta =
     factorDiffs.length > 0
       ? Math.round(factorDiffs.reduce((sum, f) => sum + f.diff, 0) / factorDiffs.length)
@@ -420,13 +408,13 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
             <div className="flex flex-col gap-3">
               {compareMetric(
                 'vs. Similar Avg',
-                Math.round(assessment1.result_json.gap_analysis.overall_benchmarks.average),
-                Math.round(assessment2.result_json.gap_analysis.overall_benchmarks.average),
+                Math.round(assessment1.result_json?.gap_analysis.overall_benchmarks.average),
+                Math.round(assessment2.result_json?.gap_analysis.overall_benchmarks.average),
               )}
               {compareMetric(
                 'vs. Top 10%',
-                assessment1.result_json.gap_analysis.overall_benchmarks.top_10_percentile,
-                assessment2.result_json.gap_analysis.overall_benchmarks.top_10_percentile,
+                assessment1.result_json?.gap_analysis.overall_benchmarks.top_10_percentile,
+                assessment2.result_json?.gap_analysis.overall_benchmarks.top_10_percentile,
               )}
             </div>
           </div>
@@ -470,10 +458,10 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
             📊 Score Distribution Comparison
           </h3>
           <BarChartSection
-            data={Object.keys(assessment1.result_json.sub_scores).map((key) => ({
+            data={Object.keys(assessment1.result_json?.sub_scores).map((key) => ({
               name: key.replace(/_/g, ' '),
-              [assessment1.title]: assessment1.result_json.sub_scores[key],
-              [assessment2.title]: assessment2.result_json.sub_scores[key],
+              [assessment1.title]: assessment1.result_json?.sub_scores[key],
+              [assessment2.title]: assessment2.result_json?.sub_scores[key],
             }))}
             barConfigs={[
               {
@@ -502,11 +490,11 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
             🎯 Multi-Factor Profile
           </h3>
           <RadarChartSection
-            data={Object.keys(assessment1.result_json.sub_scores).map((key) => ({
+            data={Object.keys(assessment1.result_json?.sub_scores).map((key) => ({
               factor: key.replace(/_/g, ' '),
               fullFactor: key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-              'Assessment 1': assessment1.result_json.sub_scores[key],
-              'Assessment 2': assessment2.result_json.sub_scores[key],
+              'Assessment 1': assessment1.result_json?.sub_scores[key],
+              'Assessment 2': assessment2.result_json?.sub_scores[key],
             }))}
             radarConfigs={[
               {
@@ -573,7 +561,8 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
             <span className="font-bold">{assessment1.title}</span>
             &nbsp;(
             {formatTimestamp(assessment1.created_at)}
-            )&nbsp;&nbsp;vs.&nbsp;&nbsp;<span className="font-bold">{assessment2.title}</span>
+            )&nbsp;&nbsp;vs.&nbsp;&nbsp;
+            <span className="font-bold">{assessment2.title}</span>
             &nbsp;(
             {formatTimestamp(assessment2.created_at)})
           </li>
