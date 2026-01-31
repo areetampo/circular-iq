@@ -13,23 +13,18 @@ export function useAssessments({
   const queryClient = useQueryClient();
 
   // Use React Query to fetch assessments
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['assessments', { sessionId, page, pageSize, sortBy, order, search, industry }],
-    queryFn: () => getAssessments({
-      sessionId,
-      page,
-      pageSize,
-      sortBy,
-      order,
-      search,
-      industry,
-    }),
+    queryFn: () =>
+      getAssessments({
+        sessionId,
+        page,
+        pageSize,
+        sortBy,
+        order,
+        search,
+        industry,
+      }),
   });
 
   // Use mutation for deleting assessments

@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { getSessionId, loadEvaluationState, saveEvaluationState, clearEvaluationState } from '@/utils/session';
+import {
+  getSessionId,
+  loadEvaluationState,
+  saveEvaluationState,
+  clearEvaluationState,
+} from '@/utils/session';
 
 /**
  * Hook for managing user session with React Query
@@ -7,21 +12,15 @@ import { getSessionId, loadEvaluationState, saveEvaluationState, clearEvaluation
  */
 export function useSession() {
   // Query for session data (session ID and evaluation state)
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
       // Get or create session ID
       const sessionId = getSessionId();
-      
+
       // Load saved evaluation state if any
       const evaluationState = loadEvaluationState();
-      
+
       return {
         sessionId,
         evaluationState,
