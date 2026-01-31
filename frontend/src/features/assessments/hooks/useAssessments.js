@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAssessments, deleteAssessment } from '@/features/assessments';
 
 export function useAssessments({
@@ -11,7 +10,7 @@ export function useAssessments({
   search,
   industry,
 } = {}) {
-  const [deletingIds, setDeletingIds] = useState(new Set());
+  const queryClient = useQueryClient();
 
   // Use React Query to fetch assessments
   const {
@@ -33,29 +32,14 @@ export function useAssessments({
     }),
   });
 
-  const removeAssessment = useCallback(
-    async (id) => {
-      const nextDeleting = new Set(deletingIds);
-      nextDeleting.add(id);
-      setDeletingIds(nextDeleting);
-
-      try {
-        await deleteAssessment(id);
-        // Refetch assessments after successful deletion
-        await refetch();
-      } catch (err) {
-        // Error is handled by the component
-        throw err;
-      } finally {
-        setDeletingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      }
+  // Use mutation for deleting assessments
+  const deleteMutation = useMutation({
+    mutationFn: deleteAssessment,
+    onSuccess: () => {
+      // Invalidate assessments list to trigger automatic refresh
+      queryClient.invalidateQueries({ queryKey: ['assessments'] });
     },
-    [deletingIds, refetch],
-  );
+  });
 
   return {
     assessments: data?.assessments || [],
@@ -64,9 +48,11 @@ export function useAssessments({
     isLoading,
     error: error?.message || null,
     isError,
-    deletingIds,
     refetch,
-    removeAssessment,
+    removeAssessment: deleteMutation.mutate,
+    removeAssessmentAsync: deleteMutation.mutateAsync,
+    isDeleting: deleteMutation.isPending,
+    deleteError: deleteMutation.error,
     data, // Return full data object for flexibility
   };
 }
