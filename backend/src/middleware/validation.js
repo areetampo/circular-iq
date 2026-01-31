@@ -15,15 +15,21 @@ import { z } from 'zod';
  * Fields:
  * - name: Display name for the assessment (1-255 chars)
  * - industry: Industry classification (min 1 char)
- * - result_json: Full evaluation result object
+ * - result_json: Full evaluation result object (non-empty)
  * - session_id: Unique user session identifier
+ *
+ * Strict mode: Rejects any unknown/extra fields in the request
  */
-export const assessmentSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255, 'Name must not exceed 255 characters'),
-  industry: z.string().min(1, 'Industry is required'),
-  result_json: z.record(z.unknown()).or(z.object({}).passthrough()),
-  session_id: z.string().min(1, 'Session ID is required'),
-});
+export const assessmentSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(255, 'Name must not exceed 255 characters'),
+    industry: z.string().min(1, 'Industry is required'),
+    result_json: z.record(z.unknown()).refine((val) => Object.keys(val).length > 0, {
+      message: 'result_json must not be empty',
+    }),
+    session_id: z.string().min(1, 'Session ID is required'),
+  })
+  .strict();
 
 /**
  * Middleware factory: Validates request body against provided Zod schema
@@ -48,6 +54,16 @@ export function validateRequest(schema) {
           code: err.code,
         }));
 
+        // Log validation failures for debugging "bad actors"
+        console.warn('[VALIDATION_FAILURE]', {
+          timestamp: new Date().toISOString(),
+          endpoint: req.path,
+          method: req.method,
+          ip: req.ip || req.connection.remoteAddress,
+          errors: formattedErrors,
+          receivedFields: Object.keys(req.body),
+        });
+
         return res.status(400).json({
           error: 'Validation failed',
           code: 'VALIDATION_ERROR',
@@ -57,6 +73,14 @@ export function validateRequest(schema) {
       }
 
       // Handle non-Zod errors
+      console.warn('[VALIDATION_ERROR]', {
+        timestamp: new Date().toISOString(),
+        endpoint: req.path,
+        method: req.method,
+        ip: req.ip || req.connection.remoteAddress,
+        errorMessage: error.message,
+      });
+
       return res.status(400).json({
         error: 'Request validation error',
         code: 'BAD_REQUEST',
@@ -70,6 +94,7 @@ export function validateRequest(schema) {
  * Middleware: Validates assessment-specific request body
  *
  * Applied to POST /api/assessments route to ensure valid assessment data
+ * Enforces strict schema with no unknown fields allowed
  *
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -88,6 +113,17 @@ export function validateAssessment(req, res, next) {
         code: err.code,
       }));
 
+      // Log validation failures for debugging "bad actors"
+      console.warn('[ASSESSMENT_VALIDATION_FAILURE]', {
+        timestamp: new Date().toISOString(),
+        endpoint: req.path,
+        method: req.method,
+        ip: req.ip || req.connection.remoteAddress,
+        errors: formattedErrors,
+        receivedFields: Object.keys(req.body),
+        bodySize: JSON.stringify(req.body).length,
+      });
+
       return res.status(400).json({
         error: 'Assessment validation failed',
         code: 'VALIDATION_ERROR',
@@ -97,6 +133,14 @@ export function validateAssessment(req, res, next) {
     }
 
     // Handle non-Zod errors
+    console.warn('[ASSESSMENT_VALIDATION_ERROR]', {
+      timestamp: new Date().toISOString(),
+      endpoint: req.path,
+      method: req.method,
+      ip: req.ip || req.connection.remoteAddress,
+      errorMessage: error.message,
+    });
+
     return res.status(400).json({
       error: 'Assessment validation error',
       code: 'BAD_REQUEST',
