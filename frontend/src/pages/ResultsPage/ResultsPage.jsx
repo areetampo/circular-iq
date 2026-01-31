@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import RadarChart from '@/components/charts/RadarChart';
 import AssessmentMethodologyModal from '@/components/modals/header/AssessmentMethodologyModal';
@@ -12,6 +12,7 @@ import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from
 import { useToast } from '@/hooks/useToast';
 import { toast } from '@/hooks/use-toast';
 import { useExportState } from '@/hooks/useExportState';
+import { useSession } from '@/features/session/hooks/useSession';
 import Loader from '@/components/common/Loader';
 import { SaveAssessmentDialog } from '@/components/dialogs';
 import { Button } from '@/components/ui/button';
@@ -45,14 +46,30 @@ export default function ResultsPage({
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
+  const { saveEvaluation, restoreEvaluation } = useSession();
+
+  // Extract result and formData from navigation state
+  const navigationResult = location.state?.result;
+  const navigationFormData = location.state?.formData;
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [resultsDetailedDatabaseEvidenceModalData, setResultsDetailedDatabaseEvidenceModalData] =
     useState(null);
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
   const [showCriteriaModal, setShowCriteriaModal] = useState(false);
   const [showMarketAnalysisModal, setShowMarketAnalysisModal] = useState(false);
+
+  // Persist result to session on mount or when result changes
+  useEffect(() => {
+    if (!isDetailView && navigationResult) {
+      saveEvaluation({
+        result: navigationResult,
+        formData: navigationFormData,
+      });
+    }
+  }, [navigationResult, navigationFormData, isDetailView, saveEvaluation]);
 
   // Fetch assessment data for detail view using hook
   const { assessment, isLoading, isError, error, refetch } = useAssessment(id, {
@@ -189,21 +206,44 @@ export default function ResultsPage({
     );
   }
 
-  // If not in detail view and no result data, redirect to home
+  // If not in detail view and no result data, try to restore from session first
   if (!isDetailView && !currentData) {
-    return (
-      <AppContainer
-        headerProps={{
-          showLogo: false,
-          title: 'No Assessment Data',
-          subtitle: 'Please complete an assessment to view results.',
-        }}
-      >
-        <div className="flex flex-wrap justify-center gap-4">
-          <Button onClick={() => navigate('/')}>Back to Evaluate</Button>
-        </div>
-      </AppContainer>
-    );
+    const restoredState = restoreEvaluation();
+    if (restoredState?.result) {
+      // If session has data but it's not in currentData, we can proceed with rendering
+      // The result should be used from the restoredState
+      // For now, show the full error only if no session data exists
+      if (!restoredState) {
+        return (
+          <AppContainer
+            headerProps={{
+              showLogo: false,
+              title: 'No Assessment Data',
+              subtitle: 'Please complete an assessment to view results. Session data not found.',
+            }}
+          >
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button onClick={() => navigate('/')}>Back to Evaluate</Button>
+            </div>
+          </AppContainer>
+        );
+      }
+    } else {
+      // No session data and no navigation result
+      return (
+        <AppContainer
+          headerProps={{
+            showLogo: false,
+            title: 'No Assessment Data',
+            subtitle: 'Please complete an assessment to view results.',
+          }}
+        >
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button onClick={() => navigate('/')}>Back to Evaluate</Button>
+          </div>
+        </AppContainer>
+      );
+    }
   }
 
   const overallScore = actualResult?.overall_score != null ? Number(actualResult.overall_score) : 0;
