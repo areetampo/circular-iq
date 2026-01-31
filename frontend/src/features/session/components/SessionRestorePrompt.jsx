@@ -11,13 +11,13 @@ import { Button } from '@/components/ui/button';
 
 /**
  * SessionRestorePrompt component
- * 
+ *
  * Usage with useSession hook:
  * ```jsx
  * const { hasEvaluationState, restoreEvaluation, clearEvaluation } = useSession();
- * 
+ *
  * {hasEvaluationState && (
- *   <SessionRestorePrompt 
+ *   <SessionRestorePrompt
  *     onRestore={() => {
  *       const state = restoreEvaluation();
  *       // Apply state to form...

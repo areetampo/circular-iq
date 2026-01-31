@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
 import Loader from '@/components/common/Loader';
@@ -6,7 +6,7 @@ import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
 import { titleize } from '@/lib/formatting';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
-import { getAssessmentById, getMarketAnalysis } from '@/features/assessments';
+import { useMarketAnalysis } from '@/features/assessments';
 import {
   Dialog,
   DialogContent,
@@ -23,53 +23,18 @@ export default function MarketAnalysisModal({
   currentIndustry,
 }) {
   const { id } = useParams();
-  const [marketData, setMarketData] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [filterScale, setFilterScale] = useState('all');
-  const [userScore, setUserScore] = useState(currentAssessmentScore || null);
-  const [userIndustry, setUserIndustry] = useState(currentIndustry || null);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchMarketAnalysis();
-    }
-  }, [isOpen]);
+  // Fetch market analysis data using hook
+  const { marketData, stats, userScore, userIndustry, isLoading, isError, error, refetch } =
+    useMarketAnalysis({
+      assessmentId: id,
+      enabled: isOpen,
+    });
 
-  useEffect(() => {
-    const maybeFetchAssessment = async () => {
-      if ((userScore == null || userIndustry == null) && id) {
-        try {
-          const payload = await getAssessmentById(id);
-          const assessment = payload?.assessment?.result_json || payload?.assessment;
-          if (assessment) {
-            setUserScore(assessment?.overall_score || null);
-            setUserIndustry(assessment?.metadata?.industry || null);
-          }
-        } catch (e) {
-          console.error('Failed to fetch assessment data for market analysis', e);
-        }
-      }
-    };
-    if (isOpen) {
-      maybeFetchAssessment();
-    }
-  }, [id, isOpen]);
-
-  const fetchMarketAnalysis = async () => {
-    setLoading(true);
-    try {
-      const data = await getMarketAnalysis();
-      setMarketData(data.market_data || []);
-      setStats(data.stats);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load market data', err.message || '');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use current scores if provided, otherwise fall back to fetched data
+  const finalUserScore = currentAssessmentScore ?? userScore;
+  const finalUserIndustry = currentIndustry ?? userIndustry;
 
   const getIndustryColor = (industry) => {
     const colors = {
@@ -105,7 +70,7 @@ export default function MarketAnalysisModal({
 
   const userPercentile = stats
     ? Math.round(
-        (((userScore || 0) - (stats.min_score || 0)) /
+        (((finalUserScore || 0) - (stats.min_score || 0)) /
           ((stats.max_score || 100) - (stats.min_score || 0))) *
           100,
       )
@@ -144,15 +109,15 @@ export default function MarketAnalysisModal({
         </DialogHeader>
 
         <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <Loader />
             </div>
-          ) : error ? (
+          ) : isError ? (
             <div className="p-4 text-center text-red-600">
               <p>{error}</p>
               <button
-                onClick={fetchMarketAnalysis}
+                onClick={refetch}
                 className="px-4 py-2 mt-4 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 Retry
@@ -190,7 +155,7 @@ export default function MarketAnalysisModal({
                     <div className="text-sm text-gray-600">Total Projects</div>
                     <div className="text-2xl font-bold text-[#2c3e50]">{stats.total_count}</div>
                   </div>
-                  {userScore != null && (
+                  {finalUserScore != null && (
                     <div className="p-5 bg-gradient-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-[#ff9800] shadow-md rounded-xl">
                       <div className="mb-2 text-3xl">⭐</div>
                       <div className="text-sm text-gray-600">Your Percentile</div>

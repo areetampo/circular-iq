@@ -4,13 +4,7 @@ import { getAssessmentById, createAssessment } from '@/features/assessments';
 export function useAssessment(id, options = {}) {
   const { enabled = true } = options;
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['assessment', id],
     queryFn: () => getAssessmentById(id),
     enabled: enabled && !!id,

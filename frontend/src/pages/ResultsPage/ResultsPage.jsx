@@ -54,13 +54,9 @@ export default function ResultsPage({
   const [showMarketAnalysisModal, setShowMarketAnalysisModal] = useState(false);
 
   // Fetch assessment data for detail view using hook
-  const {
-    assessment,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useAssessment(id, { enabled: isDetailView && !!id });
+  const { assessment, isLoading, isError, error, refetch } = useAssessment(id, {
+    enabled: isDetailView && !!id,
+  });
 
   const detailLoading = isLoading;
   const detailError = error;
