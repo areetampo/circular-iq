@@ -505,8 +505,8 @@ app.post('/assessments', requireAuth(supabase), validateAssessment, async (req, 
 
   try {
     // Use validated body from middleware
-    const { name, industry, result_json, session_id } = req.validatedBody;
-    const { title, businessProblem, businessSolution, result, parameters, sessionId } = req.body;
+    const { name, industry, result_json } = req.validatedBody;
+    const { title, businessProblem, businessSolution, result, parameters } = req.body;
 
     if (!result || !result.overall_score) {
       return res.status(400).json({
@@ -519,7 +519,6 @@ app.post('/assessments', requireAuth(supabase), validateAssessment, async (req, 
     const assessmentData = {
       user_id: req.user.id,
       title: name || title?.substring(0, 255) || 'Untitled Assessment',
-      session_id: session_id || sessionId || null,
       business_problem: businessProblem || '',
       business_solution: businessSolution || '',
       result_json: result_json || {
@@ -563,7 +562,6 @@ app.get('/assessments', requireAuth(supabase), async (req, res) => {
 
   try {
     const {
-      sessionId,
       industry,
       sortBy: sortByRaw = 'created_at',
       order: orderRaw = 'desc',
@@ -589,10 +587,6 @@ app.get('/assessments', requireAuth(supabase), async (req, res) => {
 
     // Filter to only user's own assessments
     query = query.eq('user_id', req.user.id);
-
-    if (sessionId) {
-      query = query.eq('session_id', sessionId);
-    }
 
     if (industry) {
       query = query.eq('industry', industry);
@@ -679,13 +673,18 @@ app.get('/assessments/:id', async (req, res) => {
  * DELETE /assessments/:id
  * Delete a saved assessment
  */
-app.delete('/assessments/:id', async (req, res) => {
+app.delete('/assessments/:id', requireAuth(supabase), async (req, res) => {
   const startTime = Date.now();
 
   try {
     const { id } = req.params;
 
-    const { error } = await supabase.from('assessments').delete().eq('id', id);
+    // Delete only if the assessment belongs to the authenticated user
+    const { error } = await supabase
+      .from('assessments')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', req.user.id);
 
     if (error) throw error;
 
