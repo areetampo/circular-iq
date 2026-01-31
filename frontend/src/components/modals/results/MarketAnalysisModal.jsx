@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
-import { ChartNoAxesCombined } from 'lucide-react';
 import Loader from '@/components/common/Loader';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { RESULTS_MODALS } from '../core/modalTypes';
 import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
 import { titleize } from '@/lib/formatting';
 import { getCurrentTimestampFormatted } from '../../../lib/formatting';
 import { getAssessmentById, getMarketAnalysis } from '@/features/assessments/api/assessmentApi';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 export default function MarketAnalysisModal({
   isOpen,
@@ -125,25 +130,20 @@ export default function MarketAnalysisModal({
     },
   ];
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[999] p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-6xl max-h-[90vh] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ModalHeading
-          title="Market Analysis"
-          icon={ChartNoAxesCombined}
-          onClose={onClose}
-          type={RESULTS_MODALS.MARKET_ANALYSIS}
-        />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-6xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50]">
+            📊 Market Analysis
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Benchmark your circular economy initiative against the broader market
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <Loader />
@@ -446,8 +446,8 @@ export default function MarketAnalysisModal({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
