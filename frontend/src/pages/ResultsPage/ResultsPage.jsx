@@ -10,12 +10,13 @@ import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { validKeys, categoryMapping } from '@/constants/evaluationData';
 import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/content';
 import { useToast } from '@/hooks/useToast';
+import { toast } from '@/hooks/use-toast';
 import { useExportState } from '@/hooks/useExportState';
 import Loader from '@/components/common/Loader';
 import { SaveAssessmentDialog } from '@/components/dialogs';
 import { Button } from '@/components/ui/button';
 import { CaseSummary } from '@/components/results';
-import { Frown, FileText, NotebookText } from 'lucide-react';
+import { Frown, FileText, NotebookText, Share } from 'lucide-react';
 import AppContainer from '@/components/layout/AppContainer';
 import './ResultsPage.css';
 import { titleize } from '@/lib/formatting';
@@ -277,6 +278,21 @@ export default function ResultsPage({
 
     await executeExport(() => exportAssessmentPDF(currentData, ratingFn), 'PDF');
   };
+
+  const handleShareLink = useCallback(async () => {
+    const assessmentPath = id ? `/results/${id}` : window.location.pathname;
+    const shareUrl = `${window.location.origin}${assessmentPath}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: 'Link Copied',
+        description: 'Anyone with this link can now view this assessment.',
+      });
+    } catch (err) {
+      addToast('Failed to copy link to clipboard', 'error');
+    }
+  }, [addToast, id]);
 
   const defaultAssessmentName = useMemo(() => {
     const source = isDetailView ? fetchedAssessment : currentData;
@@ -1362,6 +1378,9 @@ export default function ResultsPage({
             </Button>
             <Button disabled={isExporting} onClick={handleDownloadPDF} variant="outline">
               {isExporting ? '⏳ Generating...' : '📄 Download as PDF'}
+            </Button>
+            <Button disabled={isExporting} onClick={handleShareLink} variant="outline">
+              <Share className="mr-2 h-4 w-4" /> Share
             </Button>
             {!isDetailView && (
               <button
