@@ -577,7 +577,7 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
           {getCurrentTimestampFormatted()}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button onClick={() => exportComparisonCSV(assessment1, assessment2)} variant="outline">
+          <Button onClick={() => exportComparisonCSV([assessment1, assessment2])} variant="outline">
             📤 Export Comparison (CSV)
           </Button>
           <button

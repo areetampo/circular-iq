@@ -6,9 +6,10 @@
  */
 
 /**
- * Escapes special characters in CSV values
+ * Escapes special characters in CSV values for Excel compatibility
+ * Handles commas, quotes, newlines, tabs, and special characters
  * @param {string} value - The value to escape
- * @returns {string} Escaped value
+ * @returns {string} Escaped value safe for Excel
  */
 function escapeCSV(value) {
   if (value === null || value === undefined) {
@@ -17,11 +18,22 @@ function escapeCSV(value) {
 
   const stringValue = String(value);
 
-  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
+  // Remove any existing UTF-8 BOM
+  const cleanValue = stringValue.replace(/^\uFEFF/, '');
+
+  // Excel-compatible escaping: wrap in quotes if contains special chars
+  if (
+    cleanValue.includes(',') ||
+    cleanValue.includes('"') ||
+    cleanValue.includes('\n') ||
+    cleanValue.includes('\r') ||
+    cleanValue.includes('\t')
+  ) {
+    // Double any quotes and wrap in quotes
+    return `"${cleanValue.replace(/"/g, '""')}"`;
   }
 
-  return stringValue;
+  return cleanValue;
 }
 
 /**
@@ -46,12 +58,14 @@ function generateCSV(data, headers) {
 }
 
 /**
- * Triggers a CSV file download in the browser
+ * Triggers a CSV file download in the browser with UTF-8 BOM for Excel
  * @param {string} csvContent - CSV content string
  * @param {string} filename - Desired filename for download
  */
 function downloadCSV(csvContent, filename) {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  // Add UTF-8 BOM for Excel compatibility
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
 
@@ -62,6 +76,9 @@ function downloadCSV(csvContent, filename) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  // Clean up
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -189,109 +206,163 @@ export function exportAssessmentCSV(assessment) {
 }
 
 /**
- * Exports a comparison between two assessments to CSV
- * @param {Object} assessment1 - First assessment to compare
- * @param {Object} assessment2 - Second assessment to compare
+ * Exports a comparison between multiple assessments to CSV
+ * Creates a professional matrix format with factors as rows and assessments as columns
+ * @param {Object|Array<Object>} assessments - Single assessment object or array of assessments to compare
  * @returns {void}
  */
-export function exportComparisonCSV(assessment1, assessment2) {
-  if (!assessment1 || !assessment2) {
-    throw new Error('Both assessments are required for comparison');
+export function exportComparisonCSV(assessments) {
+  // Handle both single object (backward compatibility) and array inputs
+  const assessmentArray = Array.isArray(assessments) ? assessments : [assessments];
+
+  if (assessmentArray.length === 0) {
+    throw new Error('At least one assessment is required');
   }
 
-  const result1 = assessment1.result_json || assessment1;
-  const result2 = assessment2.result_json || assessment2;
+  // For backward compatibility with 2-argument calls
+  if (!Array.isArray(assessments) && arguments.length === 2) {
+    assessmentArray.push(arguments[1]);
+  }
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `assessment-comparison-${dateStr}.csv`;
 
   const csvLines = [];
 
-  // Title
-  csvLines.push('ASSESSMENT COMPARISON REPORT');
-  csvLines.push('');
+  // Extract assessment data
+  const assessmentData = assessmentArray.map((assessment, index) => {
+    const result = assessment.result_json || assessment;
+    const metadata = result.metadata || {};
+    const title = assessment.title || `Assessment ${index + 1}`;
+    const createdAt = assessment.created_at ? formatDate(assessment.created_at) : 'N/A';
 
-  // Assessment Headers
-  const title1 = assessment1.title || 'Assessment 1';
-  const title2 = assessment2.title || 'Assessment 2';
+    return {
+      title,
+      createdAt,
+      result,
+      metadata,
+      overallScore: result.overall_score || 0,
+      subScores: result.sub_scores || {},
+      audit: result.audit || {},
+    };
+  });
 
-  csvLines.push(`Assessment 1,${escapeCSV(title1)}`);
-  csvLines.push(`Created,${formatDate(assessment1.created_at)}`);
-  csvLines.push('');
+  // Build header row: "Evaluation Factor" + assessment titles
+  const headerRow = ['Evaluation Factor', ...assessmentData.map((a) => escapeCSV(a.title))];
 
-  csvLines.push(`Assessment 2,${escapeCSV(title2)}`);
-  csvLines.push(`Created,${formatDate(assessment2.created_at)}`);
-  csvLines.push('');
-
-  // Overall Score Comparison
-  csvLines.push('OVERALL SCORES');
-  csvLines.push(`Metric,${escapeCSV(title1)},${escapeCSV(title2)},Change`);
-
-  const score1 = result1.overall_score || 0;
-  const score2 = result2.overall_score || 0;
-  const scoreDiff = score2 - score1;
-
-  csvLines.push(`Score,${score1},${score2},${scoreDiff > 0 ? '+' : ''}${scoreDiff}`);
-  csvLines.push('');
-
-  // Factor Score Comparison
-  const subScores1 = result1.sub_scores || {};
-  const subScores2 = result2.sub_scores || {};
-
-  if (Object.keys(subScores1).length > 0 || Object.keys(subScores2).length > 0) {
-    csvLines.push('FACTOR SCORES COMPARISON');
-    csvLines.push(`Factor,${escapeCSV(title1)},${escapeCSV(title2)},Change`);
-
-    const allFactors = new Set([...Object.keys(subScores1), ...Object.keys(subScores2)]);
-
-    allFactors.forEach((factor) => {
-      const val1 = subScores1[factor] || 0;
-      const val2 = subScores2[factor] || 0;
-      const diff = val2 - val1;
-      csvLines.push(
-        `${escapeCSV(factor.replace(/_/g, ' '))},${val1},${val2},${diff > 0 ? '+' : ''}${diff}`,
-      );
-    });
-    csvLines.push('');
+  // Add optional "Change" column if comparing exactly 2 assessments
+  if (assessmentData.length === 2) {
+    headerRow.push('Change (Δ)');
   }
 
-  // Metadata Comparison
-  const metadata1 = result1.metadata || {};
-  const metadata2 = result2.metadata || {};
+  csvLines.push(headerRow.join(','));
+  csvLines.push(''); // Empty row for readability
 
-  csvLines.push('PROJECT DETAILS COMPARISON');
-  csvLines.push(`Metric,${escapeCSV(title1)},${escapeCSV(title2)}`);
-  csvLines.push(
-    `Industry,${escapeCSV(metadata1.industry || 'N/A')},${escapeCSV(metadata2.industry || 'N/A')}`,
-  );
-  csvLines.push(
-    `Scale,${escapeCSV(metadata1.scale || 'N/A')},${escapeCSV(metadata2.scale || 'N/A')}`,
-  );
-  csvLines.push(
-    `Strategy,${escapeCSV(metadata1.r_strategy || 'N/A')},${escapeCSV(metadata2.r_strategy || 'N/A')}`,
-  );
-  csvLines.push(
-    `Material,${escapeCSV(metadata1.primary_material || 'N/A')},${escapeCSV(metadata2.primary_material || 'N/A')}`,
-  );
+  // Overall Score Row (prominent placement at top)
+  const overallScoreRow = ['Overall Score', ...assessmentData.map((a) => a.overallScore)];
+
+  if (assessmentData.length === 2) {
+    const change = assessmentData[1].overallScore - assessmentData[0].overallScore;
+    overallScoreRow.push(`${change > 0 ? '+' : ''}${change}`);
+  }
+
+  csvLines.push(overallScoreRow.join(','));
+  csvLines.push(''); // Empty row
+
+  // Collect all unique factors across all assessments
+  const allFactors = new Set();
+  assessmentData.forEach((a) => {
+    Object.keys(a.subScores).forEach((factor) => allFactors.add(factor));
+  });
+
+  // Sort factors alphabetically for consistency
+  const sortedFactors = Array.from(allFactors).sort();
+
+  // Factor Scores - one row per factor
+  sortedFactors.forEach((factor) => {
+    const factorLabel = escapeCSV(
+      factor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+    );
+    const scores = assessmentData.map((a) => a.subScores[factor] || 0);
+
+    const row = [factorLabel, ...scores];
+
+    // Add change column for 2-assessment comparison
+    if (assessmentData.length === 2) {
+      const change = scores[1] - scores[0];
+      row.push(`${change > 0 ? '+' : ''}${change}`);
+    }
+
+    csvLines.push(row.join(','));
+  });
+
+  csvLines.push(''); // Empty row
+  csvLines.push(''); // Another empty row for metadata section
+
+  // Metadata Section - horizontal comparison
+  csvLines.push('ASSESSMENT METADATA');
+  csvLines.push(''); // Empty row
+
+  const metadataHeader = ['Property', ...assessmentData.map((a) => escapeCSV(a.title))];
+  csvLines.push(metadataHeader.join(','));
+
+  // Industry row
+  const industryRow = [
+    'Industry',
+    ...assessmentData.map((a) => escapeCSV(a.metadata.industry || 'N/A')),
+  ];
+  csvLines.push(industryRow.join(','));
+
+  // Scale row
+  const scaleRow = ['Scale', ...assessmentData.map((a) => escapeCSV(a.metadata.scale || 'N/A'))];
+  csvLines.push(scaleRow.join(','));
+
+  // Strategy row
+  const strategyRow = [
+    'R-Strategy',
+    ...assessmentData.map((a) => escapeCSV(a.metadata.r_strategy || 'N/A')),
+  ];
+  csvLines.push(strategyRow.join(','));
+
+  // Material row
+  const materialRow = [
+    'Primary Material',
+    ...assessmentData.map((a) => escapeCSV(a.metadata.primary_material || 'N/A')),
+  ];
+  csvLines.push(materialRow.join(','));
+
+  // Created date row
+  const createdRow = ['Created Date', ...assessmentData.map((a) => a.createdAt)];
+  csvLines.push(createdRow.join(','));
+
+  csvLines.push(''); // Empty row
+
+  // Audit Verdicts Section
+  if (assessmentData.some((a) => a.audit.audit_verdict)) {
+    csvLines.push('AUDIT VERDICTS');
+    csvLines.push(''); // Empty row
+
+    assessmentData.forEach((a, index) => {
+      if (a.audit.audit_verdict) {
+        csvLines.push(`${escapeCSV(a.title)},${escapeCSV(a.audit.audit_verdict)}`);
+      }
+    });
+
+    csvLines.push(''); // Empty row
+  }
+
+  // Footer
   csvLines.push('');
-
-  // Audit Verdicts
-  const audit1 = result1.audit || {};
-  const audit2 = result2.audit || {};
-
-  csvLines.push('AUDIT VERDICTS');
-  csvLines.push(`${escapeCSV(title1)} Verdict,${escapeCSV(audit1.audit_verdict || 'N/A')}`);
-  csvLines.push(`${escapeCSV(title2)} Verdict,${escapeCSV(audit2.audit_verdict || 'N/A')}`);
-  csvLines.push('');
-
-  // Summary
-  csvLines.push('SUMMARY');
-  csvLines.push(`Largest Improvement,${subScores1.length > 0 ? 'See factor scores above' : 'N/A'}`);
-  csvLines.push(`Largest Decline,${subScores1.length > 0 ? 'See factor scores above' : 'N/A'}`);
-  csvLines.push('');
-
-  csvLines.push('');
-  csvLines.push(`Comparison Date,${new Date().toLocaleString()}`);
+  csvLines.push(
+    `Report Generated,${new Date().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`,
+  );
+  csvLines.push(`Number of Assessments,${assessmentData.length}`);
 
   const csvContent = csvLines.join('\n');
   downloadCSV(csvContent, filename);

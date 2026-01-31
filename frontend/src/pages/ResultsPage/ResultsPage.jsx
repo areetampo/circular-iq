@@ -8,7 +8,7 @@ import MarketAnalysisModal from '@/components/modals/results/MarketAnalysisModal
 import TipCard from '@/components/common/TipCard';
 import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { validKeys, categoryMapping } from '@/constants/evaluationData';
-import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/helpers';
+import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/content';
 import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import Loader from '@/components/common/Loader';
