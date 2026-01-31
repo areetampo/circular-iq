@@ -5,6 +5,8 @@
  * Location: src/features/export/exportCSV.js
  */
 
+import { categoryMapping, validKeys } from '@/constants/evaluationData';
+
 /**
  * Escapes special characters in CSV values for Excel compatibility
  * Handles commas, quotes, newlines, tabs, and special characters
@@ -61,6 +63,7 @@ function generateCSV(data, headers) {
  * Triggers a CSV file download in the browser with UTF-8 BOM for Excel
  * @param {string} csvContent - CSV content string
  * @param {string} filename - Desired filename for download
+ * @returns {Blob} Downloadable CSV Blob
  */
 function downloadCSV(csvContent, filename) {
   // Add UTF-8 BOM for Excel compatibility
@@ -79,6 +82,8 @@ function downloadCSV(csvContent, filename) {
 
   // Clean up
   URL.revokeObjectURL(url);
+
+  return blob;
 }
 
 /**
@@ -93,116 +98,79 @@ function formatDate(date) {
 }
 
 /**
- * Exports a single assessment to CSV
- * @param {Object} assessment - Assessment object to export
- * @returns {void}
+ * Exports assessments to CSV as a comparison matrix
+ * @param {Object|Array<Object>} assessments - Single assessment object or array of assessments
+ * @returns {{ success: boolean, message: string, blob: Blob }}
  */
-export function exportAssessmentCSV(assessment) {
-  if (!assessment) {
+export function exportAssessmentCSV(assessments) {
+  const assessmentArray = Array.isArray(assessments) ? assessments : [assessments];
+  const filteredAssessments = assessmentArray.filter(Boolean);
+
+  if (filteredAssessments.length === 0) {
     throw new Error('Assessment data is required');
   }
 
-  const result = assessment.result_json || assessment;
-  const metadata = result.metadata || {};
-  const subScores = result.sub_scores || {};
-  const audit = result.audit || {};
-  const gapAnalysis = result.gap_analysis || {};
+  const assessmentData = filteredAssessments.map((assessment, index) => {
+    const result = assessment.result_json || assessment;
+    const metadata = result.metadata || {};
+    const name =
+      assessment.title ||
+      assessment.caseName ||
+      assessment.projectTitle ||
+      metadata.industry ||
+      `Assessment ${index + 1}`;
+    const createdAt = assessment.created_at || metadata.date || result.created_at || null;
 
-  // Generate filename with date
+    return {
+      name,
+      date: createdAt ? formatDate(createdAt) : 'N/A',
+      metadata,
+      subScores: result.sub_scores || {},
+      overallScore: result.overall_score ?? 'N/A',
+    };
+  });
+
   const dateStr = new Date().toISOString().split('T')[0];
-  const filename = `assessment-${dateStr}.csv`;
+  const filename = `assessment-matrix-${dateStr}.csv`;
 
-  // Build CSV content
   const csvLines = [];
 
-  // Title and timestamp
-  csvLines.push('CIRCULAR ECONOMY ASSESSMENT EXPORT');
-  csvLines.push('');
-
   // Metadata Section
-  csvLines.push('PROJECT METADATA');
-  csvLines.push(`Industry,${escapeCSV(metadata.industry || 'N/A')}`);
-  csvLines.push(`Scale,${escapeCSV(metadata.scale || 'N/A')}`);
-  csvLines.push(`Strategy,${escapeCSV(metadata.r_strategy || 'N/A')}`);
-  csvLines.push(`Primary Material,${escapeCSV(metadata.primary_material || 'N/A')}`);
-  csvLines.push(`Geographic Focus,${escapeCSV(metadata.geographic_focus || 'N/A')}`);
+  csvLines.push('METADATA');
+  csvLines.push('');
+  csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
+  csvLines.push(
+    ['Industry', ...assessmentData.map((a) => escapeCSV(a.metadata.industry || 'N/A'))].join(','),
+  );
+  csvLines.push(['Date', ...assessmentData.map((a) => escapeCSV(a.date))].join(','));
   csvLines.push('');
 
-  // Overall Scores Section
-  csvLines.push('SCORES');
-  csvLines.push(`Overall Score,${result.overall_score || 0} / 100`);
-  csvLines.push(`Business Viability Score,${result.business_viability_score || 'N/A'}`);
-  csvLines.push('');
+  // Header Row
+  csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
 
-  // Factor Scores Section
-  if (Object.keys(subScores).length > 0) {
-    csvLines.push('FACTOR SCORES');
-    csvLines.push('Factor,Score');
-    Object.entries(subScores).forEach(([factor, score]) => {
-      csvLines.push(`${escapeCSV(factor.replace(/_/g, ' '))},${score || 'N/A'}`);
-    });
-    csvLines.push('');
-  }
+  // Evaluation Factor Rows (using validKeys)
+  validKeys.forEach((key) => {
+    const label =
+      categoryMapping[key]?.name || key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    const scores = assessmentData.map((a) =>
+      a.subScores[key] !== undefined && a.subScores[key] !== null ? a.subScores[key] : 'N/A',
+    );
+    csvLines.push([escapeCSV(label), ...scores.map((score) => escapeCSV(score))].join(','));
+  });
 
-  // Audit Verdict Section
-  if (audit.audit_verdict) {
-    csvLines.push('AUDIT VERDICT');
-    csvLines.push(escapeCSV(audit.audit_verdict));
-    csvLines.push('');
-  }
-
-  // Integrity Gaps - Strengths
-  if (audit.integrity_gaps?.strengths && audit.integrity_gaps.strengths.length > 0) {
-    csvLines.push('IDENTIFIED STRENGTHS');
-    audit.integrity_gaps.strengths.forEach((strength) => {
-      csvLines.push(`• ${escapeCSV(strength)}`);
-    });
-    csvLines.push('');
-  }
-
-  // Integrity Gaps - Areas for Improvement
-  if (audit.integrity_gaps?.gaps && audit.integrity_gaps.gaps.length > 0) {
-    csvLines.push('AREAS FOR IMPROVEMENT');
-    audit.integrity_gaps.gaps.forEach((gap) => {
-      csvLines.push(`• ${escapeCSV(gap)}`);
-    });
-    csvLines.push('');
-  }
-
-  // Confidence and Benchmarks
-  if (audit.confidence_score !== undefined) {
-    csvLines.push('CONFIDENCE METRICS');
-    csvLines.push(`Confidence Score,${(audit.confidence_score * 100).toFixed(1)}%`);
-    csvLines.push('');
-  }
-
-  // Gap Analysis Benchmarks
-  if (gapAnalysis.overall_benchmarks) {
-    csvLines.push('BENCHMARK COMPARISON');
-    csvLines.push(`Average Score,${gapAnalysis.overall_benchmarks.average || 'N/A'}`);
-    csvLines.push(`Top 10% Score,${gapAnalysis.overall_benchmarks.top_10_percentile || 'N/A'}`);
-    csvLines.push('');
-  }
-
-  // Similar Cases
-  if (audit.similar_cases_summaries && audit.similar_cases_summaries.length > 0) {
-    csvLines.push('REFERENCE CASES');
-    csvLines.push('Case Name,Similarity');
-    audit.similar_cases_summaries.forEach((caseItem) => {
-      const caseName = caseItem.case_name || caseItem.name || 'Unknown';
-      const similarity =
-        caseItem.similarity !== undefined ? `${(caseItem.similarity * 100).toFixed(1)}%` : 'N/A';
-      csvLines.push(`${escapeCSV(caseName)},${similarity}`);
-    });
-    csvLines.push('');
-  }
-
-  // Footer
-  csvLines.push('');
-  csvLines.push(`Export Date,${new Date().toLocaleString()}`);
+  // Total Overall Score Row
+  csvLines.push(
+    ['Total Overall Score', ...assessmentData.map((a) => escapeCSV(a.overallScore))].join(','),
+  );
 
   const csvContent = csvLines.join('\n');
-  downloadCSV(csvContent, filename);
+  const blob = downloadCSV(csvContent, filename);
+
+  return {
+    success: true,
+    message: 'CSV exported successfully',
+    blob,
+  };
 }
 
 /**
