@@ -8,6 +8,7 @@ import Loader from '@/components/feedback/Loader';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
+import { Button } from '@/components/ui/button';
 
 export default function AssessmentComparisonPage({ onBack = () => {} }) {
   const { id1, id2 } = useParams();
@@ -576,13 +577,9 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
           {getCurrentTimestampFormatted()}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <button
-            className="secondary-button"
-            title="Export comparison as CSV"
-            onClick={() => exportComparisonCSV(assessment1, assessment2)}
-          >
+          <Button onClick={() => exportComparisonCSV(assessment1, assessment2)} variant="outline">
             📤 Export Comparison (CSV)
-          </button>
+          </Button>
           <button
             className="bg-white text-[#34a83a] border-2 border-[#34a83a] py-3 px-6 rounded-md font-semibold cursor-pointer text-base transition-all duration-300 ease-in-out hover:bg-[#34a83a] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(52,168,58,0.3)]"
             onClick={onBack}

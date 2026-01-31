@@ -1,28 +1,29 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { PencilLine } from 'lucide-react';
-import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 export default function SampleTestCaseInfoModal({ onClose, isOpen, testCase }) {
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <ModalHeading
-          title={testCase.title}
-          icon={PencilLine}
-          onClose={onClose}
-          type={LANDING_MODALS.TEST_CASE_INFO}
-        />
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
+          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
+            <PencilLine /> {testCase.title}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Sample test case details and parameters
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🎯</span>
@@ -92,8 +93,8 @@ export default function SampleTestCaseInfoModal({ onClose, isOpen, testCase }) {
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
