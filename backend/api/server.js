@@ -22,6 +22,7 @@ import {
   extractMetadata,
   calculateGapAnalysis,
 } from '../src/ask.js';
+import { validateAssessment } from '../src/middleware/validation.js';
 
 const app = express();
 
@@ -485,34 +486,33 @@ app.get('/docs/methodology', (req, res) => {
  * POST /assessments
  * Save a completed assessment result for historical tracking
  */
-app.post('/assessments', async (req, res) => {
+app.post('/assessments', validateAssessment, async (req, res) => {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).slice(2, 9);
 
   try {
+    // Use validated body from middleware
+    const { name, industry, result_json, session_id } = req.validatedBody;
     const { title, businessProblem, businessSolution, result, parameters, sessionId } = req.body;
 
-    if (!title || !result || !result.overall_score) {
-      return res.status(400).json(
-        errorResponse({
-          message: 'title and result with overall_score are required',
-          code: 'MISSING_ASSESSMENT_DATA',
-        }),
-      );
+    if (!result || !result.overall_score) {
+      return res.status(400).json({
+        error: 'result with overall_score is required',
+        code: 'MISSING_RESULT_DATA',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     const assessmentData = {
-      title: title.substring(0, 255),
-      session_id: sessionId || null,
+      title: name || title?.substring(0, 255) || 'Untitled Assessment',
+      session_id: session_id || sessionId || null,
       business_problem: businessProblem || '',
       business_solution: businessSolution || '',
-      result_json: result
-        ? {
-            ...result,
-            input_parameters: parameters || null,
-          }
-        : result,
-      industry: result.metadata?.industry || 'general',
+      result_json: result_json || {
+        ...result,
+        input_parameters: parameters || null,
+      },
+      industry: industry || result.metadata?.industry || 'general',
       overall_score: Math.round(result.overall_score),
       business_viability_score: result.sub_scores?.business_viability || 0,
     };
@@ -532,7 +532,11 @@ app.post('/assessments', async (req, res) => {
   } catch (error) {
     console.error(`[${requestId}] Assessment save error:`, error);
     logRequest('POST', '/assessments', 500, Date.now() - startTime);
-    res.status(500).json(errorResponse(error, 'Failed to save assessment'));
+    res.status(500).json({
+      error: error.message || 'Failed to save assessment',
+      code: 'SAVE_ERROR',
+      timestamp: new Date().toISOString(),
+    });
   }
 });
 
