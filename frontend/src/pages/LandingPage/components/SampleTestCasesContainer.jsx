@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useFormContext } from 'react-hook-form';
 import testCases from '@/data/testCases.json';
 import TestCaseInfoModal from '@/components/modals/landing/SampleTestCaseInfoModal';
 import InfoIconButton from '@/components/common/InfoIconButton';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function SampleTestCasesContainer({ onSelectTestCase }) {
+export default function SampleTestCasesContainer() {
+  const { setValue, trigger } = useFormContext();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -21,13 +23,12 @@ export default function SampleTestCasesContainer({ onSelectTestCase }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleSelectCase = (testCase) => {
+  const handleSelectCase = async (testCase) => {
     setSelectedCase(testCase.id);
-    onSelectTestCase({
-      businessProblem: testCase.problem,
-      businessSolution: testCase.solution,
-      parameters: testCase.parameters,
-    });
+    setValue('businessProblem', testCase.problem, { shouldValidate: true });
+    setValue('businessSolution', testCase.solution, { shouldValidate: true });
+    setValue('parameters', testCase.parameters, { shouldValidate: true });
+    await trigger();
   };
 
   const getParameterColor = (value) => {
@@ -153,6 +154,4 @@ export default function SampleTestCasesContainer({ onSelectTestCase }) {
   );
 }
 
-SampleTestCasesContainer.propTypes = {
-  onSelectTestCase: PropTypes.func.isRequired,
-};
+SampleTestCasesContainer.propTypes = {};
