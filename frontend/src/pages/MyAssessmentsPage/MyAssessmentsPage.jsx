@@ -84,8 +84,7 @@ export default function MyAssessmentsPage() {
       setConfirmDeleteId(null);
       setShowDeleteModal(false);
     } catch (err) {
-      // Global error handler will show the error toast
-      // Just cleanup the UI state
+      addToast('Delete failed. Please try again.', 'error');
       setConfirmDeleteId(null);
       setShowDeleteModal(false);
     }

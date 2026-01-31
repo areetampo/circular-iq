@@ -21,7 +21,7 @@ import { Frown, FileText, NotebookText, Share } from 'lucide-react';
 import AppContainer from '@/components/layout/AppContainer';
 import './ResultsPage.css';
 import { titleize } from '@/lib/formatting';
-import { useAssessment } from '@/features/assessments';
+import { useAssessment, useCreateAssessment } from '@/features/assessments';
 
 const fallbackGetRatingBadge = (score) => {
   if (score >= 90) return 'Excellent';
@@ -46,6 +46,8 @@ export default function ResultsPage({
   const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
   const { saveEvaluation, restoreEvaluation } = useSession();
+  const { createAssessmentAsync, isPending: isSaving } = useCreateAssessment();
+  const [sessionRestored, setSessionRestored] = useState(false);
 
   // Extract result and formData from navigation state
   const navigationResult = location.state?.result;
@@ -66,6 +68,14 @@ export default function ResultsPage({
       });
     }
   }, [navigationResult, navigationFormData, isDetailView, saveEvaluation]);
+
+  // Show info toast if session was restored
+  useEffect(() => {
+    if (!isDetailView && !navigationResult && restoreEvaluation()?.result && !sessionRestored) {
+      addToast('Previous session restored.', 'info');
+      setSessionRestored(true);
+    }
+  }, [isDetailView, navigationResult, restoreEvaluation, sessionRestored, addToast]);
 
   // Fetch assessment data for detail view using hook
   const { assessment, isLoading, isError, error, refetch } = useAssessment(id, {
@@ -100,10 +110,27 @@ export default function ResultsPage({
   }, []);
 
   // Save assessment handler
-  const handleSave = useCallback((name) => {
-    console.log('Saving assessment:', name);
-    // TODO: Implement save logic
-  }, []);
+  const handleSave = useCallback(
+    async (name) => {
+      try {
+        const saveData = {
+          name,
+          result_json: currentData,
+          industry: currentData?.metadata?.industry || 'Unknown',
+          session_id: navigationFormData?.sessionId || Date.now().toString(),
+        };
+
+        await createAssessmentAsync(saveData);
+        addToast('Assessment saved successfully!', 'success');
+        setShowSaveDialog(false);
+        navigate('/assessments');
+      } catch (error) {
+        console.error('Save error:', error);
+        addToast('Failed to save assessment. Please try again.', 'error');
+      }
+    },
+    [currentData, navigationFormData, createAssessmentAsync, addToast, navigate],
+  );
 
   // Smart data resolution: detail view > navigation state > session restoration
   const currentData = isDetailView
@@ -1445,6 +1472,7 @@ export default function ResultsPage({
         onOpenChange={setShowSaveDialog}
         defaultName={defaultAssessmentName}
         onSave={handleSave}
+        disabled={isSaving}
       />
     </AppContainer>
   );
