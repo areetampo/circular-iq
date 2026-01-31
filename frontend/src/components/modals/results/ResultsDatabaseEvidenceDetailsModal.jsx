@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { extractProblemSolution } from '@/utils/helpers';
+import { extractProblemSolution } from '@/utils/content';
 import { NotebookText } from 'lucide-react';
 import {
   Dialog,
