@@ -5,7 +5,7 @@
  * Location: src/lib/scoring.js
  */
 
-import { COLORS, confidenceLevels } from '../constants/evaluationData.js';
+import { COLORS, confidenceLevels } from '@/constants/evaluationData.js';
 
 /**
  * Get color for score based on ranges

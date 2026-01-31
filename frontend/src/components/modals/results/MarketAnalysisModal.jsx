@@ -5,8 +5,8 @@ import Loader from '@/components/common/Loader';
 import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
 import { titleize } from '@/lib/formatting';
-import { getCurrentTimestampFormatted } from '../../../lib/formatting';
-import { getAssessmentById, getMarketAnalysis } from '@/features/assessments/api/assessmentApi';
+import { getCurrentTimestampFormatted } from '@/lib/formatting';
+import { getAssessmentById, getMarketAnalysis } from '@/features/assessments';
 import {
   Dialog,
   DialogContent,

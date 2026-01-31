@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import InfoIconButton from '../components/shared/InfoIconButton';
-import ParameterInputContainer from './components/ParameterInputContainer';
-import { getCharacterCount } from '../../utils/text';
+import InfoIconButton from '@/components/common/InfoIconButton';
+import ParameterInputContainer from '@/pages/LandingPage/components/ParameterInputContainer';
+import { getCharacterCount } from '@/utils/text';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import BusinessProblemInfoModal from '../components/modals/BusinessProblemInfoModal';
-import Loader from '../../components/common/Loader';
-import AppContainer from '../components/layout/AppContainer';
+import BusinessProblemInfoModal from '@/components/modals/landing/BusinessProblemInfoModal';
+import Loader from '@/components/common/Loader';
+import AppContainer from '@/components/layout/AppContainer';
 import './LandingPage.css';
 
 export default function LandingPage({

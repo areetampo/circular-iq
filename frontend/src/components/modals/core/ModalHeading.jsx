@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import CloseButtonX from '@/components/common/CloseButtonX';
-import { MODAL_GRADIENTS } from '../modalGradients';
+import { MODAL_GRADIENTS } from '@/components/modals/core/modalGradients';
 
 export default function ModalHeading({
   title,

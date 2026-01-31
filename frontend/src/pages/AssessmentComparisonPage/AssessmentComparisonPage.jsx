@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
-import RadarChartSection from '../components/shared/RadarChartSection';
-import BarChartSection from '../components/shared/BarChartSection';
-import { exportComparisonCSV } from '../../utils/exportSimple';
-import Loader from '../components/feedback/Loader';
-import AppContainer from '../../components/layout/AppContainer';
-import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '../../lib/formatting';
+import RadarChartSection from '@/components/shared/RadarChartSection';
+import BarChartSection from '@/components/shared/BarChartSection';
+import { exportComparisonCSV } from '@/features/export';
+import Loader from '@/components/feedback/Loader';
+import AppContainer from '@/components/layout/AppContainer';
+import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
 
 export default function AssessmentComparisonPage({ onBack = () => {} }) {

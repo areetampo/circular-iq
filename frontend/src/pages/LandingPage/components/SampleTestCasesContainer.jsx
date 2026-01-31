@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import testCases from '../../../../../backend/data/test-cases.json';
-import TestCaseInfoModal from '../modals/TestCaseInfoModal';
-import InfoIconButton from '../../../components/common/InfoIconButton';
+import testCases from '@/data/testCases.json';
+import TestCaseInfoModal from '@/components/modals/landing/SampleTestCaseInfoModal';
+import InfoIconButton from '@/components/common/InfoIconButton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SampleTestCasesContainer({ onSelectTestCase }) {

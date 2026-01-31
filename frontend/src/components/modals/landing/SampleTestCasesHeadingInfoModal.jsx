@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardPenLine } from 'lucide-react';
 import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '../core/modalTypes';
+import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function SampleTestCasesHeadingInfoModal({ onClose, isOpen }) {
   if (!isOpen) return null;

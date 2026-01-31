@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { PencilLine } from 'lucide-react';
 import ModalHeading from '@/components/modals/core/ModalHeading';
-import { LANDING_MODALS } from '../core/modalTypes';
+import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function SampleTestCaseInfoModal({ onClose, isOpen, testCase }) {
   if (!isOpen) return null;
