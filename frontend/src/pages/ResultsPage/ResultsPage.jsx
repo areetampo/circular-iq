@@ -319,8 +319,55 @@ export default function ResultsPage({
         showMyAssessmentsButton: true,
       }}
     >
-      {/* PDF Export Container */}
-      <div id="results-content">
+      {/* Action Buttons */}
+      <div className="results-footer">
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <button className="back-button" onClick={onBack}>
+            {isDetailView ? '← Back to History' : '← Evaluate Another Idea'}
+          </button>
+          <button className="secondary-button" onClick={onViewHistory}>
+            📋 My Assessments
+          </button>
+          <button className="secondary-button" onClick={handleMarketAnalysis}>
+            📊 Market Analysis
+          </button>
+          {/* Market Analysis Modal */}
+          <MarketAnalysisModal
+            isOpen={showMarketAnalysisModal}
+            onClose={() => setShowMarketAnalysisModal(false)}
+            currentAssessmentScore={actualResult?.overall_score}
+            currentIndustry={actualResult?.metadata?.industry}
+          />
+          {isDetailView && currentData && onReevaluate && (
+            <button className="secondary-button" onClick={() => onReevaluate(currentData)}>
+              🔄 Re-evaluate
+            </button>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <Button disabled={isExporting} onClick={handleDownloadCSV} variant="outline">
+            {isExporting ? '⏳ Exporting...' : '📥 Similar Cases CSV'}
+          </Button>
+          <Button disabled={isExporting} onClick={handleDownloadPDF} variant="outline">
+            {isExporting ? '⏳ Generating...' : '📄 Download as PDF'}
+          </Button>
+          <Button disabled={isExporting} onClick={handleShareLink} variant="outline">
+            <Share className="w-4 h-4 mr-2" /> Share
+          </Button>
+          {!isDetailView && (
+            <button
+              className="save-button"
+              onClick={() => setShowSaveDialog(true)}
+              disabled={isExporting}
+            >
+              💾 Save Assessment
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Results Content */}
+      <div id="results-content" className="p-8 space-y-10 bg-white">
         {/* Executive Summary Card */}
         <div className="executive-summary-card">
           <div className="summary-header">
@@ -1350,62 +1397,16 @@ export default function ResultsPage({
           )}
         </div>
 
-        {/* Footer Buttons */}
-        <div className="results-footer">
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button className="back-button" onClick={onBack}>
-              {isDetailView ? '← Back to History' : '← Evaluate Another Idea'}
-            </button>
-            <button className="secondary-button" onClick={onViewHistory}>
-              📋 My Assessments
-            </button>
-            <button className="secondary-button" onClick={handleMarketAnalysis}>
-              📊 Market Analysis
-            </button>
-            {/* Market Analysis Modal */}
-            <MarketAnalysisModal
-              isOpen={showMarketAnalysisModal}
-              onClose={() => setShowMarketAnalysisModal(false)}
-              currentAssessmentScore={actualResult?.overall_score}
-              currentIndustry={actualResult?.metadata?.industry}
-            />
-            {isDetailView && currentData && onReevaluate && (
-              <button className="secondary-button" onClick={() => onReevaluate(currentData)}>
-                🔄 Re-evaluate
-              </button>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <Button disabled={isExporting} onClick={handleDownloadCSV} variant="outline">
-              {isExporting ? '⏳ Exporting...' : '📥 Similar Cases CSV'}
-            </Button>
-            <Button disabled={isExporting} onClick={handleDownloadPDF} variant="outline">
-              {isExporting ? '⏳ Generating...' : '📄 Download as PDF'}
-            </Button>
-            <Button disabled={isExporting} onClick={handleShareLink} variant="outline">
-              <Share className="mr-2 h-4 w-4" /> Share
-            </Button>
-            {!isDetailView && (
-              <button
-                className="save-button"
-                onClick={() => setShowSaveDialog(true)}
-                disabled={isExporting}
-              >
-                💾 Save Assessment
-              </button>
-            )}
-          </div>
-        </div>
-
         {/* Save Assessment Dialog */}
-        <SaveAssessmentDialog
-          open={showSaveDialog && !isDetailView}
-          onOpenChange={setShowSaveDialog}
-          defaultName={defaultAssessmentName}
-          onSave={onSaveAssessment}
-        />
-      </div>{' '}
-      {/* End of #results-content */}
+      </div>
+
+      {/* Save Assessment Dialog */}
+      <SaveAssessmentDialog
+        open={showSaveDialog && !isDetailView}
+        onOpenChange={setShowSaveDialog}
+        defaultName={defaultAssessmentName}
+        onSave={onSaveAssessment}
+      />
     </AppContainer>
   );
 }
