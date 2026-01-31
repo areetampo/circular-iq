@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import { getAssessments as fetchAssessments, deleteAssessment } from '@/features/assessments';
+import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getAssessments, deleteAssessment } from '@/features/assessments';
 
 export function useAssessments({
   sessionId,
@@ -10,35 +11,27 @@ export function useAssessments({
   search,
   industry,
 } = {}) {
-  const [assessments, setAssessments] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [deletingIds, setDeletingIds] = useState(new Set());
 
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchAssessments({
-        sessionId,
-        page,
-        pageSize,
-        sortBy,
-        order,
-        search,
-        industry,
-      });
-
-      setAssessments(data.assessments || []);
-      setTotal(Number(data.total || 0));
-    } catch (err) {
-      setError(err?.message || 'Failed to load assessments');
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionId, page, pageSize, sortBy, order, search, industry]);
+  // Use React Query to fetch assessments
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['assessments', { sessionId, page, pageSize, sortBy, order, search, industry }],
+    queryFn: () => getAssessments({
+      sessionId,
+      page,
+      pageSize,
+      sortBy,
+      order,
+      search,
+      industry,
+    }),
+  });
 
   const removeAssessment = useCallback(
     async (id) => {
@@ -48,9 +41,11 @@ export function useAssessments({
 
       try {
         await deleteAssessment(id);
-        setAssessments((prev) => prev.filter((assessment) => assessment.id !== id));
+        // Refetch assessments after successful deletion
+        await refetch();
       } catch (err) {
-        setError(err?.message || 'Failed to delete assessment');
+        // Error is handled by the component
+        throw err;
       } finally {
         setDeletingIds((prev) => {
           const next = new Set(prev);
@@ -59,20 +54,19 @@ export function useAssessments({
         });
       }
     },
-    [deletingIds],
+    [deletingIds, refetch],
   );
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
   return {
-    assessments,
-    total,
-    loading,
-    error,
+    assessments: data?.assessments || [],
+    total: Number(data?.total || 0),
+    loading: isLoading,
+    isLoading,
+    error: error?.message || null,
+    isError,
     deletingIds,
     refetch,
     removeAssessment,
+    data, // Return full data object for flexibility
   };
 }
