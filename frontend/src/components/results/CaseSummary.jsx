@@ -76,8 +76,3 @@ CaseSummary.propTypes = {
     solution: PropTypes.string,
   }),
 };
-
-CaseSummary.defaultProps = {
-  caseInfo: {},
-  problemSolution: {},
-};
