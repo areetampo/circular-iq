@@ -68,6 +68,7 @@ export default function LandingPage() {
       setLoading(true);
       setError(null);
       const result = await scoreAssessment(formData);
+      clearEvaluation();
       // Navigate to results page with the result data
       navigate('/results', { state: { result, formData } });
     } catch (err) {
