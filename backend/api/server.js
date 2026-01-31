@@ -23,6 +23,7 @@ import {
   calculateGapAnalysis,
 } from '../src/ask.js';
 import { validateAssessment } from '../src/middleware/validation.js';
+import { requireAuth } from '../src/middleware/auth.js';
 
 const app = express();
 
@@ -486,7 +487,7 @@ app.get('/docs/methodology', (req, res) => {
  * POST /assessments
  * Save a completed assessment result for historical tracking
  */
-app.post('/assessments', validateAssessment, async (req, res) => {
+app.post('/assessments', requireAuth(supabase), validateAssessment, async (req, res) => {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).slice(2, 9);
 
@@ -504,6 +505,7 @@ app.post('/assessments', validateAssessment, async (req, res) => {
     }
 
     const assessmentData = {
+      user_id: req.user.id,
       title: name || title?.substring(0, 255) || 'Untitled Assessment',
       session_id: session_id || sessionId || null,
       business_problem: businessProblem || '',
@@ -544,7 +546,7 @@ app.post('/assessments', validateAssessment, async (req, res) => {
  * GET /assessments
  * Retrieve list of saved assessments with filtering and sorting
  */
-app.get('/assessments', async (req, res) => {
+app.get('/assessments', requireAuth(supabase), async (req, res) => {
   const startTime = Date.now();
 
   try {
@@ -572,6 +574,9 @@ app.get('/assessments', async (req, res) => {
     const order = String(orderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
     let query = supabase.from('assessments').select('*', { count: 'exact' });
+
+    // Filter to only user's own assessments
+    query = query.eq('user_id', req.user.id);
 
     if (sessionId) {
       query = query.eq('session_id', sessionId);
