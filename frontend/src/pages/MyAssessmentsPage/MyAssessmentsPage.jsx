@@ -51,7 +51,7 @@ export default function MyAssessmentsPage() {
     queryClient.prefetchQuery({
       queryKey: ['assessment', id],
       queryFn: () => getAssessmentById(id),
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      staleTime: 1000 * 60 * 5, // 5 minutes - ensures hover-to-click transition is instant
     });
   };
 
