@@ -39,10 +39,6 @@ export default function ResultsPage({
   categoryMapping: passedCategoryMapping,
   validKeys: passedValidKeys,
   isDetailView = false,
-  onBack = () => {},
-  onSaveAssessment = () => {},
-  onViewHistory = () => {},
-  onReevaluate = () => {},
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,9 +77,32 @@ export default function ResultsPage({
   const detailError = error;
   const detailData = assessment;
 
+  // Navigation handlers
+  const handleBack = useCallback(() => {
+    if (isDetailView) {
+      navigate('/assessments');
+    } else {
+      navigate('/');
+    }
+  }, [isDetailView, navigate]);
+
+  const handleViewHistory = useCallback(() => {
+    navigate('/assessments');
+  }, [navigate]);
+
+  const handleReevaluate = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
   // Smart market analysis: use modal instead of routing
   const handleMarketAnalysis = useCallback(() => {
     setShowMarketAnalysisModal(true);
+  }, []);
+
+  // Save assessment handler
+  const handleSave = useCallback((name) => {
+    console.log('Saving assessment:', name);
+    // TODO: Implement save logic
   }, []);
 
   // Smart data resolution: detail view > navigation state > session restoration
@@ -172,7 +191,7 @@ export default function ResultsPage({
             Retry
           </button>
           <button
-            onClick={onBack}
+            onClick={handleBack}
             style={{
               padding: '0.75rem 1.5rem',
               background: '#e0e0e0',
@@ -342,10 +361,10 @@ export default function ResultsPage({
       {/* Action Buttons */}
       <div className="results-footer">
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <button className="back-button" onClick={onBack}>
+          <button className="back-button" onClick={handleBack}>
             {isDetailView ? '← Back to History' : '← Evaluate Another Idea'}
           </button>
-          <button className="secondary-button" onClick={onViewHistory}>
+          <button className="secondary-button" onClick={handleViewHistory}>
             📋 My Assessments
           </button>
           <button className="secondary-button" onClick={handleMarketAnalysis}>
@@ -358,8 +377,8 @@ export default function ResultsPage({
             currentAssessmentScore={actualResult?.overall_score}
             currentIndustry={actualResult?.metadata?.industry}
           />
-          {isDetailView && currentData && onReevaluate && (
-            <button className="secondary-button" onClick={() => onReevaluate(currentData)}>
+          {isDetailView && currentData && (
+            <button className="secondary-button" onClick={handleReevaluate}>
               🔄 Re-evaluate
             </button>
           )}
@@ -1425,17 +1444,12 @@ export default function ResultsPage({
         open={showSaveDialog && !isDetailView}
         onOpenChange={setShowSaveDialog}
         defaultName={defaultAssessmentName}
-        onSave={onSaveAssessment}
+        onSave={handleSave}
       />
     </AppContainer>
   );
 }
 
 ResultsPage.propTypes = {
-  data: PropTypes.object,
   isDetailView: PropTypes.bool,
-  onBack: PropTypes.func.isRequired,
-  onViewHistory: PropTypes.func.isRequired,
-  onSaveAssessment: PropTypes.func,
-  onReevaluate: PropTypes.func,
 };
