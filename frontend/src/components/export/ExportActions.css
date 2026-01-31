@@ -1,0 +1,61 @@
+/**
+ * ExportActions Component Styles
+ * Location: src/components/export/ExportActions.css
+ */
+
+.export-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 2px solid #34a83a;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #34a83a;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.export-button:hover:not(:disabled) {
+  background: #34a83a;
+  color: white;
+  box-shadow: 0 4px 8px rgba(52, 168, 58, 0.3);
+  transform: translateY(-2px);
+}
+
+.export-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.export-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: #ccc;
+  color: #999;
+}
+
+.export-button-icon {
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.export-button-label {
+  font-weight: 600;
+}
+
+/* Loading state animation for hourglass icon */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.export-button[aria-busy='true'] .export-button-icon {
+  animation: spin 1s linear infinite;
+}
