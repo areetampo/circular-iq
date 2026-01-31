@@ -10,31 +10,28 @@ import { useAssessments } from '@/features/assessments';
 
 export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = () => {} }) {
   const navigate = useNavigate();
-  const [assessments, setAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sortBy, setSortBy] = useState('created_at');
   const [filterIndustry, setFilterIndustry] = useState('all');
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [deletingIds, setDeletingIds] = useState(new Set());
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { addToast } = useToast();
   const searchRef = useRef('');
-  const errorRef = useRef(null);
 
   const {
-    assessments: fetchedAssessments,
-    total: fetchedTotal,
-    loading: fetchedLoading,
-    error: fetchedError,
+    assessments,
+    total,
+    isLoading,
+    isError,
+    error,
     refetch,
     removeAssessment,
+    isDeleting,
+    deleteError,
   } = useAssessments({
     sessionId: getSessionId(),
     page: String(page),
@@ -45,31 +42,19 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
     industry: filterIndustry !== 'all' ? filterIndustry : undefined,
   });
 
-  useEffect(() => {
-    setAssessments(fetchedAssessments || []);
-  }, [fetchedAssessments]);
+  const loading = isLoading;
 
   useEffect(() => {
-    setTotal(Number(fetchedTotal || 0));
-  }, [fetchedTotal]);
-
-  useEffect(() => {
-    setLoading(!!fetchedLoading);
-  }, [fetchedLoading]);
-
-  useEffect(() => {
-    errorRef.current = fetchedError || null;
-    setError(fetchedError || null);
-    if (fetchedError) {
-      addToast(fetchedError, 'error');
+    if (error) {
+      addToast(error, 'error');
     }
-  }, [addToast, fetchedError]);
+  }, [addToast, error]);
 
   useEffect(() => {
-    if (!fetchedLoading) {
+    if (!isLoading) {
       setInitialLoad(false);
     }
-  }, [fetchedLoading]);
+  }, [isLoading]);
 
   // Debounce search to avoid excessive requests
   useEffect(() => {
@@ -87,28 +72,15 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
 
   const proceedDelete = async (id) => {
     try {
-      const nextDeleting = new Set(deletingIds);
-      nextDeleting.add(id);
-      setDeletingIds(nextDeleting);
-
-      const previousError = errorRef.current;
       await removeAssessment(id);
-      if (errorRef.current && errorRef.current !== previousError) {
-        throw new Error(errorRef.current);
-      }
-
-      setAssessments(assessments.filter((a) => a.id !== id));
       selectedIds.delete(id);
       setSelectedIds(new Set(selectedIds));
       addToast('Assessment deleted', 'success');
-    } catch (err) {
-      addToast('Failed to delete assessment', err);
-    } finally {
-      const nextDeleting = new Set(deletingIds);
-      nextDeleting.delete(id);
-      setDeletingIds(nextDeleting);
       setConfirmDeleteId(null);
       setShowDeleteModal(false);
+    } catch (err) {
+      const errorMessage = deleteError?.message || err?.message || 'Failed to delete assessment';
+      addToast(errorMessage, 'error');
     }
   };
 
@@ -200,9 +172,9 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
             <button
               className="bg-[#dc3545] text-white border border-[#c82333] py-2 px-4 rounded-md font-bold cursor-pointer transition-[background,box-shadow] duration-200 hover:bg-[#c82333] hover:shadow-[0_2px_8px_rgba(220,53,69,0.2)]"
               onClick={() => proceedDelete(confirmDeleteId)}
-              disabled={deletingIds.has(confirmDeleteId)}
+              disabled={isDeleting}
             >
-              {deletingIds.has(confirmDeleteId) ? 'Deleting…' : 'Delete'}
+              {isDeleting ? 'Deleting…' : 'Delete'}
             </button>
           </div>
         </div>
@@ -471,9 +443,9 @@ export default function MyAssessmentsPage({ onViewDetail = () => {}, onBack = ()
                         <button
                           className="p-2 text-sm font-medium text-white transition-all bg-red-500 rounded-lg shadow-md hover:bg-red-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                           onClick={() => handleDelete(assessment.id)}
-                          disabled={deletingIds.has(assessment.id)}
+                          disabled={isDeleting && confirmDeleteId === assessment.id}
                         >
-                          {deletingIds.has(assessment.id) ? 'Deleting…' : 'Delete'}
+                          {isDeleting && confirmDeleteId === assessment.id ? 'Deleting…' : 'Delete'}
                         </button>
                       </div>
                     </td>

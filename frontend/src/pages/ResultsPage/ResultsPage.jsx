@@ -46,9 +46,6 @@ export default function ResultsPage({
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
-  const [detailData, setDetailData] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(isDetailView && id);
-  const [detailError, setDetailError] = useState(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [resultsDetailedDatabaseEvidenceModalData, setResultsDetailedDatabaseEvidenceModalData] =
     useState(null);
@@ -58,29 +55,22 @@ export default function ResultsPage({
 
   // Fetch assessment data for detail view using hook
   const {
-    assessment: fetchedAssessment,
-    loading: fetchedLoading,
-    error: fetchedError,
+    assessment,
+    isLoading,
+    isError,
+    error,
     refetch,
-  } = useAssessment(id, { autoFetch: isDetailView && !!id });
+  } = useAssessment(id, { enabled: isDetailView && !!id });
 
-  // Sync hook state to component state
-  useEffect(() => {
-    setDetailLoading(fetchedLoading);
-  }, [fetchedLoading]);
+  const detailLoading = isLoading;
+  const detailError = error;
+  const detailData = assessment;
 
   useEffect(() => {
-    setDetailError(fetchedError);
-    if (fetchedError) {
-      addToast(fetchedError, 'error');
+    if (error) {
+      addToast(error, 'error');
     }
-  }, [fetchedError, addToast]);
-
-  useEffect(() => {
-    if (fetchedAssessment) {
-      setDetailData(fetchedAssessment);
-    }
-  }, [fetchedAssessment]);
+  }, [error, addToast]);
 
   // Smart market analysis: use modal instead of routing
   const handleMarketAnalysis = useCallback(() => {
