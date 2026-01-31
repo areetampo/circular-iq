@@ -1,10 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
-import RadarChartSection from '@/components/shared/RadarChartSection';
-import BarChartSection from '@/components/shared/BarChartSection';
 import { exportComparisonCSV } from '@/features/export';
-import Loader from '@/components/feedback/Loader';
+import Loader from '@/components/common/Loader';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
@@ -452,7 +450,8 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
         </div>
       </div>
 
-      {/* Factor Scores Visualization */}
+      {/* Factor Scores Visualization - Component not found: BarChartSection */}
+      {/*
       {assessment1.result_json?.sub_scores && assessment2.result_json?.sub_scores && (
         <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
           <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
@@ -483,8 +482,10 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
           />
         </div>
       )}
+      */}
 
-      {/* Radar Chart for Multi-Factor Comparison */}
+      {/* Radar Chart for Multi-Factor Comparison - Component not found: RadarChartSection */}
+      {/*
       {assessment1.result_json?.sub_scores && assessment2.result_json?.sub_scores && (
         <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
           <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
@@ -519,6 +520,7 @@ export default function AssessmentComparisonPage({ onBack = () => {} }) {
           />
         </div>
       )}
+      */}
 
       {/* Key Insights */}
       <div

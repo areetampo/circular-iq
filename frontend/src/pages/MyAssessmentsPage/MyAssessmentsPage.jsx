@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
-import Loader from '@/components/feedback/Loader';
+import Loader from '@/components/common/Loader';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp } from '@/lib/formatting';
 import { useAssessments } from '@/features/assessments';
