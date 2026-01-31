@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import InfoIconButton from '@/components/common/InfoIconButton';
 import ParameterInputContainer from '@/pages/LandingPage/components/ParameterInputContainer';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
+import SessionRestorePrompt from '@/features/session/components/SessionRestorePrompt';
+import { useSession } from '@/features/session/hooks/useSession';
 import { getCharacterCount } from '@/lib/validation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
@@ -18,9 +20,11 @@ import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { hasEvaluationState, restoreEvaluation, clearEvaluation, saveEvaluation } = useSession();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showSessionPrompt, setShowSessionPrompt] = useState(hasEvaluationState);
 
   const methods = useForm({
     resolver: zodResolver(assessmentSchema),
@@ -31,12 +35,33 @@ export default function LandingPage() {
   const {
     register,
     watch,
+    reset,
     handleSubmit,
     formState: { isValid },
   } = methods;
 
   const businessProblem = watch('businessProblem') || '';
   const businessSolution = watch('businessSolution') || '';
+  const allFormValues = watch();
+
+  const handleRestore = () => {
+    const restoredState = restoreEvaluation();
+    if (restoredState) {
+      reset(restoredState);
+      setShowSessionPrompt(false);
+    }
+  };
+
+  // Auto-save form state to session on every change
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (allFormValues && allFormValues.businessProblem && allFormValues.businessSolution) {
+        saveEvaluation(allFormValues);
+      }
+    }, 1000); // Wait 1 second after user stops typing
+
+    return () => clearTimeout(debounceTimer);
+  }, [allFormValues, saveEvaluation]);
 
   const handleFormSubmit = async (formData) => {
     try {
@@ -54,6 +79,15 @@ export default function LandingPage() {
 
   return (
     <FormProvider {...methods}>
+      {showSessionPrompt && (
+        <SessionRestorePrompt
+          onRestore={handleRestore}
+          onDismiss={() => {
+            setShowSessionPrompt(false);
+            clearEvaluation();
+          }}
+        />
+      )}
       <AppContainer
         // className="landing-page-container"
         headerProps={{
