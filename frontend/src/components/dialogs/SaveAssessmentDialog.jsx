@@ -6,7 +6,7 @@
  * Location: src/components/dialogs/SaveAssessmentDialog.jsx
  */
 
-import { React } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { InputDialog } from './InputDialog';
 
