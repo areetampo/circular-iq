@@ -27,11 +27,48 @@ export function useAssessments({
       }),
   });
 
-  // Use mutation for deleting assessments
+  // Use mutation for deleting assessments with optimistic updates
   const deleteMutation = useMutation({
     mutationFn: deleteAssessment,
-    onSuccess: () => {
-      // Invalidate assessments list to trigger automatic refresh
+    onMutate: async (deletedId) => {
+      // Cancel any outgoing refetches to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ['assessments'] });
+
+      // Snapshot the current cache
+      const previousAssessments = queryClient.getQueryData([
+        'assessments',
+        { sessionId, page, pageSize, sortBy, order, search, industry },
+      ]);
+
+      // Optimistically update the cache by filtering out the deleted assessment
+      if (previousAssessments) {
+        queryClient.setQueryData(
+          ['assessments', { sessionId, page, pageSize, sortBy, order, search, industry }],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              assessments: old.assessments.filter((assessment) => assessment.id !== deletedId),
+              total: Math.max(0, (old.total || 0) - 1),
+            };
+          },
+        );
+      }
+
+      // Return snapshot as context for potential rollback
+      return { previousAssessments };
+    },
+    onError: (err, deletedId, context) => {
+      // Roll back to the snapshot if the mutation fails
+      if (context?.previousAssessments) {
+        queryClient.setQueryData(
+          ['assessments', { sessionId, page, pageSize, sortBy, order, search, industry }],
+          context.previousAssessments,
+        );
+      }
+    },
+    onSettled: () => {
+      // Invalidate all assessments queries to ensure UI is in sync with server
       queryClient.invalidateQueries({ queryKey: ['assessments'] });
     },
   });
