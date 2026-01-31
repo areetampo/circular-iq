@@ -1,43 +1,55 @@
-import { useCallback, useEffect, useState } from 'react';
-import { getAssessmentById as fetchAssessmentById } from '@/features/assessments';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getAssessmentById, createAssessment } from '@/features/assessments';
 
 export function useAssessment(id, options = {}) {
-  const { autoFetch = true, initialData = null } = options;
-  const [assessment, setAssessment] = useState(initialData);
-  const [loading, setLoading] = useState(autoFetch);
-  const [error, setError] = useState(null);
+  const { enabled = true } = options;
 
-  const refetch = useCallback(async () => {
-    if (!id) {
-      setAssessment(null);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchAssessmentById(id);
-      setAssessment(data?.assessment ?? data);
-    } catch (err) {
-      setError(err?.message || 'Failed to load assessment');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (autoFetch) {
-      refetch();
-    }
-  }, [autoFetch, refetch]);
-
-  return {
-    assessment,
-    loading,
+  const {
+    data,
+    isLoading,
+    isError,
     error,
     refetch,
+  } = useQuery({
+    queryKey: ['assessment', id],
+    queryFn: () => getAssessmentById(id),
+    enabled: enabled && !!id,
+  });
+
+  return {
+    assessment: data?.assessment ?? data ?? null,
+    loading: isLoading,
+    isLoading,
+    error: error?.message || null,
+    isError,
+    refetch,
+    data,
+  };
+}
+
+/**
+ * Hook for creating a new assessment with automatic cache invalidation
+ */
+export function useCreateAssessment() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: createAssessment,
+    onSuccess: () => {
+      // Invalidate assessments list to trigger automatic refresh
+      queryClient.invalidateQueries({ queryKey: ['assessments'] });
+    },
+  });
+
+  return {
+    createAssessment: mutation.mutate,
+    createAssessmentAsync: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    isPending: mutation.isPending,
+    isError: mutation.isError,
+    isSuccess: mutation.isSuccess,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
   };
 }
