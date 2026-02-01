@@ -123,6 +123,10 @@ button {
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+
   body {
     @apply font-nunito bg-background text-foreground;
   }
