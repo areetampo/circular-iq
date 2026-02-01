@@ -259,7 +259,7 @@ These are the three main pages of the application.
   - "Describe Your Business Problem" - textarea (50 char minimum)
   - "Describe Your Solution" - textarea (50 char minimum)
 - Character count indicator (live update)
-- "Advanced Parameters" toggle → ParameterSliders component (hidden by default)
+- "Evaluation Parameters" toggle → ParameterSliders component (hidden by default)
 - Guidance text:
   - Problem guide (from evaluationData.js)
   - Solution guide (from evaluationData.js)

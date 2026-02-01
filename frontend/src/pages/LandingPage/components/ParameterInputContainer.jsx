@@ -1,18 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
+import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Info } from 'lucide-react';
 
 export default function ParameterInputContainer({ loading }) {
   const { control } = useFormContext();
+  const { openParameterInfo } = useLandingModals();
 
   const getScaleMarkers = (key) => {
     const guidance = parameterGuidance[key];
@@ -46,23 +48,13 @@ export default function ParameterInputContainer({ loading }) {
                         <Label htmlFor={key} className="text-sm font-medium">
                           {parameterLabels[key].label}
                         </Label>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              className="p-1 rounded-full hover:bg-muted"
-                              onClick={(e) => e.preventDefault()}
-                            >
-                              <Info className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p className="font-semibold">{parameterLabels[key].label}</p>
-                            {guidance && guidance.description && (
-                              <p className="mt-1 text-sm">{guidance.description}</p>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
+                        <button
+                          type="button"
+                          className="p-1 rounded-full hover:bg-muted"
+                          onClick={() => openParameterInfo(key)}
+                        >
+                          <Info className="w-4 h-4 text-muted-foreground" />
+                        </button>
                       </div>
 
                       <Controller

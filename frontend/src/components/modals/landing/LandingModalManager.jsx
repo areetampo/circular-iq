@@ -8,36 +8,36 @@ import SampleTestCaseInfoModal from '@/components/modals/landing/SampleTestCaseI
 import SampleTestCasesHeadingInfoModal from '@/components/modals/landing/SampleTestCasesHeadingInfoModal';
 import ParameterInfoModal from '@/components/modals/landing/ParameterInfoModal';
 
-export default function LandingModalManager({ modal, isModalOpen, closeModal }) {
+export default function LandingModalManager({ modal, isModalOpen, onClose }) {
   if (!modal) return null;
 
   switch (modal.type) {
     case LANDING_MODALS.BUSINESS_PROBLEM_INFO:
-      return <BusinessProblemInfoModal isModalOpen={isModalOpen} onClose={closeModal} />;
+      return <BusinessProblemInfoModal isModalOpen={isModalOpen} onClose={onClose} />;
 
     case LANDING_MODALS.BUSINESS_SOLUTION_INFO:
-      return <BusinessSolutionInfoModal isModalOpen={isModalOpen} onClose={closeModal} />;
+      return <BusinessSolutionInfoModal isModalOpen={isModalOpen} onClose={onClose} />;
 
     case LANDING_MODALS.EVALUATION_PARAMETERS_INFO:
-      return <EvaluationParametersInfoModal isModalOpen={isModalOpen} onClose={closeModal} />;
+      return <EvaluationParametersInfoModal isModalOpen={isModalOpen} onClose={onClose} />;
 
     case LANDING_MODALS.PARAMETER_INFO:
       return (
         <ParameterInfoModal
           isModalOpen={isModalOpen}
-          onClose={closeModal}
+          onClose={onClose}
           paramKey={modal.data.paramKey}
         />
       );
 
     case LANDING_MODALS.SAMPLE_TEST_CASES_HEADING_INFO:
-      return <SampleTestCasesHeadingInfoModal isModalOpen={isModalOpen} onClose={closeModal} />;
+      return <SampleTestCasesHeadingInfoModal isModalOpen={isModalOpen} onClose={onClose} />;
 
     case LANDING_MODALS.TEST_CASE_INFO:
       return (
         <SampleTestCaseInfoModal
           isModalOpen={isModalOpen}
-          onClose={closeModal}
+          onClose={onClose}
           testCase={modal.data.testCase}
         />
       );
@@ -53,5 +53,5 @@ LandingModalManager.propTypes = {
     data: PropTypes.any,
   }),
   isModalOpen: PropTypes.bool.isRequired,
-  closeModal: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };

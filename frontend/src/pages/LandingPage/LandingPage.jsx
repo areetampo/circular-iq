@@ -8,6 +8,8 @@ import ParameterInputContainer from '@/pages/LandingPage/components/ParameterInp
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 import SessionRestorePrompt from '@/features/session/components/SessionRestorePrompt';
 import { useSession } from '@/features/session/hooks/useSession';
+import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
+import LandingModalManager from '@/components/modals/landing/LandingModalManager';
 import { getCharacterCount } from '@/lib/validation';
 import { motion, AnimatePresence } from 'framer-motion';
 import AppContainer from '@/components/layout/AppContainer';
@@ -33,7 +35,15 @@ import {
 export default function LandingPage() {
   const navigate = useNavigate();
   const { hasEvaluationState, restoreEvaluation, clearEvaluation, saveEvaluation } = useSession();
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const {
+    modal,
+    isModalOpen,
+    closeModal,
+    openBusinessProblem,
+    openBusinessSolution,
+    openEvaluationParameters,
+  } = useLandingModals();
+  const [showEvaluationParameters, setShowEvaluationParameters] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSessionPrompt, setShowSessionPrompt] = useState(hasEvaluationState);
@@ -146,7 +156,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
           <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-orange-100">
+              <div className="flex items-center justify-center w-12 h-12 mb-3 bg-orange-100 rounded-lg">
                 <Sparkles className="w-6 h-6 text-orange-600" />
               </div>
               <CardTitle className="text-lg">AI-Powered</CardTitle>
@@ -158,7 +168,7 @@ export default function LandingPage() {
 
           <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-blue-100">
+              <div className="flex items-center justify-center w-12 h-12 mb-3 bg-blue-100 rounded-lg">
                 <LayoutGrid className="w-6 h-6 text-blue-600" />
               </div>
               <CardTitle className="text-lg">Multi-Dimensional</CardTitle>
@@ -168,7 +178,7 @@ export default function LandingPage() {
 
           <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-center w-12 h-12 mb-3 rounded-lg bg-green-100">
+              <div className="flex items-center justify-center w-12 h-12 mb-3 bg-green-100 rounded-lg">
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
               <CardTitle className="text-lg">Actionable</CardTitle>
@@ -202,12 +212,7 @@ export default function LandingPage() {
                   variant="ghost"
                   size="sm"
                   className="gap-2 -mt-1"
-                  onClick={() =>
-                    toast.info('Business Problem Tips', {
-                      description:
-                        'Describe the specific environmental or waste problem your business addresses. Include scale, impact, and current gaps in existing solutions.',
-                    })
-                  }
+                  onClick={openBusinessProblem}
                 >
                   <Info className="w-4 h-4" />
                 </Button>
@@ -250,12 +255,7 @@ export default function LandingPage() {
                   variant="ghost"
                   size="sm"
                   className="gap-2 -mt-1"
-                  onClick={() =>
-                    toast.info('Business Solution Tips', {
-                      description:
-                        'Explain your circular solution, including materials used, collection/processing methods, and how it closes the loop. Be specific about your approach.',
-                    })
-                  }
+                  onClick={openBusinessSolution}
                 >
                   <Info className="w-4 h-4" />
                 </Button>
@@ -293,30 +293,27 @@ export default function LandingPage() {
 
             <Separator />
 
-            {/* Advanced Parameters Section */}
+            {/* EvaluationParameters Parameters Section */}
             <div className="space-y-4">
               <Button
                 type="button"
                 variant="ghost"
-                className="justify-start w-full gap-2 text-base font-semibold h-auto px-0 hover:bg-transparent text-primary"
-                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="justify-start w-full h-auto gap-2 px-0 text-base font-semibold hover:bg-transparent text-primary"
+                onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
               >
-                {showAdvanced ? (
+                {showEvaluationParameters ? (
                   <ChevronDown className="w-5 h-5" />
                 ) : (
                   <ChevronRight className="w-5 h-5" />
                 )}
-                Advanced Parameters
+                EvaluationParameters Parameters
                 <Button
                   variant="ghost"
                   size="sm"
                   className="gap-1 ml-auto"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.info('Evaluation Factors', {
-                      description:
-                        'Fine-tune the assessment by adjusting individual circular economy factors like accessibility, embedded value, processing, product longevity, and categories.',
-                    });
+                    openEvaluationParameters();
                   }}
                 >
                   <Info className="w-4 h-4" />
@@ -324,7 +321,7 @@ export default function LandingPage() {
               </Button>
 
               <AnimatePresence initial={false}>
-                {showAdvanced && (
+                {showEvaluationParameters && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
@@ -378,6 +375,9 @@ export default function LandingPage() {
           </CardContent>
         </Card>
       </AppContainer>
+
+      {/* Landing Page Modals */}
+      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={closeModal} />
     </FormProvider>
   );
 }

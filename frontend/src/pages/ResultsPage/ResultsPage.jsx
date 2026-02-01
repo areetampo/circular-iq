@@ -51,8 +51,8 @@ import {
   Frown,
   NotebookText,
 } from 'lucide-react';
-import MarketAnalysisModal from '@/components/modals/results/MarketAnalysisModal';
-import ResultsDatabaseEvidenceDetailsModal from '@/components/modals/results/ResultsDatabaseEvidenceDetailsModal';
+import useResultsModals from '@/pages/ResultsPage/hooks/useResultsModals';
+import ResultsModalManager from '@/components/modals/results/ResultsModalManager';
 
 const fallbackGetRatingBadge = (score) => {
   if (score >= 85) return 'A';
@@ -78,11 +78,10 @@ export default function ResultsPage({
   const { isExporting, executeExport } = useExportState();
   const { saveEvaluation, restoreEvaluation } = useSession();
   const { createAssessmentAsync, isLoading: isSaving } = useCreateAssessment();
+  const { modal, isModalOpen, closeModal, openDatabaseEvidenceDetails, openMarketAnalysis } =
+    useResultsModals();
 
   const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [showMarketAnalysisModal, setShowMarketAnalysisModal] = useState(false);
-  const [resultsDetailedDatabaseEvidenceModalData, setResultsDetailedDatabaseEvidenceModalData] =
-    useState(null);
   const [sessionRestored, setSessionRestored] = useState(false);
 
   useEffect(() => {
@@ -130,8 +129,10 @@ export default function ResultsPage({
 
   // Smart market analysis: use modal instead of routing
   const handleMarketAnalysis = useCallback(() => {
-    setShowMarketAnalysisModal(true);
-  }, []);
+    if (actualResult) {
+      openMarketAnalysis(actualResult?.overall_score, actualResult?.metadata?.industry);
+    }
+  }, [actualResult, openMarketAnalysis]);
 
   // Smart data resolution: detail view > navigation state > session restoration
   // Memoized to prevent unnecessary re-renders
@@ -459,14 +460,6 @@ export default function ResultsPage({
           )}
         </div>
       </div>
-
-      {/* Market Analysis Modal */}
-      <MarketAnalysisModal
-        isOpen={showMarketAnalysisModal}
-        onClose={() => setShowMarketAnalysisModal(false)}
-        currentAssessmentScore={actualResult?.overall_score}
-        currentIndustry={actualResult?.metadata?.industry}
-      />
 
       {/* Results Content */}
       <ScrollArea className="h-[calc(100vh-16rem)]">
@@ -1565,7 +1558,7 @@ export default function ResultsPage({
                               <button
                                 className="mt-3.5 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline"
                                 onClick={() =>
-                                  setResultsDetailedDatabaseEvidenceModalData({
+                                  openDatabaseEvidenceDetails({
                                     caseItem,
                                     content,
                                     title: caseTitle,
@@ -1578,13 +1571,6 @@ export default function ResultsPage({
                               >
                                 View Full Details →
                               </button>
-                              {resultsDetailedDatabaseEvidenceModalData && (
-                                <ResultsDatabaseEvidenceDetailsModal
-                                  isModalOpen={!!resultsDetailedDatabaseEvidenceModalData}
-                                  onClose={() => setResultsDetailedDatabaseEvidenceModalData(null)}
-                                  {...resultsDetailedDatabaseEvidenceModalData}
-                                />
-                              )}
                             </div>
                           </div>
                         );
@@ -1709,6 +1695,9 @@ export default function ResultsPage({
         onSave={handleSave}
         disabled={isSaving}
       />
+
+      {/* Results Page Modals */}
+      <ResultsModalManager modal={modal} isModalOpen={isModalOpen} onClose={closeModal} />
     </AppContainer>
   );
 }
