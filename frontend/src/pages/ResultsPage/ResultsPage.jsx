@@ -50,6 +50,8 @@ import {
   Save,
   Frown,
   NotebookText,
+  Lock,
+  Globe,
 } from 'lucide-react';
 import useResultsModals from '@/pages/ResultsPage/hooks/useResultsModals';
 import ResultsModalManager from '@/components/modals/results/ResultsModalManager';
@@ -145,13 +147,14 @@ export default function ResultsPage({
 
   // Save assessment handler
   const handleSave = useCallback(
-    async (name) => {
+    async (name, isPublic = true) => {
       try {
         const saveData = {
           name,
           result_json: currentData,
           industry: currentData?.metadata?.industry || 'Unknown',
           session_id: navigationFormData?.sessionId || Date.now().toString(),
+          is_public: isPublic,
         };
 
         await createAssessmentAsync(saveData);
@@ -476,8 +479,25 @@ export default function ResultsPage({
               <Card>
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-2xl">Executive Summary</CardTitle>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-2xl">Executive Summary</CardTitle>
+                        {isDetailView && currentData && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            {currentData.is_public === false ? (
+                              <>
+                                <Lock className="h-3 w-3" />
+                                Private
+                              </>
+                            ) : (
+                              <>
+                                <Globe className="h-3 w-3" />
+                                Contributing
+                              </>
+                            )}
+                          </Badge>
+                        )}
+                      </div>
                       <CardDescription className="mt-2">
                         AI-powered circularity assessment and recommendations
                       </CardDescription>
