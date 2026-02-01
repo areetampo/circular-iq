@@ -1,4 +1,10 @@
 import { supabase } from '@/lib/supabase';
+import {
+  validateAssessment,
+  validateAssessmentsList,
+  safeValidateAssessment,
+  safeValidateAssessmentsList,
+} from '@/features/assessments/api/assessmentSchema';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -59,14 +65,24 @@ export async function getAssessments(params = {}) {
 
   const query = new URLSearchParams(cleanParams);
   const path = query.toString() ? `/assessments?${query}` : '/assessments';
-  return requestJson(path);
+  const data = await requestJson(path);
+
+  // Validate response data
+  return safeValidateAssessmentsList(data) || data;
 }
 
 export async function getAssessmentById(id) {
   if (!id) {
     throw new Error('Assessment id is required');
   }
-  return requestJson(`/assessments/${id}`);
+  const data = await requestJson(`/assessments/${id}`);
+
+  // Validate response data - use safe validation to allow graceful fallback
+  const validated = safeValidateAssessment(data.assessment || data);
+  if (validated) {
+    return { ...data, assessment: validated };
+  }
+  return data;
 }
 
 export async function createAssessment(payload) {
@@ -85,8 +101,17 @@ export async function deleteAssessment(id) {
 
 export async function getMarketAnalysis(id) {
   const path = id ? `/market-analysis/${id}` : '/market-analysis';
-  return requestJson(path);
-}
+  const data = await requestJson(path);
+
+  // Validate market analysis data structure
+  if (data && typeof data === 'object') {
+    return {
+      marketData: data.marketData || [],
+      stats: data.stats,
+      userScore: data.userScore,
+    };
+  }
+  return data;
 
 export async function compareAssessments(id1, id2) {
   if (!id1 || !id2) {
