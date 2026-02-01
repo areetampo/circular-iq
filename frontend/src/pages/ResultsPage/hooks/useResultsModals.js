@@ -11,8 +11,5 @@ export default function useResultsModals() {
 
     openDatabaseEvidenceDetails: (evidenceData) =>
       openModal(RESULTS_MODALS.DATABASE_EVIDENCE_DETAILS, evidenceData),
-
-    openMarketAnalysis: (currentAssessmentScore, currentIndustry) =>
-      openModal(RESULTS_MODALS.MARKET_ANALYSIS, { currentAssessmentScore, currentIndustry }),
   };
 }

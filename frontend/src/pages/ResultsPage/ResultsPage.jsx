@@ -80,8 +80,7 @@ export default function ResultsPage({
   const { isExporting, executeExport } = useExportState();
   const { saveEvaluation, restoreEvaluation } = useSession();
   const { createAssessmentAsync, isLoading: isSaving } = useCreateAssessment();
-  const { modal, isModalOpen, closeModal, openDatabaseEvidenceDetails, openMarketAnalysis } =
-    useResultsModals();
+  const { modal, isModalOpen, closeModal, openDatabaseEvidenceDetails } = useResultsModals();
 
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [sessionRestored, setSessionRestored] = useState(false);
@@ -131,10 +130,10 @@ export default function ResultsPage({
 
   // Smart market analysis: use modal instead of routing
   const handleMarketAnalysis = useCallback(() => {
-    if (actualResult) {
-      openMarketAnalysis(actualResult?.overall_score, actualResult?.metadata?.industry);
+    if (id) {
+      navigate(`/results/${id}/market-analysis`);
     }
-  }, [actualResult, openMarketAnalysis]);
+  }, [id, navigate]);
 
   // Smart data resolution: detail view > navigation state > session restoration
   // Memoized to prevent unnecessary re-renders

@@ -14,5 +14,4 @@ export const LANDING_MODALS = {
 
 export const RESULTS_MODALS = {
   DATABASE_EVIDENCE_DETAILS: 'evidence-details',
-  MARKET_ANALYSIS: 'market-analysis',
 };
