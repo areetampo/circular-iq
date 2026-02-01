@@ -133,9 +133,10 @@ export function getCurrentTimestampFormatted() {
  * @param {string} txt - Input text
  * @returns {string} Title-cased string or 'N/A' if empty
  */
-const titleize = (txt) =>
-  txt
+export function titleize(txt) {
+  return txt
     ? String(txt)
         .replace(/_/g, ' ')
         .replace(/\b\w/g, (l) => l.toUpperCase())
     : 'N/A';
+}

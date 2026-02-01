@@ -6,62 +6,70 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { cn } from '@/utils/cn';
 
 export default function ScatterChart({
   data,
   height,
   xAxisLabel,
-  yAxisLabel,
   xDomain,
   yDomain,
   showGrid,
   customTooltip,
   isLoading,
 }) {
+  const chartConfig = useMemo(
+    () => ({
+      points: {
+        label: 'Projects',
+        color: 'hsl(var(--chart-1))',
+      },
+    }),
+    [],
+  );
+
   // Memoize data to prevent unnecessary re-renders
   const chartData = useMemo(() => data, [data]);
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        opacity: isLoading ? 0.6 : 1,
-        transition: 'opacity 0.3s ease',
-      }}
+    <ChartContainer
+      config={chartConfig}
+      className={cn('w-full', isLoading && 'opacity-60')}
+      style={{ height: height || 400 }}
     >
-      <ResponsiveContainer width="100%" height={height || 400}>
-        <RechartsScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
-          {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />}
+      <RechartsScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
+        {showGrid && <CartesianGrid strokeDasharray="3 3" />}
 
-          <XAxis
-            type="number"
-            dataKey="x"
-            name="Score"
-            domain={xDomain}
-            label={
-              xAxisLabel
-                ? {
-                    value: xAxisLabel,
-                    position: 'insideBottom',
-                    offset: -10,
-                    style: { fill: '#666', fontWeight: '600' },
-                  }
-                : undefined
-            }
-            tick={{ fill: '#666', fontSize: 12, fontWeight: 500 }}
-          />
+        <XAxis
+          type="number"
+          dataKey="x"
+          name="Score"
+          domain={xDomain}
+          label={
+            xAxisLabel
+              ? {
+                  value: xAxisLabel,
+                  position: 'insideBottom',
+                  offset: -10,
+                  style: { fill: '#666', fontWeight: '600' },
+                }
+              : undefined
+          }
+          tick={{ fill: '#666', fontSize: 12, fontWeight: 500 }}
+        />
 
-          <YAxis type="number" dataKey="y" name="Index" hide domain={yDomain} />
+        <YAxis type="number" dataKey="y" name="Index" hide domain={yDomain} />
 
-          <Tooltip cursor={{ strokeDasharray: '3 3' }} content={customTooltip} />
+        <ChartTooltip
+          cursor={{ strokeDasharray: '3 3' }}
+          content={customTooltip ? customTooltip : <ChartTooltipContent indicator="dot" />}
+        />
 
-          <Scatter name="Projects" data={chartData} fill="#34a83a" shape="circle" />
-        </RechartsScatterChart>
-      </ResponsiveContainer>
-    </div>
+        <Scatter name="Projects" data={chartData} fill="var(--color-points)" shape="circle" />
+      </RechartsScatterChart>
+    </ChartContainer>
   );
 }
 
@@ -74,7 +82,6 @@ ScatterChart.propTypes = {
   ).isRequired,
   height: PropTypes.number,
   xAxisLabel: PropTypes.string,
-  yAxisLabel: PropTypes.string,
   xDomain: PropTypes.arrayOf(PropTypes.number),
   yDomain: PropTypes.arrayOf(PropTypes.number),
   showGrid: PropTypes.bool,
@@ -85,7 +92,6 @@ ScatterChart.propTypes = {
 ScatterChart.defaultProps = {
   height: 400,
   xAxisLabel: '',
-  yAxisLabel: '',
   xDomain: [0, 100],
   yDomain: undefined,
   showGrid: true,

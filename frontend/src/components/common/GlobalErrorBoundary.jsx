@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 /**
  * Error Boundary using a class component to catch and display errors gracefully
@@ -29,7 +29,7 @@ class GlobalErrorBoundary extends React.Component {
               <p className="text-slate-600 mb-4">
                 An unexpected error occurred. Please try again or return to the home page.
               </p>
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="mt-4 text-left bg-slate-50 p-3 rounded border border-slate-200">
                   <summary className="cursor-pointer text-sm font-mono text-slate-600 hover:text-slate-800">
                     Error details (development only)
@@ -65,3 +65,7 @@ class GlobalErrorBoundary extends React.Component {
 }
 
 export default GlobalErrorBoundary;
+
+GlobalErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};

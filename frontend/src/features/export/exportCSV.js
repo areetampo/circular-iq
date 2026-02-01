@@ -39,27 +39,6 @@ function escapeCSV(value) {
 }
 
 /**
- * Generates a CSV string from an array of objects
- * @param {Array<Object>} data - Array of objects to convert to CSV
- * @param {Array<string>} headers - Column headers
- * @returns {string} CSV formatted string
- */
-function generateCSV(data, headers) {
-  const rows = [];
-
-  // Add header row
-  rows.push(headers.map(escapeCSV).join(','));
-
-  // Add data rows
-  data.forEach((item) => {
-    const row = headers.map((header) => escapeCSV(item[header] || ''));
-    rows.push(row.join(','));
-  });
-
-  return rows.join('\n');
-}
-
-/**
  * Triggers a CSV file download in the browser with UTF-8 BOM for Excel
  * @param {string} csvContent - CSV content string
  * @param {string} filename - Desired filename for download
@@ -310,7 +289,7 @@ export function exportComparisonCSV(assessments) {
     csvLines.push('AUDIT VERDICTS');
     csvLines.push(''); // Empty row
 
-    assessmentData.forEach((a, index) => {
+    assessmentData.forEach((a) => {
       if (a.audit.audit_verdict) {
         csvLines.push(`${escapeCSV(a.title)},${escapeCSV(a.audit.audit_verdict)}`);
       }

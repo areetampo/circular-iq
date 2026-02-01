@@ -6,10 +6,10 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  ResponsiveContainer,
   Legend,
-  Tooltip,
 } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { cn } from '@/utils/cn';
 
 export default function RadarChart({
   data,
@@ -19,6 +19,21 @@ export default function RadarChart({
   showTooltip,
   isLoading,
 }) {
+  const chartConfig = useMemo(() => {
+    const baseConfig = {
+      marketAvg: { label: 'Market Average', color: 'hsl(var(--chart-2))' },
+      userValue: { label: 'Your Idea', color: 'hsl(var(--chart-1))' },
+    };
+
+    return radarConfigs.reduce((acc, config) => {
+      const key = config.dataKey;
+      if (!acc[key]) {
+        acc[key] = { label: config.name, color: config.stroke };
+      }
+      return acc;
+    }, baseConfig);
+  }, [radarConfigs]);
+
   // Memoize data transformation to prevent expensive re-calculations
   const chartData = useMemo(
     () =>
@@ -30,74 +45,58 @@ export default function RadarChart({
   );
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        opacity: isLoading ? 0.6 : 1,
-        transition: 'opacity 0.3s ease',
-      }}
+    <ChartContainer
+      config={chartConfig}
+      className={cn('w-full', isLoading && 'opacity-60')}
+      style={{ height: height || 500 }}
     >
-      <ResponsiveContainer width="100%" height={height || 500}>
-        <RechartsRadarChart
-          data={chartData}
-          margin={{ top: 30, right: 120, bottom: 30, left: 120 }}
-        >
-          <PolarGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-          <PolarAngleAxis
-            dataKey="subject"
-            tick={{
-              fill: '#64748b',
-              fontSize: 14,
-              fontWeight: 500,
+      <RechartsRadarChart data={chartData} margin={{ top: 30, right: 80, bottom: 30, left: 80 }}>
+        <PolarGrid strokeDasharray="3 3" />
+        <PolarAngleAxis
+          dataKey="subject"
+          tick={{
+            fill: '#64748b',
+            fontSize: 14,
+            fontWeight: 500,
+          }}
+          tickLine={false}
+        />
+        <PolarRadiusAxis
+          angle={90}
+          domain={[0, 100]}
+          tick={{ fontSize: 10, fill: '#64748b' }}
+          tickCount={5}
+        />
+
+        {radarConfigs.map((config, index) => (
+          <Radar
+            key={index}
+            name={config.name}
+            dataKey={config.dataKey}
+            stroke={`var(--color-${config.dataKey})`}
+            fill={`var(--color-${config.dataKey})`}
+            fillOpacity={config.fillOpacity || 0.35}
+            strokeWidth={config.strokeWidth || 2}
+          />
+        ))}
+
+        {showLegend && (
+          <Legend
+            wrapperStyle={{
+              paddingTop: '16px',
+              fontSize: '12px',
+              fontWeight: '600',
             }}
-            tickLine={false}
+            iconSize={12}
+            iconType="square"
           />
-          <PolarRadiusAxis
-            angle={90}
-            domain={[0, 100]}
-            tick={{ fontSize: 10, fill: '#64748b' }}
-            tickCount={5}
-            stroke="#ddd"
-          />
+        )}
 
-          {radarConfigs.map((config, index) => (
-            <Radar
-              key={index}
-              name={config.name}
-              dataKey={config.dataKey}
-              stroke={config.stroke}
-              fill={config.fill}
-              fillOpacity={config.fillOpacity || 0.5}
-              strokeWidth={config.strokeWidth || 2}
-            />
-          ))}
-
-          {showLegend && (
-            <Legend
-              wrapperStyle={{
-                paddingTop: '20px',
-                fontSize: '14px',
-                fontWeight: '600',
-              }}
-              iconSize={14}
-              iconType="square"
-            />
-          )}
-
-          {showTooltip && (
-            <Tooltip
-              contentStyle={{
-                fontSize: '14px',
-                padding: '10px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: 'rgba(255, 255, 255, 0.98)',
-              }}
-            />
-          )}
-        </RechartsRadarChart>
-      </ResponsiveContainer>
-    </div>
+        {showTooltip && (
+          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+        )}
+      </RechartsRadarChart>
+    </ChartContainer>
   );
 }
 
