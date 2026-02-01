@@ -351,13 +351,13 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
 
   let htmlContent = `
     <div class="header">
-      <h1>🔍 Audit Report</h1>
+      <h1>Audit Report</h1>
       <p>${formatTextForPDF(title)}</p>
       <p>Generated: ${formatDate(new Date())}</p>
     </div>
 
     <div class="section">
-      <div class="section-title">📋 Assessment Details</div>
+      <div class="section-title">Assessment Details</div>
       <table class="metadata-table">
         <tr>
           <td>Industry</td>
@@ -383,7 +383,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
   if (audit.audit_verdict) {
     htmlContent += `
       <div class="section">
-        <div class="section-title">📝 Audit Verdict</div>
+        <div class="section-title">Audit Verdict</div>
         <div class="audit-box">
           <p>${formatTextForPDF(audit.audit_verdict)}</p>
         </div>
@@ -395,7 +395,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
   if (audit.integrity_gaps?.strengths && audit.integrity_gaps.strengths.length > 0) {
     htmlContent += `
       <div class="section">
-        <div class="section-title">✅ Key Strengths</div>
+        <div class="section-title">+ Key Strengths</div>
         <div class="strength-box">
           <ol>
     `;
@@ -411,7 +411,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
   if (audit.integrity_gaps?.gaps && audit.integrity_gaps.gaps.length > 0) {
     htmlContent += `
       <div class="section">
-        <div class="section-title">⚠️ Risk Areas & Gaps</div>
+        <div class="section-title">⚠ Risk Areas & Gaps</div>
         <div class="gap-box">
           <ol>
     `;
@@ -427,7 +427,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
   if (audit.recommendations && audit.recommendations.length > 0) {
     htmlContent += `
       <div class="section">
-        <div class="section-title">💡 Recommendations</div>
+        <div class="section-title">✓ Recommendations</div>
         <ul>
     `;
 
@@ -442,7 +442,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
   if (audit.auditor_notes) {
     htmlContent += `
       <div class="section">
-        <div class="section-title">📌 Auditor Notes</div>
+        <div class="section-title">* Auditor Notes</div>
         <p>${formatTextForPDF(audit.auditor_notes)}</p>
       </div>
     `;

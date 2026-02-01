@@ -11,7 +11,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, Sparkles } from 'lucide-react';
+import {
+  ChevronLeft,
+  Sparkles,
+  BarChart3,
+  TrendingUp,
+  Target,
+  Star,
+  Trophy,
+  Lightbulb,
+  Briefcase,
+  ArrowRight,
+} from 'lucide-react';
 
 export default function MarketAnalysisPage() {
   const { id } = useParams();
@@ -183,7 +194,9 @@ export default function MarketAnalysisPage() {
           <div className="space-y-6">
             {/* Header Section */}
             <div className="p-6 bg-gradient-to-r from-[#34a83a] to-[#2d8f32] rounded-2xl text-white shadow-lg">
-              <h1 className="text-3xl font-bold">📊 Market Landscape</h1>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <BarChart3 className="w-8 h-8 text-white" strokeWidth={2.5} /> Market Landscape
+              </h1>
               <p className="mt-2 text-lg opacity-90">
                 Benchmark your circular economy initiative against the broader market
               </p>
@@ -193,27 +206,35 @@ export default function MarketAnalysisPage() {
             {stats && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                  <div className="mb-2 text-3xl">📈</div>
+                  <div className="mb-2 text-3xl flex justify-center">
+                    <TrendingUp className="w-9 h-9 text-[#34a83a]" strokeWidth={2} />
+                  </div>
                   <div className="text-sm text-gray-600">Average Score</div>
                   <div className="text-2xl font-bold text-[#34a83a]">
                     {stats.avg_score.toFixed(1)}
                   </div>
                 </div>
                 <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                  <div className="mb-2 text-3xl">🎯</div>
+                  <div className="mb-2 text-3xl flex justify-center">
+                    <Target className="w-9 h-9 text-[#34a83a]" strokeWidth={2} />
+                  </div>
                   <div className="text-sm text-gray-600">Median Score</div>
                   <div className="text-2xl font-bold text-[#34a83a]">
                     {stats.median_score.toFixed(1)}
                   </div>
                 </div>
                 <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                  <div className="mb-2 text-3xl">📊</div>
+                  <div className="mb-2 text-3xl flex justify-center">
+                    <BarChart3 className="w-9 h-9 text-[#2c3e50]" strokeWidth={2} />
+                  </div>
                   <div className="text-sm text-gray-600">Total Projects</div>
                   <div className="text-2xl font-bold text-[#2c3e50]">{stats.total_count}</div>
                 </div>
                 {userScore != null && (
                   <div className="p-5 bg-gradient-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-[#ff9800] shadow-md rounded-xl">
-                    <div className="mb-2 text-3xl">⭐</div>
+                    <div className="mb-2 text-3xl flex justify-center">
+                      <Star className="w-9 h-9 text-[#ff6f00]" strokeWidth={2} fill="#ff9800" />
+                    </div>
                     <div className="text-sm text-gray-600">Your Percentile</div>
                     <div className="text-2xl font-bold text-[#ff6f00]">{userPercentile}th</div>
                   </div>
@@ -308,8 +329,9 @@ export default function MarketAnalysisPage() {
             {/* Bar Chart Section - Top Industries */}
             {barChartData.length > 0 && (
               <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
-                <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6">
-                  📊 Top Industries by Average Score
+                <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Top Industries
+                  by Average Score
                 </h2>
                 <BarChart
                   data={barChartData}
@@ -327,8 +349,9 @@ export default function MarketAnalysisPage() {
             {/* Score Distribution Scatter Plot */}
             {scatterChartData.length > 0 && (
               <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
-                <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6">
-                  🎯 Score Distribution by Industry
+                <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
+                  <Target className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Score Distribution
+                  by Industry
                 </h2>
                 <ScatterChart
                   data={scatterChartData}
@@ -376,8 +399,9 @@ export default function MarketAnalysisPage() {
             {/* Industry Benchmarks Table */}
             {marketData.length > 0 && (
               <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-x-auto">
-                <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6">
-                  🏆 Industry Benchmarks
+                <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
+                  <Trophy className="w-6 h-6 text-[#ff9800]" strokeWidth={2.5} /> Industry
+                  Benchmarks
                 </h2>
                 <table className="w-full border-collapse text-[0.85rem] md:text-[0.95rem]">
                   <thead className="bg-gray-100 border-b-2 border-gray-300">
@@ -428,7 +452,11 @@ export default function MarketAnalysisPage() {
                             </span>
                           </td>
                           <td className="px-2 py-2 text-sm text-center text-gray-600 border-b border-gray-300 md:px-3 md:py-3 pr-4">
-                            {item.min_score} → {item.max_score}
+                            <span className="inline-flex items-center gap-1">
+                              {item.min_score}{' '}
+                              <ArrowRight className="w-3 h-3 text-gray-600" strokeWidth={2} />{' '}
+                              {item.max_score}
+                            </span>
                           </td>
                         </tr>
                       ))}
@@ -439,12 +467,15 @@ export default function MarketAnalysisPage() {
 
             {/* Key Insights */}
             <div className="bg-gradient-to-br from-[#fff9e6] to-[#fffbf0] py-7 px-7 rounded-[10px] border-2 border-[#ff9800] shadow-[0_8px_24px_rgba(255,152,0,0.1)]">
-              <h2 className="text-[#ff6f00] text-2xl font-bold mt-0 mb-6">
-                💡 Key Market Insights
+              <h2 className="text-[#ff6f00] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
+                <Lightbulb className="w-6 h-6 text-[#ff6f00]" strokeWidth={2.5} /> Key Market
+                Insights
               </h2>
               <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl">🎯</div>
+                  <div className="mb-3 text-2xl flex">
+                    <Target className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
+                  </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Top Performers</div>
                   <div className="text-[0.85rem] text-gray-700 leading-6">
                     Projects in <strong>Energy</strong> and <strong>Water</strong> industries tend
@@ -452,7 +483,9 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl">📈</div>
+                  <div className="mb-3 text-2xl flex">
+                    <TrendingUp className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
+                  </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Growth Opportunity</div>
                   <div className="text-[0.85rem] text-gray-700 leading-6">
                     Emerging industries show varied scores—there&apos;s significant room for
@@ -460,7 +493,9 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl">💼</div>
+                  <div className="mb-3 text-2xl flex">
+                    <Briefcase className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
+                  </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Scale Factor</div>
                   <div className="text-[0.85rem] text-gray-700 leading-6">
                     Larger, commercial-stage projects generally score higher than prototypes and
@@ -468,7 +503,9 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl">⭐</div>
+                  <div className="mb-3 text-2xl flex">
+                    <Star className="w-7 h-7 text-[#ff9800]" strokeWidth={2} fill="#ff9800" />
+                  </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Your Advantage</div>
                   <div className="text-[0.85rem] text-gray-700 leading-6">
                     Focus on your unique circular strategy and value proposition to differentiate in

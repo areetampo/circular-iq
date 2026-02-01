@@ -26,6 +26,15 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import {
+  BarChart3,
+  ClipboardList,
+  Target,
+  Lightbulb,
+  TrendingUp,
+  Check,
+  ArrowRight,
+} from 'lucide-react';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -643,7 +652,7 @@ export default function ResultsPage({
               <Card className="border-2 border-blue-300 border-dashed bg-blue-50/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-900">
-                    <Lightbulb className="w-5 h-5" />
+                    <Lightbulb className="w-5 h-5 text-blue-700" />
                     How to Use This Report
                   </CardTitle>
                 </CardHeader>
@@ -724,31 +733,32 @@ export default function ResultsPage({
               {/* Gap Analysis & Benchmarks Section */}
               {actualResult.gap_analysis?.has_benchmarks && (
                 <div className="bg-[#f0f4f8] p-8 rounded-xl mb-8 border-2 border-[#4a90e2]">
-                  <h2 className="m-0 mb-6 text-[#2c3e50]">
-                    📊 Your Performance vs. Similar Projects
+                  <h2 className="m-0 mb-6 text-[#2c3e50] flex items-center gap-2">
+                    <BarChart3 className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Your
+                    Performance vs. Similar Projects
                   </h2>
 
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-6">
-                    <div className="bg-white p-4 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-2">Your Score</div>
+                    <div className="p-4 bg-white rounded-lg">
+                      <div className="mb-2 text-sm text-gray-600">Your Score</div>
                       <div className="text-2xl font-bold text-[#34a83a]">
                         {actualResult.overall_score}
                       </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-2">Similar Projects Average</div>
+                    <div className="p-4 bg-white rounded-lg">
+                      <div className="mb-2 text-sm text-gray-600">Similar Projects Average</div>
                       <div className="text-2xl font-bold text-[#4a90e2]">
                         {Math.round(actualResult.gap_analysis.overall_benchmarks.average)}
                       </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-2">Top 10% Threshold</div>
+                    <div className="p-4 bg-white rounded-lg">
+                      <div className="mb-2 text-sm text-gray-600">Top 10% Threshold</div>
                       <div className="text-2xl font-bold text-[#9c27b0]">
                         {actualResult.gap_analysis.overall_benchmarks.top_10_percentile}
                       </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-2">Median</div>
+                    <div className="p-4 bg-white rounded-lg">
+                      <div className="mb-2 text-sm text-gray-600">Median</div>
                       <div className="text-2xl font-bold text-[#26a69a]">
                         {actualResult.gap_analysis.overall_benchmarks.median}
                       </div>
@@ -763,7 +773,7 @@ export default function ResultsPage({
                           ([factor, gap]) => (
                             <div
                               key={factor}
-                              className="bg-white p-4 rounded-lg"
+                              className="p-4 bg-white rounded-lg"
                               style={{
                                 borderLeft: gap.gap > 5 ? '4px solid #ff9800' : '4px solid #4caf50',
                               }}
@@ -786,15 +796,20 @@ export default function ResultsPage({
                                 </div>
                               </div>
                               {gap.gap > 0 ? (
-                                <div className="text-[0.85rem] text-[#ff9800] font-bold">
-                                  ↑ Opportunity: +{gap.gap} points possible
+                                <div className="text-[0.85rem] text-[#ff9800] font-bold flex items-center gap-1">
+                                  <TrendingUp
+                                    className="w-4 h-4 text-[#ff9800]"
+                                    strokeWidth={2.5}
+                                  />{' '}
+                                  Opportunity: +{gap.gap} points possible
                                 </div>
                               ) : (
-                                <div className="text-[0.85rem] text-[#4caf50] font-bold">
-                                  ✓ Above benchmark by {Math.abs(gap.gap)} points
+                                <div className="text-[0.85rem] text-[#4caf50] font-bold flex items-center gap-1">
+                                  <Check className="w-4 h-4 text-[#4caf50]" strokeWidth={2.5} />{' '}
+                                  Above benchmark by {Math.abs(gap.gap)} points
                                 </div>
                               )}
-                              <div className="text-xs text-gray-400 mt-2">
+                              <div className="mt-2 text-xs text-gray-400">
                                 {gap.percentile}th percentile vs. similar projects
                               </div>
                             </div>
@@ -809,7 +824,10 @@ export default function ResultsPage({
               {/* Industry & Metadata Section */}
               {actualResult.metadata && (
                 <div className="bg-[#e8f5e9] p-6 rounded-[10px] mb-8 border-2 border-[#34a83a]">
-                  <h3 className="m-0 mb-4 text-[#2d5f2e]">📋 Project Classification</h3>
+                  <h3 className="m-0 mb-4 text-[#2d5f2e] flex items-center gap-2">
+                    <ClipboardList className="w-5 h-5 text-[#34a83a]" strokeWidth={2.5} /> Project
+                    Classification
+                  </h3>
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
                     <div className="bg-white p-4 rounded-lg border border-[#c8e6c9]">
                       <div
@@ -1357,7 +1375,7 @@ export default function ResultsPage({
                             <div className="flex flex-col gap-3">
                               <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
                                 <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
-                                  <span className="text-sm">🎯</span>
+                                  <Target className="w-4 h-4 text-emerald-600" strokeWidth={2} />
                                   <strong>Problem Addressed:</strong>
                                 </div>
                                 <p className="m-0 text-xs leading-relaxed text-gray-700">
@@ -1366,7 +1384,7 @@ export default function ResultsPage({
                               </div>
                               <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
                                 <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
-                                  <span className="text-sm">💡</span>
+                                  <Lightbulb className="w-4 h-4 text-emerald-600" strokeWidth={2} />
                                   <strong>Solution Approach:</strong>
                                 </div>
                                 <p className="m-0 text-xs leading-relaxed text-gray-700">
@@ -1377,7 +1395,7 @@ export default function ResultsPage({
 
                             <div className="flex items-center justify-center sm:justify-start">
                               <button
-                                className="mt-3.5 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline"
+                                className="mt-3.5 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline flex items-center gap-1"
                                 onClick={() =>
                                   openDatabaseEvidenceDetails({
                                     caseItem,
@@ -1390,7 +1408,8 @@ export default function ResultsPage({
                                   })
                                 }
                               >
-                                View Full Details →
+                                View Full Details{' '}
+                                <ArrowRight className="w-4 h-4 text-emerald-600" strokeWidth={2} />
                               </button>
                             </div>
                           </div>

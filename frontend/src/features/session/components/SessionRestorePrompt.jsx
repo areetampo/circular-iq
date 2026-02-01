@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { RotateCcw } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,10 @@ export default function SessionRestorePrompt({ onRestore, onDismiss }) {
     <Dialog open={true} onOpenChange={(open) => !open && onDismiss()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-bold">🔄 Restore Previous Session</DialogTitle>
+          <DialogTitle className="font-bold flex items-center gap-2">
+            <RotateCcw className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Restore Previous
+            Session
+          </DialogTitle>
           <DialogDescription className="sr-only">
             Restore your previous evaluation session data
           </DialogDescription>

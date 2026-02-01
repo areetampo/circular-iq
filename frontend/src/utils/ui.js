@@ -8,41 +8,41 @@
 /**
  * Get severity icon for integrity gaps
  * @param {string} severity - Severity level (low, medium, high)
- * @returns {string} Icon character
+ * @returns {string} Icon component name
  */
 export function getSeverityIcon(severity) {
   switch (severity) {
     case 'high':
-      return '⚠️';
+      return 'AlertTriangle';
     case 'medium':
-      return '⚡';
+      return 'Zap';
     case 'low':
-      return 'ℹ️';
+      return 'Info';
     default:
-      return '•';
+      return 'Circle';
   }
 }
 
 /**
  * Get status icon for different states
  * @param {string} status - Status type
- * @returns {string} Icon character
+ * @returns {string} Icon component name
  */
 export function getStatusIcon(status) {
   const icons = {
-    complete: '✓',
-    completed: '✓',
-    success: '✓',
-    pending: '⏳',
-    loading: '⏳',
-    error: '✗',
-    failed: '✗',
-    warning: '⚠️',
-    info: 'ℹ️',
-    draft: '📝',
-    archived: '📦',
+    complete: 'Check',
+    completed: 'Check',
+    success: 'Check',
+    pending: 'Clock',
+    loading: 'Clock',
+    error: 'X',
+    failed: 'X',
+    warning: 'AlertTriangle',
+    info: 'Info',
+    draft: 'FileText',
+    archived: 'Archive',
   };
-  return icons[status] || '•';
+  return icons[status] || 'Circle';
 }
 
 /**

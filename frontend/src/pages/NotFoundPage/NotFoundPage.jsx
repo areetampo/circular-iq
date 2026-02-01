@@ -41,7 +41,7 @@ export default function NotFoundPage() {
             </div>
             <div className="flex items-start gap-3">
               <div className="p-2 mt-1 text-blue-700 bg-blue-100 rounded-full">
-                <BarChart3 className="w-4 h-4" />
+                <BarChart3 className="w-4 h-4 text-blue-700" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">Review past work</p>
@@ -56,11 +56,11 @@ export default function NotFoundPage() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <Button onClick={() => navigate('/')} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 text-white" />
               Return Home
             </Button>
             <Button variant="outline" onClick={() => navigate('/assessments')} className="gap-2">
-              <BarChart3 className="w-4 h-4" />
+              <BarChart3 className="w-4 h-4 text-gray-700" />
               My Assessments
             </Button>
           </div>

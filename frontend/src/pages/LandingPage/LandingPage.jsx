@@ -28,6 +28,7 @@ import {
   Sparkles,
   LayoutGrid,
   CheckCircle2,
+  AlertTriangle,
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
@@ -285,7 +286,10 @@ export default function LandingPage() {
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>
-                  <strong>⚠ Validation Error:</strong>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
+                    <strong>Validation Error:</strong>
+                  </div>
                   <p className="mt-1">{error}</p>
                 </AlertDescription>
               </Alert>

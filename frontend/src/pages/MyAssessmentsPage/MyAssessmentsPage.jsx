@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Lock, ArrowLeft } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -279,7 +280,9 @@ export default function MyAssessmentsPage() {
       {!authLoading && !isAuthenticated && (
         <Card className="max-w-md mx-auto">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4 text-6xl">🔐</div>
+            <div className="flex justify-center mb-4">
+              <Lock className="w-16 h-16 text-[#4a90e2]" strokeWidth={1.5} />
+            </div>
             <CardTitle className="text-2xl">Authentication Required</CardTitle>
             <CardDescription>
               You need to log in to view and manage your assessments.
@@ -724,10 +727,9 @@ export default function MyAssessmentsPage() {
           {/* Footer */}
           <div className="flex justify-start">
             <Button variant="outline" onClick={handleBack} className="gap-2">
-              ← Back to Home
+              <ArrowLeft className="w-4 h-4 text-gray-700" strokeWidth={2.5} /> Back to Home{' '}
             </Button>
           </div>
-
           {/* AlertDialog for Deletion Confirmation */}
           <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
             <AlertDialogContent>
