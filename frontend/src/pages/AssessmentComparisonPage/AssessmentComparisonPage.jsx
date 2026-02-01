@@ -6,6 +6,8 @@ import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
@@ -30,9 +32,25 @@ export default function AssessmentComparisonPage() {
           showEvaluationCriteriaButton: true,
         }}
       >
-        <div className="flex flex-col items-center justify-center gap-4 py-12">
-          <p className="text-muted-foreground">Missing comparison IDs.</p>
-          <Button onClick={() => navigate('/assessments')}>Back to Assessments</Button>
+        <div className="flex items-center justify-center py-12">
+          <Alert variant="destructive" className="max-w-md">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Unable to Compare</strong>
+              <p className="mt-2">
+                Please select two assessments to compare. Missing required assessment IDs.
+              </p>
+              <Button
+                onClick={() => navigate('/assessments')}
+                variant="outline"
+                size="sm"
+                className="mt-4 gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Assessments
+              </Button>
+            </AlertDescription>
+          </Alert>
         </div>
       </AppContainer>
     );

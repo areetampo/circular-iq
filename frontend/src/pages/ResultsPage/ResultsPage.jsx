@@ -36,7 +36,7 @@ import { Separator } from '@/components/ui/separator';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
 import {
   Download,
-  Share,
+  Link2,
   FileText,
   BarChart3,
   AlertCircle,
@@ -353,6 +353,14 @@ export default function ResultsPage({
   };
 
   const handleShareLink = useCallback(async () => {
+    // Check if assessment is saved before allowing share
+    if (!isDetailView && !id) {
+      toast.error('Assessment Not Saved', {
+        description: 'Please save the assessment first before generating a shareable link.',
+      });
+      return;
+    }
+
     const assessmentPath = id ? `/results/${id}` : window.location.pathname;
     const shareUrl = `${window.location.origin}${assessmentPath}`;
 
@@ -364,7 +372,7 @@ export default function ResultsPage({
     } catch {
       addToast('Failed to copy link to clipboard', 'error');
     }
-  }, [addToast, toast, id]);
+  }, [addToast, toast, id, isDetailView]);
 
   const defaultAssessmentName = useMemo(() => {
     const source = isDetailView ? fetchedAssessment : currentData;
@@ -438,7 +446,7 @@ export default function ResultsPage({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleShareLink} disabled={isExporting}>
-                <Share className="w-4 h-4 mr-2" />
+                <Link2 className="w-4 h-4 mr-2" />
                 Share Link
               </DropdownMenuItem>
             </DropdownMenuContent>
