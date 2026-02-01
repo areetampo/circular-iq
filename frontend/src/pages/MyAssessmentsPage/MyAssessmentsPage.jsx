@@ -5,10 +5,66 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
-import Loader from '@/components/common/Loader';
+import { cn } from '@/lib/utils';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp } from '@/lib/formatting';
 import { useAssessments, getAssessmentById } from '@/features/assessments';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Search,
+  Eye,
+  Trash2,
+  MoreVertical,
+  GitCompare,
+  Plus,
+  TrendingUp,
+  Award,
+  Building,
+  Lightbulb,
+} from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();
@@ -134,66 +190,6 @@ export default function MyAssessmentsPage() {
     return ['all', ...Array.from(industries)];
   };
 
-  // Delete confirmation modal
-  const renderDeleteModal = () => {
-    if (!showDeleteModal || !confirmDeleteId) return null;
-    const target = assessments.find((a) => a.id === confirmDeleteId);
-    return (
-      <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-        <div
-          className="modal-dialog"
-          onClick={(e) => e.stopPropagation()}
-          style={{ maxWidth: '520px' }}
-        >
-          <div className="modal-header">
-            <h2>Delete Assessment</h2>
-            <button className="modal-close" onClick={() => setShowDeleteModal(false)}>
-              ×
-            </button>
-          </div>
-          <div className="modal-body" style={{ lineHeight: 1.7 }}>
-            <p style={{ marginBottom: '0.75rem' }}>
-              Are you sure you want to delete this assessment?
-            </p>
-            {target && (
-              <div
-                style={{
-                  background: '#f8f9fa',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '6px',
-                  padding: '0.75rem',
-                }}
-              >
-                <div style={{ fontWeight: 600, color: '#2c3e50' }}>
-                  {target.title || 'Untitled Assessment'}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                  {new Date(target.created_at).toLocaleString()} • {target.industry || 'General'}
-                </div>
-              </div>
-            )}
-            <p style={{ marginTop: '0.75rem', color: '#b00020' }}>This action cannot be undone.</p>
-          </div>
-          <div
-            className="modal-footer"
-            style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}
-          >
-            <button className="modal-cancel-button" onClick={() => setShowDeleteModal(false)}>
-              Cancel
-            </button>
-            <button
-              className="bg-[#dc3545] text-white border border-[#c82333] py-2 px-4 rounded-md font-bold cursor-pointer transition-[background,box-shadow] duration-200 hover:bg-[#c82333] hover:shadow-[0_2px_8px_rgba(220,53,69,0.2)]"
-              onClick={() => proceedDelete(confirmDeleteId)}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting…' : 'Delete'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const filteredAssessments = assessments.filter((assessment) => {
     if (!searchTerm.trim()) return true;
     const search = searchTerm.toLowerCase();
@@ -202,13 +198,72 @@ export default function MyAssessmentsPage() {
     return titleMatch || industryMatch;
   });
 
+  const confirmDeleteAssessment = assessments.find((a) => a.id === confirmDeleteId);
+
   const getRatingColor = (score) => {
-    return score >= 75
-      ? 'bg-emerald-100 text-emerald-700'
-      : score >= 50
-        ? 'bg-amber-100 text-amber-700'
-        : 'bg-rose-100 text-rose-700';
+    if (score >= 75) return 'default';
+    if (score >= 50) return 'secondary';
+    return 'destructive';
   };
+
+  const getRatingVariant = (score) => {
+    if (score >= 75) return 'default';
+    if (score >= 50) return 'secondary';
+    return 'destructive';
+  };
+
+  const getStatusBadge = (score) => {
+    if (score >= 75) return { variant: 'default', text: 'Excellent' };
+    if (score >= 50) return { variant: 'secondary', text: 'Good' };
+    return { variant: 'destructive', text: 'Needs Improvement' };
+  };
+
+  // Render Skeleton Loading State
+  const renderSkeletonTable = () => (
+    <div className="border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-12">
+              <Skeleton className="w-4 h-4" />
+            </TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>Industry</TableHead>
+            <TableHead className="text-center">Score</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead className="text-center">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <TableRow key={idx}>
+              <TableCell>
+                <Skeleton className="w-4 h-4" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-[250px]" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-6 w-[100px]" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-8 w-[80px] mx-auto" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-[150px]" />
+              </TableCell>
+              <TableCell>
+                <div className="flex justify-center gap-2">
+                  <Skeleton className="w-20 h-9" />
+                  <Skeleton className="w-20 h-9" />
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <AppContainer
@@ -219,350 +274,480 @@ export default function MyAssessmentsPage() {
     >
       {/* Authentication check */}
       {!authLoading && !isAuthenticated && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-6 text-6xl">🔐</div>
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">Authentication Required</h2>
-          <p className="mb-8 text-gray-600">
-            You need to log in to view and manage your assessments.
-          </p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-6 py-3 text-white transition duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
-            Go to Login
-          </button>
-        </div>
+        <Card className="mx-auto max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4 text-6xl">🔐</div>
+            <CardTitle className="text-2xl">Authentication Required</CardTitle>
+            <CardDescription>
+              You need to log in to view and manage your assessments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button onClick={() => navigate('/login')} size="lg">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Loading state while auth is being checked */}
       {authLoading && (
         <div className="flex justify-center py-12">
-          <Loader size="large" color="blue" />
+          <div className="space-y-4">
+            <Skeleton className="w-[200px] h-8" />
+            <Skeleton className="w-[300px] h-4" />
+          </div>
         </div>
       )}
 
       {/* Assessments content - only show if authenticated */}
       {isAuthenticated && !authLoading && (
-        <>
-          {/* Stats Card */}
+        <div className="space-y-6">
+          {/* Stats Cards */}
           {assessments.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
-              <div className="p-6 text-center border-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 rounded-xl">
-                <div className="mb-2 text-sm font-semibold text-emerald-700">Total Assessments</div>
-                <div className="text-4xl font-bold text-emerald-600">{assessments.length}</div>
-              </div>
-              <div className="p-6 text-center border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                <div className="mb-2 text-sm font-semibold text-blue-700">Average Score</div>
-                <div className="text-4xl font-bold text-blue-600">
-                  {Math.round(
-                    assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
-                      assessments.length,
-                  )}
-                </div>
-              </div>
-              <div className="p-6 text-center border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
-                <div className="mb-2 text-sm font-semibold text-purple-700">Highest Score</div>
-                <div className="text-4xl font-bold text-purple-600">
-                  {Math.max(...assessments.map((a) => a.overall_score || 0))}
-                </div>
-              </div>
-              <div className="p-6 text-center border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl">
-                <div className="mb-2 text-sm font-semibold text-orange-700">Unique Industries</div>
-                <div className="text-4xl font-bold text-orange-600">
-                  {new Set(assessments.map((a) => a.industry)).size}
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                <CardHeader className="pb-3">
+                  <CardDescription className="flex items-center gap-2 text-xs font-semibold">
+                    <TrendingUp className="w-4 h-4" />
+                    Total Assessments
+                  </CardDescription>
+                  <CardTitle className="text-4xl font-bold text-primary">
+                    {assessments.length}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
+                <CardHeader className="pb-3">
+                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-blue-700">
+                    <Award className="w-4 h-4" />
+                    Average Score
+                  </CardDescription>
+                  <CardTitle className="text-4xl font-bold text-blue-600">
+                    {Math.round(
+                      assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
+                        assessments.length,
+                    )}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
+                <CardHeader className="pb-3">
+                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-purple-700">
+                    <TrendingUp className="w-4 h-4" />
+                    Highest Score
+                  </CardDescription>
+                  <CardTitle className="text-4xl font-bold text-purple-600">
+                    {Math.max(...assessments.map((a) => a.overall_score || 0))}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100">
+                <CardHeader className="pb-3">
+                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-orange-700">
+                    <Building className="w-4 h-4" />
+                    Unique Industries
+                  </CardDescription>
+                  <CardTitle className="text-4xl font-bold text-orange-600">
+                    {new Set(assessments.map((a) => a.industry)).size}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
             </div>
           )}
 
-          {/* Quick Tip */}
-          <div className="p-5 mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
-              <div>
-                <span className="font-bold text-blue-800">Tip:</span>
-                <span className="ml-2 text-slate-700">
-                  Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how
-                  your initiative evolved over time, or compare different strategies side-by-side.
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Controls */}
-          {renderDeleteModal()}
-          <div className="p-6 mb-6 bg-white shadow-md rounded-xl">
-            <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col">
-                <label className="mb-2 text-sm font-semibold text-slate-700">
-                  Filter by Industry:
-                </label>
-                <select
-                  value={filterIndustry}
-                  onChange={(e) => {
-                    setFilterIndustry(e.target.value);
-                    setPage(1);
-                  }}
-                  className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-                >
-                  {getIndustries().map((ind) => (
-                    <option key={ind} value={ind}>
-                      {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="mb-2 text-sm font-semibold text-slate-700">Sort by:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
-                    setPage(1);
-                  }}
-                  className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-                >
-                  <option value="created_at">Date Created</option>
-                  <option value="overall_score">Score</option>
-                  <option value="title">Title</option>
-                  <option value="industry">Industry</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="mb-2 text-sm font-semibold text-slate-700">Search:</label>
-                <input
-                  type="text"
-                  placeholder="Search by title or industry..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm bg-white hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200">
-              <div className="text-sm font-medium text-slate-600">
-                {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
-              </div>
-              <div className="flex gap-2">
-                {selectedIds.size > 0 && (
-                  <button
-                    onClick={handleClearSelection}
-                    className="bg-gray-100 text-gray-700 border border-gray-300 py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-200 hover:border-gray-400"
-                  >
-                    Clear Selection
-                  </button>
-                )}
-                <button
-                  onClick={handleCompareSelected}
-                  disabled={selectedIds.size !== 2}
-                  className="bg-[#34a83a] text-white border-none py-2.5 px-5 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#2a8a2f] hover:shadow-[0_2px_8px_rgba(52,168,58,0.3)] disabled:text-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Compare Selected
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="relative">
-            {initialLoad && loading && (
-              <Loader heading="Loading assessments..." message="Fetching your saved evaluations." />
-            )}
-            {!initialLoad && loading && (
-              <Loader
-                heading="Refreshing assessments..."
-                message="Please wait while we update the list."
-              />
-            )}
-            {error && (
-              <div className="py-8 text-center text-[#dc3545]">
-                <p>{error}</p>
-                <button
-                  className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd] mr-2"
-                  onClick={fetchAssessments}
-                >
-                  Retry
-                </button>
-                <button
-                  className="py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
-                  onClick={handleBack}
-                >
-                  Back
-                </button>
-              </div>
-            )}
-
-            {!loading && !error && filteredAssessments.length === 0 && (
-              <div className="py-12 text-center text-gray-400">
-                <p>No assessments match the current filters.</p>
-                <p>Try clearing filters or run a new evaluation and save it.</p>
-                <button
-                  className="mt-4 py-2 px-4 border-none rounded cursor-pointer text-[0.85rem] font-semibold transition-[background] duration-200 bg-[#4a90e2] text-white hover:bg-[#357abd]"
-                  onClick={handleBack}
-                >
-                  Start an Evaluation
-                </button>
-              </div>
-            )}
-
-            {!loading && !error && filteredAssessments.length > 0 && (
-              <div className="relative overflow-x-auto bg-white border-2 border-gray-300 rounded-lg">
-                <table className="w-full border-collapse">
-                  <thead className="border-b-2 border-gray-300 bg-gradient-to-r from-slate-100 to-slate-200">
-                    <tr>
-                      <th className="px-4 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 cursor-pointer accent-emerald-600"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedIds(new Set(assessments.map((a) => a.id)));
-                            } else {
-                              setSelectedIds(new Set());
-                            }
-                          }}
-                        />
-                      </th>
-                      <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                        Title
-                      </th>
-                      <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                        Industry
-                      </th>
-                      <th className="px-4 md:px-6 py-4 text-center border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                        Score
-                      </th>
-                      <th className="px-4 md:px-6 py-4 text-left border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                        Created
-                      </th>
-                      <th className="px-4 md:px-6 py-4 text-center border-b border-gray-300 font-bold text-[#2c3e50] text-sm tracking-wider uppercase">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {filteredAssessments.map((assessment) => (
-                      <tr
-                        key={assessment.id}
-                        className="transition-colors even:bg-slate-100 hover:bg-slate-200"
-                        onMouseEnter={() => prefetchAssessment(assessment.id)}
-                      >
-                        <td className="px-4 py-4 text-left border-b border-gray-300">
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 cursor-pointer accent-emerald-600"
-                            checked={selectedIds.has(assessment.id)}
-                            onChange={() => handleToggleSelect(assessment.id)}
-                          />
-                        </td>
-                        <td className="px-4 py-4 text-left border-b border-gray-300 md:px-6">
-                          <div className="font-semibold text-slate-800">
-                            {assessment.title || 'Untitled'}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-left border-b border-gray-300 md:px-6">
-                          <span className="inline-block px-3 py-1 text-sm font-semibold text-blue-700 uppercase bg-blue-100 rounded-full text-nowrap">
-                            {assessment.industry.replace(/_/g, ' ') || 'General'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-center border-b border-gray-300 md:px-6">
-                          <div
-                            className={`inline-block px-2 py-1 rounded-lg font-semibold text-lg text-nowrap ${getRatingColor(
-                              assessment.overall_score,
-                            )}`}
-                          >
-                            {assessment.overall_score} / 100
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-sm text-left border-b border-gray-300 md:px-6 text-slate-600">
-                          {formatTimestamp(assessment.created_at)}
-                        </td>
-                        <td className="px-4 py-4 border-b border-gray-300 md:px-6">
-                          <div className="flex flex-col justify-center gap-2">
-                            <button
-                              className="p-2 text-sm font-medium text-white transition-all bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 hover:scale-105"
-                              onClick={() => handleViewDetail(assessment.id)}
-                            >
-                              View
-                            </button>
-                            <button
-                              className="p-2 text-sm font-medium text-white transition-all bg-red-500 rounded-lg shadow-md hover:bg-red-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() => handleDelete(assessment.id)}
-                              disabled={isDeleting && confirmDeleteId === assessment.id}
-                            >
-                              {isDeleting && confirmDeleteId === assessment.id
-                                ? 'Deleting…'
-                                : 'Delete'}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {!loading && !error && total > 0 && (
-              <div className="flex flex-row flex-wrap items-center justify-center p-5 mt-6 gap-y-2 gap-x-10">
-                <div className="flex justify-center items-center min-h-[40px]">
-                  <p className="text-sm font-medium text-center text-slate-600">
-                    Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of{' '}
-                    {total}
-                    &nbsp; · Page {page} of {Math.max(1, Math.ceil(total / pageSize))}
-                  </p>
+          {/* Quick Tip Card */}
+          <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="w-6 h-6 text-blue-600 mt-0.5" />
+                <div>
+                  <span className="font-bold text-blue-800">Tip: </span>
+                  <span className="text-slate-700">
+                    Select exactly 2 assessments and click "Compare Selected" to see how your
+                    initiative evolved over time, or compare different strategies side-by-side.
+                  </span>
                 </div>
-                <div className="flex items-center justify-center gap-3">
-                  <button
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page <= 1 || loading}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Controls Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Filter by Industry</label>
+                  <Select
+                    value={filterIndustry}
+                    onValueChange={(value) => {
+                      setFilterIndustry(value);
+                      setPage(1);
+                    }}
                   >
-                    ← Previous
-                  </button>
-                  <button
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300"
-                    onClick={() => setPage(page + 1)}
-                    disabled={page * pageSize >= total || loading}
-                  >
-                    Next →
-                  </button>
-                  <div className="flex items-center gap-2 ml-2">
-                    <label className="text-sm font-semibold text-slate-700">Per page:</label>
-                    <select
-                      value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(Number(e.target.value));
-                        setPage(1);
-                      }}
-                      className="px-3 py-2 text-sm transition-all bg-white border rounded-lg border-slate-300 hover:border-emerald-500 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200"
-                    >
-                      {[10, 20, 50, 100].map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getIndustries().map((ind) => (
+                        <SelectItem key={ind} value={ind}>
+                          {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
+                        </SelectItem>
                       ))}
-                    </select>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Sort by</label>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value) => {
+                      setSortBy(value);
+                      setPage(1);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="created_at">Date Created</SelectItem>
+                      <SelectItem value="overall_score">Score</SelectItem>
+                      <SelectItem value="title">Title</SelectItem>
+                      <SelectItem value="industry">Industry</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Search</label>
+                  <div className="relative">
+                    <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Search by title or industry..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
                 </div>
               </div>
+
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm font-medium text-muted-foreground">
+                  {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
+                </div>
+                <div className="flex gap-2">
+                  {selectedIds.size > 0 && (
+                    <Button variant="outline" onClick={handleClearSelection}>
+                      Clear Selection
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleCompareSelected}
+                    disabled={selectedIds.size !== 2}
+                    className="gap-2"
+                  >
+                    <GitCompare className="w-4 h-4" />
+                    Compare Selected
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Main Content */}
+          <div className="space-y-4">
+            {/* Loading State with Skeletons */}
+            {loading && renderSkeletonTable()}
+
+            {/* Error State */}
+            {!loading && error && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <div className="mb-4 text-destructive">
+                    <p className="text-lg font-semibold">Error loading assessments</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+                  </div>
+                  <div className="flex justify-center gap-3">
+                    <Button onClick={fetchAssessments}>Retry</Button>
+                    <Button variant="outline" onClick={handleBack}>
+                      Back to Home
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && filteredAssessments.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <div className="flex justify-center mb-4 text-6xl">📊</div>
+                  <CardTitle className="mb-2">No assessments found</CardTitle>
+                  <CardDescription className="mb-6">
+                    {searchTerm || filterIndustry !== 'all'
+                      ? 'No assessments match your current filters. Try adjusting your search.'
+                      : 'Get started by creating your first circularity assessment.'}
+                  </CardDescription>
+                  <Button onClick={handleBack} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Start New Assessment
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Table with Data */}
+            {!loading && !error && filteredAssessments.length > 0 && (
+              <>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 cursor-pointer accent-primary"
+                            checked={
+                              selectedIds.size === assessments.length && assessments.length > 0
+                            }
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedIds(new Set(assessments.map((a) => a.id)));
+                              } else {
+                                setSelectedIds(new Set());
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Industry</TableHead>
+                        <TableHead className="text-center">Score</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredAssessments.map((assessment) => {
+                        const status = getStatusBadge(assessment.overall_score);
+                        return (
+                          <TableRow
+                            key={assessment.id}
+                            className="group"
+                            onMouseEnter={() => prefetchAssessment(assessment.id)}
+                          >
+                            <TableCell>
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 cursor-pointer accent-primary"
+                                checked={selectedIds.has(assessment.id)}
+                                onChange={() => handleToggleSelect(assessment.id)}
+                              />
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              {assessment.title || 'Untitled Assessment'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {(assessment.industry || 'General').replace(/_/g, ' ')}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge
+                                variant={getRatingVariant(assessment.overall_score)}
+                                className="text-base font-semibold"
+                              >
+                                {assessment.overall_score}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={status.variant}>{status.text}</Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {formatTimestamp(assessment.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewDetail(assessment.id)}
+                                  className="gap-2"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  View
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <MoreVertical className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleViewDetail(assessment.id)}
+                                      className="gap-2"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                      View Details
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleDelete(assessment.id)}
+                                      className="gap-2 text-destructive focus:text-destructive"
+                                      disabled={isDeleting && confirmDeleteId === assessment.id}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                      {isDeleting && confirmDeleteId === assessment.id
+                                        ? 'Deleting...'
+                                        : 'Delete'}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {total > pageSize && (
+                  <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of{' '}
+                      {total} results
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => setPage(Math.max(1, page - 1))}
+                              className={cn(
+                                page <= 1 && 'pointer-events-none opacity-50',
+                                'cursor-pointer',
+                              )}
+                            />
+                          </PaginationItem>
+                          {Array.from({ length: Math.ceil(total / pageSize) })
+                            .map((_, i) => i + 1)
+                            .filter(
+                              (p) =>
+                                p === 1 ||
+                                p === Math.ceil(total / pageSize) ||
+                                Math.abs(p - page) <= 1,
+                            )
+                            .map((p, idx, arr) => (
+                              <React.Fragment key={p}>
+                                {idx > 0 && arr[idx - 1] !== p - 1 && (
+                                  <PaginationItem>
+                                    <span className="px-2">...</span>
+                                  </PaginationItem>
+                                )}
+                                <PaginationItem>
+                                  <PaginationLink
+                                    onClick={() => setPage(p)}
+                                    isActive={page === p}
+                                    className="cursor-pointer"
+                                  >
+                                    {p}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              </React.Fragment>
+                            ))}
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() =>
+                                setPage(Math.min(Math.ceil(total / pageSize), page + 1))
+                              }
+                              className={cn(
+                                page >= Math.ceil(total / pageSize) &&
+                                  'pointer-events-none opacity-50',
+                                'cursor-pointer',
+                              )}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium">Per page:</label>
+                        <Select
+                          value={String(pageSize)}
+                          onValueChange={(value) => {
+                            setPageSize(Number(value));
+                            setPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[10, 20, 50, 100].map((n) => (
+                              <SelectItem key={n} value={String(n)}>
+                                {n}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex justify-start mt-8">
-            <button
-              className="bg-gray-100 text-[#2c3e50] border border-gray-300 py-3 px-6 rounded-md font-semibold cursor-pointer transition-[background] duration-200 hover:bg-[#e8e8e8]"
-              onClick={handleBack}
-            >
+          <div className="flex justify-start">
+            <Button variant="outline" onClick={handleBack} className="gap-2">
               ← Back to Home
-            </button>
+            </Button>
           </div>
-        </>
+
+          {/* AlertDialog for Deletion Confirmation */}
+          <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Assessment</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this assessment?
+                  {confirmDeleteAssessment && (
+                    <div className="p-3 mt-3 rounded-lg bg-muted">
+                      <div className="font-semibold text-foreground">
+                        {confirmDeleteAssessment.title || 'Untitled Assessment'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(confirmDeleteAssessment.created_at).toLocaleString()} •{' '}
+                        {confirmDeleteAssessment.industry || 'General'}
+                      </div>
+                    </div>
+                  )}
+                  <p className="mt-3 text-sm font-semibold text-destructive">
+                    This action cannot be undone.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => proceedDelete(confirmDeleteId)}
+                  disabled={isDeleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       )}
     </AppContainer>
   );
