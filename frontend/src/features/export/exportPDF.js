@@ -218,6 +218,9 @@ function createPDFHTML(title, content) {
  */
 function downloadPDF(htmlContent, filename) {
   const newWindow = window.open('', '', 'width=900,height=600');
+  if (filename) {
+    newWindow.document.title = filename;
+  }
   newWindow.document.write(htmlContent);
   newWindow.document.close();
 

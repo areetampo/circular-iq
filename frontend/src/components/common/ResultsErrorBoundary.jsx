@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * Error Boundary for ResultsPage
@@ -50,3 +51,7 @@ class ResultsErrorBoundary extends React.Component {
 }
 
 export default ResultsErrorBoundary;
+
+ResultsErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};

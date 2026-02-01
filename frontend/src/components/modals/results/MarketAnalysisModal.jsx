@@ -16,25 +16,18 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 
-export default function MarketAnalysisModal({
-  isOpen,
-  onClose,
-  currentAssessmentScore,
-  currentIndustry,
-}) {
+export default function MarketAnalysisModal({ isOpen, onClose, currentAssessmentScore }) {
   const { id } = useParams();
   const [filterScale, setFilterScale] = useState('all');
 
   // Fetch market analysis data using hook
-  const { marketData, stats, userScore, userIndustry, isLoading, isError, error, refetch } =
-    useMarketAnalysis({
-      assessmentId: id,
-      enabled: isOpen,
-    });
+  const { marketData, stats, userScore, isLoading, isError, error, refetch } = useMarketAnalysis({
+    assessmentId: id,
+    enabled: isOpen,
+  });
 
   // Use current scores if provided, otherwise fall back to fetched data
   const finalUserScore = currentAssessmentScore ?? userScore;
-  const finalUserIndustry = currentIndustry ?? userIndustry;
 
   const getIndustryColor = (industry) => {
     const colors = {
@@ -430,10 +423,8 @@ MarketAnalysisModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   currentAssessmentScore: PropTypes.number,
-  currentIndustry: PropTypes.string,
 };
 
 MarketAnalysisModal.defaultProps = {
   currentAssessmentScore: null,
-  currentIndustry: null,
 };

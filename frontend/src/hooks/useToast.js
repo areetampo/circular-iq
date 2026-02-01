@@ -28,7 +28,6 @@ export function useToast() {
     } else if (typeof message === 'object' && message.title) {
       // Handle object format with title and description
       const variant = message.variant || 'default';
-      const toastMessage = message.description || message.title;
 
       switch (variant) {
         case 'success':

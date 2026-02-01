@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+import PropTypes from 'prop-types';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Loader from '@/components/common/Loader';
 import GlobalErrorBoundary from '@/components/common/GlobalErrorBoundary';
@@ -42,6 +43,10 @@ function ProtectedRoute({ children }) {
   // User is authenticated, render the protected content
   return children;
 }
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 /**
  * AppRoutes defines all application routes.

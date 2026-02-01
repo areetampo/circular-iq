@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { parameterLabels } from '@/constants/evaluationData';
 
 /**
  * Assessment form validation schema

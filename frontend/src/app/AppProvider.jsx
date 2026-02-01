@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -9,7 +10,7 @@ import { toast } from 'sonner';
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: (error, query) => {
+    onError: (error) => {
       // Only show error toasts if we have an error message
       const errorMessage = error?.message || 'An error occurred while fetching data';
 
@@ -19,7 +20,7 @@ const queryClient = new QueryClient({
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error, variables, context, mutation) => {
+    onError: (error) => {
       // Only show error toasts for mutations if we have an error message
       const errorMessage = error?.message || 'An error occurred while processing your request';
 
@@ -59,3 +60,7 @@ export default function AppProvider({ children }) {
     </ErrorBoundary>
   );
 }
+
+AppProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};

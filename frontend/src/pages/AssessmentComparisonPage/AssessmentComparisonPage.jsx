@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { useParams, useNavigate } from 'react-router-dom';
 import { exportComparisonCSV } from '@/features/export';
 import Loader from '@/components/common/Loader';

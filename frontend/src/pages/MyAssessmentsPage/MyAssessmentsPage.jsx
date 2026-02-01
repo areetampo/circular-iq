@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,7 +69,6 @@ export default function MyAssessmentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [initialLoad, setInitialLoad] = useState(true);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sortBy, setSortBy] = useState('created_at');
   const [filterIndustry, setFilterIndustry] = useState('all');
@@ -82,25 +80,16 @@ export default function MyAssessmentsPage() {
   const { addToast } = useToast();
   const searchRef = useRef('');
 
-  const {
-    assessments,
-    total,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    removeAssessment,
-    isDeleting,
-    deleteError,
-  } = useAssessments({
-    sessionId: getSessionId(),
-    page: String(page),
-    pageSize: String(pageSize),
-    sortBy,
-    order: 'desc',
-    search: searchRef.current,
-    industry: filterIndustry !== 'all' ? filterIndustry : undefined,
-  });
+  const { assessments, total, isLoading, error, refetch, removeAssessment, isDeleting } =
+    useAssessments({
+      sessionId: getSessionId(),
+      page: String(page),
+      pageSize: String(pageSize),
+      sortBy,
+      order: 'desc',
+      search: searchRef.current,
+      industry: filterIndustry !== 'all' ? filterIndustry : undefined,
+    });
 
   const loading = isLoading;
 
@@ -112,12 +101,6 @@ export default function MyAssessmentsPage() {
       staleTime: 1000 * 60 * 5, // 5 minutes - ensures hover-to-click transition is instant
     });
   };
-
-  useEffect(() => {
-    if (!isLoading) {
-      setInitialLoad(false);
-    }
-  }, [isLoading]);
 
   // Debounce search to avoid excessive requests
   useEffect(() => {
@@ -136,13 +119,13 @@ export default function MyAssessmentsPage() {
   const proceedDelete = async (id) => {
     try {
       await removeAssessment(id);
-      selectedIds.delete(id);
+      selectedIds.delete(id); // Remove the assessment ID from the selected IDs
       setSelectedIds(new Set(selectedIds));
       addToast('Assessment deleted', 'success');
       setConfirmDeleteId(null);
       setShowDeleteModal(false);
-    } catch (err) {
-      addToast('Delete failed. Please try again.', 'error');
+    } catch {
+      addToast('Delete failed. Please try again.', 'error'); // Notify user of failure
       setConfirmDeleteId(null);
       setShowDeleteModal(false);
     }
@@ -199,12 +182,6 @@ export default function MyAssessmentsPage() {
   });
 
   const confirmDeleteAssessment = assessments.find((a) => a.id === confirmDeleteId);
-
-  const getRatingColor = (score) => {
-    if (score >= 75) return 'default';
-    if (score >= 50) return 'secondary';
-    return 'destructive';
-  };
 
   const getRatingVariant = (score) => {
     if (score >= 75) return 'default';
@@ -367,8 +344,8 @@ export default function MyAssessmentsPage() {
                 <div>
                   <span className="font-bold text-blue-800">Tip: </span>
                   <span className="text-slate-700">
-                    Select exactly 2 assessments and click "Compare Selected" to see how your
-                    initiative evolved over time, or compare different strategies side-by-side.
+                    Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how
+                    your initiative evolved over time, or compare different strategies side-by-side.
                   </span>
                 </div>
               </div>

@@ -255,7 +255,7 @@ export const storage = {
   has: (key) => {
     try {
       return localStorage.getItem(key) !== null;
-    } catch (error) {
+    } catch {
       return false;
     }
   },
