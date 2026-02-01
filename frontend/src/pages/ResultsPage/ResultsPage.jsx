@@ -128,7 +128,7 @@ export default function ResultsPage({
     navigate('/');
   }, [navigate]);
 
-  // Smart market analysis: use modal instead of routing
+  // Market analysis: route to standalone page
   const handleMarketAnalysis = useCallback(() => {
     if (id) {
       navigate(`/results/${id}/market-analysis`);
@@ -485,12 +485,12 @@ export default function ResultsPage({
                           <Badge variant="outline" className="flex items-center gap-1">
                             {currentData.is_public === false ? (
                               <>
-                                <Lock className="h-3 w-3" />
+                                <Lock className="w-3 h-3" />
                                 Private
                               </>
                             ) : (
                               <>
-                                <Globe className="h-3 w-3" />
+                                <Globe className="w-3 h-3" />
                                 Contributing
                               </>
                             )}
