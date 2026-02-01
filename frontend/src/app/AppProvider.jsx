@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 
@@ -51,6 +52,7 @@ export default function AppProvider({ children }) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        <GlobalLoadingBar />
         <BrowserRouter>
           {children}
           <Sonner position="top-right" richColors closeButton />

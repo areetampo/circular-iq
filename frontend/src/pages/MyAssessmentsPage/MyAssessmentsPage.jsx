@@ -557,6 +557,7 @@ export default function MyAssessmentsPage() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleViewDetail(assessment.id)}
+                                  onMouseEnter={() => prefetchAssessment(assessment.id)}
                                   className="gap-2"
                                 >
                                   <Eye className="w-4 h-4" />
