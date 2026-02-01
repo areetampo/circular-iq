@@ -19,7 +19,7 @@ See [COMPONENT_STRUCTURE.md](./COMPONENT_STRUCTURE.md) for detailed component or
 ```
 src/
 ├── components/
-│   ├── modals/        # Modal dialogs (including MarketAnalysisModal)
+│   ├── modals/        # Modal dialogs
 │   ├── forms/         # Form input components
 │   └── shared/        # Reusable UI components
 ├── views/             # Full-page views
@@ -41,10 +41,9 @@ src/
 
 ### 2. **Smart Navigation**
 
-- **Modal-based Market Analysis**: Opens inline without route navigation
-  - Accessible from `/results` and `/assessments/:id` views
-  - Passes current context (score, industry) automatically
-  - Smooth overlay with close button
+- **Market Analysis Page**: Accessible via `/results/:id/market-analysis`
+  - Dedicated page view with standard layout
+  - Back navigation to results
 
 - **Contextual Routing**: Clean separation of concerns
   - `/` → Home/Evaluation

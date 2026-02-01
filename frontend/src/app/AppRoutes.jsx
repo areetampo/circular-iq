@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
+const MarketAnalysisPage = lazy(() => import('@/pages/MarketAnalysisPage/MarketAnalysisPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
 const AssessmentComparisonPage = lazy(
   () => import('@/pages/AssessmentComparisonPage/AssessmentComparisonPage'),
@@ -119,6 +120,14 @@ export default function AppRoutes() {
                 <ResultsErrorBoundary>
                   <ResultsPage isDetailView={true} />
                 </ResultsErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/results/:id/market-analysis"
+            element={
+              <ProtectedRoute>
+                <MarketAnalysisPage />
               </ProtectedRoute>
             }
           />
