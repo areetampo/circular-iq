@@ -57,6 +57,7 @@ import {
   Award,
   Building,
   Lightbulb,
+  Ghost,
 } from 'lucide-react';
 import {
   Select,
@@ -154,7 +155,7 @@ export default function MyAssessmentsPage() {
     }
 
     const ids = Array.from(selectedIds);
-    navigate(`/compare/${ids[0]}/${ids[1]}`);
+    navigate(`/compare?id1=${ids[0]}&id2=${ids[1]}`);
   };
 
   const handleClearSelection = () => {
@@ -463,18 +464,22 @@ export default function MyAssessmentsPage() {
 
             {/* Empty State */}
             {!loading && !error && filteredAssessments.length === 0 && (
-              <Card>
+              <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
-                  <div className="flex justify-center mb-4 text-6xl">📊</div>
+                  <div className="flex justify-center mb-4">
+                    <div className="rounded-full bg-muted p-4">
+                      <Ghost className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  </div>
                   <CardTitle className="mb-2">No assessments found</CardTitle>
                   <CardDescription className="mb-6">
                     {searchTerm || filterIndustry !== 'all'
                       ? 'No assessments match your current filters. Try adjusting your search.'
-                      : 'Get started by creating your first circularity assessment.'}
+                      : 'Create your first audit to see results here.'}
                   </CardDescription>
                   <Button onClick={handleBack} className="gap-2">
                     <Plus className="w-4 h-4" />
-                    Start New Assessment
+                    Create Your First Audit
                   </Button>
                 </CardContent>
               </Card>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { exportComparisonCSV } from '@/features/export';
 import Loader from '@/components/common/Loader';
 import AppContainer from '@/components/layout/AppContainer';
@@ -8,7 +8,9 @@ import { useAssessmentComparison } from '@/features/assessments';
 import { Button } from '@/components/ui/button';
 
 export default function AssessmentComparisonPage() {
-  const { id1, id2 } = useParams();
+  const [searchParams] = useSearchParams();
+  const id1 = searchParams.get('id1');
+  const id2 = searchParams.get('id2');
   const navigate = useNavigate();
 
   // Fetch both assessments and comparison data using hook
@@ -18,6 +20,23 @@ export default function AssessmentComparisonPage() {
   const handleBack = () => {
     navigate('/assessments');
   };
+
+  if (!id1 || !id2) {
+    return (
+      <AppContainer
+        headerProps={{
+          title: 'Assessment Comparison',
+          subtitle: 'Select two assessments to compare side-by-side.',
+          showEvaluationCriteriaButton: true,
+        }}
+      >
+        <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <p className="text-muted-foreground">Missing comparison IDs.</p>
+          <Button onClick={() => navigate('/assessments')}>Back to Assessments</Button>
+        </div>
+      </AppContainer>
+    );
+  }
 
   if (isLoading)
     return (
