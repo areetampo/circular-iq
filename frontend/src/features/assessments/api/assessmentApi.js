@@ -122,8 +122,16 @@ export async function getMarketAnalysis(id) {
   return data;
 }
 
-export async function getGlobalAnalytics() {
-  const data = await requestJson('/api/analytics');
+export async function getGlobalAnalytics(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters?.industry && filters.industry !== 'all') {
+    params.set('industry', filters.industry);
+  }
+  if (filters?.timeRange && filters.timeRange !== 'all') {
+    params.set('timeRange', filters.timeRange);
+  }
+  const path = params.toString() ? `/api/analytics?${params}` : '/api/analytics';
+  const data = await requestJson(path);
   return safeValidateGlobalAnalytics(data) || data;
 }
 
