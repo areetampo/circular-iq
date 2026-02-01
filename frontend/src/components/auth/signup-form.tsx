@@ -136,7 +136,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Creating account...
               </>
             ) : (
@@ -159,7 +159,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
             Sign up with Google
           </Button>
 
-          <div className="text-center text-sm">
+          <div className="text-sm text-center">
             Already have an account?{' '}
             <button
               type="button"
