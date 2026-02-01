@@ -302,26 +302,33 @@ if (process.env.NODE_ENV !== 'test') {
 ║   Server running on http://localhost:${PORT}               ║
 ╚════════════════════════════════════════════════════════════╝
 
-Endpoints:
-  GET  /health                    - Health check
-  POST /api/score                 - Score and audit a business idea
-  GET  /docs/methodology          - View methodology documentation
-  POST /api/assessments           - Save an assessment (Phase 2)
-  GET  /api/assessments           - List assessments (Phase 2)
-  GET  /api/assessments/:id       - Get assessment detail (Phase 2)
-  DELETE /api/assessments/:id     - Delete assessment (Phase 2)
-  GET  /api/assessments/market-analysis - Market analysis (Phase 2)
-  GET  /api/analytics             - Analytics dashboard
+🔧 Modular Architecture:
+  This server uses a modular routing structure for better maintainability.
 
-Environment:
+📍 Primary API Endpoints:
+  GET  /health                         - Health check
+  POST /api/score                      - Score and audit a business idea
+  GET  /docs/methodology               - View methodology documentation
+
+🗂️  Assessment Management (Modular):
+  POST   /api/assessments              - Save an assessment
+  GET    /api/assessments              - List assessments (with filtering, pagination)
+  GET    /api/assessments/:id          - Get assessment detail
+  DELETE /api/assessments/:id          - Delete assessment
+  GET    /api/assessments/market-analysis - Market benchmarking data
+
+📊 Analytics Dashboard (Modular):
+  GET  /api/analytics                  - Analytics and insights dashboard
+
+🛠️  Environment:
   Node: ${typeof process !== 'undefined' && process.version ? process.version : 'unknown'}
   Port: ${PORT}
   OpenAI Model: GPT-4o-mini (reasoning), text-embedding-3-small (embeddings)
 
-Database:
+🗄️  Database:
   Supabase: ${typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL ? '✓ Connected' : '✗ Not configured'}
 
-Ready for requests. Press Ctrl+C to stop.
+✅ Ready for requests. Press Ctrl+C to stop.
     `);
   });
 }
