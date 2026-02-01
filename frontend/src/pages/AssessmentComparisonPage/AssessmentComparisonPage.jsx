@@ -7,7 +7,17 @@ import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/f
 import { useAssessmentComparison } from '@/features/assessments';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { AlertTriangle, ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
@@ -104,37 +114,33 @@ export default function AssessmentComparisonPage() {
       ? Math.round(factorDiffs.reduce((sum, f) => sum + f.diff, 0) / factorDiffs.length)
       : 0;
 
-  const compareMetric = (label, val1, val2, unit = '') => {
-    const diff = val2 - val1;
-    const change = diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '0';
-    const changeClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
+  // Helper function to get badge variant based on score
+  const getScoreBadgeVariant = (score) => {
+    if (score >= 75) return 'default'; // Green
+    if (score >= 50) return 'secondary'; // Amber/Gray
+    return 'destructive'; // Red
+  };
 
+  // Helper function to render change indicator
+  const renderChangeIndicator = (diff) => {
+    if (diff > 0) {
+      return (
+        <span className="flex items-center gap-1 text-green-600 font-semibold">
+          <TrendingUp className="w-4 h-4" />+{diff}
+        </span>
+      );
+    } else if (diff < 0) {
+      return (
+        <span className="flex items-center gap-1 text-red-600 font-semibold">
+          <TrendingDown className="w-4 h-4" />
+          {diff}
+        </span>
+      );
+    }
     return (
-      <div className="grid gap-4 items-center py-4 px-4 bg-gray-50 rounded-md border-l-[3px] border-l-gray-300 transition-all duration-200 ease-in-out hover:bg-gray-100 hover:shadow-[0_2px_4px_rgba(0,0,0,0.05)] grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_0.8fr]">
-        <div className="font-semibold text-[#2c3e50] text-[0.95rem] col-span-1 md:col-auto text-sm md:text-base">
-          {label}
-        </div>
-        <div className="px-3 py-3 text-base font-bold text-center rounded bg-[#e8f5e9] text-[#1b5e20]">
-          {val1}
-          {unit}
-        </div>
-        <div className="px-3 py-3 text-base font-bold text-center rounded bg-[#e3f2fd] text-[#1565c0]">
-          {val2}
-          {unit}
-        </div>
-        <div
-          className={`px-2 py-2 text-sm font-bold text-center rounded ${
-            changeClass === 'positive'
-              ? 'text-[#28a745] bg-[#d4edda]'
-              : changeClass === 'negative'
-                ? 'text-[#dc3545] bg-[#f8d7da]'
-                : 'text-gray-400 bg-[#e9ecef]'
-          }`}
-        >
-          {change}
-          {unit}
-        </div>
-      </div>
+      <span className="flex items-center gap-1 text-gray-500 font-semibold">
+        <Minus className="w-4 h-4" />0
+      </span>
     );
   };
 
@@ -386,76 +392,198 @@ export default function AssessmentComparisonPage() {
         </div>
       </div>
 
-      {/* Factor Scores Comparison */}
-      <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
-          🔍 Factor-by-Factor Comparison
-        </h3>
-        <div className="flex flex-col gap-3">
-          {Object.entries(assessment1.result_json?.sub_scores || {}).map(([factor, val1]) => {
-            const val2 = assessment2.result_json?.sub_scores?.[factor] || 0;
-            return (
-              <React.Fragment key={factor}>
-                {compareMetric(
-                  factor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-                  val1,
-                  val2,
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
+      {/* Factor Scores Comparison Table */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">🔍 Factor-by-Factor Comparison</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[35%]">Factor</TableHead>
+                <TableHead className="text-center">{assessment1.title}</TableHead>
+                <TableHead className="text-center">{assessment2.title}</TableHead>
+                <TableHead className="text-center">Change</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.entries(assessment1.result_json?.sub_scores || {}).map(([factor, val1]) => {
+                const val2 = assessment2.result_json?.sub_scores?.[factor] || 0;
+                const diff = val2 - val1;
+                return (
+                  <TableRow key={factor}>
+                    <TableCell className="font-medium">{titleize(factor)}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={getScoreBadgeVariant(val1)} className="font-semibold">
+                        {val1}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={getScoreBadgeVariant(val2)} className="font-semibold">
+                        {val2}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">{renderChangeIndicator(diff)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Metadata Comparison */}
-      <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold flex items-center gap-2">
-          🏢 Project Details
-        </h3>
-        <div className="flex flex-col gap-3">
-          {compareMetric(
-            'Industry',
-            titleize(assessment1.result_json?.metadata?.industry),
-            titleize(assessment2.result_json?.metadata?.industry),
-          )}
-          {compareMetric(
-            'Scale',
-            titleize(assessment1.result_json?.metadata?.scale),
-            titleize(assessment2.result_json?.metadata?.scale),
-          )}
-          {compareMetric(
-            'Strategy',
-            titleize(assessment1.result_json?.metadata?.r_strategy),
-            titleize(assessment2.result_json?.metadata?.r_strategy),
-          )}
-          {compareMetric(
-            'Material',
-            titleize(assessment1.result_json?.metadata?.primary_material),
-            titleize(assessment2.result_json?.metadata?.primary_material),
-          )}
-        </div>
-      </div>
+      {/* Metadata Comparison Table */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">🏢 Project Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[35%]">Attribute</TableHead>
+                <TableHead className="text-center">{assessment1.title}</TableHead>
+                <TableHead className="text-center">{assessment2.title}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">Industry</TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment1.result_json?.metadata?.industry)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment2.result_json?.metadata?.industry)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Scale</TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment1.result_json?.metadata?.scale)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment2.result_json?.metadata?.scale)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Strategy</TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment1.result_json?.metadata?.r_strategy)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment2.result_json?.metadata?.r_strategy)}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Material</TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment1.result_json?.metadata?.primary_material)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {titleize(assessment2.result_json?.metadata?.primary_material)}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Benchmark Comparison */}
+      {/* Benchmark Comparison Table */}
       {assessment1.result_json?.gap_analysis?.overall_benchmarks &&
         assessment2.result_json?.gap_analysis?.overall_benchmarks && (
-          <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-            <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
-              Benchmarking vs. Similar Projects
-            </h3>
-            <div className="flex flex-col gap-3">
-              {compareMetric(
-                'vs. Similar Avg',
-                Math.round(assessment1.result_json?.gap_analysis.overall_benchmarks.average),
-                Math.round(assessment2.result_json?.gap_analysis.overall_benchmarks.average),
-              )}
-              {compareMetric(
-                'vs. Top 10%',
-                assessment1.result_json?.gap_analysis.overall_benchmarks.top_10_percentile,
-                assessment2.result_json?.gap_analysis.overall_benchmarks.top_10_percentile,
-              )}
-            </div>
-          </div>
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>📊 Benchmarking vs. Similar Projects</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[35%]">Benchmark</TableHead>
+                    <TableHead className="text-center">{assessment1.title}</TableHead>
+                    <TableHead className="text-center">{assessment2.title}</TableHead>
+                    <TableHead className="text-center">Change</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">vs. Similar Avg</TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant={getScoreBadgeVariant(
+                          Math.round(
+                            assessment1.result_json?.gap_analysis.overall_benchmarks.average,
+                          ),
+                        )}
+                        className="font-semibold"
+                      >
+                        {Math.round(
+                          assessment1.result_json?.gap_analysis.overall_benchmarks.average,
+                        )}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant={getScoreBadgeVariant(
+                          Math.round(
+                            assessment2.result_json?.gap_analysis.overall_benchmarks.average,
+                          ),
+                        )}
+                        className="font-semibold"
+                      >
+                        {Math.round(
+                          assessment2.result_json?.gap_analysis.overall_benchmarks.average,
+                        )}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {renderChangeIndicator(
+                        Math.round(
+                          assessment2.result_json?.gap_analysis.overall_benchmarks.average,
+                        ) -
+                          Math.round(
+                            assessment1.result_json?.gap_analysis.overall_benchmarks.average,
+                          ),
+                      )}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">vs. Top 10%</TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant={getScoreBadgeVariant(
+                          assessment1.result_json?.gap_analysis.overall_benchmarks
+                            .top_10_percentile,
+                        )}
+                        className="font-semibold"
+                      >
+                        {assessment1.result_json?.gap_analysis.overall_benchmarks.top_10_percentile}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant={getScoreBadgeVariant(
+                          assessment2.result_json?.gap_analysis.overall_benchmarks
+                            .top_10_percentile,
+                        )}
+                        className="font-semibold"
+                      >
+                        {assessment2.result_json?.gap_analysis.overall_benchmarks.top_10_percentile}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {renderChangeIndicator(
+                        assessment2.result_json?.gap_analysis.overall_benchmarks.top_10_percentile -
+                          assessment1.result_json?.gap_analysis.overall_benchmarks
+                            .top_10_percentile,
+                      )}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         )}
 
       {/* Audit Verdicts */}
