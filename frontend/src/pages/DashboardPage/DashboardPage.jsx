@@ -1,8 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import AppContainer from '@/components/layout/AppContainer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { Activity, Building2, Gauge, Layers } from 'lucide-react';
@@ -10,8 +18,32 @@ import { useGlobalAnalytics } from '@/features/assessments';
 import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const { aggregate, industryMetrics, timeSeries, isLoading, isError, error } =
-    useGlobalAnalytics();
+  const [industry, setIndustry] = useState('all');
+  const [timeRange, setTimeRange] = useState('180d');
+
+  const filters = useMemo(() => ({ industry, timeRange }), [industry, timeRange]);
+
+  const { aggregate, industryMetrics, timeSeries, isLoading, isFetching, isError, error } =
+    useGlobalAnalytics({ filters });
+
+  const { industryMetrics: allIndustryMetrics } = useGlobalAnalytics({
+    filters: { industry: 'all', timeRange: 'all' },
+  });
+
+  const timeRangeOptions = [
+    { value: '30d', label: 'Last 30 Days' },
+    { value: '90d', label: 'Last 3 Months' },
+    { value: '180d', label: 'Last 6 Months' },
+    { value: 'all', label: 'All Time' },
+  ];
+
+  const industryOptions = useMemo(() => {
+    const source = allIndustryMetrics.length ? allIndustryMetrics : industryMetrics;
+    const unique = Array.from(
+      new Set(source.map((metric) => metric.industry).filter((value) => value && value.length)),
+    );
+    return ['all', ...unique];
+  }, [allIndustryMetrics, industryMetrics]);
 
   const mostActiveIndustry = useMemo(() => {
     if (!industryMetrics.length) return null;
@@ -41,6 +73,16 @@ export default function DashboardPage() {
     return 'Global performance snapshot across all assessments.';
   };
 
+  const handleClearFilters = () => {
+    setIndustry('all');
+    setTimeRange('180d');
+  };
+
+  const timeRangeLabel =
+    timeRangeOptions.find((option) => option.value === timeRange)?.label || 'Last 6 Months';
+
+  const isBusy = isLoading || isFetching;
+
   return (
     <AppContainer
       headerProps={{
@@ -49,13 +91,51 @@ export default function DashboardPage() {
         showLogo: true,
       }}
     >
-      <div className="space-y-6">
+      <div className={cn('space-y-6 transition-opacity', isBusy && 'opacity-60')}>
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
             <Badge variant="secondary">Global Analytics</Badge>
-            <Badge variant="outline">Last 6 months</Badge>
+            <Badge variant="outline">{timeRangeLabel}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{renderStatus()}</p>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-xl border bg-white/80 p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="min-w-[220px]">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Industry</p>
+              <Select value={industry} onValueChange={setIndustry}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  {industryOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option === 'all' ? 'All Industries' : option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="min-w-[220px]">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Time Range</p>
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select time range" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeRangeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button variant="outline" onClick={handleClearFilters}>
+            Clear Filters
+          </Button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

@@ -26,6 +26,17 @@ function buildRecentMonths(count = 6) {
   return months;
 }
 
+function parseTimeRange(timeRange) {
+  if (!timeRange) return null;
+  const normalized = String(timeRange).trim().toLowerCase();
+  if (!normalized || normalized === 'all') return null;
+  const match = normalized.match(/^(\d+)d$/);
+  if (!match) return null;
+  const days = Number(match[1]);
+  if (!Number.isFinite(days) || days <= 0) return null;
+  return days;
+}
+
 function getScoreFromRow(row) {
   if (!row) return 0;
   if (row.result_json && row.result_json.overall_score != null) {
@@ -50,9 +61,26 @@ export default function createAnalyticsRouter(supabase) {
 
   router.get('/', async (req, res) => {
     try {
-      const { data: assessments, error } = await supabase
+      const industryFilter = String(req.query.industry || '').trim();
+      const timeRangeRaw = String(req.query.timeRange || '').trim();
+      const days = parseTimeRange(timeRangeRaw);
+
+      let query = supabase
         .from('assessments')
         .select('industry, result_json, overall_score, created_at');
+
+      if (industryFilter && industryFilter.toLowerCase() !== 'all') {
+        query = query.eq('industry', industryFilter);
+      }
+
+      let startDate = null;
+      if (days) {
+        startDate = new Date();
+        startDate.setUTCDate(startDate.getUTCDate() - days);
+        query = query.gte('created_at', startDate.toISOString());
+      }
+
+      const { data: assessments, error } = await query;
 
       if (error) throw error;
 
