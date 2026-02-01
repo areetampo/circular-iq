@@ -16,14 +16,14 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 
-export default function MarketAnalysisModal({ isOpen, onClose, currentAssessmentScore }) {
+export default function MarketAnalysisModal({ isModalOpen, onClose, currentAssessmentScore }) {
   const { id } = useParams();
   const [filterScale, setFilterScale] = useState('all');
 
   // Fetch market analysis data using hook
   const { marketData, stats, userScore, isLoading, isError, error, refetch } = useMarketAnalysis({
     assessmentId: id,
-    enabled: isOpen,
+    enabled: isModalOpen,
   });
 
   // Use current scores if provided, otherwise fall back to fetched data
@@ -97,7 +97,7 @@ export default function MarketAnalysisModal({ isOpen, onClose, currentAssessment
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogClose className="absolute top-4 right-4" aria-label="Close market analysis modal">
         ✖️
       </DialogClose>
@@ -422,7 +422,7 @@ export default function MarketAnalysisModal({ isOpen, onClose, currentAssessment
 }
 
 MarketAnalysisModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
+  isModalOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   currentAssessmentScore: PropTypes.number,
 };

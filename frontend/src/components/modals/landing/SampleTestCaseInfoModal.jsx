@@ -10,9 +10,9 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 
-export default function SampleTestCaseInfoModal({ onClose, isOpen, testCase }) {
+export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase }) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogClose className="absolute top-4 right-4" aria-label="Close sample test case modal">
         ✖️
       </DialogClose>
@@ -102,7 +102,7 @@ export default function SampleTestCaseInfoModal({ onClose, isOpen, testCase }) {
 
 SampleTestCaseInfoModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-  isOpen: PropTypes.bool.isRequired,
+  isModalOpen: PropTypes.bool.isRequired,
   testCase: PropTypes.shape({
     title: PropTypes.string.isRequired,
     problem: PropTypes.string.isRequired,

@@ -21,7 +21,9 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/common/Logo';
-import { LogOut, User, LayoutDashboard, FileText, GitCompare } from 'lucide-react';
+import useHeaderModals from '@/hooks/useHeaderModals';
+import HeaderModalManager from '@/components/modals/header/HeaderModalManager';
+import { LogOut, User, LayoutDashboard, FileText, GitCompare, Info } from 'lucide-react';
 
 export default function Header({
   showLogo = true,
@@ -31,6 +33,8 @@ export default function Header({
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, isAuthenticated, signOut } = useAuth();
+  const { modal, isModalOpen, onClose, openAssessmentMethodology, openEvaluationCriteria } =
+    useHeaderModals();
 
   const isActive = (path) => location.pathname === path;
 
@@ -112,6 +116,26 @@ export default function Header({
                 </NavigationMenuItem>
               </>
             )}
+
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                className={cn(navigationMenuTriggerStyle(), 'cursor-pointer')}
+                onClick={openAssessmentMethodology}
+              >
+                <Info className="w-4 h-4 mr-2" />
+                Assessment Methodology
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                className={cn(navigationMenuTriggerStyle(), 'cursor-pointer')}
+                onClick={openEvaluationCriteria}
+              >
+                <Info className="w-4 h-4 mr-2" />
+                Evaluation Criteria
+              </NavigationMenuLink>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -188,6 +212,9 @@ export default function Header({
           </div>
         </div>
       )}
+
+      {/* Header Modals */}
+      <HeaderModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </header>
   );
 }

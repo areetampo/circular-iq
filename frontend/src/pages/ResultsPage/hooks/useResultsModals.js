@@ -1,7 +1,7 @@
 import useModal from '@/hooks/useModal';
 import { RESULTS_MODALS } from '@/components/modals/core/modalTypes';
 
-export default function useLandingModals() {
+export default function useResultsModals() {
   const { modal, openModal, closeModal, isModalOpen } = useModal();
 
   return {
@@ -9,8 +9,8 @@ export default function useLandingModals() {
     isModalOpen,
     closeModal,
 
-    openDatabaseEvidenceDetails: (evidenceId) =>
-      openModal(RESULTS_MODALS.DATABASE_EVIDENCE_DETAILS, { evidenceId }),
+    openDatabaseEvidenceDetails: (evidenceData) =>
+      openModal(RESULTS_MODALS.DATABASE_EVIDENCE_DETAILS, evidenceData),
 
     openMarketAnalysis: (currentAssessmentScore, currentIndustry) =>
       openModal(RESULTS_MODALS.MARKET_ANALYSIS, { currentAssessmentScore, currentIndustry }),

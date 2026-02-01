@@ -11,14 +11,14 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 
-export default function ParameterInfoModal({ onClose, isOpen, paramKey }) {
+export default function ParameterInfoModal({ onClose, isModalOpen, paramKey }) {
   const guidance = parameterGuidance[paramKey];
   if (!guidance) return null;
 
   const weightLabel = guidance.weightPercent || `${Math.round((guidance.weight || 0) * 100)}%`;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogClose
         className="absolute top-4 right-4"
         aria-label="Close parameter information modal"
@@ -105,6 +105,6 @@ export default function ParameterInfoModal({ onClose, isOpen, paramKey }) {
 
 ParameterInfoModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-  isOpen: PropTypes.bool.isRequired,
+  isModalOpen: PropTypes.bool.isRequired,
   paramKey: PropTypes.string.isRequired,
 };

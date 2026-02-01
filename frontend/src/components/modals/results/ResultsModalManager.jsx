@@ -4,7 +4,7 @@ import { RESULTS_MODALS } from '@/components/modals/core/modalTypes';
 import ResultsDatabaseEvidenceDetailsModal from './ResultsDatabaseEvidenceDetailsModal';
 import MarketAnalysisModal from './MarketAnalysisModal';
 
-export default function ResultsModalManager({ modal, isModalOpen, closeModal }) {
+export default function ResultsModalManager({ modal, isModalOpen, onClose }) {
   if (!modal) return null;
 
   switch (modal.type) {
@@ -12,8 +12,8 @@ export default function ResultsModalManager({ modal, isModalOpen, closeModal }) 
       return (
         <ResultsDatabaseEvidenceDetailsModal
           isModalOpen={isModalOpen}
-          onClose={closeModal}
-          evidenceId={modal.data.evidenceId}
+          onClose={onClose}
+          {...modal.data}
         />
       );
 
@@ -21,7 +21,7 @@ export default function ResultsModalManager({ modal, isModalOpen, closeModal }) 
       return (
         <MarketAnalysisModal
           isModalOpen={isModalOpen}
-          onClose={closeModal}
+          onClose={onClose}
           currentAssessmentScore={modal.data.currentAssessmentScore}
           currentIndustry={modal.data.currentIndustry}
         />
@@ -38,5 +38,5 @@ ResultsModalManager.propTypes = {
     data: PropTypes.any,
   }),
   isModalOpen: PropTypes.bool.isRequired,
-  closeModal: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
 };

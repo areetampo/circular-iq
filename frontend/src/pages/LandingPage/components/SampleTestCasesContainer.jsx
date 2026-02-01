@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
 import testCases from '@/data/testCases.json';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,21 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { FlaskConical, Info } from 'lucide-react';
 
 export default function SampleTestCasesContainer() {
   const { setValue, trigger } = useFormContext();
+  const { openTestCaseHeading, openTestCase } = useLandingModals();
   const [selectedCase, setSelectedCase] = useState('');
-  const [previewTestCase, setPreviewTestCase] = useState(null);
 
   const handleSelectCase = async (testCaseId) => {
     const testCase = testCases.testCases.find((tc) => tc.id === testCaseId);
@@ -57,16 +51,7 @@ export default function SampleTestCasesContainer() {
               <FlaskConical className="w-5 h-5 text-blue-600" />
               <CardTitle className="text-base">Sample Test Cases</CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                toast.info('Sample Test Cases', {
-                  description:
-                    'Load pre-configured circular economy examples to quickly test the evaluator with realistic data.',
-                })
-              }
-            >
+            <Button variant="ghost" size="sm" onClick={openTestCaseHeading}>
               <Info className="w-4 h-4" />
             </Button>
           </div>
@@ -113,7 +98,7 @@ export default function SampleTestCasesContainer() {
                         variant="outline"
                         size="sm"
                         className="w-full gap-2"
-                        onClick={() => setPreviewTestCase(testCase)}
+                        onClick={() => openTestCase(testCase)}
                       >
                         <Info className="w-4 h-4" />
                         View Full Details
@@ -126,44 +111,6 @@ export default function SampleTestCasesContainer() {
           )}
         </CardContent>
       </Card>
-
-      {/* Preview Dialog */}
-      <Dialog open={!!previewTestCase} onOpenChange={() => setPreviewTestCase(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{previewTestCase?.title}</DialogTitle>
-            <DialogDescription>Sample circular economy test case for evaluation</DialogDescription>
-          </DialogHeader>
-          {previewTestCase && (
-            <div className="space-y-4">
-              <div>
-                <h4 className="mb-2 font-semibold">Problem:</h4>
-                <p className="text-sm text-muted-foreground">{previewTestCase.problem}</p>
-              </div>
-              <Separator />
-              <div>
-                <h4 className="mb-2 font-semibold">Solution:</h4>
-                <p className="text-sm text-muted-foreground">{previewTestCase.solution}</p>
-              </div>
-              <Separator />
-              <div>
-                <h4 className="mb-2 font-semibold">Parameters:</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(previewTestCase.parameters).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between p-2 rounded-lg bg-muted"
-                    >
-                      <span className="text-sm font-medium">{key.replace(/_/g, ' ')}</span>
-                      <Badge variant={getParameterBadgeVariant(value)}>{value}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
