@@ -29,7 +29,7 @@ export function useToast() {
       // Handle object format with title and description
       const variant = message.variant || 'default';
       const toastMessage = message.description || message.title;
-      
+
       switch (variant) {
         case 'success':
           toast.success(message.title, { description: message.description });

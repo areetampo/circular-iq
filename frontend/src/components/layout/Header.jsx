@@ -72,7 +72,7 @@ export default function Header({
                 className={cn(
                   navigationMenuTriggerStyle(),
                   isActive('/') && 'bg-accent text-accent-foreground',
-                  'cursor-pointer'
+                  'cursor-pointer',
                 )}
                 onClick={() => navigate('/')}
               >
@@ -88,7 +88,7 @@ export default function Header({
                     className={cn(
                       navigationMenuTriggerStyle(),
                       isActive('/assessments') && 'bg-accent text-accent-foreground',
-                      'cursor-pointer'
+                      'cursor-pointer',
                     )}
                     onClick={() => navigate('/assessments')}
                   >
@@ -102,7 +102,7 @@ export default function Header({
                     className={cn(
                       navigationMenuTriggerStyle(),
                       isActive('/comparison') && 'bg-accent text-accent-foreground',
-                      'cursor-pointer'
+                      'cursor-pointer',
                     )}
                     onClick={() => navigate('/comparison')}
                   >
@@ -153,7 +153,10 @@ export default function Header({
                   Comparison
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="md:hidden" />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="text-destructive focus:text-destructive"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>
@@ -179,9 +182,7 @@ export default function Header({
                 </h1>
               )}
               {subtitle && (
-                <p className="max-w-3xl mx-auto text-lg text-muted-foreground">
-                  {subtitle}
-                </p>
+                <p className="max-w-3xl mx-auto text-lg text-muted-foreground">{subtitle}</p>
               )}
             </div>
           </div>
