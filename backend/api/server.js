@@ -15,6 +15,7 @@ import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
+import createAnalyticsRouter from './routes/analytics.js';
 import { calculateScores, identifyIntegrityGaps } from '../src/scoring.js';
 import {
   generateReasoning,
@@ -146,6 +147,12 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
   });
 });
+
+// ============================================
+// ANALYTICS DASHBOARD ENDPOINTS
+// ============================================
+
+app.use('/api/analytics', createAnalyticsRouter(supabase));
 
 // ============================================
 // MAIN SCORING ENDPOINT

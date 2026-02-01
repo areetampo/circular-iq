@@ -3,3 +3,4 @@ export * from './hooks/useAssessment';
 export * from './hooks/useAssessments';
 export * from './hooks/useAssessmentComparison';
 export * from './hooks/useMarketAnalysis';
+export * from './hooks/useGlobalAnalytics';
