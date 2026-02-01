@@ -20,7 +20,7 @@ before(async () => {
 // POST /score input validation tests
 test('POST /score rejects missing businessProblem', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessSolution: 'A'.repeat(200),
       parameters: {
@@ -41,7 +41,7 @@ test('POST /score rejects missing businessProblem', async () => {
 
 test('POST /score rejects businessProblem shorter than 200 chars', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'Short problem',
       businessSolution: 'A'.repeat(200),
@@ -62,7 +62,7 @@ test('POST /score rejects businessProblem shorter than 200 chars', async () => {
 
 test('POST /score rejects businessSolution shorter than 200 chars', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'Short solution',
@@ -83,7 +83,7 @@ test('POST /score rejects businessSolution shorter than 200 chars', async () => 
 
 test('POST /score rejects missing parameters object', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
@@ -94,7 +94,7 @@ test('POST /score rejects missing parameters object', async () => {
 
 test('POST /score rejects parameter value outside 0-100 range', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
@@ -115,7 +115,7 @@ test('POST /score rejects parameter value outside 0-100 range', async () => {
 
 test('POST /score rejects negative parameter value', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
@@ -136,7 +136,7 @@ test('POST /score rejects negative parameter value', async () => {
 
 test('POST /score rejects non-numeric parameter', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
@@ -157,7 +157,7 @@ test('POST /score rejects non-numeric parameter', async () => {
 
 test('POST /score requires all 8 parameters', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
@@ -178,7 +178,7 @@ test('POST /score requires all 8 parameters', async () => {
 
 test('POST /score accepts valid input with all 8 parameters', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
@@ -200,7 +200,7 @@ test('POST /score accepts valid input with all 8 parameters', async () => {
 
 test('POST /score accepts boundary values (0 and 100)', async () => {
   const res = await request(app)
-    .post('/score')
+    .post('/api/score')
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),

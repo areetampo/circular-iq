@@ -16,7 +16,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
  */
 export async function submitForScoring(businessProblem, businessSolution, parameters) {
   try {
-    const response = await fetch(`${API_URL}/score`, {
+    const response = await fetch(`${API_URL}/api/score`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export async function submitForScoring(businessProblem, businessSolution, parame
  */
 export async function fetchAssessments() {
   try {
-    const response = await fetch(`${API_URL}/assessments`);
+    const response = await fetch(`${API_URL}/api/assessments`);
     if (!response.ok) {
       throw new Error(`Failed to fetch assessments: ${response.status}`);
     }
@@ -64,7 +64,7 @@ export async function fetchAssessments() {
  */
 export async function saveAssessment(assessment) {
   try {
-    const response = await fetch(`${API_URL}/assessments`, {
+    const response = await fetch(`${API_URL}/api/assessments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ export async function saveAssessment(assessment) {
  */
 export async function deleteAssessment(assessmentId) {
   try {
-    const response = await fetch(`${API_URL}/assessments/${assessmentId}`, {
+    const response = await fetch(`${API_URL}/api/assessments/${assessmentId}`, {
       method: 'DELETE',
     });
 
