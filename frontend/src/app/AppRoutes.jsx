@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 // Lazy-load page components for performance
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
 const AssessmentComparisonPage = lazy(
@@ -82,6 +83,14 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute>
                 <LandingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
               </ProtectedRoute>
             }
           />

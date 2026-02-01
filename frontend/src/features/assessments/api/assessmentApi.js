@@ -5,6 +5,7 @@ import {
   safeValidateAssessment,
   safeValidateAssessmentsList,
   AssessmentSchema,
+  safeValidateGlobalAnalytics,
 } from '@/features/assessments/api/assessmentSchema';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -119,6 +120,12 @@ export async function getMarketAnalysis(id) {
     };
   }
   return data;
+}
+
+export async function getGlobalAnalytics() {
+  const data = await requestJson('/api/analytics');
+  return safeValidateGlobalAnalytics(data) || data;
+}
 
 export async function compareAssessments(id1, id2) {
   if (!id1 || !id2) {

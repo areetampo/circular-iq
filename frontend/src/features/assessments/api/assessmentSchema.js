@@ -142,6 +142,31 @@ export const MarketAnalysisSchema = z.object({
 });
 
 /**
+ * Schema for global analytics response
+ */
+export const GlobalAnalyticsSchema = z.object({
+  aggregate: z.object({
+    totalCount: z.number(),
+    averageScore: z.number(),
+  }),
+  industryMetrics: z.array(
+    z.object({
+      industry: z.string(),
+      count: z.number(),
+      averageScore: z.number(),
+    }),
+  ),
+  timeSeries: z.array(
+    z.object({
+      month: z.string(),
+      label: z.string(),
+      count: z.number(),
+      averageScore: z.number(),
+    }),
+  ),
+});
+
+/**
  * Validates and parses assessment data
  * @param {unknown} data - Raw data to validate
  * @returns {Object} Validated assessment data
@@ -172,6 +197,16 @@ export function validateResultJson(data) {
 }
 
 /**
+ * Validates and parses global analytics response
+ * @param {unknown} data - Raw data to validate
+ * @returns {Object} Validated analytics data
+ * @throws {z.ZodError} If validation fails
+ */
+export function validateGlobalAnalytics(data) {
+  return GlobalAnalyticsSchema.parse(data);
+}
+
+/**
  * Safe validation that returns null on failure instead of throwing
  * @param {unknown} data - Raw data to validate
  * @returns {Object|null} Validated data or null if validation fails
@@ -193,6 +228,20 @@ export function safeValidateAssessment(data) {
 export function safeValidateAssessmentsList(data) {
   try {
     return validateAssessmentsList(data);
+  } catch (error) {
+    console.error('[VALIDATION_ERROR]', error.message);
+    return null;
+  }
+}
+
+/**
+ * Safe validation for global analytics
+ * @param {unknown} data - Raw data to validate
+ * @returns {Object|null} Validated data or null if validation fails
+ */
+export function safeValidateGlobalAnalytics(data) {
+  try {
+    return validateGlobalAnalytics(data);
   } catch (error) {
     console.error('[VALIDATION_ERROR]', error.message);
     return null;

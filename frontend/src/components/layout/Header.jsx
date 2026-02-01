@@ -71,20 +71,6 @@ export default function Header({
         {/* Center: Navigation Menu */}
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  isActive('/') && 'bg-accent text-accent-foreground',
-                  'cursor-pointer',
-                )}
-                onClick={() => navigate('/')}
-              >
-                <LayoutDashboard className="w-4 h-4 mr-2" />
-                Dashboard
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
             {isAuthenticated && (
               <>
                 <NavigationMenuItem>
@@ -98,6 +84,20 @@ export default function Header({
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     My Assessments
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      isActive('/dashboard') && 'bg-accent text-accent-foreground',
+                      'cursor-pointer',
+                    )}
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
                   </NavigationMenuLink>
                 </NavigationMenuItem>
 
@@ -164,13 +164,13 @@ export default function Header({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="md:hidden" onClick={() => navigate('/')}>
-                  <LayoutDashboard className="w-4 h-4 mr-2" />
-                  Dashboard
-                </DropdownMenuItem>
                 <DropdownMenuItem className="md:hidden" onClick={() => navigate('/assessments')}>
                   <FileText className="w-4 h-4 mr-2" />
                   My Assessments
+                </DropdownMenuItem>
+                <DropdownMenuItem className="md:hidden" onClick={() => navigate('/dashboard')}>
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem className="md:hidden" onClick={() => navigate('/comparison')}>
                   <GitCompare className="w-4 h-4 mr-2" />
