@@ -1,7 +1,6 @@
 import React from 'react';
 import AppProvider from './AppProvider';
 import AppRoutes from './AppRoutes';
-import './App.css';
 
 /**
  * App - Main application component (Phase 5 refactor)

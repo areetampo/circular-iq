@@ -1,5 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Home, RefreshCcw } from 'lucide-react';
 
 /**
  * Error Boundary using a class component to catch and display errors gracefully
@@ -22,40 +26,49 @@ class GlobalErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-            <div className="mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold text-slate-800 mb-2">Something went wrong</h1>
-              <p className="text-slate-600 mb-4">
-                An unexpected error occurred. Please try again or return to the home page.
-              </p>
+          <Card className="max-w-md w-full">
+            <CardHeader className="text-center pb-4">
+              <div className="flex justify-center mb-4">
+                <div className="p-3 bg-destructive/10 rounded-full">
+                  <AlertCircle className="w-12 h-12 text-destructive" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl">Something went wrong</CardTitle>
+              <CardDescription className="text-base">
+                An unexpected error occurred. Please try refreshing the page or return to the home
+                page.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {import.meta.env.DEV && this.state.error && (
-                <details className="mt-4 text-left bg-slate-50 p-3 rounded border border-slate-200">
-                  <summary className="cursor-pointer text-sm font-mono text-slate-600 hover:text-slate-800">
-                    Error details (development only)
-                  </summary>
-                  <pre className="mt-2 text-xs overflow-auto max-h-40 text-slate-700">
-                    {this.state.error.toString()}
-                  </pre>
-                </details>
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error Details (Development Only)</AlertTitle>
+                  <AlertDescription>
+                    <pre className="mt-2 text-xs overflow-auto max-h-32 bg-background/50 p-2 rounded">
+                      {this.state.error.toString()}
+                    </pre>
+                  </AlertDescription>
+                </Alert>
               )}
-            </div>
 
-            <div className="flex gap-3 flex-col sm:flex-row">
-              <button
-                onClick={() => window.location.reload()}
-                className="flex-1 bg-[#34a83a] text-white py-3 px-6 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-[#2a8a2f] hover:shadow-[0_4px_8px_rgba(52,168,58,0.3)]"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={() => (window.location.href = '/')}
-                className="flex-1 bg-slate-200 text-slate-800 py-3 px-6 rounded-md font-semibold cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-300"
-              >
-                Return Home
-              </button>
-            </div>
-          </div>
+              <div className="flex gap-3 flex-col sm:flex-row">
+                <Button onClick={() => window.location.reload()} className="flex-1 gap-2" size="lg">
+                  <RefreshCcw className="w-4 h-4" />
+                  Try Again
+                </Button>
+                <Button
+                  onClick={() => (window.location.href = '/')}
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  size="lg"
+                >
+                  <Home className="w-4 h-4" />
+                  Return Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
