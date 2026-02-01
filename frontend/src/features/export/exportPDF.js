@@ -66,13 +66,16 @@ function createPDFHTML(title, content) {
         .header {
           text-align: center;
           margin-bottom: 40px;
-          border-bottom: 3px solid #34a83a;
+          border-bottom: 3px solid #059669;
           padding-bottom: 20px;
         }
         .header h1 {
           font-size: 28px;
-          color: #34a83a;
+          color: #059669;
           margin-bottom: 10px;
+        }
+        h2, h3, h4 {
+          color: #059669;
         }
         .header p {
           color: #666;
@@ -85,15 +88,15 @@ function createPDFHTML(title, content) {
         .section-title {
           font-size: 18px;
           font-weight: bold;
-          color: #34a83a;
+          color: #059669;
           margin: 20px 0 15px 0;
-          border-left: 4px solid #34a83a;
+          border-left: 4px solid #059669;
           padding-left: 15px;
         }
         .score-box {
           display: inline-block;
           background: #f0f7f0;
-          border: 2px solid #34a83a;
+          border: 2px solid #059669;
           padding: 15px 25px;
           border-radius: 8px;
           margin: 10px 10px 10px 0;
@@ -103,7 +106,7 @@ function createPDFHTML(title, content) {
         .score-value {
           font-size: 32px;
           font-weight: bold;
-          color: #34a83a;
+          color: #059669;
         }
         .score-label {
           font-size: 12px;
@@ -135,7 +138,7 @@ function createPDFHTML(title, content) {
           background: #f9f9f9;
           padding: 15px;
           border-radius: 6px;
-          border-left: 4px solid #34a83a;
+          border-left: 4px solid #059669;
         }
         .factor-name {
           font-weight: bold;
@@ -144,12 +147,12 @@ function createPDFHTML(title, content) {
         }
         .factor-score {
           font-size: 24px;
-          color: #34a83a;
+          color: #059669;
           font-weight: bold;
         }
         .audit-box {
           background: #e8f5e9;
-          border-left: 4px solid #34a83a;
+          border-left: 4px solid #059669;
           padding: 15px;
           margin: 15px 0;
           border-radius: 4px;
@@ -273,7 +276,7 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   const pdf = new jsPDF('p', 'mm', 'a4');
 
   // Add Header
-  pdf.setFillColor(52, 168, 58); // #34a83a
+  pdf.setFillColor(5, 150, 105); // #059669 (Emerald-600)
   pdf.rect(0, 0, pageWidth, headerHeight, 'F');
 
   pdf.setTextColor(255, 255, 255);

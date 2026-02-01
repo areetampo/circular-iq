@@ -59,7 +59,7 @@ ProtectedRoute.propTypes = {
  * - /results (ResultsPage)
  * - /assessments (MyAssessmentsPage)
  * - /assessments/:id (ResultsPage detail view)
- * - /compare/:id1/:id2 (AssessmentComparisonPage)
+ * - /compare (AssessmentComparisonPage)
  *
  * Public routes:
  * - /auth (AuthPage)
@@ -114,7 +114,7 @@ export default function AppRoutes() {
             }
           />
           <Route
-            path="/compare/:id1/:id2"
+            path="/compare"
             element={
               <ProtectedRoute>
                 <AssessmentComparisonPage />
