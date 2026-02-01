@@ -1,157 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import testCases from '@/data/testCases.json';
-import TestCaseInfoModal from '@/components/modals/landing/SampleTestCaseInfoModal';
-import InfoIconButton from '@/components/common/InfoIconButton';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { FlaskConical, Info } from 'lucide-react';
 
 export default function SampleTestCasesContainer() {
   const { setValue, trigger } = useFormContext();
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedCase, setSelectedCase] = useState(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [selectedCase, setSelectedCase] = useState('');
   const [previewTestCase, setPreviewTestCase] = useState(null);
-  const [isMobileLayout, setIsMobileLayout] = useState(window.innerWidth <= 820);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileLayout(window.innerWidth <= 820);
-    };
+  const handleSelectCase = async (testCaseId) => {
+    const testCase = testCases.testCases.find((tc) => tc.id === testCaseId);
+    if (!testCase) return;
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const handleSelectCase = async (testCase) => {
-    setSelectedCase(testCase.id);
+    setSelectedCase(testCaseId);
     setValue('businessProblem', testCase.problem, { shouldValidate: true });
     setValue('businessSolution', testCase.solution, { shouldValidate: true });
     setValue('parameters', testCase.parameters, { shouldValidate: true });
     await trigger();
+
+    toast.success('Test case loaded!', {
+      description: `"${testCase.title}" has been loaded into the form.`,
+    });
   };
 
-  const getParameterColor = (value) => {
-    if (value >= 75) return { bg: '#d4edda', text: '#155724', border: '#c3e6cb' };
-    if (value >= 50) return { bg: '#fff3cd', text: '#856404', border: '#ffeaa7' };
-    return { bg: '#f8d7da', text: '#721c24', border: '#f5c6cb' };
+  const getParameterBadgeVariant = (value) => {
+    if (value >= 75) return 'default';
+    if (value >= 50) return 'secondary';
+    return 'outline';
   };
 
   return (
-    <div className="mt-6 mb-4">
-      <div className="flex items-center gap-2 mt-8 mb-4 ml-2">
-        <span className="font-semibold text-gray-600 text-m">Sample Test Cases</span>
-        <InfoIconButton onClick={() => setShowInfoModal(true)} title="Learn about test cases" />
-      </div>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-white border-2 border-gray-300 rounded-lg px-5 py-3.5 text-sm font-semibold text-gray-600 cursor-pointer flex items-center justify-between transition-all duration-200 hover:border-gray-600 hover:bg-gray-50"
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="text-lg">🧪</span>
-          <span>Load for Quick Testing</span>
-        </div>
-        <span
-          className={`text-lg text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
-        >
-          ▶
-        </span>
-      </button>
-
-      <TestCaseInfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} />
-      <TestCaseInfoModal
-        isOpen={!!previewTestCase}
-        testCase={previewTestCase}
-        onClose={() => setPreviewTestCase(null)}
-      />
-
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="p-4 mt-3 border border-gray-300 rounded-lg bg-slate-50">
-              <div
-                className="grid gap-3 p-1 overflow-y-auto max-h-96"
-                style={{
-                  gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(2, 1fr)',
-                }}
-              >
-                {testCases.testCases.map((testCase, index) => (
-                  <div
-                    key={testCase.id}
-                    onClick={() => handleSelectCase(testCase)}
-                    className={`p-3.5 pt-2.5 rounded-lg cursor-pointer transition-all duration-200 relative border ${
-                      selectedCase === testCase.id
-                        ? 'border-slate-500 bg-slate-100'
-                        : 'border-gray-300 bg-white hover:bg-slate-50 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="flex-1 text-xs font-semibold leading-tight text-gray-900">
-                        {testCase.title}
-                      </h4>
-                      <div className="flex gap-1.5 items-center">
-                        <InfoIconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewTestCase(testCase);
-                          }}
-                          title="Preview this test case"
-                        />
-                        <span className="px-2 text-xs font-medium text-black rounded-md pb-0.5 pt-[2.4px] bg-slate-200">
-                          #{index + 1}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="mt-2 text-xs leading-relaxed text-gray-500 line-clamp-2">
-                      {testCase.problem.substring(0, 100)}...
-                    </p>
-
-                    <div className="mt-2.5 flex flex-wrap gap-1">
-                      {Object.entries(testCase.parameters)
-                        .slice(0, 4)
-                        .map(([key, value]) => {
-                          const color = getParameterColor(value);
-                          return (
-                            <span
-                              key={key}
-                              style={{
-                                fontSize: '9px',
-                                padding: '3px 6px',
-                                background: color.bg,
-                                color: color.text,
-                                borderRadius: '3px',
-                                fontWeight: '600',
-                                border: `1px solid ${color.border}`,
-                              }}
-                            >
-                              {key.replace(/_/g, ' ')}: {value}
-                            </span>
-                          );
-                        })}
-                    </div>
+    <>
+      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-blue-600" />
+              <CardTitle className="text-base">Sample Test Cases</CardTitle>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                toast.info('Sample Test Cases', {
+                  description:
+                    'Load pre-configured circular economy examples to quickly test the evaluator with realistic data.',
+                })
+              }
+            >
+              <Info className="w-4 h-4" />
+            </Button>
+          </div>
+          <CardDescription>
+            Load realistic circular economy examples for quick testing
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Select value={selectedCase} onValueChange={handleSelectCase}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a test case to load..." />
+            </SelectTrigger>
+            <SelectContent>
+              {testCases.testCases.map((testCase, index) => (
+                <SelectItem key={testCase.id} value={testCase.id}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">#{index + 1}</span>
+                    <span>{testCase.title}</span>
                   </div>
-                ))}
-              </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-              <div className="mt-3 p-2.5 bg-yellow-50 rounded border border-yellow-300">
-                <p className="m-0 text-xs leading-relaxed text-yellow-700">
-                  <strong>💡 Tip:</strong> Select a test case to auto-fill the form with realistic
-                  circular economy data. Great for testing the evaluator or seeing examples of
-                  well-structured submissions.
-                </p>
+          {selectedCase && (
+            <div className="space-y-2">
+              <Separator />
+              {(() => {
+                const testCase = testCases.testCases.find((tc) => tc.id === selectedCase);
+                return (
+                  testCase && (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Parameters:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(testCase.parameters).map(([key, value]) => (
+                            <Badge key={key} variant={getParameterBadgeVariant(value)}>
+                              {key.replace(/_/g, ' ')}: {value}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={() => setPreviewTestCase(testCase)}
+                      >
+                        <Info className="w-4 h-4" />
+                        View Full Details
+                      </Button>
+                    </>
+                  )
+                );
+              })()}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewTestCase} onOpenChange={() => setPreviewTestCase(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{previewTestCase?.title}</DialogTitle>
+            <DialogDescription>Sample circular economy test case for evaluation</DialogDescription>
+          </DialogHeader>
+          {previewTestCase && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="mb-2 font-semibold">Problem:</h4>
+                <p className="text-sm text-muted-foreground">{previewTestCase.problem}</p>
+              </div>
+              <Separator />
+              <div>
+                <h4 className="mb-2 font-semibold">Solution:</h4>
+                <p className="text-sm text-muted-foreground">{previewTestCase.solution}</p>
+              </div>
+              <Separator />
+              <div>
+                <h4 className="mb-2 font-semibold">Parameters:</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(previewTestCase.parameters).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-2 rounded-lg bg-muted"
+                    >
+                      <span className="text-sm font-medium">{key.replace(/_/g, ' ')}</span>
+                      <Badge variant={getParameterBadgeVariant(value)}>{value}</Badge>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
-
-SampleTestCasesContainer.propTypes = {};

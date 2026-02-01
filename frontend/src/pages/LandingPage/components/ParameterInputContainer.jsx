@@ -2,131 +2,144 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
-import InfoIconButton from '@/components/common/InfoIconButton';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { Info } from 'lucide-react';
 
-export default function ParameterInputContainer({ loading, onShowInfo }) {
+export default function ParameterInputContainer({ loading }) {
   const { control } = useFormContext();
 
   const getScaleMarkers = (key) => {
     const guidance = parameterGuidance[key];
     if (!guidance || !guidance.scale) return null;
-
     // Return simplified scale with 3 key points
     return guidance.scale.filter((_, i) => i % 2 === 0).slice(0, 3);
   };
 
+  const getScaleBadgeVariant = (idx) => {
+    if (idx === 0) return 'destructive';
+    if (idx === 1) return 'secondary';
+    return 'default';
+  };
+
   return (
-    <div className="flex flex-col gap-4 p-6 mt-6 border sm_md:gap-8 bg-slate-50 rounded-xl border-slate-300">
-      {Object.entries(parameterGroups).map(([groupName, keys]) => (
-        <div key={groupName} className="flex flex-col gap-4">
-          <h3 className="pb-2 m-0 text-lg font-semibold border-b-2 text-slate-800 border-slate-300">
-            {groupName}
-          </h3>
-          <div className="flex flex-col sm_md:flex-row">
-            {keys.map((key, index) => {
-              const scaleMarkers = getScaleMarkers(key);
-              const guidance = parameterGuidance[key];
+    <TooltipProvider>
+      <Card className="border-2 border-primary/20">
+        <CardContent className="pt-6 space-y-6">
+          {Object.entries(parameterGroups).map(([groupName, keys], groupIdx) => (
+            <div key={groupName} className="space-y-4">
+              {groupIdx > 0 && <Separator />}
+              <h3 className="text-lg font-semibold text-foreground">{groupName}</h3>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {keys.map((key) => {
+                  const scaleMarkers = getScaleMarkers(key);
+                  const guidance = parameterGuidance[key];
 
-              return (
-                <div
-                  key={key}
-                  className={`relative flex flex-col flex-1 gap-2 px-3 py-2 mb-4 sm_md:mb-0 after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-[40%] after:h-[1.5px] after:bg-slate-300 sm_md:after:hidden ${index < keys.length - 1 ? 'after:block' : 'after:hidden'}`}
-                >
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-col justify-center gap-4">
-                      <label htmlFor={key} className="flex items-center justify-center gap-2">
-                        {onShowInfo && (
-                          <InfoIconButton
-                            onClick={() => onShowInfo(key)}
-                            title={`Learn about ${parameterLabels[key].label}`}
-                            size={16}
-                          />
+                  return (
+                    <div key={key} className="p-4 space-y-3 border rounded-lg bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor={key} className="text-sm font-medium">
+                          {parameterLabels[key].label}
+                        </Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="p-1 rounded-full hover:bg-muted"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              <Info className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="font-semibold">{parameterLabels[key].label}</p>
+                            {guidance && guidance.description && (
+                              <p className="mt-1 text-sm">{guidance.description}</p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+
+                      <Controller
+                        name={`parameters.${key}`}
+                        control={control}
+                        render={({ field }) => (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <Slider
+                                value={[field.value ?? 0]}
+                                onValueChange={(vals) => field.onChange(vals[0])}
+                                max={100}
+                                step={1}
+                                className="flex-1"
+                                disabled={loading}
+                              />
+                              <Input
+                                type="number"
+                                id={key}
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={field.value ?? 0}
+                                onChange={(e) => {
+                                  let val = e.target.value;
+                                  if (val === '') {
+                                    field.onChange(0);
+                                    return;
+                                  }
+                                  const numVal = Math.min(100, Math.max(0, Number(val)));
+                                  field.onChange(numVal);
+                                }}
+                                className="w-20 text-center font-semibold"
+                                disabled={loading}
+                              />
+                            </div>
+
+                            {/* Scale Guide */}
+                            {scaleMarkers && (
+                              <div className="flex flex-col gap-1">
+                                {scaleMarkers.map((marker, idx) => {
+                                  const endScore = Math.min(marker.score + 10, 100);
+                                  return (
+                                    <Badge
+                                      key={idx}
+                                      variant={getScaleBadgeVariant(idx)}
+                                      className="justify-start text-xs"
+                                    >
+                                      {marker.score}-{endScore}: {marker.label}
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Example Calibration */}
+                            {guidance && guidance.examples && guidance.examples[0] && (
+                              <p className="text-xs italic text-muted-foreground">
+                                Example: {guidance.examples[0].case} = {guidance.examples[0].score}
+                                {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
+                              </p>
+                            )}
+                          </div>
                         )}
-                        <span className="text-sm sm:text-base">{parameterLabels[key].label}</span>
-                      </label>
+                      />
                     </div>
-                    <Controller
-                      name={`parameters.${key}`}
-                      control={control}
-                      render={({ field }) => (
-                        <input
-                          type="number"
-                          id={key}
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={field.value ?? 0}
-                          onChange={(e) => {
-                            let val = e.target.value;
-                            if (val === '') {
-                              field.onChange(0);
-                              return;
-                            }
-                            const numVal = Math.min(100, Math.max(0, Number(val)));
-                            field.onChange(numVal);
-                          }}
-                          onInput={(e) => {
-                            // Remove leading zeros
-                            if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                              e.target.value = e.target.value.replace(/^0+/, '') || '0';
-                            }
-                          }}
-                          className="px-2 py-1 mx-auto text-base font-semibold border-2 rounded-md border-lime-600 text-emerald-600 min-w-max"
-                          disabled={loading}
-                        />
-                      )}
-                    />
-                  </div>
-
-                  {/* Scale Guide */}
-                  {scaleMarkers && (
-                    <div className="flex flex-col items-center gap-1 my-3">
-                      {scaleMarkers.map((marker, idx) => {
-                        const endScore = Math.min(marker.score + 10, 100);
-                        return (
-                          <span
-                            key={idx}
-                            className={`px-2 py-1 font-medium text-xs rounded text-center w-fit sm_md:text-left sm_md:w-full ${idx === 0 ? 'text-red-600 bg-red-50' : idx === 1 ? 'text-yellow-700 bg-yellow-50' : idx === 2 ? 'bg-emerald-50 text-emerald-700' : 'text-slate-700 bg-slate-100'}`}
-                          >
-                            {marker.score}-{endScore}: {marker.label}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Example Calibration */}
-                  {guidance && guidance.examples && guidance.examples[0] && (
-                    <p
-                      className={`mt-2 text-xs italic leading-relaxed text-center text-slate-600 sm_md:text-left ${index < keys.length - 1 ? 'mb-3' : ''} sm_md:mb-0`}
-                    >
-                      Example: {guidance.examples[0].case} = {guidance.examples[0].score}
-                      {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
-                    </p>
-                  )}
-
-                  {/* separation lines */}
-                  {/* {index < keys.length - 1 && (
-                    <div className="absolute right-0 w-[0.3px] top-32 bottom-32 bg-black rounded-l-full" />
-                  )}
-                  {index > 0 && (
-                    <div className="absolute left-0 w-[0.3px] top-32 bottom-32 bg-black rounded-r-full" />
-                  )} */}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 }
 
 ParameterInputContainer.propTypes = {
   loading: PropTypes.bool.isRequired,
-  onShowInfo: PropTypes.func,
-};
-
-ParameterInputContainer.defaultProps = {
-  onShowInfo: null,
 };
