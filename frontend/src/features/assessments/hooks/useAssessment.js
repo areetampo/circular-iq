@@ -39,6 +39,24 @@ export function useAssessment(id, options = {}) {
 }
 
 /**
+ * Hook for prefetching assessment data on hover to enable instant navigation
+ * @returns {Function} prefetch function that takes an assessment ID
+ */
+export function usePrefetchAssessment() {
+  const queryClient = useQueryClient();
+
+  return (id) => {
+    if (!id) return;
+
+    queryClient.prefetchQuery({
+      queryKey: ['assessment', id],
+      queryFn: () => getAssessmentById(id),
+      staleTime: 1000 * 60 * 5, // Cache for 5 minutes - ensures hover-to-click transition is instant
+    });
+  };
+}
+
+/**
  * Hook for creating a new assessment with automatic cache invalidation
  */
 export function useCreateAssessment() {

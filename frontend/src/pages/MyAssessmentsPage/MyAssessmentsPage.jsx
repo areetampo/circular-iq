@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp } from '@/lib/formatting';
-import { useAssessments, getAssessmentById } from '@/features/assessments';
+import { useAssessments, usePrefetchAssessment } from '@/features/assessments';
 import {
   Table,
   TableBody,
@@ -69,7 +68,6 @@ import {
 
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [sortBy, setSortBy] = useState('created_at');
@@ -95,14 +93,8 @@ export default function MyAssessmentsPage() {
 
   const loading = isLoading;
 
-  // Prefetch assessment data on hover for instant navigation
-  const prefetchAssessment = (id) => {
-    queryClient.prefetchQuery({
-      queryKey: ['assessment', id],
-      queryFn: () => getAssessmentById(id),
-      staleTime: 1000 * 60 * 5, // 5 minutes - ensures hover-to-click transition is instant
-    });
-  };
+  // Use the prefetch hook for instant navigation on hover
+  const prefetchAssessment = usePrefetchAssessment();
 
   // Debounce search to avoid excessive requests
   useEffect(() => {
