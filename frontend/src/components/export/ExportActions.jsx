@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import './ExportActions.css';
+import { Download, FileText, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * ExportActions Component
@@ -17,36 +18,40 @@ export function ExportActions({
   const isExporting = isExportingCSV || isExportingPDF;
 
   return (
-    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+    <div className="flex flex-wrap gap-4">
       {/* Export CSV Button */}
-      <button
+      <Button
         onClick={onExportCSV}
         disabled={isExporting}
-        className="export-button csv-button"
+        variant="outline"
         title={isExporting ? 'Export in progress' : 'Export assessment data as CSV'}
         aria-label="Export assessment data as CSV"
-        aria-busy={isExportingCSV}
+        className="gap-2"
       >
-        <span className="export-button-icon">{isExportingCSV ? '⏳' : '📥'}</span>
-        <span className="export-button-label">
-          {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
-        </span>
-      </button>
+        {isExportingCSV ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Download className="w-4 h-4" />
+        )}
+        {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
+      </Button>
 
       {/* Export PDF Button */}
-      <button
+      <Button
         onClick={onExportPDF}
         disabled={isExporting}
-        className="export-button pdf-button"
+        variant="outline"
         title={isExporting ? 'Export in progress' : 'Export assessment as PDF'}
         aria-label="Export assessment as PDF"
-        aria-busy={isExportingPDF}
+        className="gap-2"
       >
-        <span className="export-button-icon">{isExportingPDF ? '⏳' : '📄'}</span>
-        <span className="export-button-label">
-          {isExportingPDF ? 'Generating...' : 'Download as PDF'}
-        </span>
-      </button>
+        {isExportingPDF ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <FileText className="w-4 h-4" />
+        )}
+        {isExportingPDF ? 'Generating...' : 'Download as PDF'}
+      </Button>
     </div>
   );
 }

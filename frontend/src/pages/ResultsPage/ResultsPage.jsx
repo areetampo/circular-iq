@@ -52,7 +52,6 @@ import {
 } from 'lucide-react';
 import MarketAnalysisModal from '@/components/modals/results/MarketAnalysisModal';
 import ResultsDatabaseEvidenceDetailsModal from '@/components/modals/results/ResultsDatabaseEvidenceDetailsModal';
-import './ResultsPage.css';
 
 const fallbackGetRatingBadge = (score) => {
   if (score >= 85) return 'A';
