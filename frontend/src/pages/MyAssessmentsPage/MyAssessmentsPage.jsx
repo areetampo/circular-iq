@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getSessionId } from '@/utils/session';
@@ -52,7 +52,6 @@ import {
   MoreVertical,
   GitCompare,
   Plus,
-  TrendingUp,
   Award,
   Building,
   Lightbulb,
@@ -92,6 +91,39 @@ export default function MyAssessmentsPage() {
     });
 
   const loading = isLoading;
+
+  const formatIndustryLabel = (industry) => {
+    if (!industry) return 'General';
+    return industry
+      .toString()
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const averageScore = useMemo(() => {
+    if (!assessments.length) return 0;
+    const totalScore = assessments.reduce(
+      (sum, assessment) => sum + (assessment.overall_score || 0),
+      0,
+    );
+    return Math.round(totalScore / assessments.length);
+  }, [assessments]);
+
+  const topIndustry = useMemo(() => {
+    if (!assessments.length) return null;
+    const counts = assessments.reduce((acc, assessment) => {
+      const industry = assessment.industry || 'general';
+      acc[industry] = (acc[industry] || 0) + 1;
+      return acc;
+    }, {});
+
+    const [industry, count] = Object.entries(counts).reduce(
+      (best, current) => (current[1] > best[1] ? current : best),
+      ['general', 0],
+    );
+
+    return { industry, count };
+  }, [assessments]);
 
   // Use the prefetch hook for instant navigation on hover
   const prefetchAssessment = usePrefetchAssessment();
@@ -274,162 +306,149 @@ export default function MyAssessmentsPage() {
       {/* Assessments content - only show if authenticated */}
       {isAuthenticated && !authLoading && (
         <div className="space-y-6">
-          {/* Stats Cards */}
+          {/* Summary Header */}
           {assessments.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100">
                 <CardHeader className="pb-3">
-                  <CardDescription className="flex items-center gap-2 text-xs font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    Total Assessments
-                  </CardDescription>
-                  <CardTitle className="text-4xl font-bold text-primary">
-                    {assessments.length}
-                  </CardTitle>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
-                <CardHeader className="pb-3">
-                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-blue-700">
+                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-emerald-700">
                     <Award className="w-4 h-4" />
-                    Average Score
+                    Average Circularity Score
                   </CardDescription>
-                  <CardTitle className="text-4xl font-bold text-blue-600">
-                    {Math.round(
-                      assessments.reduce((sum, a) => sum + (a.overall_score || 0), 0) /
-                        assessments.length,
-                    )}
+                  <CardTitle className="text-4xl font-bold text-emerald-700">
+                    {averageScore}
                   </CardTitle>
                 </CardHeader>
               </Card>
 
-              <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
+              <Card className="border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
                 <CardHeader className="pb-3">
-                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-purple-700">
-                    <TrendingUp className="w-4 h-4" />
-                    Highest Score
-                  </CardDescription>
-                  <CardTitle className="text-4xl font-bold text-purple-600">
-                    {Math.max(...assessments.map((a) => a.overall_score || 0))}
-                  </CardTitle>
-                </CardHeader>
-              </Card>
-
-              <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100">
-                <CardHeader className="pb-3">
-                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-orange-700">
+                  <CardDescription className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                     <Building className="w-4 h-4" />
-                    Unique Industries
+                    Primary Focus
                   </CardDescription>
-                  <CardTitle className="text-4xl font-bold text-orange-600">
-                    {new Set(assessments.map((a) => a.industry)).size}
+                  <CardTitle className="text-2xl font-bold text-slate-800">
+                    {topIndustry ? formatIndustryLabel(topIndustry.industry) : '—'}
                   </CardTitle>
+                  <CardDescription className="text-sm text-slate-600">
+                    {topIndustry
+                      ? `${topIndustry.count} assessment${topIndustry.count !== 1 ? 's' : ''}`
+                      : 'No assessments'}
+                  </CardDescription>
                 </CardHeader>
               </Card>
             </div>
           )}
 
           {/* Quick Tip Card */}
-          <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Lightbulb className="w-6 h-6 text-blue-600 mt-0.5" />
-                <div>
-                  <span className="font-bold text-blue-800">Tip: </span>
-                  <span className="text-slate-700">
-                    Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how
-                    your initiative evolved over time, or compare different strategies side-by-side.
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Controls Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Filter by Industry</label>
-                  <Select
-                    value={filterIndustry}
-                    onValueChange={(value) => {
-                      setFilterIndustry(value);
-                      setPage(1);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getIndustries().map((ind) => (
-                        <SelectItem key={ind} value={ind}>
-                          {ind === 'all' ? 'All Industries' : ind.replace(/_/g, ' ').toUpperCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Sort by</label>
-                  <Select
-                    value={sortBy}
-                    onValueChange={(value) => {
-                      setSortBy(value);
-                      setPage(1);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="created_at">Date Created</SelectItem>
-                      <SelectItem value="overall_score">Score</SelectItem>
-                      <SelectItem value="title">Title</SelectItem>
-                      <SelectItem value="industry">Industry</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Search</label>
-                  <div className="relative">
-                    <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Search by title or industry..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+          {assessments.length > 0 && (
+            <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <Lightbulb className="w-6 h-6 text-blue-600 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-blue-800">Tip: </span>
+                    <span className="text-slate-700">
+                      Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how
+                      your initiative evolved over time, or compare different strategies
+                      side-by-side.
+                    </span>
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          )}
 
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="text-sm font-medium text-muted-foreground">
-                  {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
+          {/* Controls Card */}
+          {assessments.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">
+                      Filter by Industry
+                    </label>
+                    <Select
+                      value={filterIndustry}
+                      onValueChange={(value) => {
+                        setFilterIndustry(value);
+                        setPage(1);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getIndustries().map((ind) => (
+                          <SelectItem key={ind} value={ind}>
+                            {ind === 'all'
+                              ? 'All Industries'
+                              : ind.replace(/_/g, ' ').toUpperCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Sort by</label>
+                    <Select
+                      value={sortBy}
+                      onValueChange={(value) => {
+                        setSortBy(value);
+                        setPage(1);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="created_at">Date Created</SelectItem>
+                        <SelectItem value="overall_score">Score</SelectItem>
+                        <SelectItem value="title">Title</SelectItem>
+                        <SelectItem value="industry">Industry</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">Search</label>
+                    <div className="relative">
+                      <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Search by title or industry..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {selectedIds.size > 0 && (
-                    <Button variant="outline" onClick={handleClearSelection}>
-                      Clear Selection
+
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
+                  </div>
+                  <div className="flex gap-2">
+                    {selectedIds.size > 0 && (
+                      <Button variant="outline" onClick={handleClearSelection}>
+                        Clear Selection
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleCompareSelected}
+                      disabled={selectedIds.size !== 2}
+                      className="gap-2"
+                    >
+                      <GitCompare className="w-4 h-4" />
+                      Compare Selected
                     </Button>
-                  )}
-                  <Button
-                    onClick={handleCompareSelected}
-                    disabled={selectedIds.size !== 2}
-                    className="gap-2"
-                  >
-                    <GitCompare className="w-4 h-4" />
-                    Compare Selected
-                  </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Main Content */}
           <div className="space-y-4">
@@ -455,7 +474,28 @@ export default function MyAssessmentsPage() {
             )}
 
             {/* Empty State */}
-            {!loading && !error && filteredAssessments.length === 0 && (
+            {!loading && !error && assessments.length === 0 && (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 rounded-full bg-muted">
+                      <Ghost className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  </div>
+                  <CardTitle className="mb-2">No assessments yet</CardTitle>
+                  <CardDescription className="mb-6">
+                    Start your first assessment to track your circularity progress.
+                  </CardDescription>
+                  <Button onClick={handleBack} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Start Your First Assessment
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Filtered Empty State */}
+            {!loading && !error && assessments.length > 0 && filteredAssessments.length === 0 && (
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <div className="flex justify-center mb-4">
@@ -465,13 +505,17 @@ export default function MyAssessmentsPage() {
                   </div>
                   <CardTitle className="mb-2">No assessments found</CardTitle>
                   <CardDescription className="mb-6">
-                    {searchTerm || filterIndustry !== 'all'
-                      ? 'No assessments match your current filters. Try adjusting your search.'
-                      : 'Create your first audit to see results here.'}
+                    No assessments match your current filters. Try adjusting your search.
                   </CardDescription>
-                  <Button onClick={handleBack} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Create Your First Audit
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setFilterIndustry('all');
+                      setPage(1);
+                    }}
+                  >
+                    Clear Filters
                   </Button>
                 </CardContent>
               </Card>
