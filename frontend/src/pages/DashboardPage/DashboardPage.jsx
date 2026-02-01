@@ -13,14 +13,18 @@ import {
 } from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
-import { Activity, Building2, Gauge, Layers } from 'lucide-react';
+import { Activity, Building2, Gauge, Layers, Download, Loader2 } from 'lucide-react';
 import { useGlobalAnalytics } from '@/features/assessments';
 import { cn } from '@/lib/utils';
+import { exportDashboardToPDF } from '@/lib/exportDashboard';
+import { useToast } from '@/hooks/useToast';
 
 export default function DashboardPage() {
   const [industry, setIndustry] = useState('all');
   const [timeRange, setTimeRange] = useState('180d');
+  const [isExporting, setIsExporting] = useState(false);
 
+  const { addToast } = useToast();
   const filters = useMemo(() => ({ industry, timeRange }), [industry, timeRange]);
 
   const { aggregate, industryMetrics, timeSeries, isLoading, isFetching, isError, error } =
@@ -78,6 +82,23 @@ export default function DashboardPage() {
     setTimeRange('180d');
   };
 
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      await exportDashboardToPDF({
+        elementId: 'dashboard-content',
+        filters: { industry, timeRange },
+        timeRangeOptions,
+      });
+      addToast('Dashboard exported successfully!', 'success');
+    } catch (error) {
+      console.error('Export error:', error);
+      addToast('Failed to export dashboard. Please try again.', 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const timeRangeLabel =
     timeRangeOptions.find((option) => option.value === timeRange)?.label || 'Last 6 Months';
 
@@ -91,7 +112,10 @@ export default function DashboardPage() {
         showLogo: true,
       }}
     >
-      <div className={cn('space-y-6 transition-opacity', isBusy && 'opacity-60')}>
+      <div
+        id="dashboard-content"
+        className={cn('space-y-6 transition-opacity', isBusy && 'opacity-60')}
+      >
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
             <Badge variant="secondary">Global Analytics</Badge>
@@ -100,7 +124,10 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground">{renderStatus()}</p>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-xl border bg-white/80 p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div
+          id="dashboard-filter-bar"
+          className="flex flex-col gap-3 rounded-xl border bg-white/80 p-4 shadow-sm md:flex-row md:items-center md:justify-between"
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="min-w-[220px]">
               <p className="text-xs font-semibold uppercase text-muted-foreground">Industry</p>
@@ -133,9 +160,29 @@ export default function DashboardPage() {
               </Select>
             </div>
           </div>
-          <Button variant="outline" onClick={handleClearFilters}>
-            Clear Filters
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              id="dashboard-export-button"
+              variant="default"
+              onClick={handleExportPDF}
+              disabled={isExporting || isBusy}
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export PDF
+                </>
+              )}
+            </Button>
+            <Button variant="outline" onClick={handleClearFilters}>
+              Clear Filters
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
