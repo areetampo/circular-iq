@@ -38,22 +38,22 @@ import 'ldrs/react/Metronome.css';
 import 'ldrs/react/Pinwheel.css';
 
 const LOADERS = [
-  () => <Spiral size="40" speed="0.9" color="black" />,
-  () => <Bouncy size="45" speed="1.75" color="black" />,
-  () => <Ring2 size="40" stroke="5" speed="0.8" color="black" />,
-  () => <BouncyArc size="70" speed="1.65" color="black" />,
-  () => <Hourglass size="40" speed="1.75" color="black" />,
-  () => <LineWobble size="80" stroke="5" speed="1.75" color="black" />,
-  () => <InfinityLoader size="55" stroke="4" speed="1.3" color="black" />,
-  () => <Helix size="45" speed="2.5" color="black" />,
-  () => <Quantum size="45" speed="1.75" color="black" />,
-  () => <Trio size="40" speed="1.3" color="black" />,
-  () => <DotWave size="47" speed="1" color="black" />,
-  () => <Leapfrog size="40" speed="2.5" color="black" />,
-  () => <NewtonsCradle size="78" speed="1.4" color="black" />,
-  () => <DotStream size="60" speed="2.5" color="black" />,
-  () => <Metronome size="40" speed="1.6" color="black" />,
-  () => <Pinwheel size="35" stroke="3.5" speed="0.9" color="black" />,
+  () => <Spiral size="40" speed="0.9" color="#10b981" />,
+  () => <Bouncy size="45" speed="1.75" color="#059669" />,
+  () => <Ring2 size="40" stroke="5" speed="0.8" color="#10b981" />,
+  () => <BouncyArc size="70" speed="1.65" color="#34d399" />,
+  () => <Hourglass size="40" speed="1.75" color="#10b981" />,
+  () => <LineWobble size="80" stroke="5" speed="1.75" color="#059669" />,
+  () => <InfinityLoader size="55" stroke="4" speed="1.3" color="#10b981" />,
+  () => <Helix size="45" speed="2.5" color="#34d399" />,
+  () => <Quantum size="45" speed="1.75" color="#10b981" />,
+  () => <Trio size="40" speed="1.3" color="#059669" />,
+  () => <DotWave size="47" speed="1" color="#10b981" />,
+  () => <Leapfrog size="40" speed="2.5" color="#34d399" />,
+  () => <NewtonsCradle size="78" speed="1.4" color="#10b981" />,
+  () => <DotStream size="60" speed="2.5" color="#059669" />,
+  () => <Metronome size="40" speed="1.6" color="#10b981" />,
+  () => <Pinwheel size="35" stroke="3.5" speed="0.9" color="#34d399" />,
 ];
 
 const SWITCH_INTERVAL = 2200;
@@ -99,9 +99,9 @@ export default function Loader({
         <LoaderComponent />
       </div>
 
-      {heading && <h2 className="text-2xl font-semibold text-gray-800">{heading}</h2>}
+      {heading && <h2 className="text-2xl font-semibold text-emerald-800">{heading}</h2>}
 
-      {message && <p className="text-base text-gray-600">{message}</p>}
+      {message && <p className="text-base text-emerald-600">{message}</p>}
     </div>
   );
 }

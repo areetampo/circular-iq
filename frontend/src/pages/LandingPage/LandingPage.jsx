@@ -28,7 +28,6 @@ import {
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
-import './LandingPage.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
