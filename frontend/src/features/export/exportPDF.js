@@ -53,11 +53,11 @@ function createPDFHTML(title, content) {
           box-sizing: border-box;
         }
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          line-height: 1.6;
+          font-family: 'Helvetica', 'Arial', sans-serif;
+          line-height: 1.7;
           color: #2c3e50;
           background: white;
-          padding: 40px;
+          padding: 45px;
         }
         .container {
           max-width: 900px;
@@ -65,9 +65,9 @@ function createPDFHTML(title, content) {
         }
         .header {
           text-align: center;
-          margin-bottom: 40px;
+          margin-bottom: 45px;
           border-bottom: 3px solid #059669;
-          padding-bottom: 20px;
+          padding-bottom: 25px;
         }
         .header h1 {
           font-size: 28px;
@@ -82,26 +82,26 @@ function createPDFHTML(title, content) {
           font-size: 14px;
         }
         .section {
-          margin: 30px 0;
+          margin: 35px 0;
           page-break-inside: avoid;
         }
         .section-title {
-          font-size: 18px;
+          font-size: 19px;
           font-weight: bold;
           color: #059669;
-          margin: 20px 0 15px 0;
-          border-left: 4px solid #059669;
-          padding-left: 15px;
+          margin: 25px 0 18px 0;
+          border-left: 5px solid #059669;
+          padding-left: 18px;
         }
         .score-box {
           display: inline-block;
           background: #f0f7f0;
           border: 2px solid #059669;
-          padding: 15px 25px;
+          padding: 18px 28px;
           border-radius: 8px;
-          margin: 10px 10px 10px 0;
+          margin: 12px 12px 12px 0;
           text-align: center;
-          min-width: 150px;
+          min-width: 160px;
         }
         .score-value {
           font-size: 32px;
@@ -120,7 +120,7 @@ function createPDFHTML(title, content) {
           margin: 15px 0;
         }
         .metadata-table td {
-          padding: 12px;
+          padding: 14px;
           border-bottom: 1px solid #e0e0e0;
         }
         .metadata-table td:first-child {
@@ -131,14 +131,14 @@ function createPDFHTML(title, content) {
         .factor-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 15px;
-          margin: 15px 0;
+          gap: 18px;
+          margin: 18px 0;
         }
         .factor-item {
           background: #f9f9f9;
-          padding: 15px;
+          padding: 18px;
           border-radius: 6px;
-          border-left: 4px solid #059669;
+          border-left: 5px solid #059669;
         }
         .factor-name {
           font-weight: bold;
@@ -267,8 +267,8 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   // A4 dimensions in mm
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 15;
-  const headerHeight = 28;
+  const margin = 18;
+  const headerHeight = 32;
   const contentWidth = pageWidth - 2 * margin;
   const availableHeight = pageHeight - headerHeight - margin;
 
@@ -280,18 +280,18 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   pdf.rect(0, 0, pageWidth, headerHeight, 'F');
 
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(16);
+  pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('Circular Economy Assessment Report', pageWidth / 2, 12, { align: 'center' });
+  pdf.text('Circular Economy Assessment Report', pageWidth / 2, 14, { align: 'center' });
 
   const subtitleParts = [formatTextForPDF(assessmentName)];
   if (formattedDate && formattedDate !== 'N/A') {
     subtitleParts.push(formattedDate);
   }
 
-  pdf.setFontSize(9);
+  pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
-  pdf.text(subtitleParts.join(' • '), pageWidth / 2, 20, { align: 'center' });
+  pdf.text(subtitleParts.join(' • '), pageWidth / 2, 22, { align: 'center' });
 
   // Capture full results container
   const canvas = await html2canvas(contentElement, {
@@ -316,7 +316,7 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   }
 
   const renderX = (pageWidth - renderWidth) / 2;
-  const renderY = headerHeight + 8;
+  const renderY = headerHeight + 10;
 
   pdf.addImage(imgData, 'PNG', renderX, renderY, renderWidth, renderHeight, undefined, 'FAST');
 

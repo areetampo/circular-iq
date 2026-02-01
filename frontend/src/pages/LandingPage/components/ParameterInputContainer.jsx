@@ -95,7 +95,7 @@ export default function ParameterInputContainer({ loading }) {
                                   const numVal = Math.min(100, Math.max(0, Number(val)));
                                   field.onChange(numVal);
                                 }}
-                                className="w-20 text-center font-semibold"
+                                className="w-20 font-semibold text-center"
                                 disabled={loading}
                               />
                             </div>
