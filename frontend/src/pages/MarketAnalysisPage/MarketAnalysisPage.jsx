@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Sparkles } from 'lucide-react';
 
 export default function MarketAnalysisPage() {
   const { id } = useParams();
@@ -119,6 +119,32 @@ export default function MarketAnalysisPage() {
     normalizedUserScore != null
       ? Math.min(100, Math.max(0, Math.round(normalizedUserScore)))
       : null;
+
+  const industryLabel = userIndustry ? titleize(userIndustry) : 'your industry';
+  const primaryPillarMap = {
+    packaging: 'packaging circularity',
+    food_waste: 'waste-to-value recovery',
+    energy: 'renewable energy integration',
+    textiles: 'material circularity',
+    electronics: 'component reuse',
+    construction: 'material efficiency',
+    agriculture: 'regenerative practices',
+    water: 'resource efficiency',
+    general: 'circular design',
+  };
+  const specificAreaMap = {
+    packaging: 'packaging recovery systems',
+    food_waste: 'supply chain diversion',
+    energy: 'distributed energy scaling',
+    textiles: 'fiber reuse programs',
+    electronics: 'reverse logistics',
+    construction: 'low-waste procurement',
+    agriculture: 'soil health initiatives',
+    water: 'reuse infrastructure',
+    general: 'material efficiency',
+  };
+  const primaryPillar = primaryPillarMap[userIndustry] || 'circular design';
+  const specificArea = specificAreaMap[userIndustry] || 'material efficiency';
 
   const handleBackToResults = () => {
     navigate(`/results/${id}`);
@@ -496,6 +522,31 @@ export default function MarketAnalysisPage() {
                 </div>
               </div>
             </div>
+
+            {/* AI Strategic Insight */}
+            <Card className="border border-slate-200 bg-sky-50/70 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+                  <Sparkles className="h-5 w-5 text-sky-500" />
+                  Strategic Recommendation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-slate-700 leading-6">
+                {isOutperforming ? (
+                  <span>
+                    Your circular strategy is leading the {industryLabel} sector. To maintain this
+                    advantage, focus on scaling your <strong>{primaryPillar}</strong> to increase
+                    market share.
+                  </span>
+                ) : (
+                  <span>
+                    You are currently trailing the industry average for {industryLabel}.
+                    Prioritizing <strong>{specificArea}</strong> could bridge the gap and improve
+                    your competitive standing.
+                  </span>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Footer */}
             <div className="mt-6 text-sm text-center text-gray-500">
