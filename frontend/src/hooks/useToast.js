@@ -1,29 +1,57 @@
-import { useToast as useBaseToast } from './use-toast';
+import { toast } from 'sonner';
 
 /**
- * Custom wrapper around the base useToast hook to provide addToast interface
- * @returns {Object} { addToast, toast, dismiss, toasts }
+ * Custom wrapper to provide addToast interface with Sonner
+ * @returns {Object} { addToast, toast }
  */
 export function useToast() {
-  const { toast, ...rest } = useBaseToast();
-
-  const addToast = (props) => {
-    // If props is an object with title/description structure
-    if (typeof props === 'object' && props.title) {
-      toast(props);
-    } else if (typeof props === 'string') {
-      // Handle string message for backward compatibility
-      // addToast(message, variant) format
-      toast({
-        title: props,
-        variant: rest?.[1] || 'default',
-      });
+  const addToast = (message, variant = 'default') => {
+    // Handle different toast variants with Sonner
+    if (typeof message === 'string') {
+      switch (variant) {
+        case 'success':
+          toast.success(message);
+          break;
+        case 'error':
+        case 'destructive':
+          toast.error(message);
+          break;
+        case 'info':
+          toast.info(message);
+          break;
+        case 'warning':
+          toast.warning(message);
+          break;
+        default:
+          toast(message);
+      }
+    } else if (typeof message === 'object' && message.title) {
+      // Handle object format with title and description
+      const variant = message.variant || 'default';
+      const toastMessage = message.description || message.title;
+      
+      switch (variant) {
+        case 'success':
+          toast.success(message.title, { description: message.description });
+          break;
+        case 'error':
+        case 'destructive':
+          toast.error(message.title, { description: message.description });
+          break;
+        case 'info':
+          toast.info(message.title, { description: message.description });
+          break;
+        case 'warning':
+          toast.warning(message.title, { description: message.description });
+          break;
+        default:
+          toast(message.title, { description: message.description });
+      }
     }
   };
 
   return {
     addToast,
     toast,
-    ...rest,
   };
 }
