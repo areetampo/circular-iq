@@ -44,6 +44,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Search,
@@ -184,7 +185,7 @@ export default function MyAssessmentsPage() {
   const confirmDeleteAssessment = assessments.find((a) => a.id === confirmDeleteId);
 
   const getRatingVariant = (score) => {
-    if (score >= 75) return 'default';
+    if (score >= 80) return 'default';
     if (score >= 50) return 'secondary';
     return 'destructive';
   };
@@ -487,14 +488,12 @@ export default function MyAssessmentsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 cursor-pointer accent-primary"
+                          <Checkbox
                             checked={
                               selectedIds.size === assessments.length && assessments.length > 0
                             }
-                            onChange={(e) => {
-                              if (e.target.checked) {
+                            onCheckedChange={(checked) => {
+                              if (checked) {
                                 setSelectedIds(new Set(assessments.map((a) => a.id)));
                               } else {
                                 setSelectedIds(new Set());
@@ -520,18 +519,16 @@ export default function MyAssessmentsPage() {
                             onMouseEnter={() => prefetchAssessment(assessment.id)}
                           >
                             <TableCell>
-                              <input
-                                type="checkbox"
-                                className="w-4 h-4 cursor-pointer accent-primary"
+                              <Checkbox
                                 checked={selectedIds.has(assessment.id)}
-                                onChange={() => handleToggleSelect(assessment.id)}
+                                onCheckedChange={() => handleToggleSelect(assessment.id)}
                               />
                             </TableCell>
                             <TableCell className="font-semibold">
                               {assessment.title || 'Untitled Assessment'}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">
+                              <Badge variant="secondary" className="font-medium">
                                 {(assessment.industry || 'General').replace(/_/g, ' ')}
                               </Badge>
                             </TableCell>

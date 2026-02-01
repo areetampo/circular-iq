@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Loader2,
   Info,
@@ -340,24 +341,37 @@ export default function LandingPage() {
             <Separator />
 
             {/* Submit Button */}
-            <Button
-              size="lg"
-              className="w-full gap-2 text-lg h-14"
-              onClick={handleSubmit(handleFormSubmit)}
-              disabled={loading || !isValid}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Evaluating...
-                </>
-              ) : (
-                <>
-                  Evaluate Circularity
-                  <ChevronRight className="w-5 h-5" />
-                </>
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full">
+                    <Button
+                      size="lg"
+                      className="w-full gap-2 text-lg h-14"
+                      onClick={handleSubmit(handleFormSubmit)}
+                      disabled={loading || !isValid}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Evaluating...
+                        </>
+                      ) : (
+                        <>
+                          Evaluate Circularity
+                          <ChevronRight className="w-5 h-5" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {!isValid && !loading && (
+                  <TooltipContent>
+                    <p>Please fill out all required fields (minimum 200 characters each)</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
 
             {/* Test Case Selector */}
             <SampleTestCasesContainer />

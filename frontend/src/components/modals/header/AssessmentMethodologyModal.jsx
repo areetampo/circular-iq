@@ -52,7 +52,12 @@ const METHODOLOGY_ITEMS = [
 export default function AssessmentMethodologyModal({ isModalOpen, onClose }) {
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogClose className="absolute top-4 right-4">✖️</DialogClose>
+      <DialogClose
+        className="absolute top-4 right-4"
+        aria-label="Close assessment methodology modal"
+      >
+        ✖️
+      </DialogClose>
       <DialogContent className="w-full max-w-3xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
           <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
