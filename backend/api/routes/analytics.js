@@ -67,7 +67,8 @@ export default function createAnalyticsRouter(supabase) {
 
       let query = supabase
         .from('assessments')
-        .select('industry, result_json, overall_score, created_at');
+        .select('industry, result_json, overall_score, created_at')
+        .eq('is_public', true);
 
       if (industryFilter && industryFilter.toLowerCase() !== 'all') {
         query = query.eq('industry', industryFilter);
