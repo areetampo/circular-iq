@@ -342,33 +342,17 @@ export default function MarketAnalysisPage() {
                     if (!active || !payload || !payload.length) return null;
                     const data = payload[0].payload;
                     return (
-                      <div
-                        style={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                          padding: '12px 16px',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        }}
-                      >
-                        <p
-                          style={{
-                            margin: '0 0 8px 0',
-                            fontWeight: '600',
-                            fontSize: '13px',
-                            color: '#1e293b',
-                            textTransform: 'capitalize',
-                          }}
-                        >
+                      <div className="bg-white/[0.98] p-3 px-4 border border-gray-300 rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                        <p className="m-0 mb-2 font-semibold text-[13px] text-slate-800 capitalize">
                           {titleize(data.industry)}
                         </p>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: '#64748b' }}>
+                        <p className="m-0 mb-1 text-xs text-slate-500">
                           <strong>Score:</strong> {data.x.toFixed(1)} / 100
                         </p>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: '#64748b' }}>
+                        <p className="m-0 mb-1 text-xs text-slate-500">
                           <strong>Scale:</strong> {titleize(data.scale)}
                         </p>
-                        <p style={{ margin: '0', fontSize: '12px', color: '#64748b' }}>
+                        <p className="m-0 text-xs text-slate-500">
                           <strong>Projects:</strong> {data.count}
                         </p>
                       </div>
@@ -398,10 +382,7 @@ export default function MarketAnalysisPage() {
                 <table className="w-full border-collapse text-[0.85rem] md:text-[0.95rem]">
                   <thead className="bg-gray-100 border-b-2 border-gray-300">
                     <tr>
-                      <th
-                        className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
-                        style={{ paddingLeft: '1rem' }}
-                      >
+                      <th className="px-2 md:px-3 py-2 md:py-3 pl-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
                         Industry
                       </th>
                       <th className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
@@ -413,10 +394,7 @@ export default function MarketAnalysisPage() {
                       <th className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
                         Avg Score
                       </th>
-                      <th
-                        className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
-                        style={{ paddingRight: '1rem' }}
-                      >
+                      <th className="px-2 md:px-3 py-2 md:py-3 pr-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
                         Range
                       </th>
                     </tr>
@@ -427,22 +405,11 @@ export default function MarketAnalysisPage() {
                       .sort((a, b) => b.avg_score - a.avg_score)
                       .map((item, idx) => (
                         <tr key={idx} className="even:bg-gray-100 hover:bg-[#f5f9f5]">
-                          <td
-                            className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-semibold text-[#2c3e50]"
-                            style={{ paddingLeft: '1rem' }}
-                          >
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                              }}
-                            >
+                          <td className="px-2 md:px-3 py-2 md:py-3 pl-4 text-left border-b border-gray-300 font-semibold text-[#2c3e50]">
+                            <span className="inline-flex items-center gap-2">
                               <div
+                                className="w-2 h-2 rounded-full"
                                 style={{
-                                  width: '8px',
-                                  height: '8px',
-                                  borderRadius: '50%',
                                   backgroundColor: getIndustryColor(item.industry),
                                 }}
                               />
@@ -456,23 +423,11 @@ export default function MarketAnalysisPage() {
                             {item.count}
                           </td>
                           <td className="px-2 py-2 text-center border-b border-gray-300 md:px-3 md:py-3">
-                            <span
-                              style={{
-                                display: 'inline-block',
-                                backgroundColor: '#f0f7f0',
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '4px',
-                                fontWeight: '700',
-                                color: '#34a83a',
-                              }}
-                            >
+                            <span className="inline-block bg-[#f0f7f0] px-3 py-1 rounded font-bold text-[#34a83a]">
                               {item.avg_score.toFixed(1)} / 100
                             </span>
                           </td>
-                          <td
-                            className="px-2 py-2 text-sm text-center text-gray-600 border-b border-gray-300 md:px-3 md:py-3"
-                            style={{ paddingRight: '1rem' }}
-                          >
+                          <td className="px-2 py-2 text-sm text-center text-gray-600 border-b border-gray-300 md:px-3 md:py-3 pr-4">
                             {item.min_score} → {item.max_score}
                           </td>
                         </tr>

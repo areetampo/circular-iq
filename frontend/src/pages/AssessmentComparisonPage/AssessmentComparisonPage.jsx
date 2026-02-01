@@ -325,18 +325,12 @@ export default function AssessmentComparisonPage() {
 
       {/* Comparison Header with Assessment Titles */}
       <div className="grid items-center gap-8 mb-12 grid-cols-1 lg:grid-cols-[1fr_auto_1fr] lg:gap-4">
-        <div
-          className="bg-white py-8 px-8 md:px-4 rounded-[10px] border-l-4 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-          style={{ borderLeftColor: '#34a83a' }}
-        >
+        <div className="bg-white py-8 px-8 md:px-4 rounded-[10px] border-l-4 border-l-[#34a83a] shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
           <h2 className="mt-0 mb-2 text-[#2c3e50] text-[1.3rem] font-bold">{assessment1.title}</h2>
           <p className="m-0 text-sm text-gray-400">{formatTimestamp(assessment1.created_at)}</p>
         </div>
         <div className="hidden text-2xl font-bold text-center text-gray-400 lg:block">vs</div>
-        <div
-          className="bg-white py-8 px-8 md:px-4 rounded-[10px] border-l-4 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-          style={{ borderLeftColor: '#4a90e2' }}
-        >
+        <div className="bg-white py-8 px-8 md:px-4 rounded-[10px] border-l-4 border-l-[#4a90e2] shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
           <h2 className="mt-0 mb-2 text-[#2c3e50] text-[1.3rem] font-bold">{assessment2.title}</h2>
           <p className="m-0 text-sm text-gray-400">{formatTimestamp(assessment2.created_at)}</p>
         </div>
@@ -348,10 +342,7 @@ export default function AssessmentComparisonPage() {
           🎯 Overall Score Comparison
         </h3>
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3 md:gap-4">
-          <div
-            className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#c8e6c9] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #f1f8f5 0%, #fff 100%)' }}
-          >
+          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#c8e6c9] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-[#f1f8f5] to-white">
             <div className="mb-3 text-sm font-semibold tracking-wider text-gray-600 uppercase">
               {assessment1.title}
             </div>
@@ -359,10 +350,7 @@ export default function AssessmentComparisonPage() {
               {assessment1.result_json?.overall_score || 0}
             </div>
           </div>
-          <div
-            className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 border-gray-300 rounded-lg hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #f5f5f5 0%, #fff 100%)' }}
-          >
+          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 border-gray-300 rounded-lg hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-gray-100 to-white">
             <div className="mb-3 text-sm font-semibold tracking-wider text-gray-600 uppercase">
               Change
             </div>
@@ -378,10 +366,7 @@ export default function AssessmentComparisonPage() {
               {overallDelta > 0 ? `+${overallDelta}` : overallDelta}
             </div>
           </div>
-          <div
-            className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#bbdefb] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #f0f7ff 0%, #fff 100%)' }}
-          >
+          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#bbdefb] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-[#f0f7ff] to-white">
             <div className="mb-3 text-sm font-semibold tracking-wider text-gray-600 uppercase">
               {assessment2.title}
             </div>
@@ -592,10 +577,7 @@ export default function AssessmentComparisonPage() {
           🔍 Auditor&apos;s Verdict
         </h3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div
-            className="px-6 py-6 border-l-4 rounded-lg bg-[#e8f5e9]"
-            style={{ borderLeftColor: '#34a83a' }}
-          >
+          <div className="px-6 py-6 border-l-4 border-l-[#34a83a] rounded-lg bg-[#e8f5e9]">
             <h4 className="mt-0 mb-3 text-[#2c3e50] text-[0.95rem] font-bold uppercase">
               {assessment1.title}
             </h4>
@@ -603,10 +585,7 @@ export default function AssessmentComparisonPage() {
               {assessment1.result_json?.audit?.audit_verdict || 'No verdict available'}
             </p>
           </div>
-          <div
-            className="px-6 py-6 border-l-4 rounded-lg bg-[#e3f2fd]"
-            style={{ borderLeftColor: '#4a90e2' }}
-          >
+          <div className="px-6 py-6 border-l-4 border-l-[#4a90e2] rounded-lg bg-[#e3f2fd]">
             <h4 className="mt-0 mb-3 text-[#2c3e50] text-[0.95rem] font-bold uppercase">
               {assessment2.title}
             </h4>
@@ -690,24 +669,12 @@ export default function AssessmentComparisonPage() {
       */}
 
       {/* Key Insights */}
-      <div
-        className="bg-white py-8 px-8 md:px-6 rounded-[10px] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border-2 border-[#4a90e2] border-l-4"
-        style={{
-          background: 'linear-gradient(135deg, #e3f2fd 0%, #f1f8f5 100%)',
-          borderLeftColor: '#34a83a',
-        }}
-      >
-        <h3
-          className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] pb-3 font-bold"
-          style={{ borderBottom: '2px solid #4a90e2' }}
-        >
+      <div className="bg-gradient-to-br from-[#e3f2fd] to-[#f1f8f5] py-8 px-8 md:px-6 rounded-[10px] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border-2 border-[#4a90e2] border-l-4 border-l-[#34a83a]">
+        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] pb-3 font-bold border-b-2 border-b-[#4a90e2]">
           Key Insights
         </h3>
         <ul className="p-0 m-0 list-none">
-          <li
-            className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6]"
-            style={{ borderBottom: '1px solid rgba(74, 144, 226, 0.2)' }}
-          >
+          <li className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6] border-b border-b-[rgba(74,144,226,0.2)]">
             <strong className="text-[#1565c0]">Score Trend:</strong>&nbsp;
             {assessment2.result_json?.overall_score > assessment1.result_json?.overall_score
               ? '📈 Score improved'
@@ -717,10 +684,7 @@ export default function AssessmentComparisonPage() {
           </li>
           {assessment1.result_json?.metadata?.industry !==
             assessment2.result_json?.metadata?.industry && (
-            <li
-              className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6]"
-              style={{ borderBottom: '1px solid rgba(74, 144, 226, 0.2)' }}
-            >
+            <li className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6] border-b border-b-[rgba(74,144,226,0.2)]">
               <strong className="text-[#1565c0]">Industry Change:</strong>&nbsp;
               {titleize(assessment1.result_json?.metadata?.industry)} →&nbsp;
               {titleize(assessment2.result_json?.metadata?.industry)}

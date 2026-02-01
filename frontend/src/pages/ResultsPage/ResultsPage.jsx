@@ -33,6 +33,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
 import {
   Download,
@@ -308,13 +309,6 @@ export default function ResultsPage({
     r_strategy: 'Dominant circular economy strategy (e.g., Reduce, Reuse, Recycle)',
     primary_material: 'Main material or waste stream this solution targets',
     geographic_focus: 'Primary market or region you aim to serve',
-  };
-
-  const classificationItemStyle = {
-    background: '#fff',
-    padding: '1rem',
-    borderRadius: '8px',
-    border: '1px solid #c8e6c9',
   };
 
   const subScoreEntries = Object.entries(actualResult?.sub_scores || {});
@@ -729,56 +723,33 @@ export default function ResultsPage({
 
               {/* Gap Analysis & Benchmarks Section */}
               {actualResult.gap_analysis?.has_benchmarks && (
-                <div
-                  style={{
-                    background: '#f0f4f8',
-                    padding: '2rem',
-                    borderRadius: '12px',
-                    marginBottom: '2rem',
-                    border: '2px solid #4a90e2',
-                  }}
-                >
-                  <h2 style={{ margin: '0 0 1.5rem 0', color: '#2c3e50' }}>
+                <div className="bg-[#f0f4f8] p-8 rounded-xl mb-8 border-2 border-[#4a90e2]">
+                  <h2 className="m-0 mb-6 text-[#2c3e50]">
                     📊 Your Performance vs. Similar Projects
                   </h2>
 
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                      gap: '1rem',
-                      marginBottom: '1.5rem',
-                    }}
-                  >
-                    <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
-                        Your Score
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#34a83a' }}>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-6">
+                    <div className="bg-white p-4 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-2">Your Score</div>
+                      <div className="text-2xl font-bold text-[#34a83a]">
                         {actualResult.overall_score}
                       </div>
                     </div>
-                    <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
-                        Similar Projects Average
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4a90e2' }}>
+                    <div className="bg-white p-4 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-2">Similar Projects Average</div>
+                      <div className="text-2xl font-bold text-[#4a90e2]">
                         {Math.round(actualResult.gap_analysis.overall_benchmarks.average)}
                       </div>
                     </div>
-                    <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
-                        Top 10% Threshold
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9c27b0' }}>
+                    <div className="bg-white p-4 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-2">Top 10% Threshold</div>
+                      <div className="text-2xl font-bold text-[#9c27b0]">
                         {actualResult.gap_analysis.overall_benchmarks.top_10_percentile}
                       </div>
                     </div>
-                    <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>
-                        Median
-                      </div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#26a69a' }}>
+                    <div className="bg-white p-4 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-2">Median</div>
+                      <div className="text-2xl font-bold text-[#26a69a]">
                         {actualResult.gap_analysis.overall_benchmarks.median}
                       </div>
                     </div>
@@ -786,97 +757,44 @@ export default function ResultsPage({
 
                   {Object.keys(actualResult.gap_analysis.sub_score_gaps).length > 0 && (
                     <div>
-                      <h3 style={{ margin: '1.5rem 0 1rem 0', color: '#2c3e50' }}>
-                        Factor-by-Factor Analysis
-                      </h3>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                          gap: '1rem',
-                        }}
-                      >
+                      <h3 className="my-6 mb-4 text-[#2c3e50]">Factor-by-Factor Analysis</h3>
+                      <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
                         {Object.entries(actualResult.gap_analysis.sub_score_gaps).map(
                           ([factor, gap]) => (
                             <div
                               key={factor}
+                              className="bg-white p-4 rounded-lg"
                               style={{
-                                background: '#fff',
-                                padding: '1rem',
-                                borderRadius: '8px',
                                 borderLeft: gap.gap > 5 ? '4px solid #ff9800' : '4px solid #4caf50',
                               }}
                             >
-                              <div
-                                style={{
-                                  fontSize: '0.9rem',
-                                  fontWeight: 'bold',
-                                  color: '#2c3e50',
-                                  marginBottom: '0.5rem',
-                                }}
-                              >
+                              <div className="text-sm font-bold text-[#2c3e50] mb-2">
                                 {factor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                               </div>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  marginBottom: '0.5rem',
-                                }}
-                              >
+                              <div className="flex justify-between mb-2">
                                 <div>
-                                  <span style={{ fontSize: '0.8rem', color: '#666' }}>
-                                    Your Score:
-                                  </span>
-                                  <div
-                                    style={{
-                                      fontSize: '1.3rem',
-                                      fontWeight: 'bold',
-                                      color: '#34a83a',
-                                    }}
-                                  >
+                                  <span className="text-xs text-gray-600">Your Score:</span>
+                                  <div className="text-xl font-bold text-[#34a83a]">
                                     {gap.user_score}
                                   </div>
                                 </div>
                                 <div>
-                                  <span style={{ fontSize: '0.8rem', color: '#666' }}>
-                                    Benchmark:
-                                  </span>
-                                  <div
-                                    style={{
-                                      fontSize: '1.3rem',
-                                      fontWeight: 'bold',
-                                      color: '#4a90e2',
-                                    }}
-                                  >
+                                  <span className="text-xs text-gray-600">Benchmark:</span>
+                                  <div className="text-xl font-bold text-[#4a90e2]">
                                     {gap.benchmark_average}
                                   </div>
                                 </div>
                               </div>
                               {gap.gap > 0 ? (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    color: '#ff9800',
-                                    fontWeight: 'bold',
-                                  }}
-                                >
+                                <div className="text-[0.85rem] text-[#ff9800] font-bold">
                                   ↑ Opportunity: +{gap.gap} points possible
                                 </div>
                               ) : (
-                                <div
-                                  style={{
-                                    fontSize: '0.85rem',
-                                    color: '#4caf50',
-                                    fontWeight: 'bold',
-                                  }}
-                                >
+                                <div className="text-[0.85rem] text-[#4caf50] font-bold">
                                   ✓ Above benchmark by {Math.abs(gap.gap)} points
                                 </div>
                               )}
-                              <div
-                                style={{ fontSize: '0.8rem', color: '#999', marginTop: '0.5rem' }}
-                              >
+                              <div className="text-xs text-gray-400 mt-2">
                                 {gap.percentile}th percentile vs. similar projects
                               </div>
                             </div>
@@ -890,192 +808,76 @@ export default function ResultsPage({
 
               {/* Industry & Metadata Section */}
               {actualResult.metadata && (
-                <div
-                  style={{
-                    background: '#e8f5e9',
-                    padding: '1.5rem',
-                    borderRadius: '10px',
-                    marginBottom: '2rem',
-                    border: '2px solid #34a83a',
-                  }}
-                >
-                  <h3 style={{ margin: '0 0 1rem 0', color: '#2d5f2e' }}>
-                    📋 Project Classification
-                  </h3>
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                      gap: '1rem',
-                    }}
-                  >
-                    <div style={classificationItemStyle}>
+                <div className="bg-[#e8f5e9] p-6 rounded-[10px] mb-8 border-2 border-[#34a83a]">
+                  <h3 className="m-0 mb-4 text-[#2d5f2e]">📋 Project Classification</h3>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+                    <div className="bg-white p-4 rounded-lg border border-[#c8e6c9]">
                       <div
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: '#2d5f2e',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.02em',
-                        }}
+                        className="text-xs font-bold text-[#2d5f2e] uppercase tracking-wide"
                         title={fieldHelp.industry}
                       >
                         Industry
                       </div>
-                      <div
-                        style={{
-                          fontSize: '1.2rem',
-                          color: '#1b5e20',
-                          marginTop: '0.25rem',
-                          fontWeight: 700,
-                        }}
-                      >
+                      <div className="text-xl text-[#1b5e20] mt-1 font-bold">
                         {titleize(actualResult.metadata.industry)}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: '#2d5f2e99',
-                          marginTop: '0.25rem',
-                          fontStyle: 'italic',
-                        }}
-                      >
+                      <div className="text-[0.78rem] text-[#2d5f2e99] mt-1 italic">
                         {fieldHelp.industry}
                       </div>
                     </div>
-                    <div style={classificationItemStyle}>
+                    <div className="bg-white p-4 rounded-lg border border-[#c8e6c9]">
                       <div
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: '#2d5f2e',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.02em',
-                        }}
+                        className="text-xs font-bold text-[#2d5f2e] uppercase tracking-wide"
                         title={fieldHelp.scale}
                       >
                         Scale
                       </div>
-                      <div
-                        style={{
-                          fontSize: '1.2rem',
-                          color: '#1b5e20',
-                          marginTop: '0.25rem',
-                          fontWeight: 700,
-                        }}
-                      >
+                      <div className="text-xl text-[#1b5e20] mt-1 font-bold">
                         {titleize(actualResult.metadata.scale)}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: '#2d5f2e99',
-                          marginTop: '0.25rem',
-                          fontStyle: 'italic',
-                        }}
-                      >
+                      <div className="text-[0.78rem] text-[#2d5f2e99] mt-1 italic">
                         {fieldHelp.scale}
                       </div>
                     </div>
-                    <div style={classificationItemStyle}>
+                    <div className="bg-white p-4 rounded-lg border border-[#c8e6c9]">
                       <div
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: '#2d5f2e',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.02em',
-                        }}
+                        className="text-xs font-bold text-[#2d5f2e] uppercase tracking-wide"
                         title={fieldHelp.r_strategy}
                       >
                         Circular Strategy
                       </div>
-                      <div
-                        style={{
-                          fontSize: '1.2rem',
-                          color: '#1b5e20',
-                          marginTop: '0.25rem',
-                          fontWeight: 700,
-                        }}
-                      >
+                      <div className="text-xl text-[#1b5e20] mt-1 font-bold">
                         {titleize(actualResult.metadata.r_strategy)}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: '#2d5f2e99',
-                          marginTop: '0.25rem',
-                          fontStyle: 'italic',
-                        }}
-                      >
+                      <div className="text-[0.78rem] text-[#2d5f2e99] mt-1 italic">
                         {fieldHelp.r_strategy}
                       </div>
                     </div>
-                    <div style={classificationItemStyle}>
+                    <div className="bg-white p-4 rounded-lg border border-[#c8e6c9]">
                       <div
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: '#2d5f2e',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.02em',
-                        }}
+                        className="text-xs font-bold text-[#2d5f2e] uppercase tracking-wide"
                         title={fieldHelp.primary_material}
                       >
                         Material Focus
                       </div>
-                      <div
-                        style={{
-                          fontSize: '1.2rem',
-                          color: '#1b5e20',
-                          marginTop: '0.25rem',
-                          fontWeight: 700,
-                        }}
-                      >
+                      <div className="text-xl text-[#1b5e20] mt-1 font-bold">
                         {titleize(actualResult.metadata.primary_material)}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: '#2d5f2e99',
-                          marginTop: '0.25rem',
-                          fontStyle: 'italic',
-                        }}
-                      >
+                      <div className="text-[0.78rem] text-[#2d5f2e99] mt-1 italic">
                         {fieldHelp.primary_material}
                       </div>
                     </div>
-                    <div style={classificationItemStyle}>
+                    <div className="bg-white p-4 rounded-lg border border-[#c8e6c9]">
                       <div
-                        style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 700,
-                          color: '#2d5f2e',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.02em',
-                        }}
+                        className="text-xs font-bold text-[#2d5f2e] uppercase tracking-wide"
                         title={fieldHelp.geographic_focus}
                       >
                         Geographic Focus
                       </div>
-                      <div
-                        style={{
-                          fontSize: '1.2rem',
-                          color: '#1b5e20',
-                          marginTop: '0.25rem',
-                          fontWeight: 700,
-                        }}
-                      >
+                      <div className="text-xl text-[#1b5e20] mt-1 font-bold">
                         {titleize(actualResult.metadata.geographic_focus)}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: '#2d5f2e99',
-                          marginTop: '0.25rem',
-                          fontStyle: 'italic',
-                        }}
-                      >
+                      <div className="text-[0.78rem] text-[#2d5f2e99] mt-1 italic">
                         {fieldHelp.geographic_focus}
                       </div>
                     </div>
@@ -1310,11 +1112,11 @@ export default function ResultsPage({
                 </div>
                 <div className="flex flex-wrap justify-center gap-8 mt-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                    <div className="w-4 h-4 rounded" style={{ background: '#34a83a' }}></div>
+                    <div className="w-4 h-4 rounded bg-[#34a83a]"></div>
                     <span>Your Idea</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-                    <div className="w-4 h-4 rounded" style={{ background: '#4a90e2' }}></div>
+                    <div className="w-4 h-4 rounded bg-[#4a90e2]"></div>
                     <span>Market Average</span>
                   </div>
                 </div>

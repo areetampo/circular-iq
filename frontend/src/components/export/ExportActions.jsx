@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Download, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 /**
  * ExportActions Component
@@ -18,41 +19,55 @@ export function ExportActions({
   const isExporting = isExportingCSV || isExportingPDF;
 
   return (
-    <div className="flex flex-wrap gap-4">
-      {/* Export CSV Button */}
-      <Button
-        onClick={onExportCSV}
-        disabled={isExporting}
-        variant="outline"
-        title={isExporting ? 'Export in progress' : 'Export assessment data as CSV'}
-        aria-label="Export assessment data as CSV"
-        className="gap-2"
-      >
-        {isExportingCSV ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Download className="w-4 h-4" />
-        )}
-        {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
-      </Button>
+    <TooltipProvider>
+      <div className="flex flex-wrap gap-4">
+        {/* Export CSV Button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={onExportCSV}
+              disabled={isExporting}
+              variant="outline"
+              aria-label="Export assessment data as CSV"
+              className="gap-2"
+            >
+              {isExportingCSV ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isExporting ? 'Export in progress' : 'Export assessment data as CSV'}</p>
+          </TooltipContent>
+        </Tooltip>
 
-      {/* Export PDF Button */}
-      <Button
-        onClick={onExportPDF}
-        disabled={isExporting}
-        variant="outline"
-        title={isExporting ? 'Export in progress' : 'Export assessment as PDF'}
-        aria-label="Export assessment as PDF"
-        className="gap-2"
-      >
-        {isExportingPDF ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <FileText className="w-4 h-4" />
-        )}
-        {isExportingPDF ? 'Generating...' : 'Download as PDF'}
-      </Button>
-    </div>
+        {/* Export PDF Button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={onExportPDF}
+              disabled={isExporting}
+              variant="outline"
+              aria-label="Export assessment as PDF"
+              className="gap-2"
+            >
+              {isExportingPDF ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+              {isExportingPDF ? 'Generating...' : 'Download as PDF'}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isExporting ? 'Export in progress' : 'Export assessment as PDF'}</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   );
 }
 
