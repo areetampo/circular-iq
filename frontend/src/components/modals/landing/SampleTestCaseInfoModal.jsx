@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { PencilLine } from 'lucide-react';
+import { PencilLine, X, Target, Lightbulb, BarChart3 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogClose className="absolute top-4 right-4" aria-label="Close sample test case modal">
-        ✖️
+        <X className="w-5 h-5 text-gray-500 hover:text-gray-700" strokeWidth={2} />
       </DialogClose>
       <DialogContent className="w-full max-w-2xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
@@ -28,7 +28,7 @@ export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase
         <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🎯</span>
+              <Target className="w-5 h-5 text-[#34a83a]" strokeWidth={2} />
               <h3 className="m-0 text-lg font-bold text-slate-800">Business Problem</h3>
             </div>
             <div className="p-5 border bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-slate-200">
@@ -38,7 +38,7 @@ export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase
 
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">💡</span>
+              <Lightbulb className="w-5 h-5 text-[#34a83a]" strokeWidth={2} />
               <h3 className="m-0 text-lg font-bold text-slate-800">Business Solution</h3>
             </div>
             <div className="p-5 border bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-emerald-200">
@@ -48,7 +48,7 @@ export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase
 
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">📊</span>
+              <BarChart3 className="w-5 h-5 text-[#4a90e2]" strokeWidth={2} />
               <h3 className="m-0 text-lg font-bold text-slate-800">Parameter Scores</h3>
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">

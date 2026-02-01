@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { extractProblemSolution } from '@/utils/content';
-import { NotebookText } from 'lucide-react';
+import { NotebookText, X, Target, Lightbulb } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -37,7 +37,7 @@ export default function ResultsDatabaseEvidenceDetailsModal({
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
       <DialogClose className="absolute top-4 right-4" aria-label="Close evidence details modal">
-        ✖️
+        <X className="w-5 h-5 text-gray-500 hover:text-gray-700" strokeWidth={2} />
       </DialogClose>
       <DialogContent className="w-full max-w-3xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
@@ -75,7 +75,7 @@ export default function ResultsDatabaseEvidenceDetailsModal({
             <>
               <div className="mb-7">
                 <div className="flex items-center gap-2.5 mb-3 pb-2 border-b-2 border-[#34a83a]">
-                  <span className="text-2xl">🎯</span>
+                  <Target className="w-6 h-6 text-[#34a83a]" strokeWidth={2} />
                   <h3 className="m-0 text-lg font-semibold text-slate-800">Problem Addressed</h3>
                 </div>
                 <p className="m-0 text-base leading-7 text-slate-800">{problemPart}</p>
@@ -83,7 +83,7 @@ export default function ResultsDatabaseEvidenceDetailsModal({
 
               <div className="mb-7">
                 <div className="flex items-center gap-2.5 mb-3 pb-2 border-b-2 border-[#34a83a]">
-                  <span className="text-2xl">💡</span>
+                  <Lightbulb className="w-6 h-6 text-[#34a83a]" strokeWidth={2} />
                   <h3 className="m-0 text-lg font-semibold text-slate-800">Solution Approach</h3>
                 </div>
                 <p className="m-0 text-base leading-7 text-slate-800">{solutionPart}</p>

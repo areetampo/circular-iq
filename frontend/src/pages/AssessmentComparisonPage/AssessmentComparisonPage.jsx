@@ -17,7 +17,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertTriangle, ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Star,
+  ArrowRight,
+  Upload,
+} from 'lucide-react';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
@@ -56,7 +65,7 @@ export default function AssessmentComparisonPage() {
                 size="sm"
                 className="mt-4 gap-2"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-4 h-4 text-blue-600" />
                 Back to Assessments
               </Button>
             </AlertDescription>
@@ -126,20 +135,20 @@ export default function AssessmentComparisonPage() {
     if (diff > 0) {
       return (
         <span className="flex items-center gap-1 text-green-600 font-semibold">
-          <TrendingUp className="w-4 h-4" />+{diff}
+          <TrendingUp className="w-4 h-4 text-green-600" />+{diff}
         </span>
       );
     } else if (diff < 0) {
       return (
         <span className="flex items-center gap-1 text-red-600 font-semibold">
-          <TrendingDown className="w-4 h-4" />
+          <TrendingDown className="w-4 h-4 text-red-600" />
           {diff}
         </span>
       );
     }
     return (
       <span className="flex items-center gap-1 text-gray-500 font-semibold">
-        <Minus className="w-4 h-4" />0
+        <Minus className="w-4 h-4 text-gray-500" />0
       </span>
     );
   };
@@ -155,29 +164,29 @@ export default function AssessmentComparisonPage() {
     if (diff > 5) {
       insights.push({
         type: 'positive',
-        emoji: '📈',
+        icon: 'TrendingUp',
         text: `Significant improvement: ${diff} point gain from ${score1} to ${score2}`,
       });
     } else if (diff > 0) {
       insights.push({
         type: 'positive',
-        emoji: '📈',
+        icon: 'TrendingUp',
         text: `Modest improvement: ${diff} point increase`,
       });
     } else if (diff < -5) {
       insights.push({
         type: 'negative',
-        emoji: '📉',
+        icon: 'TrendingDown',
         text: `Decline detected: ${Math.abs(diff)} point drop from ${score1} to ${score2}`,
       });
     } else if (diff < 0) {
       insights.push({
         type: 'negative',
-        emoji: '📉',
+        icon: 'TrendingDown',
         text: `Minor decline: ${Math.abs(diff)} point decrease`,
       });
     } else {
-      insights.push({ type: 'neutral', emoji: '➡️', text: 'Overall scores remain stable' });
+      insights.push({ type: 'neutral', icon: 'ArrowRight', text: 'Overall scores remain stable' });
     }
 
     // Strongest and weakest factors
@@ -187,7 +196,7 @@ export default function AssessmentComparisonPage() {
     if (strongest && strongest.diff > 2) {
       insights.push({
         type: 'positive',
-        emoji: '⭐',
+        icon: 'Star',
         text: `Strongest improvement in ${strongest.label || titleize(strongest.factor)} (+${strongest.diff} points)`,
       });
     }
@@ -195,7 +204,7 @@ export default function AssessmentComparisonPage() {
     if (weakest && weakest.diff < -2) {
       insights.push({
         type: 'negative',
-        emoji: '⚠️',
+        icon: 'AlertTriangle',
         text: `Notable decline in ${weakest.label || titleize(weakest.factor)} (${weakest.diff} points)`,
       });
     }
@@ -207,7 +216,7 @@ export default function AssessmentComparisonPage() {
     if (topFactor && topScore >= 80) {
       insights.push({
         type: 'positive',
-        emoji: '💪',
+        icon: 'Dumbbell',
         text: `${topFactor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())} is a strength (${topScore} / 100)`,
       });
     }
@@ -218,7 +227,7 @@ export default function AssessmentComparisonPage() {
     if (lowFactor && lowScore < 50) {
       insights.push({
         type: 'negative',
-        emoji: '🎯',
+        icon: 'Target',
         text: `Priority improvement: ${lowFactor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())} (${lowScore} / 100)`,
       });
     }
@@ -240,32 +249,59 @@ export default function AssessmentComparisonPage() {
       {insights && insights.length > 0 && (
         <div className="bg-gradient-to-br from-[#fff9e6] to-[#fffbf0] py-8 px-8 md:px-6 rounded-[10px] border-2 border-[#ff9800] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
           <h3 className="text-[#ff6f00] mt-0 flex items-center gap-2 mb-6 text-[1.3rem] border-b-2 border-[#ff9800] pb-3 font-bold">
-            💡 Key Insights
+            <Lightbulb className="w-5 h-5 text-[#ff9800]" strokeWidth={2.5} /> Key Insights
           </h3>
           <div className="flex flex-col gap-3">
-            {insights.map((insight, idx) => (
-              <div
-                key={idx}
-                className={`flex items-center gap-3 py-3 px-3 rounded-md text-[0.95rem] ${
-                  insight.type === 'positive'
-                    ? 'bg-[#e8f5e9] border-l-[3px] border-l-[#34a83a]'
-                    : insight.type === 'negative'
-                      ? 'bg-[#ffebee] border-l-[3px] border-l-[#e74c3c]'
-                      : 'bg-gray-100 border-l-[3px] border-l-gray-500'
-                }`}
-              >
-                <div className="text-[1.3rem] min-w-[30px]">{insight.emoji}</div>
-                <div className="text-[#2c3e50] font-medium flex-1">{insight.text}</div>
-              </div>
-            ))}
+            {insights.map((insight, idx) => {
+              const IconComponent =
+                insight.icon === 'TrendingUp'
+                  ? TrendingUp
+                  : insight.icon === 'TrendingDown'
+                    ? TrendingDown
+                    : insight.icon === 'Star'
+                      ? Star
+                      : insight.icon === 'AlertTriangle'
+                        ? AlertTriangle
+                        : insight.icon === 'Dumbbell'
+                          ? Dumbbell
+                          : insight.icon === 'Target'
+                            ? Target
+                            : ArrowRight;
+              return (
+                <div
+                  key={idx}
+                  className={`flex items-center gap-3 py-3 px-3 rounded-md text-[0.95rem] ${
+                    insight.type === 'positive'
+                      ? 'bg-[#e8f5e9] border-l-[3px] border-l-[#34a83a]'
+                      : insight.type === 'negative'
+                        ? 'bg-[#ffebee] border-l-[3px] border-l-[#e74c3c]'
+                        : 'bg-gray-100 border-l-[3px] border-l-gray-500'
+                  }`}
+                >
+                  <div className="min-w-[30px] flex items-center justify-center">
+                    <IconComponent
+                      className={`w-5 h-5 ${
+                        insight.type === 'positive'
+                          ? 'text-[#34a83a]'
+                          : insight.type === 'negative'
+                            ? 'text-[#e74c3c]'
+                            : 'text-gray-600'
+                      }`}
+                      strokeWidth={2.5}
+                    />
+                  </div>
+                  <div className="text-[#2c3e50] font-medium flex-1">{insight.text}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
       {/* Change Snapshot */}
       <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
-          📊 Change Snapshot
+        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Change Snapshot
         </h3>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
           <div className="bg-[#f9fafb] border border-gray-300 rounded-[10px] py-4 px-4 shadow-[0_2px_6px_rgba(0,0,0,0.04)]">
@@ -338,8 +374,8 @@ export default function AssessmentComparisonPage() {
 
       {/* Overall Score Comparison */}
       <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
-          🎯 Overall Score Comparison
+        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold flex items-center gap-2">
+          <Target className="w-5 h-5 text-[#34a83a]" strokeWidth={2.5} /> Overall Score Comparison
         </h3>
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3 md:gap-4">
           <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#c8e6c9] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-[#f1f8f5] to-white">
@@ -380,7 +416,10 @@ export default function AssessmentComparisonPage() {
       {/* Factor Scores Comparison Table */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">🔍 Factor-by-Factor Comparison</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Factor-by-Factor
+            Comparison
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -479,7 +518,10 @@ export default function AssessmentComparisonPage() {
         assessment2.result_json?.gap_analysis?.overall_benchmarks && (
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>📊 Benchmarking vs. Similar Projects</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Benchmarking vs.
+                Similar Projects
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -573,8 +615,8 @@ export default function AssessmentComparisonPage() {
 
       {/* Audit Verdicts */}
       <div className="bg-white py-8 px-8 md:px-6 rounded-[10px] border border-gray-300 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold">
-          🔍 Auditor&apos;s Verdict
+        <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] border-b-2 border-[#34a83a] pb-3 font-bold flex items-center gap-2">
+          <Search className="w-5 h-5 text-[#34a83a]" strokeWidth={2.5} /> Auditor&apos;s Verdict
         </h3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="px-6 py-6 border-l-4 border-l-[#34a83a] rounded-lg bg-[#e8f5e9]">
@@ -676,18 +718,29 @@ export default function AssessmentComparisonPage() {
         <ul className="p-0 m-0 list-none">
           <li className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6] border-b border-b-[rgba(74,144,226,0.2)]">
             <strong className="text-[#1565c0]">Score Trend:</strong>&nbsp;
-            {assessment2.result_json?.overall_score > assessment1.result_json?.overall_score
-              ? '📈 Score improved'
-              : assessment2.result_json?.overall_score < assessment1.result_json?.overall_score
-                ? '📉 Score declined'
-                : '↔️ Score unchanged'}
+            {assessment2.result_json?.overall_score > assessment1.result_json?.overall_score ? (
+              <span className="inline-flex items-center gap-1">
+                <TrendingUp className="w-4 h-4 text-[#34a83a]" strokeWidth={2.5} /> Score improved
+              </span>
+            ) : assessment2.result_json?.overall_score < assessment1.result_json?.overall_score ? (
+              <span className="inline-flex items-center gap-1">
+                <TrendingDown className="w-4 h-4 text-[#e74c3c]" strokeWidth={2.5} /> Score declined
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <Minus className="w-4 h-4 text-gray-600" strokeWidth={2.5} /> Score unchanged
+              </span>
+            )}
           </li>
           {assessment1.result_json?.metadata?.industry !==
             assessment2.result_json?.metadata?.industry && (
             <li className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6] border-b border-b-[rgba(74,144,226,0.2)]">
               <strong className="text-[#1565c0]">Industry Change:</strong>&nbsp;
-              {titleize(assessment1.result_json?.metadata?.industry)} →&nbsp;
-              {titleize(assessment2.result_json?.metadata?.industry)}
+              <span className="inline-flex items-center gap-1">
+                {titleize(assessment1.result_json?.metadata?.industry)}{' '}
+                <ArrowRight className="w-3 h-3 text-gray-600" strokeWidth={2} />{' '}
+                {titleize(assessment2.result_json?.metadata?.industry)}
+              </span>
             </li>
           )}
           <li className="py-3 mb-2 text-[0.95rem] text-[#2c3e50] leading-[1.6] border-b-0">
@@ -710,14 +763,18 @@ export default function AssessmentComparisonPage() {
           {getCurrentTimestampFormatted()}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button onClick={() => exportComparisonCSV([assessment1, assessment2])} variant="outline">
-            📤 Export Comparison (CSV)
+          <Button
+            onClick={() => exportComparisonCSV([assessment1, assessment2])}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4 text-gray-700" strokeWidth={2} /> Export Comparison (CSV)
           </Button>
           <button
-            className="bg-white text-[#34a83a] border-2 border-[#34a83a] py-3 px-6 rounded-md font-semibold cursor-pointer text-base transition-all duration-300 ease-in-out hover:bg-[#34a83a] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(52,168,58,0.3)]"
+            className="bg-white text-[#34a83a] border-2 border-[#34a83a] py-3 px-6 rounded-md font-semibold cursor-pointer text-base transition-all duration-300 ease-in-out hover:bg-[#34a83a] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(52,168,58,0.3)] flex items-center gap-2"
             onClick={handleBack}
           >
-            ← Back to Assessments
+            <ArrowLeft className="w-4 h-4 text-[#34a83a]" strokeWidth={2.5} /> Back to Assessments
           </button>
         </div>
       </div>

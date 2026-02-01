@@ -459,19 +459,19 @@ export const scoreRanges = {
 export const integrityGapLevels = {
   high: {
     color: COLORS.error,
-    icon: '⚠️',
+    icon: 'AlertTriangle',
     label: 'Critical Inconsistency',
     description: 'Significant contradiction between scores and evidence',
   },
   medium: {
     color: COLORS.accent,
-    icon: '⚡',
+    icon: 'Zap',
     label: 'Notable Inconsistency',
     description: 'Possible inflation in self-assessment',
   },
   low: {
     color: COLORS.secondary,
-    icon: 'ℹ️',
+    icon: 'Info',
     label: 'Minor Gap',
     description: 'Small discrepancy worth noting',
   },
