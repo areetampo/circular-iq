@@ -3,8 +3,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { Toaster } from '@/components/ui/toaster';
-import { toast } from '@/hooks/use-toast';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
@@ -13,10 +13,8 @@ const queryClient = new QueryClient({
       // Only show error toasts if we have an error message
       const errorMessage = error?.message || 'An error occurred while fetching data';
 
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: errorMessage,
-        variant: 'destructive',
       });
     },
   }),
@@ -25,10 +23,8 @@ const queryClient = new QueryClient({
       // Only show error toasts for mutations if we have an error message
       const errorMessage = error?.message || 'An error occurred while processing your request';
 
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: errorMessage,
-        variant: 'destructive',
       });
     },
   }),
@@ -47,7 +43,7 @@ const queryClient = new QueryClient({
  * - QueryClientProvider for React Query
  * - BrowserRouter for routing
  * - ErrorBoundary for error handling
- * - Toaster for toast notifications (shadcn/ui)
+ * - Sonner for toast notifications (shadcn/ui)
  * - ReactQueryDevtools for development debugging
  */
 export default function AppProvider({ children }) {
@@ -56,7 +52,7 @@ export default function AppProvider({ children }) {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           {children}
-          <Toaster />
+          <Sonner position="top-right" richColors closeButton />
         </BrowserRouter>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

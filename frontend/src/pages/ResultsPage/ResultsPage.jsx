@@ -10,7 +10,6 @@ import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { validKeys, categoryMapping } from '@/constants/evaluationData';
 import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/content';
 import { useToast } from '@/hooks/useToast';
-import { toast } from '@/hooks/use-toast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import Loader from '@/components/common/Loader';
@@ -43,7 +42,7 @@ export default function ResultsPage({
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { addToast } = useToast();
+  const { addToast, toast } = useToast();
   const { isExporting, executeExport } = useExportState();
   const { saveEvaluation, restoreEvaluation } = useSession();
   const { createAssessmentAsync, isPending: isSaving } = useCreateAssessment();
@@ -358,14 +357,13 @@ export default function ResultsPage({
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: 'Link Copied',
+      toast.success('Link Copied', {
         description: 'Anyone with this link can now view this assessment.',
       });
     } catch (err) {
       addToast('Failed to copy link to clipboard', 'error');
     }
-  }, [addToast, id]);
+  }, [addToast, toast, id]);
 
   const defaultAssessmentName = useMemo(() => {
     const source = isDetailView ? fetchedAssessment : currentData;
