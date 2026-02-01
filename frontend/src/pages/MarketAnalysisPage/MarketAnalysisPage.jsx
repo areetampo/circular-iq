@@ -8,6 +8,9 @@ import { titleize } from '@/lib/formatting';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import { useMarketAnalysis } from '@/features/assessments';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { ChevronLeft } from 'lucide-react';
 
 export default function MarketAnalysisPage() {
@@ -16,10 +19,11 @@ export default function MarketAnalysisPage() {
   const [filterScale, setFilterScale] = useState('all');
 
   // Fetch market analysis data using hook
-  const { marketData, stats, userScore, isLoading, isError, error, refetch } = useMarketAnalysis({
-    assessmentId: id,
-    enabled: true,
-  });
+  const { marketData, stats, userScore, userIndustry, isLoading, isError, error, refetch } =
+    useMarketAnalysis({
+      assessmentId: id,
+      enabled: true,
+    });
 
   const getIndustryColor = (industry) => {
     const colors = {
@@ -87,6 +91,34 @@ export default function MarketAnalysisPage() {
       name: 'Average Score',
     },
   ];
+
+  const industryBenchmarkScore = useMemo(() => {
+    if (!marketData.length) return stats?.avg_score ?? null;
+    if (!userIndustry) return stats?.avg_score ?? null;
+    const match = marketData.find((item) => item.industry === userIndustry);
+    return match?.avg_score ?? stats?.avg_score ?? null;
+  }, [marketData, userIndustry, stats]);
+
+  const normalizedUserScore = typeof userScore === 'number' ? userScore : null;
+  const normalizedBenchmarkScore =
+    typeof industryBenchmarkScore === 'number' ? industryBenchmarkScore : null;
+
+  const benchmarkDeltaPercent =
+    normalizedUserScore != null && normalizedBenchmarkScore != null && normalizedBenchmarkScore > 0
+      ? Math.round(
+          ((normalizedUserScore - normalizedBenchmarkScore) / normalizedBenchmarkScore) * 100,
+        )
+      : null;
+
+  const isOutperforming =
+    normalizedUserScore != null &&
+    normalizedBenchmarkScore != null &&
+    normalizedUserScore >= normalizedBenchmarkScore;
+
+  const userIndicatorPosition =
+    normalizedUserScore != null
+      ? Math.min(100, Math.max(0, Math.round(normalizedUserScore)))
+      : null;
 
   const handleBackToResults = () => {
     navigate(`/results/${id}`);
@@ -162,6 +194,70 @@ export default function MarketAnalysisPage() {
                 )}
               </div>
             )}
+
+            {/* Industry Benchmarking */}
+            <Card className="border border-slate-200 shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <CardTitle className="text-xl font-semibold text-[#1f2937]">
+                    Industry Benchmarking
+                  </CardTitle>
+                  {normalizedUserScore != null && normalizedBenchmarkScore != null && (
+                    <Badge
+                      className={
+                        isOutperforming
+                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                          : 'bg-amber-100 text-amber-700 hover:bg-amber-100'
+                      }
+                    >
+                      {isOutperforming ? 'Outperforming' : 'Opportunity for Growth'}
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm text-slate-600">
+                    <span>Industry Average</span>
+                    <span className="font-semibold text-slate-700">
+                      {normalizedBenchmarkScore != null
+                        ? `${normalizedBenchmarkScore.toFixed(1)} / 100`
+                        : 'Unavailable'}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Progress
+                      value={normalizedBenchmarkScore != null ? normalizedBenchmarkScore : 0}
+                      className="h-3 bg-slate-200"
+                      indicatorClassName="bg-slate-400"
+                    />
+                    {userIndicatorPosition != null && (
+                      <div
+                        className="absolute top-[-6px] h-6 w-0.5 bg-[#059669]"
+                        style={{ left: `${userIndicatorPosition}%` }}
+                        aria-label="User score indicator"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>0</span>
+                    <span>100</span>
+                  </div>
+                </div>
+                <div className="text-sm text-slate-600">
+                  {benchmarkDeltaPercent == null ? (
+                    'Industry comparison is unavailable for this assessment.'
+                  ) : (
+                    <span>
+                      Your score is{' '}
+                      <strong className="text-[#059669]">{Math.abs(benchmarkDeltaPercent)}%</strong>{' '}
+                      {benchmarkDeltaPercent >= 0 ? 'higher' : 'lower'} than the industry average
+                      {userIndustry ? ` for ${titleize(userIndustry)}` : ''}.
+                    </span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Filter Controls */}
             {getScales().length > 1 && (
