@@ -33,6 +33,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import ResultsSkeleton from '@/components/results/ResultsSkeleton';
 import {
   Download,
   Share,
@@ -217,13 +218,7 @@ export default function ResultsPage({
   if (detailLoading) {
     return (
       <AppContainer>
-        <Card className="max-w-md mx-auto">
-          <CardContent className="flex flex-col items-center py-12">
-            <Loader2 className="w-12 h-12 mb-4 animate-spin text-primary" />
-            <CardTitle className="mb-2">Loading Assessment</CardTitle>
-            <CardDescription>Please wait while we retrieve your data...</CardDescription>
-          </CardContent>
-        </Card>
+        <ResultsSkeleton />
       </AppContainer>
     );
   }
