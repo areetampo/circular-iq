@@ -253,7 +253,7 @@ export default function MyAssessmentsPage() {
     >
       {/* Authentication check */}
       {!authLoading && !isAuthenticated && (
-        <Card className="mx-auto max-w-md">
+        <Card className="max-w-md mx-auto">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4 text-6xl">🔐</div>
             <CardTitle className="text-2xl">Authentication Required</CardTitle>
@@ -467,8 +467,8 @@ export default function MyAssessmentsPage() {
               <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <div className="flex justify-center mb-4">
-                    <div className="rounded-full bg-muted p-4">
-                      <Ghost className="h-8 w-8 text-muted-foreground" />
+                    <div className="p-4 rounded-full bg-muted">
+                      <Ghost className="w-8 h-8 text-muted-foreground" />
                     </div>
                   </div>
                   <CardTitle className="mb-2">No assessments found</CardTitle>

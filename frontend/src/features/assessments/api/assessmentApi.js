@@ -4,6 +4,7 @@ import {
   validateAssessmentsList,
   safeValidateAssessment,
   safeValidateAssessmentsList,
+  AssessmentSchema,
 } from '@/features/assessments/api/assessmentSchema';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -77,12 +78,18 @@ export async function getAssessmentById(id) {
   }
   const data = await requestJson(`/assessments/${id}`);
 
-  // Validate response data - use safe validation to allow graceful fallback
-  const validated = safeValidateAssessment(data.assessment || data);
-  if (validated) {
+  // Validate response data using strict parse
+  try {
+    // Try to validate the entire response
+    const validated = validateAssessment(data.assessment || data);
     return { ...data, assessment: validated };
+  } catch (error) {
+    // If validation fails, include error details for consumer to handle
+    const validationError = new Error(`Validation failed: ${error.message}`);
+    validationError.originalError = error;
+    validationError.data = data;
+    throw validationError;
   }
-  return data;
 }
 
 export async function createAssessment(payload) {

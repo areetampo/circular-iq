@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { getAssessmentById, createAssessment } from '@/features/assessments';
 
 export function useAssessment(id, options = {}) {
@@ -9,6 +10,20 @@ export function useAssessment(id, options = {}) {
     queryFn: () => getAssessmentById(id),
     enabled: enabled && !!id,
     placeholderData,
+    onError: (err) => {
+      // Handle validation errors specifically
+      if (err.message?.includes('Validation failed')) {
+        const fieldMatch = err.message.match(/`(\w+)`/);
+        const fieldName = fieldMatch ? fieldMatch[1] : 'data';
+        toast.error(`Missing or invalid field: ${fieldName}`, {
+          description: 'Some assessment data may be incomplete. Displaying available data.',
+        });
+      } else {
+        toast.error('Failed to load assessment', {
+          description: err.message || 'Please try again',
+        });
+      }
+    },
   });
 
   return {

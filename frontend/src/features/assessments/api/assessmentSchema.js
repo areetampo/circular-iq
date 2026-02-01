@@ -30,6 +30,17 @@ export const MetadataSchema = z
   .passthrough(); // Allow additional properties
 
 /**
+ * Zod schema for case summary information
+ */
+export const CaseSummarySchema = z.object({
+  case_id: z.string().or(z.number()).optional(),
+  title: z.string().optional(),
+  problem: z.string().optional(),
+  solution: z.string().optional(),
+  similarity: z.number().min(0).max(1).optional(),
+});
+
+/**
  * Zod schema for audit information
  */
 export const AuditSchema = z
@@ -37,6 +48,8 @@ export const AuditSchema = z
     confidence_score: z.number().min(0).max(100).optional(),
     technical_recommendations: z.array(z.string()).optional(),
     integrity_issues: z.array(z.string()).optional(),
+    integrity_gaps: z.array(z.string()).optional(),
+    similar_cases_summaries: z.array(CaseSummarySchema).optional(),
   })
   .passthrough();
 
@@ -69,8 +82,9 @@ export const ResultJsonSchema = z
 export const AssessmentSchema = z
   .object({
     id: z.string().uuid().optional(),
-    name: z.string().min(1),
-    result_json: ResultJsonSchema,
+    name: z.string().min(1).optional(),
+    title: z.string().optional(),
+    result_json: ResultJsonSchema.optional(),
     sub_scores: SubScoresSchema.optional(),
     metadata: MetadataSchema.optional(),
     industry: z.string().optional(),
@@ -80,6 +94,8 @@ export const AssessmentSchema = z
     user_id: z.string().optional(),
     business_problem: z.string().optional(),
     business_solution: z.string().optional(),
+    overall_score: z.number().min(0).max(100).optional(),
+    audit: AuditSchema.optional(),
   })
   .passthrough(); // Allow additional properties
 
