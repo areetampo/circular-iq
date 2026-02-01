@@ -54,7 +54,7 @@ async function requestJson(path, options = {}) {
 }
 
 export async function scoreAssessment({ businessProblem, businessSolution, parameters }) {
-  return requestJson('/score', {
+  return requestJson('/api/score', {
     method: 'POST',
     body: JSON.stringify({ businessProblem, businessSolution, parameters }),
   });
@@ -66,7 +66,7 @@ export async function getAssessments(params = {}) {
   delete cleanParams.sessionId;
 
   const query = new URLSearchParams(cleanParams);
-  const path = query.toString() ? `/assessments?${query}` : '/assessments';
+  const path = query.toString() ? `/api/assessments?${query}` : '/api/assessments';
   const data = await requestJson(path);
 
   // Validate response data
@@ -77,7 +77,7 @@ export async function getAssessmentById(id) {
   if (!id) {
     throw new Error('Assessment id is required');
   }
-  const data = await requestJson(`/assessments/${id}`);
+  const data = await requestJson(`/api/assessments/${id}`);
 
   // Validate response data using strict parse
   try {
@@ -94,7 +94,7 @@ export async function getAssessmentById(id) {
 }
 
 export async function createAssessment(payload) {
-  return requestJson('/assessments', {
+  return requestJson('/api/assessments', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -104,11 +104,11 @@ export async function deleteAssessment(id) {
   if (!id) {
     throw new Error('Assessment id is required');
   }
-  await requestJson(`/assessments/${id}`, { method: 'DELETE' });
+  await requestJson(`/api/assessments/${id}`, { method: 'DELETE' });
 }
 
 export async function getMarketAnalysis(id) {
-  const path = id ? `/market-analysis/${id}` : '/market-analysis';
+  const path = id ? `/api/assessments/market-analysis/${id}` : '/api/assessments/market-analysis';
   const data = await requestJson(path);
 
   // Validate market analysis data structure
@@ -140,5 +140,5 @@ export async function compareAssessments(id1, id2) {
     throw new Error('Both assessment ids are required');
   }
   const query = new URLSearchParams({ id1, id2 });
-  return requestJson(`/assessments/compare?${query}`);
+  return requestJson(`/api/assessments/compare?${query}`);
 }
