@@ -52,7 +52,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
     try {
       // Use username with internal domain as email
       const email = `${data.username}@circular.internal`;
-      
+
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email,
         password: data.password,
@@ -65,9 +65,11 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
 
       if (signupError) {
         // Check if username is already taken (unique constraint violation)
-        if (signupError.message.includes('already registered') || 
-            signupError.message.includes('already exists') ||
-            signupError.message.includes('unique constraint')) {
+        if (
+          signupError.message.includes('already registered') ||
+          signupError.message.includes('already exists') ||
+          signupError.message.includes('unique constraint')
+        ) {
           throw new Error('This username is unavailable');
         }
         throw signupError;
@@ -91,7 +93,8 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
       window.location.href = '/';
     } catch (error) {
       console.error('Sign up error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred during sign up.';
+      const errorMessage =
+        error instanceof Error ? error.message : 'An error occurred during sign up.';
       addToast({
         title: 'Sign up failed',
         description: errorMessage,

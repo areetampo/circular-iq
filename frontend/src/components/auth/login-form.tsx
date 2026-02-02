@@ -45,7 +45,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
     try {
       // Append @circular.internal to username to form email
       const email = `${data.username}@circular.internal`;
-      
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password: data.password,
