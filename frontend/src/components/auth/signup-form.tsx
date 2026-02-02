@@ -17,8 +17,8 @@ const signupSchema = z
     username: z
       .string()
       .min(3, 'Username must be at least 3 characters')
-      .max(30, 'Username must be at most 30 characters'),
-    email: z.string().email('Please enter a valid email'),
+      .max(30, 'Username must be at most 30 characters')
+      .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
   })
@@ -50,8 +50,11 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: data.email,
+      // Use username with internal domain as email
+      const email = `${data.username}@circular.internal`;
+      
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
+        email,
         password: data.password,
         options: {
           data: {
@@ -60,7 +63,23 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         },
       });
 
-      if (error) throw error;
+      if (signupError) {
+        // Check if username is already taken (unique constraint violation)
+        if (signupError.message.includes('already registered') || 
+            signupError.message.includes('already exists') ||
+            signupError.message.includes('unique constraint')) {
+          throw new Error('This username is unavailable');
+        }
+        throw signupError;
+      }
+
+      // Auto-login after successful signup
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password: data.password,
+      });
+
+      if (loginError) throw loginError;
 
       addToast({
         title: 'Account created successfully!',
@@ -72,9 +91,10 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
       window.location.href = '/';
     } catch (error) {
       console.error('Sign up error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during sign up.';
       addToast({
         title: 'Sign up failed',
-        description: error instanceof Error ? error.message : 'An error occurred during sign up.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -100,18 +120,6 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
               disabled={isLoading}
             />
             {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              {...register('email')}
-              disabled={isLoading}
-            />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-2">
