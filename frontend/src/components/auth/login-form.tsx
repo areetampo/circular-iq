@@ -13,7 +13,10 @@ import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
+  username: z
+    .string()
+    .min(1, 'Username is required')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Invalid username format'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -40,8 +43,11 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
     setIsLoading(true);
 
     try {
+      // Append @circular.internal to username to form email
+      const email = `${data.username}@circular.internal`;
+      
       const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
+        email,
         password: data.password,
       });
 
@@ -59,7 +65,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
       console.error('Sign in error:', error);
       addToast({
         title: 'Sign in failed',
-        description: error instanceof Error ? error.message : 'Invalid email or password.',
+        description: 'Invalid username or password.',
         variant: 'destructive',
       });
     } finally {
@@ -71,20 +77,20 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>Enter your email below to login to your account</CardDescription>
+        <CardDescription>Enter your username below to login to your account</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              {...register('email')}
+              id="username"
+              type="text"
+              placeholder="johndoe"
+              {...register('username')}
               disabled={isLoading}
             />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+            {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
           </div>
 
           <div className="space-y-2">
