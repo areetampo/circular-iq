@@ -53,7 +53,7 @@ export default function AssessmentComparisonPage() {
       >
         <div className="flex items-center justify-center py-12">
           <Alert variant="destructive" className="max-w-md">
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="w-4 h-4" />
             <AlertDescription>
               <strong>Unable to Compare</strong>
               <p className="mt-2">
@@ -63,7 +63,7 @@ export default function AssessmentComparisonPage() {
                 onClick={() => navigate('/assessments')}
                 variant="outline"
                 size="sm"
-                className="mt-4 gap-2"
+                className="gap-2 mt-4"
               >
                 <ArrowLeft className="w-4 h-4 text-blue-600" />
                 Back to Assessments
@@ -134,20 +134,20 @@ export default function AssessmentComparisonPage() {
   const renderChangeIndicator = (diff) => {
     if (diff > 0) {
       return (
-        <span className="flex items-center gap-1 text-green-600 font-semibold">
+        <span className="flex items-center gap-1 font-semibold text-green-600">
           <TrendingUp className="w-4 h-4 text-green-600" />+{diff}
         </span>
       );
     } else if (diff < 0) {
       return (
-        <span className="flex items-center gap-1 text-red-600 font-semibold">
+        <span className="flex items-center gap-1 font-semibold text-red-600">
           <TrendingDown className="w-4 h-4 text-red-600" />
           {diff}
         </span>
       );
     }
     return (
-      <span className="flex items-center gap-1 text-gray-500 font-semibold">
+      <span className="flex items-center gap-1 font-semibold text-gray-500">
         <Minus className="w-4 h-4 text-gray-500" />0
       </span>
     );

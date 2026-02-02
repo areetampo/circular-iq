@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import AppContainer from '@/components/common/AppContainer';
+import AppContainer from '@/components/layout/AppContainer';
 import Loader from '@/components/common/Loader';
 import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
@@ -194,7 +194,7 @@ export default function MarketAnalysisPage() {
           <div className="space-y-6">
             {/* Header Section */}
             <div className="p-6 bg-gradient-to-r from-[#34a83a] to-[#2d8f32] rounded-2xl text-white shadow-lg">
-              <h1 className="text-3xl font-bold flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-3xl font-bold">
                 <BarChart3 className="w-8 h-8 text-white" strokeWidth={2.5} /> Market Landscape
               </h1>
               <p className="mt-2 text-lg opacity-90">
@@ -206,7 +206,7 @@ export default function MarketAnalysisPage() {
             {stats && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                  <div className="mb-2 text-3xl flex justify-center">
+                  <div className="flex justify-center mb-2 text-3xl">
                     <TrendingUp className="w-9 h-9 text-[#34a83a]" strokeWidth={2} />
                   </div>
                   <div className="text-sm text-gray-600">Average Score</div>
@@ -215,7 +215,7 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                  <div className="mb-2 text-3xl flex justify-center">
+                  <div className="flex justify-center mb-2 text-3xl">
                     <Target className="w-9 h-9 text-[#34a83a]" strokeWidth={2} />
                   </div>
                   <div className="text-sm text-gray-600">Median Score</div>
@@ -224,7 +224,7 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                  <div className="mb-2 text-3xl flex justify-center">
+                  <div className="flex justify-center mb-2 text-3xl">
                     <BarChart3 className="w-9 h-9 text-[#2c3e50]" strokeWidth={2} />
                   </div>
                   <div className="text-sm text-gray-600">Total Projects</div>
@@ -232,7 +232,7 @@ export default function MarketAnalysisPage() {
                 </div>
                 {userScore != null && (
                   <div className="p-5 bg-gradient-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-[#ff9800] shadow-md rounded-xl">
-                    <div className="mb-2 text-3xl flex justify-center">
+                    <div className="flex justify-center mb-2 text-3xl">
                       <Star className="w-9 h-9 text-[#ff6f00]" strokeWidth={2} fill="#ff9800" />
                     </div>
                     <div className="text-sm text-gray-600">Your Percentile</div>
@@ -243,7 +243,7 @@ export default function MarketAnalysisPage() {
             )}
 
             {/* Industry Benchmarking */}
-            <Card className="border border-slate-200 shadow-sm">
+            <Card className="border shadow-sm border-slate-200">
               <CardHeader className="pb-2">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <CardTitle className="text-xl font-semibold text-[#1f2937]">
@@ -451,7 +451,7 @@ export default function MarketAnalysisPage() {
                               {item.avg_score.toFixed(1)} / 100
                             </span>
                           </td>
-                          <td className="px-2 py-2 text-sm text-center text-gray-600 border-b border-gray-300 md:px-3 md:py-3 pr-4">
+                          <td className="px-2 py-2 pr-4 text-sm text-center text-gray-600 border-b border-gray-300 md:px-3 md:py-3">
                             <span className="inline-flex items-center gap-1">
                               {item.min_score}{' '}
                               <ArrowRight className="w-3 h-3 text-gray-600" strokeWidth={2} />{' '}
@@ -473,7 +473,7 @@ export default function MarketAnalysisPage() {
               </h2>
               <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl flex">
+                  <div className="flex mb-3 text-2xl">
                     <Target className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
                   </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Top Performers</div>
@@ -483,7 +483,7 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl flex">
+                  <div className="flex mb-3 text-2xl">
                     <TrendingUp className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
                   </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Growth Opportunity</div>
@@ -493,7 +493,7 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl flex">
+                  <div className="flex mb-3 text-2xl">
                     <Briefcase className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
                   </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Scale Factor</div>
@@ -503,7 +503,7 @@ export default function MarketAnalysisPage() {
                   </div>
                 </div>
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-                  <div className="mb-3 text-2xl flex">
+                  <div className="flex mb-3 text-2xl">
                     <Star className="w-7 h-7 text-[#ff9800]" strokeWidth={2} fill="#ff9800" />
                   </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Your Advantage</div>
@@ -516,14 +516,14 @@ export default function MarketAnalysisPage() {
             </div>
 
             {/* AI Strategic Insight */}
-            <Card className="border border-slate-200 bg-sky-50/70 shadow-sm">
+            <Card className="border shadow-sm border-slate-200 bg-sky-50/70">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-                  <Sparkles className="h-5 w-5 text-sky-500" />
+                  <Sparkles className="w-5 h-5 text-sky-500" />
                   Strategic Recommendation
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-slate-700 leading-6">
+              <CardContent className="text-sm leading-6 text-slate-700">
                 {isOutperforming ? (
                   <span>
                     Your circular strategy is leading the {industryLabel} sector. To maintain this

@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
@@ -53,10 +52,8 @@ export default function AppProvider({ children }) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <GlobalLoadingBar />
-        <BrowserRouter>
-          {children}
-          <Sonner position="top-right" richColors closeButton />
-        </BrowserRouter>
+        {children}
+        <Sonner position="top-right" richColors closeButton />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ErrorBoundary>

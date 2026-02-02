@@ -33,6 +33,19 @@ import {
   TrendingUp,
   Check,
   ArrowRight,
+  Download,
+  Link2,
+  FileText,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  ArrowLeft,
+  RefreshCw,
+  Save,
+  Frown,
+  NotebookText,
+  Lock,
+  Globe,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,25 +57,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
-import {
-  Download,
-  Link2,
-  FileText,
-  BarChart3,
-  AlertCircle,
-  TrendingUp,
-  Target,
-  Lightbulb,
-  CheckCircle2,
-  Loader2,
-  ArrowLeft,
-  RefreshCw,
-  Save,
-  Frown,
-  NotebookText,
-  Lock,
-  Globe,
-} from 'lucide-react';
 import useResultsModals from '@/pages/ResultsPage/hooks/useResultsModals';
 import ResultsModalManager from '@/components/modals/results/ResultsModalManager';
 

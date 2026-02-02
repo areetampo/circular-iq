@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { getAssessmentById } from '@/features/assessments';
 
-export default function useAssessmentComparison(id1, id2) {
+export function useAssessmentComparison(id1, id2) {
   // Fetch both assessments in parallel using useQueries
   const queries = useQueries({
     queries: [
