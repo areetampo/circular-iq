@@ -81,12 +81,20 @@ export function useAuth() {
   const handleAuthChange = useCallback(async (newSession) => {
     if (newSession) {
       setSession(newSession);
-      setUser(newSession.user);
+      
+      // Extract username from user_metadata for immediate UI update
+      const username = newSession.user?.user_metadata?.username || null;
+      const userWithUsername = {
+        ...newSession.user,
+        username, // Add username directly to user object
+      };
+      
+      setUser(userWithUsername);
       setIsAuthenticated(true);
 
-      // Fetch user profile from backend
+      // Fetch full user profile from backend (includes additional profile data)
       const profileData = await fetchUserProfile(newSession.access_token);
-      setProfile(profileData);
+      setProfile(profileData || { username }); // Fallback to metadata username if profile fetch fails
     } else {
       setSession(null);
       setUser(null);

@@ -18,6 +18,7 @@ import OpenAI from 'openai';
 import createAnalyticsRouter from './routes/analytics.js';
 import createAssessmentsRouter from './routes/assessments.js';
 import createScoringRouter from './routes/scoring.js';
+import { requireAuth } from '../src/middleware/auth.js';
 
 const app = express();
 
@@ -146,6 +147,52 @@ app.use('/api/score', createScoringRouter(openai, supabase));
 // ============================================
 
 app.use('/api/assessments', createAssessmentsRouter(supabase));
+
+// ============================================
+// USER PROFILE ENDPOINT
+// ============================================
+
+/**
+ * GET /profile
+ * Get current user's profile including username
+ * Requires authentication
+ */
+app.get('/profile', requireAuth(supabase), async (req, res) => {
+  try {
+    // Fetch profile from profiles table
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, username, created_at, updated_at')
+      .eq('id', req.user.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Profile not found (shouldn't happen with trigger, but handle gracefully)
+        return res.status(404).json({
+          error: 'Profile not found',
+          code: 'PROFILE_NOT_FOUND',
+          timestamp: new Date().toISOString(),
+        });
+      }
+      throw error;
+    }
+
+    res.json({
+      id: data.id,
+      username: data.username,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    });
+  } catch (error) {
+    console.error('[PROFILE_FETCH_ERROR]', error);
+    res.status(500).json({
+      error: 'Failed to fetch profile',
+      code: 'INTERNAL_ERROR',
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
 
 // ============================================
 // METHODOLOGY ENDPOINT

@@ -32,7 +32,7 @@ export default function Header({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, isAuthenticated, signOut } = useAuth();
+  const { user, profile, isAuthenticated, signOut } = useAuth();
   const { modal, isModalOpen, onClose, openAssessmentMethodology, openEvaluationCriteria } =
     useHeaderModals();
 
@@ -44,8 +44,9 @@ export default function Header({
   };
 
   const getUserInitials = () => {
-    if (!profile?.username) return 'U';
-    return profile.username
+    const username = profile?.username || user?.username;
+    if (!username) return 'U';
+    return username
       .split(' ')
       .map((word) => word[0])
       .join('')
@@ -156,10 +157,10 @@ export default function Header({
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {profile?.username || 'User'}
+                      {profile?.username || user?.username || 'User'}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {profile?.email || 'user@example.com'}
+                      @{profile?.username || user?.username || 'username'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
