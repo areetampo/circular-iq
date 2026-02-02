@@ -83,6 +83,11 @@ CREATE POLICY profiles_select_own ON profiles
   FOR SELECT
   USING (auth.uid() = id);
 
+-- SELECT: Allow public to lookup profiles by username (for login resolution)
+CREATE POLICY profiles_select_by_username ON profiles
+  FOR SELECT
+  USING (true);
+
 -- INSERT: Users can create their own profile
 CREATE POLICY profiles_insert_own ON profiles
   FOR INSERT
@@ -111,15 +116,17 @@ DROP FUNCTION IF EXISTS handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Insert a new profile with a default username
-  -- Username will be user's email prefix or UUID if email not available
+  -- Insert a new profile with username from raw_user_meta_data
+  -- Username must be provided during sign-up in the metadata
   INSERT INTO public.profiles (id, username, created_at, updated_at)
   VALUES (
     NEW.id,
     COALESCE(
-      -- Extract username from email (before @)
+      -- Extract username from raw_user_meta_data provided during sign-up
+      NEW.raw_user_meta_data->>'username',
+      -- Fallback to email prefix if username not provided
       SPLIT_PART(NEW.email, '@', 1),
-      -- Fallback to UUID if email is NULL
+      -- Final fallback to UUID if both are NULL
       'user_' || REPLACE(NEW.id::TEXT, '-', '')
     ),
     NOW(),
