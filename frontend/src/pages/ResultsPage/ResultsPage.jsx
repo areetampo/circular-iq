@@ -14,11 +14,15 @@ import { CaseSummary } from '@/components/results';
 import AppContainer from '@/components/layout/AppContainer';
 import { titleize } from '@/lib/formatting';
 import { useAssessment, useCreateAssessment } from '@/features/assessments';
+import { updateAssessment } from '@/features/assessments/api/assessmentApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Accordion,
   AccordionContent,
@@ -38,7 +42,6 @@ import {
   FileText,
   AlertCircle,
   CheckCircle2,
-  Loader2,
   ArrowLeft,
   RefreshCw,
   Save,
@@ -47,6 +50,7 @@ import {
   Lock,
   Globe,
 } from 'lucide-react';
+import LoaderIcon from '@/components/common/LoaderIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +59,6 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
 import useResultsModals from '@/pages/ResultsPage/hooks/useResultsModals';
 import ResultsModalManager from '@/components/modals/results/ResultsModalManager';
@@ -84,10 +87,14 @@ export default function ResultsPage({
   const { isExporting, executeExport } = useExportState();
   const { saveEvaluation, restoreEvaluation } = useSession();
   const { createAssessmentAsync, isLoading: isSaving } = useCreateAssessment();
-  const { modal, isModalOpen, closeModal, openDatabaseEvidenceDetails } = useResultsModals();
+  const { modal, isModalOpen, onClose, openDatabaseEvidenceDetails } = useResultsModals();
 
   const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [sessionRestored, setSessionRestored] = useState(false);
+  const [sessionRestored, setSessionRestored] = useState(() => {
+    // Initialize from sessionStorage to persist across page navigations
+    return sessionStorage.getItem('sessionRestoredOnce') === 'true';
+  });
+  const [isUpdatingPublic, setIsUpdatingPublic] = useState(false);
 
   useEffect(() => {
     if (!isDetailView && navigationResult) {
@@ -95,11 +102,12 @@ export default function ResultsPage({
     }
   }, [navigationResult, navigationFormData, isDetailView, saveEvaluation]);
 
-  // Show info toast if session was restored
+  // Show info toast if session was restored (only once per browser session)
   useEffect(() => {
     if (!isDetailView && !navigationResult && restoreEvaluation()?.result && !sessionRestored) {
       addToast('Previous session restored.', 'info');
       setSessionRestored(true);
+      sessionStorage.setItem('sessionRestoredOnce', 'true');
     }
   }, [isDetailView, navigationResult, restoreEvaluation, sessionRestored, addToast]);
 
@@ -156,7 +164,6 @@ export default function ResultsPage({
           name,
           result_json: currentData,
           industry: currentData?.metadata?.industry || 'Unknown',
-          session_id: navigationFormData?.sessionId || Date.now().toString(),
           is_public: isPublic,
         };
 
@@ -221,6 +228,91 @@ export default function ResultsPage({
   };
 
   const resolvedBusinessViabilityScore = computeBusinessViabilityScore(actualResult);
+
+  const handleShareLink = useCallback(async () => {
+    // Check if assessment is saved before allowing share
+    if (!isDetailView && !id) {
+      toast.error('Assessment Not Saved', {
+        description: 'Please save the assessment first before generating a shareable link.',
+      });
+      return;
+    }
+
+    const assessmentPath = id ? `/results/${id}` : window.location.pathname;
+    const shareUrl = `${window.location.origin}${assessmentPath}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link Copied', {
+        description: 'Anyone with this link can now view this assessment.',
+      });
+    } catch {
+      addToast('Failed to copy link to clipboard', 'error');
+    }
+  }, [addToast, toast, id, isDetailView]);
+
+  const defaultAssessmentName = useMemo(() => {
+    const source = isDetailView ? fetchedAssessment : currentData;
+    if (!source) return '';
+
+    const base =
+      source.caseName || source.projectTitle || source.metadata?.industry || 'Assessment';
+
+    const date = new Date().toISOString().split('T')[0];
+    return `${base} - ${date}`;
+  }, [isDetailView, fetchedAssessment, currentData]);
+
+  const handleTogglePublic = async (newValue) => {
+    if (!isDetailView || !id) {
+      toast.error('Cannot update sharing settings', {
+        description: 'This assessment must be saved first.',
+      });
+      return;
+    }
+
+    try {
+      setIsUpdatingPublic(true);
+      await updateAssessment(id, { is_public: newValue });
+
+      // Refetch to get updated data
+      await refetch();
+
+      toast.success(newValue ? 'Assessment is now public' : 'Assessment is now private', {
+        description: newValue
+          ? 'Your assessment can now be viewed via the share link.'
+          : 'Your assessment is no longer publicly accessible.',
+      });
+    } catch (error) {
+      console.error('Failed to update sharing settings:', error);
+      toast.error('Failed to update sharing settings', {
+        description: error.message || 'Please try again.',
+      });
+    } finally {
+      setIsUpdatingPublic(false);
+    }
+  };
+
+  const handleCopyShareLink = async () => {
+    if (!currentData?.public_id) {
+      toast.error('Share link unavailable', {
+        description: 'This assessment does not have a public ID.',
+      });
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/share/${currentData.public_id}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Link copied to clipboard', {
+        description: 'Anyone with this link can view your assessment.',
+      });
+    } catch (error) {
+      toast.error('Failed to copy link', {
+        description: 'Please try again or copy the link manually.',
+      });
+    }
+  };
 
   if (detailLoading) {
     return (
@@ -352,39 +444,6 @@ export default function ResultsPage({
     );
   };
 
-  const handleShareLink = useCallback(async () => {
-    // Check if assessment is saved before allowing share
-    if (!isDetailView && !id) {
-      toast.error('Assessment Not Saved', {
-        description: 'Please save the assessment first before generating a shareable link.',
-      });
-      return;
-    }
-
-    const assessmentPath = id ? `/results/${id}` : window.location.pathname;
-    const shareUrl = `${window.location.origin}${assessmentPath}`;
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link Copied', {
-        description: 'Anyone with this link can now view this assessment.',
-      });
-    } catch {
-      addToast('Failed to copy link to clipboard', 'error');
-    }
-  }, [addToast, toast, id, isDetailView]);
-
-  const defaultAssessmentName = useMemo(() => {
-    const source = isDetailView ? fetchedAssessment : currentData;
-    if (!source) return '';
-
-    const base =
-      source.caseName || source.projectTitle || source.metadata?.industry || 'Assessment';
-
-    const date = new Date().toISOString().split('T')[0];
-    return `${base} - ${date}`;
-  }, [isDetailView, fetchedAssessment, currentData]);
-
   return (
     <AppContainer
       // className="app-container"
@@ -424,7 +483,7 @@ export default function ResultsPage({
               <Button variant="outline" disabled={isExporting}>
                 {isExporting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <LoaderIcon />
                     Exporting...
                   </>
                 ) : (
@@ -569,6 +628,62 @@ export default function ResultsPage({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Share Section */}
+              {isDetailView && currentData && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Link2 className="w-5 h-5" />
+                      Share Assessment
+                    </CardTitle>
+                    <CardDescription>
+                      Make your assessment publicly accessible via a share link
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <Label htmlFor="public-toggle" className="font-medium">
+                          Public Access
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Allow anyone with the link to view this assessment
+                        </p>
+                      </div>
+                      <Switch
+                        id="public-toggle"
+                        checked={currentData.is_public || false}
+                        onCheckedChange={handleTogglePublic}
+                        disabled={isUpdatingPublic}
+                      />
+                    </div>
+
+                    {currentData.is_public && currentData.public_id && (
+                      <div className="space-y-3">
+                        <Label htmlFor="share-url">Share Link</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="share-url"
+                            type="text"
+                            readOnly
+                            value={`${window.location.origin}/share/${currentData.public_id}`}
+                            className="flex-1 font-mono text-sm"
+                          />
+                          <Button variant="outline" onClick={handleCopyShareLink} className="gap-2">
+                            <Link2 className="w-4 h-4" />
+                            Copy Link
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Anyone with this link can view your assessment results, but cannot edit or
+                          delete it.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Case Summary */}
               <div data-export-section="case-summary">
@@ -1531,7 +1646,7 @@ export default function ResultsPage({
       />
 
       {/* Results Page Modals */}
-      <ResultsModalManager modal={modal} isModalOpen={isModalOpen} onClose={closeModal} />
+      <ResultsModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </AppContainer>
   );
 }

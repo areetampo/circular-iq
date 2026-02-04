@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import PropTypes from 'prop-types';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Loader from '@/components/common/Loader';
+import LoaderComponent from '@/components/common/LoaderComponent';
 import GlobalErrorBoundary from '@/components/common/GlobalErrorBoundary';
 import ResultsErrorBoundary from '@/components/common/ResultsErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,7 +33,10 @@ function ProtectedRoute({ children }) {
   // Show loader while checking authentication status
   if (isLoading) {
     return (
-      <Loader heading="Authenticating..." message="Please wait while we verify your session." />
+      <LoaderComponent
+        heading="Authenticating..."
+        message="Please wait while we verify your session."
+      />
     );
   }
 
@@ -71,7 +74,10 @@ export default function AppRoutes() {
     <GlobalErrorBoundary>
       <Suspense
         fallback={
-          <Loader heading="Loading..." message="Please wait while the application loads." />
+          <LoaderComponent
+            heading="Loading..."
+            message="Please wait while the application loads."
+          />
         }
       >
         <Routes>

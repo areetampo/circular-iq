@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
-import { Loader2 } from 'lucide-react';
+import LoaderIcon from '@/components/common/LoaderIcon';
 
 const signupSchema = z
   .object({
@@ -147,7 +147,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <LoaderIcon />
                 Creating account...
               </>
             ) : (

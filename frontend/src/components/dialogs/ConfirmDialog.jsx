@@ -1,6 +1,6 @@
 /**
  * Reusable Confirmation Dialog
- * Base component for yes/no confirmations using shadcn/ui AlertDialog
+ * Base component for yes/no confirmations using HeroUI Modal
  *
  * Location: src/components/dialogs/ConfirmDialog.jsx
  */
@@ -8,16 +8,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 
 /**
  * Reusable confirmation dialog
@@ -42,41 +33,48 @@ export function ConfirmDialog({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   onConfirm,
-  onCancel,
   variant = 'default', // 'default' | 'destructive'
 }) {
-  const handleConfirm = () => {
-    onConfirm?.();
-    onOpenChange(false);
-  };
-
-  const handleCancel = () => {
-    onCancel?.();
-    onOpenChange(false);
-  };
-
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleConfirm}
-            className={
-              variant === 'destructive'
-                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                : ''
-            }
-          >
-            {confirmText}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <Modal
+      isOpen={open}
+      onOpenChange={onOpenChange}
+      size="sm"
+      backdrop="opaque"
+      placement="center"
+      classNames={{
+        backdrop: 'bg-black/50',
+        base: 'bg-white rounded-2xl shadow-xl',
+      }}
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1 py-4 px-6">
+              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            </ModalHeader>
+            <ModalBody className="py-6 px-6">
+              {description && <p className="text-gray-700 leading-relaxed">{description}</p>}
+            </ModalBody>
+            <ModalFooter className="gap-3 py-4 px-6">
+              <Button variant="light" onPress={onClose}>
+                {cancelText}
+              </Button>
+              <Button
+                onPress={() => {
+                  onConfirm?.();
+                  onClose();
+                }}
+                color={variant === 'destructive' ? 'danger' : 'primary'}
+                className="font-medium"
+              >
+                {confirmText}
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
   );
 }
 
@@ -88,6 +86,5 @@ ConfirmDialog.propTypes = {
   confirmText: PropTypes.string,
   cancelText: PropTypes.string,
   onConfirm: PropTypes.func.isRequired,
-  onCancel: PropTypes.func,
   variant: PropTypes.oneOf(['default', 'destructive']),
 };

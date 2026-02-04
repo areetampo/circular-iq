@@ -2,7 +2,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,jsx}',
+    './node_modules/@heroui/react/dist/**/*.{js,ts,jsx,tsx}',
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -173,6 +177,7 @@ export default {
           'color, background-color, border-color, fill, stroke, opacity, box-shadow, transform',
       },
       screens: {
+        xs: '480px',
         sm_md: '680px',
         assessmentComparisonFooter: '864px',
       },

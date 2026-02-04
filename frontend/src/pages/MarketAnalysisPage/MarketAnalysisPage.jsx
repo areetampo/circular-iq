@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppContainer from '@/components/layout/AppContainer';
-import Loader from '@/components/common/Loader';
+import LoaderComponent from '@/components/common/LoaderComponent';
 import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
 import { titleize } from '@/lib/formatting';
@@ -178,7 +178,7 @@ export default function MarketAnalysisPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader />
+            <LoaderComponent />
           </div>
         ) : isError ? (
           <div className="p-4 text-center text-red-600">

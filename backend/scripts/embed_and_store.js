@@ -228,11 +228,21 @@ export async function main() {
     // Step 4: Validate
     await validateStorage();
 
-    console.log('╔════════════════════════════════════════════════════════╗');
-    console.log(`║ ✓ Pipeline Complete!                                  ║`);
-    console.log(`║ Successfully stored ${storedCount} chunks in documents table        ║`);
-    console.log('║ Ready for RAG retrieval and vector search              ║');
-    console.log('╚════════════════════════════════════════════════════════╝\n');
+    console.log(
+      '╔════════════════════════════════════════════════════════════════════════════════╗',
+    );
+    console.log(
+      `║ ✓ Pipeline Complete!                                                           ║`,
+    );
+    console.log(
+      `║ Successfully stored ${storedCount}/${chunks.length} chunks in documents table. ║`,
+    );
+    console.log(
+      '║ Ready for RAG retrieval and vector search.                                     ║',
+    );
+    console.log(
+      '╚════════════════════════════════════════════════════════════════════════════════╝\n',
+    );
   } catch (error) {
     console.error('\n✗ Pipeline failed:', error.message);
     process.exit(1);

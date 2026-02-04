@@ -23,21 +23,27 @@ test('health endpoint remains open when auth is enabled', async () => {
 });
 
 test('protected routes reject missing API key', async () => {
-  const res = await request(app).post('/score').send({});
+  const res = await request(app).post('/api/score').send({});
   assert.strictEqual(res.status, 401);
 });
 
 test('protected routes reject wrong API key', async () => {
-  const res = await request(app).post('/score').set('Authorization', 'Bearer wrong-key').send({});
+  const res = await request(app)
+    .post('/api/score')
+    .set('Authorization', 'Bearer wrong-key')
+    .send({});
   assert.strictEqual(res.status, 401);
 });
 
 test('protected routes allow correct API key then enforce validation', async () => {
-  const res = await request(app).post('/score').set('Authorization', 'Bearer test-key').send({});
+  const res = await request(app)
+    .post('/api/score')
+    .set('Authorization', 'Bearer test-key')
+    .send({});
   assert.strictEqual(res.status, 400);
 });
 
 test('protected routes allow X-API-Key header then enforce validation', async () => {
-  const res = await request(app).post('/score').set('X-API-Key', 'test-key').send({});
+  const res = await request(app).post('/api/score').set('X-API-Key', 'test-key').send({});
   assert.strictEqual(res.status, 400);
 });

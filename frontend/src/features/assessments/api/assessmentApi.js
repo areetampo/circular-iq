@@ -65,6 +65,13 @@ export async function getAssessments(params = {}) {
   const cleanParams = { ...params };
   delete cleanParams.sessionId;
 
+  // Remove undefined values from params
+  Object.keys(cleanParams).forEach((key) => {
+    if (cleanParams[key] === undefined || cleanParams[key] === null || cleanParams[key] === '') {
+      delete cleanParams[key];
+    }
+  });
+
   const query = new URLSearchParams(cleanParams);
   const path = query.toString() ? `/api/assessments?${query}` : '/api/assessments';
   const data = await requestJson(path);
@@ -97,6 +104,16 @@ export async function createAssessment(payload) {
   return requestJson('/api/assessments', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export async function updateAssessment(id, updates) {
+  if (!id) {
+    throw new Error('Assessment id is required');
+  }
+  return requestJson(`/api/assessments/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
   });
 }
 

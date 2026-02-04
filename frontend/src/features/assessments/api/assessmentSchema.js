@@ -48,8 +48,8 @@ export const AuditSchema = z
     confidence_score: z.number().min(0).max(100).optional(),
     technical_recommendations: z.array(z.string()).optional(),
     integrity_issues: z.array(z.string()).optional(),
-    integrity_gaps: z.array(z.string()).optional(),
-    similar_cases_summaries: z.array(CaseSummarySchema).optional(),
+    integrity_gaps: z.array(z.any()).optional(), // Be lenient with integrity_gaps structure
+    similar_cases_summaries: z.array(z.any()).optional(), // Be lenient with similar_cases_summaries structure
   })
   .passthrough();
 
@@ -62,13 +62,15 @@ export const ResultJsonSchema = z
     sub_scores: SubScoresSchema.optional(),
     similar_cases: z
       .array(
-        z.object({
-          case_id: z.string().or(z.number()),
-          title: z.string().optional(),
-          similarity: z.number().min(0).max(1),
-          problem: z.string().optional(),
-          solution: z.string().optional(),
-        }),
+        z
+          .object({
+            case_id: z.string().or(z.number()).optional(), // Make case_id optional
+            title: z.string().optional(),
+            similarity: z.number().min(0).max(1).optional(),
+            problem: z.string().optional(),
+            solution: z.string().optional(),
+          })
+          .passthrough(),
       )
       .optional(),
     metadata: MetadataSchema.optional(),
@@ -81,14 +83,14 @@ export const ResultJsonSchema = z
  */
 export const AssessmentSchema = z
   .object({
-    id: z.string().uuid().optional(),
+    id: z.string().uuid().optional().or(z.number().optional()), // Allow both UUID string and number from database
     name: z.string().min(1).optional(),
     title: z.string().optional(),
     result_json: ResultJsonSchema.optional(),
     sub_scores: SubScoresSchema.optional(),
     metadata: MetadataSchema.optional(),
     industry: z.string().optional(),
-    session_id: z.string().optional(),
+    session_id: z.string().nullable().optional(), // Allow null from database
     created_at: z.string().or(z.date()).optional(),
     updated_at: z.string().or(z.date()).optional(),
     user_id: z.string().optional(),
@@ -215,7 +217,10 @@ export function safeValidateAssessment(data) {
   try {
     return validateAssessment(data);
   } catch (error) {
-    console.error('[VALIDATION_ERROR]', error.message);
+    console.warn(
+      '[VALIDATION_WARNING] Assessment data does not match strict schema, using raw data:',
+      error.message,
+    );
     return null;
   }
 }

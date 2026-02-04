@@ -1,4 +1,5 @@
 import express from 'express';
+import { createClient } from '@supabase/supabase-js';
 import { validateAssessment } from '../../src/middleware/validation.js';
 import { requireAuth } from '../../src/middleware/auth.js';
 
@@ -48,10 +49,12 @@ export default function createAssessmentsRouter(supabase) {
 
     try {
       // Use validated body from middleware
-      const { name, industry, result_json } = req.validatedBody;
+      const { name, industry, result_json, is_public } = req.validatedBody;
       const { title, businessProblem, businessSolution, result, parameters } = req.body;
 
-      if (!result || !result.overall_score) {
+      // Check for required result data (either from result_json or result field)
+      const resultData = result_json || result;
+      if (!resultData || !resultData.overall_score) {
         return res.status(400).json({
           error: 'result with overall_score is required',
           code: 'MISSING_RESULT_DATA',
@@ -68,12 +71,32 @@ export default function createAssessmentsRouter(supabase) {
           ...result,
           input_parameters: parameters || null,
         },
-        industry: industry || result.metadata?.industry || 'general',
-        overall_score: Math.round(result.overall_score),
-        business_viability_score: result.sub_scores?.business_viability || 0,
+        industry: industry || resultData.metadata?.industry || 'general',
+        overall_score: Math.round(resultData.overall_score),
+        business_viability_score: resultData.sub_scores?.business_viability || 0,
+        is_public: typeof is_public === 'boolean' ? is_public : false,
       };
 
-      const { data, error } = await supabase.from('assessments').insert([assessmentData]).select();
+      // Insert assessment using an authenticated user client to respect RLS
+      const token = req.headers.authorization?.slice(7).trim();
+
+      let userClient;
+      if (token) {
+        userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        userClient = supabase;
+      }
+
+      const { data, error } = await userClient
+        .from('assessments')
+        .insert([assessmentData])
+        .select();
 
       if (error) throw error;
 
@@ -102,6 +125,7 @@ export default function createAssessmentsRouter(supabase) {
    */
   router.get('/', requireAuth(supabase), async (req, res) => {
     const startTime = Date.now();
+    const requestId = Math.random().toString(36).slice(2, 9);
 
     try {
       const {
@@ -126,10 +150,32 @@ export default function createAssessmentsRouter(supabase) {
       const sortBy = allowedSort.has(String(sortByRaw)) ? String(sortByRaw) : 'created_at';
       const order = String(orderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
-      let query = supabase.from('assessments').select('*', { count: 'exact' });
+      // Create authenticated user client to respect RLS policies
+      const token = req.headers.authorization?.slice(7).trim();
 
-      // Filter to only user's own assessments
-      query = query.eq('user_id', req.user.id);
+      let userClient;
+      if (token) {
+        // If we have a token, create an authenticated client with the token in Authorization header
+        userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        // In test mode without a token, use the main client
+        userClient = supabase;
+      }
+
+      let query = userClient.from('assessments').select('*', { count: 'exact' });
+
+      // Filter by user_id to match the authenticated user (backup to RLS policy)
+      if (req.user && req.user.id) {
+        query = query.eq('user_id', req.user.id);
+      }
+
+      // RLS policy will automatically filter to user's own assessments
 
       if (industry) {
         query = query.eq('industry', industry);
@@ -158,8 +204,12 @@ export default function createAssessmentsRouter(supabase) {
         .order(sortBy, { ascending: order === 'asc' })
         .range(from, to);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Query error:', error);
+        throw error;
+      }
 
+      debugLog(`[${requestId}] Fetched ${data?.length || 0} assessments for user ${req.user.id}`);
       logRequest('GET', '/assessments', 200, Date.now() - startTime);
 
       res.json({
@@ -170,6 +220,13 @@ export default function createAssessmentsRouter(supabase) {
       });
     } catch (error) {
       console.error('Error fetching assessments:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        hint: error.hint,
+        details: error.details,
+      });
       logRequest('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json(errorResponse(error, 'Failed to fetch assessments'));
     }
@@ -179,13 +236,34 @@ export default function createAssessmentsRouter(supabase) {
    * GET /:id
    * Retrieve a single assessment by ID
    */
-  router.get('/:id', async (req, res) => {
+  router.get('/:id', requireAuth(supabase), async (req, res) => {
     const startTime = Date.now();
 
     try {
       const { id } = req.params;
 
-      const { data, error } = await supabase.from('assessments').select('*').eq('id', id).single();
+      const token = req.headers.authorization?.slice(7).trim();
+
+      let userClient;
+      if (token) {
+        userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        userClient = supabase;
+      }
+
+      let query = userClient.from('assessments').select('*').eq('id', id);
+
+      if (req.user && req.user.id) {
+        query = query.eq('user_id', req.user.id);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
 
@@ -209,6 +287,67 @@ export default function createAssessmentsRouter(supabase) {
         Date.now() - startTime,
       );
       res.status(500).json(errorResponse(error, 'Failed to fetch assessment'));
+    }
+  });
+
+  /**
+   * PATCH /:id
+   * Update assessment fields (e.g., is_public)
+   */
+  router.patch('/:id', requireAuth(supabase), async (req, res) => {
+    const startTime = Date.now();
+
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      // Create authenticated user client
+      const token = req.headers.authorization?.slice(7).trim();
+
+      let userClient;
+      if (token) {
+        userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        userClient = supabase;
+      }
+
+      // Update only if the assessment belongs to the authenticated user
+      const { data, error } = await userClient
+        .from('assessments')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', req.user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (!data) {
+        return res.status(404).json(
+          errorResponse({
+            message: 'Assessment not found or unauthorized',
+            code: 'NOT_FOUND',
+          }),
+        );
+      }
+
+      logRequest('PATCH', `/assessments/${id}`, 200, Date.now() - startTime);
+      res.json({ assessment: data, message: 'Assessment updated successfully' });
+    } catch (error) {
+      console.error('Error updating assessment:', error);
+      logRequest(
+        'PATCH',
+        `/assessments/${req && req.params && req.params.id ? req.params.id : 'unknown'}`,
+        500,
+        Date.now() - startTime,
+      );
+      res.status(500).json(errorResponse(error, 'Failed to update assessment'));
     }
   });
 

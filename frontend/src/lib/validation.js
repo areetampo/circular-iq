@@ -13,7 +13,7 @@
  */
 export function getCharacterCount(text) {
   if (!text) return 0;
-  return text.trim().length;
+  return text.replace(/\s+/g, '').trim().length;
 }
 
 /**

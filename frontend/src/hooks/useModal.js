@@ -7,14 +7,14 @@ export default function useModal() {
     setModalState({ type, data });
   };
 
-  const closeModal = () => {
+  const onClose = () => {
     setModalState({ type: null, data: null });
   };
 
   return {
     modal: modalState,
     openModal,
-    closeModal,
+    onClose,
     isModalOpen: modalState.type !== null,
   };
 }

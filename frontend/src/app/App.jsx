@@ -15,6 +15,7 @@ import AppRoutes from './AppRoutes';
  * - API layer in src/features/assessments/api/assessmentApi.js
  * - Page components that consume hooks
  */
+
 export default function App() {
   return (
     <AppProvider>

@@ -6,13 +6,18 @@ import Footer from './Footer';
 
 export default function AppContainer({ children, className = '', headerProps = null }) {
   return (
-    <div className={cn('min-h-screen flex flex-col bg-slate-50/50', className)}>
+    <div
+      className={cn(
+        'min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50',
+        className,
+      )}
+    >
       {/* Sticky Header */}
       {headerProps && <Header {...headerProps} />}
 
       {/* Main Content Area */}
       <main className="flex-1 w-full">
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">{children}</div>
+        <div className="container px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">{children}</div>
       </main>
 
       {/* Footer */}

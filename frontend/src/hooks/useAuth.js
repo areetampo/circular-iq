@@ -17,7 +17,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
  */
 async function fetchUserProfile(token) {
   try {
-    const response = await fetch(`${API_URL}/profile`, {
+    const response = await fetch(`${API_URL}/api/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -25,10 +25,10 @@ async function fetchUserProfile(token) {
 
     if (!response.ok) {
       if (response.status === 404) {
-        console.warn('[PROFILE_NOT_FOUND] Profile does not exist yet');
         return null;
       }
-      throw new Error(`Failed to fetch profile: ${response.status}`);
+      console.warn('[PROFILE_FETCH_FAILED]', response.status);
+      return null;
     }
 
     return await response.json();

@@ -25,11 +25,11 @@ class GlobalErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4">
-          <Card className="max-w-md w-full">
-            <CardHeader className="text-center pb-4">
+        <div className="flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-slate-50 to-slate-100">
+          <Card className="w-full max-w-md">
+            <CardHeader className="pb-4 text-center">
               <div className="flex justify-center mb-4">
-                <div className="p-3 bg-destructive/10 rounded-full">
+                <div className="p-3 rounded-full bg-destructive/10">
                   <AlertCircle className="w-12 h-12 text-destructive" />
                 </div>
               </div>
@@ -42,18 +42,25 @@ class GlobalErrorBoundary extends React.Component {
             <CardContent className="space-y-4">
               {import.meta.env.DEV && this.state.error && (
                 <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error Details (Development Only)</AlertTitle>
+                  <div className="flex items-center justify-start gap-3 pl-1">
+                    <AlertCircle className="w-4 h-4" />
+                    <AlertTitle className="mt-1">Error Details (Development Only)</AlertTitle>
+                  </div>
                   <AlertDescription>
-                    <pre className="mt-2 text-xs overflow-auto max-h-32 bg-background/50 p-2 rounded">
+                    <pre className="p-2 mt-2 text-xs break-words whitespace-pre-wrap rounded bg-background/50">
                       {this.state.error.toString()}
                     </pre>
                   </AlertDescription>
                 </Alert>
               )}
 
-              <div className="flex gap-3 flex-col sm:flex-row">
-                <Button onClick={() => window.location.reload()} className="flex-1 gap-2" size="lg">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  size="lg"
+                >
                   <RefreshCcw className="w-4 h-4" />
                   Try Again
                 </Button>

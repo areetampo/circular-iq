@@ -26,6 +26,7 @@ export const assessmentSchema = z
     result_json: z.record(z.unknown()).refine((val) => Object.keys(val).length > 0, {
       message: 'result_json must not be empty',
     }),
+    is_public: z.boolean().optional(),
   })
   .strict();
 

@@ -2,12 +2,12 @@ import useModal from '@/hooks/useModal';
 import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function useLandingModals() {
-  const { modal, openModal, closeModal, isModalOpen } = useModal();
+  const { modal, openModal, onClose, isModalOpen } = useModal();
 
   return {
     modal,
     isModalOpen,
-    closeModal,
+    onClose,
 
     openBusinessProblem: () => openModal(LANDING_MODALS.BUSINESS_PROBLEM_INFO),
 

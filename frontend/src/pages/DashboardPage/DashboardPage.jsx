@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/select';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
-import { Activity, Building2, Gauge, Layers, Download, Loader2 } from 'lucide-react';
+import { Activity, Building2, Gauge, Layers, Download } from 'lucide-react';
+import LoaderIcon from '@/components/common/LoaderIcon';
 import { useGlobalAnalytics } from '@/features/assessments';
 import { cn } from '@/lib/utils';
 import { exportDashboardToPDF } from '@/lib/exportDashboard';
@@ -126,7 +127,7 @@ export default function DashboardPage() {
 
         <div
           id="dashboard-filter-bar"
-          className="flex flex-col gap-3 rounded-xl border bg-white/80 p-4 shadow-sm md:flex-row md:items-center md:justify-between"
+          className="flex flex-col gap-3 p-4 border shadow-sm rounded-xl bg-white/80 md:flex-row md:items-center md:justify-between"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="min-w-[220px]">
@@ -169,12 +170,12 @@ export default function DashboardPage() {
             >
               {isExporting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <LoaderIcon />
                   Exporting...
                 </>
               ) : (
                 <>
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="w-4 h-4 mr-2" />
                   Export PDF
                 </>
               )}
@@ -192,8 +193,8 @@ export default function DashboardPage() {
                 <CardDescription>Total Audits</CardDescription>
                 <CardTitle className="text-3xl font-bold">{aggregate.totalCount || 0}</CardTitle>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Layers className="h-6 w-6" />
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
+                <Layers className="w-6 h-6" />
               </div>
             </CardHeader>
             <CardContent className="text-xs text-muted-foreground">
@@ -207,8 +208,8 @@ export default function DashboardPage() {
                 <CardDescription>Global Avg Score</CardDescription>
                 <CardTitle className="text-3xl font-bold">{formattedAverage}</CardTitle>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
-                <Gauge className="h-6 w-6" />
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600">
+                <Gauge className="w-6 h-6" />
               </div>
             </CardHeader>
             <CardContent className="text-xs text-muted-foreground">
@@ -227,8 +228,8 @@ export default function DashboardPage() {
                   <Badge variant="secondary">{mostActiveIndustry?.count || 0} audits</Badge>
                 </div>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-600">
-                <Building2 className="h-6 w-6" />
+              <div className="flex items-center justify-center w-12 h-12 text-indigo-600 rounded-full bg-indigo-500/10">
+                <Building2 className="w-6 h-6" />
               </div>
             </CardHeader>
             <CardContent className="text-xs text-muted-foreground">
@@ -241,7 +242,7 @@ export default function DashboardPage() {
           <Card className="border-0 shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Activity className="h-5 w-5 text-primary" /> Circular Trends
+                <Activity className="w-5 h-5 text-primary" /> Circular Trends
               </CardTitle>
               <CardDescription>Average score trajectory over the last 6 months.</CardDescription>
             </CardHeader>
@@ -292,11 +293,11 @@ export default function DashboardPage() {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview" className="mt-4 space-y-3">
-                  <div className="rounded-lg border p-4">
+                  <div className="p-4 border rounded-lg">
                     <p className="text-sm text-muted-foreground">Average score</p>
                     <p className="text-2xl font-semibold text-foreground">{formattedAverage}</p>
                   </div>
-                  <div className="rounded-lg border p-4">
+                  <div className="p-4 border rounded-lg">
                     <p className="text-sm text-muted-foreground">Total submissions</p>
                     <p className="text-2xl font-semibold text-foreground">
                       {aggregate.totalCount || 0}
@@ -308,7 +309,7 @@ export default function DashboardPage() {
                     industryMetrics.slice(0, 4).map((metric) => (
                       <div
                         key={metric.industry}
-                        className="flex items-center justify-between rounded-lg border p-4"
+                        className="flex items-center justify-between p-4 border rounded-lg"
                       >
                         <div>
                           <p className="text-sm font-medium text-foreground">{metric.industry}</p>

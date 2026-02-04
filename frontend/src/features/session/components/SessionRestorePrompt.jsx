@@ -1,14 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { RotateCcw } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 
 /**
  * SessionRestorePrompt component
@@ -28,41 +21,66 @@ import { Button } from '@/components/ui/button';
  * )}
  * ```
  */
-export default function SessionRestorePrompt({ onRestore, onDismiss }) {
+export default function SessionRestorePrompt({ isOpen = true, onRestore, onDismiss }) {
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onDismiss()}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="font-bold flex items-center gap-2">
-            <RotateCcw className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Restore Previous
-            Session
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Restore your previous evaluation session data
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-2">
-          <p className="mb-4 leading-relaxed">
-            We found your previous evaluation session. Would you like to restore it?
-          </p>
-          <p className="m-0 text-sm text-gray-600">
-            This includes your problem description, solution, and parameter settings.
-          </p>
-        </div>
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="outline" onClick={onDismiss}>
-            Start Fresh
-          </Button>
-          <Button onClick={onRestore} className="bg-emerald-600 hover:bg-emerald-700">
-            Restore Session
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Modal
+      isOpen={isOpen}
+      size="sm"
+      backdrop="opaque"
+      placement="center"
+      isDismissable={false}
+      isKeyboardDismissDisabled={true}
+      hideCloseButton={true}
+      classNames={{
+        backdrop: 'bg-black/50',
+        base: 'bg-white rounded-2xl shadow-xl',
+      }}
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex items-center gap-2 py-4 px-6">
+              <RotateCcw className="w-5 h-5 text-blue-600" strokeWidth={2.5} />
+              <h2 className="text-lg font-bold text-gray-900">Restore Previous Session</h2>
+            </ModalHeader>
+            <ModalBody className="py-6 px-6">
+              <p className="mb-4 leading-relaxed text-gray-700">
+                We found your previous evaluation session with all your inputs saved. Would you like
+                to continue where you left off?
+              </p>
+              <div className="space-y-3 mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">Restore Session</p>
+                  <p className="text-xs text-gray-600">
+                    Reload your saved problem description, solution, and parameter settings. You can
+                    continue editing from where you left off.
+                  </p>
+                </div>
+                <div className="border-t border-blue-200 pt-3">
+                  <p className="text-sm font-semibold text-gray-900 mb-1">Start Fresh</p>
+                  <p className="text-xs text-gray-600">
+                    Begin a new evaluation with a blank form. Your previous session will be cleared.
+                  </p>
+                </div>
+              </div>
+            </ModalBody>
+            <ModalFooter className="gap-3 py-4 px-6">
+              <Button variant="light" onPress={onDismiss}>
+                Start Fresh
+              </Button>
+              <Button onPress={onRestore} color="success" className="font-medium">
+                Restore Session
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
   );
 }
 
 SessionRestorePrompt.propTypes = {
+  isOpen: PropTypes.bool,
   onRestore: PropTypes.func.isRequired,
   onDismiss: PropTypes.func.isRequired,
 };

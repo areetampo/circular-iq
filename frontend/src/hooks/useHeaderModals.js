@@ -5,12 +5,12 @@ import useModal from './useModal';
 import { HEADER_MODALS } from '@/components/modals/core/modalTypes';
 
 export default function useHeaderModals() {
-  const { modal, openModal, closeModal, isModalOpen } = useModal();
+  const { modal, openModal, onClose, isModalOpen } = useModal();
 
   return {
     modal,
     isModalOpen,
-    closeModal,
+    onClose,
 
     openAssessmentMethodology: () => openModal(HEADER_MODALS.ASSESSMENT_METHODOLOGY),
 
