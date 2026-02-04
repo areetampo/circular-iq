@@ -16,19 +16,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button as UIButton } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
+import { Lock, ArrowLeft, AlertCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,7 +79,6 @@ export default function MyAssessmentsPage() {
       sortBy,
       order: 'desc',
       search: searchRef.current,
-      industry: filterIndustry !== 'all' ? filterIndustry : undefined,
     });
 
   const loading = isLoading;
@@ -119,7 +109,7 @@ export default function MyAssessmentsPage() {
     }, {});
 
     const [industry, count] = Object.entries(counts).reduce(
-      (best, current) => (current[1] > best[1] ? current : best),
+      (max, [ind, count]) => (count > max[1] ? [ind, count] : max),
       ['general', 0],
     );
 
@@ -289,9 +279,9 @@ export default function MyAssessmentsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <Button onClick={() => navigate('/login')} size="lg">
+            <UIButton onClick={() => navigate('/login')} size="lg">
               Go to Login
-            </Button>
+            </UIButton>
           </CardContent>
         </Card>
       )}
@@ -435,18 +425,18 @@ export default function MyAssessmentsPage() {
                   </div>
                   <div className="flex gap-2">
                     {selectedIds.size > 0 && (
-                      <Button variant="outline" onClick={handleClearSelection}>
+                      <UIButton variant="outline" onClick={handleClearSelection}>
                         Clear Selection
-                      </Button>
+                      </UIButton>
                     )}
-                    <Button
+                    <UIButton
                       onClick={handleCompareSelected}
                       disabled={selectedIds.size !== 2}
                       className="gap-2"
                     >
                       <GitCompare className="w-4 h-4" />
                       Compare Selected
-                    </Button>
+                    </UIButton>
                   </div>
                 </div>
               </CardContent>
@@ -467,10 +457,10 @@ export default function MyAssessmentsPage() {
                     <p className="mt-2 text-sm text-muted-foreground">{error}</p>
                   </div>
                   <div className="flex justify-center gap-3">
-                    <Button onClick={fetchAssessments}>Retry</Button>
-                    <Button variant="outline" onClick={handleBack}>
+                    <UIButton onClick={fetchAssessments}>Retry</UIButton>
+                    <UIButton variant="outline" onClick={handleBack}>
                       Back to Home
-                    </Button>
+                    </UIButton>
                   </div>
                 </CardContent>
               </Card>
@@ -489,10 +479,10 @@ export default function MyAssessmentsPage() {
                   <CardDescription className="mb-6">
                     Start your first assessment to track your circularity progress.
                   </CardDescription>
-                  <Button onClick={handleBack} className="gap-2">
+                  <UIButton onClick={handleBack} className="gap-2">
                     <Plus className="w-4 h-4" />
                     Start Your First Assessment
-                  </Button>
+                  </UIButton>
                 </CardContent>
               </Card>
             )}
@@ -510,7 +500,7 @@ export default function MyAssessmentsPage() {
                   <CardDescription className="mb-6">
                     No assessments match your current filters. Try adjusting your search.
                   </CardDescription>
-                  <Button
+                  <UIButton
                     variant="outline"
                     onClick={() => {
                       setSearchTerm('');
@@ -519,7 +509,7 @@ export default function MyAssessmentsPage() {
                     }}
                   >
                     Clear Filters
-                  </Button>
+                  </UIButton>
                 </CardContent>
               </Card>
             )}
@@ -592,7 +582,7 @@ export default function MyAssessmentsPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex justify-center gap-2">
-                                <Button
+                                <UIButton
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleViewDetail(assessment.id)}
@@ -601,12 +591,12 @@ export default function MyAssessmentsPage() {
                                 >
                                   <Eye className="w-4 h-4" />
                                   View
-                                </Button>
+                                </UIButton>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm">
+                                    <UIButton variant="ghost" size="sm">
                                       <MoreVertical className="w-4 h-4" />
-                                    </Button>
+                                    </UIButton>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
@@ -726,45 +716,64 @@ export default function MyAssessmentsPage() {
 
           {/* Footer */}
           <div className="flex justify-start">
-            <Button variant="outline" onClick={handleBack} className="gap-2">
+            <UIButton variant="outline" onClick={handleBack} className="gap-2">
               <ArrowLeft className="w-4 h-4 text-gray-700" strokeWidth={2.5} /> Back to Home{' '}
-            </Button>
+            </UIButton>
           </div>
-          {/* AlertDialog for Deletion Confirmation */}
-          <AlertDialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Assessment</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this assessment?
-                  {confirmDeleteAssessment && (
-                    <div className="p-3 mt-3 rounded-lg bg-muted">
-                      <div className="font-semibold text-foreground">
-                        {confirmDeleteAssessment.title || 'Untitled Assessment'}
+          {/* Modal for Deletion Confirmation */}
+          <Modal
+            isOpen={showDeleteModal}
+            onOpenChange={setShowDeleteModal}
+            size="sm"
+            placement="center"
+            backdrop="blur"
+          >
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <h2 className="text-base font-semibold text-gray-900">Delete Assessment</h2>
+                  </ModalHeader>
+                  <ModalBody>
+                    <p className="text-sm text-gray-700 font-medium mb-4">
+                      Are you sure you want to delete this assessment?
+                    </p>
+                    {confirmDeleteAssessment && (
+                      <div className="p-4 rounded-lg bg-gray-100 border border-gray-200">
+                        <div className="font-semibold text-gray-900">
+                          {confirmDeleteAssessment.title || 'Untitled Assessment'}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {new Date(confirmDeleteAssessment.created_at).toLocaleString()} •{' '}
+                          {confirmDeleteAssessment.industry || 'General'}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(confirmDeleteAssessment.created_at).toLocaleString()} •{' '}
-                        {confirmDeleteAssessment.industry || 'General'}
-                      </div>
-                    </div>
-                  )}
-                  <p className="mt-3 text-sm font-semibold text-destructive">
-                    This action cannot be undone.
-                  </p>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => proceedDelete(confirmDeleteId)}
-                  disabled={isDeleting}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                    )}
+                    <p className="mt-4 text-sm font-semibold text-red-600">
+                      This action cannot be undone.
+                    </p>
+                  </ModalBody>
+                  <ModalFooter className="flex justify-end gap-3">
+                    <Button color="default" variant="light" disabled={isDeleting} onPress={onClose}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onPress={() => {
+                        proceedDelete(confirmDeleteId);
+                        onClose();
+                      }}
+                      color="danger"
+                      disabled={isDeleting}
+                      className="font-medium"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
         </div>
       )}
     </AppContainer>

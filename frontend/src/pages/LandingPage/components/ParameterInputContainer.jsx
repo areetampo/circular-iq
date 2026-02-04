@@ -6,129 +6,159 @@ import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
-import { Info } from 'lucide-react';
+import LandingModalManager from '@/components/modals/landing/LandingModalManager';
+import InfoIconButton from '@/components/common/InfoIconButton';
 
-export default function ParameterInputContainer({ loading }) {
+/**
+ * Memoized Parameter Row Component
+ * Only re-renders when its specific parameter value changes
+ */
+const ParameterRow = React.memo(({ paramKey, loading }) => {
   const { control } = useFormContext();
-  const { openParameterInfo } = useLandingModals();
+  const { modal, isModalOpen, onClose, openParameterInfo } = useLandingModals();
 
-  const getScaleMarkers = (key) => {
-    const guidance = parameterGuidance[key];
+  // Calculate scale markers only for this parameter
+  const getScaleMarkers = React.useMemo(() => {
+    const guidance = parameterGuidance[paramKey];
     if (!guidance || !guidance.scale) return null;
-    // Return simplified scale with 3 key points
     return guidance.scale.filter((_, i) => i % 2 === 0).slice(0, 3);
-  };
+  }, [paramKey]);
 
-  const getScaleBadgeVariant = (idx) => {
-    if (idx === 0) return 'destructive';
-    if (idx === 1) return 'secondary';
-    return 'default';
+  const guidance = React.useMemo(() => parameterGuidance[paramKey], [paramKey]);
+
+  // Get color classes based on scale position
+  const getScaleColorClass = (idx) => {
+    if (idx === 0) return 'text-red-600 bg-red-50';
+    if (idx === 1) return 'text-yellow-700 bg-yellow-50';
+    return 'bg-emerald-50 text-emerald-700';
   };
 
   return (
-    <TooltipProvider>
-      <Card className="border-2 border-primary/20">
-        <CardContent className="pt-6 space-y-6">
-          {Object.entries(parameterGroups).map(([groupName, keys], groupIdx) => (
-            <div key={groupName} className="space-y-4">
-              {groupIdx > 0 && <Separator />}
-              <h3 className="text-lg font-semibold text-foreground">{groupName}</h3>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {keys.map((key) => {
-                  const scaleMarkers = getScaleMarkers(key);
-                  const guidance = parameterGuidance[key];
+    <div className="px-0 mt-2 transition-shadow rounded-lg">
+      {/* Header with Label */}
+      <div className="mb-5 text-center">
+        <Label
+          htmlFor={paramKey}
+          className="px-4 py-1.5 mb-3 font-bold text-green-700 rounded-full text-md bg-emerald-100"
+        >
+          {parameterLabels[paramKey].label}
+        </Label>
+      </div>
 
+      <Controller
+        name={`parameters.${paramKey}`}
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-4 text-center">
+            {/* Number Input and Info Icon */}
+            <div className="flex items-center justify-center gap-3">
+              <InfoIconButton size={20} onClick={() => openParameterInfo(paramKey)} />
+              <Input
+                type="number"
+                id={paramKey}
+                min={0}
+                max={100}
+                step={1}
+                value={field.value ?? 0}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (val === '') {
+                    field.onChange(0);
+                    return;
+                  }
+                  const numVal = Math.min(100, Math.max(0, Number(val)));
+                  field.onChange(numVal);
+                }}
+                onInput={(e) => {
+                  // Remove leading zeros
+                  if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
+                    e.target.value = e.target.value.replace(/^0+/, '') || '0';
+                  }
+                }}
+                className="w-20 px-2 text-base font-semibold text-center border-2 text-emerald-600 border-emerald-500"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Scale Guide Badges */}
+            {getScaleMarkers && (
+              <div className="flex flex-col items-center justify-center gap-1">
+                {getScaleMarkers.map((marker, idx) => {
+                  const endScore = Math.min(marker.score + 10, 100);
                   return (
-                    <div key={key} className="p-4 space-y-3 border rounded-lg bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor={key} className="text-sm font-medium">
-                          {parameterLabels[key].label}
-                        </Label>
-                        <button
-                          type="button"
-                          className="p-1 rounded-full hover:bg-muted"
-                          onClick={() => openParameterInfo(key)}
-                        >
-                          <Info className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      </div>
-
-                      <Controller
-                        name={`parameters.${key}`}
-                        control={control}
-                        render={({ field }) => (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <Slider
-                                value={[field.value ?? 0]}
-                                onValueChange={(vals) => field.onChange(vals[0])}
-                                max={100}
-                                step={1}
-                                className="flex-1"
-                                disabled={loading}
-                              />
-                              <Input
-                                type="number"
-                                id={key}
-                                min={0}
-                                max={100}
-                                step={1}
-                                value={field.value ?? 0}
-                                onChange={(e) => {
-                                  let val = e.target.value;
-                                  if (val === '') {
-                                    field.onChange(0);
-                                    return;
-                                  }
-                                  const numVal = Math.min(100, Math.max(0, Number(val)));
-                                  field.onChange(numVal);
-                                }}
-                                className="w-20 font-semibold text-center"
-                                disabled={loading}
-                              />
-                            </div>
-
-                            {/* Scale Guide */}
-                            {scaleMarkers && (
-                              <div className="flex flex-col gap-1">
-                                {scaleMarkers.map((marker, idx) => {
-                                  const endScore = Math.min(marker.score + 10, 100);
-                                  return (
-                                    <Badge
-                                      key={idx}
-                                      variant={getScaleBadgeVariant(idx)}
-                                      className="justify-start text-xs"
-                                    >
-                                      {marker.score}-{endScore}: {marker.label}
-                                    </Badge>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {/* Example Calibration */}
-                            {guidance && guidance.examples && guidance.examples[0] && (
-                              <p className="text-xs italic text-muted-foreground">
-                                Example: {guidance.examples[0].case} = {guidance.examples[0].score}
-                                {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      />
-                    </div>
+                    <span
+                      key={idx}
+                      className={`px-2 py-1 text-xs font-medium rounded w-fit ${getScaleColorClass(idx)}`}
+                    >
+                      {marker.score}-{endScore}: {marker.label}
+                    </span>
                   );
                 })}
               </div>
+            )}
+
+            {/* Example Calibration */}
+            {guidance && guidance.examples && guidance.examples[0] && (
+              <p className="text-xs italic leading-relaxed text-slate-600">
+                Example: {guidance.examples[0].case} = {guidance.examples[0].score}
+                {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
+              </p>
+            )}
+          </div>
+        )}
+      />
+
+      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
+    </div>
+  );
+});
+
+ParameterRow.displayName = 'ParameterRow';
+
+ParameterRow.propTypes = {
+  paramKey: PropTypes.string.isRequired,
+  loading: PropTypes.bool.isRequired,
+};
+
+/**
+ * Main Parameter Input Container Component
+ */
+export default function ParameterInputContainer({ loading }) {
+  return (
+    <Card className="border-2 shadow-sm bg-gradient-to-br from-emerald-50/60 via-teal-50/70 to-cyan-50/60 border-emerald-500">
+      <CardContent className="pt-6 space-y-12">
+        {Object.entries(parameterGroups).map(([groupName, group], groupIdx) => (
+          <div key={groupName} className="space-y-4">
+            <h3 className="text-xl font-extrabold text-center text-teal-600">{groupName}</h3>
+            <Separator orientation="horizontal" className="bg-teal-900 h-0.5 w-auto" />
+            <div className="flex flex-col gap-6 md:flex-row md:items-stretch">
+              {group.map((key, index) => (
+                <React.Fragment key={key}>
+                  {/* 1. The Wrapper for the content */}
+                  <div className="flex-1">
+                    <ParameterRow paramKey={key} loading={loading} />
+                  </div>
+
+                  {/* 2. The Separator as a direct sibling of the flex-1 div */}
+                  {/* {index < group.length - 1 && (
+                    <Separator
+                      orientation="vertical"
+                      className="self-stretch hidden md:block bg-border/70"
+                    />
+                  )} */}
+
+                  {/* 3. Mobile Separator (Optional: Horizontal for mobile) */}
+                  {/* {index < group.length - 1 && (
+                    <Separator orientation="horizontal" className="block md:hidden bg-border/70" />
+                  )} */}
+                </React.Fragment>
+              ))}
             </div>
-          ))}
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 

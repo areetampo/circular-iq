@@ -20,7 +20,7 @@ before(async () => {
 // POST /assessments validation tests
 test('POST /assessments rejects missing title', async () => {
   const res = await request(app)
-    .post('/assessments')
+    .post('/api/assessments')
     .send({
       result: { overall_score: 50 },
     });
@@ -29,7 +29,7 @@ test('POST /assessments rejects missing title', async () => {
 });
 
 test('POST /assessments rejects missing result', async () => {
-  const res = await request(app).post('/assessments').send({
+  const res = await request(app).post('/api/assessments').send({
     title: 'Test Assessment',
   });
 
@@ -38,7 +38,7 @@ test('POST /assessments rejects missing result', async () => {
 
 test('POST /assessments rejects missing overall_score in result', async () => {
   const res = await request(app)
-    .post('/assessments')
+    .post('/api/assessments')
     .send({
       title: 'Test Assessment',
       result: { audit: {} },
@@ -49,7 +49,7 @@ test('POST /assessments rejects missing overall_score in result', async () => {
 
 // GET /assessments query parameter tests
 test('GET /assessments accepts page and pageSize query params', async () => {
-  const res = await request(app).get('/assessments').query({ page: 1, pageSize: 10 });
+  const res = await request(app).get('/api/assessments').query({ page: 1, pageSize: 10 });
 
   assert(res.status === 200 || res.status === 500, 'Should accept params (200 or DB error 500)');
   if (res.status === 200) {
@@ -59,7 +59,7 @@ test('GET /assessments accepts page and pageSize query params', async () => {
 });
 
 test('GET /assessments clamps pageSize to max 100', async () => {
-  const res = await request(app).get('/assessments').query({ pageSize: 500 });
+  const res = await request(app).get('/api/assessments').query({ pageSize: 500 });
 
   assert(res.status === 200 || res.status === 500, 'Should respond');
   if (res.status === 200 && res.body.pageSize) {
@@ -68,7 +68,7 @@ test('GET /assessments clamps pageSize to max 100', async () => {
 });
 
 test('GET /assessments defaults page to 1 and pageSize to 20', async () => {
-  const res = await request(app).get('/assessments');
+  const res = await request(app).get('/api/assessments');
 
   assert(res.status === 200 || res.status === 500, 'Should respond');
   if (res.status === 200) {
@@ -81,28 +81,28 @@ test('GET /assessments accepts sortBy whitelist values', async () => {
   const validSorts = ['created_at', 'overall_score', 'title'];
 
   for (const sort of validSorts) {
-    const res = await request(app).get('/assessments').query({ sortBy: sort });
+    const res = await request(app).get('/api/assessments').query({ sortBy: sort });
     assert(res.status === 200 || res.status === 500, `Should accept sortBy=${sort}`);
   }
 });
 
 test('GET /assessments defaults to created_at for invalid sortBy', async () => {
-  const res = await request(app).get('/assessments').query({ sortBy: 'invalid_column' });
+  const res = await request(app).get('/api/assessments').query({ sortBy: 'invalid_column' });
 
   // Should use created_at as default, so query succeeds or returns DB error, not validation error
   assert(res.status === 200 || res.status === 500, 'Should default invalid sort to created_at');
 });
 
 test('GET /assessments accepts order asc/desc', async () => {
-  const res1 = await request(app).get('/assessments').query({ order: 'asc' });
-  const res2 = await request(app).get('/assessments').query({ order: 'desc' });
+  const res1 = await request(app).get('/api/assessments').query({ order: 'asc' });
+  const res2 = await request(app).get('/api/assessments').query({ order: 'desc' });
 
   assert(res1.status === 200 || res1.status === 500, 'Should accept order=asc');
   assert(res2.status === 200 || res2.status === 500, 'Should accept order=desc');
 });
 
 test('GET /assessments accepts filter parameters', async () => {
-  const res = await request(app).get('/assessments').query({
+  const res = await request(app).get('/api/assessments').query({
     sessionId: 'session-1',
     industry: 'textiles',
     search: 'solar',
@@ -116,7 +116,7 @@ test('GET /assessments accepts filter parameters', async () => {
 });
 
 test('GET /assessments returns structure with assessments, total, page, pageSize', async () => {
-  const res = await request(app).get('/assessments');
+  const res = await request(app).get('/api/assessments');
 
   if (res.status === 200) {
     assert(Array.isArray(res.body.assessments), 'Should have assessments array');
@@ -128,7 +128,7 @@ test('GET /assessments returns structure with assessments, total, page, pageSize
 
 // GET /assessments/:id routing test
 test('GET /assessments/:id endpoint is routable', async () => {
-  const res = await request(app).get('/assessments/123');
+  const res = await request(app).get('/api/assessments/123');
 
   // Should hit the route handler, even if DB error (500) or not found (404)
   assert(res.status >= 200 && res.status < 600, 'Endpoint should be routable');
@@ -136,7 +136,7 @@ test('GET /assessments/:id endpoint is routable', async () => {
 
 // DELETE /assessments/:id routing test
 test('DELETE /assessments/:id endpoint is routable', async () => {
-  const res = await request(app).delete('/assessments/123');
+  const res = await request(app).delete('/api/assessments/123');
 
   // Should hit the route handler
   assert(res.status >= 200 && res.status < 600, 'Endpoint should be routable');

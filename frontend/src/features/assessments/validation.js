@@ -1,11 +1,16 @@
 import { z } from 'zod';
+import { getCharacterCount } from '@/lib/validation';
 
 /**
  * Assessment form validation schema
  */
 export const assessmentSchema = z.object({
-  businessProblem: z.string().min(200, 'Business problem must be at least 200 characters'),
-  businessSolution: z.string().min(200, 'Business solution must be at least 200 characters'),
+  businessProblem: z.string().refine((val) => getCharacterCount(val) >= 200, {
+    message: 'Business problem must be at least 200 characters',
+  }),
+  businessSolution: z.string().refine((val) => getCharacterCount(val) >= 200, {
+    message: 'Business solution must be at least 200 characters',
+  }),
   parameters: z.object({
     public_participation: z
       .number()

@@ -8,15 +8,9 @@ import {
   BookCopy,
   TriangleAlert,
   ChartSpline,
+  X,
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 
 const METHODOLOGY_ITEMS = [
   {
@@ -51,65 +45,95 @@ const METHODOLOGY_ITEMS = [
 
 export default function AssessmentMethodologyModal({ isModalOpen, onClose }) {
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogClose
-        className="absolute top-4 right-4"
-        aria-label="Close assessment methodology modal"
-      >
-        <X className="w-5 h-5 text-gray-500 hover:text-gray-700" strokeWidth={2} />
-      </DialogClose>
-      <DialogContent className="w-full max-w-3xl max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
-          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
-            <ChartSpline /> Assessment Methodology
-          </DialogTitle>
-          <DialogDescription className="text-gray-600">
-            Our AI-powered evaluation framework
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <p className="mb-6 leading-relaxed text-gray-600">
+    <Modal
+      isOpen={isModalOpen}
+      onOpenChange={onClose}
+      size="2xl"
+      scrollBehavior="inside"
+      backdrop="opaque"
+      placement="center"
+      hideCloseButton={true}
+      classNames={{
+        backdrop: 'bg-black/50',
+        base: 'bg-white rounded-2xl shadow-xl',
+      }}
+    >
+      <ModalContent className="outline-none focus:outline-none focus-visible:outline-none ring-0">
+        <ModalHeader className="flex items-center gap-3 py-5">
+          <div className="p-2 bg-indigo-100 rounded-lg">
+            <ChartSpline className="text-indigo-600" size={24} />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-[#2c3e50]">Assessment Methodology</h2>
+            <p className="text-xs text-gray-500">Our AI-powered evaluation framework</p>
+          </div>
+          <Button
+            isIconOnly
+            variant="light"
+            onPress={onClose}
+            aria-label="Close"
+            className="ml-auto hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </ModalHeader>
+        <ModalBody className="gap-5 px-6 py-6">
+          <p className="leading-relaxed text-gray-700">
             This evaluation uses a proprietary AI-powered framework combining vector similarity
-            search with GPT-4o-mini reasoning against a database of 1,108 high-quality circular
-            economy projects.
+            search with GPT-4o-mini reasoning against a database of{' '}
+            <strong>1,108 high-quality circular economy projects</strong>.
           </p>
 
-          <div className="grid grid-cols-1 gap-5 mb-6 md:grid-cols-2">
+          <div className="space-y-3">
             {METHODOLOGY_ITEMS.map((item, idx) => (
-              <div key={idx} className={`p-5 border-l-4 ${item.borderColor} rounded-lg bg-gray-50`}>
-                <h4 className="flex items-center gap-2 m-0 mb-3 font-bold text-slate-800">
+              <div
+                key={idx}
+                className={`p-4 border-l-4 rounded-lg bg-gradient-to-br ${item.borderColor} ${
+                  item.borderColor === 'border-blue-500'
+                    ? 'from-blue-50 to-cyan-50'
+                    : item.borderColor === 'border-emerald-600'
+                      ? 'from-emerald-50 to-green-50'
+                      : item.borderColor === 'border-orange-500'
+                        ? 'from-orange-50 to-amber-50'
+                        : 'from-purple-50 to-pink-50'
+                }`}
+              >
+                <h4 className="flex items-center gap-2 mb-1 text-sm font-bold text-gray-800">
                   {item.icon} {item.title}
                 </h4>
-                <p className="m-0 text-sm leading-relaxed text-gray-700">{item.description}</p>
+                <p className="m-0 text-xs leading-relaxed text-gray-700">{item.description}</p>
               </div>
             ))}
           </div>
 
-          <div className="p-5 mb-6 border-2 rounded-lg bg-emerald-50 border-emerald-600">
-            <h4 className="flex items-center gap-3 m-0 mb-3 font-bold justify-left text-emerald-900">
-              <BookCopy size={20} /> Data Source
+          <div className="p-4 border rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200">
+            <h4 className="flex items-center gap-2 mb-2 text-sm font-bold text-emerald-900">
+              <BookCopy size={18} /> Data Source
             </h4>
-            <p className="m-0 text-sm leading-relaxed text-emerald-900">
-              <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection of
-              1,108 high-quality circular economy solutions (filtered from 1,300) spanning waste
-              reduction, resource optimization, renewable energy, sustainable materials, and
-              regenerative agriculture across multiple industries and geographic regions.
+            <p className="m-0 text-xs leading-relaxed text-emerald-900">
+              <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection of{' '}
+              <strong>1,108 high-quality</strong> circular economy solutions (filtered from 1,300)
+              spanning waste reduction, resource optimization, renewable energy, sustainable
+              materials, and regenerative agriculture across multiple industries and geographic
+              regions.
             </p>
           </div>
 
-          <div className="p-4 mb-4 border-l-4 border-orange-500 rounded bg-orange-50">
-            <p className="m-0 text-sm leading-relaxed text-orange-900">
-              <strong className="flex items-center gap-2">
+          <div className="p-4 border border-l-4 border-orange-500 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50">
+            <p className="m-0 text-xs leading-relaxed text-orange-900">
+              <strong className="flex items-center gap-2 mb-1">
                 <TriangleAlert size={16} /> Disclaimer:
               </strong>
-              &nbsp; This assessment is designed to provide constructive feedback for early-stage
-              ideation. Scores reflect alignment with established circular economy principles and
-              should be used as guidance, not as definitive validation of commercial viability.
+              This assessment is designed to provide{' '}
+              <strong>constructive feedback for early-stage ideation</strong>. Scores reflect
+              alignment with established circular economy principles and should be used as guidance,
+              not as definitive validation of commercial viability.
             </p>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </ModalBody>
+        <ModalFooter className="gap-2 py-2" />
+      </ModalContent>
+    </Modal>
   );
 }
 

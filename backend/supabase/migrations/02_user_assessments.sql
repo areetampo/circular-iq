@@ -242,6 +242,8 @@ CREATE TABLE IF NOT EXISTS assessments (
   industry TEXT,
   overall_score INTEGER,
   business_viability_score INTEGER,
+  is_public BOOLEAN DEFAULT FALSE,
+  public_id UUID DEFAULT gen_random_uuid(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -256,6 +258,8 @@ COMMENT ON COLUMN assessments.result_json IS 'Complete /score endpoint response 
 COMMENT ON COLUMN assessments.industry IS 'Industry classification (extracted from result_json.metadata)';
 COMMENT ON COLUMN assessments.overall_score IS 'Overall circular economy score (0-100)';
 COMMENT ON COLUMN assessments.business_viability_score IS 'Business viability sub-score from comprehensive evaluation';
+COMMENT ON COLUMN assessments.is_public IS 'Whether assessment is included in global analytics benchmarks';
+COMMENT ON COLUMN assessments.public_id IS 'Public UUID for sharing assessments without exposing internal ID';
 
 -- ============================================
 -- 2. Create Indexes for Fast Queries
@@ -439,7 +443,32 @@ CREATE TRIGGER update_assessments_updated_at
   EXECUTE FUNCTION update_assessments_updated_at_column();
 
 -- ============================================
--- 8. Verification Queries
+-- 8. Public Sharing Support (Non-Destructive)
+-- ============================================
+
+-- 1. Ensure pgcrypto extension exists for UUID generation
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- 2. Add public sharing columns (idempotent with IF NOT EXISTS)
+-- Note: Existing rows will get 'false' for is_public and a fresh UUID for public_id
+ALTER TABLE assessments
+  ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS public_id UUID UNIQUE DEFAULT gen_random_uuid();
+
+COMMENT ON COLUMN assessments.is_public IS 'Whether assessment is included in global analytics benchmarks and public viewing';
+COMMENT ON COLUMN assessments.public_id IS 'Public UUID for sharing assessments without exposing internal ID';
+
+-- 3. Create a unique index for efficient public_id lookups
+CREATE UNIQUE INDEX IF NOT EXISTS idx_assessments_public_id ON assessments(public_id);
+
+-- 4. RLS Policy: Allow anyone (public role) to view assessments marked as public
+-- This enables read-only access to public assessments without authentication
+CREATE POLICY "Anyone can view public assessments"
+  ON assessments FOR SELECT
+  USING (is_public = true);
+
+-- ============================================
+-- 9. Verification Queries
 -- ============================================
 
 -- After running this migration, verify the setup:

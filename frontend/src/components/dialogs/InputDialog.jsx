@@ -1,6 +1,6 @@
 /**
  * Reusable Input Dialog
- * Base component for text input with validation using shadcn/ui Dialog
+ * Base component for text input with validation using HeroUI Modal
  *
  * Location: src/components/dialogs/InputDialog.jsx
  */
@@ -8,17 +8,9 @@
 import { React, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 
 /**
  * Reusable input dialog for text input with validation
@@ -82,12 +74,6 @@ export function InputDialog({
     onOpenChange(false);
   };
 
-  const handleCancel = () => {
-    setError(null);
-    onCancel?.();
-    onOpenChange(false);
-  };
-
   const handleChange = (e) => {
     const newValue = e.target.value;
     setValue(newValue);
@@ -105,45 +91,87 @@ export function InputDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            {description && <DialogDescription>{description}</DialogDescription>}
-          </DialogHeader>
+    <Modal
+      isOpen={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      backdrop="opaque"
+      placement="center"
+      scrollBehavior="inside"
+      classNames={{
+        backdrop: 'bg-black/50',
+        base: 'bg-white rounded-2xl shadow-xl',
+      }}
+    >
+      <ModalContent>
+        {(onClose) => (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (validate) {
+                const validationError = validate(value);
+                if (validationError) {
+                  setError(validationError);
+                  return;
+                }
+              }
+              setError(null);
+              onSubmit?.(value);
+              onClose();
+            }}
+          >
+            <ModalHeader className="flex flex-col gap-2 py-4 px-6">
+              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+              {description && <p className="text-sm text-gray-600">{description}</p>}
+            </ModalHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              {inputLabel && <Label htmlFor="dialog-input">{inputLabel}</Label>}
-              <Input
-                id="dialog-input"
-                type={type}
-                value={value}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                placeholder={inputPlaceholder}
-                maxLength={maxLength}
-                autoFocus
-              />
-              {error && <p className="text-sm text-destructive">{error}</p>}
-              {maxLength && (
-                <p className="text-xs text-muted-foreground">
-                  {value.length} / {maxLength}
-                </p>
-              )}
-            </div>
-          </div>
+            <ModalBody className="gap-4 py-6 px-6">
+              <div className="grid gap-3">
+                {inputLabel && (
+                  <Label htmlFor="dialog-input" className="font-medium text-gray-700">
+                    {inputLabel}
+                  </Label>
+                )}
+                <Input
+                  id="dialog-input"
+                  type={type}
+                  value={value}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder={inputPlaceholder}
+                  maxLength={maxLength}
+                  autoFocus
+                  className={`${error ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'} transition-all`}
+                />
+                {error && <p className="text-sm font-medium text-red-600 mt-1">{error}</p>}
+                {maxLength && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {value.length} / {maxLength}
+                  </p>
+                )}
+              </div>
+            </ModalBody>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              {cancelText}
-            </Button>
-            <Button type="submit">{submitText}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <ModalFooter className="gap-3 py-4 px-6">
+              <Button
+                type="button"
+                variant="light"
+                onPress={() => {
+                  setError(null);
+                  onCancel?.();
+                  onClose();
+                }}
+              >
+                {cancelText}
+              </Button>
+              <Button type="submit" color="primary" className="font-medium">
+                {submitText}
+              </Button>
+            </ModalFooter>
+          </form>
+        )}
+      </ModalContent>
+    </Modal>
   );
 }
 

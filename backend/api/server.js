@@ -153,11 +153,11 @@ app.use('/api/assessments', createAssessmentsRouter(supabase));
 // ============================================
 
 /**
- * GET /profile
+ * GET /api/profile
  * Get current user's profile including username
  * Requires authentication
  */
-app.get('/profile', requireAuth(supabase), async (req, res) => {
+app.get('/api/profile', requireAuth(supabase), async (req, res) => {
   try {
     // Fetch profile from profiles table
     const { data, error } = await supabase
@@ -366,11 +366,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 📊 Analytics Dashboard (Modular):
   GET  /api/analytics                  - Analytics and insights dashboard
-
-🛠️  Environment:
-  Node: ${typeof process !== 'undefined' && process.version ? process.version : 'unknown'}
-  Port: ${PORT}
-  OpenAI Model: GPT-4o-mini (reasoning), text-embedding-3-small (embeddings)
 
 🗄️  Database:
   Supabase: ${typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL ? '✓ Connected' : '✗ Not configured'}

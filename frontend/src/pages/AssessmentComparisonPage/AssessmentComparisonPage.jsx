@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { exportComparisonCSV } from '@/features/export';
-import Loader from '@/components/common/Loader';
+import LoaderComponent from '@/components/common/LoaderComponent';
 import AppContainer from '@/components/layout/AppContainer';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
@@ -26,6 +26,11 @@ import {
   Star,
   ArrowRight,
   Upload,
+  Lightbulb,
+  Target,
+  Dumbbell,
+  BarChart3,
+  Search,
 } from 'lucide-react';
 
 export default function AssessmentComparisonPage() {
@@ -77,7 +82,10 @@ export default function AssessmentComparisonPage() {
 
   if (isLoading)
     return (
-      <Loader heading="Loading comparison..." message="Fetching assessment data for comparison." />
+      <LoaderComponent
+        heading="Loading comparison..."
+        message="Fetching assessment data for comparison."
+      />
     );
   if (isError)
     return (

@@ -1,14 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardMinus, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 
 const PROBLEM_ELEMENTS = [
   {
@@ -55,66 +48,82 @@ const PROBLEM_EXAMPLE =
 
 export default function BusinessProblemInfoModal({ onClose, isModalOpen }) {
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogClose
-        className="absolute top-4 right-4"
-        aria-label="Close business problem guide modal"
-      >
-        <X className="w-5 h-5 text-gray-500 hover:text-gray-700" strokeWidth={2} />
-      </DialogClose>
-      <DialogContent className="w-full max-w-4xl max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
-          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
-            <ClipboardMinus /> Business Problem Statement Guide
-          </DialogTitle>
-          <DialogDescription className="text-gray-600">
-            Describe the environmental or circular economy challenge
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <div className="space-y-5">
-            <p className="leading-relaxed">
-              Describe the <strong>environmental or circular economy challenge</strong> your
-              business addresses. Provide a clear, quantified problem statement that shows the scope
-              and impact.
-            </p>
+    <Modal
+      isOpen={isModalOpen}
+      onOpenChange={onClose}
+      size="2xl"
+      scrollBehavior="inside"
+      backdrop="opaque"
+      placement="center"
+      hideCloseButton={true}
+      classNames={{
+        backdrop: 'bg-black/50',
+        base: 'bg-white rounded-2xl shadow-xl',
+      }}
+    >
+      <ModalContent className="outline-none focus:outline-none focus-visible:outline-none ring-0">
+        <ModalHeader className="flex items-center gap-3 py-5">
+          <div className="p-2 rounded-lg bg-emerald-100">
+            <ClipboardMinus className="text-emerald-600" size={24} />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-[#2c3e50]">Business Problem Guide</h2>
+            <p className="text-xs text-gray-500">Environmental or circular economy challenge</p>
+          </div>
+          <Button
+            isIconOnly
+            variant="light"
+            onPress={onClose}
+            aria-label="Close"
+            className="ml-auto hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </ModalHeader>
+        <ModalBody className="gap-5 px-6 py-6">
+          <p className="leading-relaxed text-gray-700">
+            Describe the <strong>environmental or circular economy challenge</strong> your business
+            addresses.
+          </p>
 
-            <div className="p-4 bg-gray-100 rounded">
-              <h4 className="m-0 mb-3 text-lg font-bold text-emerald-600">
-                Essential Elements to Include:
-              </h4>
-              <ul className="pl-6 m-0 space-y-2 leading-relaxed">
-                {PROBLEM_ELEMENTS.map(({ title, description }) => (
-                  <li key={title}>
-                    <strong>{title}:</strong> {description}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="p-4 border bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-emerald-200">
+            <h4 className="mb-3 text-base font-bold text-emerald-700">Essential Elements</h4>
+            <ul className="space-y-2">
+              {PROBLEM_ELEMENTS.map(({ title, description }) => (
+                <li key={title} className="pl-3 text-sm border-l-3 border-emerald-400">
+                  <strong className="text-emerald-900">{title}</strong>
+                  <p className="text-gray-700 text-xs mt-0.5">{description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            <div className="p-4 rounded bg-blue-50">
-              <h4 className="m-0 mb-3 text-lg font-bold text-blue-600">Writing Tips:</h4>
-              <ul className="pl-6 m-0 space-y-2 leading-relaxed">
-                {PROBLEM_WRITING_TIPS.map((tip) => (
-                  <li key={tip}>{tip}</li>
-                ))}
-              </ul>
-            </div>
+          <div className="p-4 border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
+            <h4 className="mb-3 text-base font-bold text-blue-700">Writing Tips</h4>
+            <ul className="space-y-1">
+              {PROBLEM_WRITING_TIPS.map((tip) => (
+                <li key={tip} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="font-bold text-blue-500">•</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            <div className="space-y-3">
-              <h4 className="m-0 text-lg font-bold text-blue-500">Example Problem Statement:</h4>
-              <p className="p-3 italic leading-relaxed text-gray-700 rounded bg-blue-50">
-                {PROBLEM_EXAMPLE}
-              </p>
-            </div>
-
-            <p className="mt-2 italic text-gray-500">
-              <strong>Minimum 200 characters required</strong> for accurate matching and analysis.
+          <div>
+            <h4 className="mb-2 text-base font-bold text-indigo-700">Example Statement</h4>
+            <p className="p-3 text-sm italic leading-relaxed text-gray-700 border border-l-4 border-indigo-200 rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 border-l-indigo-500">
+              {PROBLEM_EXAMPLE}
             </p>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+
+          <p className="p-3 text-xs italic text-gray-500 bg-gray-100 rounded-lg">
+            ⚠️ <strong>Minimum 200 characters required</strong>
+          </p>
+        </ModalBody>
+        <ModalFooter className="gap-2 py-2" />
+      </ModalContent>
+    </Modal>
   );
 }
 

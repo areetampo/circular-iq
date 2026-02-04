@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Download, FileText, Loader2 } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
+import LoaderIcon from '@/components/common/LoaderIcon';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip } from '@heroui/react';
 
 /**
  * ExportActions Component
@@ -19,55 +20,49 @@ export function ExportActions({
   const isExporting = isExportingCSV || isExportingPDF;
 
   return (
-    <TooltipProvider>
-      <div className="flex flex-wrap gap-4">
-        {/* Export CSV Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={onExportCSV}
-              disabled={isExporting}
-              variant="outline"
-              aria-label="Export assessment data as CSV"
-              className="gap-2"
-            >
-              {isExportingCSV ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isExporting ? 'Export in progress' : 'Export assessment data as CSV'}</p>
-          </TooltipContent>
-        </Tooltip>
+    <div className="flex flex-wrap gap-4">
+      {/* Export CSV Button */}
+      <Tooltip
+        placement="top"
+        content={
+          <div className="px-3 py-1.5 text-xs text-white rounded-md shadow-md bg-slate-900">
+            {isExporting ? 'Export in progress' : 'Export assessment data as CSV'}
+          </div>
+        }
+      >
+        <Button
+          onClick={onExportCSV}
+          disabled={isExporting}
+          variant="outline"
+          aria-label="Export assessment data as CSV"
+          className="gap-2"
+        >
+          {isExportingCSV ? <LoaderIcon /> : <Download className="w-4 h-4" />}
+          {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
+        </Button>
+      </Tooltip>
 
-        {/* Export PDF Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={onExportPDF}
-              disabled={isExporting}
-              variant="outline"
-              aria-label="Export assessment as PDF"
-              className="gap-2"
-            >
-              {isExportingPDF ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <FileText className="w-4 h-4" />
-              )}
-              {isExportingPDF ? 'Generating...' : 'Download as PDF'}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isExporting ? 'Export in progress' : 'Export assessment as PDF'}</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    </TooltipProvider>
+      {/* Export PDF Button */}
+      <Tooltip
+        placement="top"
+        content={
+          <div className="px-3 py-1.5 text-xs text-white rounded-md shadow-md bg-slate-900">
+            {isExporting ? 'Export in progress' : 'Export assessment as PDF'}
+          </div>
+        }
+      >
+        <Button
+          onClick={onExportPDF}
+          disabled={isExporting}
+          variant="outline"
+          aria-label="Export assessment as PDF"
+          className="gap-2"
+        >
+          {isExportingPDF ? <LoaderIcon /> : <FileText className="w-4 h-4" />}
+          {isExportingPDF ? 'Generating...' : 'Download as PDF'}
+        </Button>
+      </Tooltip>
+    </div>
   );
 }
 

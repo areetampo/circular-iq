@@ -1,14 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link, CircleDollarSign, Settings, ClipboardMinus } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { Link, CircleDollarSign, Settings, ClipboardMinus, X } from 'lucide-react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 
 const METRICS = [
   { number: 3, label: 'Core Value Types', color: 'blue' },
@@ -111,89 +104,142 @@ const CALCULATION_STEPS = [
 
 export default function EvaluationCriteriaModal({ isModalOpen, onClose }) {
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogClose className="absolute top-4 right-4" aria-label="Close evaluation criteria modal">
-        <X className="w-5 h-5 text-gray-500 hover:text-gray-700" strokeWidth={2} />
-      </DialogClose>
-      <DialogContent className="w-full max-w-3xl max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-200">
-          <DialogTitle className="text-2xl font-bold text-[#2c3e50] flex items-center gap-2">
-            <ClipboardMinus className="mb-0.5" /> Evaluation Criteria
-          </DialogTitle>
-          <DialogDescription className="text-gray-600">
-            Three core value dimensions with specific factors
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex-1 px-6 pb-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <p className="mb-6 leading-relaxed text-gray-600">
-            Our AI-powered evaluation framework assesses business ideas across three core value
-            dimensions, each comprising specific factors.
+    <Modal
+      isOpen={isModalOpen}
+      onOpenChange={onClose}
+      size="2xl"
+      scrollBehavior="inside"
+      backdrop="opaque"
+      placement="center"
+      hideCloseButton={true}
+      classNames={{
+        backdrop: 'bg-black/50',
+        base: 'bg-white rounded-2xl shadow-xl',
+      }}
+    >
+      <ModalContent className="outline-none focus:outline-none focus-visible:outline-none ring-0">
+        <ModalHeader className="flex items-center gap-3 py-5">
+          <div className="p-2 bg-emerald-100 rounded-lg">
+            <ClipboardMinus className="text-emerald-600" size={24} />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-[#2c3e50]">Evaluation Criteria</h2>
+            <p className="text-gray-500 text-xs">
+              Three core value dimensions with specific factors
+            </p>
+          </div>
+          <Button
+            isIconOnly
+            variant="light"
+            onPress={onClose}
+            aria-label="Close"
+            className="ml-auto hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </ModalHeader>
+        <ModalBody className="gap-5 py-6 px-6">
+          <p className="leading-relaxed text-gray-700">
+            Our AI-powered evaluation framework assesses business ideas across{' '}
+            <strong>three core value dimensions</strong>, each comprising specific factors.
           </p>
 
           {/* Key Metrics */}
-          <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2 md:grid-cols-3">
+          <div className="grid grid-cols-3 gap-3">
             {METRICS.map((metric, idx) => (
-              <div key={idx} className={`p-6 text-center rounded-lg bg-${metric.color}-50`}>
+              <div
+                key={idx}
+                className={`p-3 rounded-lg text-center border ${
+                  metric.color === 'blue'
+                    ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200'
+                    : 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200'
+                }`}
+              >
                 <div
-                  className={`text-3xl font-bold text-${metric.color}-${metric.color === 'blue' ? '500' : '600'}`}
+                  className={`text-2xl font-bold ${
+                    metric.color === 'blue' ? 'text-blue-600' : 'text-emerald-600'
+                  }`}
                 >
                   {metric.number}
                 </div>
-                <div className="text-sm text-gray-600">{metric.label}</div>
+                <div className="text-xs text-gray-600 font-medium mt-1">{metric.label}</div>
               </div>
             ))}
           </div>
 
           {/* Value Sections */}
-          {VALUE_SECTIONS.map((section, idx) => (
-            <div key={idx} className="mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="mr-0.5 text-2xl">{section.icon}</div>
-                <div>
-                  <h3
-                    className={`m-0 text-xl font-bold text-${section.color}-${section.color === 'blue' ? '500' : '600'}`}
+          <div className="space-y-4">
+            {VALUE_SECTIONS.map((section, idx) => (
+              <div
+                key={idx}
+                className={`p-4 rounded-xl border-l-4 ${section.borderColor} ${
+                  section.color === 'blue'
+                    ? 'bg-gradient-to-br from-blue-50 to-cyan-50'
+                    : section.color === 'emerald'
+                      ? 'bg-gradient-to-br from-emerald-50 to-green-50'
+                      : 'bg-gradient-to-br from-teal-50 to-cyan-50'
+                }`}
+              >
+                <div className="flex items-start gap-2 mb-2">
+                  <div
+                    className={`mt-0.5 ${
+                      section.color === 'blue'
+                        ? 'text-blue-600'
+                        : section.color === 'emerald'
+                          ? 'text-emerald-600'
+                          : 'text-teal-600'
+                    }`}
                   >
-                    {section.title}
-                  </h3>
-                  <p className="m-0 text-sm text-gray-600">{section.description}</p>
+                    {section.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h4
+                      className={`font-bold mb-0.5 ${
+                        section.color === 'blue'
+                          ? 'text-blue-700'
+                          : section.color === 'emerald'
+                            ? 'text-emerald-700'
+                            : 'text-teal-700'
+                      }`}
+                    >
+                      {section.title}
+                    </h4>
+                    <p className="text-xs text-gray-600">{section.description}</p>
+                  </div>
+                </div>
+                <div className={`grid grid-cols-1 gap-2 mt-3 ${section.gridCols}`}>
+                  {section.factors.map((factor, factorIdx) => (
+                    <div key={factorIdx} className="p-2 bg-white rounded-lg border border-gray-200">
+                      <p className="text-xs font-semibold text-gray-800">{factor.title}</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{factor.description}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className={`grid grid-cols-1 gap-4 ${section.gridCols}`}>
-                {section.factors.map((factor, factorIdx) => (
-                  <div
-                    key={factorIdx}
-                    className={`p-4 border-l-4 ${section.borderColor} rounded-lg bg-gray-50`}
-                  >
-                    <h4 className="m-0 mb-2 font-bold text-slate-800">{factor.title}</h4>
-                    <p className="m-0 text-sm text-gray-700">{factor.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
           {/* How We Calculate Section */}
-          <div className="p-6 rounded-lg bg-slate-100">
-            <h3 className="m-0 mb-4 text-xl font-bold text-slate-800">
-              How We Calculate Your Score
-            </h3>
-            <div className="flex flex-col gap-4">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+            <h4 className="font-bold text-amber-900 mb-3 text-base">How We Calculate Your Score</h4>
+            <div className="space-y-2">
               {CALCULATION_STEPS.map((step) => (
-                <div key={step.number} className="flex items-start gap-4">
-                  <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 font-bold text-white rounded-full bg-emerald-600">
+                <div key={step.number} className="flex items-start gap-3">
+                  <div className="flex items-center justify-center flex-shrink-0 w-6 h-6 font-bold text-white rounded-full bg-amber-600 text-sm">
                     {step.number}
                   </div>
-                  <div>
-                    <h4 className="m-0 mb-1 font-bold text-slate-800">{step.title}</h4>
-                    <p className="m-0 text-sm text-gray-700">{step.description}</p>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-amber-900">{step.title}</p>
+                    <p className="text-xs text-gray-700 mt-0.5">{step.description}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </ModalBody>
+        <ModalFooter className="gap-2 py-2" />
+      </ModalContent>
+    </Modal>
   );
 }
 

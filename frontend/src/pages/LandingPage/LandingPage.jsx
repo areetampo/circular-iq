@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import ParameterInputContainer from '@/pages/LandingPage/components/ParameterInputContainer';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
+import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
 import SessionRestorePrompt from '@/features/session/components/SessionRestorePrompt';
 import { useSession } from '@/features/session/hooks/useSession';
 import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
@@ -16,22 +16,23 @@ import AppContainer from '@/components/layout/AppContainer';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import LoaderIcon from '@/components/common/LoaderIcon';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip } from '@heroui/react';
+import { cn } from '@/lib/utils';
 import {
-  Loader2,
-  Info,
   Sparkles,
   LayoutGrid,
   CheckCircle2,
   AlertTriangle,
   ChevronRight,
-  ChevronDown,
+  Leaf,
 } from 'lucide-react';
+import InfoIconButton from '@/components/common/InfoIconButton';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function LandingPage() {
   const {
     modal,
     isModalOpen,
-    closeModal,
+    onClose,
     openBusinessProblem,
     openBusinessSolution,
     openEvaluationParameters,
@@ -47,7 +48,15 @@ export default function LandingPage() {
   const [showEvaluationParameters, setShowEvaluationParameters] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showSessionPrompt, setShowSessionPrompt] = useState(hasEvaluationState);
+  const [showSessionPrompt, setShowSessionPrompt] = useState(() => {
+    // Initialize from sessionStorage to ensure prompt only shows once per browser session
+    const handled = sessionStorage.getItem('sessionPromptHandled');
+    return !handled && hasEvaluationState;
+  });
+  const [sessionPromptHandled, setSessionPromptHandled] = useState(() => {
+    return sessionStorage.getItem('sessionPromptHandled') === 'true';
+  });
+  const skipAutosaveRef = useRef(false);
 
   const methods = useForm({
     resolver: zodResolver(assessmentSchema),
@@ -63,8 +72,6 @@ export default function LandingPage() {
     formState: { isValid },
   } = methods;
 
-  const businessProblem = watch('businessProblem') || '';
-  const businessSolution = watch('businessSolution') || '';
   const allFormValues = watch();
 
   const handleRestore = () => {
@@ -72,11 +79,29 @@ export default function LandingPage() {
     if (restoredState) {
       reset(restoredState);
       setShowSessionPrompt(false);
+      setSessionPromptHandled(true);
+      sessionStorage.setItem('sessionPromptHandled', 'true');
     }
   };
 
+  useEffect(() => {
+    // Only show prompt once per browser session, on first page load with saved state
+    if (
+      !sessionPromptHandled &&
+      hasEvaluationState &&
+      !sessionStorage.getItem('sessionPromptHandled')
+    ) {
+      setShowSessionPrompt(true);
+    }
+  }, []);
+
   // Auto-save form state to session on every change
   useEffect(() => {
+    if (skipAutosaveRef.current) {
+      skipAutosaveRef.current = false;
+      return undefined;
+    }
+
     const debounceTimer = setTimeout(() => {
       if (allFormValues && allFormValues.businessProblem && allFormValues.businessSolution) {
         saveEvaluation(allFormValues);
@@ -133,255 +158,286 @@ export default function LandingPage() {
 
   return (
     <FormProvider {...methods}>
-      {showSessionPrompt && (
-        <SessionRestorePrompt
-          onRestore={handleRestore}
-          onDismiss={() => {
-            setShowSessionPrompt(false);
-            clearEvaluation();
-          }}
-        />
-      )}
-      <AppContainer
-        // className="landing-page-container"
-        headerProps={{
-          title: 'Circularity AI Evaluator',
-          subtitle:
-            'Assess and enhance your circular economy business ideas with AI-driven insights.',
-          showAssessmentMethodologyButton: true,
-          showEvaluationCriteriaButton: true,
-          showMyAssessmentsButton: true,
+      <SessionRestorePrompt
+        isOpen={showSessionPrompt}
+        onRestore={handleRestore}
+        onDismiss={() => {
+          setShowSessionPrompt(false);
+          setSessionPromptHandled(true);
+          sessionStorage.setItem('sessionPromptHandled', 'true');
+          skipAutosaveRef.current = true;
+          reset(defaultValues);
+          clearEvaluation();
         }}
-      >
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
-          <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-center w-12 h-12 mb-3 bg-orange-100 rounded-lg">
-                <Sparkles className="w-6 h-6 text-orange-600" />
-              </div>
-              <CardTitle className="text-lg">AI-Powered</CardTitle>
-              <CardDescription>
-                Machine learning analysis based on circular economy principles
-              </CardDescription>
-            </CardHeader>
-          </Card>
+      />
+      {!showSessionPrompt && (
+        <AppContainer
+          // className="landing-page-container"
+          headerProps={{
+            title: 'Circularity Economy Business Evaluator',
+            subtitle:
+              'Assess and enhance your circular economy business ideas with AI-driven insights.',
+            showAssessmentMethodologyButton: true,
+            showEvaluationCriteriaButton: true,
+            showMyAssessmentsButton: true,
+          }}
+        >
+          <div className="w-full max-w-4xl mx-auto space-y-8">
+            {/* Hero */}
+            {/* <section className="text-center">
+              <h1 className="inline-flex items-center text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+                Professional-grade circular economy assessment
+              </h1>
+              <p className="max-w-2xl mx-auto mt-4 text-base leading-relaxed text-muted-foreground">
+                Turn your sustainability idea into a structured, data-driven evaluation with clear
+                recommendations and benchmarking.
+              </p>
+            </section> */}
 
-          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-center w-12 h-12 mb-3 bg-blue-100 rounded-lg">
-                <LayoutGrid className="w-6 h-6 text-blue-600" />
-              </div>
-              <CardTitle className="text-lg">Multi-Dimensional</CardTitle>
-              <CardDescription>Evaluates across 5 key circular economy domains</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-center w-12 h-12 mb-3 bg-green-100 rounded-lg">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
-              </div>
-              <CardTitle className="text-lg">Actionable</CardTitle>
-              <CardDescription>Receive specific recommendations for improvement</CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Input Form */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl">Evaluate Your Circular Economy Business</CardTitle>
-            <CardDescription>
-              Describe your business idea using the same structure as real circular economy
-              projects: what problem you solve, and how your solution addresses it.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Problem Input */}
-            <div className="space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="business-problem" className="text-base font-semibold">
-                    Business Problem
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    What environmental or circular economy challenge does your business address?
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 -mt-1"
-                  onClick={openBusinessProblem}
-                >
-                  <Info className="w-4 h-4" />
-                </Button>
-              </div>
-              <Textarea
-                id="business-problem"
-                rows={4}
-                placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
-                {...register('businessProblem')}
-                disabled={loading}
-                className="resize-none"
-              />
-              <div className="flex justify-end">
-                <span
-                  className={cn(
-                    'text-sm font-medium',
-                    getCharacterCount(businessProblem) >= 200 ? 'text-primary' : 'text-destructive',
-                  )}
-                >
-                  {getCharacterCount(businessProblem)} / 200 characters
-                </span>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Solution Input */}
-            <div className="space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="business-solution" className="text-base font-semibold">
-                    Business Solution
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    How does your business solve this problem? Include materials, processes, and
-                    circularity strategy.
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 -mt-1"
-                  onClick={openBusinessSolution}
-                >
-                  <Info className="w-4 h-4" />
-                </Button>
-              </div>
-              <Textarea
-                id="business-solution"
-                rows={4}
-                placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
-                {...register('businessSolution')}
-                disabled={loading}
-                className="resize-none"
-              />
-              <div className="flex justify-end">
-                <span
-                  className={cn(
-                    'text-sm font-medium',
-                    getCharacterCount(businessSolution) >= 200
-                      ? 'text-primary'
-                      : 'text-destructive',
-                  )}
-                >
-                  {getCharacterCount(businessSolution)} / 200 characters
-                </span>
-              </div>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
-                    <strong>Validation Error:</strong>
+            {/* Feature Cards */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Card className="transition-shadow border bg-card hover:shadow-md">
+                <CardContent className="flex flex-col items-center justify-center pt-6">
+                  <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-lg bg-primary/10">
+                    <Sparkles className="w-5 h-5 text-primary" />
                   </div>
-                  <p className="mt-1">{error}</p>
-                </AlertDescription>
-              </Alert>
-            )}
+                  <h3 className="font-semibold text-foreground">AI-Powered</h3>
+                  <p className="mt-2 text-sm text-center text-muted-foreground">
+                    Machine learning analysis grounded in circular economy principles.
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Separator />
+              <Card className="transition-shadow border bg-card hover:shadow-md">
+                <CardContent className="flex flex-col items-center justify-center pt-6">
+                  <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-lg bg-primary/10">
+                    <LayoutGrid className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">Multi-Dimensional</h3>
+                  <p className="mt-2 text-sm text-center text-muted-foreground">
+                    Evaluates across key domains for clarity and depth.
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* EvaluationParameters Parameters Section */}
-            <div className="space-y-4">
-              <Button
-                type="button"
-                variant="ghost"
-                className="justify-start w-full h-auto gap-2 px-0 text-base font-semibold hover:bg-transparent text-primary"
-                onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
-              >
-                {showEvaluationParameters ? (
-                  <ChevronDown className="w-5 h-5" />
-                ) : (
-                  <ChevronRight className="w-5 h-5" />
-                )}
-                EvaluationParameters Parameters
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1 ml-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEvaluationParameters();
-                  }}
-                >
-                  <Info className="w-4 h-4" />
-                </Button>
-              </Button>
-
-              <AnimatePresence initial={false}>
-                {showEvaluationParameters && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                  >
-                    <ParameterInputContainer loading={loading} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <Card className="transition-shadow border bg-card hover:shadow-md">
+                <CardContent className="flex flex-col items-center justify-center pt-6">
+                  <div className="flex items-center justify-center w-10 h-10 mb-3 rounded-lg bg-primary/10">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">Actionable</h3>
+                  <p className="mt-2 text-sm text-center text-muted-foreground">
+                    Clear recommendations you can apply immediately to improve outcomes.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
-            <Separator />
+            {/* Input Form */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            >
+              <Card className="transition-shadow border shadow-md bg-card">
+                <CardHeader className="pb-8">
+                  <CardTitle className="inline-flex items-center gap-3 text-2xl font-bold text-teal-700">
+                    Evaluate Your Circular Economy Business
+                    <Leaf className="w-6 h-6" strokeWidth={3} />
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    Describe your business idea using the same structure as real circular economy
+                    projects: what problem you solve, and how your solution addresses it.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Problem Input */}
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="ml-2 space-y-1">
+                        <div className="flex items-center justify-start gap-3">
+                          <Label htmlFor="business-problem" className="text-base font-bold">
+                            Business Problem
+                          </Label>
+                          <InfoIconButton onClick={openBusinessProblem} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          What environmental or circular economy challenge does your business
+                          address?
+                        </p>
+                      </div>
+                    </div>
+                    <Textarea
+                      id="business-problem"
+                      rows={4}
+                      placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
+                      {...register('businessProblem')}
+                      disabled={loading}
+                      className="border-2 focus:border-emerald-600"
+                    />
+                    <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
+                  </div>
 
-            {/* Submit Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="w-full">
-                    <Button
-                      size="lg"
-                      className="w-full gap-2 text-lg h-14"
-                      onClick={handleSubmit(handleFormSubmit)}
-                      disabled={loading || !isValid}
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Evaluating...
-                        </>
-                      ) : (
-                        <>
-                          Evaluate Circularity
-                          <ChevronRight className="w-5 h-5" />
-                        </>
+                  <Separator />
+
+                  {/* Solution Input */}
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="ml-2 space-y-1">
+                        <div className="flex items-center justify-start gap-3">
+                          <Label htmlFor="business-solution" className="text-base font-bold">
+                            Business Solution
+                          </Label>
+                          <InfoIconButton onClick={openBusinessSolution} />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          How does your business solve this problem? Include materials, processes,
+                          and circularity strategy.
+                        </p>
+                      </div>
+                    </div>
+                    <Textarea
+                      id="business-solution"
+                      rows={5}
+                      placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
+                      {...register('businessSolution')}
+                      disabled={loading}
+                      className="border-2 focus:border-emerald-600"
+                    />
+                    <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
+                  </div>
+
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4" strokeWidth={2.5} />
+                          <strong>Validation Error:</strong>
+                        </div>
+                        <p className="mt-1">{error}</p>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <Separator />
+
+                  {/* EvaluationParameters Parameters Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-start text-emerald-600">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="p-0 mr-1 text-base font-semibold"
+                        onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
+                      >
+                        <ChevronRight
+                          className={cn(
+                            'w-5 h-5 transition-transform duration-500',
+                            showEvaluationParameters && 'rotate-90',
+                          )}
+                        />
+                        <span className="font-bold">Evaluation Parameters</span>
+                      </Button>
+
+                      <InfoIconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEvaluationParameters();
+                        }}
+                        className="ml-2 mt-[1px]"
+                      />
+                    </div>
+
+                    <AnimatePresence initial={false}>
+                      {showEvaluationParameters && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0.5 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0.5 }}
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <ParameterInputContainer loading={loading} />
+                        </motion.div>
                       )}
-                    </Button>
+                    </AnimatePresence>
                   </div>
-                </TooltipTrigger>
-                {!isValid && !loading && (
-                  <TooltipContent>
-                    <p>Please fill out all required fields (minimum 200 characters each)</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
 
-            {/* Test Case Selector */}
-            <SampleTestCasesContainer />
-          </CardContent>
-        </Card>
-      </AppContainer>
+                  {/* Submit Button */}
+                  <div className="w-full">
+                    {!isValid && !loading ? (
+                      <Tooltip
+                        placement="top"
+                        content={
+                          <div className="px-3 py-1.5 text-xs text-white rounded-full shadow-md bg-slate-900">
+                            Please fill out all required fields (min. 200 chars each)
+                          </div>
+                        }
+                      >
+                        <div className="w-full">
+                          <Button
+                            size="lg"
+                            onClick={handleSubmit(handleFormSubmit)}
+                            disabled={loading || !isValid}
+                            className={cn(
+                              'w-full gap-2 text-xl font-bold h-14 transition-all duration-200 border-none shadow-sm mb-2',
+                              'enabled:bg-gradient-to-r enabled:from-emerald-600 enabled:via-green-600 enabled:to-teal-600 enabled:text-white',
+                              'enabled:hover:from-emerald-700 enabled:hover:to-teal-700 enabled:hover:shadow-md',
+                              'enabled:active:scale-[0.98]',
+                              'disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60',
+                            )}
+                          >
+                            {loading ? (
+                              <div className="flex items-center justify-center gap-4">
+                                <LoaderIcon isButton={true} color="" />
+                                <span>Evaluating...</span>
+                              </div>
+                            ) : (
+                              <span>Evaluate Circularity</span>
+                            )}
+                          </Button>
+                        </div>
+                      </Tooltip>
+                    ) : (
+                      <div className="w-full">
+                        <Button
+                          size="lg"
+                          onClick={handleSubmit(handleFormSubmit)}
+                          disabled={loading || !isValid}
+                          className={cn(
+                            'w-full gap-2 text-xl font-bold h-14 transition-all duration-200 border-none shadow-sm',
+                            'enabled:bg-gradient-to-r enabled:from-emerald-600 enabled:via-green-600 enabled:to-teal-600 enabled:text-white',
+                            'enabled:hover:from-emerald-700 enabled:hover:to-teal-700 enabled:hover:shadow-md',
+                            'enabled:active:scale-[0.98]',
+                            'disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60',
+                          )}
+                        >
+                          {loading ? (
+                            <div className="flex items-center justify-center gap-4">
+                              <LoaderIcon isButton={true} color="" />
+                              <span>Evaluating...</span>
+                            </div>
+                          ) : (
+                            <>Evaluate Circularity</>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Test Case Selector */}
+                  <SampleTestCasesContainer
+                    setShowEvaluationParameters={setShowEvaluationParameters}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </AppContainer>
+      )}
 
       {/* Landing Page Modals */}
-      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={closeModal} />
+      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </FormProvider>
   );
 }
