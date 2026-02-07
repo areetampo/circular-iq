@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { LoginForm } from '@/components/auth/login-form';
-import { SignupForm } from '@/components/auth/signup-form';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { SignupForm } from '@/components/auth/SignupForm';
 
 export default function AuthPage() {
   const [view, setView] = useState('login');
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 min-h-svh bg-muted md:p-10">
-      {view === 'login' ? (
-        <LoginForm onSwitchToSignup={() => setView('signup')} />
-      ) : (
-        <SignupForm onSwitchToLogin={() => setView('login')} />
-      )}
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="relative z-10 px-4 w-full flex justify-center">
+        {view === 'login' ? (
+          <LoginForm onSwitchToSignup={() => setView('signup')} />
+        ) : (
+          <SignupForm onSwitchToLogin={() => setView('login')} />
+        )}
+      </div>
     </div>
   );
 }

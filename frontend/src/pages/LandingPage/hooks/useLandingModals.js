@@ -1,5 +1,5 @@
 import useModal from '@/hooks/useModal';
-import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
+import { LANDING_MODALS } from '@/components/modals/modalTypes';
 
 export default function useLandingModals() {
   const { modal, openModal, onClose, isModalOpen } = useModal();
@@ -9,16 +9,20 @@ export default function useLandingModals() {
     isModalOpen,
     onClose,
 
-    openBusinessProblem: () => openModal(LANDING_MODALS.BUSINESS_PROBLEM_INFO),
+    openAssessmentMethodologyModal: () => openModal(LANDING_MODALS.ASSESSMENT_METHODOLOGY),
 
-    openBusinessSolution: () => openModal(LANDING_MODALS.BUSINESS_SOLUTION_INFO),
+    openEvaluationCriteriaModal: () => openModal(LANDING_MODALS.EVALUATION_CRITERIA),
 
-    openEvaluationParameters: () => openModal(LANDING_MODALS.EVALUATION_PARAMETERS_INFO),
+    openBusinessProblemInfoModal: () => openModal(LANDING_MODALS.BUSINESS_PROBLEM_INFO),
 
-    openParameterInfo: (paramKey) => openModal(LANDING_MODALS.PARAMETER_INFO, { paramKey }),
+    openBusinessSolutionInfoModal: () => openModal(LANDING_MODALS.BUSINESS_SOLUTION_INFO),
 
-    openTestCaseHeading: () => openModal(LANDING_MODALS.SAMPLE_TEST_CASES_HEADING_INFO),
+    openEvaluationParametersInfoModal: () => openModal(LANDING_MODALS.EVALUATION_PARAMETERS_INFO),
 
-    openTestCase: (testCase) => openModal(LANDING_MODALS.TEST_CASE_INFO, { testCase }),
+    openParameterInfoModal: (paramKey) => openModal(LANDING_MODALS.PARAMETER_INFO, { paramKey }),
+
+    openTestCasesHeadingInfoModal: () => openModal(LANDING_MODALS.SAMPLE_TEST_CASES_HEADING_INFO),
+
+    openTestCaseDetailsModal: (testCase) => openModal(LANDING_MODALS.TEST_CASE_INFO, { testCase }),
   };
 }

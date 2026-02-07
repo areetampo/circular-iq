@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { extractProblemSolution } from '@/utils/content';
-import { NotebookText, Target, Lightbulb, X } from 'lucide-react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
+import { NotebookText, Target, Lightbulb } from 'lucide-react';
+import { Modal, Button } from '@heroui/react';
 
 export default function ResultsDatabaseEvidenceDetailsModal({
   onClose,
@@ -28,46 +28,35 @@ export default function ResultsDatabaseEvidenceDetailsModal({
     solutionPart !== 'Solution data not clearly formatted';
 
   return (
-    <Modal
+    <Modal.Backdrop
       isOpen={isModalOpen}
       onOpenChange={onClose}
-      size="2xl"
-      backdrop="opaque"
-      placement="center"
-      scrollBehavior="inside"
-      classNames={{
-        backdrop: 'bg-black/50',
-        base: 'bg-white rounded-2xl shadow-xl',
-      }}
+      variant="opaque"
+      isDismissable={true}
     >
-      <ModalContent>
-        {() => (
-          <>
-            <ModalHeader className="flex flex-col gap-2 border-b border-gray-200 py-4 px-6">
-              <div className="flex items-center gap-2">
-                <NotebookText className="w-6 h-6 text-slate-700" />
-                <h2 className="text-xl font-bold text-slate-900">{title || 'Evidence Details'}</h2>
-                <Button
-                  isIconOnly
-                  variant="light"
-                  onPress={onClose}
-                  aria-label="Close"
-                  className="ml-auto"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+      <Modal.Container placement="center" scroll="inside" size="2xl">
+        <Modal.Dialog aria-label="Evidence Details">
+          <Modal.Header className="pt-0 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-slate-100">
+                <NotebookText className="size-5 text-slate-600" />
               </div>
-              <p className="text-sm text-gray-600">
-                Database evidence from similar circular economy projects
-              </p>
-            </ModalHeader>
+              <div>
+                <h2 className="text-lg font-semibold">{title || 'Evidence Details'}</h2>
+                <p className="text-sm text-gray-600">
+                  Database evidence from similar circular economy projects
+                </p>
+              </div>
+            </div>
+          </Modal.Header>
 
-            <ModalBody className="py-6 px-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <Modal.Body className="gap-6 px-2">
+            <div className="space-y-8">
               {/* Metadata badges */}
               {matchPercentage && (
-                <div className="flex flex-wrap items-center gap-2 mb-6 pb-4 border-b border-gray-100">
-                  <div className="flex items-center justify-center gap-2 text-sm py-2 px-3 rounded-md bg-gray-100 font-semibold text-gray-700">
-                    <NotebookText size={16} />
+                <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-100">
+                  <div className="flex items-center justify-center gap-2 text-sm py-2 px-3 rounded-md bg-gray-100 font-semibold text-gray-600">
+                    <NotebookText className="size-4" />
                     <span>Source Case {sourceCaseId}</span>
                   </div>
                   <span className="text-gray-400">•</span>
@@ -87,48 +76,44 @@ export default function ResultsDatabaseEvidenceDetailsModal({
               {/* Content sections */}
               {hasSeparateSections ? (
                 <>
-                  <div className="mb-8">
+                  <div>
                     <div className="flex items-center gap-2.5 mb-4 pb-3 border-b-2 border-emerald-600">
-                      <Target className="w-6 h-6 text-emerald-600" strokeWidth={2} />
-                      <h3 className="m-0 text-lg font-semibold text-slate-900">
-                        Problem Addressed
-                      </h3>
+                      <Target className="size-5 text-emerald-600" strokeWidth={2} />
+                      <h3 className="m-0 text-lg font-semibold text-gray-900">Problem Addressed</h3>
                     </div>
-                    <p className="m-0 text-base leading-7 text-slate-800">{problemPart}</p>
+                    <p className="m-0 text-base leading-7 text-gray-600">{problemPart}</p>
                   </div>
 
-                  <div className="mb-8">
+                  <div>
                     <div className="flex items-center gap-2.5 mb-4 pb-3 border-b-2 border-emerald-600">
-                      <Lightbulb className="w-6 h-6 text-emerald-600" strokeWidth={2} />
-                      <h3 className="m-0 text-lg font-semibold text-slate-900">
-                        Solution Approach
-                      </h3>
+                      <Lightbulb className="size-5 text-emerald-600" strokeWidth={2} />
+                      <h3 className="m-0 text-lg font-semibold text-gray-900">Solution Approach</h3>
                     </div>
-                    <p className="m-0 text-base leading-7 text-slate-800">{problemPart}</p>
+                    <p className="m-0 text-base leading-7 text-gray-600">{problemPart}</p>
                   </div>
 
-                  <div className="mb-7">
+                  <div>
                     <div className="flex items-center gap-2.5 mb-3 pb-2 border-b-2 border-emerald-600">
-                      <Lightbulb className="w-6 h-6 text-emerald-600" strokeWidth={2} />
-                      <h3 className="m-0 text-lg font-semibold text-slate-800">
-                        Solution Approach
-                      </h3>
+                      <Lightbulb className="size-5 text-emerald-600" strokeWidth={2} />
+                      <h3 className="m-0 text-lg font-semibold text-gray-900">Solution Approach</h3>
                     </div>
-                    <p className="m-0 text-base leading-7 text-slate-800">{solutionPart}</p>
+                    <p className="m-0 text-base leading-7 text-gray-600">{solutionPart}</p>
                   </div>
                 </>
               ) : (
-                <>
-                  <p className="m-0 mb-6 leading-7 text-slate-800">{content}</p>
-                </>
+                <p className="m-0 leading-7 text-gray-600">{content}</p>
               )}
-            </ModalBody>
+            </div>
+          </Modal.Body>
 
-            <ModalFooter className="py-2 px-6" />
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+          <Modal.Footer className="">
+            <Button variant="tertiary" onPress={onClose}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }
 

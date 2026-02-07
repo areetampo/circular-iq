@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { RESULTS_MODALS } from '@/components/modals/core/modalTypes';
+import { RESULTS_MODALS } from '@/components/modals/modalTypes';
 import ResultsDatabaseEvidenceDetailsModal from './ResultsDatabaseEvidenceDetailsModal';
 
 export default function ResultsModalManager({ modal, isModalOpen, onClose }) {

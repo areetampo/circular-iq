@@ -1,5 +1,5 @@
 import useModal from '@/hooks/useModal';
-import { RESULTS_MODALS } from '@/components/modals/core/modalTypes';
+import { RESULTS_MODALS } from '@/components/modals/modalTypes';
 
 export default function useResultsModals() {
   const { modal, openModal, onClose, isModalOpen } = useModal();
@@ -9,7 +9,7 @@ export default function useResultsModals() {
     isModalOpen,
     onClose,
 
-    openDatabaseEvidenceDetails: (evidenceData) =>
+    openDatabaseEvidenceDetailsModal: (evidenceData) =>
       openModal(RESULTS_MODALS.DATABASE_EVIDENCE_DETAILS, evidenceData),
   };
 }

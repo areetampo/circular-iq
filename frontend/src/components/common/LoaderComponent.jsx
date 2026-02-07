@@ -18,8 +18,10 @@ export default function LoaderComponent({
       </div>
 
       {/* Fixed height container for message with vertical centering */}
-      <div className="flex flex-col items-center justify-center h-8 max-w-lg">
-        <p className="text-base text-center text-emerald-600">{message || '\u00A0'}</p>
+      <div className="flex flex-col items-center justify-center h-8">
+        <p className="mx-8 text-base text-center text-emerald-600 text-wrap">
+          {message || '\u00A0'}
+        </p>
       </div>
     </div>
   );

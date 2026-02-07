@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/cn';
 import {
   Spiral,
   Bouncy,

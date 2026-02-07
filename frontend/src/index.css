@@ -1,134 +1,198 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* HeroUI v3 styles - Essential for Modal/AlertDialog/Form components */
+@import '@heroui/styles';
+
+/* Dark mode variant for Tailwind v4 */
+@custom-variant dark (&:is(.dark *));
+
+/* Tailwind plugins */
+@plugin "tailwindcss-animate";
+
+/* Source paths for Tailwind to scan */
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+@source "./**/*.{html,js,jsx,ts,tsx}";
+
+/* ===== TAILWIND V4 THEME ===== */
+@theme {
+  /* ===== FONTS ===== */
+  --font-sans: 'Figtree', system-ui, sans-serif;
+  --font-display: 'Outfit', ui-sans-serif, system-ui;
+  --font-alt: 'Rubik', ui-sans-serif, system-ui;
+  --font-soft: 'Barlow', ui-sans-serif, system-ui;
+  --font-tech: 'IBM Plex Sans', ui-sans-serif, system-ui;
+  --font-mono: 'Inconsolata', ui-monospace, monospace;
+  --font-nunito: 'Nunito', ui-sans-serif, system-ui;
+
+  /* ===== CUSTOM COLOR SCALES ===== */
+  /* Primary (Emerald/Green for circular economy theme) */
+  --color-primary-50: #f0f8f5;
+  --color-primary-100: #ddf0eb;
+  --color-primary-200: #c1e6ca;
+  --color-primary-300: #a5ddb0;
+  --color-primary-400: #6bc86f;
+  --color-primary-500: #34a83a;
+  --color-primary-600: #2d9432;
+  --color-primary-700: #26802a;
+  --color-primary-800: #1f6c23;
+  --color-primary-900: #1a581d;
+
+  /* Accent (Orange) */
+  --color-accent-50: #fff9f0;
+  --color-accent-100: #ffe0b2;
+  --color-accent-200: #ffc880;
+  --color-accent-300: #ffb74d;
+  --color-accent-400: #ffa726;
+  --color-accent-500: #ff9800;
+  --color-accent-600: #f57c00;
+  --color-accent-700: #e65100;
+
+  /* Secondary (Blue) */
+  --color-secondary-50: #eff6ff;
+  --color-secondary-100: #dbeafe;
+  --color-secondary-200: #bfdbfe;
+  --color-secondary-300: #93c5fd;
+  --color-secondary-400: #60a5fa;
+  --color-secondary-500: #3b82f6;
+  --color-secondary-600: #2563eb;
+  --color-secondary-700: #1d4ed8;
+  --color-secondary-800: #1e40af;
+  --color-secondary-900: #1e3a8a;
+
+  /* ===== SPACING ===== */
+  /* harming dialog sizes so commenting out */
+  /* --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.25rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem; */
+
+  /* ===== ANIMATIONS ===== */
+  --animate-slide-in: slideIn 0.3s ease-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-bounce-scale: bounceScale 1s ease-in-out;
+  --animate-soft-pulse: softPulse 1.5s ease-in-out infinite;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  /* ===== BREAKPOINTS ===== */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm_md: 680px;
 }
 
-/* Custom Scrollbar Styling - Webkit browsers (Chrome, Safari, Edge) */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-}
-
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-body {
-  min-width: 320px;
-  min-height: 100vh;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
-}
-
-button {
-  font-family: inherit;
-}
-
-/* Base component classes */
-.btn {
-  @apply px-4 py-2 font-medium transition-colors duration-200 border-0 rounded-md cursor-pointer;
-}
-
-.btn-primary {
-  @apply text-white btn bg-emerald-600 hover:bg-emerald-700;
-}
-
-.card {
-  @apply bg-white border rounded-lg shadow-sm border-slate-200;
-}
-
-.input {
-  @apply w-full px-3 py-2 border rounded-md border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-600;
-}
-
-@layer base {
-  :root {
-    /* Slate/Zinc theme with Emerald primary for Circular Economy */
-    --background: 210 20% 98%;
-    --foreground: 215 25% 16%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 16%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 16%;
-    --primary: 158 64% 52%; /* Emerald-600 for Circular Economy theme */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 11% 96%;
-    --secondary-foreground: 215 25% 16%;
-    --muted: 210 11% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 11% 96%;
-    --accent-foreground: 215 25% 16%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 158 64% 52%; /* Match primary (Emerald) */
-    --chart-1: 158 64% 52%; /* Emerald for sustainability */
-    --chart-2: 199 89% 48%; /* Cyan for water/resources */
-    --chart-3: 142 71% 45%; /* Green for eco-friendly */
-    --chart-4: 217 91% 60%; /* Blue for innovation */
-    --chart-5: 280 60% 50%; /* Purple for creativity */
-    --radius: 0.5rem;
+/* ===== KEYFRAME ANIMATIONS ===== */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
   }
-  .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 158 64% 52%; /* Emerald-600 consistent in dark mode */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 158 64% 52%; /* Match primary (Emerald) */
-    --chart-1: 158 64% 52%;
-    --chart-2: 199 89% 48%;
-    --chart-3: 142 71% 45%;
-    --chart-4: 217 91% 60%;
-    --chart-5: 280 60% 50%;
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
+@keyframes slideUp {
+  from {
+    transform: translateY(1.25rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceScale {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+@keyframes softPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* ===== GLOBAL BASE STYLES ===== */
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(16, 185, 129, 0.4) transparent;
   }
 
   body {
-    @apply font-nunito bg-background text-foreground;
+    min-height: 100vh;
+    min-width: 80px;
+    background-color: #ffffff;
+    color: #0a0a0a;
+    font-family: var(--font-nunito);
   }
+
+  .dark body {
+    background-color: #0a0a0a;
+    color: #fafafa;
+  }
+}
+
+/* ===== CUSTOM SCROLLBAR (Emerald theme) ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(16, 185, 129, 0.9);
+  border-radius: 100px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(16, 185, 129, 0.8);
+}
+
+#root {
+  @apply w-full min-h-screen;
 }

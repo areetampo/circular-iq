@@ -3,10 +3,7 @@ import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
 import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Card, Label, Input, NumberField } from '@heroui/react';
 import LandingModalManager from '@/components/modals/landing/LandingModalManager';
 import InfoIconButton from '@/components/common/InfoIconButton';
 
@@ -14,9 +11,9 @@ import InfoIconButton from '@/components/common/InfoIconButton';
  * Memoized Parameter Row Component
  * Only re-renders when its specific parameter value changes
  */
-const ParameterRow = React.memo(({ paramKey, loading }) => {
+const ParameterBox = React.memo(({ paramKey, loading }) => {
   const { control } = useFormContext();
-  const { modal, isModalOpen, onClose, openParameterInfo } = useLandingModals();
+  const { modal, isModalOpen, onClose, openParameterInfoModal } = useLandingModals();
 
   // Calculate scale markers only for this parameter
   const getScaleMarkers = React.useMemo(() => {
@@ -35,50 +32,68 @@ const ParameterRow = React.memo(({ paramKey, loading }) => {
   };
 
   return (
-    <div className="px-0 mt-2 transition-shadow rounded-lg">
-      {/* Header with Label */}
-      <div className="mb-5 text-center">
-        <Label
-          htmlFor={paramKey}
-          className="px-4 py-1.5 mb-3 font-bold text-green-700 rounded-full text-md bg-emerald-100"
-        >
-          {parameterLabels[paramKey].label}
-        </Label>
-      </div>
-
+    <div className="px-0 mt-2 transition-shadow rounded-lg w-full flex flex-col items-center justify-center">
       <Controller
         name={`parameters.${paramKey}`}
         control={control}
         render={({ field }) => (
-          <div className="space-y-4 text-center">
-            {/* Number Input and Info Icon */}
-            <div className="flex items-center justify-center gap-3">
-              <InfoIconButton size={20} onClick={() => openParameterInfo(paramKey)} />
-              <Input
-                type="number"
-                id={paramKey}
-                min={0}
-                max={100}
+          <div className="space-y-4 text-center w-full">
+            {/* Number Input */}
+            <div className="flex items-center justify-center w-full">
+              <NumberField
+                className="w-full max-w-xs flex items-center justify-center"
+                minValue={0}
+                maxValue={100}
                 step={1}
+                name={paramKey}
+                id={paramKey}
                 value={field.value ?? 0}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  if (val === '') {
-                    field.onChange(0);
-                    return;
-                  }
-                  const numVal = Math.min(100, Math.max(0, Number(val)));
-                  field.onChange(numVal);
+                onChange={(value) => {
+                  // Simple handler for increment/decrement buttons
+                  const numValue = Math.min(Math.max(Number(value) || 0, 0), 100);
+                  field.onChange(numValue);
                 }}
-                onInput={(e) => {
-                  // Remove leading zeros
-                  if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                    e.target.value = e.target.value.replace(/^0+/, '') || '0';
-                  }
+                isDisabled={loading}
+                aria-label={parameterLabels[paramKey].label}
+                formatOptions={{
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                  useGrouping: false,
                 }}
-                className="w-20 px-2 text-base font-semibold text-center border-2 text-emerald-600 border-emerald-500"
-                disabled={loading}
-              />
+              >
+                {/* Header with Label */}
+                <Label className="mb-4 text-center flex flex-row items-center justify-center gap-2 bg-emerald-100 rounded-full w-fit px-4 py-2 mx-auto">
+                  <span className="font-bold text-green-700 text-md">
+                    {parameterLabels[paramKey].label}
+                  </span>
+                  <InfoIconButton size={20} onClick={() => openParameterInfoModal(paramKey)} />
+                </Label>
+                <NumberField.Group className="bg-white/90 shadow-sm">
+                  <NumberField.DecrementButton className="hover:bg-emerald-50 transition-colors" />
+                  <NumberField.Input
+                    onChange={(e) => {
+                      let value = e.target.value;
+
+                      // Remove leading zeros
+                      if (value.length > 1 && value.startsWith('0')) {
+                        value = value.replace(/^0+/, '') || '0';
+                      }
+
+                      // Cap at 100
+                      let numValue = parseInt(value, 10);
+                      if (!isNaN(numValue) && numValue > 100) {
+                        e.target.value = '100';
+                        field.onChange(100);
+                      } else {
+                        e.target.value = value;
+                        field.onChange(isNaN(numValue) ? 0 : numValue);
+                      }
+                    }}
+                    className="w-16 text-base font-semibold text-center text-emerald-600"
+                  />
+                  <NumberField.IncrementButton className="hover:bg-emerald-50 transition-colors" />
+                </NumberField.Group>
+              </NumberField>
             </div>
 
             {/* Scale Guide Badges */}
@@ -114,9 +129,9 @@ const ParameterRow = React.memo(({ paramKey, loading }) => {
   );
 });
 
-ParameterRow.displayName = 'ParameterRow';
+ParameterBox.displayName = 'ParameterBox';
 
-ParameterRow.propTypes = {
+ParameterBox.propTypes = {
   paramKey: PropTypes.string.isRequired,
   loading: PropTypes.bool.isRequired,
 };
@@ -126,18 +141,18 @@ ParameterRow.propTypes = {
  */
 export default function ParameterInputContainer({ loading }) {
   return (
-    <Card className="border-2 shadow-sm bg-gradient-to-br from-emerald-50/60 via-teal-50/70 to-cyan-50/60 border-emerald-500">
-      <CardContent className="pt-6 space-y-12">
+    <Card className="border-2 shadow-sm bg-linear-to-br from-emerald-50/60 via-teal-50/70 to-cyan-50/60 border-emerald-500">
+      <div className="py-2 space-y-12">
         {Object.entries(parameterGroups).map(([groupName, group], groupIdx) => (
           <div key={groupName} className="space-y-4">
             <h3 className="text-xl font-extrabold text-center text-teal-600">{groupName}</h3>
-            <Separator orientation="horizontal" className="bg-teal-900 h-0.5 w-auto" />
-            <div className="flex flex-col gap-6 md:flex-row md:items-stretch">
+            <div className="bg-teal-900 h-0.5 w-auto" />
+            <div className="flex flex-col gap-6 md:gap-4 md:flex-row md:items-stretch">
               {group.map((key, index) => (
                 <React.Fragment key={key}>
                   {/* 1. The Wrapper for the content */}
                   <div className="flex-1">
-                    <ParameterRow paramKey={key} loading={loading} />
+                    <ParameterBox paramKey={key} loading={loading} />
                   </div>
 
                   {/* 2. The Separator as a direct sibling of the flex-1 div */}
@@ -157,7 +172,7 @@ export default function ParameterInputContainer({ loading }) {
             </div>
           </div>
         ))}
-      </CardContent>
+      </div>
     </Card>
   );
 }

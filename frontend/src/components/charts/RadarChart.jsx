@@ -8,7 +8,11 @@ import {
   PolarRadiusAxis,
   Legend,
 } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/common/ChartWrapper';
 import { cn } from '@/utils/cn';
 
 export default function RadarChart({
