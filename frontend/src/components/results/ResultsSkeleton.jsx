@@ -1,7 +1,5 @@
 import React from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+import { Card, Skeleton } from '@heroui/react';
 
 /**
  * ResultsSkeleton Component
@@ -12,7 +10,7 @@ export default function ResultsSkeleton() {
   return (
     <div className="p-8 space-y-6 max-w-4xl mx-auto">
       {/* Header Actions Skeleton */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 border rounded-lg bg-card">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 border rounded-lg bg-white">
         <div className="flex flex-wrap gap-2">
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-40" />
@@ -34,37 +32,37 @@ export default function ResultsSkeleton() {
 
         {/* Executive Summary Card Skeleton */}
         <Card className="border-4 border-emerald-600">
-          <CardHeader className="space-y-4">
+          <Card.Header className="space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-8 w-64" />
               <Skeleton className="h-8 w-32" />
             </div>
             <Skeleton className="h-6 w-full" />
             <Skeleton className="h-6 w-3/4" />
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </Card.Header>
+          <Card.Content className="space-y-4">
             <Skeleton className="h-24 w-full" />
-            <Separator />
+            <div className="h-0.5 bg-gray-200" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-5/6" />
               <Skeleton className="h-4 w-4/5" />
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
 
         {/* Score Visualization Card Skeleton */}
         <Card>
-          <CardHeader>
+          <Card.Header>
             <Skeleton className="h-7 w-56" />
             <Skeleton className="h-4 w-96" />
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </Card.Header>
+          <Card.Content className="space-y-4">
             {/* Radar Chart Skeleton */}
             <div className="flex justify-center">
               <Skeleton className="h-80 w-80 rounded-full" />
             </div>
-            <Separator />
+            <div className="h-0.5 bg-gray-200" />
             <div className="grid grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="space-y-2">
@@ -73,16 +71,16 @@ export default function ResultsSkeleton() {
                 </div>
               ))}
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
 
         {/* Parameter Breakdown Card Skeleton */}
         <Card>
-          <CardHeader>
+          <Card.Header>
             <Skeleton className="h-7 w-64" />
             <Skeleton className="h-4 w-full" />
-          </CardHeader>
-          <CardContent className="space-y-3">
+          </Card.Header>
+          <Card.Content className="space-y-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
@@ -94,31 +92,31 @@ export default function ResultsSkeleton() {
                 <Skeleton className="h-4 w-3/4" />
               </div>
             ))}
-          </CardContent>
+          </Card.Content>
         </Card>
 
         {/* Integrity Analysis Card Skeleton */}
         <Card>
-          <CardHeader>
+          <Card.Header>
             <Skeleton className="h-7 w-48" />
             <Skeleton className="h-4 w-full" />
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </Card.Header>
+          <Card.Content className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-12 w-full" />
               </div>
             ))}
-          </CardContent>
+          </Card.Content>
         </Card>
 
         {/* Similar Projects Card Skeleton */}
         <Card>
-          <CardHeader>
+          <Card.Header>
             <Skeleton className="h-7 w-56" />
             <Skeleton className="h-4 w-full" />
-          </CardHeader>
-          <CardContent className="space-y-3">
+          </Card.Header>
+          <Card.Content className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="p-4 border rounded-lg space-y-2">
                 <div className="flex items-start justify-between">
@@ -133,7 +131,7 @@ export default function ResultsSkeleton() {
                 </div>
               </div>
             ))}
-          </CardContent>
+          </Card.Content>
         </Card>
       </div>
     </div>

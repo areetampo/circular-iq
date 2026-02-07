@@ -1,32 +1,23 @@
 /**
  * Save Assessment Dialog
  * Specialized dialog for saving assessments with a name
- * Wraps InputDialog with specific validation and messaging
+ * Uses HeroUI v3 AlertDialog compound syntax
  *
  * Location: src/components/dialogs/SaveAssessmentDialog.jsx
  */
 
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Switch,
-} from '@heroui/react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Globe } from 'lucide-react';
+import { AlertDialog, Button, Switch, Input, Label, Description } from '@heroui/react';
+import { cn } from '@/utils/cn';
+import { Globe, Save } from 'lucide-react';
 
 /**
  * Specialized dialog for saving assessments with a name
  *
  * @example
  * <SaveAssessmentDialog
- *   open={showSave}
+ *   isOpen={showSave}
  *   onOpenChange={setShowSave}
  *   defaultName="Untitled Assessment"
  *   onSave={(name) => {
@@ -34,18 +25,18 @@ import { Globe } from 'lucide-react';
  *   }}
  * />
  */
-export function SaveAssessmentDialog({ open, onOpenChange, onSave, defaultName = '' }) {
+export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName = '' }) {
   const [name, setName] = useState(defaultName);
   const [isPublic, setIsPublic] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       setName(defaultName);
       setIsPublic(true);
       setError('');
     }
-  }, [open, defaultName]);
+  }, [isOpen, defaultName]);
 
   const validateName = (value) => {
     const trimmed = value.trim();
@@ -65,7 +56,7 @@ export function SaveAssessmentDialog({ open, onOpenChange, onSave, defaultName =
     return null;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (close) => {
     const validationError = validateName(name);
     if (validationError) {
       setError(validationError);
@@ -73,92 +64,104 @@ export function SaveAssessmentDialog({ open, onOpenChange, onSave, defaultName =
     }
 
     onSave(name.trim(), isPublic);
+    close();
   };
 
   return (
-    <Modal
-      isOpen={open}
+    <AlertDialog.Backdrop
+      isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="md"
-      backdrop="opaque"
-      placement="center"
-      scrollBehavior="inside"
-      classNames={{
-        backdrop: 'bg-black/50',
-        base: 'bg-white rounded-2xl shadow-xl',
-      }}
+      variant="opaque"
+      isDismissable={false}
     >
-      <ModalContent>
-        {(onClose) => (
-          <div>
-            <ModalHeader className="flex flex-col gap-2 px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-900">Save Assessment</h2>
-              <p className="text-sm text-gray-600">
-                Give your assessment a memorable name and choose your privacy settings
-              </p>
-            </ModalHeader>
-            <ModalBody className="gap-6 px-6 py-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="font-medium text-gray-700">
-                  Assessment Name
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="e.g., Recycled Plastic Packaging Project"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setError('');
-                  }}
-                  maxLength={100}
-                  className={`${error ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'} transition-all`}
-                />
-                {error && <p className="mt-1 text-sm font-medium text-red-600">{error}</p>}
-              </div>
+      <AlertDialog.Container placement="center" size="lg">
+        <AlertDialog.Dialog>
+          {({ close }) => (
+            <>
+              <AlertDialog.Header>
+                <AlertDialog.Icon status="success">
+                  <Save className="w-6 h-6" />
+                </AlertDialog.Icon>
+                <AlertDialog.Heading>Save Assessment</AlertDialog.Heading>
+              </AlertDialog.Header>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 space-x-3 border border-blue-100 rounded-lg bg-blue-50">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Globe className="w-5 h-5 text-blue-600" />
-                      <Label
-                        htmlFor="is-public"
-                        className="font-semibold text-gray-900 cursor-pointer"
-                      >
-                        Contribute to global benchmarks
-                      </Label>
-                    </div>
-                    <p className="text-sm text-gray-700">
-                      Allow your anonymized score to be included in industry-wide averages. This
-                      helps improve circular economy insights for everyone.
-                    </p>
-                  </div>
-                  <Switch
-                    isSelected={isPublic}
-                    onValueChange={setIsPublic}
-                    color="primary"
-                    size="lg"
+              <AlertDialog.Body className="gap-6">
+                <p className="text-sm text-gray-600">
+                  Give your assessment a memorable name and choose your privacy settings
+                </p>
+                <div className="flex flex-col items-center gap-2 mb-4">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Assessment Name
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g., Recycled Plastic Packaging Project"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setError('');
+                    }}
+                    maxLength={100}
+                    className={cn('w-4/5 sm:w-3/5', error && 'border-red-600 focus:ring-red-600')}
                   />
+                  {error && <p className="text-sm text-red-600">{error}</p>}
                 </div>
-              </div>
-            </ModalBody>
-            <ModalFooter className="gap-3 px-6 py-4">
-              <Button variant="light" onPress={onClose}>
-                Cancel
-              </Button>
-              <Button color="primary" onPress={handleSubmit} className="font-medium">
-                Save Assessment
-              </Button>
-            </ModalFooter>
-          </div>
-        )}
-      </ModalContent>
-    </Modal>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 p-4 border-2 border-blue-300 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50">
+                    <div className="flex-1">
+                      <Switch isSelected={isPublic} onChange={setIsPublic} size="lg">
+                        <div className="flex gap-3">
+                          <div className="-mt-0.5 flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                              <Label className="text-sm font-medium text-gray-900">
+                                Contribute to global benchmarks
+                              </Label>
+                              <Switch.Control>
+                                <Switch.Thumb />
+                              </Switch.Control>
+                            </div>
+                            <Description className="text-xs text-gray-700">
+                              Allow your anonymized score to be included in industry-wide averages.
+                              This helps improve circular economy insights for everyone.
+                            </Description>
+                          </div>
+                        </div>
+                      </Switch>
+                    </div>
+                  </div>
+                </div>
+              </AlertDialog.Body>
+
+              <AlertDialog.Footer>
+                <Button
+                  variant="light"
+                  onPress={() => {
+                    close();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    handleSubmit(close);
+                  }}
+                >
+                  Save Assessment
+                </Button>
+              </AlertDialog.Footer>
+            </>
+          )}
+        </AlertDialog.Dialog>
+      </AlertDialog.Container>
+    </AlertDialog.Backdrop>
   );
 }
 
 SaveAssessmentDialog.propTypes = {
-  open: PropTypes.bool.isRequired,
+  isOpen: PropTypes.bool.isRequired,
   onOpenChange: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   defaultName: PropTypes.string,

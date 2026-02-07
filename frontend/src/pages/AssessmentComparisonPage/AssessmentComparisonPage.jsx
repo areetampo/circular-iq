@@ -2,21 +2,11 @@ import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { exportComparisonCSV } from '@/features/export';
 import LoaderComponent from '@/components/common/LoaderComponent';
-import AppContainer from '@/components/layout/AppContainer';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Button, Chip, Card, Card.Header, CardTitle, Card.Content } from '@heroui/react';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -49,34 +39,21 @@ export default function AssessmentComparisonPage() {
 
   if (!id1 || !id2) {
     return (
-      <AppContainer
-        headerProps={{
-          title: 'Assessment Comparison',
-          subtitle: 'Select two assessments to compare side-by-side.',
-          showEvaluationCriteriaButton: true,
-        }}
-      >
-        <div className="flex items-center justify-center py-12">
-          <Alert variant="destructive" className="max-w-md">
-            <AlertTriangle className="w-4 h-4" />
-            <AlertDescription>
-              <strong>Unable to Compare</strong>
-              <p className="mt-2">
-                Please select two assessments to compare. Missing required assessment IDs.
-              </p>
-              <Button
-                onClick={() => navigate('/assessments')}
-                variant="outline"
-                size="sm"
-                className="gap-2 mt-4"
-              >
-                <ArrowLeft className="w-4 h-4 text-blue-600" />
-                Back to Assessments
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      </AppContainer>
+      <ErrorDisplay
+        variant="warning"
+        icon={AlertTriangle}
+        title="Unable to Compare"
+        message="Please select two assessments to compare. Missing required assessment IDs."
+        actions={[
+          {
+            label: 'Back to Assessments',
+            icon: ArrowLeft,
+            onClick: () => navigate('/assessments'),
+            variant: 'tertiary',
+          },
+        ]}
+        showDefaultActions={false}
+      />
     );
   }
 
@@ -87,17 +64,41 @@ export default function AssessmentComparisonPage() {
         message="Fetching assessment data for comparison."
       />
     );
+
   if (isError)
     return (
-      <div className="app-container">
-        <p className="text-[#dc3545] py-8 text-center">{error}</p>
-      </div>
+      <ErrorDisplay
+        variant="error"
+        title="Error Loading Assessments"
+        message={error || 'Failed to load assessment data. Please try again.'}
+        actions={[
+          {
+            label: 'Back to Assessments',
+            icon: ArrowLeft,
+            onClick: () => navigate('/assessments'),
+            variant: 'tertiary',
+          },
+        ]}
+      />
     );
+
   if (!assessment1 || !assessment2)
     return (
-      <div className="app-container">
-        <p>Assessment not found</p>
-      </div>
+      <ErrorDisplay
+        variant="warning"
+        icon={AlertTriangle}
+        title="Assessment Not Found"
+        message="One or both of the selected assessments could not be found. They may have been deleted or you may not have permission to access them."
+        actions={[
+          {
+            label: 'Back to Assessments',
+            icon: ArrowLeft,
+            onClick: () => navigate('/assessments'),
+            variant: 'tertiary',
+          },
+        ]}
+        showDefaultActions={false}
+      />
     );
 
   // Use comparison data from hook and derive additional metrics for UI
@@ -136,6 +137,12 @@ export default function AssessmentComparisonPage() {
     if (score >= 75) return 'default'; // Green
     if (score >= 50) return 'secondary'; // Amber/Gray
     return 'destructive'; // Red
+  };
+
+  const getChipColor = (variant) => {
+    if (variant === 'destructive') return 'danger';
+    if (variant === 'secondary') return 'secondary';
+    return 'primary';
   };
 
   // Helper function to render change indicator
@@ -246,16 +253,10 @@ export default function AssessmentComparisonPage() {
   const insights = generateInsights();
 
   return (
-    <AppContainer
-      headerProps={{
-        title: 'Assessment Comparison',
-        subtitle: `Side-by-side analysis of ${assessment1.title} and ${assessment2.title}`,
-        showEvaluationCriteriaButton: true,
-      }}
-    >
+    <>
       {/* Key Insights Section */}
       {insights && insights.length > 0 && (
-        <div className="bg-gradient-to-br from-[#fff9e6] to-[#fffbf0] py-8 px-8 md:px-6 rounded-[10px] border-2 border-[#ff9800] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+        <div className="bg-linear-to-br from-[#fff9e6] to-[#fffbf0] py-8 px-8 md:px-6 rounded-[10px] border-2 border-[#ff9800] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
           <h3 className="text-[#ff6f00] mt-0 flex items-center gap-2 mb-6 text-[1.3rem] border-b-2 border-[#ff9800] pb-3 font-bold">
             <Lightbulb className="w-5 h-5 text-[#ff9800]" strokeWidth={2.5} /> Key Insights
           </h3>
@@ -386,7 +387,7 @@ export default function AssessmentComparisonPage() {
           <Target className="w-5 h-5 text-[#34a83a]" strokeWidth={2.5} /> Overall Score Comparison
         </h3>
         <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3 md:gap-4">
-          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#c8e6c9] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-[#f1f8f5] to-white">
+          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#c8e6c9] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-linear-to-br from-[#f1f8f5] to-white">
             <div className="mb-3 text-sm font-semibold tracking-wider text-gray-600 uppercase">
               {assessment1.title}
             </div>
@@ -394,7 +395,7 @@ export default function AssessmentComparisonPage() {
               {assessment1.result_json?.overall_score || 0}
             </div>
           </div>
-          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 border-gray-300 rounded-lg hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-gray-100 to-white">
+          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 border-gray-300 rounded-lg hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-linear-to-br from-gray-100 to-white">
             <div className="mb-3 text-sm font-semibold tracking-wider text-gray-600 uppercase">
               Change
             </div>
@@ -410,7 +411,7 @@ export default function AssessmentComparisonPage() {
               {overallDelta > 0 ? `+${overallDelta}` : overallDelta}
             </div>
           </div>
-          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#bbdefb] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-gradient-to-br from-[#f0f7ff] to-white">
+          <div className="px-8 md:px-6 py-8 md:py-6 text-center transition-all duration-300 ease-in-out border-2 rounded-lg border-[#bbdefb] hover:shadow-[0_4px_12px_rgba(52,168,58,0.15)] hover:-translate-y-0.5 bg-linear-to-br from-[#f0f7ff] to-white">
             <div className="mb-3 text-sm font-semibold tracking-wider text-gray-600 uppercase">
               {assessment2.title}
             </div>
@@ -423,21 +424,19 @@ export default function AssessmentComparisonPage() {
 
       {/* Factor Scores Comparison Table */}
       <Card className="mb-8">
-        <CardHeader>
+        <Card.Header>
           <CardTitle className="flex items-center gap-2">
             <Search className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Factor-by-Factor
             Comparison
           </CardTitle>
-        </CardHeader>
-        <CardContent>
+        </Card.Header>
+        <Card.Content>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[35%]">Factor</TableHead>
-                <TableHead className="text-center">{assessment1.title}</TableHead>
-                <TableHead className="text-center">{assessment2.title}</TableHead>
-                <TableHead className="text-center">Change</TableHead>
-              </TableRow>
+              <TableColumn className="w-[35%]">Factor</TableColumn>
+              <TableColumn className="text-center">{assessment1.title}</TableColumn>
+              <TableColumn className="text-center">{assessment2.title}</TableColumn>
+              <TableColumn className="text-center">Change</TableColumn>
             </TableHeader>
             <TableBody>
               {Object.entries(assessment1.result_json?.sub_scores || {}).map(([factor, val1]) => {
@@ -447,14 +446,22 @@ export default function AssessmentComparisonPage() {
                   <TableRow key={factor}>
                     <TableCell className="font-medium">{titleize(factor)}</TableCell>
                     <TableCell className="text-center">
-                      <Badge variant={getScoreBadgeVariant(val1)} className="font-semibold">
+                      <Chip
+                        variant="flat"
+                        color={getChipColor(getScoreBadgeVariant(val1))}
+                        className="font-semibold"
+                      >
                         {val1}
-                      </Badge>
+                      </Chip>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant={getScoreBadgeVariant(val2)} className="font-semibold">
+                      <Chip
+                        variant="flat"
+                        color={getChipColor(getScoreBadgeVariant(val2))}
+                        className="font-semibold"
+                      >
                         {val2}
-                      </Badge>
+                      </Chip>
                     </TableCell>
                     <TableCell className="text-center">{renderChangeIndicator(diff)}</TableCell>
                   </TableRow>
@@ -462,22 +469,20 @@ export default function AssessmentComparisonPage() {
               })}
             </TableBody>
           </Table>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       {/* Metadata Comparison Table */}
       <Card className="mb-8">
-        <CardHeader>
+        <Card.Header>
           <CardTitle className="flex items-center gap-2">🏢 Project Details</CardTitle>
-        </CardHeader>
-        <CardContent>
+        </Card.Header>
+        <Card.Content>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[35%]">Attribute</TableHead>
-                <TableHead className="text-center">{assessment1.title}</TableHead>
-                <TableHead className="text-center">{assessment2.title}</TableHead>
-              </TableRow>
+              <TableColumn className="w-[35%]">Attribute</TableColumn>
+              <TableColumn className="text-center">{assessment1.title}</TableColumn>
+              <TableColumn className="text-center">{assessment2.title}</TableColumn>
             </TableHeader>
             <TableBody>
               <TableRow>
@@ -518,37 +523,38 @@ export default function AssessmentComparisonPage() {
               </TableRow>
             </TableBody>
           </Table>
-        </CardContent>
+        </Card.Content>
       </Card>
 
       {/* Benchmark Comparison Table */}
       {assessment1.result_json?.gap_analysis?.overall_benchmarks &&
         assessment2.result_json?.gap_analysis?.overall_benchmarks && (
           <Card className="mb-8">
-            <CardHeader>
+            <Card.Header>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-[#4a90e2]" strokeWidth={2.5} /> Benchmarking vs.
                 Similar Projects
               </CardTitle>
-            </CardHeader>
-            <CardContent>
+            </Card.Header>
+            <Card.Content>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[35%]">Benchmark</TableHead>
-                    <TableHead className="text-center">{assessment1.title}</TableHead>
-                    <TableHead className="text-center">{assessment2.title}</TableHead>
-                    <TableHead className="text-center">Change</TableHead>
-                  </TableRow>
+                  <TableColumn className="w-[35%]">Benchmark</TableColumn>
+                  <TableColumn className="text-center">{assessment1.title}</TableColumn>
+                  <TableColumn className="text-center">{assessment2.title}</TableColumn>
+                  <TableColumn className="text-center">Change</TableColumn>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">vs. Similar Avg</TableCell>
                     <TableCell className="text-center">
-                      <Badge
-                        variant={getScoreBadgeVariant(
-                          Math.round(
-                            assessment1.result_json?.gap_analysis.overall_benchmarks.average,
+                      <Chip
+                        variant="flat"
+                        color={getChipColor(
+                          getScoreBadgeVariant(
+                            Math.round(
+                              assessment1.result_json?.gap_analysis.overall_benchmarks.average,
+                            ),
                           ),
                         )}
                         className="font-semibold"
@@ -556,13 +562,16 @@ export default function AssessmentComparisonPage() {
                         {Math.round(
                           assessment1.result_json?.gap_analysis.overall_benchmarks.average,
                         )}
-                      </Badge>
+                      </Chip>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge
-                        variant={getScoreBadgeVariant(
-                          Math.round(
-                            assessment2.result_json?.gap_analysis.overall_benchmarks.average,
+                      <Chip
+                        variant="flat"
+                        color={getChipColor(
+                          getScoreBadgeVariant(
+                            Math.round(
+                              assessment2.result_json?.gap_analysis.overall_benchmarks.average,
+                            ),
                           ),
                         )}
                         className="font-semibold"
@@ -570,7 +579,7 @@ export default function AssessmentComparisonPage() {
                         {Math.round(
                           assessment2.result_json?.gap_analysis.overall_benchmarks.average,
                         )}
-                      </Badge>
+                      </Chip>
                     </TableCell>
                     <TableCell className="text-center">
                       {renderChangeIndicator(
@@ -586,26 +595,32 @@ export default function AssessmentComparisonPage() {
                   <TableRow>
                     <TableCell className="font-medium">vs. Top 10%</TableCell>
                     <TableCell className="text-center">
-                      <Badge
-                        variant={getScoreBadgeVariant(
-                          assessment1.result_json?.gap_analysis.overall_benchmarks
-                            .top_10_percentile,
+                      <Chip
+                        variant="flat"
+                        color={getChipColor(
+                          getScoreBadgeVariant(
+                            assessment1.result_json?.gap_analysis.overall_benchmarks
+                              .top_10_percentile,
+                          ),
                         )}
                         className="font-semibold"
                       >
                         {assessment1.result_json?.gap_analysis.overall_benchmarks.top_10_percentile}
-                      </Badge>
+                      </Chip>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge
-                        variant={getScoreBadgeVariant(
-                          assessment2.result_json?.gap_analysis.overall_benchmarks
-                            .top_10_percentile,
+                      <Chip
+                        variant="flat"
+                        color={getChipColor(
+                          getScoreBadgeVariant(
+                            assessment2.result_json?.gap_analysis.overall_benchmarks
+                              .top_10_percentile,
+                          ),
                         )}
                         className="font-semibold"
                       >
                         {assessment2.result_json?.gap_analysis.overall_benchmarks.top_10_percentile}
-                      </Badge>
+                      </Chip>
                     </TableCell>
                     <TableCell className="text-center">
                       {renderChangeIndicator(
@@ -617,7 +632,7 @@ export default function AssessmentComparisonPage() {
                   </TableRow>
                 </TableBody>
               </Table>
-            </CardContent>
+            </Card.Content>
           </Card>
         )}
 
@@ -719,7 +734,7 @@ export default function AssessmentComparisonPage() {
       */}
 
       {/* Key Insights */}
-      <div className="bg-gradient-to-br from-[#e3f2fd] to-[#f1f8f5] py-8 px-8 md:px-6 rounded-[10px] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border-2 border-[#4a90e2] border-l-4 border-l-[#34a83a]">
+      <div className="bg-linear-to-br from-[#e3f2fd] to-[#f1f8f5] py-8 px-8 md:px-6 rounded-[10px] mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border-2 border-[#4a90e2] border-l-4 border-l-[#34a83a]">
         <h3 className="mt-0 mb-6 text-[#2c3e50] text-[1.3rem] pb-3 font-bold border-b-2 border-b-[#4a90e2]">
           Key Insights
         </h3>
@@ -786,7 +801,7 @@ export default function AssessmentComparisonPage() {
           </button>
         </div>
       </div>
-    </AppContainer>
+    </>
   );
 }
 

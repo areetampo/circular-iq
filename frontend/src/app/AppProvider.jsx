@@ -2,31 +2,22 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { Toast, toast } from '@heroui/react';
+import { ErrorBoundary } from '@/components/error-boundaries';
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { toast } from 'sonner';
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
-      // Only show error toasts if we have an error message
       const errorMessage = error?.message || 'An error occurred while fetching data';
-
-      toast.error('Error', {
-        description: errorMessage,
-      });
+      toast.danger(errorMessage);
     },
   }),
   mutationCache: new MutationCache({
     onError: (error) => {
-      // Only show error toasts for mutations if we have an error message
       const errorMessage = error?.message || 'An error occurred while processing your request';
-
-      toast.error('Error', {
-        description: errorMessage,
-      });
+      toast.danger(errorMessage);
     },
   }),
   defaultOptions: {
@@ -44,16 +35,16 @@ const queryClient = new QueryClient({
  * - QueryClientProvider for React Query
  * - BrowserRouter for routing
  * - ErrorBoundary for error handling
- * - Sonner for toast notifications (shadcn/ui)
+ * - HeroUI Toast for toast notifications
  * - ReactQueryDevtools for development debugging
  */
 export default function AppProvider({ children }) {
   return (
     <ErrorBoundary>
+      <Toast.Provider placement="top" />
       <QueryClientProvider client={queryClient}>
         <GlobalLoadingBar />
         {children}
-        <Sonner position="top-right" richColors closeButton />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ErrorBoundary>

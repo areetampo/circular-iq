@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/cn';
 import { getCharacterCount } from '@/lib/validation';
 
 /**

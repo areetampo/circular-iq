@@ -1,17 +1,27 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { LANDING_MODALS } from '@/components/modals/core/modalTypes';
-import BusinessProblemInfoModal from '@/components/modals/landing/BusinessProblemInfoModal';
-import BusinessSolutionInfoModal from '@/components/modals/landing/BusinessSolutionInfoModal';
-import EvaluationParametersInfoModal from '@/components/modals/landing/EvaluationParametersInfoModal';
-import SampleTestCaseInfoModal from '@/components/modals/landing/SampleTestCaseInfoModal';
-import SampleTestCasesHeadingInfoModal from '@/components/modals/landing/SampleTestCasesHeadingInfoModal';
-import ParameterInfoModal from '@/components/modals/landing/ParameterInfoModal';
+import { LANDING_MODALS } from '@/components/modals/modalTypes';
+import {
+  AssessmentMethodologyModal,
+  EvaluationCriteriaModal,
+  BusinessProblemInfoModal,
+  BusinessSolutionInfoModal,
+  EvaluationParametersInfoModal,
+  ParameterInfoModal,
+  SampleTestCasesHeadingInfoModal,
+  SampleTestCaseInfoModal,
+} from '@/components/modals/landing';
 
 export default function LandingModalManager({ modal, isModalOpen, onClose }) {
   if (!modal) return null;
 
   switch (modal.type) {
+    case LANDING_MODALS.ASSESSMENT_METHODOLOGY:
+      return <AssessmentMethodologyModal isModalOpen={isModalOpen} onClose={onClose} />;
+
+    case LANDING_MODALS.EVALUATION_CRITERIA:
+      return <EvaluationCriteriaModal isModalOpen={isModalOpen} onClose={onClose} />;
+
     case LANDING_MODALS.BUSINESS_PROBLEM_INFO:
       return <BusinessProblemInfoModal isModalOpen={isModalOpen} onClose={onClose} />;
 

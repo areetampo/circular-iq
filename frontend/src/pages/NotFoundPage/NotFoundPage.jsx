@@ -1,8 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Card, Button } from '@heroui/react';
 import { ArrowLeft, BarChart3, Leaf, Compass } from 'lucide-react';
 
 export default function NotFoundPage() {
@@ -10,19 +8,19 @@ export default function NotFoundPage() {
 
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-6 py-12">
-      <Card className="w-full max-w-2xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50">
-        <CardHeader className="text-center">
+      <Card className="w-full border-2 border-emerald-100 bg-linear-to-br from-white to-emerald-50">
+        <div className="px-6 py-8 border-b text-center">
           <div className="flex items-center justify-center gap-3 text-emerald-600">
             <Leaf className="w-8 h-8" />
             <span className="text-sm font-semibold uppercase tracking-[0.35em]">
               Circular Economy Auditor
             </span>
           </div>
-          <CardTitle className="mt-6 text-5xl font-bold text-slate-900">404</CardTitle>
-          <CardDescription className="text-lg">Page Not Found</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6 text-center">
-          <p className="max-w-xl mx-auto text-base text-slate-600">
+          <h1 className="mt-6 text-5xl font-bold text-slate-900">404</h1>
+          <p className="text-lg text-gray-600 mt-2">Page Not Found</p>
+        </div>
+        <div className="px-6 py-8 space-y-6 text-center">
+          <p className="mx-auto text-base text-slate-600">
             The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
             deleted. Let&apos;s get you back on track.
           </p>
@@ -52,19 +50,19 @@ export default function NotFoundPage() {
             </div>
           </div>
 
-          <Separator />
+          <div className="w-full h-px bg-gray-200 my-4" />
 
           <div className="flex flex-wrap justify-center gap-3">
-            <Button onClick={() => navigate('/')} className="gap-2">
-              <ArrowLeft className="w-4 h-4 text-white" />
+            <Button onPress={() => navigate('/')} variant="tertiary">
+              <ArrowLeft className="w-4 h-4" />
               Return Home
             </Button>
-            <Button variant="outline" onClick={() => navigate('/assessments')} className="gap-2">
-              <BarChart3 className="w-4 h-4 text-gray-700" />
+            <Button variant="tertiary" onPress={() => navigate('/assessments')} className="gap-2">
+              <BarChart3 className="w-4 h-4" />
               My Assessments
             </Button>
           </div>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

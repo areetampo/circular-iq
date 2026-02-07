@@ -1,16 +1,15 @@
 /**
  * Reusable Input Dialog
- * Base component for text input with validation using HeroUI Modal
+ * Modal-based input dialog with validation using HeroUI v3 compound syntax
  *
  * Location: src/components/dialogs/InputDialog.jsx
  */
 
-import { React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Modal, Button, Input, Label } from '@heroui/react';
+import { useDisclosure } from '@heroui/use-disclosure';
 
 /**
  * Reusable input dialog for text input with validation
@@ -45,6 +44,10 @@ export function InputDialog({
   maxLength,
   type = 'text', // 'text' | 'email' | 'tel' | 'url'
 }) {
+  const { isOpen, onOpenChange: handleOpenChange } = useDisclosure({
+    isOpen: open,
+    onChange: onOpenChange,
+  });
   const [value, setValue] = useState(defaultValue);
   const [error, setError] = useState(null);
 
@@ -71,7 +74,7 @@ export function InputDialog({
     // Clear and submit
     setError(null);
     onSubmit?.(value);
-    onOpenChange(false);
+    handleOpenChange(false);
   };
 
   const handleChange = (e) => {
@@ -91,87 +94,62 @@ export function InputDialog({
   };
 
   return (
-    <Modal
-      isOpen={open}
-      onOpenChange={onOpenChange}
-      size="md"
-      backdrop="opaque"
-      placement="center"
-      scrollBehavior="inside"
-      classNames={{
-        backdrop: 'bg-black/50',
-        base: 'bg-white rounded-2xl shadow-xl',
-      }}
+    <Modal.Backdrop
+      isOpen={isOpen}
+      onOpenChange={handleOpenChange}
+      variant="opaque"
+      isDismissable={false}
     >
-      <ModalContent>
-        {(onClose) => (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (validate) {
-                const validationError = validate(value);
-                if (validationError) {
-                  setError(validationError);
-                  return;
-                }
-              }
-              setError(null);
-              onSubmit?.(value);
-              onClose();
-            }}
-          >
-            <ModalHeader className="flex flex-col gap-2 py-4 px-6">
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-              {description && <p className="text-sm text-gray-600">{description}</p>}
-            </ModalHeader>
-
-            <ModalBody className="gap-4 py-6 px-6">
-              <div className="grid gap-3">
-                {inputLabel && (
-                  <Label htmlFor="dialog-input" className="font-medium text-gray-700">
-                    {inputLabel}
-                  </Label>
-                )}
-                <Input
-                  id="dialog-input"
-                  type={type}
-                  value={value}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder={inputPlaceholder}
-                  maxLength={maxLength}
-                  autoFocus
-                  className={`${error ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'} transition-all`}
-                />
-                {error && <p className="text-sm font-medium text-red-600 mt-1">{error}</p>}
-                {maxLength && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {value.length} / {maxLength}
-                  </p>
-                )}
-              </div>
-            </ModalBody>
-
-            <ModalFooter className="gap-3 py-4 px-6">
-              <Button
-                type="button"
-                variant="light"
-                onPress={() => {
-                  setError(null);
-                  onCancel?.();
-                  onClose();
-                }}
-              >
-                {cancelText}
-              </Button>
-              <Button type="submit" color="primary" className="font-medium">
-                {submitText}
-              </Button>
-            </ModalFooter>
-          </form>
-        )}
-      </ModalContent>
-    </Modal>
+      <Modal.Container size="md">
+        <Modal.Dialog aria-label={title}>
+          <Modal.Header>
+            <h2 className="text-lg font-semibold">{title}</h2>
+          </Modal.Header>
+          <Modal.Body>
+            {description && <p className="mb-4 text-sm text-gray-700">{description}</p>}
+            <div className="space-y-3">
+              {inputLabel && (
+                <Label htmlFor="dialog-input" className="text-sm font-medium">
+                  {inputLabel}
+                </Label>
+              )}
+              <Input
+                id="dialog-input"
+                type={type}
+                value={value}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                placeholder={inputPlaceholder}
+                maxLength={maxLength}
+                autoFocus
+                isInvalid={!!error}
+                errorMessage={error}
+              />
+              {maxLength && (
+                <p className="text-xs text-gray-500">
+                  {value.length} / {maxLength}
+                </p>
+              )}
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="light"
+              onPress={() => {
+                setError(null);
+                onCancel?.();
+                handleOpenChange(false);
+              }}
+            >
+              {cancelText}
+            </Button>
+            <Button color="primary" onPress={handleSubmit}>
+              {submitText}
+            </Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }
 

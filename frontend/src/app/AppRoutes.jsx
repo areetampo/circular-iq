@@ -2,9 +2,9 @@ import React, { Suspense, lazy } from 'react';
 import PropTypes from 'prop-types';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoaderComponent from '@/components/common/LoaderComponent';
-import GlobalErrorBoundary from '@/components/common/GlobalErrorBoundary';
-import ResultsErrorBoundary from '@/components/common/ResultsErrorBoundary';
+import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
 import { useAuth } from '@/hooks/useAuth';
+import AppContainer from '@/components/layout/AppContainer';
 
 // Lazy-load page components for performance
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
@@ -57,7 +57,8 @@ ProtectedRoute.propTypes = {
  * AppRoutes defines all application routes.
  * Pages are lazy-loaded and wrapped in Suspense for better performance.
  * The entire routing tree is wrapped in GlobalErrorBoundary for graceful error handling.
- * ResultsPage is additionally wrapped in ResultsErrorBoundary for chart/data-specific errors.
+ * Complex pages (ResultsPage, AssessmentComparisonPage) are wrapped in PageErrorBoundary
+ * to catch rendering, chart, or data processing errors without breaking navigation.
  *
  * Protected routes (require authentication):
  * - / (LandingPage)
@@ -82,14 +83,23 @@ export default function AppRoutes() {
       >
         <Routes>
           {/* Public Route - Authentication */}
-          <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/auth"
+            element={
+              <AppContainer>
+                <AuthPage />
+              </AppContainer>
+            }
+          />
 
           {/* Protected Routes - Require Authentication */}
           <Route
             path="/"
             element={
               <ProtectedRoute>
-                <LandingPage />
+                <AppContainer>
+                  <LandingPage />
+                </AppContainer>
               </ProtectedRoute>
             }
           />
@@ -97,7 +107,9 @@ export default function AppRoutes() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <AppContainer>
+                  <DashboardPage />
+                </AppContainer>
               </ProtectedRoute>
             }
           />
@@ -105,9 +117,11 @@ export default function AppRoutes() {
             path="/results"
             element={
               <ProtectedRoute>
-                <ResultsErrorBoundary>
-                  <ResultsPage />
-                </ResultsErrorBoundary>
+                <AppContainer>
+                  <PageErrorBoundary pageName="Results">
+                    <ResultsPage />
+                  </PageErrorBoundary>
+                </AppContainer>
               </ProtectedRoute>
             }
           />
@@ -115,7 +129,9 @@ export default function AppRoutes() {
             path="/assessments"
             element={
               <ProtectedRoute>
-                <MyAssessmentsPage />
+                <AppContainer>
+                  <MyAssessmentsPage />
+                </AppContainer>
               </ProtectedRoute>
             }
           />
@@ -123,9 +139,11 @@ export default function AppRoutes() {
             path="/assessments/:id"
             element={
               <ProtectedRoute>
-                <ResultsErrorBoundary>
-                  <ResultsPage isDetailView={true} />
-                </ResultsErrorBoundary>
+                <AppContainer>
+                  <PageErrorBoundary pageName="Assessment Results">
+                    <ResultsPage isDetailView={true} />
+                  </PageErrorBoundary>
+                </AppContainer>
               </ProtectedRoute>
             }
           />
@@ -133,7 +151,9 @@ export default function AppRoutes() {
             path="/results/:id/market-analysis"
             element={
               <ProtectedRoute>
-                <MarketAnalysisPage />
+                <AppContainer>
+                  <MarketAnalysisPage />
+                </AppContainer>
               </ProtectedRoute>
             }
           />
@@ -141,13 +161,24 @@ export default function AppRoutes() {
             path="/compare"
             element={
               <ProtectedRoute>
-                <AssessmentComparisonPage />
+                <AppContainer>
+                  <PageErrorBoundary pageName="Assessment Comparison">
+                    <AssessmentComparisonPage />
+                  </PageErrorBoundary>
+                </AppContainer>
               </ProtectedRoute>
             }
           />
 
           {/* 404 Not Found */}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route
+            path="*"
+            element={
+              <AppContainer>
+                <NotFoundPage />
+              </AppContainer>
+            }
+          />
         </Routes>
       </Suspense>
     </GlobalErrorBoundary>
