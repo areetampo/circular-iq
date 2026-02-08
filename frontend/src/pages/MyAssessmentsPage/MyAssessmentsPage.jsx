@@ -1,39 +1,220 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
+import { useDebounce } from '@/hooks/useDebounce';
 import { formatTimestamp } from '@/lib/formatting';
 import { useAssessments, usePrefetchAssessment } from '@/features/assessments';
-// ✅ Only components that exist in HeroUI v3.0.0-beta.5
 import {
   Button,
   Card,
   Input,
   Select,
+  Label,
+  ListBox,
   Checkbox,
   Chip,
   Skeleton,
-  Label,
-  ListBox,
 } from '@heroui/react';
+import { Pagination } from '@heroui/pagination';
 import { DeleteAssessmentDialog } from '@/components/dialogs';
-import { Lock, ArrowLeft } from 'lucide-react';
-
 import {
+  Lock,
+  ArrowLeft,
   Search,
   Eye,
-  Trash2,
-  MoreVertical,
   GitCompare,
   Plus,
   Award,
   Building,
   Lightbulb,
   Ghost,
-  ChevronLeft,
-  ChevronRight,
+  Edit,
+  Trash2,
 } from 'lucide-react';
+
+// Memoized AssessmentCard Component
+const AssessmentCard = React.memo(function AssessmentCard({
+  assessment,
+  isSelected,
+  status,
+  ratingVariant,
+  onToggleSelect,
+  onView,
+  onRename,
+  onDelete,
+  onPrefetch,
+}) {
+  return (
+    <Card
+      className="border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 bg-white"
+      onMouseEnter={() => onPrefetch(assessment.id)}
+    >
+      <div className="p-5 sm:p-6">
+        <div className="flex items-start gap-4">
+          {/* Checkbox on the left */}
+          <div className="pt-1.5 shrink-0">
+            <Checkbox
+              isSelected={isSelected}
+              onChange={() => onToggleSelect(assessment.id)}
+              size="lg"
+              color="primary"
+            />
+          </div>
+
+          {/* Content in the middle */}
+          <div className="flex-1 min-w-0 space-y-3">
+            <h3 className="font-bold text-lg text-slate-900 line-clamp-2 leading-tight">
+              {assessment.title || 'Untitled Assessment'}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Chip variant="flat" color="secondary" size="sm" className="font-medium">
+                {(assessment.industry || 'General').replace(/_/g, ' ').toUpperCase()}
+              </Chip>
+
+              <Chip variant="flat" color={ratingVariant} size="sm" className="font-bold">
+                {assessment.overall_score}%
+              </Chip>
+
+              <Chip variant="flat" color={status.color} size="sm">
+                {status.text}
+              </Chip>
+            </div>
+
+            <p className="text-sm text-slate-500">
+              Created {formatTimestamp(assessment.created_at)}
+            </p>
+          </div>
+
+          {/* Action buttons on the right */}
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button
+              size="md"
+              color="primary"
+              variant="tertiary"
+              onPress={() => onView(assessment.id)}
+              // startContent={<Eye className="w-4 h-4" />}
+              className="font-semibold basis-24"
+            >
+              <Eye className="w-4 h-4 inline" />
+              View
+            </Button>
+            <Button
+              size="md"
+              color="default"
+              variant="outline"
+              onPress={() => onRename(assessment.id)}
+              // startContent={<Edit className="w-4 h-4" />}
+              className="font-semibold basis-24"
+            >
+              <Edit className="w-4 h-4 inline" />
+              Rename
+            </Button>
+            <Button
+              size="md"
+              color="danger"
+              variant="danger"
+              onPress={() => onDelete(assessment.id)}
+              // startContent={<Trash2 className="w-4 h-4" />}
+              className="font-semibold basis-24 flex justify-center"
+            >
+              <Trash2 className="w-4 h-4 inline" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+});
+
+AssessmentCard.propTypes = {
+  assessment: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    title: PropTypes.string,
+    industry: PropTypes.string,
+    overall_score: PropTypes.number,
+    created_at: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+      PropTypes.instanceOf(Date),
+    ]),
+  }).isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  status: PropTypes.shape({
+    color: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+  }).isRequired,
+  ratingVariant: PropTypes.string.isRequired,
+  onToggleSelect: PropTypes.func.isRequired,
+  onView: PropTypes.func.isRequired,
+  onRename: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onPrefetch: PropTypes.func.isRequired,
+};
+
+// Memoized Assessment List Component
+const AssessmentList = React.memo(function AssessmentList({
+  assessments,
+  selectedIds,
+  onToggleSelect,
+  onView,
+  onRename,
+  onDelete,
+  onPrefetch,
+  getRatingColor,
+  getStatusBadge,
+}) {
+  return (
+    <div className="space-y-4">
+      {assessments.map((assessment) => {
+        const status = getStatusBadge(assessment.overall_score);
+        const ratingVariant = getRatingColor(assessment.overall_score);
+        return (
+          <AssessmentCard
+            key={assessment.id}
+            assessment={assessment}
+            isSelected={selectedIds.has(assessment.id)}
+            status={status}
+            ratingVariant={ratingVariant}
+            onToggleSelect={onToggleSelect}
+            onView={onView}
+            onRename={onRename}
+            onDelete={onDelete}
+            onPrefetch={onPrefetch}
+          />
+        );
+      })}
+    </div>
+  );
+});
+
+AssessmentList.propTypes = {
+  assessments: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      title: PropTypes.string,
+      industry: PropTypes.string,
+      overall_score: PropTypes.number,
+      created_at: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+        PropTypes.instanceOf(Date),
+      ]),
+    }),
+  ).isRequired,
+  selectedIds: PropTypes.instanceOf(Set).isRequired,
+  onToggleSelect: PropTypes.func.isRequired,
+  onView: PropTypes.func.isRequired,
+  onRename: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onPrefetch: PropTypes.func.isRequired,
+  getRatingColor: PropTypes.func.isRequired,
+  getStatusBadge: PropTypes.func.isRequired,
+};
 
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();
@@ -44,30 +225,36 @@ export default function MyAssessmentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, assessmentId: null });
   const { addToast } = useToast();
-  const searchRef = useRef('');
 
-  const { assessments, total, isLoading, error, refetch, removeAssessment, isDeleting } =
+  // Debounce search and sort to prevent constant reloading
+  const debouncedSearchTerm = useDebounce(searchTerm, 350);
+  const debouncedSortBy = useDebounce(sortBy, 300);
+
+  const { assessments, total, isLoading, error, refetch, removeAssessmentAsync, isDeleting } =
     useAssessments({
       sessionId: getSessionId(),
       page: String(page),
       pageSize: String(pageSize),
-      sortBy,
+      sortBy: debouncedSortBy,
       order: 'desc',
-      search: searchRef.current,
+      search: debouncedSearchTerm,
     });
 
-  const loading = isLoading;
+  const prefetchAssessment = usePrefetchAssessment();
 
-  const formatIndustryLabel = (industry) => {
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, filterIndustry, debouncedSortBy]);
+
+  const formatIndustryLabel = useCallback((industry) => {
     if (!industry) return 'General';
     return industry
       .toString()
       .replace(/_/g, ' ')
       .replace(/\b\w/g, (char) => char.toUpperCase());
-  };
+  }, []);
 
   const averageScore = useMemo(() => {
     if (!assessments.length) return 0;
@@ -94,52 +281,19 @@ export default function MyAssessmentsPage() {
     return { industry, count };
   }, [assessments]);
 
-  const prefetchAssessment = usePrefetchAssessment();
+  const handleToggleSelect = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      return newSelected;
+    });
+  }, []);
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setPage(1);
-      searchRef.current = searchTerm && searchTerm.trim() ? searchTerm.trim() : '';
-      fetchAssessments();
-    }, 300);
-    return () => clearTimeout(t);
-  }, [searchTerm]);
-
-  const fetchAssessments = async () => {
-    await refetch();
-  };
-
-  const proceedDelete = async (id) => {
-    try {
-      await removeAssessment(id);
-      selectedIds.delete(id);
-      setSelectedIds(new Set(selectedIds));
-      addToast('Assessment deleted', 'success');
-      setConfirmDeleteId(null);
-      setShowDeleteModal(false);
-    } catch {
-      addToast('Delete failed. Please try again.', 'error');
-      setConfirmDeleteId(null);
-      setShowDeleteModal(false);
-    }
-  };
-
-  const handleDelete = (id) => {
-    setConfirmDeleteId(id);
-    setShowDeleteModal(true);
-  };
-
-  const handleToggleSelect = (id) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedIds(newSelected);
-  };
-
-  const handleCompareSelected = () => {
+  const handleCompareSelected = useCallback(() => {
     if (selectedIds.size !== 2) {
       addToast('Please select exactly 2 assessments to compare', 'info');
       return;
@@ -147,234 +301,254 @@ export default function MyAssessmentsPage() {
 
     const ids = Array.from(selectedIds);
     navigate(`/compare?id1=${ids[0]}&id2=${ids[1]}`);
-  };
+  }, [selectedIds, addToast, navigate]);
 
-  const handleClearSelection = () => {
-    setSelectedIds(new Set());
-  };
+  const handleViewDetail = useCallback(
+    (id) => {
+      navigate(`/assessments/${id}`);
+    },
+    [navigate],
+  );
 
-  const handleViewDetail = (id) => {
-    navigate(`/assessments/${id}`);
-  };
+  const handleRenameAssessment = useCallback(() => {
+    addToast('Rename feature coming soon', 'info');
+  }, [addToast]);
 
-  const handleBack = () => {
+  const handleDeleteAssessment = useCallback((id) => {
+    console.log('[HANDLE_DELETE_ASSESSMENT]', { id });
+    setDeleteDialog({ isOpen: true, assessmentId: id });
+  }, []);
+
+  const handleDeleteDialogChange = useCallback((open) => {
+    console.log('[HANDLE_DELETE_DIALOG_CHANGE]', { open });
+    if (!open) {
+      console.log('[CLOSING_AND_CLEARING_DELETE_DIALOG]');
+      setDeleteDialog({ isOpen: false, assessmentId: null });
+    }
+  }, []);
+
+  const handleBack = useCallback(() => {
     navigate('/');
-  };
+  }, [navigate]);
 
-  const getIndustries = () => {
-    const industries = new Set(assessments.map((a) => a.industry).filter(Boolean));
-    return ['all', ...Array.from(industries)];
-  };
+  const proceedDelete = useCallback(
+    async (id) => {
+      if (!id) {
+        addToast('No assessment selected for deletion', 'error');
+        throw new Error('No assessment selected for deletion');
+      }
 
-  const filteredAssessments = assessments.filter((assessment) => {
-    if (!searchTerm.trim()) return true;
-    const search = searchTerm.toLowerCase();
-    const titleMatch = (assessment.title || '').toLowerCase().includes(search);
-    const industryMatch = (assessment.industry || '').toLowerCase().includes(search);
-    return titleMatch || industryMatch;
-  });
+      try {
+        console.log('[DELETE_START]', { id });
+        const result = await removeAssessmentAsync(id);
+        console.log('[DELETE_SUCCESS]', { id, result });
 
-  const confirmDeleteAssessment = assessments.find((a) => a.id === confirmDeleteId);
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        addToast('Assessment deleted successfully', 'success');
 
-  const getRatingVariant = (score) => {
-    if (score >= 80) return 'default';
-    if (score >= 50) return 'secondary';
-    return 'destructive';
-  };
+        // Only close dialog on success - let ConfirmDialog handle this
+        return result;
+      } catch (err) {
+        console.error('[DELETE_ERROR]', { id, error: err.message, fullError: err });
+        const errorMsg = err?.message || 'Please try again.';
+        addToast(`Delete failed: ${errorMsg}`, 'error');
+        // THROW the error so ConfirmDialog knows not to close the dialog
+        throw err;
+      }
+    },
+    [removeAssessmentAsync, addToast],
+  );
 
-  const getStatusBadge = (score) => {
-    if (score >= 75) return { variant: 'default', text: 'Excellent' };
-    if (score >= 50) return { variant: 'secondary', text: 'Good' };
-    return { variant: 'destructive', text: 'Needs Improvement' };
-  };
+  const handleConfirmDelete = useCallback(() => {
+    return proceedDelete(deleteDialog.assessmentId);
+  }, [proceedDelete, deleteDialog.assessmentId]);
 
-  const getChipColor = (variant) => {
-    if (variant === 'destructive') return 'danger';
-    if (variant === 'secondary') return 'secondary';
-    return 'primary';
-  };
+  const industries = useMemo(() => {
+    const industrySet = new Set(assessments.map((a) => a.industry).filter(Boolean));
+    return ['all', ...Array.from(industrySet)];
+  }, [assessments]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  const filteredAssessments = useMemo(() => {
+    let filtered = assessments;
 
-  // Custom Pagination Component
-  const CustomPagination = () => {
-    if (total <= pageSize) return null;
+    if (filterIndustry && filterIndustry !== 'all') {
+      filtered = filtered.filter((a) => a.industry === filterIndustry);
+    }
 
-    return (
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onPress={() => setPage((p) => Math.max(1, p - 1))}
-          isDisabled={page === 1}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
+    return filtered;
+  }, [assessments, filterIndustry]);
 
-        <div className="flex items-center gap-1">
-          {Array.from({ length: totalPages }, (_, i) => i + 1)
-            .filter((p) => {
-              // Show first page, last page, current page, and adjacent pages
-              return p === 1 || p === totalPages || Math.abs(p - page) <= 1;
-            })
-            .map((p, idx, arr) => {
-              // Add ellipsis if there's a gap
-              const showEllipsis = idx > 0 && p - arr[idx - 1] > 1;
+  const confirmDeleteAssessment = useMemo(
+    () => assessments.find((a) => a.id === deleteDialog.assessmentId),
+    [assessments, deleteDialog.assessmentId],
+  );
 
-              return (
-                <React.Fragment key={p}>
-                  {showEllipsis && <span className="px-2 text-gray-400">...</span>}
-                  <Button
-                    variant={p === page ? 'primary' : 'secondary'}
-                    size="sm"
-                    onPress={() => setPage(p)}
-                    className={p === page ? 'bg-primary-500 text-white' : ''}
-                  >
-                    {p}
-                  </Button>
-                </React.Fragment>
-              );
-            })}
-        </div>
+  const getRatingColor = useCallback((score) => {
+    if (score >= 80) return 'success';
+    if (score >= 50) return 'warning';
+    return 'danger';
+  }, []);
 
-        <Button
-          variant="secondary"
-          size="sm"
-          onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
-          isDisabled={page === totalPages}
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-    );
-  };
+  const getStatusBadge = useCallback((score) => {
+    if (score >= 75) return { color: 'success', text: 'Excellent' };
+    if (score >= 50) return { color: 'warning', text: 'Good' };
+    return { color: 'danger', text: 'Needs Improvement' };
+  }, []);
 
-  // Render Skeleton Loading State
-  const renderSkeletonCards = () => (
-    <div className="space-y-4">
-      {Array.from({ length: 5 }).map((_, idx) => (
-        <Card key={idx}>
-          <div className="p-6">
-            <div className="flex items-start justify-between">
+  const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
+
+  const renderSkeletonCards = useCallback(
+    () => (
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <Card key={idx} className="p-5 sm:p-6 bg-white border border-slate-200">
+            <div className="flex items-start gap-4">
+              <Skeleton className="w-6 h-6 mt-1.5 rounded shrink-0" />
               <div className="flex-1 space-y-3">
-                <Skeleton className="h-6 w-[300px]" />
-                <Skeleton className="h-4 w-[200px]" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-6 w-[100px]" />
-                  <Skeleton className="h-6 w-[80px]" />
+                <Skeleton className="h-7 w-3/4 rounded" />
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-6 w-28 rounded-full" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-6 w-32 rounded-full" />
                 </div>
+                <Skeleton className="h-5 w-48 rounded" />
               </div>
-              <div className="flex gap-2">
-                <Skeleton className="w-20 h-9" />
-                <Skeleton className="w-20 h-9" />
+              <div className="flex gap-2 shrink-0">
+                <Skeleton className="w-20 h-10 rounded-lg" />
+                <Skeleton className="w-24 h-10 rounded-lg" />
+                <Skeleton className="w-24 h-10 rounded-lg" />
               </div>
             </div>
-          </div>
-        </Card>
-      ))}
-    </div>
+          </Card>
+        ))}
+      </div>
+    ),
+    [],
   );
 
   return (
     <>
-      {/* Authentication check */}
       {!authLoading && !isAuthenticated && (
-        <Card className="max-w-md mx-auto">
-          <Card.Header className="border-b text-center">
-            <div className="flex justify-center mb-4">
-              <Lock className="w-16 h-16 text-[#4a90e2]" strokeWidth={1.5} />
+        <Card className="max-w-md mx-auto shadow-lg border border-slate-200">
+          <div className="p-8 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 rounded-full bg-blue-50">
+                <Lock className="w-16 h-16 text-blue-600" strokeWidth={1.5} />
+              </div>
             </div>
-            <Card.Title className="text-2xl">Authentication Required</Card.Title>
-            <Card.Description className="mt-1">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Authentication Required</h2>
+            <p className="text-slate-600 mb-6">
               You need to log in to view and manage your assessments.
-            </Card.Description>
-          </Card.Header>
-          <Card.Description className="flex justify-center">
+            </p>
             <Button
               onPress={() => navigate('/login')}
               size="lg"
-              className="bg-primary-500 text-white"
+              color="primary"
+              className="font-semibold px-8"
             >
               Go to Login
             </Button>
-          </Card.Description>
+          </div>
         </Card>
       )}
 
-      {/* Loading state while auth is being checked */}
       {authLoading && (
         <div className="flex justify-center py-12">
-          <div className="space-y-4">
-            <Skeleton className="w-[200px] h-8" />
-            <Skeleton className="w-[300px] h-4" />
+          <div className="space-y-4 text-center">
+            <Skeleton className="h-8 w-64 mx-auto rounded" />
+            <Skeleton className="h-4 w-80 mx-auto rounded" />
           </div>
         </div>
       )}
 
-      {/* Assessments content - only show if authenticated */}
       {isAuthenticated && !authLoading && (
         <div className="space-y-6">
-          {/* Summary Header */}
+          {/* Summary Cards */}
           {assessments.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Card className="border-2 border-emerald-200 bg-linear-to-br from-emerald-50 to-emerald-100">
-                <div className="pb-3">
-                  <p className="flex items-center gap-2 text-xs font-semibold text-emerald-700">
-                    <Award className="w-4 h-4" />
-                    Average Circularity Score
-                  </p>
-                  <h3 className="text-4xl font-bold text-emerald-700 mt-2">{averageScore}</h3>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <Card className="bg-gradient-to-br from-emerald-50 via-emerald-50 to-emerald-100 border-2 border-emerald-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-white shadow-sm">
+                      <Award className="w-7 h-7 text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">
+                        Average Score
+                      </p>
+                      <h3 className="text-5xl font-extrabold text-emerald-700 mb-1">
+                        {averageScore}
+                      </h3>
+                      <p className="text-sm text-emerald-600 font-medium">Across all assessments</p>
+                    </div>
+                  </div>
                 </div>
               </Card>
 
-              <Card className="border-2 border-slate-200 bg-linear-to-br from-slate-50 to-slate-100">
-                <div className="pb-3">
-                  <p className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                    <Building className="w-4 h-4" />
-                    Primary Focus
-                  </p>
-                  <h3 className="text-2xl font-bold text-slate-800 mt-2">
-                    {topIndustry ? formatIndustryLabel(topIndustry.industry) : '—'}
-                  </h3>
-                  <p className="text-sm text-slate-600 mt-1">
-                    {topIndustry
-                      ? `${topIndustry.count} assessment${topIndustry.count !== 1 ? 's' : ''}`
-                      : 'No assessments'}
-                  </p>
+              <Card className="bg-gradient-to-br from-indigo-50 via-indigo-50 to-indigo-100 border-2 border-indigo-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-white shadow-sm">
+                      <Building className="w-7 h-7 text-indigo-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-2">
+                        Primary Focus
+                      </p>
+                      <h3 className="text-2xl font-bold text-indigo-800 mb-1">
+                        {topIndustry ? formatIndustryLabel(topIndustry.industry) : '—'}
+                      </h3>
+                      <p className="text-sm text-indigo-600 font-medium">
+                        {topIndustry
+                          ? `${topIndustry.count} assessment${topIndustry.count !== 1 ? 's' : ''}`
+                          : 'No assessments'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </Card>
             </div>
           )}
 
-          {/* Quick Tip Card */}
+          {/* Pro Tip Card */}
           {assessments.length > 0 && (
-            <Card className="border-2 border-blue-200 bg-linear-to-r from-blue-50 to-indigo-50">
-              <div className="flex items-start gap-3">
-                <Lightbulb className="w-6 h-6 text-blue-600 mt-0.5" />
-                <div>
-                  <span className="font-bold text-blue-800">Tip: </span>
-                  <span className="text-slate-700">
-                    Select exactly 2 assessments and click &quot;Compare Selected&quot; to see how
-                    your initiative evolved over time, or compare different strategies side-by-side.
-                  </span>
+            <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 shadow-sm">
+              <div className="flex items-start gap-4 p-6">
+                <div className="p-3 rounded-xl bg-white shadow-sm shrink-0">
+                  <Lightbulb className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-blue-900 text-base mb-1.5">Pro Tip</h4>
+                  <p className="text-sm text-blue-800 leading-relaxed">
+                    Select exactly 2 assessments and click "Compare Selected" to see how your
+                    initiative evolved over time, or compare different strategies side-by-side.
+                  </p>
                 </div>
               </div>
             </Card>
           )}
 
-          {/* Controls Card */}
+          {/* Filters & Controls Card - stays fixed, doesn't move */}
           {assessments.length > 0 && (
-            <Card>
-              <div>
-                <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="flex flex-col space-y-2">
+            <Card className="border-2 border-slate-200 shadow-sm bg-white">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Filter by Industry */}
+                  <div className="flex flex-col gap-2">
                     <Select
+                      className="w-full"
+                      placeholder="All industries"
                       value={filterIndustry}
                       onChange={(value) => {
-                        setFilterIndustry(value);
+                        setFilterIndustry(value || 'all');
                         setPage(1);
                       }}
-                      placeholder="All industries"
+                      variant="bordered"
+                      size="md"
                     >
                       <Label className="text-sm font-semibold text-slate-700">
                         Filter by Industry
@@ -385,7 +559,7 @@ export default function MyAssessmentsPage() {
                       </Select.Trigger>
                       <Select.Popover>
                         <ListBox>
-                          {getIndustries().map((ind) => (
+                          {industries.map((ind) => (
                             <ListBox.Item
                               key={ind}
                               id={ind}
@@ -406,14 +580,18 @@ export default function MyAssessmentsPage() {
                     </Select>
                   </div>
 
-                  <div className="flex flex-col space-y-2">
+                  {/* Sort by */}
+                  <div className="flex flex-col gap-2">
                     <Select
+                      className="w-full"
+                      placeholder="Sort by"
                       value={sortBy}
                       onChange={(value) => {
-                        setSortBy(value);
+                        setSortBy(value || 'created_at');
                         setPage(1);
                       }}
-                      placeholder="Sort by"
+                      variant="bordered"
+                      size="md"
                     >
                       <Label className="text-sm font-semibold text-slate-700">Sort by</Label>
                       <Select.Trigger>
@@ -443,63 +621,66 @@ export default function MyAssessmentsPage() {
                     </Select>
                   </div>
 
-                  <div className="flex flex-col space-y-2">
+                  {/* Search */}
+                  <div className="flex flex-col gap-2">
                     <label className="text-sm font-semibold text-slate-700">Search</label>
                     <div className="relative">
-                      <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-gray-600" />
+                      <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10" />
                       <Input
                         type="text"
                         placeholder="Search by title or industry..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        variant="bordered"
+                        size="md"
                         className="pl-10"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="text-sm font-medium text-gray-600">
-                    {selectedIds.size} assessment{selectedIds.size !== 1 ? 's' : ''} selected
-                  </div>
-                  <div className="flex gap-2">
-                    {selectedIds.size > 0 && (
-                      <Button variant="secondary" onPress={handleClearSelection}>
-                        Clear Selection
-                      </Button>
-                    )}
-                    <Button
-                      onPress={handleCompareSelected}
-                      isDisabled={selectedIds.size !== 2}
-                      className="gap-2 bg-primary-500 text-white"
-                    >
-                      <GitCompare className="w-4 h-4" />
-                      Compare Selected
-                    </Button>
-                  </div>
+                {/* Compare Section */}
+                <div className="flex items-center justify-between pt-5 border-t-2 border-slate-100">
+                  <p className="text-sm text-slate-600 font-medium">
+                    Select exactly 2 assessments for comparison
+                  </p>
+                  <Button
+                    onPress={handleCompareSelected}
+                    isDisabled={selectedIds.size !== 2}
+                    color="primary"
+                    variant="shadow"
+                    size="md"
+                    className="gap-2 font-bold px-6"
+                  >
+                    <GitCompare className="w-4 h-4" />
+                    {selectedIds.size}/2 Compare Selected
+                  </Button>
                 </div>
               </div>
             </Card>
           )}
 
-          {/* Main Content */}
-          <div className="space-y-4">
-            {/* Loading State with Skeletons */}
-            {loading && renderSkeletonCards()}
+          {/* Assessment List Section - ONLY this section shows loading */}
+          <div>
+            {isLoading && renderSkeletonCards()}
 
-            {/* Error State */}
-            {!loading && error && (
-              <Card>
-                <div className="py-12 text-center">
-                  <div className="mb-4 text-red-600">
-                    <p className="text-lg font-semibold">Error loading assessments</p>
-                    <p className="mt-2 text-sm text-gray-600">{error}</p>
+            {!isLoading && error && (
+              <Card className="border-2 border-red-200 bg-red-50 shadow-sm">
+                <div className="py-12 text-center p-6">
+                  <div className="mb-6">
+                    <p className="text-xl font-bold text-red-700 mb-2">Error loading assessments</p>
+                    <p className="text-sm text-red-600">{error}</p>
                   </div>
                   <div className="flex justify-center gap-3">
-                    <Button onPress={fetchAssessments} className="bg-primary-500 text-white">
+                    <Button
+                      onPress={() => refetch()}
+                      color="danger"
+                      variant="shadow"
+                      className="font-semibold"
+                    >
                       Retry
                     </Button>
-                    <Button variant="secondary" onPress={handleBack}>
+                    <Button variant="bordered" onPress={handleBack} className="font-semibold">
                       Back to Home
                     </Button>
                   </div>
@@ -507,47 +688,55 @@ export default function MyAssessmentsPage() {
               </Card>
             )}
 
-            {/* Empty State */}
-            {!loading && !error && assessments.length === 0 && (
-              <Card className="border-dashed">
-                <div className="py-12 text-center">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-4 rounded-full bg-gray-100">
-                      <Ghost className="w-8 h-8 text-gray-600" />
+            {!isLoading && !error && assessments.length === 0 && (
+              <Card className="border-2 border-dashed border-slate-300 bg-slate-50 shadow-sm">
+                <div className="py-20 px-6 text-center">
+                  <div className="flex justify-center mb-8">
+                    <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 shadow-inner">
+                      <Ghost className="w-12 h-12 text-slate-500" strokeWidth={1.5} />
                     </div>
                   </div>
-                  <h3 className="font-semibold mb-2 text-lg text-gray-900">No assessments yet</h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Start your first assessment to track your circularity progress.
+                  <h3 className="font-bold text-2xl text-slate-900 mb-3">No assessments yet</h3>
+                  <p className="text-base text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+                    Start your first assessment to track your circular economy progress and get
+                    personalized recommendations.
                   </p>
-                  <Button onPress={handleBack} className="gap-2 bg-primary-500 text-white">
-                    <Plus className="w-4 h-4" />
+                  <Button
+                    onPress={handleBack}
+                    color="primary"
+                    variant="shadow"
+                    size="lg"
+                    className="gap-2 font-bold px-8"
+                  >
+                    <Plus className="w-5 h-5" />
                     Start Your First Assessment
                   </Button>
                 </div>
               </Card>
             )}
 
-            {/* Filtered Empty State */}
-            {!loading && !error && assessments.length > 0 && filteredAssessments.length === 0 && (
-              <Card className="border-dashed">
-                <div className="py-12 text-center">
-                  <div className="flex justify-center mb-4">
-                    <div className="p-4 rounded-full bg-gray-100">
-                      <Ghost className="w-8 h-8 text-gray-600" />
+            {!isLoading && !error && assessments.length > 0 && filteredAssessments.length === 0 && (
+              <Card className="border-2 border-dashed border-slate-300 bg-slate-50 shadow-sm">
+                <div className="py-20 px-6 text-center">
+                  <div className="flex justify-center mb-8">
+                    <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 shadow-inner">
+                      <Ghost className="w-12 h-12 text-slate-500" strokeWidth={1.5} />
                     </div>
                   </div>
-                  <h3 className="font-semibold mb-2 text-lg text-gray-900">No assessments found</h3>
-                  <p className="text-sm text-gray-600 mb-6">
-                    No assessments match your current filters. Try adjusting your search.
+                  <h3 className="font-bold text-2xl text-slate-900 mb-3">No assessments found</h3>
+                  <p className="text-base text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+                    Your current filter didn&apos;t match any assessments. Try selecting a different
+                    industry.
                   </p>
                   <Button
-                    variant="secondary"
+                    variant="shadow"
+                    color="default"
                     onPress={() => {
                       setSearchTerm('');
                       setFilterIndustry('all');
                       setPage(1);
                     }}
+                    className="font-semibold px-8"
                   >
                     Clear Filters
                   </Button>
@@ -555,148 +744,133 @@ export default function MyAssessmentsPage() {
               </Card>
             )}
 
-            {/* Card List with Data */}
-            {!loading && !error && filteredAssessments.length > 0 && (
+            {!isLoading && !error && filteredAssessments.length > 0 && (
               <>
-                <div className="space-y-3">
-                  {filteredAssessments.map((assessment) => {
-                    const status = getStatusBadge(assessment.overall_score);
-                    return (
-                      <Card
-                        key={assessment.id}
-                        className="hover:shadow-md transition-shadow"
-                        onMouseEnter={() => prefetchAssessment(assessment.id)}
-                      >
-                        <div className="p-6">
-                          <div className="flex items-start justify-between gap-4">
-                            {/* Left: Checkbox & Info */}
-                            <div className="flex items-start gap-4 flex-1">
-                              <div className="pt-1">
-                                <Checkbox
-                                  isSelected={selectedIds.has(assessment.id)}
-                                  onChange={() => handleToggleSelect(assessment.id)}
-                                >
-                                  <Checkbox.Control>
-                                    <Checkbox.Indicator />
-                                  </Checkbox.Control>
-                                </Checkbox>
-                              </div>
+                <AssessmentList
+                  assessments={filteredAssessments}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onView={handleViewDetail}
+                  onRename={handleRenameAssessment}
+                  onDelete={handleDeleteAssessment}
+                  onPrefetch={prefetchAssessment}
+                  getRatingColor={getRatingColor}
+                  getStatusBadge={getStatusBadge}
+                />
 
-                              <div className="flex-1 space-y-2">
-                                <h3 className="font-semibold text-lg text-gray-900">
-                                  {assessment.title || 'Untitled Assessment'}
-                                </h3>
-
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Chip
-                                    variant="flat"
-                                    color="secondary"
-                                    size="sm"
-                                    className="font-medium"
-                                  >
-                                    {(assessment.industry || 'General').replace(/_/g, ' ')}
-                                  </Chip>
-
-                                  <Chip
-                                    variant="flat"
-                                    color={getChipColor(getRatingVariant(assessment.overall_score))}
-                                    size="sm"
-                                    className="font-semibold"
-                                  >
-                                    Score: {assessment.overall_score}
-                                  </Chip>
-
-                                  <Chip
-                                    variant="flat"
-                                    color={getChipColor(status.variant)}
-                                    size="sm"
-                                  >
-                                    {status.text}
-                                  </Chip>
-                                </div>
-
-                                <p className="text-sm text-gray-500">
-                                  Created {formatTimestamp(assessment.created_at)}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Right: Actions */}
-                            <div className="flex gap-2">
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onPress={() => handleViewDetail(assessment.id)}
-                                onMouseEnter={() => prefetchAssessment(assessment.id)}
-                                className="gap-2"
-                              >
-                                <Eye className="w-4 h-4" />
-                                View
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-
-                {/* Pagination */}
                 {total > pageSize && (
-                  <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                    <div className="text-sm text-gray-600">
-                      Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of{' '}
-                      {total} results
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <CustomPagination />
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={String(pageSize)}
-                          onChange={(value) => {
-                            setPageSize(Number(value));
-                            setPage(1);
-                          }}
-                          placeholder="Select"
-                        >
-                          <Label className="text-sm font-medium">Per page:</Label>
-                          <Select.Trigger className="w-20">
-                            <Select.Value />
-                            <Select.Indicator />
-                          </Select.Trigger>
-                          <Select.Popover>
-                            <ListBox>
-                              {[10, 20, 50, 100].map((n) => (
-                                <ListBox.Item key={n} id={String(n)} textValue={String(n)}>
-                                  {n}
+                  <Card className="mt-6 border-2 border-slate-200 bg-white shadow-sm">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5">
+                      <div className="text-sm text-slate-600 font-medium">
+                        Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of{' '}
+                        {total} results
+                      </div>
+                      <div className="flex items-center gap-4 flex-wrap justify-center">
+                        <Pagination
+                          isCompact
+                          showControls
+                          page={page}
+                          total={totalPages}
+                          onChange={(newPage) => setPage(newPage)}
+                          size="md"
+                        />
+                        <div className="flex items-center gap-2 border-l-2 border-slate-200 pl-4">
+                          <label className="text-sm font-semibold text-slate-700 whitespace-nowrap">
+                            Per page:
+                          </label>
+                          <Select
+                            className="w-20"
+                            placeholder="10"
+                            value={String(pageSize)}
+                            onChange={(value) => {
+                              setPageSize(Number(value));
+                              setPage(1);
+                            }}
+                            variant="bordered"
+                            size="sm"
+                          >
+                            <Select.Trigger>
+                              <Select.Value />
+                              <Select.Indicator />
+                            </Select.Trigger>
+                            <Select.Popover>
+                              <ListBox>
+                                <ListBox.Item id="10" textValue="10">
+                                  10
                                   <ListBox.ItemIndicator />
                                 </ListBox.Item>
-                              ))}
-                            </ListBox>
-                          </Select.Popover>
-                        </Select>
+                                <ListBox.Item id="20" textValue="20">
+                                  20
+                                  <ListBox.ItemIndicator />
+                                </ListBox.Item>
+                                <ListBox.Item id="50" textValue="50">
+                                  50
+                                  <ListBox.ItemIndicator />
+                                </ListBox.Item>
+                                <ListBox.Item id="100" textValue="100">
+                                  100
+                                  <ListBox.ItemIndicator />
+                                </ListBox.Item>
+                              </ListBox>
+                            </Select.Popover>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 )}
               </>
             )}
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-start">
-            <Button variant="secondary" onPress={handleBack} className="gap-2">
-              <ArrowLeft className="w-4 h-4 text-gray-700" strokeWidth={2.5} /> Back to Home
+          {/* Simple Back Home Button */}
+          <div className="flex justify-start pt-6 border-t-2 border-slate-200">
+            <Button
+              variant="outline"
+              onPress={handleBack}
+              size="lg"
+              // startContent={<ArrowLeft className="w-5 h-5" strokeWidth={2.5} />}
+              className="font-semibold border-black border-2"
+            >
+              <ArrowLeft className="w-5 h-5 inline" strokeWidth={2.5} />
+              Back to Home
             </Button>
           </div>
 
-          {/* Delete Assessment Dialog */}
-          <DeleteAssessmentDialog
-            open={showDeleteModal}
-            onOpenChange={setShowDeleteModal}
-            assessmentName={confirmDeleteAssessment?.title}
-            onConfirm={() => proceedDelete(confirmDeleteId)}
-          />
+          {deleteDialog.isOpen && deleteDialog.assessmentId && (
+            <DeleteAssessmentDialog
+              open={true}
+              onOpenChange={handleDeleteDialogChange}
+              assessmentName={confirmDeleteAssessment?.title}
+              onConfirm={handleConfirmDelete}
+              isLoading={isDeleting}
+            />
+          )}
+
+          {/* DEBUG: Direct test delete button */}
+          {import.meta.env.MODE === 'development' && deleteDialog.assessmentId && (
+            <div
+              style={{
+                position: 'fixed',
+                bottom: 20,
+                right: 20,
+                padding: '10px 20px',
+                backgroundColor: '#ff4444',
+                color: 'white',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                zIndex: 9999,
+              }}
+              onClick={() => {
+                console.log('[TEST_DELETE_BUTTON_CLICKED]', {
+                  assessmentId: deleteDialog.assessmentId,
+                });
+                proceedDelete(deleteDialog.assessmentId);
+              }}
+            >
+              🧪 TEST DELETE {deleteDialog.assessmentId}
+            </div>
+          )}
         </div>
       )}
     </>

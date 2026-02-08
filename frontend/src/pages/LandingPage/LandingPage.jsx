@@ -416,8 +416,8 @@ export default function LandingPage() {
             /* Emerald Gradient (Active State) */
             bg-linear-to-br from-emerald-500 via-green-600 to-teal-600
             hover:from-emerald-600 hover:to-teal-700
-            hover:shadow-emerald-200/50 hover:scale-[0.98]
-            active:scale-[0.98] active:translate-y-0
+            hover:shadow-emerald-200/50 hover:scale-[0.9925]
+            active:scale-[1] active:translate-y-0
 
             /* Grey State (Disabled State) */
             data-[disabled=true]:bg-none

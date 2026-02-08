@@ -4,8 +4,6 @@
  *
  * Base components:
  * - ConfirmDialog: Legacy yes/no confirmations
- * - ConfirmationDialog: New flexible confirmation with status support
- * - InputDialog: For text input with validation
  *
  * Specialized AlertDialogs:
  * - DeleteAssessmentDialog: Confirm assessment deletion
@@ -19,8 +17,6 @@
  */
 
 export { ConfirmDialog } from './ConfirmDialog';
-export { ConfirmationDialog } from './ConfirmationDialog';
-export { InputDialog } from './InputDialog';
 export { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
 export { ReplaceInputsDialog } from './ReplaceInputsDialog';
 export { SessionRestoreDialog } from './SessionRestoreDialog';

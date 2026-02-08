@@ -20,9 +20,16 @@ import { ConfirmDialog } from './ConfirmDialog';
  *   onOpenChange={setShowDelete}
  *   assessmentName="My Project Assessment"
  *   onConfirm={handleDelete}
+ *   isLoading={isDeleting}
  * />
  */
-export function DeleteAssessmentDialog({ open, onOpenChange, assessmentName, onConfirm }) {
+export function DeleteAssessmentDialog({
+  open,
+  onOpenChange,
+  assessmentName,
+  onConfirm,
+  isLoading = false,
+}) {
   return (
     <ConfirmDialog
       open={open}
@@ -37,6 +44,7 @@ export function DeleteAssessmentDialog({ open, onOpenChange, assessmentName, onC
       cancelText="Cancel"
       onConfirm={onConfirm}
       variant="destructive"
+      isLoading={isLoading}
     />
   );
 }

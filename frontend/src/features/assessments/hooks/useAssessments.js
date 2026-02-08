@@ -27,49 +27,78 @@ export function useAssessments({
       }),
   });
 
-  // Use mutation for deleting assessments with optimistic updates
+  // Use mutation for deleting assessments
   const deleteMutation = useMutation({
-    mutationFn: deleteAssessment,
+    mutationFn: async (deletedId) => {
+      console.log('[MUTATION_START]', { deletedId });
+      try {
+        const result = await deleteAssessment(deletedId);
+        console.log('[MUTATION_SUCCESS]', { deletedId, result });
+        return result;
+      } catch (error) {
+        console.error('[MUTATION_FAIL]', {
+          deletedId,
+          error: error.message,
+          stack: error.stack,
+          fullError: error,
+        });
+        throw error;
+      }
+    },
     onMutate: async (deletedId) => {
+      console.log('[ON_MUTATE]', { deletedId });
       // Cancel any outgoing refetches to prevent race conditions
       await queryClient.cancelQueries({ queryKey: ['assessments'] });
 
       // Snapshot the current cache
-      const previousAssessments = queryClient.getQueryData([
+      const cacheKey = [
         'assessments',
         { sessionId, page, pageSize, sortBy, order, search, industry },
-      ]);
+      ];
+      const previousAssessments = queryClient.getQueryData(cacheKey);
 
       // Optimistically update the cache by filtering out the deleted assessment
       if (previousAssessments) {
-        queryClient.setQueryData(
-          ['assessments', { sessionId, page, pageSize, sortBy, order, search, industry }],
-          (old) => {
-            if (!old) return old;
-            return {
-              ...old,
-              assessments: old.assessments.filter((assessment) => assessment.id !== deletedId),
-              total: Math.max(0, (old.total || 0) - 1),
-            };
-          },
-        );
+        queryClient.setQueryData(cacheKey, (old) => {
+          if (!old) return old;
+          const updated = {
+            ...old,
+            assessments: old.assessments.filter((assessment) => assessment.id !== deletedId),
+            total: Math.max(0, (old.total || 0) - 1),
+          };
+          console.log('[OPTIMISTIC_UPDATE]', { deletedId, newTotal: updated.total });
+          return updated;
+        });
       }
 
       // Return snapshot as context for potential rollback
-      return { previousAssessments };
+      return { previousAssessments, cacheKey };
     },
     onError: (err, deletedId, context) => {
+      console.error('[ON_ERROR]', { deletedId, error: err.message, context });
       // Roll back to the snapshot if the mutation fails
-      if (context?.previousAssessments) {
-        queryClient.setQueryData(
-          ['assessments', { sessionId, page, pageSize, sortBy, order, search, industry }],
-          context.previousAssessments,
-        );
+      if (context?.previousAssessments && context?.cacheKey) {
+        queryClient.setQueryData(context.cacheKey, context.previousAssessments);
+        console.log('[ROLLBACK_COMPLETE]', { deletedId });
       }
     },
-    onSettled: () => {
-      // Invalidate all assessments queries to ensure UI is in sync with server
-      queryClient.invalidateQueries({ queryKey: ['assessments'] });
+    onSuccess: (data, deletedId, context) => {
+      console.log('[ON_SUCCESS]', { deletedId, context });
+
+      // Always invalidate all assessment queries to ensure UI is in sync
+      if (context?.cacheKey) {
+        // Invalidate the specific query
+        queryClient.invalidateQueries({
+          queryKey: context.cacheKey,
+          exact: true,
+        });
+      }
+
+      // Also invalidate all assessment queries with similar structure to catch edge cases
+      queryClient.invalidateQueries({
+        queryKey: ['assessments'],
+        exact: false,
+      });
     },
   });
 
