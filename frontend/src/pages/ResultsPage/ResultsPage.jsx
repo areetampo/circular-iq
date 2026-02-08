@@ -161,7 +161,7 @@ export default function ResultsPage({
         await createAssessmentAsync(saveData);
         addToast('Assessment saved successfully!', 'success');
         setShowSaveDialog(false);
-        navigate('/assessments');
+        // navigate('/assessments');
       } catch (error) {
         console.error('Save error:', error);
         addToast('Failed to save assessment. Please try again.', 'error');

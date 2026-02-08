@@ -360,18 +360,60 @@ export default function createAssessmentsRouter(supabase) {
 
     try {
       const { id } = req.params;
+      const userId = req.user.id;
 
-      // Delete only if the assessment belongs to the authenticated user
-      const { error } = await supabase
+      console.log('[DELETE_REQUEST]', { id, userId });
+
+      // Create authenticated user client to respect RLS
+      const token = req.headers.authorization?.slice(7).trim();
+
+      let userClient;
+      if (token) {
+        userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        userClient = supabase;
+      }
+
+      // Verify assessment exists and belongs to user before deleting
+      const { data: assessment, error: getError } = await userClient
+        .from('assessments')
+        .select('id')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single();
+
+      if (getError || !assessment) {
+        console.log('[DELETE_NOT_FOUND]', { id, userId, getError });
+        logRequest('DELETE', `/assessments/${id}`, 404, Date.now() - startTime);
+        return res.status(404).json(
+          errorResponse({
+            message: 'Assessment not found or you do not have permission to delete it',
+            code: 'NOT_FOUND',
+          }),
+        );
+      }
+
+      // Delete the assessment using authenticated client
+      const { error: deleteError } = await userClient
         .from('assessments')
         .delete()
         .eq('id', id)
-        .eq('user_id', req.user.id);
+        .eq('user_id', userId);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('[DELETE_ERROR]', { id, userId, deleteError });
+        throw new Error(`Deletion failed: ${deleteError.message}`);
+      }
 
+      console.log('[DELETE_SUCCESS]', { id, userId });
       logRequest('DELETE', `/assessments/${id}`, 200, Date.now() - startTime);
-      res.json({ message: 'Assessment deleted successfully' });
+      res.json({ message: 'Assessment deleted successfully', id });
     } catch (error) {
       console.error('Error deleting assessment:', error);
       logRequest(

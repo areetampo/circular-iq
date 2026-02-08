@@ -121,7 +121,26 @@ export async function deleteAssessment(id) {
   if (!id) {
     throw new Error('Assessment id is required');
   }
-  await requestJson(`/api/assessments/${id}`, { method: 'DELETE' });
+
+  console.log('[DELETE_ASSESSMENT_API]', { id });
+
+  try {
+    const response = await requestJson(`/api/assessments/${id}`, { method: 'DELETE' });
+    console.log('[DELETE_ASSESSMENT_RESPONSE]', { id, response });
+
+    if (!response) {
+      throw new Error('Failed to delete assessment: No response from server');
+    }
+    return response;
+  } catch (error) {
+    console.error('[DELETE_ASSESSMENT_FAILED]', {
+      id,
+      errorMessage: error.message,
+      errorStatus: error.status,
+      fullError: error,
+    });
+    throw error;
+  }
 }
 
 export async function getMarketAnalysis(id) {
