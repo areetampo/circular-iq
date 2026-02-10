@@ -5,7 +5,8 @@ import { cn } from '@/utils/cn';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import Logo from '@/components/common/Logo';
-import { Button, Tabs, Dropdown, Label, Separator } from '@heroui/react';
+import { Tabs, Dropdown, Label, Separator } from '@heroui/react';
+import { Button } from '@/components/common';
 import {
   Home,
   FileText,
@@ -230,18 +231,7 @@ export default function Navbar() {
           <div className="absolute transform -translate-x-1/2 left-1/2 md:hidden">
             <Dropdown isOpen={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <Dropdown.Trigger>
-                <Button
-                  variant="flat"
-                  className="gap-2 px-3.5 py-2 h-auto font-medium transition-all duration-300 rounded-full"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                  }}
-                  aria-label="Navigation menu"
-                >
+                <Button variant="neutral-soft" aria-label="Navigation menu">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-emerald-700">
                       {getCurrentPageName()}
@@ -308,19 +298,7 @@ export default function Navbar() {
           <div className="shrink-0">
             <Dropdown isOpen={isDropdownOpen} onOpenChange={toggleDropdown}>
               <Dropdown.Trigger>
-                <Button
-                  variant="flat"
-                  className="gap-2 px-2.5 py-2 h-auto font-medium transition-all duration-300 rounded-full"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                  }}
-                  aria-label="User menu"
-                  onClick={toggleDropdown}
-                >
+                <Button variant="neutral-soft" aria-label="User menu" onClick={toggleDropdown}>
                   <div className="flex items-center justify-center w-7 h-7 text-xs font-bold text-white rounded-full shadow-sm bg-gradient-to-br from-emerald-500 to-emerald-600">
                     {getUserInitials()}
                   </div>

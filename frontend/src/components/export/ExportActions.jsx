@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Download, FileText } from 'lucide-react';
 import LoaderIcon from '@/components/common/LoaderIcon';
-import { Button, Tooltip } from '@heroui/react';
+import { Tooltip } from '@heroui/react';
+import { Button } from '@/components/common';
 
 /**
  * ExportActions Component
@@ -32,9 +33,8 @@ export function ExportActions({
         <Button
           onClick={onExportCSV}
           disabled={isExporting}
-          variant="outline"
+          variant="neutral-soft"
           aria-label="Export assessment data as CSV"
-          className="gap-2"
         >
           {isExportingCSV ? <LoaderIcon /> : <Download className="w-4 h-4" />}
           {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
@@ -53,9 +53,8 @@ export function ExportActions({
         <Button
           onClick={onExportPDF}
           disabled={isExporting}
-          variant="outline"
+          variant="neutral-soft"
           aria-label="Export assessment as PDF"
-          className="gap-2"
         >
           {isExportingPDF ? <LoaderIcon /> : <FileText className="w-4 h-4" />}
           {isExportingPDF ? 'Generating...' : 'Download as PDF'}

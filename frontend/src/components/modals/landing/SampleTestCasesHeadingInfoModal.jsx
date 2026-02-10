@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardPenLine, Lightbulb } from 'lucide-react';
-import { Modal, Button } from '@heroui/react';
+import { Modal } from '@heroui/react';
+import { Button } from '@/components/common';
 
 export default function SampleTestCasesHeadingInfoModal({ onClose, isModalOpen }) {
   return (

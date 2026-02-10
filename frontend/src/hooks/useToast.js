@@ -27,11 +27,11 @@ export function useToast() {
       }
     } else if (typeof message === 'object' && message.title) {
       // Handle object format with title and description
-      const variant = message.variant || 'default';
+      const msgVariant = message.variant || 'default';
       const timeout =
-        message.timeout || (variant === 'error' || variant === 'destructive' ? 4000 : 3000);
+        message.timeout || (msgVariant === 'error' || msgVariant === 'destructive' ? 4000 : 3000);
 
-      switch (variant) {
+      switch (msgVariant) {
         case 'success':
           toast.success(message.title, { description: message.description, timeout });
           break;

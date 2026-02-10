@@ -6,7 +6,8 @@ import ScatterChart from '@/components/charts/ScatterChart';
 import { titleize } from '@/lib/formatting';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import { useMarketAnalysis } from '@/features/assessments';
-import { Button, Chip, Card } from '@heroui/react';
+import { Card, Chip } from '@heroui/react';
+import { Button } from '@/components/common';
 import { Progress } from '@heroui/progress';
 import {
   ChevronLeft,
@@ -162,7 +163,7 @@ export default function MarketAnalysisPage() {
     <div className="w-full max-w-6xl mx-auto">
       {/* Back Button */}
       <div className="mb-6">
-        <Button variant="outline" onClick={handleBackToResults} className="flex items-center gap-2">
+        <Button variant="neutral-soft" onClick={handleBackToResults}>
           <ChevronLeft className="w-4 h-4" />
           Back to Results
         </Button>
@@ -238,18 +239,12 @@ export default function MarketAnalysisPage() {
           <Card className="border shadow-sm border-slate-200">
             <Card.Header className="pb-2">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <CardTitle className="text-xl font-semibold text-[#1f2937]">
+                <Card.Title className="text-xl font-semibold text-[#1f2937]">
                   Industry Benchmarking
-                </CardTitle>
+                </Card.Title>
                 {normalizedUserScore != null && normalizedBenchmarkScore != null && (
-                  <Chip
-                    className={
-                      isOutperforming
-                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                        : 'bg-amber-100 text-amber-700 hover:bg-amber-100'
-                    }
-                  >
-                    {isOutperforming ? 'Outperforming' : 'Opportunity for Growth'}
+                  <Chip variant="soft" color={isOutperforming ? 'success' : 'warning'}>
+                    \n {isOutperforming ? 'Outperforming' : 'Opportunity for Growth'}
                   </Chip>
                 )}
               </div>
@@ -511,10 +506,10 @@ export default function MarketAnalysisPage() {
           {/* AI Strategic Insight */}
           <Card className="border shadow-sm border-slate-200 bg-sky-50/70">
             <Card.Header className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+              <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
                 <Sparkles className="w-5 h-5 text-sky-500" />
                 Strategic Recommendation
-              </CardTitle>
+              </Card.Title>
             </Card.Header>
             <Card.Content className="text-sm leading-6 text-slate-700">
               {isOutperforming ? (

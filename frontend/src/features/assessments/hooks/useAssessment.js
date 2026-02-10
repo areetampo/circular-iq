@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@heroui/react';
-import { getAssessmentById, createAssessment } from '@/features/assessments';
+import { getAssessmentById, getPublicAssessment, createAssessment } from '@/features/assessments';
 
 export function useAssessment(id, options = {}) {
   const { enabled = true, placeholderData } = options;
@@ -37,6 +37,38 @@ export function useAssessment(id, options = {}) {
     refetch,
     data,
     isPlaceholderData, // Expose to components for subtle loading indicators
+  };
+}
+
+/**
+ * Hook for fetching a publicly shared assessment (no authentication required)
+ * @param {string} publicId - The public ID of the shared assessment
+ * @param {Object} options - Query options
+ */
+export function usePublicAssessment(publicId, options = {}) {
+  const { enabled = true } = options;
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['publicAssessment', publicId],
+    queryFn: () => getPublicAssessment(publicId),
+    enabled: enabled && !!publicId,
+    onError: (err) => {
+      toast.danger('Failed to load shared assessment', {
+        description:
+          err.message || 'This link may be invalid or the assessment is no longer public.',
+        timeout: 4000,
+      });
+    },
+  });
+
+  return {
+    assessment: data?.assessment ?? data ?? null,
+    loading: isLoading,
+    isLoading,
+    error: error?.message || null,
+    isError,
+    refetch,
+    data,
   };
 }
 

@@ -8,7 +8,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { AlertDialog, Button } from '@heroui/react';
+import { AlertDialog } from '@heroui/react';
+import { Button } from '@/components/common';
 import { RotateCcw } from 'lucide-react';
 
 /**
@@ -62,7 +63,7 @@ export function SessionRestoreDialog({
                   Start Fresh
                 </Button>
                 <Button
-                  variant="primary"
+                  variant="success"
                   onPress={() => {
                     onRestore?.();
                     close();

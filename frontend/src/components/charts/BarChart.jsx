@@ -1,22 +1,9 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import {
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  Cell,
-} from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/common/ChartWrapper';
-import { cn } from '@/utils/cn';
+import { CircularProgress, Typography, Paper, useTheme, Box } from '@mui/material';
+import { BarChart as MuiBarChart } from '@mui/x-charts';
 
-export default function BarChart({
+function BarChartComponent({
   data,
   barConfigs,
   height,
@@ -27,25 +14,20 @@ export default function BarChart({
   yAxisLabel,
   isLoading,
 }) {
-  const chartConfig = useMemo(() => {
-    const palette = [
-      'hsl(var(--chart-1))',
-      'hsl(var(--chart-2))',
-      'hsl(var(--chart-3))',
-      'hsl(var(--chart-4))',
-      'hsl(var(--chart-5))',
-    ];
+  const theme = useTheme();
 
-    return barConfigs.reduce((acc, config, index) => {
-      acc[config.dataKey] = {
-        label: config.name || config.dataKey,
-        color: palette[index % palette.length],
-      };
-      return acc;
-    }, {});
-  }, [barConfigs]);
+  const colorPalette = useMemo(
+    () => [
+      theme.palette.primary.main,
+      theme.palette.secondary.main,
+      theme.palette.success.main,
+      theme.palette.warning.main,
+      theme.palette.error.main,
+      theme.palette.info.main,
+    ],
+    [theme],
+  );
 
-  // Memoize data transformation to prevent expensive re-calculations
   const chartData = useMemo(
     () =>
       data.map((item) => ({
@@ -55,67 +37,138 @@ export default function BarChart({
     [data],
   );
 
-  return (
-    <ChartContainer
-      config={chartConfig}
-      className={cn('w-full', isLoading && 'opacity-60')}
-      style={{ height: height || 400 }}
-    >
-      <RechartsBarChart data={chartData} margin={{ top: 20, right: 30, bottom: 80, left: 60 }}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.6} />}
-        <XAxis
-          dataKey="name"
-          label={
-            xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -10 } : undefined
-          }
-          tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500, angle: -30, textAnchor: 'end' }}
-          height={80}
-          interval={0}
-          tickLine={false}
-        />
-        <YAxis
-          domain={yAxisDomain}
-          label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
-          tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <ChartTooltip
-          cursor={{ fill: 'rgba(148, 163, 184, 0.1)' }}
-          content={<ChartTooltipContent indicator="dot" />}
-        />
-        {showLegend && (
-          <Legend
-            wrapperStyle={{
-              paddingTop: '15px',
-              fontSize: '13px',
-              fontWeight: '600',
-            }}
-            iconSize={14}
-            iconType="square"
-          />
-        )}
+  const series = useMemo(
+    () =>
+      barConfigs.map((config, index) => ({
+        dataKey: config.dataKey,
+        label: config.name || config.dataKey,
+        valueFormatter: (value) => (value !== null ? `${value}` : ''),
+        color: colorPalette[index % colorPalette.length],
+      })),
+    [barConfigs, colorPalette],
+  );
 
-        {barConfigs.map((config, index) => (
-          <Bar
-            key={index}
-            dataKey={config.dataKey}
-            fill={`var(--color-${config.dataKey})`}
-            name={config.name || config.dataKey}
-            radius={[4, 4, 0, 0]}
-          >
-            {config.useCustomColors &&
-              chartData.map((entry, idx) => (
-                <Cell key={`cell-${idx}`} fill={`var(--color-${config.dataKey})`} opacity={0.9} />
-              ))}
-          </Bar>
-        ))}
-      </RechartsBarChart>
-    </ChartContainer>
+  if (isLoading) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: height || 400,
+          width: '100%',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <CircularProgress size={48} />
+      </Paper>
+    );
+  }
+
+  if (!chartData || chartData.length === 0) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: height || 400,
+          width: '100%',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Typography color="textSecondary" variant="body2">
+          No data available
+        </Typography>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        width: '100%',
+        height: height || 400,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        p: { xs: 0.5, sm: 1, md: 2 },
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ width: '100%', height: '100%', flexGrow: 1, minHeight: 0 }}>
+        <MuiBarChart
+          dataset={chartData}
+          series={series}
+          xAxis={[
+            {
+              dataKey: 'name',
+              scaleType: 'band',
+              label: xAxisLabel,
+              tickLabelStyle: {
+                angle: -30,
+                textAnchor: 'end',
+                fontSize: 10,
+              },
+            },
+          ]}
+          yAxis={[
+            {
+              label: yAxisLabel,
+              min: yAxisDomain?.[0] || 0,
+              max: yAxisDomain?.[1] || 100,
+              tickLabelStyle: {
+                fontSize: 10,
+              },
+            },
+          ]}
+          margin={{
+            top: 20,
+            right: 5,
+            bottom: xAxisLabel ? 70 : 50,
+            left: yAxisLabel ? 60 : 45,
+          }}
+          slotProps={{
+            legend: showLegend
+              ? {
+                  hidden: false,
+                  position: { vertical: 'top', horizontal: 'right' },
+                  labelStyle: {
+                    fontSize: 11,
+                    fontWeight: 600,
+                  },
+                  itemMarkWidth: 10,
+                  itemMarkHeight: 10,
+                  markGap: 5,
+                  itemGap: 8,
+                }
+              : { hidden: true },
+          }}
+          grid={showGrid ? { vertical: false, horizontal: true } : undefined}
+          sx={{
+            '& .MuiChartsAxis-line': {
+              stroke: theme.palette.divider,
+            },
+            '& .MuiChartsAxis-tick': {
+              stroke: theme.palette.divider,
+            },
+          }}
+        />
+      </Box>
+    </Paper>
   );
 }
 
-BarChart.propTypes = {
+BarChartComponent.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string,
@@ -126,7 +179,6 @@ BarChart.propTypes = {
   barConfigs: PropTypes.arrayOf(
     PropTypes.shape({
       dataKey: PropTypes.string.isRequired,
-      fill: PropTypes.string.isRequired,
       name: PropTypes.string,
       useCustomColors: PropTypes.bool,
     }),
@@ -140,7 +192,7 @@ BarChart.propTypes = {
   isLoading: PropTypes.bool,
 };
 
-BarChart.defaultProps = {
+BarChartComponent.defaultProps = {
   height: 400,
   showLegend: true,
   showGrid: true,
@@ -149,3 +201,5 @@ BarChart.defaultProps = {
   yAxisLabel: '',
   isLoading: false,
 };
+
+export default BarChartComponent;

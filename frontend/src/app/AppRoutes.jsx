@@ -28,10 +28,10 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
  * @param {React.ReactNode} children - The protected content to render
  */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, authLoading } = useAuth();
 
   // Show loader while checking authentication status
-  if (isLoading) {
+  if (authLoading) {
     return (
       <LoaderComponent
         heading="Authenticating..."
@@ -92,6 +92,18 @@ export default function AppRoutes() {
             }
           />
 
+          {/* Public Route - Shared Assessment (No auth required) */}
+          <Route
+            path="/share/:publicId"
+            element={
+              <AppContainer>
+                <PageErrorBoundary pageName="Shared Assessment">
+                  <ResultsPage isViewFromMyAssessments={true} isPublicShare={true} />
+                </PageErrorBoundary>
+              </AppContainer>
+            }
+          />
+
           {/* Protected Routes - Require Authentication */}
           <Route
             path="/"
@@ -141,7 +153,7 @@ export default function AppRoutes() {
               <ProtectedRoute>
                 <AppContainer>
                   <PageErrorBoundary pageName="Assessment Results">
-                    <ResultsPage isDetailView={true} />
+                    <ResultsPage isViewFromMyAssessments={true} />
                   </PageErrorBoundary>
                 </AppContainer>
               </ProtectedRoute>

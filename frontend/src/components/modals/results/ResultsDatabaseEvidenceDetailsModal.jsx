@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { extractProblemSolution } from '@/utils/content';
 import { NotebookText, Target, Lightbulb } from 'lucide-react';
-import { Modal, Button } from '@heroui/react';
+import { Modal, Chip } from '@heroui/react';
+import { Button } from '@/components/common';
 
 export default function ResultsDatabaseEvidenceDetailsModal({
   onClose,
@@ -11,7 +12,7 @@ export default function ResultsDatabaseEvidenceDetailsModal({
   content,
   title,
   matchPercentage,
-  matchStrength,
+  matchStrengthLabel,
   matchColor,
   sourceCaseId,
 }) {
@@ -43,9 +44,6 @@ export default function ResultsDatabaseEvidenceDetailsModal({
               </div>
               <div>
                 <h2 className="text-lg font-semibold">{title || 'Evidence Details'}</h2>
-                <p className="text-sm text-gray-600">
-                  Database evidence from similar circular economy projects
-                </p>
               </div>
             </div>
           </Modal.Header>
@@ -60,15 +58,22 @@ export default function ResultsDatabaseEvidenceDetailsModal({
                     <span>Source Case {sourceCaseId}</span>
                   </div>
                   <span className="text-gray-400">•</span>
-                  <div className="px-3 py-2 text-xs font-bold text-white rounded-full bg-emerald-600">
+                  <Chip
+                    size="sm"
+                    variant="secondary"
+                    className="text-xs py-0.5 text-white font-bold"
+                    style={{
+                      backgroundColor: matchColor,
+                    }}
+                  >
                     {matchPercentage}%&nbsp;&nbsp;Similarity
-                  </div>
+                  </Chip>
                   <span className="text-gray-400">•</span>
                   <div
                     className="text-xs font-bold tracking-wide uppercase"
                     style={{ color: matchColor }}
                   >
-                    {matchStrength}
+                    {matchStrengthLabel}
                   </div>
                 </div>
               )}
@@ -80,14 +85,6 @@ export default function ResultsDatabaseEvidenceDetailsModal({
                     <div className="flex items-center gap-2.5 mb-4 pb-3 border-b-2 border-emerald-600">
                       <Target className="size-5 text-emerald-600" strokeWidth={2} />
                       <h3 className="m-0 text-lg font-semibold text-gray-900">Problem Addressed</h3>
-                    </div>
-                    <p className="m-0 text-base leading-7 text-gray-600">{problemPart}</p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2.5 mb-4 pb-3 border-b-2 border-emerald-600">
-                      <Lightbulb className="size-5 text-emerald-600" strokeWidth={2} />
-                      <h3 className="m-0 text-lg font-semibold text-gray-900">Solution Approach</h3>
                     </div>
                     <p className="m-0 text-base leading-7 text-gray-600">{problemPart}</p>
                   </div>
@@ -124,7 +121,7 @@ ResultsDatabaseEvidenceDetailsModal.propTypes = {
   content: PropTypes.string,
   title: PropTypes.string,
   matchPercentage: PropTypes.number,
-  matchStrength: PropTypes.string,
+  matchStrengthLabel: PropTypes.string,
   matchColor: PropTypes.string,
   sourceCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
@@ -134,7 +131,7 @@ ResultsDatabaseEvidenceDetailsModal.defaultProps = {
   content: '',
   title: '',
   matchPercentage: null,
-  matchStrength: '',
+  matchStrengthLabel: '',
   matchColor: '',
   sourceCaseId: null,
 };

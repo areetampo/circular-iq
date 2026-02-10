@@ -140,3 +140,31 @@ export function titleize(txt) {
         .replace(/\b\w/g, (l) => l.toUpperCase())
     : 'N/A';
 }
+
+/**
+ * Format a list with truncation support
+ * Truncates list to specified max items and provides full list for display
+ * @param {Array} items - Array of items (can have 'industry' property or be strings)
+ * @param {number} maxDisplay - Max items to display before truncating (default 2)
+ * @returns {Object} Object with display (string), all (array), extra (count)
+ */
+export function formatTruncatedList(items = [], maxDisplay = 2) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return { display: 'N/A', all: [], extra: 0 };
+  }
+
+  const formatted = items.map((item) => titleize(item.industry || item));
+
+  const hasExtra = formatted.length > maxDisplay;
+  const displayed = formatted.slice(0, maxDisplay);
+  const extra = hasExtra ? formatted.length - maxDisplay : 0;
+
+  // Format display string: "A, B" or "A"
+  const display = displayed.join(', ');
+
+  return {
+    display,
+    all: formatted,
+    extra,
+  };
+}

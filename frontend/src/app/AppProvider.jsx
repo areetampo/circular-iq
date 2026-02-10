@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toast, toast } from '@heroui/react';
 import { ErrorBoundary } from '@/components/error-boundaries';
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
+import { AuthProvider } from '@/contexts/AuthContext'; // ← ADD THIS IMPORT
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
@@ -32,21 +33,26 @@ const queryClient = new QueryClient({
 
 /**
  * AppProvider wraps the entire app with necessary providers:
- * - QueryClientProvider for React Query
- * - BrowserRouter for routing
  * - ErrorBoundary for error handling
- * - HeroUI Toast for toast notifications
+ * - Toast.Provider for toast notifications
+ * - AuthProvider for authentication state (SINGLE SHARED INSTANCE) ← NEW
+ * - QueryClientProvider for React Query
+ * - GlobalLoadingBar for loading indicator
  * - ReactQueryDevtools for development debugging
  */
 export default function AppProvider({ children }) {
   return (
     <ErrorBoundary>
-      <Toast.Provider placement="top" />
-      <QueryClientProvider client={queryClient}>
-        <GlobalLoadingBar />
-        {children}
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
+      <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
+      {/* ADD AuthProvider WRAPPER */}
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <GlobalLoadingBar />
+          {children}
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </AuthProvider>{' '}
+      {/* ← CLOSE WRAPPER */}
     </ErrorBoundary>
   );
 }

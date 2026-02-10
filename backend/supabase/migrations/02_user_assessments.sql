@@ -244,6 +244,7 @@ CREATE TABLE IF NOT EXISTS assessments (
   business_viability_score INTEGER,
   is_public BOOLEAN DEFAULT FALSE,
   public_id UUID DEFAULT gen_random_uuid(),
+  contribute_to_global_benchmarks BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -260,6 +261,7 @@ COMMENT ON COLUMN assessments.overall_score IS 'Overall circular economy score (
 COMMENT ON COLUMN assessments.business_viability_score IS 'Business viability sub-score from comprehensive evaluation';
 COMMENT ON COLUMN assessments.is_public IS 'Whether assessment is included in global analytics benchmarks';
 COMMENT ON COLUMN assessments.public_id IS 'Public UUID for sharing assessments without exposing internal ID';
+COMMENT ON COLUMN assessments.contribute_to_global_benchmarks IS 'Whether assessment data contributes to global benchmark statistics';
 
 -- ============================================
 -- 2. Create Indexes for Fast Queries
@@ -453,10 +455,12 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- Note: Existing rows will get 'false' for is_public and a fresh UUID for public_id
 ALTER TABLE assessments
   ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS public_id UUID UNIQUE DEFAULT gen_random_uuid();
+  ADD COLUMN IF NOT EXISTS public_id UUID UNIQUE DEFAULT gen_random_uuid(),
+  ADD COLUMN IF NOT EXISTS contribute_to_global_benchmarks BOOLEAN DEFAULT FALSE;
 
 COMMENT ON COLUMN assessments.is_public IS 'Whether assessment is included in global analytics benchmarks and public viewing';
 COMMENT ON COLUMN assessments.public_id IS 'Public UUID for sharing assessments without exposing internal ID';
+COMMENT ON COLUMN assessments.contribute_to_global_benchmarks IS 'Whether assessment data contributes to global benchmark statistics';
 
 -- 3. Create a unique index for efficient public_id lookups
 CREATE UNIQUE INDEX IF NOT EXISTS idx_assessments_public_id ON assessments(public_id);

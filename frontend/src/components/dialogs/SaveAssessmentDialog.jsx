@@ -8,7 +8,8 @@
 
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { AlertDialog, Button, Switch, Input, Label, Description } from '@heroui/react';
+import { AlertDialog, Switch, Input, Label, Description } from '@heroui/react';
+import { Button } from '@/components/common';
 import { cn } from '@/utils/cn';
 import { Globe, Save } from 'lucide-react';
 
@@ -27,13 +28,15 @@ import { Globe, Save } from 'lucide-react';
  */
 export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName = '' }) {
   const [name, setName] = useState(defaultName);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
+  const [contributeToGlobalBenchmarks, setContributeToGlobalBenchmarks] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setName(defaultName);
-      setIsPublic(true);
+      setIsPublic(false);
+      setContributeToGlobalBenchmarks(true);
       setError('');
     }
   }, [isOpen, defaultName]);
@@ -63,7 +66,7 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
       return;
     }
 
-    onSave(name.trim(), isPublic);
+    onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
     close();
   };
 
@@ -108,23 +111,53 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-3 p-4 border-2 border-blue-300 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50">
+                  {/* Public Access Toggle with Copy Icon */}
+                  <div className="flex items-center justify-between gap-3 p-4 border-2 border-emerald-200 rounded-lg bg-emerald-50">
                     <div className="flex-1">
                       <Switch isSelected={isPublic} onChange={setIsPublic} size="lg">
                         <div className="flex gap-3">
                           <div className="-mt-0.5 flex flex-col gap-1">
                             <div className="flex items-center gap-2">
-                              <Globe className="w-5 h-5 text-blue-600 flex-shrink-0" />
                               <Label className="text-sm font-medium text-gray-900">
-                                Contribute to global benchmarks
+                                Public Access
                               </Label>
                               <Switch.Control>
                                 <Switch.Thumb />
                               </Switch.Control>
                             </div>
                             <Description className="text-xs text-gray-700">
-                              Allow your anonymized score to be included in industry-wide averages.
-                              This helps improve circular economy insights for everyone.
+                              Make this assessment publicly viewable.{' '}
+                              <span className="italic font-semibold">
+                                Share link available on your assessments page once saved.
+                              </span>
+                            </Description>
+                          </div>
+                        </div>
+                      </Switch>
+                    </div>
+                  </div>
+
+                  {/* Contribute to Global Benchmarks Toggle */}
+                  <div className="flex items-center justify-between gap-3 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                    <div className="flex-1">
+                      <Switch
+                        isSelected={contributeToGlobalBenchmarks}
+                        onChange={setContributeToGlobalBenchmarks}
+                        size="lg"
+                      >
+                        <div className="flex gap-3">
+                          <div className="-mt-0.5 flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                              <Label className="text-sm font-medium text-gray-900">
+                                Global Benchmarks
+                              </Label>
+                              <Switch.Control>
+                                <Switch.Thumb />
+                              </Switch.Control>
+                            </div>
+                            <Description className="text-xs text-gray-700">
+                              Allow your anonymized score to contribute to industry-wide benchmarks.
                             </Description>
                           </div>
                         </div>
@@ -136,7 +169,7 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
 
               <AlertDialog.Footer>
                 <Button
-                  variant="light"
+                  variant="neutral-soft"
                   onPress={() => {
                     close();
                   }}
@@ -144,7 +177,7 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
                   Cancel
                 </Button>
                 <Button
-                  color="primary"
+                  variant="success"
                   onPress={() => {
                     handleSubmit(close);
                   }}

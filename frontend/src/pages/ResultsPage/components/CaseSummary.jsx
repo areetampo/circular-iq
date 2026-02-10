@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
  * Displays case/project information passed via props
  * Fully presentational - no business logic
  *
- * Location: src/components/results/CaseSummary.jsx
+ * Location: src/pages/ResultsPage/components/CaseSummary.jsx
  */
 export function CaseSummary({ caseInfo = {}, problemSolution = {} }) {
   const { title, industry, scale, matchPercentage, sourceCaseId } = caseInfo;
