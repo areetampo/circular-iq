@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card, Button } from '@heroui/react';
+import { Card } from '@heroui/react';
+import { Button } from '@/components/common';
 import { AlertTriangle, XCircle, AlertCircle, Info, RefreshCcw, Home } from 'lucide-react';
 
 /**
@@ -101,7 +102,7 @@ export default function ErrorDisplay({
     >
       <Card className={`w-full max-w-2xl border-2 ${style.cardBorder} ${style.cardBg}`}>
         {/* Header Section */}
-        <div className="px-6 py-8 text-center border-b">
+        <div className="p-6 pb-0 text-center">
           <div className={`flex justify-center mb-4`}>
             <div className={`p-3 rounded-full ${style.iconBg}`}>
               <Icon className={`w-12 h-12 ${style.iconColor}`} strokeWidth={2} />
@@ -114,7 +115,7 @@ export default function ErrorDisplay({
         </div>
 
         {/* Content Section */}
-        <div className="px-6 py-6 space-y-6">
+        <div className="p-6 pt-3 space-y-6">
           {/* Custom children content */}
           {children && <div className="text-center">{children}</div>}
 
@@ -136,7 +137,6 @@ export default function ErrorDisplay({
           {/* Actions */}
           {allActions.length > 0 && (
             <>
-              <div className="w-full h-px bg-gray-200" />
               <div className="flex flex-wrap justify-center gap-3">
                 {allActions.map((action, index) => {
                   const ActionIcon = action.icon;

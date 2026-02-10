@@ -80,6 +80,11 @@ export async function getAssessments(params = {}) {
   return safeValidateAssessmentsList(data) || data;
 }
 
+export async function getAssessmentStats() {
+  const data = await requestJson('/api/assessments/stats');
+  return data;
+}
+
 export async function getAssessmentById(id) {
   if (!id) {
     throw new Error('Assessment id is required');
@@ -93,6 +98,38 @@ export async function getAssessmentById(id) {
     return { ...data, assessment: validated };
   } catch (error) {
     // If validation fails, include error details for consumer to handle
+    const validationError = new Error(`Validation failed: ${error.message}`);
+    validationError.originalError = error;
+    validationError.data = data;
+    throw validationError;
+  }
+}
+
+/**
+ * Fetch a publicly shared assessment by its public_id (no authentication required)
+ */
+export async function getPublicAssessment(publicId) {
+  if (!publicId) {
+    throw new Error('Public assessment ID is required');
+  }
+
+  // Public endpoint - no auth required
+  const response = await fetch(`${API_URL}/api/assessments/public/${publicId}`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const message = data?.error || data?.message || `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  // Validate response data
+  try {
+    const validated = validateAssessment(data.assessment || data);
+    return { ...data, assessment: validated };
+  } catch (error) {
     const validationError = new Error(`Validation failed: ${error.message}`);
     validationError.originalError = error;
     validationError.data = data;
@@ -169,6 +206,19 @@ export async function getGlobalAnalytics(filters = {}) {
   const path = params.toString() ? `/api/analytics?${params}` : '/api/analytics';
   const data = await requestJson(path);
   return safeValidateGlobalAnalytics(data) || data;
+}
+
+export async function getEnhancedAnalytics(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters?.industry && filters.industry !== 'all') {
+    params.set('industry', filters.industry);
+  }
+  if (filters?.timeRange && filters.timeRange !== 'all') {
+    params.set('timeRange', filters.timeRange);
+  }
+  const path = params.toString() ? `/api/analytics/enhanced?${params}` : '/api/analytics/enhanced';
+  const data = await requestJson(path);
+  return data;
 }
 
 export async function compareAssessments(id1, id2) {

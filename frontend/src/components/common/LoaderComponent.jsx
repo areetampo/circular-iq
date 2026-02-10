@@ -7,7 +7,7 @@ export default function LoaderComponent({
   message = 'Please wait while we retrieve your data...',
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+    <div className="flex flex-col items-center justify-center h-screen gap-6 pb-10">
       <LoaderIcon className="" />
 
       {/* Fixed height container with vertical centering */}

@@ -334,8 +334,7 @@ export default function AppContainer({
 
       {/* Main Content Area */}
       <main className="flex-1 w-full">
-        {/* px-4 py-6 sm:px-6 lg:px-8 */}
-        <div className="container mx-auto max-w-7xl px-4 py-0 mb-4 sm:px-6 lg:px-8">{children}</div>
+        <div className="container mx-auto max-w-7xl px-0 py-0 mb-4 sm:px-6 lg:px-8">{children}</div>
       </main>
 
       {/* Footer */}

@@ -6,39 +6,15 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
+  Tooltip,
   Legend,
+  ResponsiveContainer,
 } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/common/ChartWrapper';
-import { cn } from '@/utils/cn';
+import { CircularProgress, Typography, Paper, useTheme } from '@mui/material';
 
-export default function RadarChart({
-  data,
-  radarConfigs,
-  height,
-  showLegend,
-  showTooltip,
-  isLoading,
-}) {
-  const chartConfig = useMemo(() => {
-    const baseConfig = {
-      marketAvg: { label: 'Market Average', color: 'hsl(var(--chart-2))' },
-      userValue: { label: 'Your Idea', color: 'hsl(var(--chart-1))' },
-    };
+function RadarChartComponent({ data, radarConfigs, height, showLegend, showTooltip, isLoading }) {
+  const theme = useTheme();
 
-    return radarConfigs.reduce((acc, config) => {
-      const key = config.dataKey;
-      if (!acc[key]) {
-        acc[key] = { label: config.name, color: config.stroke };
-      }
-      return acc;
-    }, baseConfig);
-  }, [radarConfigs]);
-
-  // Memoize data transformation to prevent expensive re-calculations
   const chartData = useMemo(
     () =>
       data.map((item) => ({
@@ -48,63 +24,177 @@ export default function RadarChart({
     [data],
   );
 
+  const colorMap = useMemo(() => {
+    const colors = [
+      theme.palette.primary.main,
+      theme.palette.secondary.main,
+      theme.palette.success.main,
+      theme.palette.warning.main,
+      theme.palette.error.main,
+      theme.palette.info.main,
+    ];
+    return radarConfigs.reduce((acc, config, i) => {
+      acc[config.dataKey] = config.stroke || colors[i % colors.length];
+      return acc;
+    }, {});
+  }, [radarConfigs, theme]);
+
+  if (isLoading) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: height || 400,
+          width: '100%',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <CircularProgress size={48} />
+      </Paper>
+    );
+  }
+
+  if (!chartData || chartData.length === 0) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: height || 400,
+          width: '100%',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Typography color="textSecondary" variant="body2">
+          No data available
+        </Typography>
+      </Paper>
+    );
+  }
+
   return (
-    <ChartContainer
-      config={chartConfig}
-      className={cn('w-full', isLoading && 'opacity-60')}
-      style={{ height: height || 500 }}
+    <Paper
+      elevation={0}
+      sx={{
+        width: '100%',
+        height: height || 400,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        p: { xs: 1, sm: 1.5, md: 2 },
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      <RechartsRadarChart data={chartData} margin={{ top: 30, right: 80, bottom: 30, left: 80 }}>
-        <PolarGrid strokeDasharray="3 3" />
-        <PolarAngleAxis
-          dataKey="subject"
-          tick={{
-            fill: '#64748b',
-            fontSize: 14,
-            fontWeight: 500,
+      <ResponsiveContainer width="100%" height="100%">
+        <RechartsRadarChart
+          data={chartData}
+          margin={{
+            top: 10,
+            right: 20,
+            bottom: 10,
+            left: 20,
           }}
-          tickLine={false}
-        />
-        <PolarRadiusAxis
-          angle={90}
-          domain={[0, 100]}
-          tick={{ fontSize: 10, fill: '#64748b' }}
-          tickCount={5}
-        />
-
-        {radarConfigs.map((config, index) => (
-          <Radar
-            key={index}
-            name={config.name}
-            dataKey={config.dataKey}
-            stroke={`var(--color-${config.dataKey})`}
-            fill={`var(--color-${config.dataKey})`}
-            fillOpacity={config.fillOpacity || 0.35}
-            strokeWidth={config.strokeWidth || 2}
+        >
+          <PolarGrid
+            stroke={theme.palette.divider}
+            strokeDasharray="3 3"
+            fill={theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'}
           />
-        ))}
-
-        {showLegend && (
-          <Legend
-            wrapperStyle={{
-              paddingTop: '16px',
-              fontSize: '12px',
-              fontWeight: '600',
+          <PolarAngleAxis
+            dataKey="subject"
+            tick={{
+              fill: theme.palette.text.secondary,
+              fontSize: 10,
+              fontWeight: 600,
             }}
-            iconSize={12}
-            iconType="square"
+            tickLine={false}
           />
-        )}
+          <PolarRadiusAxis
+            angle={90}
+            domain={[0, 100]}
+            tick={{
+              fontSize: 9,
+              fill: theme.palette.text.secondary,
+              fontWeight: 500,
+            }}
+            tickCount={5}
+            axisLine={false}
+          />
 
-        {showTooltip && (
-          <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-        )}
-      </RechartsRadarChart>
-    </ChartContainer>
+          {showTooltip && (
+            <Tooltip
+              contentStyle={{
+                backgroundColor: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: theme.spacing(1),
+                boxShadow: theme.shadows[4],
+                fontSize: 12,
+              }}
+              labelStyle={{
+                color: theme.palette.text.primary,
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+              cursor={false}
+              itemStyle={{
+                color: theme.palette.text.secondary,
+                fontSize: 11,
+              }}
+            />
+          )}
+
+          {radarConfigs.map((config) => (
+            <Radar
+              key={config.dataKey}
+              name={config.name}
+              dataKey={config.dataKey}
+              stroke={colorMap[config.dataKey]}
+              fill={colorMap[config.dataKey]}
+              fillOpacity={config.fillOpacity || 0.2}
+              strokeWidth={config.strokeWidth || 2}
+              dot={{
+                fill: colorMap[config.dataKey],
+                r: 3,
+                strokeWidth: 0,
+              }}
+              activeDot={{
+                r: 5,
+                strokeWidth: 2,
+                stroke: colorMap[config.dataKey],
+              }}
+            />
+          ))}
+
+          {showLegend && (
+            <Legend
+              wrapperStyle={{
+                paddingTop: theme.spacing(1),
+                fontSize: '12px',
+                fontWeight: '600',
+                color: theme.palette.text.secondary,
+              }}
+              iconType="circle"
+              verticalAlign="bottom"
+              height={32}
+            />
+          )}
+        </RechartsRadarChart>
+      </ResponsiveContainer>
+    </Paper>
   );
 }
 
-RadarChart.propTypes = {
+RadarChartComponent.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       subject: PropTypes.string,
@@ -116,8 +206,7 @@ RadarChart.propTypes = {
     PropTypes.shape({
       name: PropTypes.string.isRequired,
       dataKey: PropTypes.string.isRequired,
-      stroke: PropTypes.string.isRequired,
-      fill: PropTypes.string.isRequired,
+      stroke: PropTypes.string,
       fillOpacity: PropTypes.number,
       strokeWidth: PropTypes.number,
     }),
@@ -128,9 +217,11 @@ RadarChart.propTypes = {
   isLoading: PropTypes.bool,
 };
 
-RadarChart.defaultProps = {
-  height: 500,
+RadarChartComponent.defaultProps = {
+  height: 400,
   showLegend: true,
   showTooltip: true,
   isLoading: false,
 };
+
+export default RadarChartComponent;

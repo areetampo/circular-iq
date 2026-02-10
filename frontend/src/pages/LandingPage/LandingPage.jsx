@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@heroui/react';
@@ -14,7 +14,8 @@ import { getCharacterCount } from '@/lib/validation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
-import { Card, Button, Tooltip, Label, TextArea as Textarea } from '@heroui/react';
+import { Card, Tooltip, Label, TextArea as Textarea } from '@heroui/react';
+import { Button } from '@/components/common';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { cn } from '@/utils/cn';
 
@@ -33,6 +34,7 @@ import InfoIconButton from '@/components/common/InfoIconButton';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { hasEvaluationState, restoreEvaluation, clearEvaluation, saveEvaluation } = useSession();
   const {
     modal,
@@ -56,6 +58,7 @@ export default function LandingPage() {
     return sessionStorage.getItem('sessionPromptHandled') === 'true';
   });
   const skipAutosaveRef = useRef(false);
+  const businessProblemSectionRef = useRef(null);
 
   const methods = useForm({
     resolver: zodResolver(assessmentSchema),
@@ -82,6 +85,38 @@ export default function LandingPage() {
       sessionStorage.setItem('sessionPromptHandled', 'true');
     }
   };
+
+  // Pre-fill form with data from ResultsPage (reevaluate)
+  useEffect(() => {
+    if (location.state?.formData) {
+      const { businessProblem, businessSolution, parameters } = location.state.formData;
+      reset({
+        businessProblem: businessProblem || '',
+        businessSolution: businessSolution || '',
+        parameters: parameters || {},
+      });
+      // Open the evaluation parameters panel
+      setShowEvaluationParameters(true);
+
+      // Scroll to business problem section after a short delay
+      setTimeout(() => {
+        businessProblemSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+        // Show toast notification after scrolling starts
+        setTimeout(() => {
+          toast.info('Assessment Loaded', {
+            description: 'Your previous assessment has been loaded for re-evaluation.',
+            timeout: 3000,
+          });
+        }, 300);
+      }, 100);
+
+      // Clear the location state to prevent re-filling on subsequent visits
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, reset]);
 
   useEffect(() => {
     // Only show prompt once per browser session, on first page load with saved state
@@ -194,40 +229,14 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <motion.div>
-              <Button
-                onClick={openAssessmentMethodologyModal}
-                size="lg"
-                className="
-                  gap-3 font-semibold text-white text-base px-8 h-13
-                  transition-all duration-200 ease-out
-                  rounded-full shadow-sm
-                  bg-gradient-to-r from-green-400 to-emerald-500
-                  hover:from-green-500 hover:to-emerald-600
-                  hover:shadow-md
-                "
-              >
+              <Button onClick={openAssessmentMethodologyModal} size="lg" variant="success">
                 <BookOpen className="w-5 h-5" strokeWidth={2} />
                 <span>Assessment Methodology</span>
               </Button>
             </motion.div>
 
             <motion.div>
-              <Button
-                onClick={openEvaluationCriteriaModal}
-                size="lg"
-                variant="bordered"
-                className="
-                  gap-3 font-semibold text-base px-8 h-13
-                  transition-all duration-200 ease-out
-                  rounded-full shadow-sm
-                  border-2 border-green-300 text-green-700
-                  dark:text-green-400 dark:border-green-600
-                  bg-green-50/50 dark:bg-green-950/20
-                  hover:bg-green-100/50 dark:hover:bg-green-900/30
-                  hover:border-green-400 dark:hover:border-green-500
-                  hover:shadow-md
-                "
-              >
+              <Button onClick={openEvaluationCriteriaModal} size="lg" variant="eco-soft">
                 <ClipboardList className="w-5 h-5" strokeWidth={2} />
                 <span>Evaluation Criteria</span>
               </Button>
@@ -279,7 +288,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
-            <Card className="transition-shadow border shadow-md">
+            <Card ref={businessProblemSectionRef} className="transition-shadow border shadow-md">
               <div className="pb-8 px-6 pt-6">
                 <h2 className="inline-flex items-center gap-3 text-2xl font-bold text-teal-700">
                   Evaluate Your Circular Economy Business
@@ -360,8 +369,8 @@ export default function LandingPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      className="p-0 mr-1 text-base font-semibold hover:bg-transparent hover:cursor-pointer"
                       onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
+                      className="font-semibold text-lg"
                     >
                       <ChevronRight
                         className={cn(
@@ -369,7 +378,7 @@ export default function LandingPage() {
                           showEvaluationParameters && 'rotate-90',
                         )}
                       />
-                      <span className="font-bold">Evaluation Parameters</span>
+                      <span>Evaluation Parameters</span>
                     </Button>
 
                     <InfoIconButton
@@ -399,45 +408,28 @@ export default function LandingPage() {
                 {/* Submit Button Section */}
                 <div className="w-full">
                   <Tooltip delay={0} isDisabled={isValid && !loading}>
-                    <Tooltip.Trigger asChild>
+                    <Tooltip.Trigger>
                       <div className="w-full">
                         <Button
                           size="lg"
                           onPress={handleSubmit(handleFormSubmit)}
                           isDisabled={loading || !isValid}
-                          className="
-            /* Always Visible Structure */
-            w-full h-14 mb-2 gap-3 px-8
-            text-xl font-bold text-white
-            transition-all duration-300 ease-out
-            rounded-xl shadow-lg
-            ring-1 ring-white/20 inset-ring-1 inset-ring-black/5
-
-            /* Emerald Gradient (Active State) */
-            bg-linear-to-br from-emerald-500 via-green-600 to-teal-600
-            hover:from-emerald-600 hover:to-teal-700
-            hover:shadow-emerald-200/50 hover:scale-[0.9925]
-            active:scale-[1] active:translate-y-0
-
-            /* Grey State (Disabled State) */
-            data-[disabled=true]:bg-none
-            data-[disabled=true]:bg-slate-200
-            data-[disabled=true]:text-slate-500
-            data-[disabled=true]:shadow-none
-            data-[disabled=true]:cursor-not-allowed
-            data-[disabled=true]:opacity-70
-            data-[disabled=true]:hover:translate-y-0
-            data-[disabled=true]:hover:scale-100
-          "
+                          variant="teal"
+                          fullWidth
+                          className="h-12"
                         >
-                          {loading ? (
-                            <div className="flex items-center justify-center gap-3">
-                              <LoaderIcon isButton={true} className="animate-spin" />
-                              <span className="tracking-wide">Evaluating...</span>
-                            </div>
-                          ) : (
-                            <span>Evaluate Circularity</span>
-                          )}
+                          <div className="flex items-center justify-center gap-4">
+                            {loading ? (
+                              <>
+                                <div className="w-5 h-5 flex items-center justify-center">
+                                  <LoaderIcon isButton={true} color="#ffffff" />
+                                </div>
+                                <span>Evaluating...</span>
+                              </>
+                            ) : (
+                              <span>Evaluate Circularity</span>
+                            )}
+                          </div>
                         </Button>
                       </div>
                     </Tooltip.Trigger>

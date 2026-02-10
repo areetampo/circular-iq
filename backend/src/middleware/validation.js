@@ -27,6 +27,10 @@ export const assessmentSchema = z
       message: 'result_json must not be empty',
     }),
     is_public: z.boolean().optional(),
+    contribute_to_global_benchmarks: z.boolean().optional(),
+    businessProblem: z.string().optional(),
+    businessSolution: z.string().optional(),
+    parameters: z.record(z.number()).optional(),
   })
   .strict();
 

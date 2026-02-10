@@ -18,6 +18,7 @@
 
 export { ConfirmDialog } from './ConfirmDialog';
 export { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
+export { RenameAssessmentDialog } from './RenameAssessmentDialog';
 export { ReplaceInputsDialog } from './ReplaceInputsDialog';
 export { SessionRestoreDialog } from './SessionRestoreDialog';
 export { SaveAssessmentDialog } from './SaveAssessmentDialog';

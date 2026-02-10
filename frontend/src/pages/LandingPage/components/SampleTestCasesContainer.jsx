@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import { useFormContext } from 'react-hook-form';
 import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
 import testCases from '@/data/testCases.json';
-import { Card, Button, Chip } from '@heroui/react';
+import { Card, Chip } from '@heroui/react';
+import { Button } from '@/components/common';
 import { toast } from '@heroui/react';
 import { ChevronRight, PencilLine, ClipboardPenLine } from 'lucide-react';
 import InfoIconButton from '@/components/common/InfoIconButton';
@@ -82,11 +83,9 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
                   }}
                 />
               </div>
-              <p className="text-xs text-slate-600 text-wrap text-left">
-                <i>
-                  Use curated examples to explore how the evaluator scores, auto-fill the form for
-                  quick testing.
-                </i>
+              <p className="text-xs text-slate-600 text-wrap text-left italic">
+                Use curated examples to explore how the evaluator scores, auto-fill the form for
+                quick testing.
               </p>
             </div>
           </div>
@@ -129,8 +128,9 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
                           </h4>
                           <Chip
                             size="sm"
-                            variant="flat"
-                            className="text-xs font-semibold shrink-0 bg-emerald-500/10 text-emerald-700 px-2"
+                            variant="soft"
+                            color="success"
+                            className="text-xs font-semibold shrink-0"
                           >
                             #{index + 1}
                           </Chip>
@@ -162,9 +162,8 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
                               openTestCaseDetailsModal(testCase);
                               e.stopPropagation();
                             }}
-                            variant="bordered"
+                            variant="eco-soft"
                             size="sm"
-                            className="h-8 px-3 mt-3 text-xs transition-transform border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-100 max-w-fit hover:cursor-pointer"
                           >
                             View details
                           </Button>

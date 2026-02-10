@@ -1,83 +1,137 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import {
-  ScatterChart as RechartsScatterChart,
-  Scatter,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/common/ChartWrapper';
-import { cn } from '@/utils/cn';
+import { CircularProgress, Typography, Paper, useTheme, Box } from '@mui/material';
+import { ScatterChart as MuiScatterChart } from '@mui/x-charts';
 
-export default function ScatterChart({
+function ScatterChartComponent({
   data,
   height,
   xAxisLabel,
   xDomain,
   yDomain,
   showGrid,
-  customTooltip,
   isLoading,
 }) {
-  const chartConfig = useMemo(
-    () => ({
-      points: {
-        label: 'Projects',
-        color: 'hsl(var(--chart-1))',
-      },
-    }),
-    [],
-  );
+  const theme = useTheme();
 
-  // Memoize data to prevent unnecessary re-renders
   const chartData = useMemo(() => data, [data]);
 
+  if (isLoading) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: height || 400,
+          width: '100%',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <CircularProgress size={48} />
+      </Paper>
+    );
+  }
+
+  if (!chartData || chartData.length === 0) {
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: height || 400,
+          width: '100%',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Typography color="textSecondary" variant="body2">
+          No data available
+        </Typography>
+      </Paper>
+    );
+  }
+
   return (
-    <ChartContainer
-      config={chartConfig}
-      className={cn('w-full', isLoading && 'opacity-60')}
-      style={{ height: height || 400 }}
+    <Paper
+      elevation={0}
+      sx={{
+        width: '100%',
+        height: height || 400,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        p: { xs: 0.5, sm: 1, md: 2 },
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
     >
-      <RechartsScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" />}
-
-        <XAxis
-          type="number"
-          dataKey="x"
-          name="Score"
-          domain={xDomain}
-          label={
-            xAxisLabel
-              ? {
-                  value: xAxisLabel,
-                  position: 'insideBottom',
-                  offset: -10,
-                  style: { fill: '#666', fontWeight: '600' },
-                }
-              : undefined
-          }
-          tick={{ fill: '#666', fontSize: 12, fontWeight: 500 }}
+      <Box sx={{ width: '100%', height: '100%', flexGrow: 1, minHeight: 0 }}>
+        <MuiScatterChart
+          dataset={chartData}
+          series={[
+            {
+              type: 'scatter',
+              data: chartData,
+              color: theme.palette.primary.main,
+              markerSize: 6,
+              valueFormatter: (value) =>
+                value !== null ? `Score: ${value.x}, Index: ${value.y}` : '',
+            },
+          ]}
+          xAxis={[
+            {
+              dataKey: 'x',
+              min: xDomain?.[0] || 0,
+              max: xDomain?.[1] || 100,
+              label: xAxisLabel,
+              tickLabelStyle: {
+                fontSize: 10,
+              },
+            },
+          ]}
+          yAxis={[
+            {
+              dataKey: 'y',
+              min: yDomain?.[0],
+              max: yDomain?.[1],
+              tickLabelStyle: {
+                fontSize: 10,
+              },
+            },
+          ]}
+          margin={{
+            top: 20,
+            right: 5,
+            bottom: xAxisLabel ? 55 : 40,
+            left: 45,
+          }}
+          grid={showGrid ? { vertical: true, horizontal: true } : undefined}
+          slotProps={{
+            legend: { hidden: true },
+          }}
+          sx={{
+            '& .MuiChartsAxis-line': {
+              stroke: theme.palette.divider,
+            },
+            '& .MuiChartsAxis-tick': {
+              stroke: theme.palette.divider,
+            },
+          }}
         />
-
-        <YAxis type="number" dataKey="y" name="Index" hide domain={yDomain} />
-
-        <ChartTooltip
-          cursor={{ strokeDasharray: '3 3' }}
-          content={customTooltip ? customTooltip : <ChartTooltipContent indicator="dot" />}
-        />
-
-        <Scatter name="Projects" data={chartData} fill="var(--color-points)" shape="circle" />
-      </RechartsScatterChart>
-    </ChartContainer>
+      </Box>
+    </Paper>
   );
 }
 
-ScatterChart.propTypes = {
+ScatterChartComponent.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       x: PropTypes.number.isRequired,
@@ -89,16 +143,16 @@ ScatterChart.propTypes = {
   xDomain: PropTypes.arrayOf(PropTypes.number),
   yDomain: PropTypes.arrayOf(PropTypes.number),
   showGrid: PropTypes.bool,
-  customTooltip: PropTypes.elementType,
   isLoading: PropTypes.bool,
 };
 
-ScatterChart.defaultProps = {
+ScatterChartComponent.defaultProps = {
   height: 400,
   xAxisLabel: '',
   xDomain: [0, 100],
   yDomain: undefined,
   showGrid: true,
-  customTooltip: undefined,
   isLoading: false,
 };
+
+export default ScatterChartComponent;

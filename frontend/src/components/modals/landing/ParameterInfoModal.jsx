@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { parameterGuidance } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';
-import { Modal, Button } from '@heroui/react';
+import { Modal } from '@heroui/react';
+import { Button } from '@/components/common';
 
 export default function ParameterInfoModal({ onClose, isModalOpen, paramKey }) {
   const guidance = parameterGuidance[paramKey];

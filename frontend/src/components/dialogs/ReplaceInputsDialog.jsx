@@ -8,7 +8,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { AlertDialog, Button } from '@heroui/react';
+import { AlertDialog } from '@heroui/react';
+import { Button } from '@/components/common';
 import { AlertCircle } from 'lucide-react';
 
 /**
@@ -66,8 +67,7 @@ export function ReplaceInputsDialog({
                   {cancelText}
                 </Button>
                 <Button
-                  // variant="primary"
-                  className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  variant="success"
                   onPress={() => {
                     onConfirm?.();
                     close();

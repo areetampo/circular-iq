@@ -9,7 +9,8 @@ import {
   TriangleAlert,
   ChartSpline,
 } from 'lucide-react';
-import { Modal, Button } from '@heroui/react';
+import { Modal } from '@heroui/react';
+import { Button } from '@/components/common';
 
 const METHODOLOGY_ITEMS = [
   {

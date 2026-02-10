@@ -49,7 +49,8 @@ export default function createAssessmentsRouter(supabase) {
 
     try {
       // Use validated body from middleware
-      const { name, industry, result_json, is_public } = req.validatedBody;
+      const { name, industry, result_json, is_public, contribute_to_global_benchmarks } =
+        req.validatedBody;
       const { title, businessProblem, businessSolution, result, parameters } = req.body;
 
       // Check for required result data (either from result_json or result field)
@@ -75,6 +76,10 @@ export default function createAssessmentsRouter(supabase) {
         overall_score: Math.round(resultData.overall_score),
         business_viability_score: resultData.sub_scores?.business_viability || 0,
         is_public: typeof is_public === 'boolean' ? is_public : false,
+        contribute_to_global_benchmarks:
+          typeof contribute_to_global_benchmarks === 'boolean'
+            ? contribute_to_global_benchmarks
+            : false,
       };
 
       // Insert assessment using an authenticated user client to respect RLS
@@ -178,7 +183,16 @@ export default function createAssessmentsRouter(supabase) {
       // RLS policy will automatically filter to user's own assessments
 
       if (industry) {
-        query = query.eq('industry', industry);
+        const industries = String(industry)
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean);
+
+        if (industries.length === 1) {
+          query = query.eq('industry', industries[0]);
+        } else if (industries.length > 1) {
+          query = query.in('industry', industries);
+        }
       }
 
       if (search && String(search).trim().length > 0) {
@@ -229,6 +243,137 @@ export default function createAssessmentsRouter(supabase) {
       });
       logRequest('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json(errorResponse(error, 'Failed to fetch assessments'));
+    }
+  });
+
+  /**
+   * GET /stats
+   * Retrieve aggregate statistics for all user assessments (independent of pagination)
+   */
+  router.get('/stats', requireAuth(supabase), async (req, res) => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).slice(2, 9);
+
+    try {
+      const token = req.headers.authorization?.slice(7).trim();
+
+      let userClient;
+      if (token) {
+        userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        userClient = supabase;
+      }
+
+      // Get all assessments for the user (no pagination) - fetch both score and industry
+      let query = userClient
+        .from('assessments')
+        .select('overall_score, industry', { count: 'exact' });
+
+      if (req.user && req.user.id) {
+        query = query.eq('user_id', req.user.id);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Query error:', error);
+        throw error;
+      }
+
+      // Calculate statistics
+      const scores = (data || []).map((a) => a.overall_score || 0).filter((s) => s !== null);
+
+      // Calculate top industry (handle ties by showing all industries with max count)
+      let topIndustries = null;
+      if (data && data.length > 0) {
+        const industryCounts = (data || []).reduce((acc, assessment) => {
+          const industry = assessment.industry || 'general';
+          acc[industry] = (acc[industry] || 0) + 1;
+          return acc;
+        }, {});
+
+        // Find max count
+        const maxCount = Math.max(...Object.values(industryCounts));
+
+        // Get all industries with max count
+        const topIndustriesArray = Object.entries(industryCounts)
+          .filter(([, count]) => count === maxCount)
+          .map(([industry, count]) => ({ industry, count }))
+          .sort((a, b) => a.industry.localeCompare(b.industry)); // Sort alphabetically for consistency
+
+        topIndustries = topIndustriesArray;
+      }
+
+      const stats = {
+        totalAssessments: count || 0,
+        averageScore:
+          scores.length > 0
+            ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100
+            : 0,
+        highestScore: scores.length > 0 ? Math.max(...scores) : 0,
+        lowestScore: scores.length > 0 ? Math.min(...scores) : 0,
+        topIndustries,
+      };
+
+      debugLog(`[${requestId}] Fetched stats for user ${req.user.id}:`, stats);
+      logRequest('GET', '/assessments/stats', 200, Date.now() - startTime);
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching assessment stats:', error);
+      logRequest('GET', '/assessments/stats', 500, Date.now() - startTime);
+      res.status(500).json(errorResponse(error, 'Failed to fetch assessment statistics'));
+    }
+  });
+
+  /**
+   * GET /public/:publicId
+   * Retrieve a publicly shared assessment by public_id (no authentication required)
+   */
+  router.get('/public/:publicId', async (req, res) => {
+    const startTime = Date.now();
+
+    try {
+      const { publicId } = req.params;
+
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('public_id', publicId)
+        .eq('is_public', true)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        return res.status(404).json(
+          errorResponse(
+            {
+              message: 'Assessment not found or is not public',
+              code: 'NOT_FOUND',
+            },
+            'Assessment not found',
+          ),
+        );
+      }
+
+      logRequest('GET', `/assessments/public/${publicId}`, 200, Date.now() - startTime);
+      res.json({ assessment: data });
+    } catch (error) {
+      console.error('Error fetching public assessment:', error);
+      logRequest(
+        'GET',
+        `/assessments/public/${req && req.params && req.params.publicId ? req.params.publicId : 'unknown'}`,
+        500,
+        Date.now() - startTime,
+      );
+      res.status(500).json(errorResponse(error, 'Failed to fetch assessment'));
     }
   });
 

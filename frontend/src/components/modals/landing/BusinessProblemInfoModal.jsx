@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardMinus } from 'lucide-react';
-import { Modal, Button } from '@heroui/react';
+import { Modal } from '@heroui/react';
+import { Button } from '@/components/common';
 
 const PROBLEM_ELEMENTS = [
   {

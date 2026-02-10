@@ -9,7 +9,8 @@
 
 import React, { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { AlertDialog, Button } from '@heroui/react';
+import { AlertDialog } from '@heroui/react';
+import { Button } from '@/components/common';
 import { AlertCircle, TriangleAlert } from 'lucide-react';
 
 /**

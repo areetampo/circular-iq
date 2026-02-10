@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button } from '@heroui/react';
+import { Card } from '@heroui/react';
+import { Button } from '@/components/common';
 import { ArrowLeft, BarChart3, Leaf, Compass } from 'lucide-react';
 
 export default function NotFoundPage() {
@@ -57,7 +58,7 @@ export default function NotFoundPage() {
               <ArrowLeft className="w-4 h-4" />
               Return Home
             </Button>
-            <Button variant="tertiary" onPress={() => navigate('/assessments')} className="gap-2">
+            <Button variant="tertiary" onPress={() => navigate('/assessments')}>
               <BarChart3 className="w-4 h-4" />
               My Assessments
             </Button>
