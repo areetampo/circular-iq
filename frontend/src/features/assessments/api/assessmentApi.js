@@ -221,6 +221,20 @@ export async function getEnhancedAnalytics(filters = {}) {
   return data;
 }
 
+/**
+ * Fetch a small set of featured solutions (uses the `documents` table on the server)
+ * Useful for surfacing curated problem→solution examples on the dashboard.
+ */
+export async function getFeaturedSolutions({ limit = 3 } = {}) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  const path = `/api/analytics/featured-solutions?${params}`;
+  const data = await requestJson(path);
+  return {
+    count: data?.count || 0,
+    solutions: Array.isArray(data?.solutions) ? data.solutions : [],
+  };
+}
+
 export async function compareAssessments(id1, id2) {
   if (!id1 || !id2) {
     throw new Error('Both assessment ids are required');

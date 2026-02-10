@@ -8,10 +8,14 @@ import { ResponsiveContainer, Tooltip } from 'recharts';
  * Provides consistent styling and responsive behavior
  */
 export function ChartContainer({ children, config, className, style }) {
+  // wrapper prevents SVGs from overflowing their parent and ensures
+  // charts respect container width on small screens (min-w-0)
   return (
-    <ResponsiveContainer width="100%" height="100%" className={cn(className)} style={style}>
-      {children}
-    </ResponsiveContainer>
+    <div className={cn('min-w-0 overflow-hidden', className)} style={style}>
+      <ResponsiveContainer width="100%" height="100%">
+        {children}
+      </ResponsiveContainer>
+    </div>
   );
 }
 
