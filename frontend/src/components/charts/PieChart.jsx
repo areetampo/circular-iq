@@ -5,7 +5,8 @@ export default function PieChart({
   data,
   dataKey,
   nameKey,
-  height = 250,
+  height = 300,
+  width = 450,
   colors = [
     '#3b82f6',
     '#10b981',
@@ -19,6 +20,9 @@ export default function PieChart({
     '#9d0208',
   ],
   labelType = 'both', // 'count', 'percent', 'both'
+  showLegend = true,
+  innerRadius = 0,
+  centerLabel = null,
 }) {
   if (!data || data.length === 0) {
     return (
@@ -32,29 +36,48 @@ export default function PieChart({
   }
 
   const renderLabel = ({ name, value, percent }) => {
+    const pct = `${(percent * 100).toFixed(0)}%`;
     if (labelType === 'count') return `${name}: ${value}`;
-    if (labelType === 'percent') return `${name}: ${(percent * 100).toFixed(0)}%`;
-    return `${name}: ${value} (${(percent * 100).toFixed(0)}%)`;
+    if (labelType === 'percent') return `${name}: ${pct}`;
+    return `${name}: ${value} (${pct})`;
   };
 
+  // compute radii
+  const outer = Math.min(height, width) / 3;
+  const inner = innerRadius || Math.max(0, Math.floor(outer * 0.5));
+
   return (
-    <RePieChart width={height} height={height}>
-      <Pie
-        data={data}
-        dataKey={dataKey}
-        nameKey={nameKey}
-        cx="50%"
-        cy="50%"
-        outerRadius={height / 2.5}
-        label={renderLabel}
-        labelLine={false}
-      >
-        {data.map((entry, idx) => (
-          <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
-        ))}
-      </Pie>
-      <Tooltip />
-      <Legend />
-    </RePieChart>
+    <div className="relative" style={{ width, height }}>
+      <RePieChart width={width} height={height}>
+        <Pie
+          data={data}
+          dataKey={dataKey}
+          nameKey={nameKey}
+          cx="45%"
+          cy="50%"
+          outerRadius={outer}
+          innerRadius={inner}
+          label={renderLabel}
+          labelLine={true}
+          paddingAngle={4}
+        >
+          {data.map((entry, idx) => (
+            <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} stroke="#fff" />
+          ))}
+        </Pie>
+        <Tooltip formatter={(value, name, props) => [value, name]} />
+        {showLegend && <Legend verticalAlign="bottom" height={36} />}
+      </RePieChart>
+
+      {centerLabel && (
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none"
+          style={{ width: inner * 1.6 }}
+        >
+          <div className="text-sm text-slate-500">{centerLabel.subLabel}</div>
+          <div className="text-lg font-semibold text-slate-800">{centerLabel.main}</div>
+        </div>
+      )}
+    </div>
   );
 }

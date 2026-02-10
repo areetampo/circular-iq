@@ -544,6 +544,46 @@ export default function MyAssessmentsPage() {
   const [isRenaming, setIsRenaming] = useState(false);
   const { addToast } = useToast();
 
+  // Persist list filters in URL so users can share filtered lists
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const industries = searchParams.get('industry');
+    if (industries) setSelectedIndustries(industries.split(',').filter(Boolean));
+    const p = Number(searchParams.get('page') || 1);
+    if (!Number.isNaN(p) && p > 0) setPage(p);
+    const ps = Number(searchParams.get('pageSize') || 5);
+    if (!Number.isNaN(ps) && ps > 0) setPageSize(ps);
+    const s = searchParams.get('search');
+    if (s) setSearchTerm(s);
+    const sb = searchParams.get('sortBy');
+    if (sb) setSortBy(sb);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // sync params when debounced values change
+  useEffect(() => {
+    const params = Object.fromEntries([...searchParams.entries()]);
+    if (
+      !selectedIndustries ||
+      (selectedIndustries.length === 1 && selectedIndustries[0] === 'all')
+    ) {
+      delete params.industry;
+    } else {
+      params.industry = selectedIndustries.join(',');
+    }
+    if (page && page !== 1) params.page = String(page);
+    else delete params.page;
+    if (pageSize && pageSize !== 5) params.pageSize = String(pageSize);
+    else delete params.pageSize;
+    if (searchTerm) params.search = searchTerm;
+    else delete params.search;
+    if (sortBy && sortBy !== 'created_at_desc') params.sortBy = sortBy;
+    else delete params.sortBy;
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndustries, page, pageSize, searchTerm, sortBy]);
+
   // Debounce search and sort to prevent constant reloading
   const debouncedSearchTerm = useDebounce(searchTerm, 350);
   const debouncedSortBy = useDebounce(sortBy, 300);
