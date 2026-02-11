@@ -32,7 +32,7 @@ import {
   PieChart as PieChartIcon,
   Sparkles,
 } from 'lucide-react';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/Table';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/table';
 import { toTitleCase } from '@/lib/formatting';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { useEnhancedAnalytics } from '@/features/assessments';
