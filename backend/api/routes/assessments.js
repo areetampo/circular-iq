@@ -462,10 +462,26 @@ export default function createAssessmentsRouter(supabase) {
         userClient = supabase;
       }
 
+      // If setting is_public to true and no public_id exists, generate one
+      const updateData = { ...updates };
+      if (updates.is_public === true) {
+        const { data: current } = await userClient
+          .from('assessments')
+          .select('public_id')
+          .eq('id', id)
+          .eq('user_id', req.user.id)
+          .single();
+
+        // If no public_id exists, generate one using database function
+        if (!current?.public_id) {
+          updateData.public_id = null; // Let database generate via DEFAULT
+        }
+      }
+
       // Update only if the assessment belongs to the authenticated user
       const { data, error } = await userClient
         .from('assessments')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .eq('user_id', req.user.id)
         .select()
