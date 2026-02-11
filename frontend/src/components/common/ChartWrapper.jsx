@@ -1,20 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { cn } from '@/utils/cn';
-import { ResponsiveContainer, Tooltip } from 'recharts';
+import { cn } from '../../utils/cn';
+import { Tooltip } from 'recharts';
 
 /**
- * ChartContainer - Wrapper for Recharts components
- * Provides consistent styling and responsive behavior
+ * ChartContainer - Simple wrapper that provides consistent height and prevents overflow.
+ * NOTE: Chart components should include their own ResponsiveContainer to avoid nested containers.
  */
-export function ChartContainer({ children, config, className, style }) {
-  // wrapper prevents SVGs from overflowing their parent and ensures
-  // charts respect container width on small screens (min-w-0)
+export function ChartContainer({ children, className, style, height = 280, overflow = 'hidden' }) {
+  // wrapper provides minHeight and explicit height. overflow can be 'auto' to enable scrolling when needed.
+  const mergedStyle = { minHeight: 200, height, ...style };
+
   return (
-    <div className={cn('min-w-0 overflow-hidden', className)} style={style}>
-      <ResponsiveContainer width="100%" height="100%">
-        {children}
-      </ResponsiveContainer>
+    <div
+      className={cn(
+        'min-w-0',
+        className,
+        overflow === 'auto' ? 'overflow-auto' : 'overflow-hidden',
+      )}
+      style={mergedStyle}
+    >
+      <div style={{ width: '100%', height: '100%' }}>{children}</div>
     </div>
   );
 }

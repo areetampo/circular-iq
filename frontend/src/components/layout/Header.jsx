@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { SITE_CONFIG } from '@/constants/siteConfig';
 
 /**
  * Route-based header configuration
@@ -11,14 +12,14 @@ const ROUTE_CONFIGS = [
   {
     path: '/',
     exact: true,
-    title: 'Circular Economy Business Evaluator',
+    title: SITE_CONFIG.fullName,
     subtitle: 'Assess and enhance your circular economy business ideas with AI-driven insights.',
-    titleSize: 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl', // Largest - hero page
-    subtitleSize: 'text-lg md:text-xl lg:text-2xl',
+    titleSize: 'text-3xl xxs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl', // Largest - hero page
+    subtitleSize: 'text-md xxs:text-lg md:text-xl lg:text-2xl',
     titleColor: 'from-green-700 via-emerald-500 to-teal-700',
     showTitle: true,
     showSubtitle: true,
-    padding: 'py-6 sm:py-10 lg:py-20',
+    padding: 'py-3 sm:py-6 lg:py-16',
     // Animated background blobs
     showAnimatedBg: true,
     bgBlob1Color: 'bg-emerald-300/30',
@@ -30,12 +31,12 @@ const ROUTE_CONFIGS = [
     path: '/dashboard',
     title: 'Global Dashboard',
     subtitle: 'Track circular economy performance across all assessments.',
-    titleSize: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl', // Large
+    titleSize: 'text-4xl xs:text-5xl lg:text-6xl', // Large
     subtitleSize: 'text-base md:text-lg lg:text-xl',
     titleColor: 'from-blue-700 via-cyan-600 to-teal-600',
     showTitle: true,
     showSubtitle: true,
-    padding: 'py-5 sm:py-8 lg:py-12',
+    padding: 'py-4 sm:py-6 lg:py-10',
     showAnimatedBg: true,
     bgBlob1Color: 'bg-cyan-300/30',
     bgBlob2Color: 'bg-blue-300/20',
@@ -52,7 +53,7 @@ const ROUTE_CONFIGS = [
     titleColor: 'from-emerald-700 via-green-600 to-teal-600',
     showTitle: true,
     showSubtitle: true,
-    padding: 'py-4 sm:py-6 lg:py-10',
+    padding: 'py-3 sm:py-4 lg:py-10',
     showAnimatedBg: true,
     bgBlob1Color: 'bg-emerald-300/25',
     bgBlob2Color: 'bg-teal-300/20',
@@ -145,7 +146,7 @@ const ROUTE_CONFIGS = [
   // Default fallback
   {
     path: '*',
-    title: 'Circular Economy Business Evaluator',
+    title: SITE_CONFIG.fullName,
     subtitle: "Evaluate your business idea's circularity potential using AI-driven analysis",
     titleSize: 'text-3xl sm:text-4xl md:text-5xl',
     subtitleSize: 'text-base md:text-lg',

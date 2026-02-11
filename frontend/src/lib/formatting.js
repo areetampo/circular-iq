@@ -168,3 +168,13 @@ export function formatTruncatedList(items = [], maxDisplay = 2) {
     extra,
   };
 }
+
+/**
+ * Format str from snake_case to Title Case
+ * @param {string} str - str name.g. "material_reuse"
+ * @returns {string} Formatted string e.g. "Material Reuse" or "N/A" if empty
+ */
+export function toTitleCase(str) {
+  if (!str) return 'N/A';
+  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}

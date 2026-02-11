@@ -12,10 +12,10 @@ export default function NotFoundPage() {
       <Card className="w-full border-2 border-emerald-100 bg-linear-to-br from-white to-emerald-50">
         <div className="px-6 py-8 border-b text-center">
           <div className="flex items-center justify-center gap-3 text-emerald-600">
-            <Leaf className="w-8 h-8" />
             <span className="text-sm font-semibold uppercase tracking-[0.35em]">
               Circular Economy Auditor
             </span>
+            <Leaf className="w-8 h-8" />
           </div>
           <h1 className="mt-6 text-5xl font-bold text-slate-900">404</h1>
           <p className="text-lg text-gray-600 mt-2">Page Not Found</p>

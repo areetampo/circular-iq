@@ -25,6 +25,8 @@ export function useAssessments({
         search,
         industry,
       }),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
   // Use mutation for deleting assessments

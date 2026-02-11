@@ -23,7 +23,7 @@ export default function LiveCharacterCounter({ fieldName, minLength = 200 }) {
   const isValid = charCount >= minLength;
 
   return (
-    <div className="flex justify-end mt-2">
+    <div className="flex justify-end">
       <span
         className={cn(
           'text-xs font-bold transition-colors mr-3',

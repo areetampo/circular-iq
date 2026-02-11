@@ -246,7 +246,7 @@ export default function LandingPage() {
           {/* Feature Cards */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <Card className="transition-all border border-blue-100 hover:shadow-lg hover:border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
-              <div className="flex flex-col items-center justify-center pt-8 px-6 py-8">
+              <div className="flex flex-col items-center justify-center p-4">
                 <div className="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-400 shadow-lg shadow-blue-200/50">
                   <Sparkles className="w-7 h-7 text-white" strokeWidth={2} />
                 </div>
@@ -258,7 +258,7 @@ export default function LandingPage() {
             </Card>
 
             <Card className="transition-all border border-emerald-100 hover:shadow-lg hover:border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
-              <div className="flex flex-col items-center justify-center pt-8 px-6 py-8">
+              <div className="flex flex-col items-center justify-center p-4">
                 <div className="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-400 shadow-lg shadow-emerald-200/50">
                   <LayoutGrid className="w-7 h-7 text-white" strokeWidth={2} />
                 </div>
@@ -270,7 +270,7 @@ export default function LandingPage() {
             </Card>
 
             <Card className="transition-all border border-amber-100 hover:shadow-lg hover:border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
-              <div className="flex flex-col items-center justify-center pt-8 px-6 py-8">
+              <div className="flex flex-col items-center justify-center p-4">
                 <div className="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 shadow-lg shadow-amber-200/50">
                   <CheckCircle2 className="w-7 h-7 text-white" strokeWidth={2} />
                 </div>
@@ -289,7 +289,7 @@ export default function LandingPage() {
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
             <Card ref={businessProblemSectionRef} className="transition-shadow border shadow-md">
-              <div className="pb-8 px-6 pt-6">
+              <div className="pb-8 px-2 sm:px-6 pt-6">
                 <h2 className="inline-flex items-center gap-3 text-2xl font-bold text-teal-700">
                   Evaluate Your Circular Economy Business
                   <Leaf className="w-6 h-6" strokeWidth={3} />
@@ -299,7 +299,7 @@ export default function LandingPage() {
                   projects: what problem you solve, and how your solution addresses it.
                 </p>
               </div>
-              <div className="space-y-6 px-6 pb-6">
+              <div className="space-y-6 px-0 xxs:px-2 sm:px-6 pb-6">
                 {/* Problem Input */}
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">

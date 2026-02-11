@@ -48,12 +48,59 @@ function getScoreFromRow(row) {
   return 0;
 }
 
+function computeStdDev(arr) {
+  if (!arr || arr.length === 0) return 0;
+  const n = arr.length;
+  const mean = arr.reduce((s, v) => s + v, 0) / n;
+  const variance =
+    n > 1
+      ? arr.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / (n - 1)
+      : arr.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / n;
+  return Number(Math.sqrt(variance).toFixed(2));
+}
+
+// Compute ISO week key YYYY-Www for a UTC date
+function getISOWeekKey(date) {
+  if (!date) return null;
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const dayNum = d.getUTCDay() || 7; // Monday=1, Sunday=7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  const year = d.getUTCFullYear();
+  return `${year}-W${String(weekNo).padStart(2, '0')}`;
+}
+
 function buildErrorResponse(error, defaultMessage = 'Internal server error') {
   return {
     error: error?.message || defaultMessage,
     timestamp: new Date().toISOString(),
     code: error?.code || 'INTERNAL_ERROR',
   };
+}
+
+import { spawn } from 'child_process';
+import path from 'path';
+
+let openaiClient = null;
+export function setOpenAIClient(client) {
+  openaiClient = client;
+}
+
+async function ensureOpenAIClient() {
+  // Prefer a manually-injected client (useful for tests)
+  if (openaiClient) return openaiClient;
+  // If there's no API key configured, do not attempt to instantiate the SDK
+  if (!process.env.OPENAI_API_KEY) return null;
+  try {
+    const { default: OpenAI } = await import('openai');
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    return openaiClient;
+  } catch (err) {
+    // If anything fails, leave openaiClient null and allow callers to handle it
+    openaiClient = null;
+    return null;
+  }
 }
 
 export default function createAnalyticsRouter(supabase) {
@@ -235,6 +282,9 @@ export default function createAnalyticsRouter(supabase) {
         const sortedScores = [...entry.scores].sort((a, b) => a - b);
         const median =
           sortedScores.length > 0 ? sortedScores[Math.floor(sortedScores.length / 2)] : 0;
+        const volatility = computeStdDev(entry.scores);
+        const marketShare =
+          totalCount > 0 ? Number(((entry.count / totalCount) * 100).toFixed(1)) : 0;
 
         return {
           industry: entry.industry,
@@ -244,6 +294,8 @@ export default function createAnalyticsRouter(supabase) {
           median,
           min: Math.min(...entry.scores, 100),
           max: Math.max(...entry.scores, 0),
+          volatility,
+          marketShare,
           topStrategies: Array.from(entry.strategies.entries())
             .sort((a, b) => b[1] - a[1])
             .slice(0, 3)
@@ -251,43 +303,116 @@ export default function createAnalyticsRouter(supabase) {
         };
       });
 
-      // Weekly time series (last 12 weeks)
-      const weeklyMap = new Map();
-      const weeksToShow = 12;
-      for (let i = weeksToShow - 1; i >= 0; i--) {
-        const weekDate = new Date();
-        weekDate.setDate(weekDate.getDate() - i * 7);
-        const weekKey = `${weekDate.getFullYear()}-W${Math.ceil((weekDate.getDate() + 6) / 7)}`;
-        weeklyMap.set(weekKey, {
-          week: weekKey,
-          count: 0,
-          totalScore: 0,
-          totalViability: 0,
-          newAssessments: 0,
-        });
-      }
+      // Time series bucketing based on requested granularity
+      const granularity = String(req.query.granularity || 'weekly').toLowerCase();
+
+      const makeBuckets = () => {
+        const buckets = new Map();
+        if (granularity === 'monthly') {
+          const monthsToShow = 12;
+          for (let i = monthsToShow - 1; i >= 0; i--) {
+            const monthDate = new Date();
+            monthDate.setMonth(monthDate.getMonth() - i);
+            const key = `${monthDate.getUTCFullYear()}-${String(monthDate.getUTCMonth() + 1).padStart(2, '0')}`;
+            buckets.set(key, {
+              key,
+              label: key,
+              count: 0,
+              totalScore: 0,
+              totalViability: 0,
+              scores: [],
+            });
+          }
+        } else if (granularity === 'daily') {
+          const daysToShow = 30;
+          for (let i = daysToShow - 1; i >= 0; i--) {
+            const dayDate = new Date();
+            dayDate.setDate(dayDate.getDate() - i);
+            const key = dayDate.toISOString().slice(0, 10);
+            buckets.set(key, {
+              key,
+              label: key,
+              count: 0,
+              totalScore: 0,
+              totalViability: 0,
+              scores: [],
+            });
+          }
+        } else {
+          // weekly (ISO weeks)
+          const weeksToShow = 12;
+          for (let i = weeksToShow - 1; i >= 0; i--) {
+            const ref = new Date();
+            ref.setUTCDate(ref.getUTCDate() - i * 7);
+            const key = getISOWeekKey(ref);
+            buckets.set(key, {
+              key,
+              label: key,
+              count: 0,
+              totalScore: 0,
+              totalViability: 0,
+              scores: [],
+              newAssessments: 0,
+            });
+          }
+        }
+        return buckets;
+      };
+
+      const bucketMap = makeBuckets();
 
       for (const row of assessments || []) {
         if (!row.created_at) continue;
         const date = new Date(row.created_at);
-        const weekKey = `${date.getFullYear()}-W${Math.ceil((date.getDate() + 6) / 7)}`;
+        let key;
+        if (granularity === 'monthly') {
+          key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+        } else if (granularity === 'daily') {
+          key = date.toISOString().slice(0, 10);
+        } else {
+          // weekly - use ISO week key
+          key = getISOWeekKey(date);
+        }
 
-        if (weeklyMap.has(weekKey)) {
-          const bucket = weeklyMap.get(weekKey);
+        if (bucketMap.has(key)) {
+          const bucket = bucketMap.get(key);
+          const score = getScoreFromRow(row);
           bucket.count += 1;
-          bucket.totalScore += getScoreFromRow(row);
+          bucket.totalScore += score;
           bucket.totalViability += safeNumber(row.business_viability_score);
-          bucket.newAssessments += 1;
+          bucket.scores.push(score);
+          if (bucket.newAssessments != null) bucket.newAssessments += 1;
         }
       }
 
-      const weeklyTimeSeries = Array.from(weeklyMap.values()).map((entry) => ({
-        period: entry.week,
-        count: entry.count,
-        averageScore: entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0,
-        avgViability: entry.count ? Number((entry.totalViability / entry.count).toFixed(2)) : 0,
-        growth: entry.newAssessments,
-      }));
+      const timeSeries = Array.from(bucketMap.values()).map((entry) => {
+        const average = entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0;
+        const stdDev = computeStdDev(entry.scores);
+        const ci = entry.count > 0 ? 1.96 * (stdDev / Math.sqrt(entry.count)) : 0;
+        const upper = Number(Math.min(100, average + ci).toFixed(2));
+        const lower = Number(Math.max(0, average - ci).toFixed(2));
+        return {
+          period: entry.key,
+          label: entry.label,
+          count: entry.count,
+          averageScore: average,
+          avgViability: entry.count ? Number((entry.totalViability / entry.count).toFixed(2)) : 0,
+          stdDev,
+          confidenceUpper: upper,
+          confidenceLower: lower,
+          growth: entry.newAssessments || 0,
+        };
+      });
+
+      // compute industry market share for requested industry if present
+      const requestedIndustry = industryFilter || null;
+      let industryMarketShare = null;
+      if (requestedIndustry) {
+        const match = industryMetrics.find((m) => m.industry === requestedIndustry);
+        industryMarketShare = match?.marketShare ?? null;
+      } else {
+        industryMarketShare = null;
+      }
 
       // R-Strategy distribution
       const strategyMap = new Map();
@@ -333,6 +458,8 @@ export default function createAnalyticsRouter(supabase) {
         (a) => a.contribute_to_global_benchmarks,
       ).length;
 
+      const overallVolatility = computeStdDev(scores);
+
       res.json({
         aggregate: {
           totalCount,
@@ -344,9 +471,13 @@ export default function createAnalyticsRouter(supabase) {
             scores.length > 0
               ? [...scores].sort((a, b) => a - b)[Math.floor(scores.length / 2)]
               : 0,
+          overallVolatility,
         },
+        // Convenience top-level fields for frontend consumption
+        overallVolatility,
         industryMetrics,
-        timeSeries: weeklyTimeSeries,
+        industryMarketShare,
+        timeSeries,
         scoreDistribution: Object.entries(scoreRanges).map(([range, count]) => ({
           range,
           count,
@@ -355,13 +486,12 @@ export default function createAnalyticsRouter(supabase) {
         strategyDistribution,
         scaleDistribution,
         trends: {
-          recentGrowth: weeklyTimeSeries.slice(-4).reduce((sum, w) => sum + w.growth, 0),
+          recentGrowth: timeSeries.slice(-4).reduce((sum, w) => sum + (w.growth || 0), 0),
           scoreImprovement:
-            weeklyTimeSeries.length > 1
+            timeSeries.length > 1
               ? Number(
                   (
-                    weeklyTimeSeries[weeklyTimeSeries.length - 1].averageScore -
-                    weeklyTimeSeries[0].averageScore
+                    timeSeries[timeSeries.length - 1].averageScore - timeSeries[0].averageScore
                   ).toFixed(2),
                 )
               : 0,
@@ -373,19 +503,112 @@ export default function createAnalyticsRouter(supabase) {
   });
 
   // Featured solutions endpoint - Get diverse examples from documents dataset
+  // Supports semantic query via ?q=search text and optional industry filter
   router.get('/featured-solutions', async (req, res) => {
     try {
       const limit = Math.min(parseInt(req.query.limit) || 3, 10); // Max 10, default 3
+      const industryFilter = req.query.industry ? String(req.query.industry).toLowerCase() : null;
+      const q = req.query.q ? String(req.query.q).trim() : null;
 
-      // Get a sample of diverse documents from the dataset
-      // Fetch documents and extract problem/solution pairs from metadata
-      const { data: documents, error } = await supabase
+      // If a query is provided, perform semantic/hybrid search using DB RPCs
+      if (q) {
+        // Create query embedding via OpenAI
+        const openai = await ensureOpenAIClient();
+        if (!openai) {
+          return res
+            .status(500)
+            .json(buildErrorResponse({ message: 'OpenAI client not available' }));
+        }
+        const embeddingResp = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: q,
+        });
+
+        const queryEmbedding = embeddingResp.data?.[0]?.embedding || null;
+
+        if (!queryEmbedding) {
+          return res
+            .status(500)
+            .json(buildErrorResponse({ message: 'Failed to create query embedding' }));
+        }
+
+        // Use hybrid search that combines vector and keyword matching (server-side RPC)
+        const rpcParams = {
+          query_embedding: queryEmbedding,
+          keyword_filter: q,
+          match_count: Math.max(limit * 5, 10),
+          vector_weight: 0.8,
+        };
+
+        // If industry is provided, we will filter results client-side after RPC for now
+        const { data: rpcResults, error: rpcErr } = await supabase.rpc(
+          'search_documents_hybrid',
+          rpcParams,
+        );
+        if (rpcErr) throw rpcErr;
+
+        const solutions = [];
+        const seen = new Set();
+
+        for (const r of rpcResults || []) {
+          if (!r || !r.metadata) continue;
+          const sourceId = r.metadata.source_id || r.metadata.source_row || r.id;
+          if (seen.has(sourceId)) continue;
+
+          if (industryFilter) {
+            const ind = (r.metadata.industry || r.metadata.category || '').toString().toLowerCase();
+            if (ind && !ind.includes(industryFilter) && industryFilter !== 'all') continue;
+          }
+
+          const title = r.metadata?.fields?.problem
+            ? r.metadata.fields.problem.substring(0, 100) + '...'
+            : r.metadata?.title || `Solution ${solutions.length + 1}`;
+
+          solutions.push({
+            id: r.id,
+            title,
+            problem: r.metadata?.fields?.problem || r.content?.substring(0, 200) || '',
+            solution: r.metadata?.fields?.solution || r.content?.substring(0, 200) || '',
+            category: r.metadata?.category || r.metadata?.fields?.category || 'Circular Economy',
+            wordCount: r.metadata?.word_count || 0,
+            score: r.combined_score || r.similarity || 0,
+          });
+
+          seen.add(sourceId);
+
+          if (solutions.length >= limit) break;
+        }
+
+        return res.json({ count: solutions.length, solutions: solutions.slice(0, limit) });
+      }
+
+      // No query provided — fall back to sampling recent documents filtered by industry
+      const { data: documentsRaw, error } = await supabase
         .from('documents')
         .select('id, content, metadata')
-        .limit(limit * 5) // Fetch extra to ensure diversity
+        .limit(limit * 8) // Fetch extra to ensure diversity
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      const documents = (documentsRaw || []).filter((doc) => {
+        if (!doc || !doc.metadata) return false;
+        // If an industry filter is provided, try to match against metadata.category or metadata.fields.industry or content
+        if (industryFilter) {
+          const cat = (doc.metadata.category || '').toString().toLowerCase();
+          const fieldsIndustry = (doc.metadata.fields?.industry || '').toString().toLowerCase();
+          const contentContains = (doc.content || '')
+            .toString()
+            .toLowerCase()
+            .includes(industryFilter);
+          return (
+            cat.includes(industryFilter) ||
+            fieldsIndustry.includes(industryFilter) ||
+            contentContains
+          );
+        }
+        return true;
+      });
 
       // Extract unique problem-solution pairs from metadata
       const solutions = [];
@@ -461,6 +684,37 @@ export default function createAnalyticsRouter(supabase) {
       });
     } catch (err) {
       res.status(500).json(buildErrorResponse(err, 'Failed to fetch featured solutions'));
+    }
+  });
+
+  // Admin: trigger reindex (run embedding pipeline)
+  // Requires API auth (API_KEY) - call with POST /api/analytics/embeddings/reindex
+  router.post('/embeddings/reindex', async (req, res) => {
+    try {
+      // Run embedding pipeline asynchronously
+      const scriptsDir = path.join(process.cwd(), 'backend');
+      // Spawn detached process so API call returns quickly
+      const child = spawn(process.execPath, ['scripts/embed_and_store.js'], {
+        cwd: scriptsDir,
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+
+      res.json({ started: true, pid: child.pid });
+    } catch (err) {
+      res.status(500).json(buildErrorResponse(err, 'Failed to start embedding pipeline'));
+    }
+  });
+
+  // Document stats helper
+  router.get('/documents/stats', async (req, res) => {
+    try {
+      const { data, error } = await supabase.rpc('get_document_statistics');
+      if (error) throw error;
+      res.json({ stats: data });
+    } catch (err) {
+      res.status(500).json(buildErrorResponse(err, 'Failed to fetch document stats'));
     }
   });
 

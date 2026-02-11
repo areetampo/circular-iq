@@ -609,5 +609,115 @@ export default function createAssessmentsRouter(supabase) {
     }
   });
 
+  // GET /market-analysis/:id - per-assessment market analysis (user-specific comparisons)
+  router.get('/market-analysis/:id', async (req, res) => {
+    const startTime = Date.now();
+    const { id } = req.params;
+
+    try {
+      // Fetch market-level aggregates
+      const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+      if (marketError) {
+        console.warn('Market data query warning:', marketError.message);
+      }
+
+      const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
+      if (statsError) {
+        console.warn('Assessment statistics query warning:', statsError.message);
+      }
+
+      // Fetch the assessment to obtain user score and metadata
+      const { data: assessmentRow, error: assessmentError } = await supabase
+        .from('assessments')
+        .select('overall_score, result_json, industry')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (assessmentError) {
+        console.warn('Assessment fetch warning:', assessmentError.message);
+      }
+
+      const userScore = assessmentRow?.overall_score ?? null;
+      const userIndustry =
+        assessmentRow?.industry || assessmentRow?.result_json?.metadata?.industry || null;
+
+      // Compute percentile if possible
+      let user_percentile = null;
+      if (typeof userScore === 'number') {
+        const { count: lessOrEqualCount } = await supabase
+          .from('assessments')
+          .select('id', { count: 'exact' })
+          .lte('overall_score', userScore);
+
+        const total = stats?.[0]?.total_assessments || null;
+        if (total && typeof lessOrEqualCount === 'number') {
+          user_percentile = Math.round((lessOrEqualCount / total) * 100);
+        }
+      }
+
+      // Compute industry benchmark for the user's industry
+      let industryBenchmark = null;
+      if (userIndustry && Array.isArray(marketData)) {
+        const match = marketData.find((m) => m.industry === userIndustry);
+        if (match) {
+          industryBenchmark = {
+            avg_score: match.avg_score,
+            min_score: match.min_score,
+            max_score: match.max_score,
+            count: match.count,
+            scale: match.scale,
+          };
+        }
+      }
+
+      // Build a strategy breakdown (r_strategy) aggregated across marketData
+      const strategyMap = {};
+      (marketData || []).forEach((m) => {
+        const strat = m.r_strategy || 'unknown';
+        if (!strategyMap[strat]) {
+          strategyMap[strat] = { strategy: strat, avg_score: 0, count: 0 };
+        }
+        strategyMap[strat].avg_score =
+          (strategyMap[strat].avg_score * strategyMap[strat].count +
+            Number(m.avg_score || 0) * (m.count || 0)) /
+          (strategyMap[strat].count + (m.count || 0) || 1);
+        strategyMap[strat].count += m.count || 0;
+      });
+      const strategy_breakdown = Object.values(strategyMap).sort((a, b) => b.count - a.count);
+
+      // Normalize stats keys for frontend compatibility
+      const normalizedStats = stats?.[0]
+        ? {
+            avg_score: stats[0].avg_score,
+            median_score: stats[0].median_score,
+            min_score: stats[0].min_score,
+            max_score: stats[0].max_score,
+            total_count: stats[0].total_assessments,
+          }
+        : null;
+
+      logRequest('GET', `/market-analysis/${id}`, 200, Date.now() - startTime);
+
+      res.json({
+        market_data: marketData || [],
+        stats: normalizedStats,
+        userScore,
+        user_percentile,
+        userIndustry,
+        industry_benchmark: industryBenchmark,
+        strategy_breakdown,
+      });
+    } catch (error) {
+      console.error('Error fetching per-assessment market data:', error);
+      logRequest(
+        'GET',
+        `/market-analysis/${req && req.params && req.params.id ? req.params.id : 'unknown'}`,
+        500,
+        Date.now() - startTime,
+      );
+      res.status(500).json(errorResponse(error, 'Failed to fetch per-assessment market data'));
+    }
+  });
+
   return router;
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionId } from '@/utils/session';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -14,6 +14,7 @@ import {
   usePrefetchAssessment,
   useAssessmentStats,
 } from '@/features/assessments';
+import { parseSortBy } from './sortUtils';
 import { updateAssessment } from '@/features/assessments/api/assessmentApi';
 import { cn } from '@/utils/cn';
 import {
@@ -35,7 +36,6 @@ import PaginationItem from '@mui/material/PaginationItem';
 import { Button, ErrorDisplay } from '@/components/common';
 import { DeleteAssessmentDialog, RenameAssessmentDialog } from '@/components/dialogs';
 import {
-  Lock,
   ArrowLeft,
   Search,
   Eye,
@@ -43,7 +43,6 @@ import {
   Plus,
   Award,
   Building,
-  Lightbulb,
   Ghost,
   Edit,
   Trash2,
@@ -95,23 +94,45 @@ const AssessmentCard = React.memo(function AssessmentCard({
     };
   };
 
+  const assessmentCardButtons = [
+    {
+      label: 'View',
+      icon: Eye,
+      variant: 'teal',
+      onClick: () => onView(assessment.id),
+      className: '',
+    },
+    {
+      label: 'Rename',
+      icon: Edit,
+      variant: 'info',
+      onClick: () => onRename(assessment.id),
+      className: '',
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'danger',
+      onClick: () => onDelete(assessment.id),
+      className: '',
+    },
+  ];
+
   const status = getStatus(assessment.overall_score);
   const StatusIcon = status.icon;
 
   return (
     <Card
-      className={`
-        group relative overflow-hidden
-        transition-all duration-200 ease-out
-        ${isSelected ? 'shadow-lg shadow-blue-100' : 'hover:shadow-lg'}
-        bg-white
-      `}
+      className={cn(
+        'group relative overflow-hidden bg-slate-50 transition-all duration-200 ease-out ',
+        isSelected ? 'shadow-lg shadow-blue-100' : 'hover:shadow-lg',
+      )}
       onMouseEnter={() => onPrefetch(assessment.id)}
     >
       {/* Subtle gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      <div className="relative p-3 space-y-5">
+      <div className="relative p-0 xxs:p-3 space-y-5">
         {/* Header Section */}
         <div className="flex items-start gap-4">
           {/* Checkbox - Clean round style */}
@@ -183,119 +204,104 @@ const AssessmentCard = React.memo(function AssessmentCard({
 
         {/* Action Buttons - Prominent and well-spaced */}
         <div className="flex flex-wrap gap-2 sm:py-2 px-4">
-          <Button
-            size="md"
-            variant="teal"
-            onPress={() => onView(assessment.id)}
-            className="flex-1 sm:flex-none min-w-[100px] shadow-sm hover:shadow-md transition-all"
-          >
-            <Eye className="w-4 h-4" />
-            <span className="font-medium">View</span>
-          </Button>
-
-          <Button
-            size="md"
-            variant="info"
-            onPress={() => onRename(assessment.id)}
-            className="flex-1 sm:flex-none min-w-[100px] transition-all"
-          >
-            <Edit className="w-4 h-4" />
-            <span className="font-medium">Rename</span>
-          </Button>
-
-          <Button
-            size="md"
-            variant="danger"
-            onPress={() => onDelete(assessment.id)}
-            className="flex-1 sm:flex-none min-w-[100px] transition-all"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="font-medium">Delete</span>
-          </Button>
+          {assessmentCardButtons.map((btn) => {
+            const Icon = btn.icon;
+            return (
+              <Button
+                key={btn.label}
+                size="md"
+                variant={btn.variant}
+                onPress={btn.onClick}
+                className={cn('flex-1 sm:flex-none', btn.className)}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="font-medium hidden xxs:inline">{btn.label}</span>
+              </Button>
+            );
+          })}
         </div>
 
         {/* Toggles Section - Enhanced visual design */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
           {/* Global Benchmarks Toggle */}
-          <div
-            className={cn(
-              'group/toggle flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border transition-all duration-300 flex-col xxs:flex-row',
-              assessment.contribute_to_global_benchmarks
-                ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-sm'
-                : 'bg-slate-50 border-slate-200 hover:border-blue-200 hover:bg-blue-50/50',
-            )}
+          <Switch
+            isSelected={assessment.contribute_to_global_benchmarks || false}
+            onChange={() => onToggleBenchmarks(assessment.id)}
+            size="md"
+            color="primary"
+            className="shrink-0"
           >
-            <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <div
-                className={cn(
-                  'p-2 rounded-lg transition-all duration-300',
-
-                  assessment.contribute_to_global_benchmarks
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-slate-200 text-slate-600 group-hover/toggle:bg-blue-100 group-hover/toggle:text-blue-600',
-                )}
-              >
-                <Globe className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-slate-900">Global Benchmarks</div>
-                <div className="text-xs text-slate-600 text-wrap">Share anonymously</div>
-              </div>
-            </div>
-            <Switch
-              isSelected={assessment.contribute_to_global_benchmarks || false}
-              onChange={() => onToggleBenchmarks(assessment.id)}
-              size="md"
-              color="primary"
-              className="shrink-0"
+            <div
+              className={cn(
+                'w-full group/toggle flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border transition-all duration-300 flex-col xxs:flex-row',
+                assessment.contribute_to_global_benchmarks
+                  ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-sm'
+                  : 'bg-slate-50 border-slate-200 hover:border-blue-200 hover:bg-blue-50/50',
+              )}
             >
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div
+                  className={cn(
+                    'p-2 rounded-lg transition-all duration-300',
+
+                    assessment.contribute_to_global_benchmarks
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-slate-200 text-slate-600 group-hover/toggle:bg-blue-100 group-hover/toggle:text-blue-600',
+                  )}
+                >
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-900">Global Benchmarks</div>
+                  <div className="text-xs text-slate-600 text-wrap">Share anonymously</div>
+                </div>
+              </div>
               <Switch.Control className="transition-all duration-300">
                 <Switch.Thumb />
               </Switch.Control>
-            </Switch>
-          </div>
+            </div>
+          </Switch>
 
           {/* Public Access Toggle */}
-          <div
-            className={cn(
-              'group/toggle flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border transition-all duration-300 flex-col xxs:flex-row',
-              assessment.is_public
-                ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-sm'
-                : 'bg-slate-50 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/50',
-            )}
+          <Switch
+            isSelected={assessment.is_public || false}
+            onChange={() => onTogglePublic(assessment.id)}
+            size="md"
+            color="success"
+            className="transition-all duration-300"
           >
-            <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <div
-                className={cn(
-                  'p-2 rounded-lg transition-all duration-300',
-                  assessment.is_public
-                    ? 'bg-emerald-100 text-emerald-600'
-                    : 'bg-slate-200 text-slate-600 group-hover/toggle:bg-emerald-100 group-hover/toggle:text-emerald-600',
-                )}
-              >
-                <Link2 className="w-4 h-4" />
+            <div
+              className={cn(
+                'w-full group/toggle flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border transition-all duration-300 flex-col xxs:flex-row',
+                assessment.is_public
+                  ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-sm'
+                  : 'bg-slate-50 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/50',
+              )}
+            >
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div
+                  className={cn(
+                    'p-2 rounded-lg transition-all duration-300',
+                    assessment.is_public
+                      ? 'bg-emerald-100 text-emerald-600'
+                      : 'bg-slate-200 text-slate-600 group-hover/toggle:bg-emerald-100 group-hover/toggle:text-emerald-600',
+                  )}
+                >
+                  <Link2 className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-900">Public Access</div>
+                  <div className="text-xs text-slate-600 text-wrap">Share via link</div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-slate-900">Public Access</div>
-                <div className="text-xs text-slate-600 text-wrap">Share via link</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Switch
-                isSelected={assessment.is_public || false}
-                onChange={() => onTogglePublic(assessment.id)}
-                size="md"
-                color="success"
-                className="transition-all duration-300"
-              >
+              <div className="flex items-center gap-2 shrink-0">
                 <Switch.Control>
                   <Switch.Thumb />
                 </Switch.Control>
-              </Switch>
-              <Button
-                onClick={() => onCopyShareLink(assessment.id, assessment.public_id)}
-                disabled={!assessment.is_public || !assessment.public_id}
-                className={`
+                <Button
+                  onClick={() => onCopyShareLink(assessment.id, assessment.public_id)}
+                  disabled={!assessment.is_public || !assessment.public_id}
+                  className={`
                   rounded-lg transition-all duration-200
                   ${
                     assessment.is_public && assessment.public_id
@@ -303,16 +309,17 @@ const AssessmentCard = React.memo(function AssessmentCard({
                       : 'text-slate-300 bg-slate-100 cursor-not-allowed opacity-50'
                   }
                 `}
-                title={
-                  assessment.is_public && assessment.public_id
-                    ? 'Copy share link'
-                    : 'Enable public access first'
-                }
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
+                  title={
+                    assessment.is_public && assessment.public_id
+                      ? 'Copy share link'
+                      : 'Enable public access first'
+                  }
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
-          </div>
+          </Switch>
         </div>
       </div>
     </Card>
@@ -558,7 +565,6 @@ export default function MyAssessmentsPage() {
     if (s) setSearchTerm(s);
     const sb = searchParams.get('sortBy');
     if (sb) setSortBy(sb);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // sync params when debounced values change
@@ -581,7 +587,6 @@ export default function MyAssessmentsPage() {
     if (sortBy && sortBy !== 'created_at_desc') params.sortBy = sortBy;
     else delete params.sortBy;
     setSearchParams(params, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIndustries, page, pageSize, searchTerm, sortBy]);
 
   // Debounce search and sort to prevent constant reloading
@@ -590,9 +595,7 @@ export default function MyAssessmentsPage() {
 
   // Parse sort value to get field and order
   const [sortField, sortOrder] = useMemo(() => {
-    const parts = debouncedSortBy.split('_');
-    const order = parts[parts.length - 1] === 'desc' ? 'desc' : 'asc';
-    const field = parts.slice(0, -1).join('_');
+    const { field, order } = parseSortBy(debouncedSortBy);
     return [field, order];
   }, [debouncedSortBy]);
 
@@ -643,6 +646,37 @@ export default function MyAssessmentsPage() {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearchTerm, selectedIndustryKey, debouncedSortBy]);
+
+  // Prefetch assessments when sort changes to warm the cache and make sort feel snappy
+  useEffect(() => {
+    if (!debouncedSortBy) return;
+    const { field, order } = parseSortBy(debouncedSortBy);
+    const prefetchKey = [
+      'assessments',
+      {
+        sessionId: getSessionId(),
+        page: 1,
+        pageSize,
+        sortBy: field,
+        order,
+        search: debouncedSearchTerm,
+        industry: industryFilterParam,
+      },
+    ];
+    queryClient.prefetchQuery({
+      queryKey: prefetchKey,
+      queryFn: () =>
+        getAssessments({
+          sessionId: getSessionId(),
+          page: 1,
+          pageSize,
+          sortBy: field,
+          order,
+          search: debouncedSearchTerm,
+          industry: industryFilterParam,
+        }),
+    });
+  }, [debouncedSortBy, pageSize, debouncedSearchTerm, industryFilterParam, queryClient]);
 
   const formatIndustryLabel = useCallback((industry) => {
     if (!industry) return 'General';
@@ -1132,71 +1166,84 @@ export default function MyAssessmentsPage() {
           {stats_totalAssessments > 0 && (
             <Card className="border-2 border-slate-200 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
               <div className="p-6 space-y-6">
-                {/* Sort and Search Row */}
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  {/* Sort by */}
-                  <div className="flex flex-col gap-2">
-                    <Select
-                      className="w-full"
-                      placeholder="Sort by"
-                      value={sortBy}
-                      onChange={(value) => {
-                        setSortBy(value || 'created_at_desc');
-                        setPage(1);
-                      }}
-                      variant="bordered"
-                      size="md"
-                    >
-                      <Label className="text-sm font-semibold text-slate-700">Sort by</Label>
-                      <Select.Trigger>
-                        <Select.Value />
-                        <Select.Indicator />
-                      </Select.Trigger>
-                      <Select.Popover>
-                        <ListBox>
-                          <ListBox.Item id="created_at_asc" textValue="Date Created (Oldest)">
-                            Date Created (Oldest)
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                          <ListBox.Item id="created_at_desc" textValue="Date Created (Newest)">
-                            Date Created (Newest)
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                          <ListBox.Item id="title_asc" textValue="Title (A-Z)">
-                            Title (A-Z)
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                          <ListBox.Item id="title_desc" textValue="Title (Z-A)">
-                            Title (Z-A)
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                          <ListBox.Item id="overall_score_asc" textValue="Score (Low to High)">
-                            Score (Low to High)
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                          <ListBox.Item id="overall_score_desc" textValue="Score (High to Low)">
-                            Score (High to Low)
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                        </ListBox>
-                      </Select.Popover>
-                    </Select>
-                  </div>
-
-                  {/* Search */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-slate-700">Search</label>
-                    <div className="relative">
-                      <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10" />
-                      <Input
-                        type="text"
-                        placeholder="Search by title..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                {/* Sort and Search Row - compact responsive layout */}
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="w-48">
+                      <Select
+                        className="w-full"
+                        placeholder="Sort by"
+                        value={sortBy}
+                        onChange={(value) => {
+                          setSortBy(value || 'created_at_desc');
+                          setPage(1);
+                        }}
                         variant="bordered"
                         size="md"
-                        className="pl-10 w-full"
-                      />
+                      >
+                        <Label className="text-sm font-semibold text-slate-700">Sort by</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            <ListBox.Item id="created_at_asc" textValue="Date Created (Oldest)">
+                              Date Created (Oldest)
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                            <ListBox.Item id="created_at_desc" textValue="Date Created (Newest)">
+                              Date Created (Newest)
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                            <ListBox.Item id="title_asc" textValue="Title (A-Z)">
+                              Title (A-Z)
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                            <ListBox.Item id="title_desc" textValue="Title (Z-A)">
+                              Title (Z-A)
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                            <ListBox.Item id="overall_score_asc" textValue="Score (Low to High)">
+                              Score (Low to High)
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                            <ListBox.Item id="overall_score_desc" textValue="Score (High to Low)">
+                              Score (High to Low)
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+                    </div>
+
+                    {/* Small helper action to reset sorting quickly */}
+                    <HeroButton
+                      onClick={() => setSortBy('created_at_desc')}
+                      size="md"
+                      variant="ghost"
+                      className="hidden md:inline-flex"
+                    >
+                      Reset
+                    </HeroButton>
+                  </div>
+
+                  {/* Search placed to the right on larger screens, full-width on mobile */}
+                  <div className="flex-1 lg:ml-6">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-semibold text-slate-700">Search</label>
+                      <div className="relative">
+                        <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10" />
+                        <Input
+                          type="text"
+                          placeholder="Search by title..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          variant="bordered"
+                          size="md"
+                          className="pl-10 w-full"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

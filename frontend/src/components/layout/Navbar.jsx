@@ -1,399 +1,302 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
-import Logo from '@/components/common/Logo';
-import { Tabs, Dropdown, Label, Separator } from '@heroui/react';
 import { Button } from '@/components/common';
+import { Avatar, Separator } from '@heroui/react';
 import {
-  Home,
-  FileText,
-  BarChart3,
-  GitCompare,
-  User,
-  Settings,
-  HelpCircle,
-  LogOut,
-  ChevronDown,
-  Menu,
-  Mail,
-} from 'lucide-react';
+  Navbar as HeroNavbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenu,
+  NavbarMenuItem,
+} from '@heroui/navbar';
+import { Menu, Transition, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
+import { SITE_CONFIG } from '@/constants/siteConfig';
+import { User, Settings, HelpCircle, LogOut, Mail, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
-  const { addToast } = useToast();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // console.log('Auth state in Navbar:', { user, profile, isAuthenticated });
 
-  // Navigation items configuration
+  const { addToast } = useToast();
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
   const navigationItems = [
+    { id: 'assessments', name: 'My Assessments', path: '/assessments' },
+    { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
+    { id: 'compare', name: 'Compare', path: '/compare' },
+  ];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut?.();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  const userDropdownItems = [
     {
-      id: 'home',
-      name: 'Home',
-      path: '/',
-      icon: Home,
+      id: 'profile',
+      name: 'My Profile',
+      icon: User,
+      path: '/profile',
+      onClick: () => navigate('/profile'),
     },
     {
-      id: 'assessments',
-      name: 'My Assessments',
-      path: '/assessments',
-      icon: FileText,
+      id: 'settings',
+      name: 'Settings',
+      icon: Settings,
+      path: '/settings',
+      onClick: () => navigate('/settings'),
     },
     {
-      id: 'dashboard',
-      name: 'Dashboard',
-      path: '/dashboard',
-      icon: BarChart3,
-    },
-    {
-      id: 'compare',
-      name: 'Compare',
-      path: '/assessments',
-      icon: GitCompare,
+      id: 'help',
+      name: 'Help & Support',
+      icon: HelpCircle,
+      path: '/help',
+      onClick: () => navigate('/help'),
     },
   ];
 
-  // Get current active tab
-  const getCurrentTab = () => {
-    const path = location.pathname;
-    if (path === '/') return 'home';
-    if (path.startsWith('/assessments')) return 'assessments';
-    if (path === '/dashboard') return 'dashboard';
-    if (path === '/compare') return 'compare';
-    return 'home';
-  };
+  const isActivePath = (path) => location.pathname.startsWith(path);
 
-  // Get current page display name
-  const getCurrentPageName = () => {
-    const current = navigationItems.find((item) => item.id === getCurrentTab());
-    return current?.name || 'Menu';
-  };
-
-  // Get user initials for avatar
   const getUserInitials = () => {
     const username = profile?.username || user?.username;
-    if (!username) return 'U';
+    if (!username) return '?';
     return username
       .split(' ')
-      .map((word) => word[0])
+      .map((w) => w[0])
       .join('')
-      .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2)
+      .toUpperCase();
   };
 
-  // Handle navigation with Compare toast
+  const getUsername = () => {
+    const username = profile?.username || user?.username || 'User';
+    return username.length > 12 ? username.slice(0, 12) + '...' : username;
+  };
+
   const handleNavigation = (item) => {
     navigate(item.path);
-    setMobileMenuOpen(false);
+    setIsMenuOpen(false);
 
-    // Show informative toast for Compare navigation
-    if (item.id === 'compare') {
+    if (item.id === 'compare' && isAuthenticated) {
       setTimeout(() => {
         addToast('Select exactly 2 assessments to compare', 'info');
       }, 300);
     }
   };
 
-  // Handle tab selection change
-  const handleTabChange = (key) => {
-    const item = navigationItems.find((nav) => nav.id === key);
-    if (item) {
-      handleNavigation(item);
-    }
-  };
+  // Navbar background constant
+  const NAVBAR_BG = 'bg-background/70 backdrop-blur-md backdrop-saturate-150';
 
-  // Handle sign out
-  const handleSignOut = async () => {
-    try {
-      if (signOut) {
-        await signOut();
-      }
-      navigate('/auth');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
-  };
-
-  // Unauthenticated navbar
-  if (!isAuthenticated) {
-    return (
-      <nav
-        className="sticky top-0 z-50"
-        style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-        }}
-      >
-        <div className="px-4 py-3 mx-auto sm:px-6 lg:px-8 max-w-screen-2xl">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <motion.button
-              onClick={() => navigate('/')}
-              className="transition-opacity group hover:opacity-80"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Go to home"
-            >
-              <Logo className="w-10 h-10 drop-shadow-sm" />
-            </motion.button>
-
-            {/* Sign In Button */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                onClick={() => navigate('/auth')}
-                className="h-9 gap-2 px-4 text-sm font-semibold text-white transition-all duration-300 shadow-sm rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:shadow-md hover:from-emerald-600 hover:to-emerald-700"
-              >
-                <User className="w-4 h-4" />
-                <span>Sign In</span>
-              </Button>
-            </motion.div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-
-  // Authenticated navbar with glassmorphic design
   return (
-    <nav
-      className="sticky top-0 z-50"
-      style={{
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+    <HeroNavbar
+      isMenuOpen={isMenuOpen}
+      onMenuOpenChange={setIsMenuOpen}
+      maxWidth="full"
+      height="4rem"
+      isBlurred
+      className="sticky top-0 z-50 border-b border-default-200"
+      classNames={{
+        base: NAVBAR_BG,
+        wrapper: 'px-3 xs:px-6 h-16',
+        menu: cn(NAVBAR_BG, 'pt-0 pb-4 px-4 md:hidden'),
       }}
     >
-      <div className="px-4 py-3.5 mx-auto sm:px-6 lg:px-8 max-w-screen-2xl">
-        <div className="flex items-center justify-between gap-4">
-          {/* Logo - Left */}
-          <motion.button
-            onClick={() => navigate('/')}
-            className="transition-opacity shrink-0 group hover:opacity-80"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+      {/* LEFT: Caret Toggle + Logo + Name + Nav Items */}
+      <NavbarContent className="gap-3" justify="start">
+        {/* Caret Toggle - Only visible on mobile */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden cursor-pointer text-foreground"
+          aria-label="Toggle navigation menu"
+        >
+          <ChevronDown
+            className={cn('w-5 h-5 transition-transform duration-200', isMenuOpen && 'rotate-180')}
+          />
+        </button>
+
+        <NavbarBrand className="grow-0">
+          <button
+            onClick={() => {
+              navigate('/');
+              setIsMenuOpen(false);
+            }}
+            className="flex items-center gap-2 cursor-pointer"
             aria-label="Go to home"
           >
-            <Logo className="w-10 h-10 drop-shadow-sm" />
-          </motion.button>
+            <SITE_CONFIG.logo />
+            <span className="font-bold text-xl text-foreground">{SITE_CONFIG.name}</span>
+          </button>
+        </NavbarBrand>
 
-          {/* Desktop Navigation - Center (Full Tabs) */}
-          <div className="absolute hidden transform -translate-x-1/2 left-1/2 md:block">
-            <Tabs
-              selectedKey={getCurrentTab()}
-              onSelectionChange={handleTabChange}
-              variant="underlined"
-              classNames={{
-                tabList: 'gap-1',
-                cursor: 'bg-emerald-500',
-                tab: 'px-4 py-2 text-sm font-medium',
-              }}
-            >
-              <Tabs.ListContainer>
-                <Tabs.List aria-label="Main navigation">
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = getCurrentTab() === item.id;
-                    return (
-                      <Tabs.Tab
-                        key={item.id}
-                        id={item.id}
-                        className={cn(
-                          'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg',
-                          !isActive && 'text-gray-700/90 hover:text-gray-900 hover:bg-white/20',
-                          isActive && 'text-emerald-700 font-semibold',
-                        )}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{item.name}</span>
-                        <Tabs.Indicator className="h-1 bg-emerald-500 rounded-full shadow-sm" />
-                      </Tabs.Tab>
-                    );
-                  })}
-                </Tabs.List>
-              </Tabs.ListContainer>
-            </Tabs>
-          </div>
-
-          {/* Mobile Navigation - Dropdown */}
-          <div className="absolute transform -translate-x-1/2 left-1/2 md:hidden">
-            <Dropdown isOpen={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <Dropdown.Trigger>
-                <Button variant="neutral-soft" aria-label="Navigation menu">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-emerald-700">
-                      {getCurrentPageName()}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        'w-4 h-4 text-gray-600 transition-transform duration-200',
-                        mobileMenuOpen && 'rotate-180',
-                      )}
-                    />
-                  </div>
-                </Button>
-              </Dropdown.Trigger>
-              <Dropdown.Popover
-                placement="bottom"
-                className="min-w-[220px] rounded-2xl overflow-hidden"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
-                }}
-              >
-                <Dropdown.Menu
-                  aria-label="Navigation menu"
-                  onAction={(key) => {
-                    const item = navigationItems.find((nav) => nav.id === String(key));
-                    if (item) handleNavigation(item);
-                  }}
+        {/* Desktop Nav Items */}
+        <div className="hidden md:flex justify-start items-start gap-6 ml-4">
+          {navigationItems.map((item) => {
+            const isActive = isActivePath(item.path);
+            return (
+              <NavbarItem key={item.id} isActive={isActive}>
+                <button
+                  onClick={() => handleNavigation(item)}
+                  className={cn(
+                    'text-md font-medium transition-colors cursor-pointer',
+                    isActive ? 'text-black' : 'text-foreground/50 hover:text-foreground',
+                  )}
                 >
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = getCurrentTab() === item.id;
-                    return (
-                      <Dropdown.Item
-                        key={item.id}
-                        textValue={item.name}
-                        className={cn(
-                          'rounded-xl mx-2 my-1 transition-all duration-200',
-                          isActive &&
-                            'bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-700 font-semibold',
-                          !isActive && 'hover:bg-gray-50',
-                        )}
-                      >
-                        <div className="flex items-center gap-3 py-1.5">
-                          <Icon
-                            className={cn(
-                              'w-4 h-4',
-                              isActive ? 'text-emerald-600' : 'text-gray-500',
-                            )}
-                          />
-                          <Label className={isActive ? 'font-semibold' : ''}>{item.name}</Label>
-                        </div>
-                      </Dropdown.Item>
-                    );
-                  })}
-                </Dropdown.Menu>
-              </Dropdown.Popover>
-            </Dropdown>
-          </div>
-
-          {/* Avatar Dropdown - Right */}
-          <div className="shrink-0">
-            <Dropdown isOpen={isDropdownOpen} onOpenChange={toggleDropdown}>
-              <Dropdown.Trigger>
-                <Button variant="neutral-soft" aria-label="User menu" onClick={toggleDropdown}>
-                  <div className="flex items-center justify-center w-7 h-7 text-xs font-bold text-white rounded-full shadow-sm bg-gradient-to-br from-emerald-500 to-emerald-600">
-                    {getUserInitials()}
-                  </div>
-                  <span className="hidden text-sm font-medium text-gray-700 sm:inline max-w-[120px] truncate">
-                    {profile?.username || user?.username || 'User'}
-                  </span>
-                  <ChevronDown className="hidden w-4 h-4 text-gray-500 sm:inline" />
-                </Button>
-              </Dropdown.Trigger>
-              <Dropdown.Popover
-                placement="right"
-                className="min-w-[260px] rounded-2xl overflow-hidden"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.12)',
-                }}
-              >
-                <Dropdown.Menu
-                  aria-label="User menu"
-                  onAction={(key) => {
-                    if (key === 'signout') {
-                      handleSignOut();
-                    } else if (key !== 'profile-header') {
-                      navigate(`/${key}`);
-                    }
-                  }}
-                  disabledKeys={['profile-header']}
-                >
-                  {/* User Info Header */}
-                  <Dropdown.Item key="profile-header" textValue="User profile">
-                    <div className="flex items-center gap-3 py-2 px-1">
-                      <div className="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full shadow-sm bg-gradient-to-br from-emerald-500 to-emerald-600">
-                        {getUserInitials()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {profile?.username || user?.username || 'User'}
-                        </p>
-                        <p className="flex items-center gap-1 text-xs text-gray-500 truncate">
-                          <Mail className="w-3 h-3" />
-                          {user?.email || 'user@example.com'}
-                        </p>
-                      </div>
-                    </div>
-                  </Dropdown.Item>
-
-                  <Separator className="my-1.5" />
-
-                  {/* Menu Items */}
-                  {/* <Dropdown.Item key="profile" textValue="Profile" className="rounded-xl mx-2 my-1">
-                    <div className="flex items-center gap-3 py-1">
-                      <User className="w-4 h-4 text-gray-500" />
-                      <Label>My Profile</Label>
-                    </div>
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    key="settings"
-                    textValue="Settings"
-                    className="rounded-xl mx-2 my-1"
-                  >
-                    <div className="flex items-center gap-3 py-1">
-                      <Settings className="w-4 h-4 text-gray-500" />
-                      <Label>Settings</Label>
-                    </div>
-                  </Dropdown.Item>
-                  <Dropdown.Item key="help" textValue="Help" className="rounded-xl mx-2 my-1">
-                    <div className="flex items-center gap-3 py-1">
-                      <HelpCircle className="w-4 h-4 text-gray-500" />
-                      <Label>Help & Support</Label>
-                    </div>
-                  </Dropdown.Item> */}
-
-                  {/* <Separator className="my-1.5" /> */}
-
-                  {/* Sign Out */}
-                  <Dropdown.Item
-                    key="signout"
-                    textValue="Sign out"
-                    variant="danger"
-                    className="rounded-xl mx-2 my-1"
-                  >
-                    <div className="flex items-center gap-3 py-1">
-                      <LogOut className="w-4 h-4" />
-                      <Label>Sign Out</Label>
-                    </div>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown.Popover>
-            </Dropdown>
-          </div>
+                  {item.name}
+                </button>
+              </NavbarItem>
+            );
+          })}
         </div>
-      </div>
-    </nav>
+      </NavbarContent>
+
+      {/* Mobile Menu */}
+      <NavbarMenu className="pt-4 flex justify-start flex-col">
+        {navigationItems.map((item) => {
+          const isActive = isActivePath(item.path);
+          return (
+            <NavbarMenuItem
+              key={item.id}
+              onClick={() => handleNavigation(item)}
+              className={cn(
+                'w-full px-4 py-3 text-left text-xl font-semibold transition-colors rounded-lg cursor-pointer uppercase',
+                isActive
+                  ? 'text-black bg-default-100'
+                  : 'text-foreground/50 hover:text-slate-700/90 hover:bg-default-50',
+              )}
+            >
+              {item.name}
+            </NavbarMenuItem>
+          );
+        })}
+      </NavbarMenu>
+
+      {/* RIGHT: Profile Dropdown */}
+      <NavbarContent justify="end">
+        <NavbarItem>
+          <Menu as="div" className="relative">
+            {({ open }) => (
+              <>
+                <MenuButton
+                  className={cn(
+                    'flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-transparent',
+                    isAuthenticated ? 'cursor-pointer transition-all duration-200' : '',
+                  )}
+                >
+                  <Avatar color="success" size="md" variant="soft">
+                    <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
+                    <Avatar.Fallback className="text-lg font-semibold">
+                      {getUserInitials()}
+                    </Avatar.Fallback>
+                  </Avatar>
+                  {isAuthenticated ? (
+                    <>
+                      <span className="hidden xxs:inline text-md font-medium text-foreground">
+                        {getUsername()}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          'w-4 h-4 text-default-500 transition-transform duration-200',
+                          open && 'rotate-180',
+                        )}
+                      />
+                    </>
+                  ) : (
+                    <Button
+                      onClick={() => navigate('/auth')}
+                      variant="success"
+                      size="sm"
+                      className="cursor-pointer"
+                    >
+                      Sign In
+                    </Button>
+                  )}
+                </MenuButton>
+
+                {isAuthenticated && (
+                  <Transition
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <MenuItems className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-xl bg-white shadow-lg border border-default-200 focus:outline-none overflow-hidden">
+                      {/* User Info Header */}
+                      <div className="px-4 py-3 border-b border-default-200">
+                        <div className="flex items-center gap-3">
+                          <Avatar color="success" size="md" variant="letter-soft">
+                            <Avatar.Fallback className="text-sm font-semibold">
+                              {getUserInitials()}
+                            </Avatar.Fallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">
+                              {profile?.username || user?.username || 'User'}
+                            </p>
+                            <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
+                              <Mail className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{user?.email || 'user@example.com'}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div className="py-1">
+                        {userDropdownItems.map((item) => (
+                          <MenuItem key={item.id}>
+                            {() => (
+                              <button
+                                onClick={item.onClick}
+                                className={cn(
+                                  'flex items-center gap-3 w-full px-4 py-2 text-sm cursor-pointer transition-colors hover:bg-slate-100',
+                                )}
+                              >
+                                <item.icon className="w-4 h-4 text-default-500" />
+                                <span className="font-medium text-foreground">{item.name}</span>
+                              </button>
+                            )}
+                          </MenuItem>
+                        ))}
+                      </div>
+
+                      <Separator className="my-0" />
+
+                      {/* Sign Out */}
+                      <div className="py-1">
+                        <MenuItem>
+                          {() => (
+                            <button
+                              onClick={handleSignOut}
+                              className={cn(
+                                'flex items-center gap-3 w-full px-4 py-2 text-sm cursor-pointer transition-colors text-danger hover:bg-red-50',
+                              )}
+                            >
+                              <LogOut className="w-4 h-4" />
+                              <span className="font-semibold">Sign Out</span>
+                            </button>
+                          )}
+                        </MenuItem>
+                      </div>
+                    </MenuItems>
+                  </Transition>
+                )}
+              </>
+            )}
+          </Menu>
+        </NavbarItem>
+      </NavbarContent>
+    </HeroNavbar>
   );
 }

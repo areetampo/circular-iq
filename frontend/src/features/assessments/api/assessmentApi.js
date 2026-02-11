@@ -7,8 +7,9 @@ import {
   AssessmentSchema,
   safeValidateGlobalAnalytics,
 } from '@/features/assessments/api/assessmentSchema';
+import { SITE_CONFIG } from '@/constants/siteConfig';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = SITE_CONFIG.apiBaseUrl;
 
 /**
  * Add Authorization header with bearer token if session exists
@@ -184,12 +185,16 @@ export async function getMarketAnalysis(id) {
   const path = id ? `/api/assessments/market-analysis/${id}` : '/api/assessments/market-analysis';
   const data = await requestJson(path);
 
-  // Validate market analysis data structure
+  // Normalize keys and validate market analysis data structure
   if (data && typeof data === 'object') {
     return {
-      marketData: data.marketData || [],
-      stats: data.stats,
-      userScore: data.userScore,
+      marketData: data.market_data || data.marketData || [],
+      stats: data.stats || null,
+      userScore: data.userScore ?? data.user_score ?? null,
+      userPercentile: data.user_percentile ?? data.userPercentile ?? null,
+      userIndustry: data.userIndustry || data.user_industry || null,
+      industryBenchmark: data.industry_benchmark || null,
+      strategyBreakdown: data.strategy_breakdown || data.strategyBreakdown || [],
     };
   }
   return data;
@@ -216,6 +221,9 @@ export async function getEnhancedAnalytics(filters = {}) {
   if (filters?.timeRange && filters.timeRange !== 'all') {
     params.set('timeRange', filters.timeRange);
   }
+  if (filters?.granularity) {
+    params.set('granularity', filters.granularity);
+  }
   const path = params.toString() ? `/api/analytics/enhanced?${params}` : '/api/analytics/enhanced';
   const data = await requestJson(path);
   return data;
@@ -225,9 +233,13 @@ export async function getEnhancedAnalytics(filters = {}) {
  * Fetch a small set of featured solutions (uses the `documents` table on the server)
  * Useful for surfacing curated problem→solution examples on the dashboard.
  */
-export async function getFeaturedSolutions({ limit = 3 } = {}) {
+export async function getFeaturedSolutions({ limit = 3, industry, q } = {}) {
   const params = new URLSearchParams({ limit: String(limit) });
-  const path = `/api/analytics/featured-solutions?${params}`;
+  if (industry) params.set('industry', industry);
+  if (q) params.set('q', q);
+  const path = params.toString()
+    ? `/api/analytics/featured-solutions?${params}`
+    : '/api/analytics/featured-solutions';
   const data = await requestJson(path);
   return {
     count: data?.count || 0,

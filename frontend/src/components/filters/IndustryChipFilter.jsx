@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Chip } from '@heroui/react';
 import { getIndustryTheme } from '@/constants/industryThemes';
+import { toTitleCase } from '@/lib/formatting';
 
 export default function IndustryChipFilter({ industries, selected, onToggle, labelMap }) {
   return (
@@ -24,9 +25,7 @@ export default function IndustryChipFilter({ industries, selected, onToggle, lab
           >
             <Chip.Label className="px-1">
               {labelMap?.[industry] ||
-                (industry === 'all'
-                  ? 'All Industries'
-                  : industry.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()))}
+                (industry === 'all' ? 'All Industries' : toTitleCase(industry))}
             </Chip.Label>
           </Chip>
         );

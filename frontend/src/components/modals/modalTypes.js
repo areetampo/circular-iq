@@ -13,6 +13,7 @@ export const LANDING_MODALS = {
   PARAMETER_INFO: 'parameter-info',
   TEST_CASE_INFO: 'test-case',
   SAMPLE_TEST_CASES_HEADING_INFO: 'test-case-heading',
+  FEATURED_SOLUTIONS: 'featured-solutions',
 };
 
 export const RESULTS_MODALS = {

@@ -3,9 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import LoaderComponent from '@/components/common/LoaderComponent';
 import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
+import LineChart from '@/components/charts/LineChart';
 import { titleize } from '@/lib/formatting';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
-import { useMarketAnalysis } from '@/features/assessments';
+import { useMarketAnalysis, getEnhancedAnalytics } from '@/features/assessments';
+import { useQuery } from '@tanstack/react-query';
+import { exportAssessmentPDF } from '@/features/export';
 import { Card, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
 import { Progress } from '@heroui/progress';
@@ -20,19 +23,81 @@ import {
   Lightbulb,
   Briefcase,
   ArrowRight,
+  Download,
+  Info,
 } from 'lucide-react';
 
 export default function MarketAnalysisPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [filterScale, setFilterScale] = useState('all');
+  const [timeRange, setTimeRange] = useState('12m');
+  const [granularity, setGranularity] = useState('monthly');
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   // Fetch market analysis data using hook
-  const { marketData, stats, userScore, userIndustry, isLoading, isError, error, refetch } =
-    useMarketAnalysis({
-      assessmentId: id,
-      enabled: true,
-    });
+  const {
+    marketData,
+    stats,
+    userScore,
+    userIndustry,
+    userPercentile: apiUserPercentile,
+    industryBenchmark,
+    strategyBreakdown,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useMarketAnalysis({
+    assessmentId: id,
+    enabled: true,
+  });
+
+  // Fetch industry trend data for a small time-series chart (respects selected timeRange and granularity)
+  const { data: trendData } = useQuery({
+    queryKey: ['market-trend', userIndustry, timeRange, granularity],
+    queryFn: async () => {
+      if (!userIndustry) return { timeSeries: [] };
+      const data = await getEnhancedAnalytics({ industry: userIndustry, timeRange, granularity });
+      return data || { timeSeries: [] };
+    },
+    enabled: !!userIndustry && !!timeRange,
+  });
+
+  const industryTrend = (trendData && trendData.timeSeries) || [];
+
+  const lines = React.useMemo(() => {
+    const base = [{ dataKey: 'averageScore', stroke: '#34a83a', name: 'Avg Score' }];
+    if (industryTrend && industryTrend.length && industryTrend[0].confidenceUpper != null) {
+      // Add confidence interval band (upper/lower) as a band entry and keep the avg line
+      base.push({
+        dataKey: 'confidenceUpper',
+        stroke: '#9CA3AF',
+        name: 'Upper CI',
+        strokeDasharray: '4 4',
+        strokeOpacity: 0.8,
+        dot: false,
+      });
+      base.push({
+        dataKey: 'confidenceLower',
+        stroke: '#9CA3AF',
+        name: 'Lower CI',
+        strokeDasharray: '4 4',
+        strokeOpacity: 0.8,
+        dot: false,
+      });
+
+      base.push({
+        band: true,
+        id: 'ci',
+        upperKey: 'confidenceUpper',
+        lowerKey: 'confidenceLower',
+        fill: '#e6f4ea',
+        fillOpacity: 0.9,
+      });
+    }
+    return base;
+  }, [industryTrend]);
 
   const getIndustryColor = (industry) => {
     const colors = {
@@ -70,13 +135,16 @@ export default function MarketAnalysisPage() {
     return ['all', ...Array.from(scales)];
   };
 
-  const userPercentile = stats
-    ? Math.round(
-        (((userScore || 0) - (stats.min_score || 0)) /
-          ((stats.max_score || 100) - (stats.min_score || 0))) *
-          100,
-      )
-    : 0;
+  const userPercentile =
+    apiUserPercentile != null
+      ? apiUserPercentile
+      : stats
+        ? Math.round(
+            (((userScore || 0) - (stats.min_score || 0)) /
+              ((stats.max_score || 100) - (stats.min_score || 0))) *
+              100,
+          )
+        : 0;
 
   // Prepare data for BarChart component - memoized to prevent expensive recalculations
   const barChartData = useMemo(
@@ -100,6 +168,15 @@ export default function MarketAnalysisPage() {
       name: 'Average Score',
     },
   ];
+
+  const strategyChartData = useMemo(() => {
+    if (!strategyBreakdown || !strategyBreakdown.length) return [];
+    return strategyBreakdown.map((s) => ({
+      name: titleize(s.strategy),
+      avgScore: Number(s.avg_score || 0),
+      count: s.count || 0,
+    }));
+  }, [strategyBreakdown]);
 
   const industryBenchmarkScore = useMemo(() => {
     if (!marketData.length) return stats?.avg_score ?? null;
@@ -159,14 +236,75 @@ export default function MarketAnalysisPage() {
     navigate(`/results/${id}`);
   };
 
+  const handleExportPDF = async () => {
+    try {
+      setIsExportingPDF(true);
+      const title = `Market Analysis - ${titleize(userIndustry || 'All')}`;
+      // We re-use the assessment PDF export utility by passing a small context object and target element
+      await exportAssessmentPDF(
+        { title, created_at: new Date().toISOString() },
+        { elementId: 'market-analysis-content' },
+      );
+    } catch (err) {
+      console.error('Failed to export Market Analysis PDF', err);
+      // graceful fallback: try printing the current page
+      window.print();
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    const rows = [
+      ['Industry', 'Scale', 'Avg Score', 'Min Score', 'Max Score', 'Projects', 'Strategy'],
+    ];
+    (marketData || []).forEach((m) => {
+      rows.push([
+        m.industry || '',
+        m.scale || '',
+        m.avg_score ?? '',
+        m.min_score ?? '',
+        m.max_score ?? '',
+        m.count ?? '',
+        m.r_strategy || '',
+      ]);
+    });
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `market-analysis-${id || 'all'}-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       {/* Back Button */}
-      <div className="mb-6">
-        <Button variant="neutral-soft" onClick={handleBackToResults}>
+      <div className="mb-6 flex items-center gap-3">
+        <Button variant="neutral-soft" onClick={handleBackToResults} aria-label="Back to results">
           <ChevronLeft className="w-4 h-4" />
           Back to Results
         </Button>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="teal-soft"
+            onPress={handleExportCSV}
+            aria-label="Export market data as CSV"
+          >
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </Button>
+          <Button
+            variant="neutral"
+            onPress={handleExportPDF}
+            aria-label="Export market analysis as PDF"
+          >
+            <Download className="w-4 h-4 mr-2" /> {isExportingPDF ? 'Exporting...' : 'Export PDF'}
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -184,9 +322,9 @@ export default function MarketAnalysisPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div id="market-analysis-content" className="space-y-6">
           {/* Header Section */}
-          <div className="p-6 bg-linear-to-r from-[#34a83a] to-[#2d8f32] rounded-2xl text-white shadow-lg">
+          <div className="p-6 bg-linear-to-r from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
             <h1 className="flex items-center gap-2 text-3xl font-bold">
               <BarChart3 className="w-8 h-8 text-white" strokeWidth={2.5} /> Market Landscape
             </h1>
@@ -200,19 +338,19 @@ export default function MarketAnalysisPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
                 <div className="flex justify-center mb-2 text-3xl">
-                  <TrendingUp className="w-9 h-9 text-[#34a83a]" strokeWidth={2} />
+                  <TrendingUp className="w-9 h-9 text-primary-500" strokeWidth={2} />
                 </div>
                 <div className="text-sm text-gray-600">Average Score</div>
-                <div className="text-2xl font-bold text-[#34a83a]">
+                <div className="text-2xl font-bold text-primary-500">
                   {stats.avg_score.toFixed(1)}
                 </div>
               </div>
               <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
                 <div className="flex justify-center mb-2 text-3xl">
-                  <Target className="w-9 h-9 text-[#34a83a]" strokeWidth={2} />
+                  <Target className="w-9 h-9 text-primary-500" strokeWidth={2} />
                 </div>
                 <div className="text-sm text-gray-600">Median Score</div>
-                <div className="text-2xl font-bold text-[#34a83a]">
+                <div className="text-2xl font-bold text-primary-500">
                   {stats.median_score.toFixed(1)}
                 </div>
               </div>
@@ -224,14 +362,52 @@ export default function MarketAnalysisPage() {
                 <div className="text-2xl font-bold text-[#2c3e50]">{stats.total_count}</div>
               </div>
               {userScore != null && (
-                <div className="p-5 bg-linear-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-[#ff9800] shadow-md rounded-xl">
+                <div className="p-5 bg-linear-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-accent-500 shadow-md rounded-xl">
                   <div className="flex justify-center mb-2 text-3xl">
-                    <Star className="w-9 h-9 text-[#ff6f00]" strokeWidth={2} fill="#ff9800" />
+                    <Star className="w-9 h-9 text-accent-500" strokeWidth={2} fill="#ff9800" />
                   </div>
                   <div className="text-sm text-gray-600">Your Percentile</div>
-                  <div className="text-2xl font-bold text-[#ff6f00]">{userPercentile}th</div>
+                  <div className="text-2xl font-bold text-accent-500">{userPercentile}th</div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Market volatility & industry share */}
+          {trendData && ( // trendData comes from enhanced analytics and includes overallVolatility and industryMarketShare
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-gray-600">Market Volatility (std dev)</div>
+                  <Info
+                    className="w-4 h-4 text-gray-400"
+                    title="Standard deviation of average scores across the selected market"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="text-2xl font-bold text-primary-500">
+                  {trendData.overallVolatility != null ? `${trendData.overallVolatility}` : 'N/A'}
+                </div>
+                {industryTrend && industryTrend.length > 0 && (
+                  <div className="text-xs text-gray-600 mt-1">
+                    Latest ({industryTrend[industryTrend.length - 1].label}):{' '}
+                    <strong>{industryTrend[industryTrend.length - 1].averageScore}</strong> (
+                    {industryTrend[industryTrend.length - 1].confidenceLower}–
+                    {industryTrend[industryTrend.length - 1].confidenceUpper})
+                  </div>
+                )}
+                <div className="text-xs text-gray-500 mt-1">
+                  Lower is better — reflects score dispersion across the market.
+                </div>
+              </div>
+              <div className="p-4 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                <div className="text-sm text-gray-600">Industry Market Share</div>
+                <div className="text-2xl font-bold text-primary-500">
+                  {trendData.industryMarketShare != null
+                    ? `${trendData.industryMarketShare}%`
+                    : 'N/A'}
+                </div>
+              </div>
             </div>
           )}
 
@@ -270,7 +446,7 @@ export default function MarketAnalysisPage() {
                   />
                   {userIndicatorPosition != null && (
                     <div
-                      className="absolute top-[-6px] h-6 w-0.5 bg-[#059669]"
+                      className="absolute -top-1.5 h-6 w-0.5 bg-primary-600"
                       style={{ left: `${userIndicatorPosition}%` }}
                       aria-label="User score indicator"
                     />
@@ -292,29 +468,77 @@ export default function MarketAnalysisPage() {
                     {userIndustry ? ` for ${titleize(userIndustry)}` : ''}.
                   </span>
                 )}
+                {industryBenchmark && (
+                  <div className="mt-3 text-sm text-slate-700">
+                    Industry benchmark for <strong>{titleize(userIndustry)}</strong>:{' '}
+                    <strong className="text-primary-500">
+                      {industryBenchmark.avg_score.toFixed(1)} / 100
+                    </strong>{' '}
+                    ({industryBenchmark.count} projects)
+                  </div>
+                )}
               </div>
             </Card.Content>
           </Card>
 
-          {/* Filter Controls */}
-          {getScales().length > 1 && (
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm font-semibold text-gray-700">Filter by Scale:</span>
-              {getScales().map((scale) => (
+          {/* Filter & Time Range Controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            {getScales().length > 1 && (
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-gray-700">Filter by Scale:</span>
+                {getScales().map((scale) => (
+                  <button
+                    key={scale}
+                    onClick={() => setFilterScale(scale)}
+                    aria-pressed={filterScale === scale}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      filterScale === scale
+                        ? 'bg-primary-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {titleize(scale)}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-gray-700">Time range:</span>
+              {['all', '12m', '24m', '36m'].map((tr) => (
                 <button
-                  key={scale}
-                  onClick={() => setFilterScale(scale)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    filterScale === scale
-                      ? 'bg-[#34a83a] text-white shadow-md'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  key={tr}
+                  onClick={() => setTimeRange(tr)}
+                  aria-pressed={timeRange === tr}
+                  className={`px-3 py-1 rounded-md text-sm transition-all ${
+                    timeRange === tr
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'bg-gray-100 text-gray-700'
                   }`}
                 >
-                  {titleize(scale)}
+                  {tr === 'all' ? 'All' : tr}
                 </button>
               ))}
             </div>
-          )}
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-gray-700">Granularity:</span>
+              {['weekly', 'monthly', 'daily'].map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGranularity(g)}
+                  aria-pressed={granularity === g}
+                  className={`px-3 py-1 rounded-md text-sm transition-all ${
+                    granularity === g
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Bar Chart Section - Top Industries */}
           {barChartData.length > 0 && (
@@ -355,7 +579,7 @@ export default function MarketAnalysisPage() {
                   if (!active || !payload || !payload.length) return null;
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white/[0.98] p-3 px-4 border border-gray-300 rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                    <div className="bg-white/98 p-3 px-4 border border-gray-300 rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                       <p className="m-0 mb-2 font-semibold text-[13px] text-slate-800 capitalize">
                         {titleize(data.industry)}
                       </p>
@@ -390,8 +614,43 @@ export default function MarketAnalysisPage() {
           {marketData.length > 0 && (
             <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-x-auto">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-[#ff9800]" strokeWidth={2.5} /> Industry Benchmarks
+                <Trophy className="w-6 h-6 text-accent-500" strokeWidth={2.5} /> Industry Benchmarks
               </h2>
+
+              {/* Strategy Breakdown Chart */}
+              {strategyChartData.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-2">Strategy Breakdown</h3>
+                  <div className="w-full h-56">
+                    <BarChart
+                      data={strategyChartData}
+                      barConfigs={[{ dataKey: 'avgScore', fill: '#1f78b4', name: 'Avg Score' }]}
+                      height={220}
+                      showLegend={false}
+                      showGrid={true}
+                      yAxisDomain={[0, 100]}
+                      yAxisLabel="Avg Score"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Industry Trend (time series) */}
+              {industryTrend && industryTrend.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-2">Industry Trend</h3>
+                  <div className="w-full h-48">
+                    <LineChart
+                      data={industryTrend}
+                      lines={lines}
+                      xAxisKey="label"
+                      height={200}
+                      ariaLabel={`Industry trend for ${titleize(userIndustry || 'All')} (${granularity})`}
+                    />
+                  </div>
+                </div>
+              )}
+
               <table className="w-full border-collapse text-[0.85rem] md:text-[0.95rem]">
                 <thead className="bg-gray-100 border-b-2 border-gray-300">
                   <tr>
@@ -436,7 +695,7 @@ export default function MarketAnalysisPage() {
                           {item.count}
                         </td>
                         <td className="px-2 py-2 text-center border-b border-gray-300 md:px-3 md:py-3">
-                          <span className="inline-block bg-[#f0f7f0] px-3 py-1 rounded font-bold text-[#34a83a]">
+                          <span className="inline-block bg-primary-50 px-3 py-1 rounded font-bold text-primary-500">
                             {item.avg_score.toFixed(1)} / 100
                           </span>
                         </td>
@@ -455,14 +714,14 @@ export default function MarketAnalysisPage() {
           )}
 
           {/* Key Insights */}
-          <div className="bg-linear-to-br from-[#fff9e6] to-[#fffbf0] py-7 px-7 rounded-[10px] border-2 border-[#ff9800] shadow-[0_8px_24px_rgba(255,152,0,0.1)]">
+          <div className="bg-linear-to-br from-[#fff9e6] to-[#fffbf0] py-7 px-7 rounded-[10px] border-2 border-accent-500 shadow-[0_8px_24px_rgba(255,152,0,0.1)]">
             <h2 className="text-[#ff6f00] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
               <Lightbulb className="w-6 h-6 text-[#ff6f00]" strokeWidth={2.5} /> Key Market Insights
             </h2>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
-              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <Target className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
+                  <Target className="w-7 h-7 text-accent-500" strokeWidth={2} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Top Performers</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -470,9 +729,9 @@ export default function MarketAnalysisPage() {
                   score highest on circular economy metrics
                 </div>
               </div>
-              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <TrendingUp className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
+                  <TrendingUp className="w-7 h-7 text-accent-500" strokeWidth={2} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Growth Opportunity</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -480,9 +739,9 @@ export default function MarketAnalysisPage() {
                   specialized innovation and differentiation
                 </div>
               </div>
-              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <Briefcase className="w-7 h-7 text-[#ff9800]" strokeWidth={2} />
+                  <Briefcase className="w-7 h-7 text-accent-500" strokeWidth={2} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Scale Factor</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -490,9 +749,9 @@ export default function MarketAnalysisPage() {
                   early-stage initiatives
                 </div>
               </div>
-              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-[#ff9800] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <Star className="w-7 h-7 text-[#ff9800]" strokeWidth={2} fill="#ff9800" />
+                  <Star className="w-7 h-7 text-accent-500" strokeWidth={2} fill="#ff9800" />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Your Advantage</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">

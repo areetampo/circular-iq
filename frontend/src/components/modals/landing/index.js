@@ -6,6 +6,7 @@ import EvaluationParametersInfoModal from '@/components/modals/landing/Evaluatio
 import ParameterInfoModal from '@/components/modals/landing/ParameterInfoModal';
 import SampleTestCasesHeadingInfoModal from '@/components/modals/landing/SampleTestCasesHeadingInfoModal';
 import SampleTestCaseInfoModal from '@/components/modals/landing/SampleTestCaseInfoModal';
+import FeaturedSolutionsModal from '@/components/modals/landing/FeaturedSolutionsModal';
 
 export {
   AssessmentMethodologyModal,
@@ -16,4 +17,5 @@ export {
   ParameterInfoModal,
   SampleTestCasesHeadingInfoModal,
   SampleTestCaseInfoModal,
+  FeaturedSolutionsModal,
 };

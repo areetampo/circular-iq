@@ -10,7 +10,7 @@ import { Button } from '@/components/common';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import LoaderIcon from '@/components/common/LoaderIcon';
-import Logo from '@/components/common/Logo';
+import { SITE_CONFIG } from '@/constants/siteConfig';
 
 const loginSchema = z.object({
   username: z
@@ -79,7 +79,7 @@ export function LoginForm({ onSwitchToSignup }) {
     <div className="w-full max-w-md">
       {/* Logo */}
       <div className="mb-8 flex justify-center">
-        <Logo className="h-16 w-auto" />
+        <SITE_CONFIG.logo className="h-16 w-auto" />
       </div>
 
       {/* Form Card */}
