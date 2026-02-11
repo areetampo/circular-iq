@@ -27,9 +27,20 @@ function getCurrentDate() {
  * @param {string} filters.industry - Selected industry
  * @param {string} filters.timeRange - Selected time range
  * @param {Object} timeRangeOptions - Time range options for label lookup
+ * @param {Object} options - Additional header options
+ * @param {string} options.logoUrl - Optional logo URL or path
  */
-function addPDFHeader(pdf, filters, timeRangeOptions) {
+function addPDFHeader(pdf, filters, timeRangeOptions, options = {}) {
   const pageWidth = pdf.internal.pageSize.getWidth();
+
+  // Add logo if provided
+  if (options.logoUrl) {
+    try {
+      pdf.addImage(options.logoUrl, 'PNG', 15, 10, 20, 20);
+    } catch (err) {
+      console.warn('Failed to load logo:', err);
+    }
+  }
 
   // Add title
   pdf.setFontSize(24);
@@ -69,12 +80,16 @@ function addPDFHeader(pdf, filters, timeRangeOptions) {
  * @param {string} options.elementId - ID of the element to capture
  * @param {Object} options.filters - Active filters
  * @param {Object} options.timeRangeOptions - Time range options
+ * @param {string} options.logoUrl - Optional logo URL for header
+ * @param {string} options.orientation - Page orientation: 'portrait' or 'landscape' (default: 'portrait')
  * @returns {Promise<void>}
  */
 export async function exportDashboardToPDF({
   elementId = 'dashboard-content',
   filters,
   timeRangeOptions,
+  logoUrl = undefined,
+  orientation = 'portrait',
 }) {
   try {
     // Hide elements that shouldn't appear in PDF
@@ -107,16 +122,19 @@ export async function exportDashboardToPDF({
     if (filterBar) filterBar.style.display = originalFilterDisplay || '';
     if (exportButton) exportButton.style.display = originalExportDisplay || '';
 
-    // Calculate dimensions
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    // Determine page dimensions based on orientation
+    const isLandscape = orientation.toLowerCase() === 'landscape';
+    const pageFormat = isLandscape ? 'l' : 'p';
+    const pageWidth = isLandscape ? 297 : 210; // mm
+    const pageHeight = isLandscape ? 210 : 297; // mm
+
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
     // Create PDF
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdf = new jsPDF(pageFormat, 'mm', 'a4');
 
-    // Add header
-    const contentStartY = addPDFHeader(pdf, filters, timeRangeOptions);
+    // Add header with optional logo
+    const contentStartY = addPDFHeader(pdf, filters, timeRangeOptions, { logoUrl });
 
     // Calculate available height for content
     const availableHeight = pageHeight - contentStartY - 20; // 20mm bottom margin
@@ -126,7 +144,7 @@ export async function exportDashboardToPDF({
 
     if (imgHeight <= availableHeight) {
       // Single page
-      pdf.addImage(imgData, 'PNG', 0, contentStartY, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, contentStartY, pageWidth, imgHeight);
     } else {
       // Multiple pages
       let heightLeft = imgHeight;
@@ -134,7 +152,7 @@ export async function exportDashboardToPDF({
       let page = 1;
 
       // First page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
       heightLeft -= availableHeight;
 
       // Additional pages
@@ -144,9 +162,9 @@ export async function exportDashboardToPDF({
         page += 1;
 
         // Add header to subsequent pages
-        addPDFHeader(pdf, filters, timeRangeOptions);
+        addPDFHeader(pdf, filters, timeRangeOptions, { logoUrl });
 
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
         heightLeft -= availableHeight;
       }
     }

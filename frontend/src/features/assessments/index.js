@@ -6,3 +6,4 @@ export * from './hooks/useAssessmentStats';
 export * from './hooks/useMarketAnalysis';
 export * from './hooks/useGlobalAnalytics';
 export * from './hooks/useEnhancedAnalytics';
+export * from './hooks/useFeaturedSolutions';

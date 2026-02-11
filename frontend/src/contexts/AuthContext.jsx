@@ -8,8 +8,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { supabase } from '@/lib/supabase';
+import { SITE_CONFIG } from '@/constants/siteConfig';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = SITE_CONFIG.apiBaseUrl;
 
 // Create the context
 const AuthContext = createContext(undefined);

@@ -24,5 +24,7 @@ export default function useLandingModals() {
     openTestCasesHeadingInfoModal: () => openModal(LANDING_MODALS.SAMPLE_TEST_CASES_HEADING_INFO),
 
     openTestCaseDetailsModal: (testCase) => openModal(LANDING_MODALS.TEST_CASE_INFO, { testCase }),
+
+    openFeaturedSolutionsModal: (data) => openModal(LANDING_MODALS.FEATURED_SOLUTIONS, data),
   };
 }

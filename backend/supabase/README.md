@@ -57,6 +57,14 @@ It follows a two-phase migration strategy with comprehensive documentation in ea
 
 After Phase 1 is complete, populate the documents table with embeddings:
 
+API Endpoints (server)
+
+- GET /api/analytics/featured-solutions?q=...&industry=...&limit=3 — Performs a hybrid semantic + keyword search and returns top problem→solution examples
+- POST /api/analytics/embeddings/reindex — Triggers the backend embedding pipeline (admin only; requires API key)
+- GET /api/analytics/documents/stats — Returns document statistics from the database
+
+These endpoints rely on the `search_documents_hybrid` RPC and the embedding pipeline described below.
+
 ```bash
 # From backend/ directory
 cd backend

@@ -6,9 +6,10 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { SITE_CONFIG } from '@/constants/siteConfig';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = SITE_CONFIG.supabase.url;
+const supabaseAnonKey = SITE_CONFIG.supabase.anonKey;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(

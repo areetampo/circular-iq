@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LineChart as RechartsLine,
   Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -31,6 +32,7 @@ export default function LineChart({
   lines = [{ dataKey: 'value', stroke: 'hsl(200, 100%, 50%)', name: 'Value' }],
   xAxisKey = 'name',
   height = 300,
+  ariaLabel = undefined,
 }) {
   if (!data || data.length === 0) {
     return (
@@ -43,38 +45,107 @@ export default function LineChart({
     );
   }
 
+  // If any band entries are present, derive additional fields for stacked area rendering
+  let derivedData = data;
+  const bandEntries = (lines || []).filter((l) => l.band === true && l.upperKey && l.lowerKey);
+  if (bandEntries.length > 0) {
+    derivedData = (data || []).map((row) => ({ ...row }));
+    bandEntries.forEach((band, idx) => {
+      const id = band.id || `band_${idx}`;
+      const lowerKey = `${id}_lower`;
+      const rangeKey = `${id}_range`;
+      derivedData.forEach((row) => {
+        const upper = Number(row[band.upperKey] ?? 0);
+        const lower = Number(row[band.lowerKey] ?? 0);
+        const range = Math.max(0, upper - lower);
+        row[lowerKey] = Number(lower.toFixed(2));
+        row[rangeKey] = Number(range.toFixed(2));
+      });
+      // Attach the computed keys to the band object so we can reference them when rendering
+      band._computedLower = lowerKey;
+      band._computedRange = rangeKey;
+      // Compute gradient id for this band
+      band._gradientId = `gradient-${id}`;
+    });
+  }
+
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <RechartsLine data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 85%)" vertical={false} />
-        <XAxis
-          dataKey={xAxisKey}
-          tick={{ fontSize: 12, fill: 'hsl(0, 0%, 50%)' }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          tickFormatter={(value) => value.toLocaleString()}
-          tick={{ fontSize: 12, fill: 'hsl(0, 0%, 50%)' }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend wrapperStyle={{ paddingTop: '15px' }} />
-        {lines.map((line, index) => (
-          <Line
-            key={index}
-            type="monotone"
-            dataKey={line.dataKey}
-            stroke={line.stroke}
-            strokeWidth={2.5}
-            name={line.name}
-            dot={{ r: 5, fill: line.stroke }}
-            activeDot={{ r: 7 }}
-            isAnimationActive={true}
-          />
-        ))}
-      </RechartsLine>
-    </ResponsiveContainer>
+    <div role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
+      <ResponsiveContainer width="100%" height={height}>
+        <RechartsLine data={derivedData}>
+          <defs>
+            {bandEntries.map((band) => (
+              <linearGradient
+                id={band._gradientId}
+                key={`def-${band._gradientId}`}
+                x1="0"
+                x2="0"
+                y1="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor={band.fill || '#e6f4ea'}
+                  stopOpacity={band.fillOpacity ?? 0.9}
+                />
+                <stop
+                  offset="100%"
+                  stopColor={band.fill || '#e6f4ea'}
+                  stopOpacity={band.fillOpacity ? band.fillOpacity * 0.2 : 0.1}
+                />
+              </linearGradient>
+            ))}
+          </defs>
+
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xAxisKey} />
+          <YAxis />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+
+          {/* Render bands as stacked areas: lower (invisible) + range (filled with gradient) */}
+          {bandEntries.map((band, idx) => (
+            <React.Fragment key={`band-${idx}`}>
+              <Area
+                dataKey={band._computedLower}
+                stackId={`band-${idx}`}
+                stroke="none"
+                fill="none"
+                isAnimationActive={false}
+              />
+              <Area
+                dataKey={band._computedRange}
+                stackId={`band-${idx}`}
+                stroke="none"
+                fill={`url(#${band._gradientId})`}
+                fillOpacity={1}
+                isAnimationActive={true}
+                animationDuration={800}
+              />
+            </React.Fragment>
+          ))}
+
+          {lines.map((line, index) => {
+            // Skip band entries when rendering regular lines
+            if (line.band === true) return null;
+            const { dataKey, stroke, name, ...rest } = line;
+            return (
+              <Line
+                key={index}
+                type="monotone"
+                dataKey={dataKey}
+                stroke={stroke}
+                strokeWidth={2.5}
+                name={name}
+                dot={{ r: 5, fill: stroke }}
+                activeDot={{ r: 7 }}
+                isAnimationActive={true}
+                {...rest}
+              />
+            );
+          })}
+        </RechartsLine>
+      </ResponsiveContainer>
+    </div>
   );
 }

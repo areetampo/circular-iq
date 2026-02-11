@@ -1,12 +1,11 @@
 import React from 'react';
-import { PieChart as RePieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 export default function PieChart({
   data,
   dataKey,
   nameKey,
   height = 300,
-  width = 450,
   colors = [
     '#3b82f6',
     '#10b981',
@@ -26,10 +25,7 @@ export default function PieChart({
 }) {
   if (!data || data.length === 0) {
     return (
-      <div
-        className="flex items-center justify-center text-gray-500"
-        style={{ height: `${height}px` }}
-      >
+      <div className="flex items-center justify-center text-gray-500" style={{ height }}>
         No data available
       </div>
     );
@@ -42,32 +38,34 @@ export default function PieChart({
     return `${name}: ${value} (${pct})`;
   };
 
-  // compute radii
-  const outer = Math.min(height, width) / 3;
+  // compute radii (responsive reason)
+  const outer = Math.max(40, Math.floor(height / 3));
   const inner = innerRadius || Math.max(0, Math.floor(outer * 0.5));
 
   return (
-    <div className="relative" style={{ width, height }}>
-      <RePieChart width={width} height={height}>
-        <Pie
-          data={data}
-          dataKey={dataKey}
-          nameKey={nameKey}
-          cx="45%"
-          cy="50%"
-          outerRadius={outer}
-          innerRadius={inner}
-          label={renderLabel}
-          labelLine={true}
-          paddingAngle={4}
-        >
-          {data.map((entry, idx) => (
-            <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} stroke="#fff" />
-          ))}
-        </Pie>
-        <Tooltip formatter={(value, name, props) => [value, name]} />
-        {showLegend && <Legend verticalAlign="bottom" height={36} />}
-      </RePieChart>
+    <div className="relative w-full" style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <RePieChart>
+          <Pie
+            data={data}
+            dataKey={dataKey}
+            nameKey={nameKey}
+            cx="50%"
+            cy="50%"
+            outerRadius={outer}
+            innerRadius={inner}
+            label={renderLabel}
+            labelLine={true}
+            paddingAngle={4}
+          >
+            {data.map((entry, idx) => (
+              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} stroke="#fff" />
+            ))}
+          </Pie>
+          <Tooltip formatter={(value, name, props) => [value, name]} />
+          {showLegend && <Legend verticalAlign="bottom" height={36} />}
+        </RePieChart>
+      </ResponsiveContainer>
 
       {centerLabel && (
         <div

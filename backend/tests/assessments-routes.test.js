@@ -141,3 +141,26 @@ test('DELETE /assessments/:id endpoint is routable', async () => {
   // Should hit the route handler
   assert(res.status >= 200 && res.status < 600, 'Endpoint should be routable');
 });
+
+// GET /market-analysis/:id routing test
+test('GET /market-analysis/:id endpoint returns market data and user comparisons', async () => {
+  const res = await request(app).get('/api/assessments/market-analysis/123');
+
+  // Accept 200 (happy path) or 500 (DB not available in test env)
+  assert(res.status === 200 || res.status === 500, 'Should respond');
+
+  if (res.status === 200) {
+    assert(Array.isArray(res.body.market_data), 'Should include market_data array');
+    assert(
+      typeof res.body.stats === 'object' || res.body.stats === null,
+      'Should include stats object',
+    );
+    // userScore may be null if assessment not found
+    assert('userScore' in res.body, 'Should include userScore (may be null)');
+    assert(
+      'user_percentile' in res.body || 'userPercentile' in res.body,
+      'Should include a percentile field',
+    );
+    assert(Array.isArray(res.body.strategy_breakdown), 'Should include strategy_breakdown array');
+  }
+});

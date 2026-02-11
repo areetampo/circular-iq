@@ -52,6 +52,11 @@ export default function LandingModalManager({ modal, isModalOpen, onClose }) {
         />
       );
 
+    case LANDING_MODALS.FEATURED_SOLUTIONS:
+      return (
+        <FeaturedSolutionsModal isModalOpen={isModalOpen} onClose={onClose} data={modal.data} />
+      );
+
     default:
       return null;
   }

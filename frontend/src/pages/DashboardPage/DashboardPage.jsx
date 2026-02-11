@@ -1,12 +1,22 @@
-import React, { useMemo, useState, useCallback, memo } from 'react';
-import { Card, Label, Chip, Tabs, Select, ListBox } from '@heroui/react';
+import React, { useEffect, useMemo, useState, useCallback, memo } from 'react';
+import { Card, Label, Chip, Tabs, Select, ListBox, Skeleton } from '@heroui/react';
 import { Button } from '@/components/common';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/common/ChartWrapper';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Cell,
+  ResponsiveContainer,
+} from 'recharts';
 import { useSearchParams } from 'react-router-dom';
 import {
   Activity,
@@ -22,14 +32,21 @@ import {
   PieChart as PieChartIcon,
   Sparkles,
 } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/Table';
+import { toTitleCase } from '@/lib/formatting';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { useEnhancedAnalytics } from '@/features/assessments';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
+import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
+import LandingModalManager from '@/components/modals/landing/LandingModalManager';
+import { sortByAverageScoreDesc, sortByAverageScoreAsc } from '@/features/assessments/utils';
 import { cn } from '@/utils/cn';
 import { exportDashboardToPDF } from '@/lib/exportDashboard';
 import { useToast } from '@/hooks/useToast';
 import { PieChart, LineChart, ComboChart } from '@/components/charts';
+import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import IndustryChipFilter from '@/components/filters/IndustryChipFilter';
+import FeaturedSolutionsCard from './FeaturedSolutionsCard';
 import { INDUSTRY_THEMES } from '@/constants/industryThemes';
 
 // Memoized metric card component for better performance
@@ -46,7 +63,7 @@ const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'p
     <Card className="border-0 shadow-md bg-gradient-to-br from-white to-slate-50 hover:shadow-lg transition-shadow">
       <Card.Header className="flex flex-row items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
-          <Card.Description className="text-xs">{title}</Card.Description>
+          <Card.Description className="text-md">{title}</Card.Description>
           <Card.Title className="text-3xl font-bold mt-0 mb-1">{value}</Card.Title>
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           {trend && (
@@ -85,10 +102,10 @@ MetricCard.displayName = 'MetricCard';
 
 // Memoized chart section
 const ChartSection = memo(({ title, description, icon: Icon, children, actions }) => (
-  <Card className="border-0 shadow-md">
-    <Card.Header className="flex flex-row items-start justify-between gap-4">
-      <div className="flex-1">
-        <Card.Title className="flex items-center gap-2 text-lg mb-1">
+  <Card className="border-0 shadow-md overflow-hidden">
+    <Card.Header className="flex flex-row items-start justify-between gap-4 mt-1.5">
+      <div className="flex-1 flex flex-col items-center justify-center gap-0.5">
+        <Card.Title className="flex items-center gap-2 text-lg">
           {Icon && <Icon className="w-5 h-5 text-primary" />}
           {title}
         </Card.Title>
@@ -98,7 +115,7 @@ const ChartSection = memo(({ title, description, icon: Icon, children, actions }
       </div>
       {actions && <div className="flex gap-2">{actions}</div>}
     </Card.Header>
-    <Card.Content>{children}</Card.Content>
+    <Card.Content className=" overflow-hidden">{children}</Card.Content>
   </Card>
 ));
 
@@ -110,6 +127,9 @@ export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState('180d');
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState('overview'); // overview, detailed, trends
+
+  // Sorting for industry performance (client-side) — persisted to URL
+  const [industrySort, setIndustrySort] = useState('avg_desc');
 
   // URL state (persist filters & view) — readable/shareable links
   const [searchParams, setSearchParams] = useSearchParams();
@@ -128,7 +148,8 @@ export default function DashboardPage() {
     if (tr) setTimeRange(tr);
     const vm = searchParams.get('view');
     if (vm) setViewMode(vm);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const is = searchParams.get('industrySort');
+    if (is) setIndustrySort(is);
   }, []);
 
   // sync URL when filters change (keeps history clean using replace)
@@ -150,9 +171,11 @@ export default function DashboardPage() {
     if (viewMode && viewMode !== 'overview') params.view = viewMode;
     else delete params.view;
 
+    if (industrySort && industrySort !== 'avg_desc') params.industrySort = industrySort;
+    else delete params.industrySort;
+
     setSearchParams(params, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedIndustries, timeRange, viewMode]);
+  }, [selectedIndustries, timeRange, viewMode, industrySort]);
 
   const { addToast } = useToast();
 
@@ -215,26 +238,74 @@ export default function DashboardPage() {
     error,
   } = useEnhancedAnalytics({ filters });
 
-  // Featured solutions (uses documents dataset on the server) — surfaced on overview
+  // Featured solutions - support optional semantic query
+  const [featuredQuery, setFeaturedQuery] = useState('');
+  const [featuredSearch, setFeaturedSearch] = useState(undefined);
+
   const { solutions: featuredSolutions = [], isLoading: solutionsLoading } = useFeaturedSolutions({
     limit: 3,
+    industry: industryFilterParam,
+    q: featuredSearch,
     enabled: !isLoading,
   });
 
+  // Landing modal integration (use landing modal hook to open the shared modal)
+  const { openFeaturedSolutionsModal, modal, isModalOpen, onClose } = useLandingModals();
+
+  // Extra fetch to compute quick document stats (top keywords and count)
+  const { solutions: statsSolutions = [], count: extendedCount = 0 } = useFeaturedSolutions({
+    limit: 10,
+    industry: industryFilterParam,
+    enabled: !isLoading,
+  });
+
+  const topKeywords = useMemo(() => {
+    const stopWords = new Set([
+      'the',
+      'and',
+      'for',
+      'with',
+      'from',
+      'to',
+      'of',
+      'in',
+      'a',
+      'an',
+      'is',
+      'are',
+      'by',
+      'on',
+      'per',
+    ]);
+    const freq = {};
+    statsSolutions.forEach((s) => {
+      const text = `${s.title || ''} ${s.solution || ''} ${s.problem || ''}`;
+      text.split(/\W+/).forEach((word) => {
+        const w = word.toLowerCase();
+        if (!w || w.length < 3 || stopWords.has(w) || /^\d+$/.test(w)) return;
+        freq[w] = (freq[w] || 0) + 1;
+      });
+    });
+    return Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([k]) => k);
+  }, [statsSolutions]);
+
   // Pie chart color palette (colorblind-friendly, high contrast)
   const pieColors = [
-    '#3b82f6', // blue
-    '#10b981', // emerald
-    '#f59e42', // orange
-    '#a78bfa', // purple
-    '#ef4444', // red
-    '#fbbf24', // yellow
-    '#6366f1', // indigo
-    '#f472b6', // pink
-    '#22223b', // dark blue
-    '#9d0208', // dark red
-    '#43aa8b', // teal
-    '#577590', // steel blue
+    '#2563eb', // blue-600
+    '#059669', // emerald-600
+    '#f97316', // orange-500
+    '#8b5cf6', // purple-500
+    '#ef4444', // red-500
+    '#f59e0b', // amber-500
+    '#6366f1', // indigo-500
+    '#ec4899', // pink-500
+    '#0f172a', // slate-900
+    '#991b1b', // red-700
+    '#0ea5a4', // teal-500
+    '#2563eb', // repeat/support
   ];
 
   // Time range options for export / labels
@@ -287,7 +358,7 @@ export default function DashboardPage() {
   const industryLabelMap = useMemo(() => {
     const map = {};
     allIndustryMetrics.forEach((m) => {
-      map[m.industry] = m.industry.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      map[m.industry] = toTitleCase(m.industry);
     });
     map['all'] = 'All Industries';
     return map;
@@ -317,16 +388,27 @@ export default function DashboardPage() {
         ? filteredIndustryMetrics
         : industryMetrics;
     if (!source || source.length === 0) return [];
-    return source
-      .map((m, idx) => ({
-        ...m,
-        industry: m.industry,
-        label: m.industry.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-        color: pieColors[idx % pieColors.length],
-        averageScore: typeof m.averageScore === 'number' ? m.averageScore : m.average_score || 0,
-      }))
-      .sort((a, b) => b.averageScore - a.averageScore); // show highest scoring industries first
-  }, [filteredIndustryMetrics, industryMetrics]);
+
+    const mapped = source.map((m, idx) => ({
+      ...m,
+      industry: m.industry,
+      label: toTitleCase(m.industry),
+      color: pieColors[idx % pieColors.length],
+      averageScore: typeof m.averageScore === 'number' ? m.averageScore : m.average_score || 0,
+    }));
+
+    switch (industrySort) {
+      case 'avg_asc':
+        return mapped.slice().sort(sortByAverageScoreAsc);
+      case 'count_desc':
+        return mapped.slice().sort((a, b) => (b.count || 0) - (a.count || 0));
+      case 'count_asc':
+        return mapped.slice().sort((a, b) => (a.count || 0) - (b.count || 0));
+      case 'avg_desc':
+      default:
+        return mapped.slice().sort(sortByAverageScoreDesc);
+    }
+  }, [filteredIndustryMetrics, industryMetrics, industrySort]);
 
   // Helper for empty chart states
   const EmptyChartState = ({ message }) => (
@@ -388,22 +470,74 @@ export default function DashboardPage() {
   return (
     <div
       id="dashboard-content"
-      className={cn('space-y-6 transition-opacity duration-300 p-1', isBusy && 'opacity-60')}
+      className={cn('space-y-8 transition-opacity duration-300 p-4', isBusy && 'opacity-60')}
     >
       {/* HEADER: Title + Status */}
-      <div className="flex flex-col gap-3 md:gap-4">
-        <h1 className="text-3xl font-bold text-slate-900">Global Dashboard</h1>
-        <p className="text-base text-slate-600 max-w-2xl">
-          Track circular economy performance across all assessments.
-        </p>
-      </div>
+      <p className="text-sm text-slate-600 max-w-2xl text-center mx-auto mb-4">
+        Last updated: {getCurrentTimestampFormatted()}
+      </p>
+
+      {/* KEY METRICS */}
+      {isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array(4)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton
+                key={i}
+                className="rounded-lg h-32 bg-gradient-to-br from-slate-100 to-slate-50"
+                animationType="pulse"
+              />
+            ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            title="Total Assessments"
+            value={aggregate.totalCount || 0}
+            subtitle={`${aggregate.publicCount || 0} public`}
+            icon={Layers}
+            trend={trends.recentGrowth}
+            color="primary"
+          />
+
+          <MetricCard
+            title="Average Score"
+            value={formattedAverage}
+            subtitle={`Median: ${aggregate.medianScore || 0}`}
+            icon={Gauge}
+            trend={trends.scoreImprovement}
+            color="emerald"
+          />
+
+          <MetricCard
+            title="Avg Viability"
+            value={Number(aggregate.avgViability || 0).toFixed(1)}
+            subtitle="Business readiness"
+            icon={Target}
+            color="indigo"
+          />
+
+          <MetricCard
+            title="Active Industries"
+            value={industryMetrics.length}
+            subtitle={
+              industryMetrics.length > 0
+                ? `Top: ${toTitleCase(industryMetrics[0].industry)}`
+                : 'N/A'
+            }
+            icon={Building2}
+            color="amber"
+          />
+        </div>
+      )}
 
       {/* FILTERS: Industry Chips + Time Range + Actions */}
       <Card className="border-0 shadow-sm bg-white">
-        <Card.Header className="pb-2">
-          <Card.Title className="text-base">Filters</Card.Title>
-        </Card.Header>
-        <Card.Content className="space-y-4">
+        {/* <Card.Header>
+          <Card.Title className="text-lg">Filters</Card.Title>
+        </Card.Header> */}
+        <Card.Content className="space-y-4 p-2 md:p-4">
           {/* Industry Filter */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
@@ -415,21 +549,21 @@ export default function DashboardPage() {
             {renderIndustryChipFilter()}
           </div>
 
-          {/* Time Range + Buttons Row */}
           <div className="flex flex-col gap-4 border-t pt-4 md:flex-row md:items-end md:justify-between">
+            {/* Time Range + Buttons Row */}
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-semibold text-slate-700">Time Range</Label>
 
-              {/* Mobile: compact Select */}
-              <div className="md:hidden">
+              {/* Select */}
+              <div>
                 <Select
                   value={timeRange}
                   onChange={setTimeRange}
                   variant="secondary"
-                  className="w-2/3"
+                  size="normal md:sm"
+                  className="w-2/3 md:w-44"
                 >
-                  <Label className="text-xs font-semibold text-slate-600">Time Range</Label>
-                  <Select.Trigger className="mt-2">
+                  <Select.Trigger className="mt-2 md:mt-0">
                     <Select.Value />
                     <Select.Indicator />
                   </Select.Trigger>
@@ -443,43 +577,13 @@ export default function DashboardPage() {
                   </Select.Popover>
                 </Select>
               </div>
-
-              {/* Desktop: tabs */}
-              <div className="hidden md:block">
-                <Tabs
-                  selectedKey={timeRange}
-                  onSelectionChange={setTimeRange}
-                  variant="secondary"
-                  className="w-fit"
-                >
-                  <Tabs.ListContainer>
-                    <Tabs.List aria-label="Time Range" className="gap-1">
-                      <Tabs.Tab id="30d">
-                        30 Days
-                        <Tabs.Indicator />
-                      </Tabs.Tab>
-                      <Tabs.Tab id="90d">
-                        3 Months
-                        <Tabs.Indicator />
-                      </Tabs.Tab>
-                      <Tabs.Tab id="180d">
-                        6 Months
-                        <Tabs.Indicator />
-                      </Tabs.Tab>
-                      <Tabs.Tab id="all">
-                        All Time
-                        <Tabs.Indicator />
-                      </Tabs.Tab>
-                    </Tabs.List>
-                  </Tabs.ListContainer>
-                </Tabs>
-              </div>
             </div>
+
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-2">
               <Button
                 id="dashboard-export-button"
-                variant="primary"
+                variant="teal"
                 onClick={handleExportPDF}
                 disabled={isExporting || isBusy}
                 size="md"
@@ -497,7 +601,7 @@ export default function DashboardPage() {
                   </>
                 )}
               </Button>
-              <Button variant="neutral-soft" onClick={handleClearFilters} size="md">
+              <Button variant="neutral" onClick={handleClearFilters} size="md">
                 Clear Filters
               </Button>
             </div>
@@ -513,7 +617,7 @@ export default function DashboardPage() {
         className="w-full"
       >
         {/* Mobile: switch to Select for compact screens */}
-        <div className="md:hidden my-2 w-full flex items-center justify-center">
+        <div className="md:hidden my-0 w-full flex items-center justify-center">
           <Select value={viewMode} onChange={setViewMode} variant="primary" className="w-3/5">
             <Label className="text-xs font-semibold text-slate-600">View</Label>
             <Select.Trigger className="mt-2">
@@ -551,60 +655,6 @@ export default function DashboardPage() {
         </Tabs.ListContainer>
       </Tabs>
 
-      {/* KEY METRICS */}
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array(4)
-            .fill(0)
-            .map((_, i) => (
-              <div
-                key={i}
-                className="bg-gradient-to-br from-slate-100 to-slate-50 rounded-lg h-32 animate-pulse"
-              />
-            ))}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title="Total Assessments"
-            value={aggregate.totalCount || 0}
-            subtitle={`${aggregate.publicCount || 0} public`}
-            icon={Layers}
-            trend={trends.recentGrowth}
-            color="primary"
-          />
-
-          <MetricCard
-            title="Average Score"
-            value={formattedAverage}
-            subtitle={`Median: ${aggregate.medianScore || 0}`}
-            icon={Gauge}
-            trend={trends.scoreImprovement}
-            color="emerald"
-          />
-
-          <MetricCard
-            title="Avg Viability"
-            value={Number(aggregate.avgViability || 0).toFixed(1)}
-            subtitle="Business readiness"
-            icon={Target}
-            color="indigo"
-          />
-
-          <MetricCard
-            title="Active Industries"
-            value={industryMetrics.length}
-            subtitle={
-              industryMetrics.length > 0
-                ? `Top: ${industryMetrics[0].industry.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`
-                : 'N/A'
-            }
-            icon={Building2}
-            color="amber"
-          />
-        </div>
-      )}
-
       {/* OVERVIEW VIEW */}
       {viewMode === 'overview' && (
         <div className="space-y-6">
@@ -615,49 +665,51 @@ export default function DashboardPage() {
               description="Score and viability trends over time"
               icon={Activity}
             >
-              <div className={cn('w-full h-[320px]', isLoading && 'opacity-50')}>
-                {timeSeriesData.length > 0 ? (
-                  <ChartContainer config={trendConfig} className="h-full w-full">
-                    <AreaChart
-                      data={timeSeriesData}
-                      margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
-                        </linearGradient>
-                        <linearGradient id="viabilityGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                      <XAxis dataKey="period" tickLine={false} axisLine={false} />
-                      <YAxis domain={[0, 100]} tickLine={false} axisLine={false} />
-                      <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                      <Area
-                        type="monotone"
-                        dataKey="averageScore"
-                        stroke="#3b82f6"
-                        fill="url(#scoreGradient)"
-                        strokeWidth={2}
-                        name="Avg Score"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="avgViability"
-                        stroke="#10b981"
-                        fill="url(#viabilityGradient)"
-                        strokeWidth={2}
-                        name="Avg Viability"
-                      />
-                    </AreaChart>
-                  </ChartContainer>
-                ) : (
-                  <EmptyChartState message="No trend data available" />
-                )}
-              </div>
+              {timeSeriesData.length > 0 ? (
+                <div className={cn('w-full overflow-x-auto', isLoading && 'opacity-50')}>
+                  <div style={{ minHeight: '320px', minWidth: '100%' }}>
+                    <ResponsiveContainer width="100%" height={320} minWidth={300}>
+                      <AreaChart
+                        data={timeSeriesData}
+                        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05} />
+                          </linearGradient>
+                          <linearGradient id="viabilityGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="period" tickLine={false} axisLine={false} />
+                        <YAxis domain={[0, 100]} tickLine={false} axisLine={false} />
+                        <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                        <Area
+                          type="monotone"
+                          dataKey="averageScore"
+                          stroke="#3b82f6"
+                          fill="url(#scoreGradient)"
+                          strokeWidth={2}
+                          name="Avg Score"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="avgViability"
+                          stroke="#10b981"
+                          fill="url(#viabilityGradient)"
+                          strokeWidth={2}
+                          name="Avg Viability"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : (
+                <EmptyChartState message="No trend data available" />
+              )}
             </ChartSection>
 
             <div className="space-y-4">
@@ -666,70 +718,31 @@ export default function DashboardPage() {
                 description="Assessment score ranges"
                 icon={PieChartIcon}
               >
-                <div className="h-[320px] w-full flex items-center justify-center">
-                  {filteredPieChartData.length > 0 ? (
-                    <PieChart
-                      data={filteredPieChartData}
-                      dataKey="value"
-                      nameKey="name"
-                      height={300}
-                      width={360}
-                      colors={filteredPieChartData.map((d) => d.color)}
-                      labelType="percent"
-                      showLegend={true}
-                      innerRadius={70}
-                      centerLabel={{
-                        main: aggregate?.totalCount || 0,
-                        subLabel: `Avg ${formattedAverage}`,
-                      }}
-                    />
-                  ) : (
-                    <EmptyChartState message="No distribution data" />
-                  )}
-                </div>
+                {filteredPieChartData.length > 0 ? (
+                  <div className={cn('w-full', isLoading && 'opacity-50')}>
+                    <div style={{ height: '300px', minHeight: '300px' }}>
+                      <PieChart
+                        data={filteredPieChartData}
+                        dataKey="value"
+                        nameKey="name"
+                        height={300}
+                        colors={filteredPieChartData.map((d) => d.color)}
+                        labelType="percent"
+                        showLegend={true}
+                        innerRadius={70}
+                        centerLabel={{
+                          main: aggregate?.totalCount || 0,
+                          subLabel: `Avg ${formattedAverage}`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <EmptyChartState message="No distribution data" />
+                )}
               </ChartSection>
 
-              <Card className="border-0 shadow-sm">
-                <Card.Header>
-                  <Card.Title className="flex items-center gap-2 text-md">
-                    <Sparkles className="w-4 h-4 text-indigo-600" /> Featured Solutions
-                  </Card.Title>
-                  <Card.Description className="text-sm text-slate-500">
-                    Examples from the dataset to inspire solutions
-                  </Card.Description>
-                </Card.Header>
-                <Card.Content>
-                  {solutionsLoading ? (
-                    <div className="py-8 flex items-center justify-center">Loading...</div>
-                  ) : featuredSolutions.length > 0 ? (
-                    <div className="grid gap-3">
-                      {featuredSolutions.map((s) => (
-                        <div key={s.id} className="flex gap-3 items-start">
-                          <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold">
-                            {s.title?.charAt(0) || 'S'}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center justify-between gap-3">
-                              <h4 className="text-sm font-semibold truncate">{s.title}</h4>
-                              <span className="text-xs text-slate-400">
-                                {s.wordCount || 0} words
-                              </span>
-                            </div>
-                            <p className="text-sm text-slate-600 truncate">
-                              {s.solution || s.problem || ''}
-                            </p>
-                            <div className="mt-2 text-xs text-slate-400">{s.category}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center text-slate-500">
-                      No featured solutions available
-                    </div>
-                  )}
-                </Card.Content>
-              </Card>
+              <FeaturedSolutionsCard industry={industryFilterParam} />
             </div>
           </div>
 
@@ -738,60 +751,88 @@ export default function DashboardPage() {
             title="Industry Performance"
             description="Average scores and assessment count by sector"
             icon={BarChart3}
+            actions={
+              <Select
+                value={industrySort}
+                onChange={setIndustrySort}
+                variant="secondary"
+                size="sm"
+                className="w-40"
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    <ListBox.Item id="avg_desc">Avg Score (High → Low)</ListBox.Item>
+                    <ListBox.Item id="avg_asc">Avg Score (Low → High)</ListBox.Item>
+                    <ListBox.Item id="count_desc">Count (High → Low)</ListBox.Item>
+                    <ListBox.Item id="count_asc">Count (Low → High)</ListBox.Item>
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+            }
           >
-            <div className="h-[360px] w-full">
+            <div className="w-full overflow-x-auto -mx-4 px-4">
               {industryPerformanceData.length > 0 ? (
-                <ChartContainer className="h-full w-full">
-                  <BarChart
-                    data={industryPerformanceData}
-                    margin={{ top: 10, right: 20, left: 0, bottom: 60 }}
-                    barCategoryGap="24%"
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="industry"
-                      tickLine={false}
-                      axisLine={false}
-                      angle={-30}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                      tick={({ x, y, payload }) => {
-                        const industryKey = payload.value;
-                        const label = industryKey
-                          .replace(/_/g, ' ')
-                          .replace(/\b\w/g, (c) => c.toUpperCase());
-                        return (
-                          <text
-                            x={x}
-                            y={y + 10}
-                            textAnchor="end"
-                            fill="#374151"
-                            fontWeight="600"
-                            fontSize={11}
-                          >
-                            {label}
-                          </text>
-                        );
-                      }}
-                    />
-                    <YAxis tickLine={false} axisLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                    <Bar
-                      dataKey="averageScore"
-                      radius={[6, 6, 0, 0]}
-                      name="Avg Score"
-                      label={{ position: 'top', fill: '#1f2937', fontWeight: 600, fontSize: 11 }}
+                <div style={{ minHeight: '400px', minWidth: 'max(100%, 600px)' }}>
+                  <ResponsiveContainer width="100%" height={400} minWidth={600}>
+                    <BarChart
+                      data={industryPerformanceData}
+                      margin={{ top: 10, right: 20, left: 0, bottom: 80 }}
+                      barCategoryGap="24%"
                     >
-                      {industryPerformanceData.map((entry, idx) => (
-                        <Cell
-                          key={`cell-${idx}`}
-                          fill={entry.color || pieColors[idx % pieColors.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ChartContainer>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis
+                        dataKey="industry"
+                        tickLine={false}
+                        axisLine={false}
+                        angle={-30}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        tick={({ x, y, payload }) => {
+                          const industryKey = payload.value;
+                          const label = industryKey
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (c) => c.toUpperCase());
+                          return (
+                            <g transform={`translate(${x},${y})`}>
+                              <text
+                                x={0}
+                                y={0}
+                                dy={4}
+                                textAnchor="end"
+                                fill="#374151"
+                                fontWeight="600"
+                                fontSize={11}
+                                transform="rotate(-30)"
+                              >
+                                {label}
+                              </text>
+                            </g>
+                          );
+                        }}
+                      />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                      <Bar
+                        dataKey="averageScore"
+                        radius={[6, 6, 0, 0]}
+                        name="Avg Score"
+                        label={{ position: 'top', fill: '#1f2937', fontWeight: 600, fontSize: 11 }}
+                      >
+                        {industryPerformanceData.map((entry, idx) => (
+                          <Cell
+                            key={`cell-${idx}`}
+                            fill={entry.color || pieColors[idx % pieColors.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               ) : (
                 <EmptyChartState message="No industry data available" />
               )}
@@ -811,55 +852,56 @@ export default function DashboardPage() {
           >
             <div className="overflow-x-auto">
               {industryMetrics.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-slate-900">Industry</th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-900">Count</th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-900">
-                        Avg Score
-                      </th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-900">
-                        Viability
-                      </th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-900">Median</th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-900">Range</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
+                <Table
+                  aria-label="Industry Metrics"
+                  classNames={{
+                    th: 'bg-slate-50 border-b text-left font-semibold text-slate-900',
+                  }}
+                >
+                  <TableHeader>
+                    <TableColumn className="text-left">Industry</TableColumn>
+                    <TableColumn className="text-center">Count</TableColumn>
+                    <TableColumn className="text-center">Avg Score</TableColumn>
+                    <TableColumn className="text-center">Viability</TableColumn>
+                    <TableColumn className="text-center">Median</TableColumn>
+                    <TableColumn className="text-center">Range</TableColumn>
+                  </TableHeader>
+                  <TableBody>
                     {industryMetrics
                       .slice()
                       .sort((a, b) => b.count - a.count)
                       .map((metric) => (
-                        <tr key={metric.industry} className="hover:bg-slate-50">
-                          <td className="px-4 py-3 font-medium text-slate-900">
+                        <TableRow key={metric.industry} className="hover:bg-slate-50 border-b">
+                          <TableCell className="font-medium text-slate-900">
                             {metric.industry
                               .replace(/_/g, ' ')
                               .replace(/\b\w/g, (c) => c.toUpperCase())}
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-700">{metric.count}</td>
-                          <td className="px-4 py-3 text-center">
+                          </TableCell>
+                          <TableCell className="text-center text-slate-700">
+                            {metric.count}
+                          </TableCell>
+                          <TableCell className="text-center">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                               {typeof metric.averageScore === 'number'
                                 ? metric.averageScore.toFixed(1)
                                 : metric.average_score?.toFixed(1) || '—'}
                             </span>
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-700">
+                          </TableCell>
+                          <TableCell className="text-center text-slate-700">
                             {typeof metric.avgViability === 'number'
                               ? metric.avgViability.toFixed(1)
                               : metric.avg_viability?.toFixed(1) || '—'}
-                          </td>
-                          <td className="px-4 py-3 text-center text-slate-700">
+                          </TableCell>
+                          <TableCell className="text-center text-slate-700">
                             {metric.median || '—'}
-                          </td>
-                          <td className="px-4 py-3 text-center text-xs text-slate-600">
+                          </TableCell>
+                          <TableCell className="text-center text-xs text-slate-600">
                             {metric.min || '—'} - {metric.max || '—'}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="py-12 text-center text-slate-500">No industry data available</div>
               )}
@@ -873,51 +915,70 @@ export default function DashboardPage() {
               description="Circular economy strategies used"
               icon={Target}
             >
-              <div className="h-[300px]">
+              <div className="space-y-3">
                 {strategyChartData.length > 0 ? (
-                  <ChartContainer className="h-full w-full">
-                    <ComboChart
-                      data={strategyChartData}
-                      bars={[{ dataKey: 'value', fill: '#3b82f6', name: 'Count' }]}
-                      lines={[
-                        {
-                          dataKey: 'averageScore',
-                          stroke: '#10b981',
-                          name: 'Avg Score',
-                        },
-                      ]}
-                      xAxisKey="name"
-                      height={270}
-                    />
-                  </ChartContainer>
+                  <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
+                    <div className="w-full overflow-x-auto" style={{ minHeight: '300px' }}>
+                      <div style={{ minWidth: '100%', minHeight: '320px' }}>
+                        <ChartContainer className="w-full" height={320} overflow="auto">
+                          <ComboChart
+                            data={strategyChartData}
+                            bars={[{ dataKey: 'value', fill: pieColors[0], name: 'Count' }]}
+                            lines={[
+                              {
+                                dataKey: 'averageScore',
+                                stroke: pieColors[1],
+                                name: 'Avg Score',
+                              },
+                            ]}
+                            xAxisKey="name"
+                            height={300}
+                          />
+                        </ChartContainer>
+                      </div>
+                    </div>
+
+                    <div className="w-full" style={{ minHeight: '300px' }}>
+                      <div style={{ height: '300px' }}>
+                        <PieChart
+                          data={strategyChartData.map((s) => ({ name: s.name, value: s.value }))}
+                          dataKey="value"
+                          nameKey="name"
+                          height={300}
+                          innerRadius={46}
+                          labelType="percent"
+                          showLegend={false}
+                          colors={strategyChartData.map((s) => s.color)}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <EmptyChartState message="No strategy data" />
                 )}
               </div>
             </ChartSection>
-
             <ChartSection
               title="Scale Distribution"
               description="Company size distribution"
               icon={Users}
             >
-              <div className="h-[300px] w-full flex items-center justify-center">
-                {scaleChartData.length > 0 ? (
+              {scaleChartData.length > 0 ? (
+                <div style={{ height: '300px', minHeight: '300px' }}>
                   <PieChart
                     data={scaleChartData}
                     dataKey="value"
                     nameKey="name"
-                    height={270}
-                    width={300}
+                    height={300}
                     innerRadius={54}
                     centerLabel={{ main: aggregate?.totalCount || 0, subLabel: 'companies' }}
                     labelType="percent"
                     showLegend={true}
                   />
-                ) : (
-                  <EmptyChartState message="No scale data" />
-                )}
-              </div>
+                </div>
+              ) : (
+                <EmptyChartState message="No scale data" />
+              )}
             </ChartSection>
           </div>
         </div>
@@ -932,22 +993,25 @@ export default function DashboardPage() {
             description="New assessments submitted over time"
             icon={TrendingUp}
           >
-            <div className="h-[300px]">
+            <div className="w-full overflow-x-auto" style={{ minHeight: '300px' }}>
               {timeSeries.length > 0 ? (
-                <ChartContainer className="h-full w-full">
-                  <LineChart
-                    data={timeSeries}
-                    lines={[
-                      {
-                        dataKey: 'growth',
-                        stroke: '#3b82f6',
-                        name: 'New Assessments',
-                      },
-                    ]}
-                    xAxisKey="period"
-                    height={270}
-                  />
-                </ChartContainer>
+                <div style={{ minWidth: '100%', minHeight: '300px' }}>
+                  <ChartContainer className="w-full" height={300}>
+                    <LineChart
+                      data={timeSeries}
+                      lines={[
+                        {
+                          dataKey: 'growth',
+                          stroke: '#3b82f6',
+                          name: 'New Assessments',
+                        },
+                      ]}
+                      xAxisKey="period"
+                      height={270}
+                      ariaLabel="Weekly assessment growth chart"
+                    />
+                  </ChartContainer>
+                </div>
               ) : (
                 <EmptyChartState message="No trend data" />
               )}
@@ -960,27 +1024,30 @@ export default function DashboardPage() {
             description="Comparative analysis of scores and business viability"
             icon={Activity}
           >
-            <div className="h-[350px]">
+            <div className="w-full overflow-x-auto" style={{ minHeight: '360px' }}>
               {timeSeries.length > 0 ? (
-                <ChartContainer className="h-full w-full">
-                  <LineChart
-                    data={timeSeries}
-                    lines={[
-                      {
-                        dataKey: 'averageScore',
-                        stroke: '#3b82f6',
-                        name: 'Average Score',
-                      },
-                      {
-                        dataKey: 'avgViability',
-                        stroke: '#10b981',
-                        name: 'Avg Viability',
-                      },
-                    ]}
-                    xAxisKey="period"
-                    height={320}
-                  />
-                </ChartContainer>
+                <div style={{ minWidth: '100%', minHeight: '360px' }}>
+                  <ChartContainer className="w-full" height={360}>
+                    <LineChart
+                      data={timeSeries}
+                      lines={[
+                        {
+                          dataKey: 'averageScore',
+                          stroke: pieColors[0],
+                          name: 'Average Score',
+                        },
+                        {
+                          dataKey: 'avgViability',
+                          stroke: pieColors[1],
+                          name: 'Avg Viability',
+                        },
+                      ]}
+                      xAxisKey="period"
+                      height={360}
+                      ariaLabel="Score vs Viability Trends"
+                    />
+                  </ChartContainer>
+                </div>
               ) : (
                 <EmptyChartState message="No trend data" />
               )}
@@ -988,21 +1055,22 @@ export default function DashboardPage() {
           </ChartSection>
 
           {/* Key Insights */}
-          <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-indigo-50">
-            <Card.Header>
-              <Card.Title className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-600" />
+          <Card className="border border-slate-200 shadow-sm bg-white">
+            <Card.Header className="border-b border-slate-100 py-3">
+              <Card.Title className="flex items-center gap-2 text-slate-800 text-base">
+                <Sparkles className="w-4 h-4 text-slate-500" />
                 Key Insights
               </Card.Title>
             </Card.Header>
-            <Card.Content>
-              <div className="space-y-4">
+            <Card.Content className="py-4">
+              <div className="space-y-5">
+                {/* Insight 1 */}
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="flex-shrink-0 w-6 h-6 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-medium text-xs">
                     1
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">Recent Growth</p>
+                    <p className="text-sm font-semibold text-slate-900">Recent Growth</p>
                     <p className="text-sm text-slate-600">
                       {trends.recentGrowth > 0
                         ? `${trends.recentGrowth} new assessments in recent weeks.`
@@ -1010,12 +1078,14 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Insight 2 */}
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="flex-shrink-0 w-6 h-6 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-medium text-xs">
                     2
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">Score Improvement</p>
+                    <p className="text-sm font-semibold text-slate-900">Score Improvement</p>
                     <p className="text-sm text-slate-600">
                       {trends.scoreImprovement !== 0
                         ? trends.scoreImprovement > 0
@@ -1025,12 +1095,14 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Insight 3 */}
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="flex-shrink-0 w-6 h-6 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-medium text-xs">
                     3
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">Industry Coverage</p>
+                    <p className="text-sm font-semibold text-slate-900">Industry Coverage</p>
                     <p className="text-sm text-slate-600">
                       {industryMetrics.length > 0
                         ? `${industryMetrics.length} active industries`
@@ -1039,23 +1111,20 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Top 3 recommended actions (derived heuristics) */}
-                <div className="pt-2 border-t mt-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">Suggested next steps</p>
-                      <p className="text-xs text-slate-500">
-                        Personalised actions based on low-scoring sectors
-                      </p>
-                    </div>
-                    <div className="text-xs text-slate-400">Auto-generated</div>
+                {/* Next Steps Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <p className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                      Suggested next steps
+                    </p>
+                    <span className="text-[10px] text-slate-400 italic">Auto-generated</span>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="flex flex-col gap-2">
                     {(() => {
                       const low = (industryMetrics || [])
                         .slice()
-                        .sort((a, b) => a.averageScore - b.averageScore)
+                        .sort(sortByAverageScoreAsc)
                         .slice(0, 3);
 
                       if (!low || low.length === 0) {
@@ -1067,13 +1136,12 @@ export default function DashboardPage() {
                       const mapAction = (ind) => {
                         const label = ind.label || ind.industry;
                         const score = ind.averageScore?.toFixed(0) || ind.average_score || '—';
-                        // heuristic mapping
                         const suggestion =
                           ind.averageScore <= 50
-                            ? 'Prioritise product redesign & material recovery'
+                            ? 'Prioritise product redesign'
                             : ind.averageScore <= 70
-                              ? 'Pilot reuse/recovery programs and partnerships'
-                              : 'Maintain & scale best practices';
+                              ? 'Pilot reuse programs'
+                              : 'Maintain best practices';
                         return { label, score, suggestion };
                       };
 
@@ -1082,17 +1150,14 @@ export default function DashboardPage() {
                         return (
                           <Button
                             key={l.industry}
-                            variant="info-soft"
-                            size="sm"
-                            className="min-w-[220px] text-sm"
+                            variant="teal-soft"
+                            className=""
                             onPress={() => setSelectedIndustries([l.industry])}
                           >
-                            <div className="text-left">
-                              <div className="font-medium text-slate-900">{info.label}</div>
-                              <div className="text-xs text-slate-500">
-                                {info.suggestion} — Avg {info.score}
-                              </div>
-                            </div>
+                            <span className="text-sm font-medium text-slate-900 block capitalize">
+                              {info.label.replace(/_/g, ' ')} (Avg {info.score})
+                            </span>
+                            <span className="text-xs text-slate-500 block">{info.suggestion}</span>
                           </Button>
                         );
                       });
@@ -1104,6 +1169,7 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
+      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </div>
   );
 }

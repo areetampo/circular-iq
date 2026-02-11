@@ -188,7 +188,7 @@ const CONTAINER_CONFIGS = [
   {
     path: '/auth',
     background: 'from-emerald-300/25 via-green-300/25 to-teal-300/25',
-    showNavbar: false, // Hide navbar on auth page
+    showNavbar: true, // Hide navbar on auth page
     showHeader: true,
     showFooter: false, // Hide footer on auth page
     mainPadding: 'p-8 sm:p-12',
@@ -291,54 +291,50 @@ export default function AppContainer({
   const showFooter = showFooterOverride ?? config.showFooter;
 
   return (
-    <div
-      className={cn(
-        'relative min-h-screen flex flex-col bg-linear-to-br',
-        config.background,
-        config.mainPadding,
-        className,
-      )}
-    >
-      {/* Animated background circles for circular economy theme */}
-      {config.showAnimatedBg && config.blobs.length > 0 && (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {config.blobs.map((blob, index) => (
-            <motion.div
-              key={index}
-              className={cn(
-                'absolute rounded-full',
-                blob.position,
-                blob.size,
-                blob.blur,
-                blob.color,
-              )}
-              animate={{
-                scale: blob.animation.scale,
-                opacity: blob.animation.opacity,
-              }}
-              transition={{
-                duration: blob.animation.duration,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
-        </div>
-      )}
-
+    <div className={cn('relative min-h-screen flex flex-col bg-linear-to-br', config.background)}>
       {/* Navbar */}
       {showNavbar && <Navbar />}
+      <div className={cn('relative', config.mainPadding, className)}>
+        {/* Animated background circles for circular economy theme */}
+        {config.showAnimatedBg && config.blobs.length > 0 && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {config.blobs.map((blob, index) => (
+              <motion.div
+                key={index}
+                className={cn(
+                  'absolute rounded-full',
+                  blob.position,
+                  blob.size,
+                  blob.blur,
+                  blob.color,
+                )}
+                animate={{
+                  scale: blob.animation.scale,
+                  opacity: blob.animation.opacity,
+                }}
+                transition={{
+                  duration: blob.animation.duration,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+            ))}
+          </div>
+        )}
 
-      {/* Header */}
-      {showHeader && <Header />}
+        {/* Header */}
+        {showHeader && <Header />}
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full">
-        <div className="container mx-auto max-w-7xl px-0 py-0 mb-4 sm:px-6 lg:px-8">{children}</div>
-      </main>
+        {/* Main Content Area */}
+        <main className="flex-1 w-full">
+          <div className="container mx-auto max-w-7xl px-0 py-0 mb-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
 
-      {/* Footer */}
-      {showFooter && <Footer />}
+        {/* Footer */}
+        {showFooter && <Footer />}
+      </div>
     </div>
   );
 }

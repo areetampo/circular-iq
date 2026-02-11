@@ -5,7 +5,9 @@
  * Location: src/api/assessment.js
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { SITE_CONFIG } from '@/constants/siteConfig';
+
+const API_URL = SITE_CONFIG.apiBaseUrl;
 
 /**
  * Call backend API to score a business idea

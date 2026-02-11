@@ -587,7 +587,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   return (
     <>
       {/* Action Buttons & Share Section */}
-      <div className="mb-6 px-4 sm:px-6 space-y-4">
+      <div className="mb-6 mt-4 px-4 sm:px-6 space-y-4">
         {/* Buttons Bar */}
         <div className="flex flex-wrap items-center gap-3 p-4 bg-linear-to-r from-slate-50 to-white rounded-2xl shadow-md border border-slate-200">
           {/* Show public share notice for public viewers */}
