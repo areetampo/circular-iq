@@ -22,8 +22,27 @@ import { requireAuth } from '../src/middleware/auth.js';
 
 const app = express();
 
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', process.env.FRONTEND_URL];
+
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error(`CORS Error: Origin ${origin} not allowed`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(apiKeyGuard);
