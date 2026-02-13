@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import PropTypes from 'prop-types';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import LoaderComponent from '@/components/common/LoaderComponent';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,9 +9,12 @@ import AppContainer from '@/components/layout/AppContainer';
 // Lazy-load page components for performance
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
+const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 const MarketAnalysisPage = lazy(() => import('@/pages/MarketAnalysisPage/MarketAnalysisPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
+const SharePage = lazy(() => import('@/pages/SharePage/SharePage'));
+const AssessmentViewPage = lazy(() => import('@/pages/AssessmentViewPage/AssessmentViewPage'));
 const AssessmentComparisonPage = lazy(
   () => import('@/pages/AssessmentComparisonPage/AssessmentComparisonPage'),
 );
@@ -53,6 +56,11 @@ ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
+function ShareRedirect() {
+  const { publicId } = useParams();
+  return <Navigate to={`/assessments/share/${publicId}`} replace />;
+}
+
 /**
  * AppRoutes defines all application routes.
  * Pages are lazy-loaded and wrapped in Suspense for better performance.
@@ -65,7 +73,7 @@ ProtectedRoute.propTypes = {
  * - /results (ResultsPage)
  * - /assessments (MyAssessmentsPage)
  * - /assessments/:id (ResultsPage detail view)
- * - /compare (AssessmentComparisonPage)
+ * - /assessments/compare (AssessmentComparisonPage)
  *
  * Public routes:
  * - /auth (AuthPage)
@@ -92,13 +100,55 @@ export default function AppRoutes() {
             }
           />
 
-          {/* Public Route - Shared Assessment (No auth required) */}
+          {/* Public Route - Shared Assessment (DEPRECATED: redirecting to new share path) */}
           <Route
             path="/share/:publicId"
             element={
               <AppContainer>
-                <PageErrorBoundary pageName="Shared Assessment">
-                  <ResultsPage isViewFromMyAssessments={true} isPublicShare={true} />
+                <PageErrorBoundary pageName="Share Redirect">
+                  <ShareRedirect />
+                </PageErrorBoundary>
+              </AppContainer>
+            }
+          />
+          {/* Gateway for public share links */}
+          <Route
+            path="/assessments/share"
+            element={
+              <AppContainer>
+                <PageErrorBoundary pageName="Share Gateway">
+                  <SharePage />
+                </PageErrorBoundary>
+              </AppContainer>
+            }
+          />
+          {/* Public nested share routes */}
+          <Route
+            path="/assessments/share/:publicId"
+            element={
+              <AppContainer>
+                <PageErrorBoundary pageName="Shared Assessment View">
+                  <AssessmentViewPage />
+                </PageErrorBoundary>
+              </AppContainer>
+            }
+          />
+          <Route
+            path="/assessments/share/:publicId/market-analysis"
+            element={
+              <AppContainer>
+                <PageErrorBoundary pageName="Shared Market Analysis">
+                  <MarketAnalysisPage isPublicShare={true} isViewFromMyAssessments={true} />
+                </PageErrorBoundary>
+              </AppContainer>
+            }
+          />
+          <Route
+            path="/guide"
+            element={
+              <AppContainer>
+                <PageErrorBoundary pageName="Guide">
+                  <GuidePage />
                 </PageErrorBoundary>
               </AppContainer>
             }
@@ -170,7 +220,7 @@ export default function AppRoutes() {
             }
           />
           <Route
-            path="/compare"
+            path="/assessments/compare"
             element={
               <ProtectedRoute>
                 <AppContainer>

@@ -51,7 +51,7 @@ export default function AppProvider({ children }) {
           {children}
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
-      </AuthProvider>{' '}
+      </AuthProvider>
       {/* ← CLOSE WRAPPER */}
     </ErrorBoundary>
   );

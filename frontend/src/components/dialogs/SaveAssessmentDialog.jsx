@@ -59,15 +59,20 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
     return null;
   };
 
-  const handleSubmit = (close) => {
+  const handleSubmit = async (close) => {
     const validationError = validateName(name);
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
-    close();
+    try {
+      // onSave may be async and can throw validation errors
+      await onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
+      close();
+    } catch (err) {
+      setError(err?.message || 'Failed to save assessment');
+    }
   };
 
   return (

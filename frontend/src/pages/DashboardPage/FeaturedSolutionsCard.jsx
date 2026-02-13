@@ -59,15 +59,15 @@ export default function FeaturedSolutionsCard({ industry }) {
   }, [statsSolutions]);
 
   return (
-    <Card className="border-0 shadow-sm p-6">
-      <Card.Header>
+    <Card className="border-0 shadow-sm p-4 md:p-6">
+      <Card.Header className="flex-col gap-2 mb-4">
         <Card.Title className="flex items-center gap-2 text-lg">Featured Solutions</Card.Title>
         <Card.Description className="text-sm text-slate-500 italic">
           Examples surfaced from the documents dataset to inspire solutions
         </Card.Description>
       </Card.Header>
       <Card.Content>
-        <div className="mt-3 flex gap-2 items-center w-full">
+        <div className="mt-3 flex flex-col md:flex-row gap-2 items-stretch md:items-center w-full">
           <Input
             placeholder="Search featured solutions (e.g., packaging)"
             value={featuredQuery}
@@ -75,23 +75,25 @@ export default function FeaturedSolutionsCard({ industry }) {
             className="rounded-full border px-3 py-2 text-sm min-w-0 flex-1"
             variant="secondary"
           />
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => setFeaturedSearch(featuredQuery || undefined)}
-          >
-            Search
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              setFeaturedQuery('');
-              setFeaturedSearch(undefined);
-            }}
-          >
-            Clear
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setFeaturedSearch(featuredQuery || undefined)}
+            >
+              Search
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setFeaturedQuery('');
+                setFeaturedSearch(undefined);
+              }}
+            >
+              Clear
+            </Button>
+          </div>
         </div>
 
         {solutionsLoading ? (
@@ -101,17 +103,19 @@ export default function FeaturedSolutionsCard({ industry }) {
             {featuredSolutions.map((s) => (
               <div
                 key={s.id}
-                className="flex gap-3 items-start p-4 border rounded-lg shadow-sm bg-white"
+                className="flex flex-col sm:flex-row gap-3 items-start p-3 md:p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow overflow-hidden"
               >
-                <div className="shrink-0 w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold">
+                <div className="shrink-0 w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-sm">
                   {s.title?.charAt(0) || 'S'}
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-sm font-semibold truncate">{s.title}</h4>
-                    <span className="text-xs text-slate-400">{s.wordCount || 0} words</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-1">
+                    <h4 className="text-sm font-semibold break-words">{s.title}</h4>
+                    <span className="text-xs text-slate-400 whitespace-nowrap">
+                      {s.wordCount || 0} words
+                    </span>
                   </div>
-                  <p className="text-sm text-slate-600 mt-2 truncate">
+                  <p className="text-sm text-slate-600 mt-1 line-clamp-2">
                     {s.solution || s.problem || ''}
                   </p>
                   <div className="mt-2 text-xs text-slate-400">{s.category}</div>
@@ -125,7 +129,7 @@ export default function FeaturedSolutionsCard({ industry }) {
           </div>
         )}
 
-        <div className="mt-3 flex items-center justify-end">
+        <div className="mt-3 flex flex-col sm:flex-row items-end justify-end gap-2">
           <Button
             size="sm"
             variant="secondary"
@@ -138,17 +142,17 @@ export default function FeaturedSolutionsCard({ industry }) {
           </Button>
           <Button
             size="sm"
-            className="ml-2"
+            className="ml-0 sm:ml-2"
             onClick={() => openFeaturedSolutionsModal({ industry, q: featuredSearch })}
           >
             Explore more
           </Button>
         </div>
 
-        <div className="mt-4 border-t pt-3 flex items-center justify-between">
+        <div className="mt-4 border-t pt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="text-sm text-slate-500">Documents indexed: {extendedCount}</div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500 mr-2">Top keywords:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-slate-500">Top keywords:</span>
             {topKeywords && topKeywords.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {topKeywords.map((k) => (
