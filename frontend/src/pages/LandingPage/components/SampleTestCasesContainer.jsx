@@ -123,7 +123,7 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
                     >
                       <div className="flex flex-col h-full p-0">
                         <div className="flex items-start justify-between gap-2 mb-3">
-                          <h4 className="flex-1 text-sm font-semibold leading-tight text-slate-900">
+                          <h4 className="flex-1 text-lg font-semibold leading-tight text-slate-900">
                             {testCase.title}
                           </h4>
                           <Chip

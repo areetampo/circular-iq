@@ -18,7 +18,7 @@ import { Card, Tooltip, Label, TextArea as Textarea } from '@heroui/react';
 import { Button } from '@/components/common';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { cn } from '@/utils/cn';
-
+import { Accordion } from '@heroui/react';
 import {
   Sparkles,
   LayoutGrid,
@@ -46,7 +46,7 @@ export default function LandingPage() {
     openAssessmentMethodologyModal,
     openEvaluationCriteriaModal,
   } = useLandingModals();
-  const [showEvaluationParameters, setShowEvaluationParameters] = useState(false);
+  const [showEvaluationParameters, setShowEvaluationParameters] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSessionPrompt, setShowSessionPrompt] = useState(() => {
@@ -161,6 +161,45 @@ export default function LandingPage() {
           'Please provide at least 200 characters for the business solution description.',
         timeout: 4000,
       });
+      return;
+    }
+
+    // Client-side junk detection: low unique-word ratio or too many symbols
+    const uniqueWordRatio = (text) => {
+      const words = (text || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+      if (words.length === 0) return 0;
+      const uniq = new Set(words);
+      return uniq.size / words.length;
+    };
+
+    const nonLetterDensity = (text) => {
+      const total = (text || '').length || 1;
+      const non = (text.match(/[^a-z0-9\s\.\,\-\_]/gi) || []).length;
+      return non / total;
+    };
+
+    const probUniq = uniqueWordRatio(formData.businessProblem);
+    const solUniq = uniqueWordRatio(formData.businessSolution);
+    if (probUniq < 0.3 || solUniq < 0.3) {
+      const msg =
+        'Your inputs look repetitive or low-information. Please provide more specific detail in both problem and solution.';
+      setError(msg);
+      toast.danger('Input validation', { description: msg, timeout: 4000 });
+      return;
+    }
+
+    if (
+      nonLetterDensity(formData.businessProblem) > 0.25 ||
+      nonLetterDensity(formData.businessSolution) > 0.25
+    ) {
+      const msg =
+        'Your inputs contain excessive non-text characters. Please provide plain-language descriptions.';
+      setError(msg);
+      toast.danger('Input validation', { description: msg, timeout: 4000 });
       return;
     }
 

@@ -13,6 +13,7 @@ function BarChartComponent({
   xAxisLabel,
   yAxisLabel,
   isLoading,
+  barColors,
 }) {
   const theme = useTheme();
 
@@ -37,16 +38,38 @@ function BarChartComponent({
     [data],
   );
 
-  const series = useMemo(
-    () =>
-      barConfigs.map((config, index) => ({
-        dataKey: config.dataKey,
-        label: config.name || config.dataKey,
+  const series = useMemo(() => {
+    const config = barConfigs[0];
+    const dataKey = config?.dataKey ?? 'value';
+    if (barColors && Array.isArray(barColors) && barColors.length >= chartData.length) {
+      const dataset = chartData.map((row, rowIdx) => {
+        const out = { name: row.name };
+        chartData.forEach((_, colIdx) => {
+          out[`_bar_${colIdx}`] = rowIdx === colIdx ? (Number(row[dataKey]) ?? 0) : 0;
+        });
+        return out;
+      });
+      return {
+        useCustomDataset: true,
+        dataset,
+        series: chartData.map((d, idx) => ({
+          dataKey: `_bar_${idx}`,
+          label: idx === 0 ? config?.name || dataKey : '',
+          color: barColors[idx % barColors.length],
+          valueFormatter: (value) => (value != null && value > 0 ? `${value}` : ''),
+        })),
+      };
+    }
+    return {
+      useCustomDataset: false,
+      series: barConfigs.map((cfg, index) => ({
+        dataKey: cfg.dataKey,
+        label: cfg.name || cfg.dataKey,
         valueFormatter: (value) => (value !== null ? `${value}` : ''),
-        color: colorPalette[index % colorPalette.length],
+        color: cfg.fill ?? colorPalette[index % colorPalette.length],
       })),
-    [barConfigs, colorPalette],
-  );
+    };
+  }, [barConfigs, chartData, colorPalette, barColors]);
 
   if (isLoading) {
     return (
@@ -107,8 +130,8 @@ function BarChartComponent({
     >
       <Box sx={{ width: '100%', height: '100%', flexGrow: 1, minHeight: 0 }}>
         <MuiBarChart
-          dataset={chartData}
-          series={series}
+          dataset={series.useCustomDataset ? series.dataset : chartData}
+          series={series.series}
           xAxis={[
             {
               dataKey: 'name',
@@ -152,6 +175,16 @@ function BarChartComponent({
                   itemGap: 8,
                 }
               : { hidden: true },
+            bar: {
+              clipPath: 'inset(0px round 4px 4px 0px 0px)',
+            },
+          }}
+          sx={{
+            '& .MuiChartsBar-label': {
+              fontSize: 11,
+              fontWeight: 600,
+              fill: theme.palette.text.primary,
+            },
           }}
           grid={showGrid ? { vertical: false, horizontal: true } : undefined}
           sx={{
@@ -190,6 +223,7 @@ BarChartComponent.propTypes = {
   xAxisLabel: PropTypes.string,
   yAxisLabel: PropTypes.string,
   isLoading: PropTypes.bool,
+  barColors: PropTypes.arrayOf(PropTypes.string),
 };
 
 BarChartComponent.defaultProps = {
@@ -200,6 +234,7 @@ BarChartComponent.defaultProps = {
   xAxisLabel: '',
   yAxisLabel: '',
   isLoading: false,
+  barColors: undefined,
 };
 
 export default BarChartComponent;

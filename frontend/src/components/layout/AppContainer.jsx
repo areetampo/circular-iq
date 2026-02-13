@@ -150,7 +150,7 @@ const CONTAINER_CONFIGS = [
     ],
   },
   {
-    path: '/compare',
+    path: '/assessments/compare',
     background: 'from-orange-300/25 via-amber-300/25 to-yellow-300/25',
     showNavbar: true,
     showHeader: true,

@@ -200,6 +200,16 @@ export async function getMarketAnalysis(id) {
   return data;
 }
 
+/**
+ * Fetch market analysis for a publicly shared assessment by publicId
+ */
+export async function getMarketAnalysisPublic(publicId) {
+  if (!publicId) throw new Error('Public id is required');
+  const path = `/api/assessments/market-analysis/public/${publicId}`;
+  const data = await requestJson(path);
+  return data;
+}
+
 export async function getGlobalAnalytics(filters = {}) {
   const params = new URLSearchParams();
   if (filters?.industry && filters.industry !== 'all') {

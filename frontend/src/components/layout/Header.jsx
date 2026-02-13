@@ -95,7 +95,7 @@ const ROUTE_CONFIGS = [
     bgAnimation: { duration1: 5, duration2: 7 }, // Faster, subtle
   },
   {
-    path: '/compare',
+    path: '/assessments/compare',
     title: 'Assessment Comparison',
     subtitle: 'Compare two assessments side-by-side to track progress and identify improvements.',
     titleSize: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl', // Medium-large

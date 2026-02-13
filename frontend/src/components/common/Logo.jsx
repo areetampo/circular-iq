@@ -11,7 +11,7 @@ export default function Logo({ className = '' }) {
   return (
     <Avatar
       onClick={() => navigate('/')}
-      className={cn('cursor-pointer rounded-full z-50', className)}
+      className={cn('cursor-pointer rounded-full', className)}
       size="md"
       // color="success"
       // variant="soft"

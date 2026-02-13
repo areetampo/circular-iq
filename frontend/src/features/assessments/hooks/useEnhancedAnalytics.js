@@ -33,6 +33,7 @@ export function useEnhancedAnalytics({ filters = {}, enabled = true } = {}) {
     strategyDistribution: query.data?.strategyDistribution || [],
     scaleDistribution: query.data?.scaleDistribution || [],
     trends: query.data?.trends || { recentGrowth: 0, scoreImprovement: 0 },
+    overallVolatility: query.data?.overallVolatility ?? query.data?.aggregate?.overallVolatility ?? null,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,

@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { getMarketAnalysis, getAssessmentById } from '@/features/assessments';
+import {
+  getMarketAnalysis,
+  getAssessmentById,
+  getMarketAnalysisPublic,
+  getPublicAssessment,
+} from '@/features/assessments';
 
 /**
  * Hook for fetching market analysis data
@@ -8,12 +13,14 @@ import { getMarketAnalysis, getAssessmentById } from '@/features/assessments';
  * @param {boolean} options.enabled - Whether to enable the query (e.g., when modal is open)
  * @returns {Object} Market analysis data and states
  */
-export function useMarketAnalysis({ assessmentId, enabled = true } = {}) {
+export function useMarketAnalysis({ assessmentId, publicId, enabled = true } = {}) {
   // Query for market analysis data
   const marketQuery = useQuery({
-    queryKey: ['market-analysis', assessmentId],
+    queryKey: ['market-analysis', assessmentId || publicId],
     queryFn: async () => {
-      const data = await getMarketAnalysis(assessmentId);
+      const data = publicId
+        ? await getMarketAnalysisPublic(publicId)
+        : await getMarketAnalysis(assessmentId);
       return {
         marketData: data.market_data || [],
         stats: data.stats || null,
@@ -24,9 +31,9 @@ export function useMarketAnalysis({ assessmentId, enabled = true } = {}) {
 
   // Query for assessment data if assessmentId is provided
   const assessmentQuery = useQuery({
-    queryKey: ['assessment', assessmentId],
-    queryFn: () => getAssessmentById(assessmentId),
-    enabled: enabled && !!assessmentId,
+    queryKey: ['assessment', assessmentId || publicId],
+    queryFn: () => (publicId ? getPublicAssessment(publicId) : getAssessmentById(assessmentId)),
+    enabled: enabled && !!(assessmentId || publicId),
   });
 
   // Extract user score and industry from assessment

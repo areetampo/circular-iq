@@ -114,6 +114,7 @@ export function RenameAssessmentDialog({
                   variant="info"
                   onPress={() => handleSubmit(close)}
                   isLoading={isLoading}
+                  isDisabled={isLoading || name.trim() === (defaultName || '').trim()}
                   size="lg"
                 >
                   Rename

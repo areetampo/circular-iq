@@ -29,7 +29,7 @@ export default function Navbar() {
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
     { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
-    { id: 'compare', name: 'Compare', path: '/compare' },
+    { id: 'guide', name: 'Guide', path: '/guide' },
   ];
 
   const handleSignOut = async () => {
@@ -87,11 +87,7 @@ export default function Navbar() {
     navigate(item.path);
     setIsMenuOpen(false);
 
-    if (item.id === 'compare' && isAuthenticated) {
-      setTimeout(() => {
-        addToast('Select exactly 2 assessments to compare', 'info');
-      }, 300);
-    }
+    // No special-case toast here; comparison is initiated from My Assessments page
   };
 
   // Navbar background constant
@@ -147,8 +143,10 @@ export default function Navbar() {
                 <button
                   onClick={() => handleNavigation(item)}
                   className={cn(
-                    'text-md font-medium transition-colors cursor-pointer',
-                    isActive ? 'text-black' : 'text-foreground/50 hover:text-foreground',
+                    'text-md font-semibold transition-colors cursor-pointer',
+                    isActive
+                      ? 'text-black bg-default-100'
+                      : 'text-foreground/50 hover:text-slate-700/90 hover:bg-default-50',
                   )}
                 >
                   {item.name}
@@ -192,7 +190,7 @@ export default function Navbar() {
                     isAuthenticated ? 'cursor-pointer transition-all duration-200' : '',
                   )}
                 >
-                  <Avatar color="success" size="md" variant="soft">
+                  <Avatar color="success" size="sm" variant="soft">
                     <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
                     <Avatar.Fallback className="text-lg font-semibold">
                       {getUserInitials()}
@@ -200,7 +198,7 @@ export default function Navbar() {
                   </Avatar>
                   {isAuthenticated ? (
                     <>
-                      <span className="hidden xxs:inline text-md font-medium text-foreground">
+                      <span className="hidden xxs:inline text-lg font-medium text-foreground">
                         {getUsername()}
                       </span>
                       <ChevronDown
@@ -235,8 +233,12 @@ export default function Navbar() {
                       {/* User Info Header */}
                       <div className="px-4 py-3 border-b border-default-200">
                         <div className="flex items-center gap-3">
-                          <Avatar color="success" size="md" variant="letter-soft">
-                            <Avatar.Fallback className="text-sm font-semibold">
+                          <Avatar color="success" size="md" variant="soft">
+                            <Avatar.Image
+                              src={profile?.avatar_url || user?.avatar_url}
+                              alt="User avatar"
+                            />
+                            <Avatar.Fallback className="text-lg font-semibold">
                               {getUserInitials()}
                             </Avatar.Fallback>
                           </Avatar>

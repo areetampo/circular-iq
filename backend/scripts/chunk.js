@@ -93,8 +93,8 @@ export function createChunks(records) {
     }
 
     // Enforce minimum length to filter out truncated/malformed records
-    const MIN_PROBLEM_LENGTH = 100; // At least 100 chars for meaningful problem
-    const MIN_SOLUTION_LENGTH = 100; // At least 100 chars for meaningful solution
+    const MIN_PROBLEM_LENGTH = parseInt(process.env.MIN_PROBLEM_LENGTH || '20', 10); // default lower for small samples
+    const MIN_SOLUTION_LENGTH = parseInt(process.env.MIN_SOLUTION_LENGTH || '20', 10);
 
     if (problemText.length < MIN_PROBLEM_LENGTH) {
       console.warn(
@@ -122,6 +122,58 @@ export function createChunks(records) {
 
     // Create primary chunk: Problem + Solution (always together)
     const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
+    // Build fields object and include any additional CSV columns so adapters can provide extra params
+    const fieldsObj = {
+      problem: problemText,
+      solution: solutionText,
+      materials: materials,
+      circular_strategy: circularStrategy,
+      impact: impact,
+    };
+
+    // Copy any extra columns from the original record into fieldsObj (avoid overwriting existing keys)
+    for (const [k, v] of Object.entries(record)) {
+      const key = String(k).trim();
+      if (!key) continue;
+      if (
+        [
+          'problem',
+          'Problem',
+          'Business Problem',
+          'solution',
+          'Solution',
+          'Business Solution',
+          'materials',
+          'Materials',
+          'Material',
+          'circular_strategy',
+          'Circular Strategy',
+          'circularity',
+          'Circularity',
+          'category',
+          'Category',
+          'type',
+          'Type',
+          'impact',
+          'Impact',
+          'outcomes',
+          'Outcomes',
+          'ID',
+        ].includes(key)
+      ) {
+        // skip known columns as we've already normalized them
+        continue;
+      }
+      try {
+        const normalized = sanitizeText(record[k]);
+        if (normalized && !(key in fieldsObj)) {
+          fieldsObj[key] = normalized;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
     const primaryChunk = {
       id: `chunk_${chunkIndex++}`,
       source_row: i,
@@ -136,13 +188,7 @@ export function createChunks(records) {
         r_strategy: metadata.r_strategy,
         primary_material: metadata.primary_material,
         geographic_focus: metadata.geographic_focus,
-        fields: {
-          problem: problemText,
-          solution: solutionText,
-          materials: materials,
-          circular_strategy: circularStrategy,
-          impact: impact,
-        },
+        fields: fieldsObj,
       },
       word_count: countWords(primaryContent),
     };

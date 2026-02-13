@@ -1,151 +1,113 @@
-import React from 'react';
-import {
-  LineChart as RechartsLine,
-  Line,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="text-sm font-semibold text-gray-900 mb-2">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: <span className="font-bold">{entry.value}</span>
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+import React, { useMemo } from 'react';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
+import { LineChart as MuiLineChart } from '@mui/x-charts/LineChart';
 
 export default function LineChart({
   data,
-  lines = [{ dataKey: 'value', stroke: 'hsl(200, 100%, 50%)', name: 'Value' }],
+  lines = [{ dataKey: 'value', stroke: '#2563eb', name: 'Value' }],
   xAxisKey = 'name',
   height = 300,
-  ariaLabel = undefined,
+  area = false,
+  margin = { top: 20, right: 24, bottom: 48, left: 56 },
 }) {
+  const theme = useTheme();
+
+  const dataset = useMemo(() => data ?? [], [data]);
+  const xAxisData = useMemo(
+    () => (dataset.length ? dataset.map((row) => row[xAxisKey] ?? row.label ?? '') : []),
+    [dataset, xAxisKey],
+  );
+
+  const series = useMemo(
+    () =>
+      (lines || [])
+        .filter((line) => line && !line.band && line.dataKey)
+        .map((line) => ({
+          dataKey: line.dataKey,
+          label: line.name ?? line.dataKey,
+          color: line.stroke ?? theme.palette.primary.main,
+          curve: 'monotoneX',
+          showMark: line.dot !== false,
+          area: line.area ?? area,
+          valueFormatter: (value) => (value != null ? String(value) : ''),
+        })),
+    [lines, area, theme.palette.primary.main],
+  );
+
   if (!data || data.length === 0) {
     return (
-      <div
-        className="flex items-center justify-center text-gray-500"
-        style={{ height: `${height}px` }}
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
       >
-        No data available
-      </div>
+        <Typography variant="body2" color="text.secondary">
+          No data available
+        </Typography>
+      </Paper>
     );
   }
 
-  // If any band entries are present, derive additional fields for stacked area rendering
-  let derivedData = data;
-  const bandEntries = (lines || []).filter((l) => l.band === true && l.upperKey && l.lowerKey);
-  if (bandEntries.length > 0) {
-    derivedData = (data || []).map((row) => ({ ...row }));
-    bandEntries.forEach((band, idx) => {
-      const id = band.id || `band_${idx}`;
-      const lowerKey = `${id}_lower`;
-      const rangeKey = `${id}_range`;
-      derivedData.forEach((row) => {
-        const upper = Number(row[band.upperKey] ?? 0);
-        const lower = Number(row[band.lowerKey] ?? 0);
-        const range = Math.max(0, upper - lower);
-        row[lowerKey] = Number(lower.toFixed(2));
-        row[rangeKey] = Number(range.toFixed(2));
-      });
-      // Attach the computed keys to the band object so we can reference them when rendering
-      band._computedLower = lowerKey;
-      band._computedRange = rangeKey;
-      // Compute gradient id for this band
-      band._gradientId = `gradient-${id}`;
-    });
-  }
-
   return (
-    <div role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel}>
-      <ResponsiveContainer width="100%" height={height}>
-        <RechartsLine data={derivedData}>
-          <defs>
-            {bandEntries.map((band) => (
-              <linearGradient
-                id={band._gradientId}
-                key={`def-${band._gradientId}`}
-                x1="0"
-                x2="0"
-                y1="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor={band.fill || '#e6f4ea'}
-                  stopOpacity={band.fillOpacity ?? 0.9}
-                />
-                <stop
-                  offset="100%"
-                  stopColor={band.fill || '#e6f4ea'}
-                  stopOpacity={band.fillOpacity ? band.fillOpacity * 0.2 : 0.1}
-                />
-              </linearGradient>
-            ))}
-          </defs>
-
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xAxisKey} />
-          <YAxis />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-
-          {/* Render bands as stacked areas: lower (invisible) + range (filled with gradient) */}
-          {bandEntries.map((band, idx) => (
-            <React.Fragment key={`band-${idx}`}>
-              <Area
-                dataKey={band._computedLower}
-                stackId={`band-${idx}`}
-                stroke="none"
-                fill="none"
-                isAnimationActive={false}
-              />
-              <Area
-                dataKey={band._computedRange}
-                stackId={`band-${idx}`}
-                stroke="none"
-                fill={`url(#${band._gradientId})`}
-                fillOpacity={1}
-                isAnimationActive={true}
-                animationDuration={800}
-              />
-            </React.Fragment>
-          ))}
-
-          {lines.map((line, index) => {
-            // Skip band entries when rendering regular lines
-            if (line.band === true) return null;
-            const { dataKey, stroke, name, ...rest } = line;
-            return (
-              <Line
-                key={index}
-                type="monotone"
-                dataKey={dataKey}
-                stroke={stroke}
-                strokeWidth={2.5}
-                name={name}
-                dot={{ r: 5, fill: stroke }}
-                activeDot={{ r: 7 }}
-                isAnimationActive={true}
-                {...rest}
-              />
-            );
-          })}
-        </RechartsLine>
-      </ResponsiveContainer>
-    </div>
+    <Paper
+      elevation={0}
+      sx={{
+        width: '100%',
+        minWidth: 0,
+        height,
+        borderRadius: 2,
+        border: `1px solid ${theme.palette.divider}`,
+        p: { xs: 0.5, sm: 1 },
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ width: '100%', height: '100%', minHeight: 0 }}>
+        <MuiLineChart
+          dataset={dataset}
+          xAxis={[
+            {
+              dataKey: xAxisKey,
+              scaleType: 'point',
+              tickLabelStyle: { fontSize: 11, fill: theme.palette.text.secondary },
+              valueFormatter: (v) => String(v ?? ''),
+            },
+          ]}
+          yAxis={[
+            {
+              tickLabelStyle: { fontSize: 11, fill: theme.palette.text.secondary },
+            },
+          ]}
+          series={series}
+          height={height - 24}
+          margin={margin}
+          grid={{ vertical: false, horizontal: true }}
+          slotProps={{
+            legend: {
+              hidden: false,
+              direction: 'row',
+              position: { vertical: 'top', horizontal: 'middle' },
+              padding: 4,
+              labelStyle: { fontSize: 12, fontWeight: 500 },
+            },
+          }}
+          sx={{
+            '& .MuiChartsAxis-line': { stroke: theme.palette.divider },
+            '& .MuiChartsAxis-tick': { stroke: theme.palette.divider },
+            '& .MuiAreaElement-root': {
+              opacity: 0.6,
+            },
+            '& .MuiLineElement-root': {
+              strokeWidth: 2.5,
+            },
+          }}
+        />
+      </Box>
+    </Paper>
   );
 }

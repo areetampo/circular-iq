@@ -27,8 +27,11 @@ import {
   Info,
 } from 'lucide-react';
 
-export default function MarketAnalysisPage() {
-  const { id } = useParams();
+export default function MarketAnalysisPage({
+  isPublicShare = false,
+  isViewFromMyAssessments = false,
+}) {
+  const { id, publicId } = useParams();
   const navigate = useNavigate();
   const [filterScale, setFilterScale] = useState('all');
   const [timeRange, setTimeRange] = useState('12m');
@@ -49,7 +52,8 @@ export default function MarketAnalysisPage() {
     error,
     refetch,
   } = useMarketAnalysis({
-    assessmentId: id,
+    assessmentId: isPublicShare ? null : id,
+    publicId: isPublicShare ? publicId || id : null,
     enabled: true,
   });
 
@@ -110,8 +114,33 @@ export default function MarketAnalysisPage() {
       agriculture: '#90EE90',
       water: '#87CEEB',
       general: '#D3D3D3',
+      manufacturing: '#B19CD9',
+      retail: '#FFB347',
+      automotive: '#77DD77',
+      chemicals: '#AEC6CF',
+      mining: '#CFCFC4',
+      hospitality: '#FDFD96',
+      logistics: '#FF6961',
+      healthcare: '#84B082',
+      technology: '#9B59B6',
     };
-    return colors[industry] || '#999';
+    if (industry && colors[industry]) return colors[industry];
+    const hash = (s) => {
+      let h = 0;
+      for (let i = 0; i < (s || '').length; i++) h = (h << 5) - h + s.charCodeAt(i);
+      return Math.abs(h);
+    };
+    const palette = [
+      '#4ECDC4',
+      '#FF6B6B',
+      '#AA96DA',
+      '#95E1D3',
+      '#F38181',
+      '#87CEEB',
+      '#FFE66D',
+      '#90EE90',
+    ];
+    return palette[hash(industry) % palette.length];
   };
 
   // Prepare data for scatter plot - memoized to prevent expensive recalculations
@@ -373,6 +402,196 @@ export default function MarketAnalysisPage() {
             </div>
           )}
 
+          {/* Performance Comparison Metrics */}
+          {stats && userScore != null && marketData && marketData.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md rounded-xl">
+                <div className="text-sm text-gray-600 mb-2">Percentile Rank</div>
+                <div className="text-2xl font-bold text-blue-700">{userPercentile}%</div>
+                <div className="text-xs text-gray-500 mt-2">
+                  {userPercentile > 90
+                    ? 'Exceptional performer - top 10% of market'
+                    : userPercentile > 75
+                      ? 'Strong performer - top 25% of market'
+                      : userPercentile > 50
+                        ? 'Solid performer - above average'
+                        : 'Emerging - opportunity for growth'}
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 shadow-md rounded-xl">
+                <div className="text-sm text-gray-600 mb-2">Performance Advantage</div>
+                <div className="text-2xl font-bold text-green-700">
+                  {benchmarkDeltaPercent != null ? `${Math.abs(benchmarkDeltaPercent)}%` : 'N/A'}
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  {benchmarkDeltaPercent != null
+                    ? benchmarkDeltaPercent > 0
+                      ? 'Above industry benchmark'
+                      : 'Below industry benchmark'
+                    : 'Calculating advantage...'}
+                </div>
+              </div>
+              <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md rounded-xl">
+                <div className="text-sm text-gray-600 mb-2">Market Position</div>
+                <div className="text-2xl font-bold text-purple-700">
+                  {userPercentile > 50 ? 'Leader' : 'Challenger'}
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  Based on your assessment score relative to market peers
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Market Maturity Index */}
+          {stats && marketData && (
+            <div className="p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-2 border-slate-200 shadow-md rounded-xl">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-sm text-gray-600 font-semibold mb-1">Market Maturity</div>
+                  <div className="text-lg font-bold text-slate-800">
+                    {stats.avg_score > 75
+                      ? 'Mature'
+                      : stats.avg_score > 50
+                        ? 'Developing'
+                        : 'Emerging'}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Weighted by average performance across all sectors
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600 font-semibold mb-1">Score Volatility</div>
+                  <div className="text-lg font-bold text-slate-800">
+                    {((stats.max_score - stats.min_score) / 4).toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Standard deviation of market scores (lower = stability)
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600 font-semibold mb-1">Score Range</div>
+                  <div className="text-lg font-bold text-slate-800">
+                    {stats.min_score.toFixed(1)} - {stats.max_score.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Top to bottom performing assessments
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600 font-semibold mb-1">Active Sectors</div>
+                  <div className="text-lg font-bold text-slate-800">{marketData.length}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Industries tracked in this analysis
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Score by scale summary */}
+          {marketData &&
+            marketData.length > 0 &&
+            (() => {
+              const byScale = {};
+              marketData.forEach((d) => {
+                const scale = d.scale || 'Unknown';
+                if (!byScale[scale]) byScale[scale] = { totalScore: 0, count: 0, projects: 0 };
+                byScale[scale].totalScore += (d.avg_score || 0) * (d.count || 0);
+                byScale[scale].count += d.count || 0;
+                byScale[scale].projects += 1;
+              });
+              const scaleSummary = Object.entries(byScale).map(([scale, s]) => ({
+                scale,
+                avgScore: s.count ? Number((s.totalScore / s.count).toFixed(1)) : 0,
+                count: s.count,
+                sectorCount: s.projects,
+              }));
+              if (scaleSummary.length === 0) return null;
+              return (
+                <div className="p-6 bg-white border-2 border-slate-200 shadow-md rounded-xl">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-slate-600" />
+                    Score by company scale
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {scaleSummary
+                      .sort((a, b) => b.avgScore - a.avgScore)
+                      .map((s) => (
+                        <div
+                          key={s.scale}
+                          className="p-3 rounded-lg bg-slate-50 border border-slate-200"
+                        >
+                          <div className="text-sm font-semibold text-slate-700">
+                            {titleize(s.scale)}
+                          </div>
+                          <div className="text-xl font-bold text-primary-600">
+                            {s.avgScore.toFixed(1)}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {s.count} projects · {s.sectorCount} sectors
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+          {/* Sector rankings: top performers & improvement opportunities */}
+          {marketData && marketData.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-5 bg-white border-2 border-emerald-200 shadow-md rounded-xl">
+                <h3 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-emerald-600" />
+                  Top 5 sectors by score
+                </h3>
+                <ul className="space-y-2">
+                  {[...marketData]
+                    .sort((a, b) => b.avg_score - a.avg_score)
+                    .slice(0, 5)
+                    .map((sector, idx) => (
+                      <li
+                        key={sector.industry + idx}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="font-medium text-slate-700">
+                          {titleize(sector.industry)}
+                        </span>
+                        <span className="font-bold text-emerald-600">
+                          {sector.avg_score.toFixed(1)}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div className="p-5 bg-white border-2 border-amber-200 shadow-md rounded-xl">
+                <h3 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-amber-600" />
+                  Improvement opportunities (lowest scores)
+                </h3>
+                <ul className="space-y-2">
+                  {[...marketData]
+                    .sort((a, b) => a.avg_score - b.avg_score)
+                    .slice(0, 5)
+                    .map((sector, idx) => (
+                      <li
+                        key={sector.industry + idx}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="font-medium text-slate-700">
+                          {titleize(sector.industry)}
+                        </span>
+                        <span className="font-bold text-amber-600">
+                          {sector.avg_score.toFixed(1)}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* Market volatility & industry share */}
           {trendData && ( // trendData comes from enhanced analytics and includes overallVolatility and industryMarketShare
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -420,7 +639,7 @@ export default function MarketAnalysisPage() {
                 </Card.Title>
                 {normalizedUserScore != null && normalizedBenchmarkScore != null && (
                   <Chip variant="soft" color={isOutperforming ? 'success' : 'warning'}>
-                    \n {isOutperforming ? 'Outperforming' : 'Opportunity for Growth'}
+                    {isOutperforming ? 'Outperforming' : 'Opportunity for Growth'}
                   </Chip>
                 )}
               </div>
@@ -480,6 +699,112 @@ export default function MarketAnalysisPage() {
               </div>
             </Card.Content>
           </Card>
+
+          {/* Market Dynamics & Competitive Landscape */}
+          {marketData && marketData.length > 0 && (
+            <Card className="border shadow-sm border-slate-200 bg-gradient-to-br from-amber-50/50 to-orange-50/50">
+              <Card.Header className="pb-3">
+                <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+                  <TrendingUp className="w-5 h-5 text-amber-600" />
+                  Market Dynamics & Competitive Landscape
+                </Card.Title>
+              </Card.Header>
+              <Card.Content className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-slate-200">
+                    <p className="font-semibold text-slate-900 text-sm mb-3">
+                      Sector Performance Leaders
+                    </p>
+                    <div className="space-y-2">
+                      {marketData
+                        .sort((a, b) => b.avg_score - a.avg_score)
+                        .slice(0, 3)
+                        .map((sector, idx) => (
+                          <div key={idx} className="flex items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-slate-700 truncate">
+                                {titleize(sector.industry)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <div className="w-12 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-emerald-500 rounded-full"
+                                  style={{ width: `${(sector.avg_score / 100) * 100}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-semibold text-slate-700 w-10 text-right">
+                                {sector.avg_score.toFixed(1)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-lg border border-slate-200">
+                    <p className="font-semibold text-slate-900 text-sm mb-3">
+                      Sector Momentum (Projects)
+                    </p>
+                    <div className="space-y-2">
+                      {marketData
+                        .sort((a, b) => b.count - a.count)
+                        .slice(0, 3)
+                        .map((sector, idx) => {
+                          const maxCount = Math.max(...marketData.map((m) => m.count || 0));
+                          return (
+                            <div key={idx} className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-700 truncate">
+                                  {titleize(sector.industry)}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="w-12 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-blue-500 rounded-full"
+                                    style={{ width: `${((sector.count || 0) / maxCount) * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs font-semibold text-slate-700 w-10 text-right">
+                                  {sector.count}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 text-sm mb-3">
+                    Market Concentration Analysis
+                  </p>
+                  <div className="space-y-2 text-xs text-slate-600">
+                    <p>
+                      <strong>Concentration Index:</strong>{' '}
+                      {stats && marketData.length > 0
+                        ? (
+                            marketData
+                              .map((d) => d.count || 0)
+                              .reduce((sum, c) => sum + (c / stats.total_count) ** 2, 0) * 100
+                          ).toFixed(1) + '%'
+                        : 'N/A'}
+                    </p>
+                    <p className="text-slate-500">
+                      Shows how concentrated the market is across sectors. Higher = more
+                      concentrated in fewer sectors.
+                    </p>
+                    <p className="mt-2">
+                      <strong>Market Spread:</strong> {marketData.length} active sectors with
+                      diverse performance profiles, indicating a maturing and competitive landscape.
+                    </p>
+                  </div>
+                </div>
+              </Card.Content>
+            </Card>
+          )}
 
           {/* Filter & Time Range Controls */}
           <div className="flex flex-wrap items-center gap-3">
@@ -542,7 +867,7 @@ export default function MarketAnalysisPage() {
 
           {/* Bar Chart Section - Top Industries */}
           {barChartData.length > 0 && (
-            <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
+            <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] min-w-0 overflow-hidden">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
                 <BarChart3 className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Top Industries by
                 Average Score
@@ -562,7 +887,7 @@ export default function MarketAnalysisPage() {
 
           {/* Score Distribution Scatter Plot */}
           {scatterChartData.length > 0 && (
-            <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
+            <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] min-w-0 overflow-hidden">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
                 <Target className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Score Distribution
                 by Industry
@@ -612,7 +937,7 @@ export default function MarketAnalysisPage() {
 
           {/* Industry Benchmarks Table */}
           {marketData.length > 0 && (
-            <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-x-auto">
+            <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-x-auto min-w-0">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
                 <Trophy className="w-6 h-6 text-accent-500" strokeWidth={2.5} /> Industry Benchmarks
               </h2>
@@ -723,10 +1048,11 @@ export default function MarketAnalysisPage() {
                 <div className="flex mb-3 text-2xl">
                   <Target className="w-7 h-7 text-accent-500" strokeWidth={2} />
                 </div>
-                <div className="text-base font-bold text-[#2c3e50] mb-2">Top Performers</div>
+                <div className="text-base font-bold text-[#2c3e50] mb-2">Sectoral Performance</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
-                  Projects in <strong>Energy</strong> and <strong>Water</strong> industries tend to
-                  score highest on circular economy metrics
+                  {marketData && marketData.length > 0
+                    ? `${marketData.length} active industries tracked with an average score of ${(marketData.reduce((sum, item) => sum + item.avg_score, 0) / marketData.length).toFixed(1)}. Score range ${Math.min(...marketData.map((m) => m.avg_score)).toFixed(1)}–${Math.max(...marketData.map((m) => m.avg_score)).toFixed(1)}.`
+                    : 'Loading industry performance data...'}
                 </div>
               </div>
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
@@ -735,8 +1061,9 @@ export default function MarketAnalysisPage() {
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Growth Opportunity</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
-                  Emerging industries show varied scores—there&apos;s significant room for
-                  specialized innovation and differentiation
+                  {marketData && marketData.length > 0
+                    ? `Highest-scoring sector: ${titleize([...marketData].sort((a, b) => b.avg_score - a.avg_score)[0]?.industry || 'N/A')} (${[...marketData].sort((a, b) => b.avg_score - a.avg_score)[0]?.avg_score.toFixed(1) ?? '—'}/100). Significant room for innovation in lower-scoring sectors.`
+                    : "Emerging industries show varied scores—there's significant room for specialized innovation and differentiation"}
                 </div>
               </div>
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
@@ -745,22 +1072,160 @@ export default function MarketAnalysisPage() {
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Scale Factor</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
-                  Larger, commercial-stage projects generally score higher than prototypes and
-                  early-stage initiatives
+                  {stats
+                    ? `${stats.total_count} projects analyzed across ${getScales().length > 1 ? getScales().length - 1 : 1} scale categories. Median market score: ${stats.median_score?.toFixed(1) ?? '—'}.`
+                    : 'Analyzing scale distribution...'}
                 </div>
               </div>
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
                   <Star className="w-7 h-7 text-accent-500" strokeWidth={2} fill="#ff9800" />
                 </div>
-                <div className="text-base font-bold text-[#2c3e50] mb-2">Your Advantage</div>
+                <div className="text-base font-bold text-[#2c3e50] mb-2">Your Competitive Edge</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
-                  Focus on your unique circular strategy and value proposition to differentiate in
-                  your market segment
+                  {userScore != null
+                    ? `You score in the ${userPercentile}th percentile — ${userPercentile > 75 ? 'exceptional leader' : userPercentile > 50 ? 'strong performer' : 'emerging player'} in your market${benchmarkDeltaPercent != null ? ` (${benchmarkDeltaPercent >= 0 ? '+' : ''}${benchmarkDeltaPercent}% vs sector).` : '.'}`
+                    : 'Assess your performance to benchmark'}
                 </div>
               </div>
+              {stats && (
+                <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                  <div className="flex mb-3 text-2xl">
+                    <Info className="w-7 h-7 text-accent-500" strokeWidth={2} />
+                  </div>
+                  <div className="text-base font-bold text-[#2c3e50] mb-2">Score spread</div>
+                  <div className="text-[0.85rem] text-gray-700 leading-6">
+                    Market scores span {stats.min_score?.toFixed(1) ?? '—'} to{' '}
+                    {stats.max_score?.toFixed(1) ?? '—'}. Volatility (std dev){' '}
+                    {((stats.max_score - stats.min_score) / 4).toFixed(1)} —{' '}
+                    {stats.avg_score > 70
+                      ? 'relatively stable'
+                      : stats.avg_score > 50
+                        ? 'moderate variation'
+                        : 'high variation'}{' '}
+                    across sectors.
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Competitive Positioning Analysis */}
+          <Card className="border shadow-sm border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
+            <Card.Header className="pb-3">
+              <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Competitive Positioning Analysis
+              </Card.Title>
+            </Card.Header>
+            <Card.Content className="space-y-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 mb-2">Market Concentration</p>
+                  <p className="text-slate-600 text-xs leading-5">
+                    {stats && stats.total_count > 0
+                      ? `The market has ${marketData.length} active sectors with ${Math.round((marketData.filter((d) => d.count > stats.total_count / marketData.length).length / marketData.length) * 100)}% of focus concentrated in top performers.`
+                      : 'Calculating market distribution...'}
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 mb-2">Innovation Frontier</p>
+                  <p className="text-slate-600 text-xs leading-5">
+                    {marketData && marketData.length > 0
+                      ? (() => {
+                          const byScore = [...marketData].sort((a, b) => b.avg_score - a.avg_score);
+                          const top = byScore[0];
+                          return `Highest performing sector: ${titleize(top?.industry || 'N/A')} (${top?.avg_score?.toFixed(1) || '—'}/100)`;
+                        })()
+                      : 'Loading innovation data...'}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 mb-2">Your Market Position</p>
+                  <p className="text-slate-600 text-xs leading-5">
+                    {isOutperforming ? (
+                      <span className="text-emerald-600 font-medium">
+                        Leading position in {userIndustry ? titleize(userIndustry) : 'your sector'}{' '}
+                        with {benchmarkDeltaPercent}% above average performance.
+                      </span>
+                    ) : (
+                      <span className="text-amber-600 font-medium">
+                        Growth opportunity: {Math.abs(benchmarkDeltaPercent)}% below sector average.
+                        Focus on {specificArea} to close the gap.
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-900 mb-2">Sector Maturity</p>
+                  <p className="text-slate-600 text-xs leading-5">
+                    {stats
+                      ? `Market maturity score: ${stats.avg_score.toFixed(1)}/100 with ${stats.total_count} verified assessments. Standard deviation: ${((stats.max_score - stats.min_score) / 4).toFixed(1)}.`
+                      : 'Calculating sector maturity...'}
+                  </p>
+                </div>
+              </div>
+            </Card.Content>
+          </Card>
+
+          {/* Strategic Recommendations */}
+          <Card className="border shadow-sm border-slate-200 bg-blue-50/50">
+            <Card.Header className="pb-3">
+              <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
+                <Sparkles className="w-5 h-5 text-blue-500" />
+                Personalized Strategic Pathways
+              </Card.Title>
+              <Card.Description className="text-sm text-slate-600">
+                Data-driven recommendations based on your assessment and market trends
+              </Card.Description>
+            </Card.Header>
+            <Card.Content className="space-y-3">
+              {isOutperforming ? (
+                <div className="space-y-3">
+                  <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
+                    <p className="font-semibold text-emerald-900 text-sm mb-1">
+                      Maintain Leadership
+                    </p>
+                    <p className="text-sm text-emerald-700">
+                      Your circular strategy is outperforming the market. Focus on scaling your{' '}
+                      {primaryPillar} to capture greater market share and establish thought
+                      leadership.
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <p className="font-semibold text-blue-900 text-sm mb-1">
+                      Differentiation Angle
+                    </p>
+                    <p className="text-sm text-blue-700">
+                      Leverage your superior performance to build premium positioning, attract
+                      higher-value partnerships, and influence industry standards.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+                    <p className="font-semibold text-amber-900 text-sm mb-1">Close the Gap</p>
+                    <p className="text-sm text-amber-700">
+                      You&apos;re {Math.abs(benchmarkDeltaPercent)}% below the sector average.
+                      Prioritize improvements in {specificArea} to enhance competitiveness and
+                      market positioning.
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <p className="font-semibold text-blue-900 text-sm mb-1">Quick Wins</p>
+                    <p className="text-sm text-blue-700">
+                      Identify high-impact, low-resource initiatives in your gaps. Learn from top
+                      performers in {titleize(marketData[0]?.industry || 'your sector')} to
+                      accelerate improvement.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </Card.Content>
+          </Card>
 
           {/* AI Strategic Insight */}
           <Card className="border shadow-sm border-slate-200 bg-sky-50/70">
@@ -786,6 +1251,18 @@ export default function MarketAnalysisPage() {
               )}
             </Card.Content>
           </Card>
+
+          {/* Data coverage & methodology */}
+          <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 text-sm text-slate-600">
+            <p className="font-semibold text-slate-700 mb-2">Data coverage & methodology</p>
+            <p className="leading-relaxed">
+              Benchmarks are derived from public, consenting assessments only. Metrics include
+              average and median scores, viability, and counts by industry and scale. Time range and
+              granularity (weekly/monthly/daily) affect trend series. Percentiles and sector
+              rankings are computed from the current filtered dataset. Export CSV includes raw
+              industry-scale-score data for your own analysis.
+            </p>
+          </div>
 
           {/* Footer */}
           <div className="mt-6 text-sm text-center text-gray-500">

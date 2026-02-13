@@ -760,7 +760,7 @@ export default function MyAssessmentsPage() {
     }
 
     const ids = Array.from(selectedIds);
-    navigate(`/compare?id1=${ids[0]}&id2=${ids[1]}`);
+    navigate(`/assessments/compare?id1=${ids[0]}&id2=${ids[1]}`);
   }, [selectedIds, addToast, navigate]);
 
   const handleViewDetail = useCallback(
@@ -838,6 +838,20 @@ export default function MyAssessmentsPage() {
       if (!renameDialog.assessmentId) {
         addToast('No assessment selected for rename', 'error');
         throw new Error('No assessment selected for rename');
+      }
+
+      // Duplicate name check among user's assessments
+      if (
+        assessments.some(
+          (a) =>
+            a.id !== renameDialog.assessmentId &&
+            a.title &&
+            a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
+        )
+      ) {
+        const msg = 'You already have an assessment with that name';
+        addToast(msg, 'error');
+        throw new Error(msg);
       }
 
       const detailCacheKey = ['assessment', renameDialog.assessmentId];
@@ -933,7 +947,7 @@ export default function MyAssessmentsPage() {
         return;
       }
 
-      const shareUrl = `${window.location.origin}/share/${publicId}`;
+      const shareUrl = `${window.location.origin}/assessments/share/${publicId}`;
       try {
         await navigator.clipboard.writeText(shareUrl);
         addToast('Share link copied to clipboard', 'success');
@@ -1120,14 +1134,13 @@ export default function MyAssessmentsPage() {
                     </h3>
                     {topIndustries && topIndustries.length > 2 && (
                       <Popover>
-                        <Popover.Trigger asChild>
-                          <HeroButton
-                            variant="flat"
-                            size="sm"
-                            className="text-indigo-700 bg-indigo-100/60 hover:bg-indigo-200/60 font-semibold mt-3"
+                        <Popover.Trigger>
+                          <button
+                            type="button"
+                            className="text-indigo-700 bg-indigo-100/60 hover:bg-indigo-200/60 font-semibold mt-3 px-3 py-1 rounded-sm text-sm"
                           >
                             View All
-                          </HeroButton>
+                          </button>
                         </Popover.Trigger>
                         <Popover.Content className="max-w-xs">
                           <Popover.Dialog>
@@ -1377,7 +1390,7 @@ export default function MyAssessmentsPage() {
                   onCopyShareLink={handleCopyShareLink}
                 />
 
-                <div className="flex flex-col items-center justify-center gap-3 p-4 mt-6">
+                <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
                   {/* Pagination info text */}
                   <p className="text-sm text-slate-600">
                     Showing{' '}

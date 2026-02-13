@@ -291,7 +291,7 @@ Your analysis should feel like a professional audit report - precise, evidence-b
  */
 function buildUserPrompt(businessProblem, businessSolution, scores, similarDocs, contextText) {
   const similarCasesInfo = similarDocs
-    .slice(0, 3)
+    .slice(0, 4)
     .map(
       (doc, idx) =>
         `Case ${idx + 1} (ID: ${doc.id}, Similarity: ${(doc.similarity * 100).toFixed(1)}%): "${doc.content.substring(0, 200)}..."`,
@@ -305,7 +305,7 @@ Solution: ${businessSolution}
 USER'S SELF-ASSESSMENT SCORES:
 ${JSON.stringify(scores, null, 2)}
 
-DATABASE EVIDENCE (Top 3 Similar Projects):
+DATABASE EVIDENCE (Top 4 Similar Projects):
 ${similarCasesInfo}
 
 Full Context:
@@ -344,7 +344,8 @@ Return EXACTLY this JSON structure:
   "similar_cases_summaries": [
     "<One sentence: Why Case 1 is relevant and what it teaches>",
     "<One sentence: Why Case 2 is relevant and what it teaches>",
-    "<One sentence: Why Case 3 is relevant and what it teaches>"
+    "<One sentence: Why Case 3 is relevant and what it teaches>",
+    "<One sentence: Why Case 4 is relevant and what it teaches>"
   ],
 
   "key_metrics_comparison": {
@@ -367,7 +368,7 @@ function formatDatabaseContext(similarDocs) {
   }
 
   return similarDocs
-    .slice(0, 5)
+    .slice(0, 4)
     .map((doc, idx) => {
       const metadata = doc.metadata || {};
       return `\n[Case ${idx + 1}] ID: ${doc.id}, Match: ${(doc.similarity * 100).toFixed(1)}%
@@ -444,6 +445,43 @@ export function validateInput(problem, solution) {
   const junkPatterns = [/^[a-z]{1,3}$/i, /^-{3,}$/, /^x{3,}$/, /^test|lorem|ipsum/i];
   if (junkPatterns.some((pattern) => pattern.test(problem) || pattern.test(solution))) {
     return { is_junk: true, reason: 'Input matches junk patterns' };
+  }
+
+  // Low uniqueness detection: many repeated words or filler
+  function uniqueWordRatio(text) {
+    const words = (text || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean);
+    if (words.length === 0) return 0;
+    const uniq = new Set(words);
+    return uniq.size / words.length;
+  }
+
+  const probUniq = uniqueWordRatio(problem);
+  const solUniq = uniqueWordRatio(solution);
+  if (probUniq < 0.3 || solUniq < 0.3) {
+    return {
+      is_junk: true,
+      reason:
+        'Input appears repetitive or low-information; please provide more detailed, specific descriptions.',
+    };
+  }
+
+  // Non-letter density check (too many symbols/characters suggests junk)
+  function nonLetterDensity(text) {
+    const total = text.length || 1;
+    const nonLetter = (text.match(/[^a-z0-9\s\.\,\-\_]/gi) || []).length;
+    return nonLetter / total;
+  }
+
+  if (nonLetterDensity(problem) > 0.25 || nonLetterDensity(solution) > 0.25) {
+    return {
+      is_junk: true,
+      reason:
+        'Input contains excessive non-text characters; please provide plain-language descriptions.',
+    };
   }
 
   return null;

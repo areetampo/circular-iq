@@ -9,10 +9,18 @@ import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from
 import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
+import { useAuth } from '@/hooks/useAuth';
+import { DeleteAssessmentDialog, RenameAssessmentDialog } from '@/components/dialogs';
 import { SaveAssessmentDialog } from '@/components/dialogs';
 
 import { titleize } from '@/lib/formatting';
-import { useAssessment, usePublicAssessment, useCreateAssessment } from '@/features/assessments';
+import {
+  useAssessment,
+  usePublicAssessment,
+  useCreateAssessment,
+  getAssessments,
+  deleteAssessment,
+} from '@/features/assessments';
 import { updateAssessment } from '@/features/assessments/api/assessmentApi';
 import { Card, Tabs, Switch, Input, Label, Accordion, Select, ListBox, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
@@ -36,6 +44,7 @@ import {
   NotebookText,
   Lock,
   Globe,
+  Copy,
 } from 'lucide-react';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -112,6 +121,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   });
   const [isUpdatingPublic, setIsUpdatingPublic] = useState(false);
   const [optimisticIsPublic, setOptimisticIsPublic] = useState(null);
+  const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!isViewFromMyAssessments && navigationResult) {
@@ -221,14 +235,36 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           parameters: inputParameters || undefined,
         };
 
-        await createAssessmentAsync(saveData);
-        addToast('Assessment saved successfully! Redirecting to your assessments...', 'success');
+        // Prevent duplicate assessment names for this user
+        try {
+          const existing = await getAssessments({ search: name, pageSize: 100 });
+          const duplicate = Array.isArray(existing?.assessments)
+            ? existing.assessments.find(
+                (a) =>
+                  a.title && a.title.trim().toLowerCase() === String(name).trim().toLowerCase(),
+              )
+            : null;
+          if (duplicate) {
+            throw new Error('You already have an assessment with that name');
+          }
+        } catch (errCheck) {
+          // If the check itself failed due to network/auth, allow create to proceed
+          if (errCheck.message === 'You already have an assessment with that name') throw errCheck;
+          console.warn('Duplicate name check failed, proceeding to create:', errCheck?.message);
+        }
+
+        const result = await createAssessmentAsync(saveData);
+        addToast('Assessment saved successfully! Redirecting...', 'success');
         setShowSaveDialog(false);
 
-        // Navigate to assessments after a brief delay
-        setTimeout(() => {
-          navigate('/assessments');
-        }, 1500);
+        // Redirect to the saved assessment if id available, otherwise list
+        const newId = result?.id || result?.assessment?.id;
+        if (newId) {
+          // Give a brief moment for cache invalidation, then navigate to the detail
+          setTimeout(() => navigate(`/assessments/${newId}`), 800);
+        } else {
+          setTimeout(() => navigate('/assessments'), 800);
+        }
       } catch (error) {
         console.error('Save error:', error);
         addToast('Failed to save assessment. Please try again.', 'error');
@@ -353,8 +389,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     const publicId = currentData?.public_id;
 
     if (isPublic && publicId) {
-      // Copy public share link
-      const shareUrl = `${window.location.origin}/share/${publicId}`;
+      // Copy public share link (use new share route)
+      const shareUrl = `${window.location.origin}/assessments/share/${publicId}`;
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast.success('Public Link Copied', {
@@ -442,7 +478,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       return;
     }
 
-    const shareUrl = `${window.location.origin}/share/${currentData.public_id}`;
+    const shareUrl = `${window.location.origin}/assessments/share/${currentData.public_id}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -458,6 +494,61 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       });
     }
   };
+
+  const handleOpenRename = useCallback(() => setShowRenameDialog(true), []);
+  const handleOpenDelete = useCallback(() => setShowDeleteDialog(true), []);
+
+  const handleConfirmRename = useCallback(
+    async (newTitle) => {
+      if (!id) throw new Error('No assessment selected');
+      setIsRenaming(true);
+      try {
+        // Prevent duplicate names
+        try {
+          const existing = await getAssessments({ search: newTitle, pageSize: 100 });
+          const dup = Array.isArray(existing?.assessments)
+            ? existing.assessments.find(
+                (a) =>
+                  a.id !== id &&
+                  a.title &&
+                  a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
+              )
+            : null;
+          if (dup) throw new Error('You already have an assessment with that name');
+        } catch (checkErr) {
+          if (checkErr.message === 'You already have an assessment with that name') throw checkErr;
+          console.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
+        }
+
+        await updateAssessment(id, { title: newTitle });
+        await refetch();
+        toast.success('Assessment renamed successfully');
+        setShowRenameDialog(false);
+      } catch (err) {
+        console.error('Rename failed', err);
+        throw err;
+      } finally {
+        setIsRenaming(false);
+      }
+    },
+    [id, refetch],
+  );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!id) throw new Error('No assessment selected');
+    setIsDeleting(true);
+    try {
+      await deleteAssessment(id);
+      toast.success('Assessment deleted');
+      navigate('/assessments');
+    } catch (err) {
+      console.error('Delete failed', err);
+      toast.danger('Failed to delete assessment');
+      throw err;
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [id, navigate]);
 
   if (detailLoading) {
     return <ResultsSkeleton />;
@@ -588,11 +679,17 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     <>
       {/* Action Buttons & Share Section */}
       <div className="mb-6 mt-4 px-4 sm:px-6 space-y-4">
+        {isViewFromMyAssessments && currentData?.title && (
+          <div className="text-center mb-3 text-2xl font-bold text-slate-900 truncate">
+            {currentData.title}
+          </div>
+        )}
+
         {/* Buttons Bar */}
         <div className="flex flex-wrap items-center gap-3 p-4 bg-linear-to-r from-slate-50 to-white rounded-2xl shadow-md border border-slate-200">
           {/* Show public share notice for public viewers */}
           {isPublicShare && (
-            <Chip variant="soft" color="accent" size="sm" className="gap-1">
+            <Chip variant="soft" color="accent" size="lg" className="gap-1">
               <Globe className="w-3 h-3" />
               Public Shared Assessment
             </Chip>
@@ -634,75 +731,211 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               Save
             </Button>
           )}
+          {/* If this assessment belongs to the current user, show rename/delete */}
+          {isViewFromMyAssessments &&
+            currentData &&
+            currentData.user_id &&
+            user?.id === currentData.user_id && (
+              <>
+                <Button variant="info-soft" onPress={handleOpenRename}>
+                  <NotebookText className="w-4 h-4" />
+                  Rename
+                </Button>
+                <Button variant="danger-soft" onPress={handleOpenDelete}>
+                  <AlertCircle className="w-4 h-4" />
+                  Delete
+                </Button>
+              </>
+            )}
         </div>
 
         {/* Share Assessment Section - Integrated in Section */}
         {isViewFromMyAssessments && !isPublicShare && currentData && (
           <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-            <div className="p-1 sm:p-4">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                <Link2 className="w-5 h-5 text-emerald-600" />
-                Share Assessment
-              </h3>
-              <p className="text-sm text-slate-600 mb-4">
-                Make your assessment publicly accessible via a share link
-              </p>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-4 p-4 border border-slate-300 rounded-xl bg-slate-50">
-                  <div className="space-y-1">
-                    <Label htmlFor="public-toggle" className="font-semibold text-slate-900">
-                      Public Access
-                    </Label>
-                    <p className="text-sm text-slate-600">
-                      Allow anyone with the link to view this assessment
-                    </p>
-                  </div>
-                  <Switch
-                    id="public-toggle"
-                    isSelected={
-                      optimisticIsPublic !== null
-                        ? optimisticIsPublic
-                        : currentData?.is_public || false
-                    }
-                    onChange={handleTogglePublic}
-                    isDisabled={isUpdatingPublic}
-                  >
-                    <Switch.Control>
-                      <Switch.Thumb />
-                    </Switch.Control>
-                  </Switch>
-                </div>
-
-                {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) &&
-                  currentData.public_id && (
-                    <div className="space-y-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                      {/* <Label htmlFor="share-url" className="font-semibold text-emerald-900 ml-2">
-                        Share Link
-                      </Label> */}
-                      <div className="flex flex-col sm:flex-row gap-2 mt-1">
-                        <Input
-                          id="share-url"
-                          type="text"
-                          readOnly
-                          value={`${window.location.origin}/share/${currentData.public_id}`}
-                          className="flex-1 font-mono text-sm bg-white"
-                        />
-                        <Button variant="info-soft" onPress={handleCopyShareLink}>
-                          <Link2 className="w-4 h-4" />
-                          Copy Link
-                        </Button>
-                      </div>
-                      <p className="text-xs text-emerald-700 ml-2">
-                        Anyone with this link can view your assessment results, but cannot edit or
-                        delete it.
-                      </p>
-                    </div>
-                  )}
+            <Switch
+              id="public-toggle"
+              isSelected={
+                optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
+              }
+              onChange={handleTogglePublic}
+              isDisabled={isUpdatingPublic}
+              className="flex items-center justify-between gap-4 px-2"
+            >
+              <div className="">
+                <Label
+                  htmlFor="public-toggle"
+                  className="font-semibold text-slate-900 flex items-center gap-2 justify-start"
+                >
+                  <span>Public Access</span>
+                  <Link2 className="w-6 h-6 text-emerald-600" />
+                </Label>
+                <p className="text-sm text-slate-600">
+                  Allow anyone with the link to view this assessment
+                </p>
               </div>
-            </div>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
+
+            {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) &&
+              currentData.public_id && (
+                <div className="flex flex-col sm:flex-row gap-2 mt-1">
+                  <Input
+                    id="share-url"
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                    className="flex-1 font-mono text-sm bg-white"
+                  />
+                  <Button variant="info-soft" onPress={handleCopyShareLink}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
           </Card>
         )}
+      </div>
+
+      {/* Case Summary */}
+      <div data-export-section="case-summary">
+        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+          <div className="p-1 sm:p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Case Summary</h3>
+                <p className="text-sm text-slate-600">
+                  Problem, solution, parameters, and industry context
+                </p>
+              </div>
+              {caseId && (
+                <div className="text-xs font-semibold text-slate-600">Case ID: #{caseId}</div>
+              )}
+            </div>
+
+            <div className="w-full">
+              <Accordion className="w-full" allowsMultipleExpanded>
+                <Accordion.Item id="problem">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                          <Target className="w-5 h-5 text-emerald-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-900">Problem</h4>
+                          <p className="text-sm text-slate-600">
+                            What the assessment identifies as the problem
+                          </p>
+                        </div>
+                      </div>
+                      <Accordion.Indicator />
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+                  <Accordion.Panel>
+                    <Accordion.Body>
+                      <div className="py-2">
+                        <p className="text-sm text-slate-700 leading-relaxed">{problemText}</p>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item id="solution">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                          <Lightbulb className="w-5 h-5 text-orange-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-900">Solution</h4>
+                          <p className="text-sm text-slate-600">Proposed solution summary</p>
+                        </div>
+                      </div>
+                      <Accordion.Indicator />
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+                  <Accordion.Panel>
+                    <Accordion.Body>
+                      <div className="py-2">
+                        <p className="text-sm text-slate-700 leading-relaxed">{solutionText}</p>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item id="parameters">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <BarChart3 className="w-5 h-5 text-slate-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-900">Parameters</h4>
+                          <p className="text-sm text-slate-600">
+                            Input parameters and values used in this assessment
+                          </p>
+                        </div>
+                      </div>
+                      <Accordion.Indicator />
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+                  <Accordion.Panel>
+                    <Accordion.Body>
+                      <div className="py-2">
+                        {parameterEntries.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2">
+                            {parameterEntries.map((item) => (
+                              <div
+                                key={item.key}
+                                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                              >
+                                <span className="text-xs font-semibold text-slate-700">
+                                  {item.label}
+                                </span>
+                                <span className="text-xs font-bold text-emerald-700">
+                                  {item.value}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-600">No parameter values available.</p>
+                        )}
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item id="industry">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                          <ClipboardList className="w-5 h-5 text-blue-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-900">Industry</h4>
+                          <p className="text-sm text-slate-600">Market or sector context</p>
+                        </div>
+                      </div>
+                      <Accordion.Indicator />
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+                  <Accordion.Panel>
+                    <Accordion.Body>
+                      <div className="py-2">
+                        <p className="text-sm text-slate-700 leading-relaxed">{industryText}</p>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Results Content */}
@@ -845,93 +1078,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 </div>
               </div>
             </Card>
-
-            {/* Case Summary */}
-            <div data-export-section="case-summary">
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-1 sm:p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900">Case Summary</h3>
-                      <p className="text-sm text-slate-600">
-                        Problem, solution, parameters, and industry context
-                      </p>
-                    </div>
-                    {caseId && (
-                      <div className="text-xs font-semibold text-slate-600">Case ID: #{caseId}</div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    <Card className="border border-slate-300 shadow-sm bg-white">
-                      <div className="p-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <Target className="w-5 h-5 text-emerald-700" />
-                          </div>
-                          <h3 className="font-bold text-slate-900">Problem</h3>
-                        </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">{problemText}</p>
-                      </div>
-                    </Card>
-
-                    <Card className="border border-slate-300 shadow-sm bg-white">
-                      <div className="p-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                            <Lightbulb className="w-5 h-5 text-orange-700" />
-                          </div>
-                          <h3 className="font-bold text-slate-900">Solution</h3>
-                        </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">{solutionText}</p>
-                      </div>
-                    </Card>
-
-                    <Card className="border border-slate-300 shadow-sm bg-white">
-                      <div className="p-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <BarChart3 className="w-5 h-5 text-slate-700" />
-                          </div>
-                          <h3 className="font-bold text-slate-900">Parameters</h3>
-                        </div>
-                        {parameterEntries.length > 0 ? (
-                          <div className="grid grid-cols-1 gap-2">
-                            {parameterEntries.map((item) => (
-                              <div
-                                key={item.key}
-                                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-                              >
-                                <span className="text-xs font-semibold text-slate-700">
-                                  {item.label}
-                                </span>
-                                <span className="text-xs font-bold text-emerald-700">
-                                  {item.value}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-slate-600">No parameter values available.</p>
-                        )}
-                      </div>
-                    </Card>
-
-                    <Card className="border border-slate-300 shadow-sm bg-white">
-                      <div className="p-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                            <ClipboardList className="w-5 h-5 text-blue-700" />
-                          </div>
-                          <h3 className="font-bold text-slate-900">Industry</h3>
-                        </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">{industryText}</p>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
-              </Card>
-            </div>
 
             {/* Score Highlights */}
             <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
@@ -1746,6 +1892,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         onOpenChange={setShowSaveDialog}
         defaultName={defaultAssessmentName}
         onSave={handleSave}
+      />
+
+      <RenameAssessmentDialog
+        isOpen={showRenameDialog}
+        onOpenChange={setShowRenameDialog}
+        defaultName={currentData?.title || defaultAssessmentName}
+        onRename={handleConfirmRename}
+        isLoading={isRenaming}
+      />
+
+      <DeleteAssessmentDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        assessmentName={currentData?.title}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
 
       {/* Results Page Modals */}

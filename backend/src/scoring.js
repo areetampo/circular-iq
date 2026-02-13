@@ -170,48 +170,201 @@ export function getScoreColor(score) {
  * @returns {Object} Comparison insights
  */
 export function compareWithDatabase(userScores, databaseCases) {
+  // Robust comparison that handles multi-vector rows and weights benchmarks
   if (!databaseCases || databaseCases.length === 0) {
     return { error: 'No database cases available for comparison' };
   }
 
-  // Extract scores from database cases (if available in metadata)
-  const dbScores = databaseCases
-    .filter((c) => c.metadata && c.metadata.scores)
-    .map((c) => c.metadata.scores);
+  // Aggregate raw rows into per-source summaries (handles multi-vector storage)
+  const sources = aggregateMultiVectorResults(databaseCases);
 
-  if (dbScores.length === 0) {
-    return { error: 'Database cases do not contain score data' };
-  }
+  // Determine weighting factors for benchmarking
+  // Each source contributes to the benchmark proportional to its relevance (combined_similarity)
+  const factors = Object.keys(userScores || {});
+  const weightedSums = {};
+  const weightTotals = {};
 
-  // Calculate average scores from database
-  const avgDbScores = {};
-  const factors = Object.keys(userScores);
+  for (const s of sources) {
+    // prefer embedded scores if present
+    const docScore = extractDocumentOverallScore(s);
+    const relevance = s.combined_similarity || 0; // 0..1
 
-  for (const factor of factors) {
-    const values = dbScores.map((s) => s[factor]).filter((v) => typeof v === 'number');
+    // compute per-factor values (from metadata.scores if present)
+    const metaScores = (s.metadata && s.metadata.scores) || {};
 
-    if (values.length > 0) {
-      avgDbScores[factor] = values.reduce((a, b) => a + b, 0) / values.length;
+    for (const factor of factors) {
+      const val =
+        typeof metaScores[factor] === 'number'
+          ? metaScores[factor]
+          : typeof s[factor] === 'number'
+            ? s[factor]
+            : null;
+
+      if (val !== null && !isNaN(val)) {
+        weightedSums[factor] = (weightedSums[factor] || 0) + val * relevance;
+        weightTotals[factor] = (weightTotals[factor] || 0) + relevance;
+      }
     }
   }
 
-  // Calculate variance from database
+  // Build comparison object with weighted benchmarks and statistics
   const comparison = {};
   for (const factor of factors) {
-    if (avgDbScores[factor] !== undefined) {
-      const variance = userScores[factor] - avgDbScores[factor];
-      comparison[factor] = {
-        userScore: userScores[factor],
-        dbAverage: Math.round(avgDbScores[factor]),
-        variance: Math.round(variance),
-        isOverestimated: variance > 15,
-        isUnderestimated: variance < -15,
-        isRealistic: Math.abs(variance) <= 15,
-      };
-    }
+    const totalW = weightTotals[factor] || 0;
+    if (totalW === 0) continue;
+    const weightedAvg = weightedSums[factor] / totalW;
+    const variance = userScores[factor] - weightedAvg;
+
+    comparison[factor] = {
+      userScore: userScores[factor],
+      benchmark_weighted_average: Math.round(weightedAvg),
+      gap: Math.round(weightedAvg - userScores[factor]),
+      percentile_estimate: Math.round(100 * estimatePercentile(userScores[factor], weightedAvg)),
+      z_score: computeZScore(userScores[factor], weightedAvg, totalW),
+      isOverestimated: variance < -12, // user score much higher than benchmark => negative gap
+      isUnderestimated: variance > 12,
+    };
   }
 
   return comparison;
+}
+
+/**
+ * Group multi-vector rows by source and compute aggregated similarity metrics.
+ * Accepts rows which may be returned from `match_documents`, `search_documents_hybrid`,
+ * or similar RPCs. Each row may include `metadata.field_name` === 'problem'|'solution'|'doc'
+ */
+export function aggregateMultiVectorResults(rows = [], opts = {}) {
+  const map = new Map();
+  for (const r of rows || []) {
+    if (!r || !r.metadata) continue;
+
+    const meta = r.metadata || {};
+    const fields = meta.fields || {};
+    const sourceId = meta.source_id || fields.id || fields.ID || meta.source_row || String(r.id);
+    const entry = map.get(sourceId) || {
+      source_id: sourceId,
+      metadata: meta,
+      rows: [],
+      combined_similarity: 0,
+      problem_similarities: [],
+      solution_similarities: [],
+      doc_similarities: [],
+    };
+
+    // similarity may be `similarity` or `combined_score` depending on RPC used
+    const sim = typeof r.combined_score === 'number' ? r.combined_score : r.similarity || 0;
+    const fieldName = (meta.field_name || fields.field_name || '').toLowerCase();
+
+    entry.rows.push(Object.assign({}, r, { similarity: sim, field_name: fieldName }));
+
+    if (fieldName === 'problem') entry.problem_similarities.push(sim);
+    else if (fieldName === 'solution') entry.solution_similarities.push(sim);
+    else entry.doc_similarities.push(sim);
+
+    map.set(sourceId, entry);
+  }
+
+  // Compute aggregated combined_similarity for each source
+  const result = [];
+  for (const v of map.values()) {
+    // If both problem and solution vectors exist, combine them with configurable weights
+    const pAvg = average(v.problem_similarities);
+    const sAvg = average(v.solution_similarities);
+    const dAvg = average(v.doc_similarities);
+
+    // weights: give priority to problem/solution vectors, fallback to doc-level
+    const wProblem = opts.wProblem ?? 0.45;
+    const wSolution = opts.wSolution ?? 0.45;
+    const wDoc = opts.wDoc ?? 0.1;
+
+    // If one type is missing, redistribute its weight proportionally
+    let totalW = wProblem + wSolution + wDoc;
+    let adjustedWProblem = wProblem;
+    let adjustedWSolution = wSolution;
+    let adjustedWDoc = wDoc;
+
+    if (isNaN(pAvg)) {
+      adjustedWProblem = 0;
+    }
+    if (isNaN(sAvg)) {
+      adjustedWSolution = 0;
+    }
+    if (isNaN(dAvg)) {
+      adjustedWDoc = 0;
+    }
+    const sumAdj = adjustedWProblem + adjustedWSolution + adjustedWDoc || 1;
+    adjustedWProblem /= sumAdj;
+    adjustedWSolution /= sumAdj;
+    adjustedWDoc /= sumAdj;
+
+    // Combined similarity is weighted average of available similarities
+    const combined =
+      (isNaN(pAvg) ? 0 : pAvg * adjustedWProblem) +
+      (isNaN(sAvg) ? 0 : sAvg * adjustedWSolution) +
+      (isNaN(dAvg) ? 0 : dAvg * adjustedWDoc);
+
+    // Normalize to 0..1 (some RPCs already return 0..1, others 0..1 rounded)
+    const combinedNorm = Math.max(0, Math.min(1, combined));
+
+    result.push({
+      ...v,
+      problem_avg: isNaN(pAvg) ? null : pAvg,
+      solution_avg: isNaN(sAvg) ? null : sAvg,
+      doc_avg: isNaN(dAvg) ? null : dAvg,
+      combined_similarity: combinedNorm,
+    });
+  }
+
+  // Sort by combined_similarity desc
+  return result.sort((a, b) => b.combined_similarity - a.combined_similarity);
+}
+
+/**
+ * Deduplicate rows by source_id and produce a compact list of unique cases.
+ * Uses either maximum similarity or weighted-average (above) to represent case relevance.
+ */
+export function dedupeResultsWeighted(rows = [], opts = {}) {
+  const aggregated = aggregateMultiVectorResults(rows, opts);
+  // Map to simplified shape for frontend: title, problem, solution, similarity
+  return aggregated.map((s) => ({
+    id: s.source_id,
+    title:
+      (s.metadata && s.metadata.title) || (s.metadata.fields && s.metadata.fields.title) || null,
+    metadata: s.metadata,
+    similarity: s.combined_similarity,
+    problem: s.problem_avg,
+    solution: s.solution_avg,
+  }));
+}
+
+/** Helper: compute average of numeric array or NaN */
+function average(arr = []) {
+  const nums = (arr || []).filter((n) => typeof n === 'number');
+  if (nums.length === 0) return NaN;
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+}
+
+/** Extract overall score from a source metadata if present */
+function extractDocumentOverallScore(source) {
+  return (
+    (source.metadata && source.metadata.scores && source.metadata.scores.overall_score) || null
+  );
+}
+
+/** Estimate percentile roughly from a mean benchmark (simple mapping) */
+function estimatePercentile(value, benchmark) {
+  // If value equals benchmark -> 50th percentile; linear mapping for +/-30 pts
+  const diff = value - benchmark;
+  const pct = 50 + (diff / 60) * 100; // diff +-30 -> +-50 percentiles
+  return Math.max(1, Math.min(99, pct));
+}
+
+/** Compute a z-like score as (x - mu) / sigma_estimate. sigma_estimate derived from weight (higher weight => lower sigma) */
+function computeZScore(x, mu, weightTotal) {
+  // rough heuristic: treat weightTotal (sum of similarities) => variance shrinker
+  const sigma = Math.max(5, 30 / Math.sqrt(Math.max(1, weightTotal))); // minimum spread 5
+  return Number(((x - mu) / sigma).toFixed(2));
 }
 
 /**

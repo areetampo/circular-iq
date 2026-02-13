@@ -1,5 +1,9 @@
 import express from 'express';
-import { calculateScores, identifyIntegrityGaps } from '../../src/scoring.js';
+import {
+  calculateScores,
+  identifyIntegrityGaps,
+  dedupeResultsWeighted,
+} from '../../src/scoring.js';
 import {
   generateReasoning,
   validateInput,
@@ -177,16 +181,19 @@ export default function createScoringRouter(openai, supabase) {
       let metadata = null; // will populate and reuse in response
       let similarCases = [];
       try {
-        // Combine problem and solution for embedding
-        const queryText = `Problem: ${businessProblem}\n\nSolution: ${businessSolution}`;
-
-        debugLog(`[${requestId}] Generating query embedding...`);
-        const embeddingRes = await openai.embeddings.create({
+        // Create separate embeddings for problem and solution to query respective vectors
+        debugLog(`[${requestId}] Generating problem + solution embeddings...`);
+        const problemEmbedRes = await openai.embeddings.create({
           model: 'text-embedding-3-small',
-          input: queryText,
+          input: `Problem: ${businessProblem}`,
+        });
+        const solutionEmbedRes = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: `Solution: ${businessSolution}`,
         });
 
-        const queryVector = embeddingRes.data[0].embedding;
+        const problemVector = problemEmbedRes.data[0].embedding;
+        const solutionVector = solutionEmbedRes.data[0].embedding;
 
         // Extract metadata to enable industry-filtered search
         try {
@@ -200,40 +207,88 @@ export default function createScoringRouter(openai, supabase) {
           metadata = null;
         }
 
-        // Prefer industry-filtered search when metadata is available
-        debugLog(`[${requestId}] Searching database for similar cases...`);
-        let results = null;
-        let searchError = null;
-        if (metadata?.industry) {
-          const industryFilter = metadata.industry || 'all';
-          const res = await supabase.rpc('search_documents_by_industry', {
-            query_embedding: queryVector,
-            industry_filter: industryFilter,
-            match_count: 3,
-            similarity_threshold: 0.0,
-          });
-          results = res.data;
-          searchError = res.error;
-        }
+        // Use hybrid search for problem and solution separately (combines semantic+keyword)
+        debugLog(`[${requestId}] Running hybrid searches for problem and solution...`);
 
-        // Fallback to generic match if no results or no metadata
-        if (!results || results.length === 0) {
-          const res2 = await supabase.rpc('match_documents', {
-            query_embedding: queryVector,
-            match_count: 3,
-            similarity_threshold: 0.0,
-          });
-          if (!results) results = res2.data;
-          if (!searchError) searchError = res2.error;
-        }
+        const keywordForProblem = metadata?.primary_material || 'circularity';
+        const keywordForSolution = metadata?.primary_material || 'circularity';
 
-        if (searchError) {
-          console.warn(`[${requestId}] Database search warning:`, searchError.message);
-        } else if (results && results.length > 0) {
-          similarCases = results;
-          debugLog(`[${requestId}] Found ${results.length} similar cases`);
-        } else {
+        const matchCount = 8; // fetch slightly more rows to allow weighted dedupe
+
+        const rpcParamsProblem = {
+          query_embedding: problemVector,
+          keyword_filter: keywordForProblem,
+          match_count: matchCount,
+          vector_weight: 0.8,
+        };
+
+        const rpcParamsSolution = {
+          query_embedding: solutionVector,
+          keyword_filter: keywordForSolution,
+          match_count: matchCount,
+          vector_weight: 0.8,
+        };
+
+        const [[problemRes, solutionRes], industryRes] = await Promise.all([
+          Promise.all([
+            supabase.rpc('search_documents_hybrid', rpcParamsProblem),
+            supabase.rpc('search_documents_hybrid', rpcParamsSolution),
+          ]),
+          // Optionally run industry-specific search to boost industry matches
+          metadata?.industry
+            ? supabase.rpc('search_documents_by_industry', {
+                query_embedding: problemVector,
+                industry_filter: metadata.industry,
+                match_count: 5,
+                similarity_threshold: 0.0,
+              })
+            : Promise.resolve({ data: [] }),
+        ]).catch((e) => [{ error: e }, { error: e }]);
+
+        const problemRows = (problemRes && problemRes.data) || [];
+        const solutionRows = (solutionRes && solutionRes.data) || [];
+        const industryRows = (industryRes && industryRes.data) || [];
+
+        // Combine and deduplicate using weighted multi-vector approach
+        const combinedRows = [...problemRows, ...solutionRows, ...industryRows];
+
+        if (combinedRows.length === 0) {
           debugLog(`[${requestId}] No similar cases found in database`);
+        } else {
+          // Use weighted dedup that averages or uses problem/solution maxima
+          let deduped = dedupeResultsWeighted(combinedRows, {
+            wProblem: 0.5,
+            wSolution: 0.4,
+            wDoc: 0.1,
+          });
+
+          // Boost relevance for industry/strategy/material matches
+          deduped = deduped.map((c) => {
+            let multiplier = 1.0;
+            try {
+              const cm = c.metadata || {};
+              if (metadata?.industry && cm.industry && cm.industry === metadata.industry)
+                multiplier += 0.12;
+              if (metadata?.r_strategy && cm.r_strategy && cm.r_strategy === metadata.r_strategy)
+                multiplier += 0.08;
+              if (
+                metadata?.primary_material &&
+                cm.primary_material &&
+                cm.primary_material === metadata.primary_material
+              )
+                multiplier += 0.06;
+            } catch (e) {
+              // ignore
+            }
+            return { ...c, similarity: Math.min(1, (c.similarity || 0) * multiplier) };
+          });
+
+          // Sort and limit
+          deduped.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+          similarCases = deduped.slice(0, 4);
+          debugLog(
+            `[${requestId}] Found ${combinedRows.length} vector rows -> ${similarCases.length} unique similar cases`,
+          );
         }
       } catch (error) {
         console.error(`[${requestId}] Vector search error:`, error.message);

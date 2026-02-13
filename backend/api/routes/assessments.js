@@ -364,7 +364,8 @@ export default function createAssessmentsRouter(supabase) {
       }
 
       logRequest('GET', `/assessments/public/${publicId}`, 200, Date.now() - startTime);
-      res.json({ assessment: data });
+      // Return read-only flag for public views so the frontend can hide edit controls
+      res.json({ assessment: data, readonly: true });
     } catch (error) {
       console.error('Error fetching public assessment:', error);
       logRequest(
@@ -374,6 +375,52 @@ export default function createAssessmentsRouter(supabase) {
         Date.now() - startTime,
       );
       res.status(500).json(errorResponse(error, 'Failed to fetch assessment'));
+    }
+  });
+
+  /**
+   * GET /validate/:publicId
+   * Validate a public_id exists and is available for sharing
+   */
+  router.get('/validate/:publicId', async (req, res) => {
+    const startTime = Date.now();
+    try {
+      const { publicId } = req.params;
+
+      // Quick UUID format check (basic)
+      const uuidRegex =
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!uuidRegex.test(publicId)) {
+        return res.status(400).json({ error: 'Invalid public id format' });
+      }
+
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('id,is_public')
+        .eq('public_id', publicId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        return res.status(404).json({ error: 'Invalid Public ID' });
+      }
+
+      if (!data.is_public) {
+        return res.status(403).json({ error: 'Assessment not publicly available' });
+      }
+
+      logRequest('GET', `/assessments/validate/${publicId}`, 200, Date.now() - startTime);
+      return res.json({ valid: true });
+    } catch (error) {
+      console.error('Error validating public assessment:', error);
+      logRequest(
+        'GET',
+        `/assessments/validate/${req.params?.publicId || 'unknown'}`,
+        500,
+        Date.now() - startTime,
+      );
+      res.status(500).json(errorResponse(error, 'Failed to validate public id'));
     }
   });
 
@@ -728,6 +775,118 @@ export default function createAssessmentsRouter(supabase) {
       logRequest(
         'GET',
         `/market-analysis/${req && req.params && req.params.id ? req.params.id : 'unknown'}`,
+        500,
+        Date.now() - startTime,
+      );
+      res.status(500).json(errorResponse(error, 'Failed to fetch per-assessment market data'));
+    }
+  });
+
+  // GET /market-analysis/public/:publicId - per-assessment market analysis for public shares
+  router.get('/market-analysis/public/:publicId', async (req, res) => {
+    const startTime = Date.now();
+    const { publicId } = req.params;
+
+    try {
+      // Fetch market aggregates
+      const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+      if (marketError) console.warn('Market data query warning:', marketError.message);
+
+      const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
+      if (statsError) console.warn('Assessment statistics query warning:', statsError.message);
+
+      // Fetch the assessment by public_id and ensure it is public
+      const { data: assessmentRow, error: assessmentError } = await supabase
+        .from('assessments')
+        .select('overall_score, result_json, industry, is_public')
+        .eq('public_id', publicId)
+        .maybeSingle();
+
+      if (assessmentError) console.warn('Assessment fetch warning:', assessmentError.message);
+
+      if (!assessmentRow || !assessmentRow.is_public) {
+        return res
+          .status(404)
+          .json(
+            errorResponse(
+              { message: 'Assessment not found or not public', code: 'NOT_FOUND' },
+              'Assessment not found',
+            ),
+          );
+      }
+
+      const userScore = assessmentRow?.overall_score ?? null;
+      const userIndustry =
+        assessmentRow?.industry || assessmentRow?.result_json?.metadata?.industry || null;
+
+      let user_percentile = null;
+      if (typeof userScore === 'number') {
+        const { count: lessOrEqualCount } = await supabase
+          .from('assessments')
+          .select('id', { count: 'exact' })
+          .lte('overall_score', userScore);
+
+        const total = stats?.[0]?.total_assessments || null;
+        if (total && typeof lessOrEqualCount === 'number') {
+          user_percentile = Math.round((lessOrEqualCount / total) * 100);
+        }
+      }
+
+      let industryBenchmark = null;
+      if (userIndustry && Array.isArray(marketData)) {
+        const match = marketData.find((m) => m.industry === userIndustry);
+        if (match) {
+          industryBenchmark = {
+            avg_score: match.avg_score,
+            min_score: match.min_score,
+            max_score: match.max_score,
+            count: match.count,
+            scale: match.scale,
+          };
+        }
+      }
+
+      const strategyMap = {};
+      (marketData || []).forEach((m) => {
+        const strat = m.r_strategy || 'unknown';
+        if (!strategyMap[strat]) {
+          strategyMap[strat] = { strategy: strat, avg_score: 0, count: 0 };
+        }
+        strategyMap[strat].avg_score =
+          (strategyMap[strat].avg_score * strategyMap[strat].count +
+            Number(m.avg_score || 0) * (m.count || 0)) /
+          (strategyMap[strat].count + (m.count || 0) || 1);
+        strategyMap[strat].count += m.count || 0;
+      });
+      const strategy_breakdown = Object.values(strategyMap).sort((a, b) => b.count - a.count);
+
+      const normalizedStats = stats?.[0]
+        ? {
+            avg_score: stats[0].avg_score,
+            median_score: stats[0].median_score,
+            min_score: stats[0].min_score,
+            max_score: stats[0].max_score,
+            total_count: stats[0].total_assessments,
+          }
+        : null;
+
+      logRequest('GET', `/market-analysis/public/${publicId}`, 200, Date.now() - startTime);
+
+      res.json({
+        market_data: marketData || [],
+        stats: normalizedStats,
+        userScore,
+        user_percentile,
+        userIndustry,
+        industry_benchmark: industryBenchmark,
+        strategy_breakdown,
+        readonly: true,
+      });
+    } catch (error) {
+      console.error('Error fetching public per-assessment market data:', error);
+      logRequest(
+        'GET',
+        `/market-analysis/${req && req.params && req.params.publicId ? req.params.publicId : 'unknown'}`,
         500,
         Date.now() - startTime,
       );
