@@ -14,7 +14,7 @@ import { getCharacterCount } from '@/lib/validation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
-import { Card, Tooltip, Label, TextArea as Textarea } from '@heroui/react';
+import { Card, Tooltip, Label, TextArea as Textarea, ScrollShadow } from '@heroui/react';
 import { Button } from '@/components/common';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { cn } from '@/utils/cn';
@@ -25,10 +25,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   ChevronRight,
+  ChevronDown,
   Leaf,
   ClipboardPenLine,
   BookOpen,
   ClipboardList,
+  FileBox,
 } from 'lucide-react';
 import InfoIconButton from '@/components/common/InfoIconButton';
 
@@ -45,6 +47,7 @@ export default function LandingPage() {
     openEvaluationParametersInfoModal,
     openAssessmentMethodologyModal,
     openEvaluationCriteriaModal,
+    openTestCasesHeadingInfoModal,
   } = useLandingModals();
   const [showEvaluationParameters, setShowEvaluationParameters] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -403,74 +406,52 @@ export default function LandingPage() {
                 )}
 
                 {/* EvaluationParameters Parameters Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-start text-emerald-600">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
-                      className="font-semibold text-lg"
-                    >
-                      <ChevronRight
-                        className={cn(
-                          'w-5 h-5 transition-transform duration-500',
-                          showEvaluationParameters && 'rotate-90',
-                        )}
-                      />
-                      <span>Evaluation Parameters</span>
-                    </Button>
-
-                    <InfoIconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEvaluationParametersInfoModal();
-                      }}
-                      className="mt-px ml-2"
-                    />
-                  </div>
-
-                  <AnimatePresence initial={false}>
-                    {showEvaluationParameters && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0.5 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0.5 }}
-                        transition={{ duration: 0.35, ease: 'easeInOut' }}
-                        className="overflow-hidden"
-                      >
+                <Accordion className="w-full" variant="surface">
+                  <Accordion.Item>
+                    <Accordion.Heading>
+                      <Accordion.Trigger className="p-2">
+                        <div className="flex items-center justify-start">
+                          <FileBox className="w-6 h-6 mr-2 text-emerald-600" />
+                          <span className="font-semibold text-lg">Evaluation Parameters</span>
+                          <InfoIconButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEvaluationParametersInfoModal();
+                            }}
+                            className="ml-3"
+                          />
+                        </div>
+                        <Accordion.Indicator>
+                          <ChevronDown />
+                        </Accordion.Indicator>
+                      </Accordion.Trigger>
+                    </Accordion.Heading>
+                    <Accordion.Panel>
+                      <Accordion.Body className="w-full p-0">
                         <ParameterInputContainer loading={loading} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                      </Accordion.Body>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
 
                 {/* Submit Button Section */}
                 <div className="w-full">
                   <Tooltip delay={0} isDisabled={isValid && !loading}>
                     <Tooltip.Trigger>
-                      <div className="w-full">
-                        <Button
-                          size="lg"
-                          onPress={handleSubmit(handleFormSubmit)}
-                          isDisabled={loading || !isValid}
-                          variant="teal"
-                          fullWidth
-                          className="h-12"
-                        >
-                          <div className="flex items-center justify-center gap-4">
-                            {loading ? (
-                              <>
-                                <div className="w-5 h-5 flex items-center justify-center">
-                                  <LoaderIcon isButton={true} color="#ffffff" />
-                                </div>
-                                <span>Evaluating...</span>
-                              </>
-                            ) : (
-                              <span>Evaluate Circularity</span>
-                            )}
-                          </div>
-                        </Button>
-                      </div>
+                      <Button
+                        size="lg"
+                        onPress={handleSubmit(handleFormSubmit)}
+                        isDisabled={loading || !isValid}
+                        variant="teal"
+                        fullWidth
+                        className="h-12"
+                      >
+                        {loading ? (
+                          <LoaderIcon isButton={true} color="#ffffff" />
+                        ) : (
+                          <span>Evaluate Circularity</span>
+                        )}
+                      </Button>
                     </Tooltip.Trigger>
                     <Tooltip.Content showArrow placement="top">
                       <Tooltip.Arrow />
@@ -482,9 +463,43 @@ export default function LandingPage() {
                 </div>
 
                 {/* Test Case Selector */}
-                <SampleTestCasesContainer
-                  setShowEvaluationParameters={setShowEvaluationParameters}
-                />
+                <Accordion
+                  className="w-full"
+                  variant="surface"
+                  defaultExpandedKeys={['test-cases']}
+                >
+                  <Accordion.Item>
+                    <Accordion.Heading>
+                      <Accordion.Trigger>
+                        <ClipboardPenLine className="w-6 h-6 mr-2 text-emerald-600" />
+                        <div className="flex flex-col items-start justify-center">
+                          <div className="flex items-center justify-center gap-2.5">
+                            <span className="font-semibold text-lg">Sample Test Cases</span>
+                            <InfoIconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEvaluationParametersInfoModal();
+                              }}
+                              className="mb-px"
+                            />
+                          </div>
+                          <span className="text-xs text-slate-600 text-wrap text-left italic">
+                            Use curated examples to explore how the evaluator scores, auto-fill the
+                            form for quick testing.
+                          </span>
+                        </div>
+                        <Accordion.Indicator>
+                          <ChevronDown />
+                        </Accordion.Indicator>
+                      </Accordion.Trigger>
+                    </Accordion.Heading>
+                    <Accordion.Panel>
+                      <Accordion.Body className="mt-2">
+                        <SampleTestCasesContainer />
+                      </Accordion.Body>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
               </div>
             </Card>
           </motion.div>

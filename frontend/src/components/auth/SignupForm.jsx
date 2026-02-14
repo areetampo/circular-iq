@@ -12,14 +12,22 @@ import { supabase } from '@/lib/supabase';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { SITE_CONFIG } from '@/constants/siteConfig';
 
+const minUsernameLength = 3;
+const maxUsernameLength = 30;
+const minPasswordLength = 6;
+const maxPasswordLength = 30;
+
 const signupSchema = z
   .object({
     username: z
       .string()
-      .min(3, 'Username must be at least 3 characters')
-      .max(30, 'Username must be at most 30 characters')
+      .min(minUsernameLength, `Username must be at least ${minUsernameLength} characters`)
+      .max(maxUsernameLength, `Username must be at most ${maxUsernameLength} characters`)
       .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z
+      .string()
+      .min(minPasswordLength, `Password must be at least ${minPasswordLength} characters`)
+      .max(maxPasswordLength, `Password must be at most ${maxPasswordLength} characters`),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -79,7 +87,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
       addToast({
         title: 'Account created successfully!',
-        description: 'Welcome to Circular Economy Business Auditor.',
+        description: `Welcome to ${SITE_CONFIG.fullName}.`,
         variant: 'success',
       });
 
@@ -101,14 +109,9 @@ export function SignupForm({ onSwitchToLogin }) {
 
   return (
     <div className="relative z-10 w-full max-w-md">
-      {/* Logo */}
-      <div className="mb-8 flex justify-center">
-        <SITE_CONFIG.logo className="h-16 w-auto" />
-      </div>
-
       {/* Form Card */}
       <Card className="overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-xl">
-        <div className="px-8 py-8">
+        <div className="p-2 sm:p-4">
           <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             {/* Username Field */}
             <Controller
@@ -116,17 +119,23 @@ export function SignupForm({ onSwitchToLogin }) {
               control={control}
               render={({ field }) => (
                 <TextField isInvalid={!!errors.username}>
-                  <Label className="text-sm font-medium text-gray-900">Username</Label>
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-sm font-medium text-gray-900">Username</Label>
+                    {errors.username && (
+                      <FieldError className="text-xs">({errors.username.message})</FieldError>
+                    )}
+                  </div>
                   <Input
                     {...field}
                     type="text"
-                    placeholder="johndoe"
+                    placeholder="create your username"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
-                  {errors.username && (
-                    <FieldError className="text-xs">{errors.username.message}</FieldError>
-                  )}
+                  <span className="text-xs pl-2 pt-1 opacity-60">
+                    {`must be ${minUsernameLength}-${maxUsernameLength} characters,
+                      letters/numbers/underscores only`}
+                  </span>
                 </TextField>
               )}
             />
@@ -137,17 +146,22 @@ export function SignupForm({ onSwitchToLogin }) {
               control={control}
               render={({ field }) => (
                 <TextField isInvalid={!!errors.password}>
-                  <Label className="text-sm font-medium text-gray-900">Password</Label>
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-sm font-medium text-gray-900">Password</Label>
+                    {errors.password && (
+                      <FieldError className="text-xs">({errors.password.message})</FieldError>
+                    )}
+                  </div>
                   <Input
                     {...field}
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="create your password"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
-                  {errors.password && (
-                    <FieldError className="text-xs">{errors.password.message}</FieldError>
-                  )}
+                  <span className="text-xs pl-2 pt-1 opacity-60">
+                    {`must be ${minPasswordLength}-${maxPasswordLength} characters`}
+                  </span>
                 </TextField>
               )}
             />
@@ -158,49 +172,50 @@ export function SignupForm({ onSwitchToLogin }) {
               control={control}
               render={({ field }) => (
                 <TextField isInvalid={!!errors.confirmPassword}>
-                  <Label className="text-sm font-medium text-gray-900">Confirm Password</Label>
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-sm font-medium text-gray-900">Confirm Password</Label>
+                    {errors.confirmPassword && (
+                      <FieldError className="text-xs">
+                        ({errors.confirmPassword.message})
+                      </FieldError>
+                    )}
+                  </div>
                   <Input
                     {...field}
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder="confirm your password"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
-                  {errors.confirmPassword && (
-                    <FieldError className="text-xs">{errors.confirmPassword.message}</FieldError>
-                  )}
                 </TextField>
               )}
             />
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-linear-to-r from-green-600 to-emerald-600 text-white font-semibold shadow-md hover:from-green-700 hover:to-emerald-700 hover:shadow-lg disabled:opacity-50"
-              isDisabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <LoaderIcon />
-                  Creating account...
-                </span>
-              ) : (
-                'Create Account'
-              )}
+            <Button type="submit" className="w-full" variant="teal" isDisabled={isLoading}>
+              <span className="flex items-center justify-center gap-2">
+                {isLoading ? (
+                  <>
+                    <LoaderIcon color="#ffffff" isButton />
+                  </>
+                ) : (
+                  <>Create Account</>
+                )}
+              </span>
             </Button>
 
             {/* Divider */}
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="bg-white px-4 text-gray-600 font-medium">Or continue with</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Google Signup Button */}
-            <Button
+            {/* <Button
               variant="secondary"
               type="button"
               className="w-full font-medium"
@@ -231,7 +246,7 @@ export function SignupForm({ onSwitchToLogin }) {
                 />
               </svg>
               Sign up with Google
-            </Button>
+            </Button> */}
           </Form>
 
           {/* Switch to Login */}

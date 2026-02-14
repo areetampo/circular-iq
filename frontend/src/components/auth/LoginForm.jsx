@@ -10,7 +10,6 @@ import { Button } from '@/components/common';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import LoaderIcon from '@/components/common/LoaderIcon';
-import { SITE_CONFIG } from '@/constants/siteConfig';
 
 const loginSchema = z.object({
   username: z
@@ -77,32 +76,54 @@ export function LoginForm({ onSwitchToSignup }) {
 
   return (
     <div className="w-full max-w-md">
-      {/* Logo */}
-      <div className="mb-8 flex justify-center">
-        <SITE_CONFIG.logo className="h-16 w-auto" />
-      </div>
-
       {/* Form Card */}
       <Card className="overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-xl">
-        <div className="px-8 py-8">
+        <div className="p-2 sm:p-4">
           <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+            {/* <Controller
+              name="username"
+              control={control}
+              render={({ field }) => (
+                <TextField isInvalid={!!errors.username}>
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-sm font-medium text-gray-900">Username</Label>
+                    {errors.username && (
+                      <FieldError className="text-xs">({errors.username.message})</FieldError>
+                    )}
+                  </div>
+                  <Input
+                    {...field}
+                    type="text"
+                    placeholder="create your username"
+                    disabled={isLoading}
+                    className="mt-1.5"
+                  />
+                  <span className="text-xs pl-2 pt-1 opacity-60">
+                    {`must be ${minUsernameLength}-${maxUsernameLength} characters,
+                      letters/numbers/underscores only`}
+                  </span>
+                </TextField>
+              )}
+            /> */}
             {/* Username Field */}
             <Controller
               name="username"
               control={control}
               render={({ field }) => (
                 <TextField isInvalid={!!errors.username}>
-                  <Label className="text-sm font-medium text-gray-900">Username</Label>
+                  <div className="flex gap-2 items-center">
+                    <Label className="text-sm font-medium text-gray-900">Username</Label>
+                    {errors.username && (
+                      <FieldError className="text-xs">({errors.username.message})</FieldError>
+                    )}
+                  </div>
                   <Input
                     {...field}
                     type="text"
-                    placeholder="johndoe"
+                    placeholder="your username"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
-                  {errors.username && (
-                    <FieldError className="text-xs">{errors.username.message}</FieldError>
-                  )}
                 </TextField>
               )}
             />
@@ -113,57 +134,48 @@ export function LoginForm({ onSwitchToSignup }) {
               control={control}
               render={({ field }) => (
                 <TextField isInvalid={!!errors.password}>
-                  <div className="flex items-center justify-between">
+                  <div className="flex gap-2 items-center">
                     <Label className="text-sm font-medium text-gray-900">Password</Label>
-                    <a
-                      href="#"
-                      className="text-xs font-medium text-green-600 underline-offset-4 transition-colors hover:text-green-700 hover:underline"
-                    >
-                      Forgot password?
-                    </a>
+                    {errors.password && (
+                      <FieldError className="text-xs">({errors.password.message})</FieldError>
+                    )}
                   </div>
                   <Input
                     {...field}
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="your password"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
-                  {errors.password && (
-                    <FieldError className="text-xs">{errors.password.message}</FieldError>
-                  )}
                 </TextField>
               )}
             />
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-linear-to-r from-green-600 to-emerald-600 text-white font-semibold shadow-md hover:from-green-700 hover:to-emerald-700 hover:shadow-lg disabled:opacity-50"
-              isDisabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <LoaderIcon />
-                  Signing in...
-                </span>
-              ) : (
-                'Login'
-              )}
+            <Button type="submit" className="w-full" variant="teal" isDisabled={isLoading}>
+              <span className="flex items-center justify-center gap-2">
+                {isLoading ? (
+                  <>
+                    <LoaderIcon color="#ffffff" isButton />
+                  </>
+                ) : (
+                  <>Sign in</>
+                )}
+              </span>
             </Button>
 
             {/* Divider */}
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="bg-white px-4 text-gray-600 font-medium">Or continue with</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Google Login Button */}
-            <Button
+            {/* <Button
               variant="secondary"
               type="button"
               className="w-full font-medium"
@@ -188,11 +200,11 @@ export function LoginForm({ onSwitchToSignup }) {
                 />
               </svg>
               Login with Google
-            </Button>
+            </Button> */}
           </Form>
 
           {/* Switch to Signup */}
-          <div className="mt-8 text-center text-sm text-gray-600">
+          <div className="mt-4 text-center text-sm text-gray-600">
             Don&apos;t have an account?{' '}
             <button
               type="button"

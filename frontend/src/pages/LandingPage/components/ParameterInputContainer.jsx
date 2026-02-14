@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
 import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
-import { Card, Label, Input, NumberField } from '@heroui/react';
+import { Card, Label, NumberField, Accordion } from '@heroui/react';
 import LandingModalManager from '@/components/modals/landing/LandingModalManager';
 import InfoIconButton from '@/components/common/InfoIconButton';
+import { FileBox, ChevronDown } from 'lucide-react';
 
 /**
  * Memoized Parameter Row Component
@@ -141,39 +142,41 @@ ParameterBox.propTypes = {
  */
 export default function ParameterInputContainer({ loading }) {
   return (
-    <Card className="border-2 shadow-sm bg-linear-to-br from-emerald-50/60 via-teal-50/70 to-cyan-50/60 border-emerald-500">
-      <div className="py-2 space-y-12">
+    <div className="border-2 rounded-3xl shadow-sm bg-linear-to-br from-emerald-50/60 via-teal-50/70 to-cyan-50/60 border-emerald-500 p-0 w-full">
+      <Accordion className="w-full" variant="default" allowsMultipleExpanded={true}>
         {Object.entries(parameterGroups).map(([groupName, group], groupIdx) => (
-          <div key={groupName} className="space-y-4">
-            <h3 className="text-xl font-extrabold text-center text-teal-600">{groupName}</h3>
-            <div className="bg-teal-900 h-0.5 w-auto" />
-            <div className="flex flex-col gap-6 md:gap-4 md:flex-row md:items-stretch">
-              {group.map((key, index) => (
-                <React.Fragment key={key}>
-                  {/* 1. The Wrapper for the content */}
-                  <div className="flex-1">
-                    <ParameterBox paramKey={key} loading={loading} />
-                  </div>
-
-                  {/* 2. The Separator as a direct sibling of the flex-1 div */}
-                  {/* {index < group.length - 1 && (
-                    <Separator
-                      orientation="vertical"
-                      className="self-stretch hidden md:block bg-border/70"
-                    />
-                  )} */}
-
-                  {/* 3. Mobile Separator (Optional: Horizontal for mobile) */}
-                  {/* {index < group.length - 1 && (
-                    <Separator orientation="horizontal" className="block md:hidden bg-border/70" />
-                  )} */}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
+          <Accordion.Item key={groupIdx}>
+            <Accordion.Heading>
+              <Accordion.Trigger>
+                <h3 className="text-xl font-extrabold text-center text-teal-600 ml-1">
+                  {groupName}
+                </h3>
+                <Accordion.Indicator>
+                  <ChevronDown />
+                </Accordion.Indicator>
+              </Accordion.Trigger>
+            </Accordion.Heading>
+            <Accordion.Panel
+              style={
+                {
+                  // paddingInline: '0rem !important',
+                }
+              }
+            >
+              <Accordion.Body className="flex flex-col gap-6 md:gap-4 md:flex-row md:items-stretch">
+                {group.map((key, index) => (
+                  <React.Fragment key={index}>
+                    <div className="flex-1">
+                      <ParameterBox paramKey={key} loading={loading} />
+                    </div>
+                  </React.Fragment>
+                ))}
+              </Accordion.Body>
+            </Accordion.Panel>
+          </Accordion.Item>
         ))}
-      </div>
-    </Card>
+      </Accordion>
+    </div>
   );
 }
 
