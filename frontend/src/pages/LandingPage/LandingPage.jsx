@@ -71,13 +71,14 @@ export default function LandingPage() {
 
   const {
     register,
-    watch,
     reset,
     handleSubmit,
     formState: { isValid },
   } = methods;
 
-  const allFormValues = watch();
+  // Use refs + onChange handlers to debounce autosave without subscribing the whole
+  // component to form changes (avoids re-renders on each keystroke).
+  const autosaveTimerRef = useRef(null);
 
   const handleRestore = () => {
     const restoredState = restoreEvaluation();
@@ -132,21 +133,29 @@ export default function LandingPage() {
     }
   }, []);
 
-  // Auto-save form state to session on every change
-  useEffect(() => {
-    if (skipAutosaveRef.current) {
-      skipAutosaveRef.current = false;
-      return undefined;
-    }
-
-    const debounceTimer = setTimeout(() => {
-      if (allFormValues && allFormValues.businessProblem && allFormValues.businessSolution) {
-        saveEvaluation(allFormValues);
+  // Debounced autosave using getValues inside delayed callback.
+  const scheduleAutosave = () => {
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      // If skip flag is set, consume it and skip this save
+      if (skipAutosaveRef.current) {
+        skipAutosaveRef.current = false;
+        return;
       }
-    }, 1000); // Wait 1 second after user stops typing
 
-    return () => clearTimeout(debounceTimer);
-  }, [allFormValues, saveEvaluation]);
+      const values = methods.getValues();
+      if (values && values.businessProblem && values.businessSolution) {
+        saveEvaluation(values);
+      }
+    }, 1000);
+  };
+
+  // Clean up autosave timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    };
+  }, []);
 
   const handleFormSubmit = async (formData) => {
     // Validate minimum character requirements
@@ -361,7 +370,9 @@ export default function LandingPage() {
                     id="business-problem"
                     rows={4}
                     placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
-                    {...register('businessProblem')}
+                    {...register('businessProblem', {
+                      onChange: () => scheduleAutosave(),
+                    })}
                     disabled={loading}
                     className="w-full border border-gray-300 placeholder:opacity-60 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 dark:border-gray-600 dark:focus:ring-green-900/40 rounded-lg transition-all duration-200 font-semibold"
                   />
@@ -388,7 +399,9 @@ export default function LandingPage() {
                     id="business-solution"
                     rows={5}
                     placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
-                    {...register('businessSolution')}
+                    {...register('businessSolution', {
+                      onChange: () => scheduleAutosave(),
+                    })}
                     disabled={loading}
                     className="w-full border border-gray-300 placeholder:opacity-60 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 dark:border-gray-600 dark:focus:ring-green-900/40 rounded-lg transition-all duration-200 font-semibold"
                   />
