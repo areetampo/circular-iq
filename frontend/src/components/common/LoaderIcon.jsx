@@ -63,8 +63,8 @@ const LOADERS = [
   ),
 ];
 
-const SWITCH_INTERVAL = 4000;
-const FADE_DURATION = 500;
+const SWITCH_INTERVAL = 6000;
+const FADE_DURATION = 700;
 
 const getRandomIndex = (exclude) => {
   let idx;

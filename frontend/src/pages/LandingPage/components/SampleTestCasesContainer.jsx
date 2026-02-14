@@ -5,13 +5,11 @@ import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
 import testCases from '@/data/testCases.json';
 import { Card, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
-import { toast } from '@heroui/react';
-import { ChevronRight, PencilLine, ClipboardPenLine } from 'lucide-react';
-import InfoIconButton from '@/components/common/InfoIconButton';
-import { motion, AnimatePresence } from 'framer-motion';
+import { toast, ScrollShadow } from '@heroui/react';
 import LandingModalManager from '@/components/modals/landing/LandingModalManager';
 import { ReplaceInputsDialog } from '@/components/dialogs';
 import { cn } from '@/utils/cn';
+import { Scroll } from 'lucide-react';
 
 export default function SampleTestCasesContainer({ setShowEvaluationParameters = () => {} }) {
   const { setValue, trigger, getValues } = useFormContext();
@@ -58,134 +56,70 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
   };
 
   return (
-    <div className="mt-6 relative">
-      <ClipboardPenLine className="text-teal-600 absolute top-5 left-3" size={24} />
-      <motion.div
-        className="w-full h-auto px-4 py-3 transition-all duration-300 border-2 border-emerald-200 rounded-xl bg-linear-to-r from-emerald-50/60 via-teal-50/50 to-cyan-50/60 hover:from-emerald-100/30 hover:via-teal-100/30 hover:to-cyan-100/30 hover:border-emerald-300 overflow-hidden"
-        role="button"
-        tabIndex={0}
-      >
-        {/* Heading */}
-        <div
-          className="flex items-center justify-between w-full gap-3 pl-7 hover:cursor-pointer"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm xs:text-base font-semibold text-slate-900">
-                  Sample Test Cases
-                </h2>
-                <InfoIconButton
-                  onClick={(e) => {
-                    openTestCasesHeadingInfoModal();
-                    e.stopPropagation();
-                  }}
-                />
-              </div>
-              <p className="text-xs text-slate-600 text-wrap text-left italic">
-                Use curated examples to explore how the evaluator scores, auto-fill the form for
-                quick testing.
-              </p>
-            </div>
-          </div>
-          <ChevronRight
+    <>
+      <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pt-0 space-y-0">
+        {testCases.testCases.map((testCase, index) => (
+          <Card
+            key={testCase.id}
+            onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'w-5 h-5 text-emerald-600 transition-transform duration-300 shrink-0',
-              isOpen && 'rotate-90',
+              'cursor-pointer transition-colors duration-200 h-full border-2 shadow-sm',
+              selectedCase === testCase.id
+                ? 'border-teal-300/60 bg-teal-100/50'
+                : 'border-teal-100 bg-teal-50/70 hover:bg-teal-100/40 hover:border-teal-200',
             )}
-            size={34}
-          />
-        </div>
+          >
+            <div className="flex flex-col h-full p-0">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <h4 className="flex-1 text-lg font-semibold leading-tight text-slate-900">
+                  {testCase.title}
+                </h4>
+                <Chip
+                  size="sm"
+                  variant="soft"
+                  color="success"
+                  className="text-xs font-semibold shrink-0"
+                >
+                  #{index + 1}
+                </Chip>
+              </div>
 
-        {/* Expandable Content */}
-        <AnimatePresence initial={false}>
-          {isOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35, ease: 'easeInOut' }}
-              className="overflow-hidden"
-            >
-              <div className="pt-4 space-y-4">
-                <div className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96">
-                  {testCases.testCases.map((testCase, index) => (
-                    <Card
-                      key={testCase.id}
-                      onClick={() => requestSelectCase(testCase)}
+              <p className="mb-3 text-xs leading-relaxed grow text-slate-600 line-clamp-2">
+                {testCase.problem.substring(0, 100)}...
+              </p>
+
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(testCase.parameters)
+                  .slice(0, 3)
+                  .map(([key, value]) => (
+                    <span
+                      key={key}
                       className={cn(
-                        'cursor-pointer transition-colors duration-200 h-full border-2 shadow-sm',
-                        selectedCase === testCase.id
-                          ? 'border-emerald-500 bg-emerald-50'
-                          : 'border-emerald-200 bg-white hover:bg-emerald-50 hover:border-emerald-300',
+                        'text-[9px] sm:text-xs px-2 py-1 rounded-md font-semibold border',
+                        getParameterColor(value),
                       )}
                     >
-                      <div className="flex flex-col h-full p-0">
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <h4 className="flex-1 text-lg font-semibold leading-tight text-slate-900">
-                            {testCase.title}
-                          </h4>
-                          <Chip
-                            size="sm"
-                            variant="soft"
-                            color="success"
-                            className="text-xs font-semibold shrink-0"
-                          >
-                            #{index + 1}
-                          </Chip>
-                        </div>
-
-                        <p className="mb-3 text-xs leading-relaxed grow text-slate-600 line-clamp-2">
-                          {testCase.problem.substring(0, 100)}...
-                        </p>
-
-                        <div className="flex flex-wrap gap-1.5">
-                          {Object.entries(testCase.parameters)
-                            .slice(0, 3)
-                            .map(([key, value]) => (
-                              <span
-                                key={key}
-                                className={cn(
-                                  'text-[9px] px-2 py-1 rounded-md font-semibold border',
-                                  getParameterColor(value),
-                                )}
-                              >
-                                {key.replace(/_/g, ' ')}: {value}
-                              </span>
-                            ))}
-                        </div>
-
-                        <div className="flex justify-end mt-4">
-                          <Button
-                            onClick={(e) => {
-                              openTestCaseDetailsModal(testCase);
-                              e.stopPropagation();
-                            }}
-                            variant="eco-soft"
-                            size="sm"
-                          >
-                            View details
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
+                      {key.replace(/_/g, ' ')}: {value}
+                    </span>
                   ))}
-                </div>
-
-                <div className="flex items-center gap-3 p-4 border rounded-lg border-emerald-200/50 bg-emerald-50/40">
-                  <PencilLine size={30} />
-                  <p className="m-0 text-xs leading-relaxed text-emerald-900">
-                    <span className="font-semibold">Pro tip:</span> These examples showcase best
-                    practices in circular economy design. Use them to understand how the evaluator
-                    scores different dimensions.
-                  </p>
-                </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+
+              <div className="flex justify-end mt-4">
+                <Button
+                  onClick={(e) => {
+                    openTestCaseDetailsModal(testCase);
+                    e.stopPropagation();
+                  }}
+                  variant="eco-soft"
+                  size="sm"
+                >
+                  View details
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </ScrollShadow>
 
       <ReplaceInputsDialog
         isOpen={isConfirmOpen}
@@ -205,7 +139,7 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
       />
 
       <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
-    </div>
+    </>
   );
 }
 
