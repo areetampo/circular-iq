@@ -120,10 +120,10 @@ vi.mock('@/lib/formatting', () => ({
   getCurrentTimestampFormatted: () => '11 Feb 2026, 10:00 am',
 }));
 
-// Mock landing modals hook so Dashboard can call openFeaturedSolutionsModal without side effects
-vi.mock('@/pages/LandingPage/hooks/useLandingModals', () => ({
+// Mock modal hook so Dashboard can call openDashboardFeaturedSolutionsModal without side effects
+vi.mock('@/hooks/useModal', () => ({
   default: () => ({
-    openFeaturedSolutionsModal: vi.fn(),
+    openDashboardFeaturedSolutionsModal: vi.fn(),
     modal: null,
     isModalOpen: false,
     onClose: vi.fn(),
@@ -137,8 +137,8 @@ vi.mock('@/components/charts', () => ({
   ComboChart: (props) => React.createElement('div', { 'data-testid': 'combo-chart' }, 'ComboChart'),
 }));
 
-// Stub LandingModalManager to prevent modal render side-effects
-vi.mock('@/components/modals/landing/LandingModalManager', () => ({
+// Stub ModalManager to prevent modal render side-effects
+vi.mock('@/components/modals/ModalManager', () => ({
   default: () => null,
 }));
 

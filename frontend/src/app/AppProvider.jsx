@@ -6,6 +6,7 @@ import { Toast, toast } from '@heroui/react';
 import { ErrorBoundary } from '@/components/error-boundaries';
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
 import { AuthProvider } from '@/contexts/AuthContext'; // ← ADD THIS IMPORT
+import { ModalProvider } from '@/contexts/ModalContext';
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
@@ -44,15 +45,15 @@ export default function AppProvider({ children }) {
   return (
     <ErrorBoundary>
       <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
-      {/* ADD AuthProvider WRAPPER */}
       <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <GlobalLoadingBar />
-          {children}
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
+        <ModalProvider>
+          <QueryClientProvider client={queryClient}>
+            <GlobalLoadingBar />
+            {children}
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryClientProvider>
+        </ModalProvider>
       </AuthProvider>
-      {/* ← CLOSE WRAPPER */}
     </ErrorBoundary>
   );
 }

@@ -6,6 +6,8 @@ import { cn } from '@/utils/cn';
 import Navbar from './Navbar';
 import Header from './Header';
 import Footer from './Footer';
+import { useGlobalModal } from '@/contexts/ModalContext';
+import { ModalManager } from '@/components/modals';
 
 /**
  * Route-based container configuration
@@ -290,6 +292,8 @@ export default function AppContainer({
   const showHeader = showHeaderOverride ?? config.showHeader;
   const showFooter = showFooterOverride ?? config.showFooter;
 
+  const { modal, isModalOpen, onClose } = useGlobalModal();
+
   return (
     <div className={cn('relative min-h-screen flex flex-col bg-linear-to-br', config.background)}>
       {/* Navbar */}
@@ -335,6 +339,9 @@ export default function AppContainer({
         {/* Footer */}
         {showFooter && <Footer />}
       </div>
+
+      {/* Global Modal Manager */}
+      <ModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </div>
   );
 }

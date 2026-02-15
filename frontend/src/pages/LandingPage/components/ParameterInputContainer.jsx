@@ -1,10 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
-import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
+import { useGlobalModal } from '@/contexts/ModalContext';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
 import { Card, Label, NumberField, Accordion } from '@heroui/react';
-import LandingModalManager from '@/components/modals/landing/LandingModalManager';
 import InfoIconButton from '@/components/common/InfoIconButton';
 import { FileBox, ChevronDown } from 'lucide-react';
 
@@ -14,7 +13,7 @@ import { FileBox, ChevronDown } from 'lucide-react';
  */
 const ParameterBox = React.memo(({ paramKey, loading }) => {
   const { control } = useFormContext();
-  const { modal, isModalOpen, onClose, openParameterInfoModal } = useLandingModals();
+  const { openSpecificEvaluationParameterInfoModal } = useGlobalModal();
 
   // Calculate scale markers only for this parameter
   const getScaleMarkers = React.useMemo(() => {
@@ -67,7 +66,10 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                   <span className="font-bold text-green-700 text-md">
                     {parameterLabels[paramKey].label}
                   </span>
-                  <InfoIconButton size={20} onClick={() => openParameterInfoModal(paramKey)} />
+                  <InfoIconButton
+                    size={20}
+                    onClick={() => openSpecificEvaluationParameterInfoModal(paramKey)}
+                  />
                 </Label>
                 <NumberField.Group className="bg-white/90 shadow-sm">
                   <NumberField.DecrementButton className="hover:bg-emerald-50 transition-colors" />
@@ -124,8 +126,6 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
           </div>
         )}
       />
-
-      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </div>
   );
 });

@@ -4,7 +4,8 @@ import { PencilLine, Target, Lightbulb, BarChart3 } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
 
-export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase }) {
+export default function SpecificSampleTestCaseViewDetailsModal({ onClose, isModalOpen, testCase }) {
+  if (!testCase) return null;
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}
@@ -107,7 +108,7 @@ export default function SampleTestCaseInfoModal({ onClose, isModalOpen, testCase
   );
 }
 
-SampleTestCaseInfoModal.propTypes = {
+SpecificSampleTestCaseViewDetailsModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   isModalOpen: PropTypes.bool.isRequired,
   testCase: PropTypes.shape({

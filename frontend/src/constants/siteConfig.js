@@ -7,7 +7,7 @@ import Logo from '@/components/common/Logo';
 
 export const SITE_CONFIG = {
   url: 'https://circular-economy-evaluator.vercel.app',
-  name: 'CEE',
+  name: 'Sakura',
   fullName: 'Circular Economy Evaluation Platform',
   tagline: 'Sustainable Business Solutions',
   logo: Logo,

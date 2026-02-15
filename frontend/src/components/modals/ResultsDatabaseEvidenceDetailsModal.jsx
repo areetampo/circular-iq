@@ -5,17 +5,19 @@ import { NotebookText, Target, Lightbulb } from 'lucide-react';
 import { Modal, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
 
-export default function ResultsDatabaseEvidenceDetailsModal({
-  onClose,
-  isModalOpen,
-  caseItem,
-  content,
-  title,
-  matchPercentage,
-  matchStrengthLabel,
-  matchColor,
-  sourceCaseId,
-}) {
+export default function ResultsDatabaseEvidenceDetailsModal({ isModalOpen, onClose, data = {} }) {
+  //if data is {} return null
+  if (Object.keys(data).length === 0) return null;
+  const {
+    title = '',
+    content = '',
+    caseItem = null,
+    matchPercentage = null,
+    matchStrengthLabel = '',
+    matchColor = '',
+    sourceCaseId = null,
+  } = data;
+
   // Use structured metadata if available (preferred), otherwise parse content
   const { problem: problemPart, solution: solutionPart } = extractProblemSolution(
     caseItem || content,
@@ -115,23 +117,15 @@ export default function ResultsDatabaseEvidenceDetailsModal({
 }
 
 ResultsDatabaseEvidenceDetailsModal.propTypes = {
-  onClose: PropTypes.func.isRequired,
   isModalOpen: PropTypes.bool.isRequired,
-  caseItem: PropTypes.object,
-  content: PropTypes.string,
-  title: PropTypes.string,
-  matchPercentage: PropTypes.number,
-  matchStrengthLabel: PropTypes.string,
-  matchColor: PropTypes.string,
-  sourceCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-ResultsDatabaseEvidenceDetailsModal.defaultProps = {
-  caseItem: null,
-  content: '',
-  title: '',
-  matchPercentage: null,
-  matchStrengthLabel: '',
-  matchColor: '',
-  sourceCaseId: null,
+  onClose: PropTypes.func.isRequired,
+  data: PropTypes.shape({
+    title: PropTypes.string,
+    content: PropTypes.string,
+    caseItem: PropTypes.object,
+    matchPercentage: PropTypes.number,
+    matchStrengthLabel: PropTypes.string,
+    matchColor: PropTypes.string,
+    sourceCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }),
 };

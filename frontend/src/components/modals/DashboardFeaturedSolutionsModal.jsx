@@ -4,8 +4,10 @@ import { Button } from '@/components/common';
 import { ChartContainer } from '@/components/common/ChartWrapper';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 
-export default function FeaturedSolutionsModal({ isModalOpen, onClose, data = {} }) {
-  const { q, industry } = data || {};
+export default function DashboardFeaturedSolutionsModal({ isModalOpen, onClose, data = {} }) {
+  //if data is {} return null
+  if (Object.keys(data).length === 0) return null;
+  const { q, industry } = data;
 
   const { solutions = [], isLoading } = useFeaturedSolutions({
     limit: 10,
@@ -73,8 +75,11 @@ export default function FeaturedSolutionsModal({ isModalOpen, onClose, data = {}
   );
 }
 
-FeaturedSolutionsModal.propTypes = {
+DashboardFeaturedSolutionsModal.propTypes = {
   isModalOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  data: PropTypes.object,
+  data: PropTypes.shape({
+    q: PropTypes.string,
+    industry: PropTypes.string,
+  }),
 };
