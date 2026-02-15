@@ -89,159 +89,121 @@ export default function AppRoutes() {
           />
         }
       >
-        <Routes>
-          {/* Public Route - Authentication */}
-          <Route
-            path="/auth"
-            element={
-              <AppContainer>
-                <AuthPage />
-              </AppContainer>
-            }
-          />
+        <AppContainer>
+          <Routes>
+            {/* Public Route - Authentication */}
+            <Route path="/auth" element={<AuthPage />} />
 
-          {/* Public Route - Shared Assessment (DEPRECATED: redirecting to new share path) */}
-          <Route
-            path="/share/:publicId"
-            element={
-              <AppContainer>
+            {/* Public Route - Shared Assessment (DEPRECATED: redirecting to new share path) */}
+            <Route
+              path="/share/:publicId"
+              element={
                 <PageErrorBoundary pageName="Share Redirect">
                   <ShareRedirect />
                 </PageErrorBoundary>
-              </AppContainer>
-            }
-          />
-          {/* Gateway for public share links */}
-          <Route
-            path="/assessments/share"
-            element={
-              <AppContainer>
+              }
+            />
+            <Route
+              path="/assessments/share"
+              element={
                 <PageErrorBoundary pageName="Share Gateway">
                   <SharePage />
                 </PageErrorBoundary>
-              </AppContainer>
-            }
-          />
-          {/* Public nested share routes */}
-          <Route
-            path="/assessments/share/:publicId"
-            element={
-              <AppContainer>
+              }
+            />
+            <Route
+              path="/assessments/share/:publicId"
+              element={
                 <PageErrorBoundary pageName="Shared Assessment View">
                   <AssessmentViewPage />
                 </PageErrorBoundary>
-              </AppContainer>
-            }
-          />
-          <Route
-            path="/assessments/share/:publicId/market-analysis"
-            element={
-              <AppContainer>
+              }
+            />
+            <Route
+              path="/assessments/share/:publicId/market-analysis"
+              element={
                 <PageErrorBoundary pageName="Shared Market Analysis">
                   <MarketAnalysisPage isPublicShare={true} isViewFromMyAssessments={true} />
                 </PageErrorBoundary>
-              </AppContainer>
-            }
-          />
-          <Route
-            path="/guide"
-            element={
-              <AppContainer>
+              }
+            />
+            <Route
+              path="/guide"
+              element={
                 <PageErrorBoundary pageName="Guide">
                   <GuidePage />
                 </PageErrorBoundary>
-              </AppContainer>
-            }
-          />
+              }
+            />
 
-          {/* Protected Routes - Require Authentication */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
+            {/* Protected Routes - Require Authentication */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
                   <LandingPage />
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
                   <DashboardPage />
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/results"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/results"
+              element={
+                <ProtectedRoute>
                   <PageErrorBoundary pageName="Results">
                     <ResultsPage />
                   </PageErrorBoundary>
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments"
+              element={
+                <ProtectedRoute>
                   <MyAssessmentsPage />
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/:id"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/:id"
+              element={
+                <ProtectedRoute>
                   <PageErrorBoundary pageName="Assessment Results">
                     <ResultsPage isViewFromMyAssessments={true} />
                   </PageErrorBoundary>
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/results/:id/market-analysis"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
-                  <MarketAnalysisPage />
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/compare"
-            element={
-              <ProtectedRoute>
-                <AppContainer>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/compare"
+              element={
+                <ProtectedRoute>
                   <PageErrorBoundary pageName="Assessment Comparison">
                     <AssessmentComparisonPage />
                   </PageErrorBoundary>
-                </AppContainer>
-              </ProtectedRoute>
-            }
-          />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/results/:id/market-analysis"
+              element={
+                <ProtectedRoute>
+                  <MarketAnalysisPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* 404 Not Found */}
-          <Route
-            path="*"
-            element={
-              <AppContainer>
-                <NotFoundPage />
-              </AppContainer>
-            }
-          />
-        </Routes>
+            {/* 404 Not Found */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </AppContainer>
       </Suspense>
     </GlobalErrorBoundary>
   );

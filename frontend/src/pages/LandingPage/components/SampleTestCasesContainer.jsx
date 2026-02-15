@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext } from 'react-hook-form';
-import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
+import { useGlobalModal } from '@/contexts/ModalContext';
 import testCases from '@/data/testCases.json';
 import { Card, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
 import { toast, ScrollShadow } from '@heroui/react';
-import LandingModalManager from '@/components/modals/landing/LandingModalManager';
 import { ReplaceInputsDialog } from '@/components/dialogs';
 import { cn } from '@/utils/cn';
 import { Scroll } from 'lucide-react';
 
 export default function SampleTestCasesContainer({ setShowEvaluationParameters = () => {} }) {
   const { setValue, trigger, getValues } = useFormContext();
-  const { modal, isModalOpen, onClose, openTestCasesHeadingInfoModal, openTestCaseDetailsModal } =
-    useLandingModals();
+  const { openSpecificTestCaseDetailsModal } = useGlobalModal();
   const [selectedCase, setSelectedCase] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -57,7 +55,7 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
 
   return (
     <>
-      <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pt-0 space-y-0">
+      <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
         {testCases.testCases.map((testCase, index) => (
           <Card
             key={testCase.id}
@@ -107,7 +105,7 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
               <div className="flex justify-end mt-4">
                 <Button
                   onClick={(e) => {
-                    openTestCaseDetailsModal(testCase);
+                    openSpecificTestCaseDetailsModal(testCase);
                     e.stopPropagation();
                   }}
                   variant="eco-soft"
@@ -137,8 +135,6 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
           setPendingCase(null);
         }}
       />
-
-      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </>
   );
 }

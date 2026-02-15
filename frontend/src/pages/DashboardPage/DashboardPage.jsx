@@ -22,8 +22,7 @@ import { toTitleCase } from '@/lib/formatting';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { useEnhancedAnalytics } from '@/features/assessments';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
-import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
-import LandingModalManager from '@/components/modals/landing/LandingModalManager';
+import { useGlobalModal } from '@/contexts/ModalContext';
 import { sortByAverageScoreDesc, sortByAverageScoreAsc } from '@/features/assessments/utils';
 import { cn } from '@/utils/cn';
 import { exportDashboardToPDF } from '@/lib/exportDashboard';
@@ -236,7 +235,7 @@ export default function DashboardPage() {
   });
 
   // Landing modal integration (use landing modal hook to open the shared modal)
-  const { openFeaturedSolutionsModal, modal, isModalOpen, onClose } = useLandingModals();
+  const { openDashboardFeaturedSolutionsModal } = useGlobalModal();
 
   // Extra fetch to compute quick document stats (top keywords and count)
   const { solutions: statsSolutions = [], count: extendedCount = 0 } = useFeaturedSolutions({
@@ -374,7 +373,11 @@ export default function DashboardPage() {
     const source =
       scaleDistribution && scaleDistribution.length > 0
         ? scaleDistribution
-        : demoScaleDistribution.map((d) => ({ scale: d.name, count: d.value, percentage: d.percent }));
+        : demoScaleDistribution.map((d) => ({
+            scale: d.name,
+            count: d.value,
+            percentage: d.percent,
+          }));
     return source.map((s, idx) => ({
       name: s.scale || s.name || 'Unknown',
       value: s.count || s.value || 0,
@@ -409,7 +412,11 @@ export default function DashboardPage() {
     const source =
       scoreDistribution && scoreDistribution.length > 0
         ? scoreDistribution
-        : demoScoreDistribution.map((d) => ({ range: d.name, count: d.value, percentage: d.percent }));
+        : demoScoreDistribution.map((d) => ({
+            range: d.name,
+            count: d.value,
+            percentage: d.percent,
+          }));
     return source.map((bucket, idx) => ({
       name: bucket.range || bucket.name || 'Unknown',
       value: bucket.count || bucket.value || 0,
@@ -707,13 +714,21 @@ export default function DashboardPage() {
               icon={Activity}
             >
               {timeSeriesData.length > 0 ? (
-                <div className={cn('w-full min-w-0', isLoading && 'opacity-50')} style={{ height: '320px' }}>
+                <div
+                  className={cn('w-full min-w-0', isLoading && 'opacity-50')}
+                  style={{ height: '320px' }}
+                >
                   <LineChart
                     data={timeSeriesData}
                     xAxisKey="period"
                     lines={[
                       { dataKey: 'averageScore', stroke: '#2563eb', name: 'Avg Score', area: true },
-                      { dataKey: 'avgViability', stroke: '#059669', name: 'Avg Viability', area: true },
+                      {
+                        dataKey: 'avgViability',
+                        stroke: '#059669',
+                        name: 'Avg Viability',
+                        area: true,
+                      },
                     ]}
                     height={320}
                   />
@@ -732,7 +747,7 @@ export default function DashboardPage() {
                 {filteredPieChartData.length > 0 ? (
                   <div className={cn('w-full', isLoading && 'opacity-50')}>
                     <div style={{ height: '300px', minHeight: '300px' }}>
-                        <PieChart
+                      <PieChart
                         data={filteredPieChartData}
                         dataKey="value"
                         nameKey="name"
@@ -919,7 +934,9 @@ export default function DashboardPage() {
                         <ComboChart
                           data={strategyChartData}
                           bars={[{ dataKey: 'value', fill: pieColors[0], name: 'Count' }]}
-                          lines={[{ dataKey: 'averageScore', stroke: '#059669', name: 'Avg Score' }]}
+                          lines={[
+                            { dataKey: 'averageScore', stroke: '#059669', name: 'Avg Score' },
+                          ]}
                           xAxisKey="name"
                           leftYAxisKey="value"
                           rightYAxisKey="averageScore"
@@ -1136,7 +1153,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
-      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </div>
   );
 }

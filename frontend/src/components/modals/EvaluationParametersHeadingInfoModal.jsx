@@ -5,7 +5,7 @@ import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
 
-export default function EvaluationParametersInfoModal({ onClose, isModalOpen }) {
+export default function EvaluationParametersHeadingInfoModal({ onClose, isModalOpen }) {
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}
@@ -64,7 +64,7 @@ export default function EvaluationParametersInfoModal({ onClose, isModalOpen }) 
   );
 }
 
-EvaluationParametersInfoModal.propTypes = {
+EvaluationParametersHeadingInfoModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   isModalOpen: PropTypes.bool.isRequired,
 };

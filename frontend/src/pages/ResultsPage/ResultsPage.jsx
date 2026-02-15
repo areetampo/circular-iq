@@ -49,8 +49,7 @@ import {
 import LoaderIcon from '@/components/common/LoaderIcon';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import ResultsSkeleton from './components/ResultsSkeleton';
-import useResultsModals from '@/pages/ResultsPage/hooks/useResultsModals';
-import ResultsModalManager from '@/components/modals/results/ResultsModalManager';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { id, publicId } = useParams();
@@ -63,7 +62,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const { isExporting, executeExport } = useExportState();
   const { saveEvaluation, restoreEvaluation } = useSession();
   const { createAssessmentAsync } = useCreateAssessment();
-  const { modal, isModalOpen, onClose, openDatabaseEvidenceDetailsModal } = useResultsModals();
+  const { openResultsDatabaseEvidenceDetailsModal } = useGlobalModal();
 
   const reportTips = useMemo(
     () => [
@@ -1735,7 +1734,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               <button
                                 className="mt-1 mb-6 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline flex items-center gap-1"
                                 onClick={() =>
-                                  openDatabaseEvidenceDetailsModal({
+                                  openResultsDatabaseEvidenceDetailsModal({
                                     caseItem,
                                     content,
                                     title: caseTitle,
@@ -1909,9 +1908,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         onConfirm={handleConfirmDelete}
         isLoading={isDeleting}
       />
-
-      {/* Results Page Modals */}
-      <ResultsModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </>
   );
 }

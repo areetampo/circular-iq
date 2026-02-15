@@ -8,8 +8,7 @@ import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestC
 import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
 import SessionRestorePrompt from '@/features/session/components/SessionRestorePrompt';
 import { useSession } from '@/features/session/hooks/useSession';
-import useLandingModals from '@/pages/LandingPage/hooks/useLandingModals';
-import LandingModalManager from '@/components/modals/landing/LandingModalManager';
+import { useGlobalModal } from '@/contexts/ModalContext';
 import { getCharacterCount } from '@/lib/validation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
@@ -39,16 +38,13 @@ export default function LandingPage() {
   const location = useLocation();
   const { hasEvaluationState, restoreEvaluation, clearEvaluation, saveEvaluation } = useSession();
   const {
-    modal,
-    isModalOpen,
-    onClose,
     openBusinessProblemInfoModal,
     openBusinessSolutionInfoModal,
-    openEvaluationParametersInfoModal,
+    openEvaluationParametersHeadingInfoModal,
     openAssessmentMethodologyModal,
     openEvaluationCriteriaModal,
-    openTestCasesHeadingInfoModal,
-  } = useLandingModals();
+  } = useGlobalModal();
+
   const [showEvaluationParameters, setShowEvaluationParameters] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -261,17 +257,6 @@ export default function LandingPage() {
       />
       {!showSessionPrompt && (
         <div className="w-full max-w-4xl mx-auto space-y-8">
-          {/* Hero */}
-          {/* <section className="text-center">
-              <h1 className="inline-flex items-center text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-                Professional-grade circular economy assessment
-              </h1>
-              <p className="max-w-2xl mx-auto mt-4 text-base leading-relaxed text-gray-600">
-                Turn your sustainability idea into a structured, data-driven evaluation with clear
-                recommendations and benchmarking.
-              </p>
-            </section> */}
-
           {/* Assessment Methodology & Evaluation Criteria Buttons */}
           <motion.div
             className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row"
@@ -429,7 +414,7 @@ export default function LandingPage() {
                           <InfoIconButton
                             onClick={(e) => {
                               e.stopPropagation();
-                              openEvaluationParametersInfoModal();
+                              openEvaluationParametersHeadingInfoModal();
                             }}
                             className="ml-3"
                           />
@@ -491,7 +476,7 @@ export default function LandingPage() {
                             <InfoIconButton
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openEvaluationParametersInfoModal();
+                                openEvaluationParametersHeadingInfoModal();
                               }}
                               className="mb-px"
                             />
@@ -507,7 +492,7 @@ export default function LandingPage() {
                       </Accordion.Trigger>
                     </Accordion.Heading>
                     <Accordion.Panel>
-                      <Accordion.Body className="mt-2">
+                      <Accordion.Body className="pt-2">
                         <SampleTestCasesContainer />
                       </Accordion.Body>
                     </Accordion.Panel>
@@ -518,9 +503,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
       )}
-
-      {/* Landing Page Modals */}
-      <LandingModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
     </FormProvider>
   );
 }

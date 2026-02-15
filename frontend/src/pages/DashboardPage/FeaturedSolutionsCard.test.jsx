@@ -73,12 +73,12 @@ vi.mock(
   { virtual: true },
 );
 
-const openFeaturedSolutionsModal = vi.fn();
+const openDashboardFeaturedSolutionsModal = vi.fn();
 vi.mock(
-  '@/pages/LandingPage/hooks/useLandingModals',
+  '@/hooks/useModal',
   () => ({
     default: () => ({
-      openFeaturedSolutionsModal,
+      openDashboardFeaturedSolutionsModal,
       modal: null,
       isModalOpen: false,
       onClose: vi.fn(),
@@ -100,7 +100,7 @@ describe('FeaturedSolutionsCard', () => {
     const explore = screen.getByRole('button', { name: /Explore more/i });
     fireEvent.click(explore);
 
-    expect(openFeaturedSolutionsModal).toHaveBeenCalledWith({
+    expect(openDashboardFeaturedSolutionsModal).toHaveBeenCalledWith({
       industry: 'test_industry',
       q: undefined,
     });

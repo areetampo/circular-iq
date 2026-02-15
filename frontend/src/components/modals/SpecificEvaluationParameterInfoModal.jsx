@@ -5,7 +5,9 @@ import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
 
-export default function ParameterInfoModal({ onClose, isModalOpen, paramKey }) {
+export default function SpecificEvaluationParameterInfoModal({ onClose, isModalOpen, paramKey }) {
+  console.log('Opening SpecificEvaluationParameterInfoModal with paramKey:', paramKey);
+  if (!paramKey) return null;
   const guidance = parameterGuidance[paramKey];
   if (!guidance) return null;
 
@@ -115,7 +117,7 @@ export default function ParameterInfoModal({ onClose, isModalOpen, paramKey }) {
   );
 }
 
-ParameterInfoModal.propTypes = {
+SpecificEvaluationParameterInfoModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   isModalOpen: PropTypes.bool.isRequired,
   paramKey: PropTypes.string.isRequired,
