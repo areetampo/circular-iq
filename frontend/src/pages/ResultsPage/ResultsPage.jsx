@@ -10,8 +10,6 @@ import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { DeleteAssessmentDialog, RenameAssessmentDialog } from '@/components/dialogs';
-import { SaveAssessmentDialog } from '@/components/dialogs';
 
 import { titleize } from '@/lib/formatting';
 import {
@@ -50,6 +48,7 @@ import LoaderIcon from '@/components/common/LoaderIcon';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import ResultsSkeleton from './components/ResultsSkeleton';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { id, publicId } = useParams();
@@ -120,11 +119,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   });
   const [isUpdatingPublic, setIsUpdatingPublic] = useState(false);
   const [optimisticIsPublic, setOptimisticIsPublic] = useState(null);
-  const [showRenameDialog, setShowRenameDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
+  const { openSaveAssessmentDialog, openRenameAssessmentDialog, openDeleteAssessmentDialog } =
+    useGlobalDialog();
 
   useEffect(() => {
     if (!isViewFromMyAssessments && navigationResult) {
@@ -254,7 +253,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         const result = await createAssessmentAsync(saveData);
         addToast('Assessment saved successfully! Redirecting...', 'success');
-        setShowSaveDialog(false);
 
         // Redirect to the saved assessment if id available, otherwise list
         const newId = result?.id || result?.assessment?.id;
@@ -494,9 +492,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     }
   };
 
-  const handleOpenRename = useCallback(() => setShowRenameDialog(true), []);
-  const handleOpenDelete = useCallback(() => setShowDeleteDialog(true), []);
-
   const handleConfirmRename = useCallback(
     async (newTitle) => {
       if (!id) throw new Error('No assessment selected');
@@ -522,7 +517,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         await updateAssessment(id, { title: newTitle });
         await refetch();
         toast.success('Assessment renamed successfully');
-        setShowRenameDialog(false);
       } catch (err) {
         console.error('Rename failed', err);
         throw err;
@@ -548,6 +542,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       setIsDeleting(false);
     }
   }, [id, navigate]);
+
+  const handleOpenRename = useCallback(() => {
+    openRenameAssessmentDialog({
+      defaultName: currentData?.title || '',
+      onRename: handleConfirmRename,
+      isLoading: isRenaming,
+    });
+  }, [openRenameAssessmentDialog, currentData?.title, handleConfirmRename, isRenaming]);
+
+  const handleOpenDelete = useCallback(() => {
+    openDeleteAssessmentDialog({
+      assessmentName: currentData?.title || '',
+      onConfirm: handleConfirmDelete,
+      isLoading: isDeleting,
+    });
+  }, [openDeleteAssessmentDialog, currentData?.title, handleConfirmDelete, isDeleting]);
 
   if (detailLoading) {
     return <ResultsSkeleton />;
@@ -722,7 +732,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           </Button>
           {!isViewFromMyAssessments && !isPublicShare && (
             <Button
-              onPress={() => setShowSaveDialog(true)}
+              onPress={() =>
+                openSaveAssessmentDialog({
+                  defaultName: defaultAssessmentName,
+                  onSave: handleSave,
+                })
+              }
               variant="success"
               isDisabled={isExporting}
             >
@@ -1884,30 +1899,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         </Tabs>
       </div>
       {/* </ScrollShadow> */}
-
-      {/* Save Assessment Dialog */}
-      <SaveAssessmentDialog
-        isOpen={showSaveDialog && !isViewFromMyAssessments}
-        onOpenChange={setShowSaveDialog}
-        defaultName={defaultAssessmentName}
-        onSave={handleSave}
-      />
-
-      <RenameAssessmentDialog
-        isOpen={showRenameDialog}
-        onOpenChange={setShowRenameDialog}
-        defaultName={currentData?.title || defaultAssessmentName}
-        onRename={handleConfirmRename}
-        isLoading={isRenaming}
-      />
-
-      <DeleteAssessmentDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        assessmentName={currentData?.title}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
-      />
     </>
   );
 }

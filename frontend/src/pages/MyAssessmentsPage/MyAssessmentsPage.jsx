@@ -34,7 +34,7 @@ import {
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
 import { Button, ErrorDisplay } from '@/components/common';
-import { DeleteAssessmentDialog, RenameAssessmentDialog } from '@/components/dialogs';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
   ArrowLeft,
   Search,
@@ -546,10 +546,9 @@ export default function MyAssessmentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, assessmentId: null });
-  const [renameDialog, setRenameDialog] = useState({ isOpen: false, assessmentId: null });
   const [isRenaming, setIsRenaming] = useState(false);
   const { addToast } = useToast();
+  const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
   // Persist list filters in URL so users can share filtered lists
   const [searchParams, setSearchParams] = useSearchParams();
@@ -770,34 +769,7 @@ export default function MyAssessmentsPage() {
     [navigate],
   );
 
-  const handleRenameAssessment = useCallback((id) => {
-    setRenameDialog({ isOpen: true, assessmentId: id });
-  }, []);
-
-  const handleRenameDialogChange = useCallback((open) => {
-    if (!open) {
-      setRenameDialog({ isOpen: false, assessmentId: null });
-    }
-  }, []);
-
-  const handleDeleteAssessment = useCallback((id) => {
-    console.log('[HANDLE_DELETE_ASSESSMENT]', { id });
-    setDeleteDialog({ isOpen: true, assessmentId: id });
-  }, []);
-
-  const handleDeleteDialogChange = useCallback((open) => {
-    console.log('[HANDLE_DELETE_DIALOG_CHANGE]', { open });
-    if (!open) {
-      console.log('[CLOSING_AND_CLEARING_DELETE_DIALOG]');
-      setDeleteDialog({ isOpen: false, assessmentId: null });
-    }
-  }, []);
-
-  const handleBack = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
-
-  const proceedDelete = useCallback(
+  const handleConfirmDelete = useCallback(
     async (id) => {
       if (!id) {
         addToast('No assessment selected for deletion', 'error');
@@ -816,26 +788,20 @@ export default function MyAssessmentsPage() {
         });
         addToast('Assessment deleted successfully', 'success');
 
-        // Only close dialog on success - let ConfirmDialog handle this
         return result;
       } catch (err) {
         console.error('[DELETE_ERROR]', { id, error: err.message, fullError: err });
         const errorMsg = err?.message || 'Please try again.';
         addToast(`Delete failed: ${errorMsg}`, 'error');
-        // THROW the error so ConfirmDialog knows not to close the dialog
         throw err;
       }
     },
     [removeAssessmentAsync, addToast],
   );
 
-  const handleConfirmDelete = useCallback(() => {
-    return proceedDelete(deleteDialog.assessmentId);
-  }, [proceedDelete, deleteDialog.assessmentId]);
-
   const handleConfirmRename = useCallback(
-    async (newTitle) => {
-      if (!renameDialog.assessmentId) {
+    async (assessmentId, newTitle) => {
+      if (!assessmentId) {
         addToast('No assessment selected for rename', 'error');
         throw new Error('No assessment selected for rename');
       }
@@ -844,7 +810,7 @@ export default function MyAssessmentsPage() {
       if (
         assessments.some(
           (a) =>
-            a.id !== renameDialog.assessmentId &&
+            a.id !== assessmentId &&
             a.title &&
             a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
         )
@@ -854,7 +820,7 @@ export default function MyAssessmentsPage() {
         throw new Error(msg);
       }
 
-      const detailCacheKey = ['assessment', renameDialog.assessmentId];
+      const detailCacheKey = ['assessment', assessmentId];
       const previousAssessments = queryClient.getQueriesData({ queryKey: ['assessments'] });
       const previousAssessment = queryClient.getQueryData(detailCacheKey);
 
@@ -863,9 +829,7 @@ export default function MyAssessmentsPage() {
         return {
           ...old,
           assessments: old.assessments.map((assessment) =>
-            assessment.id === renameDialog.assessmentId
-              ? { ...assessment, title: newTitle }
-              : assessment,
+            assessment.id === assessmentId ? { ...assessment, title: newTitle } : assessment,
           ),
         };
       });
@@ -879,7 +843,7 @@ export default function MyAssessmentsPage() {
 
       try {
         setIsRenaming(true);
-        const result = await updateAssessment(renameDialog.assessmentId, { title: newTitle });
+        const result = await updateAssessment(assessmentId, { title: newTitle });
         addToast('Assessment renamed successfully', 'success');
         return result;
       } catch (err) {
@@ -894,8 +858,36 @@ export default function MyAssessmentsPage() {
         setIsRenaming(false);
       }
     },
-    [renameDialog.assessmentId, addToast, queryClient],
+    [assessments, addToast, queryClient],
   );
+
+  const handleRenameAssessment = useCallback(
+    (id) => {
+      const assessment = assessments.find((a) => a.id === id);
+      openRenameAssessmentDialog({
+        defaultName: assessment?.title || '',
+        onRename: (newTitle) => handleConfirmRename(id, newTitle),
+        isLoading: isRenaming,
+      });
+    },
+    [assessments, openRenameAssessmentDialog, handleConfirmRename, isRenaming],
+  );
+
+  const handleDeleteAssessment = useCallback(
+    (id) => {
+      const assessment = assessments.find((a) => a.id === id);
+      openDeleteAssessmentDialog({
+        assessmentName: assessment?.title || '',
+        onConfirm: () => handleConfirmDelete(id),
+        isLoading: isDeleting,
+      });
+    },
+    [assessments, openDeleteAssessmentDialog, handleConfirmDelete, isDeleting],
+  );
+
+  const handleBack = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
 
   const handleTogglePublic = useCallback(
     async (id) => {
@@ -957,16 +949,6 @@ export default function MyAssessmentsPage() {
       }
     },
     [addToast],
-  );
-
-  const confirmDeleteAssessment = useMemo(
-    () => assessments.find((a) => a.id === deleteDialog.assessmentId),
-    [assessments, deleteDialog.assessmentId],
-  );
-
-  const confirmRenameAssessment = useMemo(
-    () => assessments.find((a) => a.id === renameDialog.assessmentId),
-    [assessments, renameDialog.assessmentId],
   );
 
   const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
@@ -1481,54 +1463,6 @@ export default function MyAssessmentsPage() {
           Back to Home
         </Button>
       </div>
-      {/* Dialogs */}
-      {deleteDialog.isOpen && deleteDialog.assessmentId && (
-        <DeleteAssessmentDialog
-          open={true}
-          onOpenChange={handleDeleteDialogChange}
-          assessmentName={confirmDeleteAssessment?.title}
-          onConfirm={handleConfirmDelete}
-          isLoading={isDeleting}
-        />
-      )}
-      {renameDialog.isOpen && renameDialog.assessmentId && (
-        <RenameAssessmentDialog
-          isOpen={true}
-          onOpenChange={handleRenameDialogChange}
-          defaultName={confirmRenameAssessment?.title || ''}
-          defaultIsPublic={confirmRenameAssessment?.is_public || false}
-          defaultPublicId={confirmRenameAssessment?.public_id || null}
-          defaultContributeToGlobal={
-            confirmRenameAssessment?.contribute_to_global_benchmarks || false
-          }
-          onRename={handleConfirmRename}
-          isLoading={isRenaming}
-        />
-      )}
-      {/* DEBUG: Direct test delete button */}
-      {import.meta.env.MODE === 'development' && deleteDialog.assessmentId && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            right: 20,
-            padding: '10px 20px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            cursor: 'pointer',
-            borderRadius: '4px',
-            zIndex: 9999,
-          }}
-          onClick={() => {
-            console.log('[TEST_DELETE_BUTTON_CLICKED]', {
-              assessmentId: deleteDialog.assessmentId,
-            });
-            proceedDelete(deleteDialog.assessmentId);
-          }}
-        >
-          🧪 TEST DELETE {deleteDialog.assessmentId}
-        </div>
-      )}
     </div>
   );
 }

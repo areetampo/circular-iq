@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/error-boundaries';
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
 import { AuthProvider } from '@/contexts/AuthContext'; // ← ADD THIS IMPORT
 import { ModalProvider } from '@/contexts/ModalContext';
+import { DialogProvider } from '@/contexts/DialogContext';
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
@@ -37,6 +38,8 @@ const queryClient = new QueryClient({
  * - ErrorBoundary for error handling
  * - Toast.Provider for toast notifications
  * - AuthProvider for authentication state (SINGLE SHARED INSTANCE) ← NEW
+ * - ModalProvider for modal state (global modals)
+ * - DialogProvider for dialog state (global dialogs) ← NEW
  * - QueryClientProvider for React Query
  * - GlobalLoadingBar for loading indicator
  * - ReactQueryDevtools for development debugging
@@ -47,11 +50,13 @@ export default function AppProvider({ children }) {
       <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
       <AuthProvider>
         <ModalProvider>
-          <QueryClientProvider client={queryClient}>
-            <GlobalLoadingBar />
-            {children}
-            <ReactQueryDevtools initialIsOpen={false} />
-          </QueryClientProvider>
+          <DialogProvider>
+            <QueryClientProvider client={queryClient}>
+              <GlobalLoadingBar />
+              {children}
+              <ReactQueryDevtools initialIsOpen={false} />
+            </QueryClientProvider>
+          </DialogProvider>
         </ModalProvider>
       </AuthProvider>
     </ErrorBoundary>
