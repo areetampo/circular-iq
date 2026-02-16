@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
 const SOLUTION_COMPONENTS = [
   {
@@ -64,7 +65,9 @@ const SOLUTION_PRO_TIPS = [
 const SOLUTION_EXAMPLE =
   'We convert agricultural hemp waste into compostable mailers and run a hub-and-spoke collection model. Customers use prepaid mailers; 15 regional hubs aggregate returns; certified composters process 95% of materials within 90 days into soil amendments. Those amendments are sold back to hemp farms, creating a closed loop. Cost: $0.85 per unit at scale; home-compostable in 180 days.';
 
-export default function BusinessSolutionInfoModal({ onClose, isModalOpen }) {
+export default function BusinessSolutionInfoModal() {
+  const { isModalOpen, onClose } = useGlobalModal();
+
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}

@@ -3,7 +3,7 @@ export { default as EvaluationCriteriaModal } from './EvaluationCriteriaModal';
 export { default as BusinessProblemInfoModal } from './BusinessProblemInfoModal';
 export { default as BusinessSolutionInfoModal } from './BusinessSolutionInfoModal';
 export { default as EvaluationParametersHeadingInfoModal } from './EvaluationParametersHeadingInfoModal';
-export { default as SpecificEvaluationParameterInfoModal } from './SpecificSampleTestCaseViewDetailsModal';
+export { default as SpecificEvaluationParameterInfoModal } from './SpecificEvaluationParameterInfoModal';
 export { default as SampleTestCasesHeadingInfoModal } from './SampleTestCasesHeadingInfoModal';
 export { default as SpecificSampleTestCaseViewDetailsModal } from './SpecificSampleTestCaseViewDetailsModal';
 export { default as ResultsDatabaseEvidenceDetailsModal } from './ResultsDatabaseEvidenceDetailsModal';

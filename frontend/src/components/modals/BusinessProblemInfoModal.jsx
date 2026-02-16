@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
 const PROBLEM_ELEMENTS = [
   {
@@ -47,7 +48,9 @@ const PROBLEM_WRITING_TIPS = [
 const PROBLEM_EXAMPLE =
   'Single-use plastic packaging creates 8 million tons of ocean waste annually, disrupting marine ecosystems and food chains. Current alternatives are cost-prohibitive (> $2/unit) or require industrial composting infrastructure that 75% of municipalities lack. This leaves a gap between demand for sustainable packaging and practical implementation at scale.';
 
-export default function BusinessProblemInfoModal({ onClose, isModalOpen }) {
+export default function BusinessProblemInfoModal() {
+  const { isModalOpen, onClose } = useGlobalModal();
+
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}

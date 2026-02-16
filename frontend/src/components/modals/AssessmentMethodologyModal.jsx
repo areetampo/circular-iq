@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
 const METHODOLOGY_ITEMS = [
   {
@@ -43,7 +44,9 @@ const METHODOLOGY_ITEMS = [
   },
 ];
 
-export default function AssessmentMethodologyModal({ isModalOpen, onClose }) {
+export default function AssessmentMethodologyModal() {
+  const { isModalOpen, onClose } = useGlobalModal();
+
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}

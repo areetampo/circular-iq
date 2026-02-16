@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Link, CircleDollarSign, Settings, ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
 const METRICS = [
   { number: 3, label: 'Core Value Types', color: 'blue' },
@@ -103,7 +104,9 @@ const CALCULATION_STEPS = [
   },
 ];
 
-export default function EvaluationCriteriaModal({ isModalOpen, onClose }) {
+export default function EvaluationCriteriaModal() {
+  const { isModalOpen, onClose } = useGlobalModal();
+
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}

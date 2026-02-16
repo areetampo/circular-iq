@@ -4,8 +4,11 @@ import { factorDefinitions } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
-export default function EvaluationParametersHeadingInfoModal({ onClose, isModalOpen }) {
+export default function EvaluationParametersHeadingInfoModal() {
+  const { isModalOpen, onClose } = useGlobalModal();
+
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}
