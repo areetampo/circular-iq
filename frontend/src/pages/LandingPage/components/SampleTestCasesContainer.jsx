@@ -2,21 +2,19 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext } from 'react-hook-form';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 import testCases from '@/data/testCases.json';
 import { Card, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
 import { toast, ScrollShadow } from '@heroui/react';
-import { ReplaceInputsDialog } from '@/components/dialogs';
 import { cn } from '@/utils/cn';
 import { Scroll } from 'lucide-react';
 
 export default function SampleTestCasesContainer({ setShowEvaluationParameters = () => {} }) {
   const { setValue, trigger, getValues } = useFormContext();
   const { openSpecificTestCaseDetailsModal } = useGlobalModal();
+  const { openReplaceInputsDialog } = useGlobalDialog();
   const [selectedCase, setSelectedCase] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [pendingCase, setPendingCase] = useState(null);
 
   const handleSelectCase = async (testCase) => {
     setSelectedCase(testCase.id);
@@ -40,8 +38,19 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
 
   const requestSelectCase = (testCase) => {
     if (hasUserInput()) {
-      setPendingCase(testCase);
-      setIsConfirmOpen(true);
+      openReplaceInputsDialog({
+        title: 'Replace current inputs?',
+        description:
+          'Loading a test case will overwrite your current business problem and solution. Do you want to continue?',
+        confirmText: 'Replace',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+          await handleSelectCase(testCase);
+        },
+        onCancel: () => {
+          // Do nothing on cancel
+        },
+      });
       return;
     }
     handleSelectCase(testCase);
@@ -118,23 +127,6 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
           </Card>
         ))}
       </ScrollShadow>
-
-      <ReplaceInputsDialog
-        isOpen={isConfirmOpen}
-        onOpenChange={setIsConfirmOpen}
-        title="Replace current inputs?"
-        description="Loading a test case will overwrite your current business problem and solution. Do you want to continue?"
-        confirmText="Replace"
-        onConfirm={async () => {
-          if (pendingCase) {
-            await handleSelectCase(pendingCase);
-          }
-          setPendingCase(null);
-        }}
-        onCancel={() => {
-          setPendingCase(null);
-        }}
-      />
     </>
   );
 }

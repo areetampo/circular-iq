@@ -3,7 +3,17 @@
  * Specialized AlertDialog for restoring previous evaluation sessions
  * Follows HeroUI v3 AlertDialog pattern with accent status
  *
+ * Now uses centralized dialog state via useGlobalDialog()
+ *
  * Location: src/components/dialogs/SessionRestoreDialog.jsx
+ *
+ * @example
+ * In a component using useGlobalDialog hook:
+ * const { openSessionRestoreDialog } = useGlobalDialog();
+ * openSessionRestoreDialog({
+ *   onRestore: handleRestore,
+ *   onDismiss: handleDismiss,
+ * });
  */
 
 import React from 'react';
@@ -11,27 +21,29 @@ import PropTypes from 'prop-types';
 import { AlertDialog } from '@heroui/react';
 import { Button } from '@/components/common';
 import { RotateCcw } from 'lucide-react';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
  * Dialog for restoring previous evaluation sessions
  *
- * @example
- * <SessionRestoreDialog
- *   isOpen={hasSession}
- *   onRestore={handleRestore}
- *   onDismiss={handleDismiss}
- * />
+ * Gets callbacks from centralized dialog state
  */
-export function SessionRestoreDialog({
-  isOpen,
-  onRestore,
-  onDismiss,
-  placement = 'center',
-  size = 'sm',
-}) {
+export function SessionRestoreDialog() {
+  const { isDialogOpen, onClose, dialog } = useGlobalDialog();
+
+  const onRestore = dialog?.data?.onRestore;
+  const onDismiss = dialog?.data?.onDismiss;
+  const placement = dialog?.data?.placement || 'center';
+  const size = dialog?.data?.size || 'sm';
+
   return (
     <AlertDialog.Backdrop
-      isOpen={isOpen}
+      isOpen={isDialogOpen}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose();
+        }
+      }}
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled
@@ -58,6 +70,7 @@ export function SessionRestoreDialog({
                   onPress={() => {
                     onDismiss?.();
                     close();
+                    onClose();
                   }}
                 >
                   Start Fresh
@@ -67,6 +80,7 @@ export function SessionRestoreDialog({
                   onPress={() => {
                     onRestore?.();
                     close();
+                    onClose();
                   }}
                 >
                   Restore Session
@@ -80,10 +94,4 @@ export function SessionRestoreDialog({
   );
 }
 
-SessionRestoreDialog.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onRestore: PropTypes.func.isRequired,
-  onDismiss: PropTypes.func.isRequired,
-  placement: PropTypes.oneOf(['auto', 'center', 'top', 'bottom']),
-  size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'cover']),
-};
+SessionRestoreDialog.propTypes = {};

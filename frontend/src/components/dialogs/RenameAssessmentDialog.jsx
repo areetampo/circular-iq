@@ -3,7 +3,17 @@
  * Specialized dialog for renaming assessments
  * Uses HeroUI v3 AlertDialog compound syntax
  *
+ * Now uses centralized dialog state via useGlobalDialog()
+ *
  * Location: src/components/dialogs/RenameAssessmentDialog.jsx
+ *
+ * @example
+ * In a component using useGlobalDialog hook:
+ * const { openRenameAssessmentDialog } = useGlobalDialog();
+ * openRenameAssessmentDialog({
+ *   defaultName: 'Current Name',
+ *   onRename: async (newName) => { ... },
+ * });
  */
 
 import React, { useState, useEffect } from 'react';
@@ -12,23 +22,29 @@ import { AlertDialog, Input, Label } from '@heroui/react';
 import { Button } from '@/components/common';
 import { Edit } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 
-export function RenameAssessmentDialog({
-  isOpen,
-  onOpenChange,
-  defaultName = '',
-  onRename,
-  isLoading = false,
-}) {
+/**
+ * Specialized dialog for renaming assessments
+ *
+ * Gets data from centralized dialog state (DialogManager passes defaultName prop)
+ */
+export function RenameAssessmentDialog({ defaultName = '' }) {
+  const { isDialogOpen, onClose, dialog } = useGlobalDialog();
+
   const [name, setName] = useState(defaultName);
   const [error, setError] = useState('');
 
+  // Get callbacks from dialog data
+  const onRename = dialog?.data?.onRename;
+  const isLoading = dialog?.data?.isLoading || false;
+
   useEffect(() => {
-    if (isOpen) {
+    if (isDialogOpen) {
       setName(defaultName);
       setError('');
     }
-  }, [isOpen, defaultName]);
+  }, [isDialogOpen, defaultName]);
 
   const validateName = (value) => {
     const trimmed = value.trim();
@@ -56,7 +72,9 @@ export function RenameAssessmentDialog({
     }
 
     try {
-      await onRename(name.trim());
+      if (onRename) {
+        await onRename(name.trim());
+      }
       close();
     } catch (err) {
       setError(err?.message || 'Rename failed. Please try again.');
@@ -65,8 +83,12 @@ export function RenameAssessmentDialog({
 
   return (
     <AlertDialog.Backdrop
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      isOpen={isDialogOpen}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose();
+        }
+      }}
       variant="opaque"
       isDismissable={!isLoading}
       isKeyboardDismissDisabled={isLoading}
@@ -107,7 +129,15 @@ export function RenameAssessmentDialog({
               </AlertDialog.Body>
 
               <AlertDialog.Footer className="gap-3 pt-0">
-                <Button variant="neutral-soft" onPress={close} isDisabled={isLoading} size="lg">
+                <Button
+                  variant="neutral-soft"
+                  onPress={() => {
+                    close();
+                    onClose();
+                  }}
+                  isDisabled={isLoading}
+                  size="lg"
+                >
                   Cancel
                 </Button>
                 <Button
@@ -129,9 +159,5 @@ export function RenameAssessmentDialog({
 }
 
 RenameAssessmentDialog.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onOpenChange: PropTypes.func.isRequired,
   defaultName: PropTypes.string,
-  onRename: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool,
 };

@@ -2,6 +2,9 @@
  * Dialogs - Reusable dialog components
  * Implements HeroUI v3 AlertDialog and Modal patterns
  *
+ * Central Management:
+ * - DialogManager: Central renderer for all dialogs (used in AppContainer.jsx)
+ *
  * Base components:
  * - ConfirmDialog: Legacy yes/no confirmations
  *
@@ -16,6 +19,7 @@
  * Location: src/components/dialogs/index.js
  */
 
+export { DialogManager } from './DialogManager';
 export { ConfirmDialog } from './ConfirmDialog';
 export { DeleteAssessmentDialog } from './DeleteAssessmentDialog';
 export { RenameAssessmentDialog } from './RenameAssessmentDialog';

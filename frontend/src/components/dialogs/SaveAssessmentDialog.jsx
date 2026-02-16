@@ -3,82 +3,99 @@
  * Specialized dialog for saving assessments with a name
  * Uses HeroUI v3 AlertDialog compound syntax
  *
+ * Now uses centralized dialog state via useGlobalDialog()
+ *
  * Location: src/components/dialogs/SaveAssessmentDialog.jsx
+ *
+ * @example
+ * In a component using useGlobalDialog hook:
+ * const { openSaveAssessmentDialog } = useGlobalDialog();
+ * openSaveAssessmentDialog({
+ *   defaultName: 'Untitled Assessment',
+ *   onSave: async (name, isPublic, contributeToGlobalBenchmarks) => { ... },
+ * });
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { AlertDialog, Switch, Input, Label, Description } from '@heroui/react';
 import { Button } from '@/components/common';
 import { cn } from '@/utils/cn';
 import { Globe, Save } from 'lucide-react';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Specialized dialog for saving assessments with a name
- *
- * @example
- * <SaveAssessmentDialog
- *   isOpen={showSave}
- *   onOpenChange={setShowSave}
- *   defaultName="Untitled Assessment"
- *   onSave={(name) => {
- *     console.log('Saving assessment with name:', name);
- *   }}
- * />
+ * Content component for save assessment dialog
+ * Gets data from centralized dialog state (DialogManager passes defaultName prop)
  */
-export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName = '' }) {
+function SaveAssessmentDialogContent({ defaultName = '' }) {
+  // Note: defaultName prop validation handled by wrapper component
+  const { isDialogOpen, onClose, dialog } = useGlobalDialog();
+
   const [name, setName] = useState(defaultName);
   const [isPublic, setIsPublic] = useState(false);
   const [contributeToGlobalBenchmarks, setContributeToGlobalBenchmarks] = useState(true);
   const [error, setError] = useState('');
 
+  // Get callback from dialog data with stable reference
+  const onSave = useMemo(() => dialog?.data?.onSave, [dialog?.data?.onSave]);
+
   useEffect(() => {
-    if (isOpen) {
+    if (isDialogOpen) {
       setName(defaultName);
       setIsPublic(false);
       setContributeToGlobalBenchmarks(true);
       setError('');
     }
-  }, [isOpen, defaultName]);
+  }, [isDialogOpen, defaultName]);
 
-  const validateName = (value) => {
-    const trimmed = value.trim();
+  const handleBackdropChange = useCallback(
+    (isOpen) => {
+      if (!isOpen) {
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
-    if (!trimmed) {
-      return 'Assessment name is required';
-    }
+  const handleSubmit = useCallback(
+    async (close) => {
+      if (!name.trim()) {
+        setError('Please enter an assessment name');
+        return;
+      }
 
-    if (trimmed.length < 3) {
-      return 'Assessment name must be at least 3 characters';
-    }
+      if (name.trim().length < 3) {
+        setError('Assessment name must be at least 3 characters');
+        return;
+      }
 
-    if (trimmed.length > 100) {
-      return 'Assessment name must be less than 100 characters';
-    }
+      if (name.trim().length > 100) {
+        setError('Assessment name must be less than 100 characters');
+        return;
+      }
 
+      try {
+        if (onSave) {
+          await onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
+        }
+        close();
+      } catch (err) {
+        setError(err?.message || 'Failed to save assessment');
+      }
+    },
+    [name, isPublic, contributeToGlobalBenchmarks, onSave],
+  );
+
+  // Only render when dialog is actually open
+  if (!isDialogOpen) {
     return null;
-  };
-
-  const handleSubmit = async (close) => {
-    const validationError = validateName(name);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    try {
-      // onSave may be async and can throw validation errors
-      await onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
-      close();
-    } catch (err) {
-      setError(err?.message || 'Failed to save assessment');
-    }
-  };
+  }
 
   return (
     <AlertDialog.Backdrop
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      isOpen={true}
+      onOpenChange={handleBackdropChange}
       variant="opaque"
       isDismissable={false}
     >
@@ -116,7 +133,7 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
                 </div>
 
                 <div className="space-y-3">
-                  {/* Public Access Toggle with Copy Icon */}
+                  {/* Public Access Toggle */}
                   <div className="flex items-center justify-between gap-3 p-4 border-2 border-emerald-200 rounded-lg bg-emerald-50">
                     <div className="flex-1">
                       <Switch isSelected={isPublic} onChange={setIsPublic} size="lg">
@@ -153,7 +170,7 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
                         <div className="flex gap-3">
                           <div className="-mt-0.5 flex flex-col gap-1">
                             <div className="flex items-center gap-2">
-                              <Globe className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                              <Globe className="w-5 h-5 text-blue-600 shrink-0" />
                               <Label className="text-sm font-medium text-gray-900">
                                 Global Benchmarks
                               </Label>
@@ -177,6 +194,7 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
                   variant="neutral-soft"
                   onPress={() => {
                     close();
+                    onClose();
                   }}
                 >
                   Cancel
@@ -198,9 +216,27 @@ export function SaveAssessmentDialog({ isOpen, onOpenChange, onSave, defaultName
   );
 }
 
-SaveAssessmentDialog.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onOpenChange: PropTypes.func.isRequired,
-  onSave: PropTypes.func.isRequired,
+SaveAssessmentDialogContent.propTypes = {
   defaultName: PropTypes.string,
 };
+
+// Memoized content to prevent duplicate renders
+const MemoizedContent = React.memo(SaveAssessmentDialogContent);
+
+// Memoized wrapper - only renders content when dialog is actually open
+export function SaveAssessmentDialog({ defaultName = '' }) {
+  const { isDialogOpen } = useGlobalDialog();
+
+  // Return null when closed to prevent AlertDialog from mounting
+  if (!isDialogOpen) {
+    return null;
+  }
+
+  return <MemoizedContent key="save-assessment-dialog" defaultName={defaultName} />;
+}
+
+SaveAssessmentDialog.propTypes = {
+  defaultName: PropTypes.string,
+};
+
+export default SaveAssessmentDialog;

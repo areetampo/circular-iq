@@ -7,7 +7,9 @@ import Navbar from './Navbar';
 import Header from './Header';
 import Footer from './Footer';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 import { ModalManager } from '@/components/modals';
+import { DialogManager } from '@/components/dialogs';
 
 /**
  * Route-based container configuration
@@ -293,6 +295,8 @@ export default function AppContainer({
   const showFooter = showFooterOverride ?? config.showFooter;
 
   const { modal } = useGlobalModal();
+  // DialogManager now gets dialog state directly from context
+  // No need to pass it as prop
 
   return (
     <div className={cn('relative min-h-screen flex flex-col bg-linear-to-br', config.background)}>
@@ -342,6 +346,9 @@ export default function AppContainer({
 
       {/* Global Modal Manager */}
       <ModalManager modal={modal} />
+
+      {/* Global Dialog Manager */}
+      <DialogManager />
     </div>
   );
 }

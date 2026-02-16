@@ -1,8 +1,8 @@
 /**
- * Reusable Confirmation Dialog (Legacy)
+ * Reusable Confirmation Dialog (Now uses centralized dialog state)
  * AlertDialog-based confirmation dialog using HeroUI v3 compound syntax
  *
- * Note: For new implementations, consider creating a custom dialog with better status support
+ * Now uses centralized dialog state via useGlobalDialog()
  *
  * Location: src/components/dialogs/ConfirmDialog.jsx
  */
@@ -12,26 +12,27 @@ import PropTypes from 'prop-types';
 import { AlertDialog } from '@heroui/react';
 import { Button } from '@/components/common';
 import { AlertCircle, TriangleAlert } from 'lucide-react';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Reusable confirmation dialog (legacy)
+ * Reusable confirmation dialog
+ *
+ * Gets all data from centralized dialog state via DialogManager
  *
  * @example
- * <ConfirmDialog
- *   open={isOpen}
- *   onOpenChange={setIsOpen}
- *   title="Delete Assessment?"
- *   description="This action cannot be undone."
- *   confirmText="Delete"
- *   cancelText="Cancel"
- *   onConfirm={handleDelete}
- *   variant="destructive"
- * />
+ * In pages/components:
+ * const { openConfirmDialog } = useGlobalDialog();
+ * openConfirmDialog({
+ *   title: 'Delete Item?',
+ *   description: 'This action cannot be undone.',
+ *   confirmText: 'Delete',
+ *   cancelText: 'Cancel',
+ *   onConfirm: handleDelete,
+ *   variant: 'destructive',
+ * });
  */
 export function ConfirmDialog({
-  open,
-  onOpenChange,
-  title,
+  title = 'Confirm',
   description,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
@@ -39,20 +40,22 @@ export function ConfirmDialog({
   variant = 'default', // 'default' | 'destructive'
   isLoading = false,
 }) {
+  const { isDialogOpen, onClose } = useGlobalDialog();
+
   const status = variant === 'destructive' ? 'danger' : 'default';
   const buttonVariant = variant === 'destructive' ? 'danger' : 'primary';
   const icon = variant === 'destructive' ? <TriangleAlert /> : <AlertCircle />;
   const isClosingRef = useRef(false);
 
-  console.log('[CONFIRM_DIALOG_RENDER]', { open, title, isLoading });
+  console.log('[CONFIRM_DIALOG_RENDER]', { isDialogOpen, title, isLoading });
 
   // Reset closing flag when dialog opens
   useEffect(() => {
-    if (open) {
+    if (isDialogOpen) {
       console.log('[DIALOG_OPENED_RESET_CLOSING_FLAG]');
       isClosingRef.current = false;
     }
-  }, [open]);
+  }, [isDialogOpen]);
 
   const handleConfirmClick = async () => {
     console.log('[CONFIRM_BUTTON_CLICKED]');
@@ -65,7 +68,7 @@ export function ConfirmDialog({
     if (!onConfirm) {
       console.log('[NO_CONFIRM_CALLBACK]');
       isClosingRef.current = true;
-      onOpenChange(false);
+      onClose();
       return;
     }
 
@@ -74,9 +77,9 @@ export function ConfirmDialog({
       const result = onConfirm();
 
       // Close dialog immediately
-      console.log('[CLOSING_DIALOG_VIA_ONOPEN_CHANGE]');
+      console.log('[CLOSING_DIALOG_VIA_ONCLOSE]');
       isClosingRef.current = true;
-      onOpenChange(false);
+      onClose();
 
       // Handle async operations in background
       if (result instanceof Promise) {
@@ -98,13 +101,13 @@ export function ConfirmDialog({
       return;
     }
     isClosingRef.current = true;
-    onOpenChange(false);
+    onClose();
   };
 
   const handleBackdropChange = (newOpen) => {
     console.log('[BACKDROP_ONOPEN_CHANGE]', {
       newOpen,
-      currentOpen: open,
+      currentOpen: isDialogOpen,
       isClosing: isClosingRef.current,
     });
 
@@ -116,14 +119,13 @@ export function ConfirmDialog({
 
     if (!newOpen) {
       isClosingRef.current = true;
+      onClose();
     }
-
-    onOpenChange(newOpen);
   };
 
   return (
     <AlertDialog.Backdrop
-      isOpen={open}
+      isOpen={isDialogOpen}
       onOpenChange={handleBackdropChange}
       variant="opaque"
       isDismissable={!isLoading}
@@ -158,13 +160,11 @@ export function ConfirmDialog({
 }
 
 ConfirmDialog.propTypes = {
-  open: PropTypes.bool.isRequired,
-  onOpenChange: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   description: PropTypes.string,
   confirmText: PropTypes.string,
   cancelText: PropTypes.string,
-  onConfirm: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func,
   variant: PropTypes.oneOf(['default', 'destructive']),
   isLoading: PropTypes.bool,
 };
