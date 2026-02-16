@@ -18,6 +18,7 @@ export const DIALOGS = {
   REPLACE_INPUTS: 'replace-inputs',
   CONFIRM: 'confirm',
   SESSION_RESTORE: 'session-restore',
+  LIMIT_REACHED: 'limit-reached',
 };
 
 export default DIALOGS;

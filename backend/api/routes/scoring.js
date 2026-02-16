@@ -1,4 +1,7 @@
 import express from 'express';
+import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
+import { createClient } from '@supabase/supabase-js';
 import {
   calculateScores,
   identifyIntegrityGaps,
@@ -10,6 +13,11 @@ import {
   extractMetadata,
   calculateGapAnalysis,
 } from '../../src/ask.js';
+import {
+  getIdentifierFromRequest,
+  MAX_FREE_TRIES,
+  extractIPAddress,
+} from '../../src/utils/anonymousTracking.js';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
 
@@ -47,6 +55,80 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
  */
 export default function createScoringRouter(openai, supabase) {
   const router = express.Router();
+  // Create a service-role Supabase client for safe server-side writes to tracking table
+  const serviceSupabase =
+    process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SUPABASE_URL
+      ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      : null;
+
+  // Rate limiter: 10 requests per minute per IP
+  const scoringRateLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    message: {
+      error: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests. Please wait a minute and try again.',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => extractIPAddress(req),
+  });
+
+  /**
+   * Enforce anonymous usage limits. Returns an object when the request should be blocked
+   * or null when allowed. Handles DB errors silently (does not block scoring on DB failure).
+   */
+  async function enforceAnonymousUsage(req) {
+    try {
+      const { hash, ip, userAgent } = getIdentifierFromRequest(req);
+
+      const authHeader = req.headers.authorization;
+      const isAuthenticated = authHeader && authHeader.startsWith('Bearer ');
+
+      if (isAuthenticated || !serviceSupabase) return null;
+
+      const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
+      const uaSnippet = (userAgent || '').substring(0, 100);
+
+      const { data, error } = await serviceSupabase.rpc('check_and_increment_anonymous_usage', {
+        p_identifier_hash: hash,
+        p_max_tries: MAX_FREE_TRIES,
+        p_ip_hash: ipHash,
+        p_user_agent_snippet: uaSnippet,
+      });
+
+      if (error) {
+        console.error('Error in atomic usage check:', error);
+        return null; // don't block on DB errors
+      }
+
+      const result = data?.[0];
+      if (!result) {
+        console.error('Unexpected empty result from usage check');
+        return null;
+      }
+
+      const { current_count, is_allowed } = result;
+      if (!is_allowed) {
+        return {
+          blocked: true,
+          status: 403,
+          body: {
+            error: 'LIMIT_REACHED',
+            message: `You've used your ${MAX_FREE_TRIES} free assessments. Create an account to continue.`,
+            remaining: 0,
+            limit: MAX_FREE_TRIES,
+            currentCount: current_count,
+          },
+        };
+      }
+
+      return null;
+    } catch (e) {
+      console.error('Anonymous usage check failed:', e?.message || e);
+      return null; // don't block on unexpected errors
+    }
+  }
 
   /**
    * POST /
@@ -79,11 +161,18 @@ export default function createScoringRouter(openai, supabase) {
    *   gap_analysis: object with benchmark comparisons
    * }
    */
-  router.post('/', async (req, res) => {
+  router.post('/', scoringRateLimiter, async (req, res) => {
     const startTime = Date.now();
     const requestId = Math.random().toString(36).slice(2, 9);
 
     try {
+      // Enforce anonymous usage limits (IP+UA fingerprint)
+      const anonResult = await enforceAnonymousUsage(req);
+      if (anonResult && anonResult.blocked) {
+        logRequest('POST', '/score', anonResult.status, Date.now() - startTime);
+        return res.status(anonResult.status).json(anonResult.body);
+      }
+
       const { businessProblem, businessSolution, parameters } = req.body;
 
       // ========== INPUT VALIDATION ==========

@@ -9,7 +9,9 @@ import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCo
 import SessionRestorePrompt from '@/features/session/components/SessionRestorePrompt';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 import { getCharacterCount } from '@/lib/validation';
+import { useAuth } from '@/hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
@@ -36,7 +38,17 @@ import InfoIconButton from '@/components/common/InfoIconButton';
 export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasEvaluationState, restoreEvaluation, clearEvaluation, saveEvaluation } = useSession();
+  const {
+    hasEvaluationState,
+    restoreEvaluation,
+    clearEvaluation,
+    saveEvaluation,
+    hasRestorableSession,
+    sessionData,
+    saveSession,
+    clearSession,
+  } = useSession();
+  const { openLimitReachedDialog } = useGlobalDialog();
   const {
     openBusinessProblemInfoModal,
     openBusinessSolutionInfoModal,
@@ -51,7 +63,7 @@ export default function LandingPage() {
   const [showSessionPrompt, setShowSessionPrompt] = useState(() => {
     // Initialize from sessionStorage to ensure prompt only shows once per browser session
     const handled = sessionStorage.getItem('sessionPromptHandled');
-    return !handled && hasEvaluationState;
+    return !handled && (hasEvaluationState || hasRestorableSession);
   });
   const [sessionPromptHandled, setSessionPromptHandled] = useState(() => {
     return sessionStorage.getItem('sessionPromptHandled') === 'true';
@@ -77,6 +89,29 @@ export default function LandingPage() {
   const autosaveTimerRef = useRef(null);
 
   const handleRestore = () => {
+    // Prefer anonymous local session if available
+    if (hasRestorableSession && sessionData) {
+      if (sessionData.results) {
+        // Navigate to results with restored data
+        navigate('/results', {
+          state: { scoreData: sessionData.results, isRestored: true },
+        });
+      } else if (sessionData.inputs) {
+        const { businessProblem, businessSolution, parameters } = sessionData.inputs;
+        reset({
+          businessProblem: businessProblem || '',
+          businessSolution: businessSolution || '',
+          parameters: parameters || {},
+        });
+        setShowEvaluationParameters(true);
+      }
+
+      setShowSessionPrompt(false);
+      setSessionPromptHandled(true);
+      sessionStorage.setItem('sessionPromptHandled', 'true');
+      return;
+    }
+
     const restoredState = restoreEvaluation();
     if (restoredState) {
       reset(restoredState);
@@ -122,12 +157,14 @@ export default function LandingPage() {
     // Only show prompt once per browser session, on first page load with saved state
     if (
       !sessionPromptHandled &&
-      hasEvaluationState &&
+      (hasEvaluationState || hasRestorableSession) &&
       !sessionStorage.getItem('sessionPromptHandled')
     ) {
       setShowSessionPrompt(true);
     }
-  }, []);
+  }, [hasEvaluationState, hasRestorableSession, sessionPromptHandled]);
+
+  const { user } = useAuth();
 
   // Debounced autosave using getValues inside delayed callback.
   const scheduleAutosave = () => {
@@ -141,7 +178,11 @@ export default function LandingPage() {
 
       const values = methods.getValues();
       if (values && values.businessProblem && values.businessSolution) {
-        saveEvaluation(values);
+        if (user) {
+          saveEvaluation(values);
+        } else {
+          saveSession({ inputs: values });
+        }
       }
     }, 1000);
   };
@@ -230,6 +271,13 @@ export default function LandingPage() {
       // Navigate to results page with the result data
       navigate('/results', { state: { result, formData } });
     } catch (err) {
+      // Handle anonymous limit reached
+      if (err?.code === 'LIMIT_REACHED' || err?.meta?.error === 'LIMIT_REACHED') {
+        const meta = err.meta || {};
+        openLimitReachedDialog({ limit: meta.limit || 3, message: meta.message });
+        return;
+      }
+
       const errorMessage = err.message || 'Failed to evaluate. Please try again.';
       setError(errorMessage);
       toast.danger('Evaluation failed', {

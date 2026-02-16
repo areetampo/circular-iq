@@ -26,3 +26,4 @@ export { RenameAssessmentDialog } from './RenameAssessmentDialog';
 export { ReplaceInputsDialog } from './ReplaceInputsDialog';
 export { SessionRestoreDialog } from './SessionRestoreDialog';
 export { SaveAssessmentDialog } from './SaveAssessmentDialog';
+export { LimitReachedDialog } from './LimitReachedDialog';
