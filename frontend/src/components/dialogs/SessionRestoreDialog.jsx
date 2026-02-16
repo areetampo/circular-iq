@@ -28,21 +28,39 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  *
  * Gets callbacks from centralized dialog state
  */
-export function SessionRestoreDialog() {
+export function SessionRestoreDialog(props) {
+  // Props take precedence (used by LandingPage SessionRestorePrompt)
+  const {
+    isOpen: propIsOpen,
+    onRestore: propOnRestore,
+    onDismiss: propOnDismiss,
+    sessionData: propSessionData,
+  } = props || {};
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
-  const onRestore = dialog?.data?.onRestore;
-  const onDismiss = dialog?.data?.onDismiss;
-  const placement = dialog?.data?.placement || 'center';
-  const size = dialog?.data?.size || 'sm';
+  const usingProps = typeof propIsOpen !== 'undefined' || propOnRestore || propOnDismiss;
+
+  const isOpen = usingProps ? Boolean(propIsOpen) : isDialogOpen;
+  const onRestore = usingProps ? propOnRestore : dialog?.data?.onRestore;
+  const onDismiss = usingProps ? propOnDismiss : dialog?.data?.onDismiss;
+  const placement = usingProps ? 'center' : dialog?.data?.placement || 'center';
+  const size = usingProps ? 'sm' : dialog?.data?.size || 'sm';
+
+  const handleDismiss = () => {
+    onDismiss?.();
+    if (!usingProps) onClose();
+  };
+
+  const handleRestore = () => {
+    onRestore?.(propSessionData);
+    if (!usingProps) onClose();
+  };
 
   return (
     <AlertDialog.Backdrop
-      isOpen={isDialogOpen}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          onClose();
-        }
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !usingProps) onClose();
       }}
       variant="opaque"
       isDismissable={false}
@@ -68,9 +86,8 @@ export function SessionRestoreDialog() {
                 <Button
                   variant="tertiary"
                   onPress={() => {
-                    onDismiss?.();
+                    handleDismiss();
                     close();
-                    onClose();
                   }}
                 >
                   Start Fresh
@@ -78,9 +95,8 @@ export function SessionRestoreDialog() {
                 <Button
                   variant="success"
                   onPress={() => {
-                    onRestore?.();
+                    handleRestore();
                     close();
-                    onClose();
                   }}
                 >
                   Restore Session

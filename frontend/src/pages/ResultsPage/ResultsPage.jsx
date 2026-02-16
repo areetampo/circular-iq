@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
+import { saveAnonymousSession } from '@/utils/session';
 
 import { titleize } from '@/lib/formatting';
 import {
@@ -130,6 +131,18 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       saveEvaluation({ result: navigationResult, formData: navigationFormData });
     }
   }, [navigationResult, navigationFormData, isViewFromMyAssessments, saveEvaluation]);
+
+  // Save anonymous results to local anonymous session so they can be restored
+  useEffect(() => {
+    if (!user && !isViewFromMyAssessments && (navigationResult || navigationResult?.result)) {
+      const dataToSave = navigationResult || navigationResult?.result;
+      try {
+        saveAnonymousSession({ results: dataToSave, hasUnsavedResults: true });
+      } catch (e) {
+        // ignore storage failures
+      }
+    }
+  }, [navigationResult, user, isViewFromMyAssessments]);
 
   // Show info toast if session was restored (only once per browser session)
   useEffect(() => {

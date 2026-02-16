@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useFormContext } from 'react-hook-form';
 import { useGlobalModal } from '@/contexts/ModalContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { hasValidAnonymousSession } from '@/utils/session';
 import testCases from '@/data/testCases.json';
 import { Card, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
@@ -38,6 +39,12 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
 
   const requestSelectCase = (testCase) => {
     if (hasUserInput()) {
+      // If a session restore is pending for anonymous users, block the replace dialog
+      if (hasValidAnonymousSession && hasValidAnonymousSession()) {
+        // silently ignore replace to avoid dialog race with session restore
+        return;
+      }
+
       openReplaceInputsDialog({
         title: 'Replace current inputs?',
         description:

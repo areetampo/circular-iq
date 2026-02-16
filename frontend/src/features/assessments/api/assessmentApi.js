@@ -55,10 +55,26 @@ async function requestJson(path, options = {}) {
 }
 
 export async function scoreAssessment({ businessProblem, businessSolution, parameters }) {
-  return requestJson('/api/score', {
+  const response = await request('/api/score', {
     method: 'POST',
     body: JSON.stringify({ businessProblem, businessSolution, parameters }),
   });
+
+  const data = await response.json().catch(() => null);
+
+  if (response.status === 403) {
+    const err = new Error(data?.message || 'Limit reached');
+    err.code = data?.error || 'LIMIT_REACHED';
+    err.meta = data || null;
+    throw err;
+  }
+
+  if (!response.ok) {
+    const message = data?.error || data?.message || `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  return data;
 }
 
 export async function getAssessments(params = {}) {

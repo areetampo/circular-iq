@@ -1,9 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import {
   getSessionId,
   loadEvaluationState,
   saveEvaluationState,
   clearEvaluationState,
+  getAnonymousSession,
+  saveAnonymousSession,
+  clearAnonymousSession,
+  hasValidAnonymousSession,
 } from '@/utils/session';
 
 /**
@@ -11,39 +17,71 @@ import {
  * Handles session ID and evaluation state persistence
  */
 export function useSession() {
-  // Query for session data (session ID and evaluation state)
+  const { user } = useAuth();
+
+  // Query for persistent session data (IDs, evaluation draft)
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
-      // Get or create session ID
       const sessionId = getSessionId();
-
-      // Load saved evaluation state if any
       const evaluationState = loadEvaluationState();
-
       return {
         sessionId,
         evaluationState,
         hasEvaluationState: !!evaluationState,
       };
     },
-    staleTime: Infinity, // Session data doesn't go stale
-    gcTime: Infinity, // Keep session in cache
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
+
+  const [hasRestorableSession, setHasRestorableSession] = useState(false);
+  const [restorableSessionData, setRestorableSessionData] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      // Clear anonymous session when user logs in
+      try {
+        clearAnonymousSession();
+      } catch (e) {
+        // ignore
+      }
+      setHasRestorableSession(false);
+      setRestorableSessionData(null);
+      return;
+    }
+
+    // For anonymous users check local anonymous session
+    const anon = getAnonymousSession();
+    if (anon) {
+      setHasRestorableSession(true);
+      setRestorableSessionData(anon);
+    } else {
+      setHasRestorableSession(false);
+      setRestorableSessionData(null);
+    }
+  }, [user]);
 
   // Helper functions for managing session state
   const saveEvaluation = (state) => {
     saveEvaluationState(state);
-    refetch(); // Refresh query to update hasEvaluationState
+    refetch();
   };
 
   const clearEvaluation = () => {
     clearEvaluationState();
-    refetch(); // Refresh query to update hasEvaluationState
+    refetch();
   };
 
-  const restoreEvaluation = () => {
-    return data?.evaluationState || null;
+  const restoreEvaluation = () => data?.evaluationState || null;
+
+  // Anonymous session helpers
+  const saveSession = saveAnonymousSession;
+  const clearSession = () => {
+    clearAnonymousSession();
+    // ensure local hook state clears
+    setHasRestorableSession(false);
+    setRestorableSessionData(null);
   };
 
   return {
@@ -57,5 +95,12 @@ export function useSession() {
     saveEvaluation,
     clearEvaluation,
     restoreEvaluation,
+
+    // Anonymous/session restore helpers
+    hasRestorableSession,
+    sessionData: restorableSessionData,
+    saveSession,
+    clearSession,
+    hasValidAnonymousSession,
   };
 }

@@ -32,6 +32,7 @@ import {
   ReplaceInputsDialog,
   ConfirmDialog,
   SessionRestoreDialog,
+  LimitReachedDialog,
 } from '@/components/dialogs';
 
 function DialogManagerContent() {
@@ -55,6 +56,9 @@ function DialogManagerContent() {
 
     case DIALOGS.REPLACE_INPUTS:
       return <ReplaceInputsDialog />;
+
+    case DIALOGS.LIMIT_REACHED:
+      return <LimitReachedDialog limit={data?.limit} message={data?.message} />;
 
     case DIALOGS.CONFIRM:
       return (
