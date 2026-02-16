@@ -292,7 +292,7 @@ export default function AppContainer({
   const showHeader = showHeaderOverride ?? config.showHeader;
   const showFooter = showFooterOverride ?? config.showFooter;
 
-  const { modal, isModalOpen, onClose } = useGlobalModal();
+  const { modal } = useGlobalModal();
 
   return (
     <div className={cn('relative min-h-screen flex flex-col bg-linear-to-br', config.background)}>
@@ -341,7 +341,7 @@ export default function AppContainer({
       </div>
 
       {/* Global Modal Manager */}
-      <ModalManager modal={modal} isModalOpen={isModalOpen} onClose={onClose} />
+      <ModalManager modal={modal} />
     </div>
   );
 }

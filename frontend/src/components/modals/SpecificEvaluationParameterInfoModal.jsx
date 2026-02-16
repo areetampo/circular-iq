@@ -4,14 +4,16 @@ import { parameterGuidance } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
-export default function SpecificEvaluationParameterInfoModal({ onClose, isModalOpen, paramKey }) {
-  console.log('Opening SpecificEvaluationParameterInfoModal with paramKey:', paramKey);
+export default function SpecificEvaluationParameterInfoModal({ paramKey }) {
   if (!paramKey) return null;
   const guidance = parameterGuidance[paramKey];
   if (!guidance) return null;
 
   const weightLabel = guidance.weightPercent || `${Math.round((guidance.weight || 0) * 100)}%`;
+
+  const { isModalOpen, onClose } = useGlobalModal();
 
   return (
     <Modal.Backdrop

@@ -4,8 +4,9 @@ import { extractProblemSolution } from '@/utils/content';
 import { NotebookText, Target, Lightbulb } from 'lucide-react';
 import { Modal, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
-export default function ResultsDatabaseEvidenceDetailsModal({ isModalOpen, onClose, data = {} }) {
+export default function ResultsDatabaseEvidenceDetailsModal({ data = {} }) {
   //if data is {} return null
   if (Object.keys(data).length === 0) return null;
   const {
@@ -29,6 +30,8 @@ export default function ResultsDatabaseEvidenceDetailsModal({ isModalOpen, onClo
     solutionPart &&
     problemPart !== 'Problem data not clearly formatted' &&
     solutionPart !== 'Solution data not clearly formatted';
+
+  const { isModalOpen, onClose } = useGlobalModal();
 
   return (
     <Modal.Backdrop

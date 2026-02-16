@@ -3,9 +3,13 @@ import PropTypes from 'prop-types';
 import { PencilLine, Target, Lightbulb, BarChart3 } from 'lucide-react';
 import { Modal } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
-export default function SpecificSampleTestCaseViewDetailsModal({ onClose, isModalOpen, testCase }) {
+export default function SpecificSampleTestCaseViewDetailsModal({ testCase }) {
   if (!testCase) return null;
+
+  const { isModalOpen, onClose } = useGlobalModal();
+
   return (
     <Modal.Backdrop
       isOpen={isModalOpen}

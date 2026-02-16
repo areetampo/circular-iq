@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@/components/common';
-import { ChartContainer } from '@/components/common/ChartWrapper';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
-export default function DashboardFeaturedSolutionsModal({ isModalOpen, onClose, data = {} }) {
+export default function DashboardFeaturedSolutionsModal({ data = {} }) {
   //if data is {} return null
   if (Object.keys(data).length === 0) return null;
   const { q, industry } = data;
+
+  const { isModalOpen, onClose } = useGlobalModal();
 
   const { solutions = [], isLoading } = useFeaturedSolutions({
     limit: 10,
