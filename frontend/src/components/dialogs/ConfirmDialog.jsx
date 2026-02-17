@@ -128,8 +128,8 @@ export function ConfirmDialog({
       isOpen={isDialogOpen}
       onOpenChange={handleBackdropChange}
       variant="opaque"
-      isDismissable={!isLoading}
-      isKeyboardDismissDisabled={isLoading}
+      isDismissable={false}
+      isKeyboardDismissDisabled={true}
     >
       <AlertDialog.Container size="md" placement="center">
         <AlertDialog.Dialog aria-label={title}>

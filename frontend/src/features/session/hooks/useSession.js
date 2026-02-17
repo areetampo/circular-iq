@@ -40,12 +40,55 @@ export function useSession() {
 
   useEffect(() => {
     if (user) {
-      // Clear anonymous session when user logs in
-      try {
-        clearAnonymousSession();
-      } catch (e) {
-        // ignore
+      // User just logged in - check if they have anonymous session to migrate
+      const anonSession = getAnonymousSession();
+
+      if (anonSession) {
+        try {
+          const pendingSave = localStorage.getItem('ce_pending_save');
+          const inputsToMigrate = anonSession.inputs || {};
+          const resultsToMigrate = !pendingSave && anonSession.results ? anonSession.results : null;
+
+          if ((inputsToMigrate && Object.keys(inputsToMigrate).length > 0) || resultsToMigrate) {
+            // Save to evaluation state
+            saveEvaluationState({
+              businessProblem: inputsToMigrate?.businessProblem || '',
+              businessSolution: inputsToMigrate?.businessSolution || '',
+              parameters: inputsToMigrate?.parameters || {},
+              calculatedResults: resultsToMigrate || null,
+              hasUnsavedResults: Boolean(resultsToMigrate),
+              migratedFromAnonymous: true,
+              timestamp: anonSession.timestamp,
+            });
+
+            // Keep the data available for session restore prompt
+            setHasRestorableSession(true);
+            setRestorableSessionData({
+              inputs: inputsToMigrate,
+              results: resultsToMigrate,
+              calculatedResults: resultsToMigrate,
+              timestamp: anonSession.timestamp,
+              fromAnonymous: true,
+            });
+          }
+
+          // Clear anonymous session after migration
+          try {
+            clearAnonymousSession();
+          } catch (e) {
+            console.error('Failed to clear anonymous session:', e);
+          }
+
+          // Trigger a refetch to update evaluation state
+          refetch();
+        } catch (e) {
+          console.error('Error during anonymous session migration:', e);
+        }
+
+        return;
       }
+
+      // No anonymous session to migrate - clear restore state
       setHasRestorableSession(false);
       setRestorableSessionData(null);
       return;

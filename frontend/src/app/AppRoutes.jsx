@@ -137,14 +137,7 @@ export default function AppRoutes() {
             />
 
             {/* Protected Routes - Require Authentication */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <LandingPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<LandingPage />} />
             <Route
               path="/dashboard"
               element={
@@ -156,11 +149,9 @@ export default function AppRoutes() {
             <Route
               path="/results"
               element={
-                <ProtectedRoute>
-                  <PageErrorBoundary pageName="Results">
-                    <ResultsPage />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
+                <PageErrorBoundary pageName="Results">
+                  <ResultsPage />
+                </PageErrorBoundary>
               }
             />
             <Route

@@ -2,6 +2,13 @@
  * Storage and Session Management
  * Handles localStorage operations, session IDs, and evaluation state
  *
+ * Storage Key Naming Convention:
+ * All keys use 'ce_' prefix (Circular Economy) for consistency and clarity
+ * - ce_session_id: Unique identifier for this browser session (persisted across page reloads)
+ * - ce_evaluation_state: Current evaluation form state + unsaved results
+ * - ce_assessments: Locally saved assessments (offline capability)
+ * - ce_anonymous_session: (see session.js) Anonymous user full session with inputs and results
+ *
  * Location: src/lib/storage.js
  */
 
@@ -15,11 +22,30 @@
  */
 export function getSessionId() {
   try {
-    const key = 'gtg_session_id';
+    const key = 'ce_session_id';
+    const legacyKey = 'gtg_session_id';
+
+    // Prefer the new key, but fallback to legacy and migrate if present
     let sid = localStorage.getItem(key);
-    if (!sid) {
-      sid = generateSimpleUUID();
+    if (sid) return sid;
+
+    const legacySid = localStorage.getItem(legacyKey);
+    if (legacySid) {
+      try {
+        localStorage.setItem(key, legacySid);
+        localStorage.removeItem(legacyKey);
+      } catch (e) {
+        // ignore storage errors
+      }
+      return legacySid;
+    }
+
+    // Create new one when none present
+    sid = generateSimpleUUID();
+    try {
       localStorage.setItem(key, sid);
+    } catch (e) {
+      // ignore
     }
     return sid;
   } catch {
@@ -51,7 +77,7 @@ function generateSimpleUUID() {
  */
 export function saveEvaluationState(state) {
   try {
-    localStorage.setItem('gtg_eval_state', JSON.stringify(state));
+    localStorage.setItem('ce_evaluation_state', JSON.stringify(state));
   } catch (error) {
     console.warn('Failed to save evaluation state:', error);
     // ignore storage errors (private mode or disabled storage)
@@ -64,7 +90,23 @@ export function saveEvaluationState(state) {
  */
 export function loadEvaluationState() {
   try {
-    const raw = localStorage.getItem('gtg_eval_state');
+    // Prefer new key, fallback to legacy 'gtg_eval_state' and migrate
+    const key = 'ce_evaluation_state';
+    const legacyKey = 'gtg_eval_state';
+
+    let raw = localStorage.getItem(key);
+    if (!raw) {
+      raw = localStorage.getItem(legacyKey);
+      if (raw) {
+        try {
+          localStorage.setItem(key, raw);
+          localStorage.removeItem(legacyKey);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
     return raw ? JSON.parse(raw) : null;
   } catch (error) {
     console.warn('Failed to load evaluation state:', error);
@@ -77,7 +119,7 @@ export function loadEvaluationState() {
  */
 export function clearEvaluationState() {
   try {
-    localStorage.removeItem('gtg_eval_state');
+    localStorage.removeItem('ce_evaluation_state');
   } catch (error) {
     console.warn('Failed to clear evaluation state:', error);
     // ignore storage errors
@@ -107,7 +149,7 @@ export function saveAssessmentLocal(assessment) {
     };
 
     assessments[id] = assessmentWithMeta;
-    localStorage.setItem('gtg_assessments', JSON.stringify(assessments));
+    localStorage.setItem('ce_assessments', JSON.stringify(assessments));
 
     return id;
   } catch (error) {
@@ -122,7 +164,20 @@ export function saveAssessmentLocal(assessment) {
  */
 export function loadAssessmentsLocal() {
   try {
-    const raw = localStorage.getItem('gtg_assessments');
+    const key = 'ce_assessments';
+    const legacyKey = 'gtg_assessments';
+    let raw = localStorage.getItem(key);
+    if (!raw) {
+      raw = localStorage.getItem(legacyKey);
+      if (raw) {
+        try {
+          localStorage.setItem(key, raw);
+          localStorage.removeItem(legacyKey);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
     return raw ? JSON.parse(raw) : {};
   } catch (error) {
     console.warn('Failed to load assessments:', error);
@@ -154,7 +209,7 @@ export function deleteAssessmentLocal(id) {
   try {
     const assessments = loadAssessmentsLocal();
     delete assessments[id];
-    localStorage.setItem('gtg_assessments', JSON.stringify(assessments));
+    localStorage.setItem('ce_assessments', JSON.stringify(assessments));
     return true;
   } catch (error) {
     console.error('Failed to delete assessment:', error);
@@ -179,7 +234,7 @@ export function updateAssessmentLocal(id, updates) {
       updatedAt: new Date().toISOString(),
     };
 
-    localStorage.setItem('gtg_assessments', JSON.stringify(assessments));
+    localStorage.setItem('ce_assessments', JSON.stringify(assessments));
     return assessments[id];
   } catch (error) {
     console.error('Failed to update assessment:', error);

@@ -2,6 +2,12 @@
  * Session utilities
  * Includes anonymous session helpers (localStorage-based) and
  * re-exports core storage helpers for evaluation state.
+ *
+ * Storage key naming convention: 'ce_' prefix for all Circular Economy app keys
+ * - ce_session_id: Unique identifier for this browser session
+ * - ce_evaluation_state: Current evaluation form state and results
+ * - ce_anonymous_session: Anonymous user session with inputs and results
+ * - ce_assessments: Locally saved assessments
  */
 
 import {
@@ -12,7 +18,7 @@ import {
   storage,
 } from '@/lib/storage';
 
-const ANONYMOUS_SESSION_KEY = 'circularity_anonymous_session';
+const ANONYMOUS_SESSION_KEY = 'ce_anonymous_session';
 const SESSION_EXPIRY_DAYS = 7;
 
 /**
@@ -41,7 +47,21 @@ export function saveAnonymousSession(data) {
  */
 export function getAnonymousSession() {
   try {
-    const stored = localStorage.getItem(ANONYMOUS_SESSION_KEY);
+    // Prefer new key, fallback to legacy key and migrate if needed
+    const legacyKey = 'circularity_anonymous_session';
+    let stored = localStorage.getItem(ANONYMOUS_SESSION_KEY);
+    if (!stored) {
+      stored = localStorage.getItem(legacyKey);
+      if (stored) {
+        try {
+          localStorage.setItem(ANONYMOUS_SESSION_KEY, stored);
+          localStorage.removeItem(legacyKey);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
     if (!stored) return null;
 
     const session = JSON.parse(stored);
@@ -82,3 +102,32 @@ export function hasValidAnonymousSession() {
 
 // Re-export core storage helpers
 export { getSessionId, saveEvaluationState, loadEvaluationState, clearEvaluationState, storage };
+
+/**
+ * Check if there are unsaved results in session
+ */
+export function hasUnsavedResults() {
+  const anonSession = getAnonymousSession();
+  if (anonSession?.hasUnsavedResults) return true;
+
+  const evalState = loadEvaluationState();
+  if (evalState?.hasUnsavedResults) return true;
+
+  return false;
+}
+
+/**
+ * Get the most recent session data (anonymous or authenticated)
+ */
+export function getMostRecentSession() {
+  const anonSession = getAnonymousSession();
+  const evalState = loadEvaluationState();
+
+  if (anonSession && evalState) {
+    const anonTime = new Date(anonSession.timestamp || 0).getTime();
+    const evalTime = new Date(evalState.timestamp || 0).getTime();
+    return anonTime > evalTime ? anonSession : evalState;
+  }
+
+  return anonSession || evalState || null;
+}

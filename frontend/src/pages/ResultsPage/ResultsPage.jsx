@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { saveAnonymousSession } from '@/utils/session';
+import { saveAnonymousSession, getAnonymousSession } from '@/utils/session';
 
 import { titleize } from '@/lib/formatting';
 import {
@@ -57,6 +57,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const location = useLocation();
   const navigationResult = location.state?.result;
   const navigationFormData = location.state?.formData;
+  const isRestored = location.state?.isRestored || false;
 
   const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
@@ -128,21 +129,38 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   useEffect(() => {
     if (!isViewFromMyAssessments && navigationResult) {
-      saveEvaluation({ result: navigationResult, formData: navigationFormData });
-    }
-  }, [navigationResult, navigationFormData, isViewFromMyAssessments, saveEvaluation]);
+      // If user is authenticated, store evaluation to the evaluation state (server-side flow)
+      if (user) {
+        saveEvaluation({ result: navigationResult, formData: navigationFormData });
+      } else {
+        // For anonymous users, keep the full session (inputs + results) in the anonymous session
+        try {
+          const currentSession = getAnonymousSession();
+          const inputs =
+            // prefer navigation-provided formData, then any stored anonymous inputs
+            (navigationFormData || {}).businessProblem ||
+            (navigationFormData || {}).businessSolution
+              ? {
+                  businessProblem: navigationFormData?.businessProblem || '',
+                  businessSolution: navigationFormData?.businessSolution || '',
+                  parameters: navigationFormData?.parameters || {},
+                }
+              : currentSession?.inputs || null;
 
-  // Save anonymous results to local anonymous session so they can be restored
-  useEffect(() => {
-    if (!user && !isViewFromMyAssessments && (navigationResult || navigationResult?.result)) {
-      const dataToSave = navigationResult || navigationResult?.result;
-      try {
-        saveAnonymousSession({ results: dataToSave, hasUnsavedResults: true });
-      } catch (e) {
-        // ignore storage failures
+          const dataToSave = navigationResult || navigationResult?.result;
+
+          saveAnonymousSession({
+            inputs,
+            results: dataToSave,
+            hasUnsavedResults: true,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (e) {
+          // ignore storage failures
+        }
       }
     }
-  }, [navigationResult, user, isViewFromMyAssessments]);
+  }, [navigationResult, navigationFormData, isViewFromMyAssessments, saveEvaluation, user]);
 
   // Show info toast if session was restored (only once per browser session)
   useEffect(() => {
@@ -267,6 +285,20 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         const result = await createAssessmentAsync(saveData);
         addToast('Assessment saved successfully! Redirecting...', 'success');
 
+        // After successful save, clear only the results from local evaluation state but keep inputs
+        try {
+          saveEvaluation({
+            businessProblem: resolvedFormData?.businessProblem || '',
+            businessSolution: resolvedFormData?.businessSolution || '',
+            parameters: resolvedFormData?.parameters || {},
+            calculatedResults: null,
+            hasUnsavedResults: false,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn('Failed to update local evaluation state after save:', e);
+        }
+
         // Redirect to the saved assessment if id available, otherwise list
         const newId = result?.id || result?.assessment?.id;
         if (newId) {
@@ -290,12 +322,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     () => extractProblemSolution(actualResult || currentData || {}),
     [actualResult, currentData],
   );
-  const storedProblemText = isViewFromMyAssessments
-    ? currentData?.business_problem
-    : resolvedFormData?.businessProblem;
-  const storedSolutionText = isViewFromMyAssessments
-    ? currentData?.business_solution
-    : resolvedFormData?.businessSolution;
+
+  // When results are restored via session restore, prioritize the inputs that were used
+  // to calculate the results, not the data extracted from the result object
+  const storedProblemText =
+    isRestored && navigationFormData
+      ? navigationFormData.businessProblem
+      : isViewFromMyAssessments
+        ? currentData?.business_problem
+        : resolvedFormData?.businessProblem;
+  const storedSolutionText =
+    isRestored && navigationFormData
+      ? navigationFormData.businessSolution
+      : isViewFromMyAssessments
+        ? currentData?.business_solution
+        : resolvedFormData?.businessSolution;
+
   const problemText =
     storedProblemText || caseProblemSolution?.problem || 'Problem data unavailable';
   const solutionText =
@@ -727,7 +769,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 <BarChart3 className="w-4 h-4" />
                 Market Analysis
               </Button>
-              {isViewFromMyAssessments && currentData && (
+              {currentData && (
                 <Button variant="warning-soft" onPress={handleReevaluate}>
                   <RefreshCw className="w-4 h-4" />
                   Re-evaluate
@@ -745,12 +787,45 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           </Button>
           {!isViewFromMyAssessments && !isPublicShare && (
             <Button
-              onPress={() =>
+              onPress={() => {
+                if (!user) {
+                  // Anonymous user: store pending save and redirect to auth
+                  try {
+                    // Get inputs from either the form data or the session snapshot
+                    const formInputs = resolvedFormData || sessionSnapshot;
+                    const pendingSave = {
+                      results: navigationResult || navigationResult?.result,
+                      inputs: {
+                        businessProblem: formInputs?.businessProblem || '',
+                        businessSolution: formInputs?.businessSolution || '',
+                        parameters: formInputs?.parameters || {},
+                      },
+                      timestamp: new Date().toISOString(),
+                      needsSave: true,
+                    };
+                    localStorage.setItem('ce_pending_save', JSON.stringify(pendingSave));
+                    toast.info('Redirecting to sign in', {
+                      description: 'Your assessment will be saved once you log in',
+                      duration: 4000,
+                    });
+                    setTimeout(() => {
+                      navigate('/auth', {
+                        state: { mode: 'signup', from: '/results', pendingSave: true },
+                      });
+                    }, 500);
+                    return;
+                  } catch (e) {
+                    console.error('Failed to prepare pending save', e);
+                    toast.error('Failed to prepare save');
+                    return;
+                  }
+                }
+
                 openSaveAssessmentDialog({
                   defaultName: defaultAssessmentName,
                   onSave: handleSave,
-                })
-              }
+                });
+              }}
               variant="success"
               isDisabled={isExporting}
             >

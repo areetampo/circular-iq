@@ -1,6 +1,7 @@
 import React from 'react';
 import AppProvider from './AppProvider';
 import AppRoutes from './AppRoutes';
+import { AppSessionManager } from '@/components/AppSessionManager';
 
 /**
  * App - Main application component (Phase 5 refactor)
@@ -19,6 +20,7 @@ import AppRoutes from './AppRoutes';
 export default function App() {
   return (
     <AppProvider>
+      <AppSessionManager />
       <AppRoutes />
     </AppProvider>
   );

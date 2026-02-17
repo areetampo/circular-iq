@@ -22,7 +22,7 @@
  * onClose();
  */
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { DIALOGS } from '@/components/dialogs/dialogTypes';
 
 // Dialog priority levels (higher = more important)
@@ -42,28 +42,28 @@ export const DIALOG_PRIORITIES = {
 export default function useDialog() {
   const [dialogState, setDialogState] = useState({ type: null, data: null, priority: 0 });
 
-  const openDialogWithPriority = (type, data = null, priority = 0) => {
-    const currentPriority = dialogState?.priority || 0;
-    // If an active dialog has higher priority, ignore this request
-    if (dialogState.type && currentPriority > priority) return;
-    setDialogState({ type, data, priority });
-  };
+  const openDialogWithPriority = useCallback((type, data = null, priority = 0) => {
+    setDialogState((prev) => {
+      const currentPriority = prev?.priority || 0;
+      if (prev.type && currentPriority > priority) return prev;
+      return { type, data, priority };
+    });
+  }, []);
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     setDialogState({ type: null, data: null, priority: 0 });
-  };
+  }, []);
 
-  // Backwards-compatible openDialog (no priority)
-  const openDialog = (type, data = null) => openDialogWithPriority(type, data, 0);
+  const openDialog = useCallback(
+    (type, data = null) => openDialogWithPriority(type, data, 0),
+    [openDialogWithPriority],
+  );
 
-  return {
-    dialog: dialogState,
-    isDialogOpen: Boolean(dialogState.type),
-    onClose,
-    openDialogWithPriority,
-
-    // Delete Assessment Dialog (medium)
-    openDeleteAssessmentDialog: (data) =>
+  // Stable wrappers for dialog openers so their identity doesn't change
+  // when dialogState updates. This prevents consumers from re-running
+  // effects when only dialogState changes.
+  const openDeleteAssessmentDialog = useCallback(
+    (data) =>
       openDialogWithPriority(
         DIALOGS.DELETE_ASSESSMENT,
         {
@@ -74,36 +74,36 @@ export default function useDialog() {
         },
         DIALOG_PRIORITIES.MEDIUM,
       ),
+    [openDialogWithPriority],
+  );
 
-    // Save Assessment Dialog (medium)
-    openSaveAssessmentDialog: (data) =>
+  const openSaveAssessmentDialog = useCallback(
+    (data) =>
       openDialogWithPriority(
         DIALOGS.SAVE_ASSESSMENT,
-        {
-          defaultName: data?.defaultName,
-          onSave: data?.onSave,
-        },
+        { defaultName: data?.defaultName, onSave: data?.onSave },
         DIALOG_PRIORITIES.MEDIUM,
       ),
+    [openDialogWithPriority],
+  );
 
-    // Rename Assessment Dialog (medium)
-    openRenameAssessmentDialog: (data) =>
+  const openRenameAssessmentDialog = useCallback(
+    (data) =>
       openDialogWithPriority(
         DIALOGS.RENAME_ASSESSMENT,
-        {
-          defaultName: data?.defaultName,
-          onRename: data?.onRename,
-          isLoading: data?.isLoading,
-        },
+        { defaultName: data?.defaultName, onRename: data?.onRename, isLoading: data?.isLoading },
         DIALOG_PRIORITIES.MEDIUM,
       ),
+    [openDialogWithPriority],
+  );
 
-    // Replace Inputs Dialog (low)
-    openReplaceInputsDialog: (data) =>
-      openDialogWithPriority(DIALOGS.REPLACE_INPUTS, data, DIALOG_PRIORITIES.LOW),
+  const openReplaceInputsDialog = useCallback(
+    (data) => openDialogWithPriority(DIALOGS.REPLACE_INPUTS, data, DIALOG_PRIORITIES.LOW),
+    [openDialogWithPriority],
+  );
 
-    // Generic Confirm Dialog (low by default, can accept custom priority)
-    openConfirmDialog: (data) =>
+  const openConfirmDialog = useCallback(
+    (data) =>
       openDialogWithPriority(
         DIALOGS.CONFIRM,
         {
@@ -117,25 +117,40 @@ export default function useDialog() {
         },
         data?.priority ?? DIALOG_PRIORITIES.LOW,
       ),
+    [openDialogWithPriority],
+  );
 
-    // Session Restore Dialog (high)
-    openSessionRestoreDialog: (data) =>
+  const openSessionRestoreDialog = useCallback(
+    (data) =>
       openDialogWithPriority(
         DIALOGS.SESSION_RESTORE,
-        {
-          onRestore: data?.onRestore,
-          onDismiss: data?.onDismiss,
-          sessionData: data?.sessionData,
-        },
+        { onRestore: data?.onRestore, onDismiss: data?.onDismiss, sessionData: data?.sessionData },
         DIALOG_PRIORITIES.HIGH,
       ),
+    [openDialogWithPriority],
+  );
 
-    // Limit reached dialog (medium)
-    openLimitReachedDialog: (data) =>
+  const openLimitReachedDialog = useCallback(
+    (data) =>
       openDialogWithPriority(
         DIALOGS.LIMIT_REACHED,
         { limit: data?.limit, message: data?.message },
         DIALOG_PRIORITIES.MEDIUM,
       ),
+    [openDialogWithPriority],
+  );
+
+  return {
+    dialog: dialogState,
+    isDialogOpen: Boolean(dialogState.type),
+    onClose,
+    openDialogWithPriority,
+    openDeleteAssessmentDialog,
+    openSaveAssessmentDialog,
+    openRenameAssessmentDialog,
+    openReplaceInputsDialog,
+    openConfirmDialog,
+    openSessionRestoreDialog,
+    openLimitReachedDialog,
   };
 }

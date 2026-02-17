@@ -226,19 +226,19 @@ STABLE;
 COMMENT ON FUNCTION search_documents_by_category IS 'Search documents filtered by category with minimum similarity threshold';
 
 -- Hybrid search combining vector similarity and full-text search
+-- UPDATED: Fixed to match API parameters (keyword_filter instead of query_text, added vector_weight)
 CREATE OR REPLACE FUNCTION search_documents_hybrid(
   query_embedding extensions.vector(1536),
-  query_text TEXT,
+  keyword_filter TEXT DEFAULT '',
   match_count INT DEFAULT 10,
-  similarity_threshold FLOAT DEFAULT 0.7
+  vector_weight FLOAT DEFAULT 0.7,
+  similarity_threshold FLOAT DEFAULT 0.0
 )
 RETURNS TABLE (
   id BIGINT,
   content TEXT,
   metadata JSONB,
-  similarity FLOAT,
-  text_rank FLOAT,
-  combined_score FLOAT
+  similarity FLOAT
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -246,22 +246,67 @@ BEGIN
     d.id,
     d.content,
     d.metadata,
-    (1 - (d.embedding <=> query_embedding)) AS similarity,
-    ts_rank(to_tsvector('english', d.content), plainto_tsquery('english', query_text)) AS text_rank,
-    ((1 - (d.embedding <=> query_embedding)) * 0.7 +
-     ts_rank(to_tsvector('english', d.content), plainto_tsquery('english', query_text)) * 0.3) AS combined_score
+    (1 - (d.embedding <=> query_embedding)) * vector_weight +
+    ts_rank(to_tsvector('english', d.content), plainto_tsquery('english', keyword_filter)) * (1 - vector_weight) AS similarity
   FROM documents d
   WHERE
     d.embedding IS NOT NULL
-    AND (1 - (d.embedding <=> query_embedding)) >= similarity_threshold
-  ORDER BY combined_score DESC
+    AND (
+      keyword_filter = ''
+      OR to_tsvector('english', d.content) @@ plainto_tsquery('english', keyword_filter)
+    )
+    AND (1 - (d.embedding <=> query_embedding)) * vector_weight +
+        ts_rank(to_tsvector('english', d.content), plainto_tsquery('english', keyword_filter)) * (1 - vector_weight) >= similarity_threshold
+  ORDER BY similarity DESC
   LIMIT match_count;
 END;
 $$ LANGUAGE plpgsql
 SET search_path = public, extensions
 STABLE;
 
-COMMENT ON FUNCTION search_documents_hybrid IS 'Hybrid search combining vector similarity (70%) and full-text search (30%)';
+COMMENT ON FUNCTION search_documents_hybrid IS 'Hybrid search combining vector similarity and full-text search with configurable weights';
+
+-- Hybrid search with industry filtering
+CREATE OR REPLACE FUNCTION search_documents_hybrid_filtered(
+  query_embedding extensions.vector(1536),
+  keyword_filter TEXT DEFAULT '',
+  industry_filter TEXT DEFAULT NULL,
+  match_count INT DEFAULT 10,
+  vector_weight FLOAT DEFAULT 0.7
+)
+RETURNS TABLE (
+  id BIGINT,
+  content TEXT,
+  metadata JSONB,
+  similarity FLOAT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    d.id,
+    d.content,
+    d.metadata,
+    (1 - (d.embedding <=> query_embedding)) * vector_weight +
+    ts_rank(to_tsvector('english', d.content), plainto_tsquery('english', keyword_filter)) * (1 - vector_weight) AS similarity
+  FROM documents d
+  WHERE
+    d.embedding IS NOT NULL
+    AND (
+      keyword_filter = ''
+      OR to_tsvector('english', d.content) @@ plainto_tsquery('english', keyword_filter)
+    )
+    AND (
+      industry_filter IS NULL
+      OR d.metadata->>'industry' = industry_filter
+    )
+  ORDER BY similarity DESC
+  LIMIT match_count;
+END;
+$$ LANGUAGE plpgsql
+SET search_path = public, extensions
+STABLE;
+
+COMMENT ON FUNCTION search_documents_hybrid_filtered IS 'Hybrid search with optional industry filtering';
 
 -- ============================================
 -- 7. Analytics Functions (SECURITY FIX)
