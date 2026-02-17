@@ -165,6 +165,20 @@ export default function createScoringRouter(openai, supabase) {
     const startTime = Date.now();
     const requestId = Math.random().toString(36).slice(2, 9);
 
+    // Performance tracking
+    const timings = {
+      validation: 0,
+      scoring: 0,
+      embeddings: 0,
+      metadata: 0,
+      vectorSearch: 0,
+      integrityGaps: 0,
+      audit: 0,
+      gapAnalysis: 0,
+    };
+
+    let stepStart = Date.now();
+
     try {
       // Enforce anonymous usage limits (IP+UA fingerprint)
       const anonResult = await enforceAnonymousUsage(req);
@@ -260,11 +274,17 @@ export default function createScoringRouter(openai, supabase) {
         }
       }
 
+      timings.validation = Date.now() - stepStart;
+      stepStart = Date.now();
+
       debugLog(`[${requestId}] Starting score calculation...`);
 
       // ========== STEP 1: CALCULATE DETERMINISTIC SCORES ==========
       const scores = calculateScores(parameters);
       debugLog(`[${requestId}] Scores calculated: ${scores.overall_score} / 100`);
+
+      timings.scoring = Date.now() - stepStart;
+      stepStart = Date.now();
 
       // ========== STEP 2: VECTOR SEARCH FOR SIMILAR CASES ==========
       let metadata = null; // will populate and reuse in response
@@ -284,6 +304,9 @@ export default function createScoringRouter(openai, supabase) {
         const problemVector = problemEmbedRes.data[0].embedding;
         const solutionVector = solutionEmbedRes.data[0].embedding;
 
+        timings.embeddings = Date.now() - stepStart;
+        stepStart = Date.now();
+
         // Extract metadata to enable industry-filtered search
         try {
           debugLog(`[${requestId}] Extracting metadata (industry, scale, strategy)...`);
@@ -295,6 +318,9 @@ export default function createScoringRouter(openai, supabase) {
           console.warn(`[${requestId}] Metadata extraction warning:`, error.message);
           metadata = null;
         }
+
+        timings.metadata = Date.now() - stepStart;
+        stepStart = Date.now();
 
         // Use hybrid search for problem and solution separately (combines semantic+keyword)
         debugLog(`[${requestId}] Running hybrid searches for problem and solution...`);
@@ -318,7 +344,7 @@ export default function createScoringRouter(openai, supabase) {
           vector_weight: 0.8,
         };
 
-        const [[problemRes, solutionRes], industryRes] = await Promise.all([
+        const [searchResults, industryResults] = await Promise.allSettled([
           Promise.all([
             supabase.rpc('search_documents_hybrid', rpcParamsProblem),
             supabase.rpc('search_documents_hybrid', rpcParamsSolution),
@@ -332,11 +358,21 @@ export default function createScoringRouter(openai, supabase) {
                 similarity_threshold: 0.0,
               })
             : Promise.resolve({ data: [] }),
-        ]).catch((e) => [{ error: e }, { error: e }]);
+        ]);
 
-        const problemRows = (problemRes && problemRes.data) || [];
-        const solutionRows = (solutionRes && solutionRes.data) || [];
-        const industryRows = (industryRes && industryRes.data) || [];
+        const problemRows =
+          searchResults.status === 'fulfilled' ? searchResults.value[0]?.data || [] : [];
+        const solutionRows =
+          searchResults.status === 'fulfilled' ? searchResults.value[1]?.data || [] : [];
+        const industryRows =
+          industryResults.status === 'fulfilled' ? industryResults.value?.data || [] : [];
+
+        if (searchResults.status === 'rejected') {
+          console.error(`[${requestId}] Hybrid search failed:`, searchResults.reason);
+        }
+        if (industryResults.status === 'rejected') {
+          console.error(`[${requestId}] Industry search failed:`, industryResults.reason);
+        }
 
         // Combine and deduplicate using weighted multi-vector approach
         const combinedRows = [...problemRows, ...solutionRows, ...industryRows];
@@ -344,49 +380,77 @@ export default function createScoringRouter(openai, supabase) {
         if (combinedRows.length === 0) {
           debugLog(`[${requestId}] No similar cases found in database`);
         } else {
-          // Use weighted dedup that averages or uses problem/solution maxima
-          let deduped = dedupeResultsWeighted(combinedRows, {
-            wProblem: 0.5,
-            wSolution: 0.4,
-            wDoc: 0.1,
-          });
+          // Filter by minimum similarity threshold
+          const MIN_SIMILARITY = 0.3;
+          const filtered = combinedRows.filter((row) => (row.similarity || 0) >= MIN_SIMILARITY);
 
-          // Boost relevance for industry/strategy/material matches
-          deduped = deduped.map((c) => {
-            let multiplier = 1.0;
-            try {
-              const cm = c.metadata || {};
-              if (metadata?.industry && cm.industry && cm.industry === metadata.industry)
-                multiplier += 0.12;
-              if (metadata?.r_strategy && cm.r_strategy && cm.r_strategy === metadata.r_strategy)
-                multiplier += 0.08;
-              if (
-                metadata?.primary_material &&
-                cm.primary_material &&
-                cm.primary_material === metadata.primary_material
-              )
-                multiplier += 0.06;
-            } catch (e) {
-              // ignore
+          if (filtered.length === 0) {
+            debugLog(
+              `[${requestId}] No cases met minimum similarity threshold (${MIN_SIMILARITY})`,
+            );
+            similarCases = [];
+          } else {
+            // Use weighted dedup that averages or uses problem/solution maxima
+            let deduped = dedupeResultsWeighted(filtered, {
+              wProblem: 0.5,
+              wSolution: 0.4,
+              wDoc: 0.1,
+            });
+
+            // Boost relevance for industry/strategy/material matches
+            deduped = deduped.map((c) => {
+              let multiplier = 1.0;
+              try {
+                const cm = c.metadata || {};
+                if (metadata?.industry && cm.industry && cm.industry === metadata.industry)
+                  multiplier += 0.12;
+                if (metadata?.r_strategy && cm.r_strategy && cm.r_strategy === metadata.r_strategy)
+                  multiplier += 0.08;
+                if (
+                  metadata?.primary_material &&
+                  cm.primary_material &&
+                  cm.primary_material === metadata.primary_material
+                )
+                  multiplier += 0.06;
+              } catch (e) {
+                // ignore
+              }
+              return { ...c, similarity: (c.similarity || 0) * multiplier };
+            });
+
+            // Normalize if any scores exceed 1.0
+            const maxScore = Math.max(...deduped.map((c) => c.similarity || 0));
+            if (maxScore > 1) {
+              deduped = deduped.map((c) => ({
+                ...c,
+                similarity: (c.similarity || 0) / maxScore,
+              }));
             }
-            return { ...c, similarity: Math.min(1, (c.similarity || 0) * multiplier) };
-          });
 
-          // Sort and limit
-          deduped.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
-          similarCases = deduped.slice(0, 4);
-          debugLog(
-            `[${requestId}] Found ${combinedRows.length} vector rows -> ${similarCases.length} unique similar cases`,
-          );
+            // Sort and limit
+            deduped.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+            similarCases = deduped.slice(0, 4);
+            debugLog(
+              `[${requestId}] Found ${combinedRows.length} vector rows -> ${filtered.length} above threshold -> ${similarCases.length} unique similar cases`,
+            );
+          }
         }
+
+        timings.vectorSearch = Date.now() - stepStart;
+        stepStart = Date.now();
       } catch (error) {
         console.error(`[${requestId}] Vector search error:`, error.message);
+        timings.vectorSearch = Date.now() - stepStart;
+        stepStart = Date.now();
         // Continue without database context - don't fail the request
       }
 
       // ========== STEP 3: IDENTIFY INTEGRITY GAPS ==========
       const integrityGaps = identifyIntegrityGaps(scores.sub_scores);
       debugLog(`[${requestId}] Identified ${integrityGaps.length} potential integrity gaps`);
+
+      timings.integrityGaps = Date.now() - stepStart;
+      stepStart = Date.now();
 
       // ========== STEP 4: GENERATE AI-POWERED AUDIT ==========
       debugLog(`[${requestId}] Generating audit analysis...`);
@@ -405,9 +469,14 @@ export default function createScoringRouter(openai, supabase) {
         auditResult.integrity_gaps = integrityGaps;
       }
 
+      timings.audit = Date.now() - stepStart;
+      stepStart = Date.now();
+
       // ========== STEP 5: CALCULATE GAP ANALYSIS ==========
       debugLog(`[${requestId}] Calculating gap analysis and benchmarks...`);
       const gapAnalysis = calculateGapAnalysis(scores, similarCases);
+
+      timings.gapAnalysis = Date.now() - stepStart;
 
       // ========== STEP 6: COMPILE FINAL RESPONSE ==========
       const response = {
@@ -422,6 +491,7 @@ export default function createScoringRouter(openai, supabase) {
         processing_info: {
           request_id: requestId,
           processing_time_ms: Date.now() - startTime,
+          timings: timings,
           timestamp: new Date().toISOString(),
         },
       };

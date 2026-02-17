@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { useFormContext } from 'react-hook-form';
 import { useGlobalModal } from '@/contexts/ModalContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { hasValidAnonymousSession } from '@/utils/session';
 import testCases from '@/data/testCases.json';
 import { Card, Chip } from '@heroui/react';
 import { Button } from '@/components/common';
@@ -39,12 +38,6 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
 
   const requestSelectCase = (testCase) => {
     if (hasUserInput()) {
-      // If a session restore is pending for anonymous users, block the replace dialog
-      if (hasValidAnonymousSession && hasValidAnonymousSession()) {
-        // silently ignore replace to avoid dialog race with session restore
-        return;
-      }
-
       openReplaceInputsDialog({
         title: 'Replace current inputs?',
         description:
@@ -77,7 +70,7 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'cursor-pointer transition-colors duration-200 h-full border-2 shadow-sm',
+              'cursor-pointer transition-all duration-200 h-full border-2 shadow-sm hover:shadow-md data-active:scale-90',
               selectedCase === testCase.id
                 ? 'border-teal-300/60 bg-teal-100/50'
                 : 'border-teal-100 bg-teal-50/70 hover:bg-teal-100/40 hover:border-teal-200',

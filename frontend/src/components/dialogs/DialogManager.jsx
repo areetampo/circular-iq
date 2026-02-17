@@ -74,7 +74,7 @@ function DialogManagerContent() {
       );
 
     case DIALOGS.SESSION_RESTORE:
-      return <SessionRestoreDialog onRestore={data?.onRestore} onDismiss={data?.onDismiss} />;
+      return <SessionRestoreDialog sessionData={data?.sessionData} onDismiss={data?.onDismiss} />;
 
     default:
       console.warn('Unknown dialog type:', type);

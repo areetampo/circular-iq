@@ -18,7 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_anonymous_usage_last_used ON anonymous_usage(last
 ALTER TABLE anonymous_usage ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Allow service role full access
-CREATE POLICY IF NOT EXISTS "Service role has full access to anonymous_usage"
+CREATE POLICY "Service role has full access to anonymous_usage"
   ON anonymous_usage
   FOR ALL
   TO service_role
@@ -26,7 +26,7 @@ CREATE POLICY IF NOT EXISTS "Service role has full access to anonymous_usage"
   WITH CHECK (true);
 
 -- Policy: Anonymous users can read their own records
-CREATE POLICY IF NOT EXISTS "Anonymous users can read their usage"
+CREATE POLICY "Anonymous users can read their usage"
   ON anonymous_usage
   FOR SELECT
   TO anon

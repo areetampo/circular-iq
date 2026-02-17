@@ -98,6 +98,7 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
       onOpenChange={handleBackdropChange}
       variant="opaque"
       isDismissable={false}
+      isKeyboardDismissDisabled={true}
     >
       <AlertDialog.Container placement="center" size="lg">
         <AlertDialog.Dialog>

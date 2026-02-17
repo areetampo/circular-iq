@@ -32,7 +32,8 @@ export function LimitReachedDialog(props) {
         if (!open) onClose();
       }}
       variant="opaque"
-      isDismissable={true}
+      isDismissable={false}
+      isKeyboardDismissDisabled={true}
     >
       <AlertDialog.Container placement="center" size="md">
         <AlertDialog.Dialog>

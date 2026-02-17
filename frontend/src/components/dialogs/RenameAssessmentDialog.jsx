@@ -90,8 +90,8 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
         }
       }}
       variant="opaque"
-      isDismissable={!isLoading}
-      isKeyboardDismissDisabled={isLoading}
+      isDismissable={false}
+      isKeyboardDismissDisabled={true}
     >
       <AlertDialog.Container placement="center" size="md">
         <AlertDialog.Dialog>
