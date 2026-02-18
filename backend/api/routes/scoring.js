@@ -117,10 +117,15 @@ export default function createScoringRouter(openai, supabase) {
               return null; // Authenticated user — skip anonymous limits
             }
             // If token is invalid or expired, proceed as anonymous user
-            debugLog('Bearer token present but not a valid authenticated user — treating as anonymous');
+            debugLog(
+              'Bearer token present but not a valid authenticated user — treating as anonymous',
+            );
           } catch (authErr) {
             // If Supabase call fails, log and continue as anonymous (do not block here)
-            console.warn('Supabase auth.getUser failed when verifying token:', authErr?.message || authErr);
+            console.warn(
+              'Supabase auth.getUser failed when verifying token:',
+              authErr?.message || authErr,
+            );
           }
         }
       }
@@ -346,6 +351,17 @@ export default function createScoringRouter(openai, supabase) {
           errorResponse({
             message: `Business Solution is too short. Please provide ${MIN_LENGTH - businessSolution.length} more characters (currently ${businessSolution.length}/${MIN_LENGTH}).`,
             code: 'SOLUTION_TOO_SHORT',
+          }),
+        );
+      }
+
+      // Reject excessively large inputs to prevent token-exhaustion / DoS
+      const MAX_INPUT_LENGTH = 5000;
+      if (businessProblem.length > MAX_INPUT_LENGTH || businessSolution.length > MAX_INPUT_LENGTH) {
+        return res.status(400).json(
+          errorResponse({
+            message: `Business Problem and Business Solution must be at most ${MAX_INPUT_LENGTH} characters`,
+            code: 'INPUT_TOO_LONG',
           }),
         );
       }
