@@ -175,3 +175,4 @@ COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS
 -- Only the backend service role should be able to execute this function.
 -- ============================================================================
 REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) FROM public, anon;
+GRANT EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) TO service_role;
