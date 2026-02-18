@@ -75,27 +75,62 @@ export default function createScoringRouter(openai, supabase) {
   });
 
   /**
-   * Enforce anonymous usage limits. Returns an object when the request should be blocked
-   * or null when allowed. Handles DB errors silently (does not block scoring on DB failure).
+   * Enforce anonymous usage limits.
+   * - Verifies whether request is from an authenticated user (via Supabase).
+   * - Returns null when the request is allowed to proceed.
+   * - Returns an object { blocked: true, status, body } when the request should be blocked.
+   *
+   * Important changes:
+   * - Auth verification now calls `supabase.auth.getUser(token)` instead of a plain header check.
+   * - In test mode (NODE_ENV === 'test') behaviour matches `requireAuth` (treat as authenticated).
+   * - Fail-closed for tracking DB failures: if the tracking RPC fails or an unexpected error
+   *   occurs, return a 503 Service Unavailable (the store is closed).
    */
   async function enforceAnonymousUsage(req) {
     try {
-      // 1. Check if user is authenticated FIRST
-      const authHeader = req.headers.authorization;
-      const isAuthenticated = authHeader && authHeader.startsWith('Bearer ');
+      const IS_TEST = process.env.NODE_ENV === 'test';
 
-      // ✅ Authenticated users: skip limit check entirely
-      if (isAuthenticated) {
-        debugLog('User is authenticated, skipping anonymous usage check');
-        return null; // Allow request
+      // 1. Check authentication properly using Supabase (not just header shape)
+      const authHeader = req.headers.authorization || '';
+
+      // If there's no Bearer header but we're running tests, treat as authenticated
+      if (!authHeader.startsWith('Bearer ')) {
+        if (IS_TEST) {
+          debugLog('IS_TEST: treating request as authenticated (skip anonymous check)');
+          return null;
+        }
+      } else {
+        const token = authHeader.slice(7).trim();
+        const MASTER_API_KEY = process.env.API_KEY || '';
+
+        // If the provided bearer token is the master API key, treat as authenticated
+        if (token && MASTER_API_KEY && token === MASTER_API_KEY) {
+          debugLog('Master API key provided in Authorization header — treating as authenticated');
+          return null;
+        }
+
+        if (token) {
+          try {
+            const { data, error } = await supabase.auth.getUser(token);
+            if (!error && data?.user) {
+              debugLog('User token verified via Supabase, skipping anonymous usage check');
+              return null; // Authenticated user — skip anonymous limits
+            }
+            // If token is invalid or expired, proceed as anonymous user
+            debugLog('Bearer token present but not a valid authenticated user — treating as anonymous');
+          } catch (authErr) {
+            // If Supabase call fails, log and continue as anonymous (do not block here)
+            console.warn('Supabase auth.getUser failed when verifying token:', authErr?.message || authErr);
+          }
+        }
       }
 
-      // 2. Check if serviceSupabase is available
+      // 2. Check if serviceSupabase is available for tracking
       if (!serviceSupabase) {
         console.warn(
           '⚠️ serviceSupabase client not initialized! Usage tracking will be skipped, Check SUPABASE_SERVICE_ROLE_KEY',
         );
-        // In production, you might want to block here, but for now we'll allow
+        // Allow when tracking is not configured (keeps behaviour consistent with earlier setup)
         return null;
       }
 
@@ -118,12 +153,19 @@ export default function createScoringRouter(openai, supabase) {
         p_user_agent_snippet: uaSnippet,
       });
 
-      // 5. Handle database errors
+      // 5. Handle database errors — FAIL CLOSED: block if tracking is unavailable
       if (error) {
         console.error('❌ Error in atomic usage check:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
-        // Don't block on DB errors - fail open for better UX
-        return null;
+        return {
+          blocked: true,
+          status: 503,
+          body: {
+            code: 'TRACKING_SERVICE_UNAVAILABLE',
+            message: 'Usage tracking temporarily unavailable. Please try again later.',
+            timestamp: new Date().toISOString(),
+          },
+        };
       }
 
       // 6. Validate response
@@ -131,7 +173,16 @@ export default function createScoringRouter(openai, supabase) {
       if (!result) {
         console.error('❌ Unexpected empty result from usage check');
         console.error('Response data:', data);
-        return null;
+        // Treat as blocked to be conservative (tracking inconsistency)
+        return {
+          blocked: true,
+          status: 503,
+          body: {
+            code: 'TRACKING_SERVICE_INCONSISTENT',
+            message: 'Usage tracking returned an invalid response. Please try again later.',
+            timestamp: new Date().toISOString(),
+          },
+        };
       }
 
       const { current_count, is_allowed } = result;
@@ -161,8 +212,16 @@ export default function createScoringRouter(openai, supabase) {
     } catch (e) {
       console.error('❌ Anonymous usage check failed:', e?.message || e);
       console.error('Stack trace:', e?.stack);
-      // Don't block on unexpected errors - fail open
-      return null;
+      // Fail-closed on unexpected exceptions related to tracking
+      return {
+        blocked: true,
+        status: 503,
+        body: {
+          code: 'TRACKING_SERVICE_ERROR',
+          message: 'Usage tracking failure. Service temporarily unavailable.',
+          timestamp: new Date().toISOString(),
+        },
+      };
     }
   }
 
