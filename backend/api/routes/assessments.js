@@ -809,7 +809,7 @@ export default function createAssessmentsRouter(supabase) {
 
       if (assessmentError) console.warn('Assessment fetch warning:', assessmentError.message);
 
-      if (!assessmentRow || !assessmentRow.is_public) {
+      if (!assessmentRow) {
         return res
           .status(404)
           .json(
@@ -818,6 +818,15 @@ export default function createAssessmentsRouter(supabase) {
               'Assessment not found',
             ),
           );
+      }
+
+      // Defensive check: return 403 if the record exists but is not public
+      if (!assessmentRow.is_public) {
+        return res.status(403).json({
+          error: 'Assessment is not public',
+          code: 'FORBIDDEN',
+          timestamp: new Date().toISOString(),
+        });
       }
 
       const userScore = assessmentRow?.overall_score ?? null;
