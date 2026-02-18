@@ -425,6 +425,44 @@ export default function createAssessmentsRouter(supabase) {
   });
 
   /**
+   * GET /market-analysis
+   * Retrieve market analysis data (aggregate stats by industry/scale for competitive analysis)
+   */
+  router.get('/market-analysis', async (req, res) => {
+    const startTime = Date.now();
+
+    try {
+      const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+
+      if (marketError) {
+        console.warn('Market data query warning:', marketError.message);
+        // Return empty structure if function not available yet
+        return res.json({
+          market_data: [],
+          stats: null,
+        });
+      }
+
+      const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
+
+      if (statsError) {
+        console.warn('Assessment statistics query warning:', statsError.message);
+      }
+
+      logRequest('GET', '/market-analysis', 200, Date.now() - startTime);
+
+      res.json({
+        market_data: marketData || [],
+        stats: stats?.[0] || null,
+      });
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+      logRequest('GET', '/market-analysis', 500, Date.now() - startTime);
+      res.status(500).json(errorResponse(error, 'Failed to fetch market data'));
+    }
+  });
+
+  /**
    * GET /:id
    * Retrieve a single assessment by ID
    */
@@ -634,46 +672,11 @@ export default function createAssessmentsRouter(supabase) {
     }
   });
 
-  /**
-   * GET /market-analysis
-   * Retrieve market analysis data (aggregate stats by industry/scale for competitive analysis)
-   */
-  router.get('/market-analysis', async (req, res) => {
-    const startTime = Date.now();
-
-    try {
-      const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
-
-      if (marketError) {
-        console.warn('Market data query warning:', marketError.message);
-        // Return empty structure if function not available yet
-        return res.json({
-          market_data: [],
-          stats: null,
-        });
-      }
-
-      const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
-
-      if (statsError) {
-        console.warn('Assessment statistics query warning:', statsError.message);
-      }
-
-      logRequest('GET', '/market-analysis', 200, Date.now() - startTime);
-
-      res.json({
-        market_data: marketData || [],
-        stats: stats?.[0] || null,
-      });
-    } catch (error) {
-      console.error('Error fetching market data:', error);
-      logRequest('GET', '/market-analysis', 500, Date.now() - startTime);
-      res.status(500).json(errorResponse(error, 'Failed to fetch market data'));
-    }
-  });
+  // Public /market-analysis handler moved earlier in the file to avoid being shadowed by the dynamic '/:id' route.
 
   // GET /market-analysis/:id - per-assessment market analysis (user-specific comparisons)
-  router.get('/market-analysis/:id', async (req, res) => {
+  // Protected: require authenticated user (test-mode allows a mock user)
+  router.get('/market-analysis/:id', requireAuth(supabase), async (req, res) => {
     const startTime = Date.now();
     const { id } = req.params;
 

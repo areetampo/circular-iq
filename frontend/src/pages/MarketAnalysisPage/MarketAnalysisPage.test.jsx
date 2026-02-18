@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // Mock hooks and dependencies
@@ -79,21 +79,26 @@ describe('MarketAnalysisPage', () => {
   test('renders export buttons and time range controls', async () => {
     render(
       <Wrapper>
-        <MemoryRouter initialEntries={['/results/123/market-analysis']}>
+        <MemoryRouter initialEntries={['/assessments/123/market-analysis']}>
           <Routes>
-            <Route path="/results/:id/market-analysis" element={<MarketAnalysisPage />} />
+            <Route path="/assessments/:id/market-analysis" element={<MarketAnalysisPage />} />
           </Routes>
         </MemoryRouter>
       </Wrapper>,
     );
 
-    // Export buttons
-    expect(
-      await screen.findByRole('button', { name: /Export market data as CSV/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /Export market analysis as PDF/i }),
-    ).toBeInTheDocument();
+    // Export buttons should be visible but disabled for anonymous users
+    const csvBtn = await screen.findByRole('button', { name: /Export market data as CSV/i });
+    const pdfBtn = screen.getByRole('button', { name: /Export market analysis as PDF/i });
+
+    expect(csvBtn).toBeInTheDocument();
+    expect(pdfBtn).toBeInTheDocument();
+
+    expect(csvBtn).toBeDisabled();
+    expect(pdfBtn).toBeDisabled();
+
+    expect(csvBtn).toHaveAttribute('title', 'Sign in to get access to them');
+    expect(pdfBtn).toHaveAttribute('title', 'Sign in to get access to them');
 
     // Time range controls
     expect(screen.getByText('12m')).toBeInTheDocument();
@@ -125,5 +130,39 @@ describe('MarketAnalysisPage', () => {
     const aria = lineChart.getAttribute('data-aria');
     expect(aria).toMatch(/industry/i);
     expect(aria).toMatch(/monthly|weekly|daily/i);
+  });
+
+  test('uses session result for /results/market-analysis (anonymous or authenticated)', async () => {
+    // Put a session evaluation with a result into localStorage
+    const session = {
+      inputs: { businessProblem: 'P', businessSolution: 'S', parameters: {} },
+      results: { overall_score: 72, metadata: { industry: 'energy' } },
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem('session_evaluation_state', JSON.stringify(session));
+
+    render(
+      <Wrapper>
+        <MemoryRouter initialEntries={['/results/market-analysis']}>
+          <Routes>
+            <Route path="/results/market-analysis" element={<MarketAnalysisPage />} />
+          </Routes>
+        </MemoryRouter>
+      </Wrapper>,
+    );
+
+    // Aggregate export buttons should be present but disabled for anonymous users (page is public)
+    const csvBtn = await screen.findByRole('button', { name: /Export market data as CSV/i });
+    expect(csvBtn).toBeInTheDocument();
+    expect(csvBtn).toBeDisabled();
+    expect(csvBtn).toHaveAttribute('title', 'Sign in to get access to them');
+
+    // Enhanced analytics should be requested for the session industry's trend
+    await waitFor(() => expect(getEnhancedAnalytics).toHaveBeenCalledWith(
+      expect.objectContaining({ industry: 'energy' }),
+    ));
+
+    // Line chart should be rendered
+    expect(await screen.findByTestId('line-chart')).toBeInTheDocument();
   });
 });

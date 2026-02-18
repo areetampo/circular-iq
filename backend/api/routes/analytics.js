@@ -96,8 +96,9 @@ async function ensureOpenAIClient() {
     const { default: OpenAI } = await import('openai');
     openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     return openaiClient;
-  } catch (err) {
+  } catch (e) {
     // If anything fails, leave openaiClient null and allow callers to handle it
+    console.error('Failed to initialize OpenAI client:', e);
     openaiClient = null;
     return null;
   }

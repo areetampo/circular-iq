@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { saveAnonymousSession, getAnonymousSession } from '@/utils/session';
+import { saveSession, getSession } from '@/utils/session';
 
 import { titleize } from '@/lib/formatting';
 import {
@@ -21,7 +21,18 @@ import {
   deleteAssessment,
 } from '@/features/assessments';
 import { updateAssessment } from '@/features/assessments/api/assessmentApi';
-import { Card, Tabs, Switch, Input, Label, Accordion, Select, ListBox, Chip } from '@heroui/react';
+import {
+  Card,
+  Tabs,
+  Switch,
+  Input,
+  Label,
+  Accordion,
+  Select,
+  ListBox,
+  Chip,
+  Tooltip,
+} from '@heroui/react';
 import { Button } from '@/components/common';
 import {
   BarChart3,
@@ -55,6 +66,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const { id, publicId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const isResultsRoute = location.pathname.startsWith('/results');
   const navigationResult = location.state?.result;
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
@@ -127,41 +139,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const { openSaveAssessmentDialog, openRenameAssessmentDialog, openDeleteAssessmentDialog } =
     useGlobalDialog();
 
-  useEffect(() => {
-    if (!isViewFromMyAssessments && navigationResult) {
-      // If user is authenticated, store evaluation to the evaluation state (server-side flow)
-      if (user) {
-        saveEvaluation({ result: navigationResult, formData: navigationFormData });
-      } else {
-        // For anonymous users, keep the full session (inputs + results) in the anonymous session
-        try {
-          const currentSession = getAnonymousSession();
-          const inputs =
-            // prefer navigation-provided formData, then any stored anonymous inputs
-            (navigationFormData || {}).businessProblem ||
-            (navigationFormData || {}).businessSolution
-              ? {
-                  businessProblem: navigationFormData?.businessProblem || '',
-                  businessSolution: navigationFormData?.businessSolution || '',
-                  parameters: navigationFormData?.parameters || {},
-                }
-              : currentSession?.inputs || null;
-
-          const dataToSave = navigationResult || navigationResult?.result;
-
-          saveAnonymousSession({
-            inputs,
-            results: dataToSave,
-            hasUnsavedResults: true,
-            timestamp: new Date().toISOString(),
-          });
-        } catch (e) {
-          // ignore storage failures
-        }
-      }
-    }
-  }, [navigationResult, navigationFormData, isViewFromMyAssessments, saveEvaluation, user]);
-
   // Show info toast if session was restored (only once per browser session)
   useEffect(() => {
     if (
@@ -217,12 +194,20 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     navigate('/assessments');
   }, [navigate]);
 
-  // Market analysis: route to standalone page
+  // Market analysis navigation:
+  // - Saved assessment view  -> `/assessments/:id/market-analysis` (protected)
+  // - Unsaved/session result -> `/results/market-analysis` (public, uses session_evaluation_state.results)
+  // NOTE: avoid referencing `currentData` here because it is declared later.
   const handleMarketAnalysis = useCallback(() => {
-    if (id) {
-      navigate(`/results/${id}/market-analysis`);
+    // Treat as saved when viewing from My Assessments or when URL provides an id
+    if (isViewFromMyAssessments || id) {
+      if (id) navigate(`/assessments/${id}/market-analysis`);
+      return;
     }
-  }, [id, navigate]);
+
+    // Otherwise use the session-based Market Analysis for unsaved results
+    navigate('/results/market-analysis');
+  }, [isViewFromMyAssessments, id, navigate]);
 
   const sessionSnapshot = useMemo(() => {
     if (isViewFromMyAssessments) return null;
@@ -235,13 +220,91 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     if (isViewFromMyAssessments) {
       return detailData;
     }
-    return navigationResult || sessionSnapshot?.result || null;
+    return navigationResult || sessionSnapshot?.results || null;
   }, [isViewFromMyAssessments, detailData, navigationResult, sessionSnapshot]);
 
   const resolvedFormData = useMemo(() => {
     if (isViewFromMyAssessments) return null;
     return navigationFormData || sessionSnapshot?.formData || null;
   }, [isViewFromMyAssessments, navigationFormData, sessionSnapshot]);
+
+  // Save complete results to session (including formData used for calculation)
+  // IMPORTANT: results are a snapshot - the businessProblem/Solution/parameters within
+  // results MUST remain exactly as they were when calculated, never to be modified
+  useEffect(() => {
+    // Skip if viewing saved assessment
+    if (isViewFromMyAssessments || isPublicShare) return;
+
+    const resultData = navigationResult || navigationResult?.result;
+
+    if (!resultData) return;
+
+    try {
+      saveSession({
+        inputs: {
+          businessProblem: resolvedFormData?.businessProblem || '',
+          businessSolution: resolvedFormData?.businessSolution || '',
+          parameters: resolvedFormData?.parameters || {},
+        },
+        results: {
+          // SNAPSHOT: Freeze the exact inputs that generated this result
+          // These inputs within results will NOT change if user edits the form later
+          businessProblem: resolvedFormData?.businessProblem || '',
+          businessSolution: resolvedFormData?.businessSolution || '',
+          parameters: resolvedFormData?.parameters || {},
+          // Include all calculated result data
+          ...resultData,
+        },
+      });
+    } catch (e) {
+      console.error('Failed to save results to session:', e);
+    }
+  }, [navigationResult, isViewFromMyAssessments, isPublicShare, saveSession, resolvedFormData]);
+
+  // Helper: normalize result_json before sending to the API so server-side
+  // validation never receives null/incorrect primitive types for well-known
+  // fields like `similar_cases` (defensive hardening).
+  function normalizeResultForSave(raw) {
+    if (!raw || typeof raw !== 'object') return raw || {};
+
+    const out = { ...raw };
+
+    // Ensure similar_cases is an array of plain objects with correct primitive types
+    if (Array.isArray(out.similar_cases)) {
+      out.similar_cases = out.similar_cases.map((item) => {
+        const ci = item || {};
+        return {
+          case_id: ci.case_id != null ? String(ci.case_id) : undefined,
+          title: ci.title == null ? '' : String(ci.title),
+          problem: ci.problem == null ? '' : String(ci.problem),
+          solution: ci.solution == null ? '' : String(ci.solution),
+          similarity:
+            typeof ci.similarity === 'number' && !Number.isNaN(ci.similarity)
+              ? ci.similarity
+              : Number(ci.similarity) || 0,
+          // preserve any additional fields but do not allow functions
+          ...(typeof ci === 'object'
+            ? Object.keys(ci).reduce((acc, k) => {
+                if (['case_id', 'title', 'problem', 'solution', 'similarity'].includes(k))
+                  return acc;
+                const v = ci[k];
+                if (typeof v !== 'function') acc[k] = v;
+                return acc;
+              }, {})
+            : {}),
+        };
+      });
+    }
+
+    // coerce metadata fields that should be strings
+    if (out.metadata && typeof out.metadata === 'object') {
+      out.metadata = { ...out.metadata };
+      if (out.metadata.industry == null) out.metadata.industry = out.metadata.industry || undefined;
+      if (out.metadata.region == null) out.metadata.region = out.metadata.region || undefined;
+    }
+
+    return out;
+  }
 
   // Save assessment handler
   const handleSave = useCallback(
@@ -250,9 +313,13 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         const baseResult = currentData?.result_json || currentData || {};
         const inputParameters =
           resolvedFormData?.parameters || baseResult?.input_parameters || null;
-        const resultPayload = inputParameters
+        let resultPayload = inputParameters
           ? { ...baseResult, input_parameters: inputParameters }
           : baseResult;
+
+        // Defensive normalization to avoid backend validation failures
+        resultPayload = normalizeResultForSave(resultPayload);
+
         const saveData = {
           name,
           result_json: resultPayload,
@@ -287,16 +354,18 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         // After successful save, clear only the results from local evaluation state but keep inputs
         try {
-          saveEvaluation({
-            businessProblem: resolvedFormData?.businessProblem || '',
-            businessSolution: resolvedFormData?.businessSolution || '',
-            parameters: resolvedFormData?.parameters || {},
-            calculatedResults: null,
-            hasUnsavedResults: false,
-            timestamp: new Date().toISOString(),
+          const currentState = getSession();
+
+          saveSession({
+            inputs: currentState?.inputs || {
+              businessProblem: resolvedFormData?.businessProblem || '',
+              businessSolution: resolvedFormData?.businessSolution || '',
+              parameters: resolvedFormData?.parameters || {},
+            },
+            results: null, // Clear results
           });
         } catch (e) {
-          console.warn('Failed to update local evaluation state after save:', e);
+          console.warn('Failed to update session after save:', e);
         }
 
         // Redirect to the saved assessment if id available, otherwise list
@@ -308,8 +377,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           setTimeout(() => navigate('/assessments'), 800);
         }
       } catch (error) {
-        console.error('Save error:', error);
-        addToast('Failed to save assessment. Please try again.', 'error');
+        console.warn('Save error:', error);
+        // Rethrow so callers (SaveAssessmentDialog) can display the error in-dialog
+        throw error;
       }
     },
     [currentData, resolvedFormData, createAssessmentAsync, addToast, navigate],
@@ -323,31 +393,58 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     [actualResult, currentData],
   );
 
-  // When results are restored via session restore, prioritize the inputs that were used
-  // to calculate the results, not the data extracted from the result object
-  const storedProblemText =
-    isRestored && navigationFormData
-      ? navigationFormData.businessProblem
-      : isViewFromMyAssessments
-        ? currentData?.business_problem
-        : resolvedFormData?.businessProblem;
-  const storedSolutionText =
-    isRestored && navigationFormData
-      ? navigationFormData.businessSolution
-      : isViewFromMyAssessments
-        ? currentData?.business_solution
-        : resolvedFormData?.businessSolution;
+  // When results are restored via session restore, always use the snapshot in results for Case Summary
+  let problemText, solutionText, industryText, parameterValues;
 
-  const problemText =
-    storedProblemText || caseProblemSolution?.problem || 'Problem data unavailable';
-  const solutionText =
-    storedSolutionText || caseProblemSolution?.solution || 'Solution data unavailable';
-  const industryText = caseIndustry ? titleize(caseIndustry) : 'Industry data unavailable';
-  const parameterValues =
-    resolvedFormData?.parameters ||
-    actualResult?.input_parameters ||
-    currentData?.result_json?.input_parameters ||
-    null;
+  if (!isViewFromMyAssessments && sessionSnapshot?.results) {
+    // Use the snapshot from session results (calculated, not editable)
+    const res = sessionSnapshot.results;
+    problemText =
+      res.businessProblem ||
+      res.problem ||
+      res.audit?.businessProblem ||
+      caseProblemSolution?.problem ||
+      'Problem data unavailable';
+    solutionText =
+      res.businessSolution ||
+      res.solution ||
+      res.audit?.businessSolution ||
+      caseProblemSolution?.solution ||
+      'Solution data unavailable';
+    industryText =
+      (res.metadata?.industry && titleize(res.metadata.industry)) ||
+      (res.industry && titleize(res.industry)) ||
+      (res.audit?.industry && titleize(res.audit.industry)) ||
+      'Industry data unavailable';
+    parameterValues =
+      res.input_parameters ||
+      res.parameters ||
+      (res.audit?.parameters ? res.audit.parameters : null);
+  } else {
+    // Fallback to previous logic for saved assessments or navigation
+    const storedProblemText =
+      isRestored && navigationFormData
+        ? navigationFormData.businessProblem
+        : isViewFromMyAssessments
+          ? currentData?.business_problem
+          : resolvedFormData?.businessProblem;
+    const storedSolutionText =
+      isRestored && navigationFormData
+        ? navigationFormData.businessSolution
+        : isViewFromMyAssessments
+          ? currentData?.business_solution
+          : resolvedFormData?.businessSolution;
+    problemText = storedProblemText || caseProblemSolution?.problem || 'Problem data unavailable';
+    solutionText =
+      storedSolutionText || caseProblemSolution?.solution || 'Solution data unavailable';
+    industryText = caseIndustry ? titleize(caseIndustry) : 'Industry data unavailable';
+    parameterValues =
+      resolvedFormData?.parameters ||
+      actualResult?.input_parameters ||
+      currentData?.result_json?.input_parameters ||
+      null;
+  }
+
   const parameterEntries = useMemo(() => {
     if (!parameterValues || typeof parameterValues !== 'object') return [];
     return validKeys
@@ -777,42 +874,98 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               )}
             </>
           )}
-          <Button variant="neutral-soft" onPress={handleDownloadPDF} isDisabled={isExporting}>
-            <FileText className="w-4 h-4" />
-            Download PDF
-          </Button>
-          <Button variant="neutral-soft" onPress={handleDownloadCSV} isDisabled={isExporting}>
-            <Download className="w-4 h-4" />
-            Cases CSV
-          </Button>
+          {/* Export actions: visible to everyone but disabled for anonymous users. */}
+          <>
+            <Tooltip delay={0} placement="top" isDisabled={!!user}>
+              <Tooltip.Trigger>
+                <Button
+                  variant="neutral-soft"
+                  onPress={user ? handleDownloadPDF : undefined}
+                  isDisabled={!user || isExporting}
+                  disabled={!user || isExporting}
+                  title={!user ? 'Sign in to get access to them' : undefined}
+                >
+                  <FileText className="w-4 h-4" />
+                  Download PDF
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content showArrow placement="top">
+                <Tooltip.Arrow />
+                <p className="text-xs font-bold">
+                  {user
+                    ? isExporting
+                      ? 'Export in progress'
+                      : 'Download result as PDF'
+                    : 'Sign in to get access to them'}
+                </p>
+              </Tooltip.Content>
+            </Tooltip>
+
+            <Tooltip delay={0} placement="top" isDisabled={!!user}>
+              <Tooltip.Trigger>
+                <Button
+                  variant="neutral-soft"
+                  onPress={user ? handleDownloadCSV : undefined}
+                  isDisabled={!user || isExporting}
+                  disabled={!user || isExporting}
+                  title={!user ? 'Sign in to get access to them' : undefined}
+                >
+                  <Download className="w-4 h-4" />
+                  Cases CSV
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content showArrow placement="top">
+                <Tooltip.Arrow />
+                <p className="text-xs font-bold">
+                  {user
+                    ? isExporting
+                      ? 'Export in progress'
+                      : 'Export cases as CSV'
+                    : 'Sign in to get access to them'}
+                </p>
+              </Tooltip.Content>
+            </Tooltip>
+          </>
+
           {!isViewFromMyAssessments && !isPublicShare && (
             <Button
               onPress={() => {
                 if (!user) {
-                  // Anonymous user: store pending save and redirect to auth
+                  // Anonymous user: ensure the current result is persisted in the session
+                  // (results and inputs are independent), then redirect to auth so the
+                  // user can sign in and be returned to /results to confirm save.
                   try {
-                    // Get inputs from either the form data or the session snapshot
-                    const formInputs = resolvedFormData || sessionSnapshot;
-                    const pendingSave = {
-                      results: navigationResult || navigationResult?.result,
-                      inputs: {
-                        businessProblem: formInputs?.businessProblem || '',
-                        businessSolution: formInputs?.businessSolution || '',
-                        parameters: formInputs?.parameters || {},
-                      },
-                      timestamp: new Date().toISOString(),
-                      needsSave: true,
-                    };
-                    localStorage.setItem('ce_pending_save', JSON.stringify(pendingSave));
+                    const formInputs = resolvedFormData || sessionSnapshot || getSession() || {};
+
+                    const pendingResults =
+                      (navigationResult && (navigationResult.result || navigationResult)) ||
+                      sessionSnapshot?.results ||
+                      getSession()?.results ||
+                      null;
+
+                    // Persist the snapshot to session storage (do NOT set isResultUnsaved flag)
+                    try {
+                      saveSession({
+                        inputs: {
+                          businessProblem: formInputs?.businessProblem || '',
+                          businessSolution: formInputs?.businessSolution || '',
+                          parameters: formInputs?.parameters || {},
+                        },
+                        results: pendingResults,
+                      });
+                    } catch (e) {
+                      console.warn('Failed to persist session for pending save:', e);
+                    }
+
                     toast.info('Redirecting to sign in', {
-                      description: 'Your assessment will be saved once you log in',
+                      description: 'You will be returned to your evaluation after signing in',
                       duration: 4000,
                     });
+
                     setTimeout(() => {
-                      navigate('/auth', {
-                        state: { mode: 'signup', from: '/results', pendingSave: true },
-                      });
+                      navigate('/auth', { state: { mode: 'signup', from: '/results' } });
                     }, 500);
+
                     return;
                   } catch (e) {
                     console.error('Failed to prepare pending save', e);
@@ -851,52 +1004,82 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             )}
         </div>
 
-        {/* Share Assessment Section - Integrated in Section */}
-        {isViewFromMyAssessments && !isPublicShare && currentData && (
-          <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-            <Switch
-              id="public-toggle"
-              isSelected={
-                optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
-              }
-              onChange={handleTogglePublic}
-              isDisabled={isUpdatingPublic}
-              className="flex items-center justify-between gap-4 px-2"
-            >
-              <div className="">
-                <Label
-                  htmlFor="public-toggle"
-                  className="font-semibold text-slate-900 flex items-center gap-2 justify-start"
+        {/* Share Assessment Section */}
+        {
+          // isViewFromMyAssessments &&
+          /*!isPublicShare && currentData*/
+          !isPublicShare && (
+            <Tooltip delay={0} isDisabled={!isResultsRoute}>
+              <Tooltip.Trigger>
+                <Card
+                  className={`border border-slate-300 shadow-sm bg-white rounded-xl ${isResultsRoute ? 'opacity-95' : ''}`}
                 >
-                  <span>Public Access</span>
-                  <Link2 className="w-6 h-6 text-emerald-600" />
-                </Label>
-                <p className="text-sm text-slate-600">
-                  Allow anyone with the link to view this assessment
-                </p>
-              </div>
-              <Switch.Control>
-                <Switch.Thumb />
-              </Switch.Control>
-            </Switch>
+                  {/* disable interactive controls when route is /results (unsaved session) */}
+                  <div className={`${isResultsRoute ? 'pointer-events-none' : ''}`}>
+                    <Switch
+                      id="public-toggle"
+                      isSelected={
+                        optimisticIsPublic !== null
+                          ? optimisticIsPublic
+                          : currentData?.is_public || false
+                      }
+                      onChange={handleTogglePublic}
+                      isDisabled={isUpdatingPublic || isResultsRoute}
+                      className="flex items-center justify-between gap-4 px-2"
+                    >
+                      <div className="">
+                        <Label
+                          htmlFor="public-toggle"
+                          className="font-semibold text-slate-900 flex items-center gap-2 justify-start"
+                        >
+                          <span>Public Access</span>
+                          <Link2 className="w-6 h-6 text-emerald-600" />
+                        </Label>
+                        <p className="text-sm text-slate-600">
+                          Allow anyone with the link to view this assessment
+                        </p>
+                      </div>
+                      <Switch.Control>
+                        <Switch.Thumb />
+                      </Switch.Control>
+                    </Switch>
 
-            {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) &&
-              currentData.public_id && (
-                <div className="flex flex-col sm:flex-row gap-2 mt-1">
-                  <Input
-                    id="share-url"
-                    type="text"
-                    readOnly
-                    value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                    className="flex-1 font-mono text-sm bg-white"
-                  />
-                  <Button variant="info-soft" onPress={handleCopyShareLink}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-          </Card>
-        )}
+                    {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
+                      currentData?.public_id && (
+                        <div className="flex flex-col sm:flex-row gap-2 mt-1">
+                          <Input
+                            id="share-url"
+                            type="text"
+                            readOnly
+                            disabled={isResultsRoute || !currentData?.public_id}
+                            value={
+                              currentData?.public_id
+                                ? `${window.location.origin}/assessments/share/${currentData.public_id}`
+                                : ''
+                            }
+                            className="flex-1 font-mono text-sm bg-white"
+                          />
+                          <Button
+                            variant="info-soft"
+                            onPress={handleCopyShareLink}
+                            isDisabled={isResultsRoute || !currentData?.public_id}
+                            disabled={isResultsRoute || !currentData?.public_id}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                  </div>
+                </Card>
+              </Tooltip.Trigger>
+
+              <Tooltip.Content showArrow placement="top">
+                <Tooltip.Arrow />
+                <p className="text-xs font-bold">Save assessment to share it publicly</p>
+              </Tooltip.Content>
+            </Tooltip>
+          )
+        }
       </div>
 
       {/* Case Summary */}

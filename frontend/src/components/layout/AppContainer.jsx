@@ -6,8 +6,6 @@ import { cn } from '@/utils/cn';
 import Navbar from './Navbar';
 import Header from './Header';
 import Footer from './Footer';
-import { useGlobalModal } from '@/contexts/ModalContext';
-import { useGlobalDialog } from '@/contexts/DialogContext';
 import { ModalManager } from '@/components/modals';
 import { DialogManager } from '@/components/dialogs';
 
@@ -179,8 +177,9 @@ const CONTAINER_CONFIGS = [
     ],
   },
   {
-    path: '/results/',
-    regex: /^\/results\/[^/]+\/market-analysis$/,
+    path: '/assessments/',
+    // accept both legacy /results/:id/market-analysis and new /assessments/:id/market-analysis
+    regex: /^\/(?:results|assessments)\/[^/]+\/market-analysis$/,
     background: 'from-blue-200/20 via-indigo-200/20 to-purple-200/20',
     showNavbar: true,
     showHeader: true,
@@ -294,10 +293,6 @@ export default function AppContainer({
   const showHeader = showHeaderOverride ?? config.showHeader;
   const showFooter = showFooterOverride ?? config.showFooter;
 
-  const { modal } = useGlobalModal();
-  // DialogManager now gets dialog state directly from context
-  // No need to pass it as prop
-
   return (
     <div className={cn('relative min-h-screen flex flex-col bg-linear-to-br', config.background)}>
       {/* Navbar */}
@@ -345,7 +340,7 @@ export default function AppContainer({
       </div>
 
       {/* Global Modal Manager */}
-      <ModalManager modal={modal} />
+      <ModalManager />
 
       {/* Global Dialog Manager */}
       <DialogManager />

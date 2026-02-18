@@ -111,8 +111,9 @@ const ROUTE_CONFIGS = [
     bgAnimation: { duration1: 6, duration2: 8 },
   },
   {
-    path: '/results/',
-    regex: /^\/results\/[^/]+\/market-analysis$/,
+    path: '/assessments/',
+    // Accept both legacy `/results/:id/market-analysis` and new `/assessments/:id/market-analysis`
+    regex: /^\/(?:results|assessments)\/[^/]+\/market-analysis$/,
     title: 'Market Analysis',
     subtitle: 'Competitive benchmarking and market positioning insights',
     titleSize: 'text-xl sm:text-2xl md:text-3xl', // Smaller

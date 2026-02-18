@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 // Configuration
-export const MAX_FREE_TRIES = Number(process.env.MAX_FREE_TRIES) || 3;
+export const MAX_FREE_TRIES = Number(process.env.MAX_FREE_TRIES) || 5;
 
 /**
  * Extract real IP address handling proxies

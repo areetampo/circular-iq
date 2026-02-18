@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import AppProvider from './AppProvider';
 import AppRoutes from './AppRoutes';
-import { AppSessionManager } from '@/components/AppSessionManager';
+import { AppSessionManager } from '@/features/session';
 
 /**
  * App - Main application component (Phase 5 refactor)

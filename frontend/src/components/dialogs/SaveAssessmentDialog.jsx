@@ -33,9 +33,10 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
   const [name, setName] = useState(defaultName);
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [contributeToGlobalBenchmarks, setContributeToGlobalBenchmarks] = useState(true);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get callback from dialog data with stable reference
   const onSave = useMemo(() => dialog?.data?.onSave, [dialog?.data?.onSave]);
@@ -43,9 +44,10 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
   useEffect(() => {
     if (isDialogOpen) {
       setName(defaultName);
-      setIsPublic(false);
+      setIsPublic(true);
       setContributeToGlobalBenchmarks(true);
       setError('');
+      setIsSubmitting(false);
     }
   }, [isDialogOpen, defaultName]);
 
@@ -75,13 +77,19 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
         return;
       }
 
+      setError('');
+      setIsSubmitting(true);
       try {
         if (onSave) {
+          // Let caller throw on validation/server errors so we can show message in-dialog
           await onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
         }
         close();
       } catch (err) {
+        // Surface the error inside the dialog instead of using a toast
         setError(err?.message || 'Failed to save assessment');
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [name, isPublic, contributeToGlobalBenchmarks, onSave],
@@ -197,16 +205,18 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
                     close();
                     onClose();
                   }}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="success"
                   onPress={() => {
-                    handleSubmit(close);
+                    if (!isSubmitting) handleSubmit(close);
                   }}
+                  disabled={isSubmitting}
                 >
-                  Save Assessment
+                  {isSubmitting ? 'Saving...' : 'Save Assessment'}
                 </Button>
               </AlertDialog.Footer>
             </>

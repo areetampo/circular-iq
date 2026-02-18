@@ -192,6 +192,19 @@ export async function storeInSupabase(embeddedChunks) {
       '  Note: Using SUPABASE_SERVICE_ROLE_KEY (required due to RLS on documents table)\n',
     );
 
+  //truncate existing documents to avoid duplicates (skip in dry-run)
+  if (!DRY_RUN) {
+    console.log('Clearing existing documents from Supabase...');
+    const { error: deleteError } = await supabase.from('documents').delete().neq('id', 0);
+    if (deleteError) {
+      console.error('✗ Error clearing documents:', deleteError.message);
+      throw deleteError;
+    }
+    console.log('✓ Table cleared successfully.\n');
+  } else {
+    console.log('Dry-run mode: skipping Supabase table clear.');
+  }
+
   const SUPABASE_BATCH_SIZE = 10; // Supabase insert batch limit
   let totalStored = 0;
 

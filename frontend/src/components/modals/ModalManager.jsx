@@ -13,13 +13,16 @@ import {
   ResultsDatabaseEvidenceDetailsModal,
   DashboardFeaturedSolutionsModal,
 } from '@/components/modals';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
-export default function ModalManager({ modal }) {
-  if (!modal || !modal.type) return null;
+export default function ModalManager() {
+  const { modal } = useGlobalModal();
+
+  if (!modal) return null;
 
   const { type, data } = modal;
 
-  // console.log('ModalManager rendering:', { type, data });
+  if (!type) return null;
 
   switch (type) {
     case MODALS.ASSESSMENT_METHODOLOGY:

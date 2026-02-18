@@ -22,6 +22,12 @@ test('health endpoint remains open when auth is enabled', async () => {
   assert.strictEqual(res.body.status, 'ok');
 });
 
+test('public market-analysis remains reachable without API key when auth is enabled', async () => {
+  const res = await request(app).get('/api/assessments/market-analysis');
+  // Accept 200 (happy) or 500 (DB unavailable in test env)
+  assert(res.status === 200 || res.status === 500, 'Public market-analysis must be reachable');
+});
+
 test('protected routes reject missing API key', async () => {
   const res = await request(app).post('/api/score').send({});
   assert.strictEqual(res.status, 401);
@@ -46,4 +52,16 @@ test('protected routes allow correct API key then enforce validation', async () 
 test('protected routes allow X-API-Key header then enforce validation', async () => {
   const res = await request(app).post('/api/score').set('X-API-Key', 'test-key').send({});
   assert.strictEqual(res.status, 400);
+});
+
+test('public endpoints remain reachable when Authorization bearer (user token) is present', async () => {
+  // Simulate a client that includes a Supabase user token (not the API key).
+  // The global apiKeyGuard should NOT reject bearer tokens that are not the API key
+  // — route-level auth should handle user-token validation where applicable.
+  const res = await request(app)
+    .get('/api/assessments/market-analysis')
+    .set('Authorization', 'Bearer some-user-token');
+
+  // Accept 200 (happy path) or 500 (DB not available in test env)
+  assert(res.status === 200 || res.status === 500, 'Public market-analysis must be reachable');
 });

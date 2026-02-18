@@ -6,14 +6,14 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Enhanced Session Restore Dialog with 3-button layout
+ * Session Restore Dialog
  * - Cancel: Dismiss without restoring
- * - Restore Inputs: Go to landing page with form populated
  * - Restore Results: Go to /results page with calculated scores
  *
- * NOTE: Restore Results button is only enabled if actual result data exists.
- * This prevents user confusion when localStorage has stale session structure
- * but no actual calculated results.
+ * NOTE: Inputs are persisted continuously to local storage and will already
+ * be present in the LandingPage — the "Restore Inputs" action has been
+ * removed because form inputs are now always synced from persisted session.
+ * Restore Results remains available when a results snapshot exists.
  */
 export function SessionRestoreDialog(props) {
   const {
@@ -73,23 +73,7 @@ export function SessionRestoreDialog(props) {
 
   const handleCancel = () => {
     if (!usingProps) onClose();
-  };
-
-  const handleRestoreInputs = () => {
-    if (!usingProps) onClose();
-    // Ensure we have the right structure for the landing page
-    const structuredSessionData = {
-      inputs: {
-        businessProblem: sessionData?.inputs?.businessProblem || sessionData?.businessProblem || '',
-        businessSolution:
-          sessionData?.inputs?.businessSolution || sessionData?.businessSolution || '',
-        parameters: sessionData?.inputs?.parameters || sessionData?.parameters || {},
-      },
-      timestamp: sessionData?.timestamp,
-    };
-    navigate('/', {
-      state: { restoreInputs: true, sessionData: structuredSessionData },
-    });
+    navigate('/');
   };
 
   const handleRestoreResults = () => {
@@ -151,17 +135,20 @@ export function SessionRestoreDialog(props) {
                     </div>
                   )}
 
-                  {hasResults && (
-                    <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                      <p className="text-sm font-medium text-blue-900">📊 Calculated results</p>
-                      <p className="text-sm text-blue-700 mt-1">
-                        You have unsaved assessment results
-                      </p>
-                    </div>
-                  )}
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                    <p className="text-sm font-medium text-blue-900">📊 Calculated results</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {hasResults
+                        ? 'You have unsaved assessment results'
+                        : 'No calculated results found to restore.'}
+                    </p>
+                  </div>
                 </div>
 
-                <p className="text-sm text-gray-600">Choose what you would like to restore:</p>
+                <p className="text-sm text-gray-600">
+                  Your inputs are already saved locally — you can restore calculated results below
+                  or continue from your saved inputs.
+                </p>
               </AlertDialog.Body>
 
               <AlertDialog.Footer>
@@ -175,18 +162,6 @@ export function SessionRestoreDialog(props) {
                     className="flex-1"
                   >
                     Cancel
-                  </Button>
-
-                  <Button
-                    variant="secondary"
-                    onPress={() => {
-                      handleRestoreInputs();
-                      close();
-                    }}
-                    isDisabled={!hasInputs}
-                    className="flex-1"
-                  >
-                    Restore Inputs
                   </Button>
 
                   <Button

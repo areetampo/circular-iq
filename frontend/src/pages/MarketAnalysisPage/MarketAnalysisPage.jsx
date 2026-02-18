@@ -7,10 +7,12 @@ import LineChart from '@/components/charts/LineChart';
 import { titleize } from '@/lib/formatting';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import { useMarketAnalysis, getEnhancedAnalytics } from '@/features/assessments';
+import { useSession } from '@/features/session';
 import { useQuery } from '@tanstack/react-query';
 import { exportAssessmentPDF } from '@/features/export';
-import { Card, Chip } from '@heroui/react';
+import { Card, Chip, Tooltip } from '@heroui/react';
 import { Button } from '@/components/common';
+import { useAuth } from '@/hooks/useAuth';
 import { Progress } from '@heroui/progress';
 import {
   ChevronLeft,
@@ -38,14 +40,17 @@ export default function MarketAnalysisPage({
   const [granularity, setGranularity] = useState('monthly');
   const [isExportingPDF, setIsExportingPDF] = useState(false);
 
-  // Fetch market analysis data using hook
+  // Auth state to control export access
+  const { user } = useAuth();
+
+  // Fetch market analysis data using hook for aggregate/assessment/public cases
   const {
     marketData,
     stats,
-    userScore,
-    userIndustry,
+    userScore: apiUserScore,
+    userIndustry: apiUserIndustry,
     userPercentile: apiUserPercentile,
-    industryBenchmark,
+    industryBenchmark: apiIndustryBenchmark,
     strategyBreakdown,
     isLoading,
     isError,
@@ -56,6 +61,42 @@ export default function MarketAnalysisPage({
     publicId: isPublicShare ? publicId || id : null,
     enabled: true,
   });
+
+  // Support session-based (unsaved) market analysis when visiting `/results/market-analysis`.
+  // Use session_evaluation_state.results when present (works for authenticated or anonymous users).
+  const { restoreEvaluation } = useSession();
+  const sessionEval = restoreEvaluation();
+  const sessionResult = sessionEval?.results || null;
+
+  // Determine which userScore / industry to show (session result takes precedence
+  // for the session-based route `/results/market-analysis`).
+  const isSessionView = !id && !isPublicShare && !!sessionResult;
+  const userScore = isSessionView ? (sessionResult.overall_score ?? apiUserScore) : apiUserScore;
+  const userIndustry = isSessionView
+    ? sessionResult?.metadata?.industry || sessionResult?.industry || apiUserIndustry
+    : apiUserIndustry;
+
+  // If session-based, compute percentile & industryBenchmark client-side using stats/marketData
+  const computedUserPercentile = React.useMemo(() => {
+    if (!isSessionView || typeof userScore !== 'number' || !stats) return apiUserPercentile ?? null;
+    const min = stats.min_score ?? 0;
+    const max = stats.max_score ?? 100;
+    if (max === min) return 50;
+    return Math.round(((userScore - min) / (max - min)) * 100);
+  }, [isSessionView, userScore, stats, apiUserPercentile]);
+
+  const computedIndustryBenchmark = React.useMemo(() => {
+    if (!isSessionView || !userIndustry || !Array.isArray(marketData)) return apiIndustryBenchmark;
+    const match = marketData.find((m) => m.industry === userIndustry);
+    if (!match) return apiIndustryBenchmark || null;
+    return {
+      avg_score: match.avg_score,
+      min_score: match.min_score,
+      max_score: match.max_score,
+      count: match.count,
+      scale: match.scale,
+    };
+  }, [isSessionView, userIndustry, marketData, apiIndustryBenchmark]);
 
   // Fetch industry trend data for a small time-series chart (respects selected timeRange and granularity)
   const { data: trendData } = useQuery({
@@ -261,10 +302,6 @@ export default function MarketAnalysisPage({
   const primaryPillar = primaryPillarMap[userIndustry] || 'circular design';
   const specificArea = specificAreaMap[userIndustry] || 'material efficiency';
 
-  const handleBackToResults = () => {
-    navigate(`/results/${id}`);
-  };
-
   const handleExportPDF = async () => {
     try {
       setIsExportingPDF(true);
@@ -314,25 +351,58 @@ export default function MarketAnalysisPage({
     <div className="w-full max-w-6xl mx-auto">
       {/* Back Button */}
       <div className="mb-6 flex items-center gap-3">
-        <Button variant="neutral-soft" onClick={handleBackToResults} aria-label="Back to results">
+        <Button variant="neutral-soft" onClick={() => navigate(-1)} aria-label="Back to results">
           <ChevronLeft className="w-4 h-4" />
-          Back to Results
+          Back
         </Button>
         <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="teal-soft"
-            onPress={handleExportCSV}
-            aria-label="Export market data as CSV"
-          >
-            <Download className="w-4 h-4 mr-2" /> Export CSV
-          </Button>
-          <Button
-            variant="neutral"
-            onPress={handleExportPDF}
-            aria-label="Export market analysis as PDF"
-          >
-            <Download className="w-4 h-4 mr-2" /> {isExportingPDF ? 'Exporting...' : 'Export PDF'}
-          </Button>
+          {/* Export buttons: visible to everyone but disabled for anonymous users */}
+          <Tooltip delay={0} placement="top" isDisabled={!!user}>
+            <Tooltip.Trigger>
+              <Button
+                variant="teal-soft"
+                onPress={user ? handleExportCSV : undefined}
+                isDisabled={!user}
+                disabled={!user}
+                aria-label="Export market data as CSV"
+                title={!user ? 'Sign in to get access to them' : undefined}
+              >
+                <Download className="w-4 h-4 mr-2" /> Export CSV
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content showArrow placement="top">
+              <Tooltip.Arrow />
+              <p className="text-xs font-bold">
+                {user ? 'Export market data as CSV' : 'Sign in to get access to them'}
+              </p>
+            </Tooltip.Content>
+          </Tooltip>
+
+          <Tooltip delay={0} placement="top" isDisabled={!!user}>
+            <Tooltip.Trigger>
+              <Button
+                variant="neutral"
+                onPress={user ? handleExportPDF : undefined}
+                isDisabled={!user || isExportingPDF}
+                disabled={!user || isExportingPDF}
+                aria-label="Export market analysis as PDF"
+                title={!user ? 'Sign in to get access to them' : undefined}
+              >
+                <Download className="w-4 h-4 mr-2" />{' '}
+                {isExportingPDF ? 'Exporting...' : 'Export PDF'}
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content showArrow placement="top">
+              <Tooltip.Arrow />
+              <p className="text-xs font-bold">
+                {user
+                  ? isExportingPDF
+                    ? 'Exporting...'
+                    : 'Export PDF'
+                  : 'Sign in to get access to them'}
+              </p>
+            </Tooltip.Content>
+          </Tooltip>
         </div>
       </div>
 
@@ -687,13 +757,13 @@ export default function MarketAnalysisPage({
                     {userIndustry ? ` for ${titleize(userIndustry)}` : ''}.
                   </span>
                 )}
-                {industryBenchmark && (
+                {computedIndustryBenchmark && (
                   <div className="mt-3 text-sm text-slate-700">
                     Industry benchmark for <strong>{titleize(userIndustry)}</strong>:{' '}
                     <strong className="text-primary-500">
-                      {industryBenchmark.avg_score.toFixed(1)} / 100
+                      {computedIndustryBenchmark.avg_score.toFixed(1)} / 100
                     </strong>{' '}
-                    ({industryBenchmark.count} projects)
+                    ({computedIndustryBenchmark.count} projects)
                   </div>
                 )}
               </div>

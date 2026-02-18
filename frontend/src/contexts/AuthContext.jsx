@@ -10,8 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { supabase } from '@/lib/supabase';
 import { SITE_CONFIG } from '@/constants/siteConfig';
-import { createAssessment } from '@/features/assessments/api/assessmentApi';
-import { clearAnonymousSession } from '@/utils/session';
+import { getSession, saveSession } from '@/utils/session';
 
 const API_URL = SITE_CONFIG.apiBaseUrl;
 
@@ -19,29 +18,43 @@ const API_URL = SITE_CONFIG.apiBaseUrl;
 const AuthContext = createContext(undefined);
 
 /**
- * Fetch user profile from backend API
+ * Fetch user profile from backend API with a timeout (AbortController)
+ * - Returns null on timeout / network error / non-OK response
  * @param {string} token - Access token from Supabase session
+ * @param {number} timeoutMs - timeout in milliseconds (default 5000)
  * @returns {Promise<Object|null>} User profile data or null
  */
-async function fetchUserProfile(token) {
+async function fetchUserProfile(token, timeoutMs = 5000) {
+  if (!token) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const response = await fetch(`${API_URL}/api/profile`, {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
+      signal: controller.signal,
     });
 
+    clearTimeout(timer);
+
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
+      if (response.status === 404) return null;
       console.warn('[PROFILE_FETCH_FAILED]', response.status);
       return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('[PROFILE_FETCH_ERROR]', error);
+    clearTimeout(timer);
+    if (error.name === 'AbortError') {
+      console.warn('[PROFILE_FETCH_TIMEOUT]');
+    } else {
+      console.error('[PROFILE_FETCH_ERROR]', error);
+    }
     return null;
   }
 }
@@ -94,46 +107,10 @@ export function AuthProvider({ children }) {
       const profileData = await fetchUserProfile(newSession.access_token);
       setProfile(profileData || { username }); // Fallback to metadata username if profile fetch fails
 
-      // After login, check for any pending anonymous save that should be migrated
-      try {
-        const pendingStr = localStorage.getItem('ce_pending_save');
-        if (pendingStr) {
-          const pending = JSON.parse(pendingStr);
-          if (pending?.needsSave && pending?.results) {
-            // Prepare payload for backend create
-            const savePayload = {
-              name: `Assessment ${new Date().toLocaleDateString()}`,
-              result_json: pending.results,
-              businessProblem: pending.inputs?.businessProblem || '',
-              businessSolution: pending.inputs?.businessSolution || '',
-              parameters: pending.inputs?.parameters || undefined,
-            };
-
-            try {
-              const saved = await createAssessment(savePayload);
-              const newId = saved?.id || saved?.assessment?.id;
-
-              // Clear pending save from localStorage
-              localStorage.removeItem('ce_pending_save');
-
-              // Clear anonymous session after successful save
-              try {
-                clearAnonymousSession();
-              } catch (e) {
-                console.warn('Failed to clear anonymous session after save:', e);
-              }
-
-              // Navigate to saved assessment
-              if (newId) navigate(`/assessments/${newId}`);
-            } catch (err) {
-              console.error('Failed to create assessment from pending save:', err);
-              // On error, keep the pending save for retry
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Post-login pending save failed:', e);
-      }
+      // After login, do NOT auto-save or mutate persisted session state here.
+      // The UI (AppSessionManager) will inspect `session_evaluation_state` and
+      // prompt the user when appropriate. Leave persisted session alone.
+      // (No-op — kept intentionally concise for readability.)
     } else {
       setSession(null);
       setUser(null);
@@ -147,18 +124,26 @@ export function AuthProvider({ children }) {
 
     const initAuth = async () => {
       try {
-        // Get the current session
+        // Get the current session (quick check)
         const { data } = await supabase.auth.getSession();
 
         if (isMounted) {
           if (data?.session) {
-            await handleAuthChange(data.session);
+            // Run the heavier work *in the background* so initAuth doesn't block the UI.
+            // handleAuthChange updates immediate user/session state synchronously,
+            // but it also performs longer-running tasks (profile fetch, pending save).
+            // Calling without await prevents the initial "Authenticating..." stall.
+            handleAuthChange(data.session).catch((err) =>
+              console.warn('[HANDLE_AUTH_CHANGE_ERROR]', err),
+            );
           } else {
             setSession(null);
             setUser(null);
             setProfile(null);
             setIsAuthenticated(false);
           }
+
+          // Mark initialization as finished immediately (do not wait for background tasks)
           setAuthLoading(false);
         }
       } catch (error) {
@@ -171,10 +156,14 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
-    // Subscribe to auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    // Subscribe to auth state changes. Do NOT block UI by awaiting long-running follow-up work.
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (isMounted) {
-        await handleAuthChange(newSession);
+        // handleAuthChange will update immediate auth state synchronously and
+        // perform follow-ups (profile fetch / pending save) asynchronously.
+        handleAuthChange(newSession).catch((err) =>
+          console.warn('[HANDLE_AUTH_CHANGE_ERROR]', err),
+        );
       }
     });
 
@@ -212,8 +201,21 @@ AuthProvider.propTypes = {
 export function useAuth() {
   const context = useContext(AuthContext);
 
+  // Return a safe fallback instead of throwing so pages/hooks that can operate
+  // without auth (anonymous sessions, tests, isolated renders) don't crash the app.
+  // This preserves previous behavior for normal usage while making the hook
+  // resilient in environments where the provider is not mounted.
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    console.warn('useAuth called outside AuthProvider — returning unauthenticated fallback');
+    return {
+      user: null,
+      profile: null,
+      session: null,
+      authLoading: false,
+      isAuthenticated: false,
+      token: null,
+      signOut: async () => {},
+    };
   }
 
   return context;
