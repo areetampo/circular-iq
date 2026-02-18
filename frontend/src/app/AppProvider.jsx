@@ -47,8 +47,8 @@ const queryClient = new QueryClient({
 export default function AppProvider({ children }) {
   return (
     <ErrorBoundary>
-      <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
       <AuthProvider>
+        <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
         <ModalProvider>
           <DialogProvider>
             <QueryClientProvider client={queryClient}>

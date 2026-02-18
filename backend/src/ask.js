@@ -290,13 +290,22 @@ Your analysis should feel like a professional audit report - precise, evidence-b
  * @private
  */
 function buildUserPrompt(businessProblem, businessSolution, scores, similarDocs, contextText) {
-  const similarCasesInfo = similarDocs
-    .slice(0, 4)
-    .map(
-      (doc, idx) =>
-        `Case ${idx + 1} (ID: ${doc.id}, Similarity: ${(doc.similarity * 100).toFixed(1)}%): "${doc.content.substring(0, 200)}..."`,
-    )
-    .join('\n');
+  var similarCasesInfo =
+    'No direct matches found in database for this specific query. Proceed with general circular economy principles.';
+
+  if (similarDocs && similarDocs.length > 0) {
+    // 2. Add safety checks inside the map using optional chaining (?.) and fallbacks (||)
+    similarCasesInfo = similarDocs
+      .slice(0, 4)
+      .map((doc, idx) => {
+        const content = doc.content || 'No content available';
+        const id = doc.id || 'N/A';
+        const similarity = doc.similarity ? (doc.similarity * 100).toFixed(1) : 0;
+
+        return `Case ${idx + 1} (ID: ${id}, Similarity: ${similarity}%): "${content.substring(0, 200)}..."`;
+      })
+      .join('\n');
+  }
 
   return `USER SUBMISSION:
 Problem: ${businessProblem}

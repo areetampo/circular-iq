@@ -80,15 +80,36 @@ export default function createScoringRouter(openai, supabase) {
    */
   async function enforceAnonymousUsage(req) {
     try {
-      const { hash, ip, userAgent } = getIdentifierFromRequest(req);
-
+      // 1. Check if user is authenticated FIRST
       const authHeader = req.headers.authorization;
       const isAuthenticated = authHeader && authHeader.startsWith('Bearer ');
 
-      if (isAuthenticated || !serviceSupabase) return null;
+      // ✅ Authenticated users: skip limit check entirely
+      if (isAuthenticated) {
+        debugLog('User is authenticated, skipping anonymous usage check');
+        return null; // Allow request
+      }
+
+      // 2. Check if serviceSupabase is available
+      if (!serviceSupabase) {
+        console.warn(
+          '⚠️ serviceSupabase client not initialized! Usage tracking will be skipped, Check SUPABASE_SERVICE_ROLE_KEY',
+        );
+        // In production, you might want to block here, but for now we'll allow
+        return null;
+      }
+
+      // 3. Get anonymous user identifier
+      const { hash, ip, userAgent } = getIdentifierFromRequest(req);
+      debugLog(
+        `Anonymous request from IP: ${ip.substring(0, 10)}..., UA: ${userAgent.substring(0, 30)}...`,
+      );
 
       const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
       const uaSnippet = (userAgent || '').substring(0, 100);
+
+      // 4. Call the atomic database function
+      debugLog(`Calling check_and_increment_anonymous_usage for hash: ${hash.substring(0, 10)}...`);
 
       const { data, error } = await serviceSupabase.rpc('check_and_increment_anonymous_usage', {
         p_identifier_hash: hash,
@@ -97,38 +118,78 @@ export default function createScoringRouter(openai, supabase) {
         p_user_agent_snippet: uaSnippet,
       });
 
+      // 5. Handle database errors
       if (error) {
-        console.error('Error in atomic usage check:', error);
-        return null; // don't block on DB errors
+        console.error('❌ Error in atomic usage check:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        // Don't block on DB errors - fail open for better UX
+        return null;
       }
 
+      // 6. Validate response
       const result = data?.[0];
       if (!result) {
-        console.error('Unexpected empty result from usage check');
+        console.error('❌ Unexpected empty result from usage check');
+        console.error('Response data:', data);
         return null;
       }
 
       const { current_count, is_allowed } = result;
+
+      debugLog(`✅ Usage check result: count=${current_count}, allowed=${is_allowed}`);
+
+      // 7. Check if limit reached
       if (!is_allowed) {
+        console.log(`🚫 Anonymous user limit reached: ${current_count}/${MAX_FREE_TRIES}`);
         return {
           blocked: true,
           status: 403,
           body: {
-            error: 'LIMIT_REACHED',
-            message: `You've used your ${MAX_FREE_TRIES} free assessments. Create an account to continue.`,
+            code: 'LIMIT_REACHED',
+            message: `You've used your ${MAX_FREE_TRIES} free evaluations. Create an account to continue assessing your circular economy initiatives!`,
             remaining: 0,
-            limit: MAX_FREE_TRIES,
             currentCount: current_count,
+            limit: MAX_FREE_TRIES,
+            scoringRateLimiter: false,
           },
         };
       }
 
+      // 8. Allow request
+      debugLog(`✅ Anonymous user allowed: ${current_count}/${MAX_FREE_TRIES} tries used`);
       return null;
     } catch (e) {
-      console.error('Anonymous usage check failed:', e?.message || e);
-      return null; // don't block on unexpected errors
+      console.error('❌ Anonymous usage check failed:', e?.message || e);
+      console.error('Stack trace:', e?.stack);
+      // Don't block on unexpected errors - fail open
+      return null;
     }
   }
+
+  /**
+   * GET /test-anonymous-limit-tracking
+   * Test endpoint to verify anonymous usage tracking is working correctly
+   * Returns current count and allowed status for a fixed test identifier
+   * Note: This is for testing purposes only and should not be exposed in production
+   * Invoke-WebRequest -Uri http://localhost:3001/api/score/test-anonymous-limit-tracking -Method GET
+   */
+  router.get('/test-anonymous-limit-tracking', async (req, res) => {
+    if (!serviceSupabase) {
+      console.warn('⚠️ serviceSupabase client not initialized! Cannot perform test query.');
+      return res.json({ error: 'serviceSupabase is null' });
+    }
+
+    const testHash = crypto.createHash('sha256').update('test-123').digest('hex');
+
+    const { data, error } = await serviceSupabase.rpc('check_and_increment_anonymous_usage', {
+      p_identifier_hash: testHash,
+      p_max_tries: MAX_FREE_TRIES + 10000000,
+      p_ip_hash: 'test',
+      p_user_agent_snippet: 'test',
+    });
+
+    return res.json({ success: !error, data, error });
+  });
 
   /**
    * POST /
@@ -162,6 +223,7 @@ export default function createScoringRouter(openai, supabase) {
    * }
    */
   router.post('/', scoringRateLimiter, async (req, res) => {
+    console.log('🎯 POST ENDPOINT HIT!');
     const startTime = Date.now();
     const requestId = Math.random().toString(36).slice(2, 9);
 
@@ -179,11 +241,21 @@ export default function createScoringRouter(openai, supabase) {
 
     let stepStart = Date.now();
 
+    console.log('='.repeat(20));
+    console.log(`📥 NEW SCORING REQUEST - ${requestId}`);
+    console.log('Authorization header:', req.headers.authorization ? 'PRESENT ⚠️' : 'MISSING ✅');
+    console.log('IP:', extractIPAddress(req));
+    console.log('='.repeat(20));
+
     try {
       // Enforce anonymous usage limits (IP+UA fingerprint)
+      console.log('⏳ Calling enforceAnonymousUsage...');
       const anonResult = await enforceAnonymousUsage(req);
+      console.log('✅ enforceAnonymousUsage result:', anonResult ? 'BLOCKED 🚫' : 'ALLOWED ✅');
+
       if (anonResult && anonResult.blocked) {
         logRequest('POST', '/score', anonResult.status, Date.now() - startTime);
+        console.log(anonResult.body);
         return res.status(anonResult.status).json(anonResult.body);
       }
 
@@ -413,7 +485,7 @@ export default function createScoringRouter(openai, supabase) {
                 )
                   multiplier += 0.06;
               } catch (e) {
-                // ignore
+                console.warn(`[${requestId}] Similar case metadata parsing warning:`, e.message);
               }
               return { ...c, similarity: (c.similarity || 0) * multiplier };
             });

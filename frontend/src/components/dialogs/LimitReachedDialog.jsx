@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { AlertDialog } from '@heroui/react';
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { Check, TriangleAlert, Infinity } from 'lucide-react';
 
 export function LimitReachedDialog(props) {
   const { limit: propLimit, message: propMessage, isOpen: propIsOpen } = props || {};
@@ -40,28 +41,41 @@ export function LimitReachedDialog(props) {
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading>Free Trial Limit Reached</AlertDialog.Heading>
+                <AlertDialog.Heading className="flex items-center gap-2">
+                  <TriangleAlert className="size-6 text-yellow-600 inline-block" />
+                  <span>Free Trial Limit Reached</span>
+                </AlertDialog.Heading>
               </AlertDialog.Header>
               <AlertDialog.Body>
-                <p className="text-gray-700 mb-4">
-                  {message || `You've used your ${limit} free assessments.`}
+                <p className="text-yellow-600 mb-4 italic">
+                  {message || (
+                    <>
+                      You&apos;ve used your <span className="font-bold">{limit}</span> free
+                      evaluations. Create an account to continue assessing your circular economy
+                      initiatives!
+                    </>
+                  )}
                 </p>
                 <p className="text-gray-600">Create a free account to get:</p>
                 <ul className="mt-2 space-y-2 text-gray-700">
                   <li className="flex items-start">
-                    <span className="text-green-600 mr-2">✓</span>
-                    <span>Unlimited assessments</span>
+                    <Check className="size-5 text-green-600 mr-2 inline-block" />
+                    <span>Unlimited evaluations</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-600 mr-2">✓</span>
+                    <Check className="size-5 text-green-600 mr-2 inline-block" />
+                    <span>Share assessments</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="size-5 text-green-600 mr-2 inline-block" />
                     <span>Save and compare results</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-600 mr-2">✓</span>
+                    <Check className="size-5 text-green-600 mr-2 inline-block" />
                     <span>Access dashboard analytics</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="text-green-600 mr-2">✓</span>
+                    <Check className="size-5 text-green-600 mr-2 inline-block" />
                     <span>Export reports (PDF, CSV)</span>
                   </li>
                 </ul>
@@ -83,7 +97,7 @@ export function LimitReachedDialog(props) {
                     close();
                   }}
                 >
-                  Sign Up Free
+                  Sign Up
                 </Button>
               </AlertDialog.Footer>
             </>

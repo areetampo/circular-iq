@@ -6,6 +6,11 @@ import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-bound
 import { useAuth } from '@/hooks/useAuth';
 import AppContainer from '@/components/layout/AppContainer';
 
+function ResultsToAssessmentsMarketAnalysisRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/assessments/${id}/market-analysis`} replace />;
+}
+
 // Lazy-load page components for performance
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
@@ -183,12 +188,30 @@ export default function AppRoutes() {
               }
             />
             <Route
-              path="/results/:id/market-analysis"
+              path="/assessments/:id/market-analysis"
               element={
                 <ProtectedRoute>
-                  <MarketAnalysisPage />
+                  <PageErrorBoundary pageName="Market Analysis">
+                    <MarketAnalysisPage isViewFromMyAssessments={true} />
+                  </PageErrorBoundary>
                 </ProtectedRoute>
               }
+            />
+
+            {/* Session-based market analysis for unsaved results (public) */}
+            <Route
+              path="/results/market-analysis"
+              element={
+                <PageErrorBoundary pageName="Session Market Analysis">
+                  <MarketAnalysisPage />
+                </PageErrorBoundary>
+              }
+            />
+
+            {/* optional backward-compat redirect from old results/:id path to new assessments path */}
+            <Route
+              path="/results/:id/market-analysis"
+              element={<ResultsToAssessmentsMarketAnalysisRedirect />}
             />
 
             {/* 404 Not Found */}

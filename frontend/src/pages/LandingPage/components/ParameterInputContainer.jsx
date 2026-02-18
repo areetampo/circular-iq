@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { useSession } from '@/features/session/hooks/useSession';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
 import { Card, Label, NumberField, Accordion } from '@heroui/react';
 import InfoIconButton from '@/components/common/InfoIconButton';
@@ -12,8 +13,9 @@ import { FileBox, ChevronDown } from 'lucide-react';
  * Only re-renders when its specific parameter value changes
  */
 const ParameterBox = React.memo(({ paramKey, loading }) => {
-  const { control } = useFormContext();
+  const { control, getValues } = useFormContext();
   const { openSpecificEvaluationParameterInfoModal } = useGlobalModal();
+  const { saveSession } = useSession();
 
   // Calculate scale markers only for this parameter
   const getScaleMarkers = React.useMemo(() => {
@@ -52,6 +54,7 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                   // Simple handler for increment/decrement buttons
                   const numValue = Math.min(Math.max(Number(value) || 0, 0), 100);
                   field.onChange(numValue);
+                  // Do NOT persist here — the debounced autosave in LandingPage handles persistence.
                 }}
                 isDisabled={loading}
                 aria-label={parameterLabels[paramKey].label}
@@ -87,9 +90,27 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                       if (!isNaN(numValue) && numValue > 100) {
                         e.target.value = '100';
                         field.onChange(100);
+
+                        // Do NOT persist here — rely on LandingPage debounced autosave to persist parameters.
                       } else {
                         e.target.value = value;
-                        field.onChange(isNaN(numValue) ? 0 : numValue);
+                        const valToSet = isNaN(numValue) ? 0 : numValue;
+                        field.onChange(valToSet);
+                        // Do NOT persist here — rely on LandingPage debounced autosave to persist parameters.
+                      }
+                    }}
+                    onBlur={() => {
+                      try {
+                        const values = getValues();
+                        saveSession({
+                          inputs: {
+                            businessProblem: values.businessProblem || '',
+                            businessSolution: values.businessSolution || '',
+                            parameters: values.parameters || {},
+                          },
+                        });
+                      } catch (err) {
+                        /* ignore */
                       }
                     }}
                     className="w-16 text-base font-semibold text-center text-emerald-600"

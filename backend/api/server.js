@@ -9,20 +9,60 @@
  * - GET /docs/methodology - Methodology documentation
  */
 
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+// --- Environment Verification ---
+const requiredKeys = [
+  'OPENAI_API_KEY',
+  'SUPABASE_URL',
+  'SUPABASE_ANON_KEY',
+  'SUPABASE_SERVICE_ROLE_KEY',
+];
+const missingKeys = requiredKeys.filter((key) => !process.env[key]);
+
+console.log('🛠️  Environment Check:');
+console.log(`   - NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`   - FRONTEND_URL: ${process.env.FRONTEND_URL}`);
+console.log(`   - MAX_FREE_TRIES: ${process.env.MAX_FREE_TRIES}`);
+
+if (missingKeys.length > 0) {
+  console.error(`❌ MISSING CRITICAL KEYS: ${missingKeys.join(', ')}`);
+} else {
+  // Masking function for security
+  const mask = (val) => `${val.substring(0, 4)}...${val.substring(val.length - 4)}`;
+
+  console.log('✅ All API keys loaded.');
+  console.log(`   - OpenAI Key: ${mask(process.env.OPENAI_API_KEY)}`);
+  console.log(`   - Supabase Anon Key: ${mask(process.env.SUPABASE_ANON_KEY)}`);
+  console.log(`   - Supabase Service Key: ${mask(process.env.SUPABASE_SERVICE_ROLE_KEY)}`);
+}
+console.log('----------------------------');
+
 import express from 'express';
 import cors from 'cors';
-import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
 
-import createAnalyticsRouter from './routes/analytics.js';
-import createAssessmentsRouter from './routes/assessments.js';
-import createScoringRouter from './routes/scoring.js';
-import { requireAuth } from '../src/middleware/auth.js';
+// This ensures dotenv has finished before these files are read
+const { createClient } = await import('@supabase/supabase-js');
+const { default: OpenAI } = await import('openai');
+
+const { default: createAnalyticsRouter } = await import('./routes/analytics.js');
+const { default: createAssessmentsRouter } = await import('./routes/assessments.js');
+const { default: createScoringRouter } = await import('./routes/scoring.js');
+const { requireAuth } = await import('../src/middleware/auth.js');
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', process.env.FRONTEND_URL];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 // Middleware
 app.use(
@@ -75,9 +115,14 @@ function debugLog(...args) {
   if (!IS_PROD) console.log(...args);
 }
 
-const OPEN_ENDPOINTS = new Set(['/health']);
+const OPEN_ENDPOINTS = new Set(["/health", "/api/score", "/api/assessments/market-analysis"]);
 
 function apiKeyGuard(req, res, next) {
+  // Debug incoming requests when API auth is enabled to help diagnose 401s
+  if (API_AUTH_ENABLED) {
+    debugLog('[apiKeyGuard] incoming', { path: req.path, method: req.method, hasAuth: !!req.headers.authorization, hasXApiKey: !!req.headers['x-api-key'], openEndpoint: OPEN_ENDPOINTS.has(req.path) });
+  }
+
   if (!API_AUTH_ENABLED) return next();
   if (OPEN_ENDPOINTS.has(req.path)) return next();
 
@@ -95,12 +140,21 @@ function apiKeyGuard(req, res, next) {
   const authHeader = req.headers.authorization || '';
   const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   const apiKeyHeader = (req.headers['x-api-key'] || '').toString().trim();
-  const token = bearerToken || apiKeyHeader;
 
-  if (token && token === API_KEY) {
+  // Allow when the correct API key is supplied via X-API-Key or Bearer token
+  if (apiKeyHeader === API_KEY || bearerToken === API_KEY) {
     return next();
   }
 
+  // If an Authorization bearer token is present but it is NOT the API key,
+  // treat it as a user token and allow the request through so route-level
+  // auth (requireAuth) can validate it where needed. This prevents the
+  // global API key guard from incorrectly rejecting legitimate user tokens.
+  if (bearerToken) {
+    return next();
+  }
+
+  // No API key or bearer token provided — block access
   return res
     .status(401)
     .json(

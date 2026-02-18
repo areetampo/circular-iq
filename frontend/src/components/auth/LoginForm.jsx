@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,6 +33,8 @@ export function LoginForm({ onSwitchToSignup }) {
     resolver: zodResolver(loginSchema),
   });
 
+  const location = useLocation();
+
   const onSubmit = async (data) => {
     setIsLoading(true);
 
@@ -53,7 +56,9 @@ export function LoginForm({ onSwitchToSignup }) {
       });
 
       reset();
-      window.location.href = '/';
+      // Respect return location if provided by the caller (e.g., returning to /results)
+      const returnTo = location.state?.from || '/';
+      window.location.href = returnTo;
     } catch (error) {
       console.error('Sign in error:', error);
       addToast({

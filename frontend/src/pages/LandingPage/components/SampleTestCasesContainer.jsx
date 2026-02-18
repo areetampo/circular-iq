@@ -9,11 +9,13 @@ import { Button } from '@/components/common';
 import { toast, ScrollShadow } from '@heroui/react';
 import { cn } from '@/utils/cn';
 import { Scroll } from 'lucide-react';
+import { useSession } from '@/features/session/hooks/useSession';
 
 export default function SampleTestCasesContainer({ setShowEvaluationParameters = () => {} }) {
   const { setValue, trigger, getValues } = useFormContext();
   const { openSpecificTestCaseDetailsModal } = useGlobalModal();
   const { openReplaceInputsDialog } = useGlobalDialog();
+  const { saveSession } = useSession();
   const [selectedCase, setSelectedCase] = useState('');
 
   const handleSelectCase = async (testCase) => {
@@ -22,6 +24,23 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
     setValue('businessSolution', testCase.solution, { shouldValidate: true });
     setValue('parameters', testCase.parameters, { shouldValidate: true });
     await trigger();
+
+    // Persist immediately when a user explicitly selects a sample test case.
+    // Rationale: selecting a sample is an explicit user action and should be
+    // reliably reflected in persisted session state (avoid timing/race gaps
+    // where autosave debounce could be missed).
+    try {
+      saveSession({
+        inputs: {
+          businessProblem: testCase.problem || '',
+          businessSolution: testCase.solution || '',
+          parameters: testCase.parameters || {},
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      /* ignore */
+    }
 
     toast.success('Test case loaded!', {
       description: `"${testCase.title}" has been loaded into the form.`,

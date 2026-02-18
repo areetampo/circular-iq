@@ -6,20 +6,17 @@ import {
   loadEvaluationState,
   saveEvaluationState,
   clearEvaluationState,
-  getAnonymousSession,
-  saveAnonymousSession,
-  clearAnonymousSession,
-  hasValidAnonymousSession,
-} from '@/utils/session';
+  hasEvaluationContent,
+} from '@/lib/storage';
 
 /**
  * Hook for managing user session with React Query
- * Handles session ID and evaluation state persistence
+ * Unified for both anonymous and authenticated users
  */
 export function useSession() {
   const { user } = useAuth();
 
-  // Query for persistent session data (IDs, evaluation draft)
+  // Query for session data
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
@@ -28,7 +25,7 @@ export function useSession() {
       return {
         sessionId,
         evaluationState,
-        hasEvaluationState: !!evaluationState,
+        hasEvaluationState: Boolean(evaluationState),
       };
     },
     staleTime: Infinity,
@@ -38,74 +35,31 @@ export function useSession() {
   const [hasRestorableSession, setHasRestorableSession] = useState(false);
   const [restorableSessionData, setRestorableSessionData] = useState(null);
 
+  // Check for restorable session whenever data changes
   useEffect(() => {
-    if (user) {
-      // User just logged in - check if they have anonymous session to migrate
-      const anonSession = getAnonymousSession();
+    const evalState = loadEvaluationState();
 
-      if (anonSession) {
-        try {
-          const pendingSave = localStorage.getItem('ce_pending_save');
-          const inputsToMigrate = anonSession.inputs || {};
-          const resultsToMigrate = !pendingSave && anonSession.results ? anonSession.results : null;
+    if (evalState) {
+      const hasContent = Boolean(
+        evalState.inputs?.businessProblem?.trim() ||
+        evalState.inputs?.businessSolution?.trim() ||
+        evalState.results,
+      );
 
-          if ((inputsToMigrate && Object.keys(inputsToMigrate).length > 0) || resultsToMigrate) {
-            // Save to evaluation state
-            saveEvaluationState({
-              businessProblem: inputsToMigrate?.businessProblem || '',
-              businessSolution: inputsToMigrate?.businessSolution || '',
-              parameters: inputsToMigrate?.parameters || {},
-              calculatedResults: resultsToMigrate || null,
-              hasUnsavedResults: Boolean(resultsToMigrate),
-              migratedFromAnonymous: true,
-              timestamp: anonSession.timestamp,
-            });
-
-            // Keep the data available for session restore prompt
-            setHasRestorableSession(true);
-            setRestorableSessionData({
-              inputs: inputsToMigrate,
-              results: resultsToMigrate,
-              calculatedResults: resultsToMigrate,
-              timestamp: anonSession.timestamp,
-              fromAnonymous: true,
-            });
-          }
-
-          // Clear anonymous session after migration
-          try {
-            clearAnonymousSession();
-          } catch (e) {
-            console.error('Failed to clear anonymous session:', e);
-          }
-
-          // Trigger a refetch to update evaluation state
-          refetch();
-        } catch (e) {
-          console.error('Error during anonymous session migration:', e);
-        }
-
-        return;
+      if (hasContent) {
+        setHasRestorableSession(true);
+        setRestorableSessionData(evalState);
+      } else {
+        setHasRestorableSession(false);
+        setRestorableSessionData(null);
       }
-
-      // No anonymous session to migrate - clear restore state
-      setHasRestorableSession(false);
-      setRestorableSessionData(null);
-      return;
-    }
-
-    // For anonymous users check local anonymous session
-    const anon = getAnonymousSession();
-    if (anon) {
-      setHasRestorableSession(true);
-      setRestorableSessionData(anon);
     } else {
       setHasRestorableSession(false);
       setRestorableSessionData(null);
     }
-  }, [user]);
+  }, [data, user]);
 
-  // Helper functions for managing session state
+  // Helper functions
   const saveEvaluation = (state) => {
     saveEvaluationState(state);
     refetch();
@@ -118,13 +72,17 @@ export function useSession() {
 
   const restoreEvaluation = () => data?.evaluationState || null;
 
-  // Anonymous session helpers
-  const saveSession = saveAnonymousSession;
+  // Unified session helpers (work for both anonymous and authenticated)
+  const saveSession = (sessionData) => {
+    saveEvaluationState(sessionData);
+    refetch();
+  };
+
   const clearSession = () => {
-    clearAnonymousSession();
-    // ensure local hook state clears
+    clearEvaluationState();
     setHasRestorableSession(false);
     setRestorableSessionData(null);
+    refetch();
   };
 
   return {
@@ -139,11 +97,11 @@ export function useSession() {
     clearEvaluation,
     restoreEvaluation,
 
-    // Anonymous/session restore helpers
+    // Session restore helpers
     hasRestorableSession,
     sessionData: restorableSessionData,
     saveSession,
     clearSession,
-    hasValidAnonymousSession,
+    hasValidAnonymousSession: hasEvaluationContent,
   };
 }

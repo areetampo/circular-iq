@@ -63,15 +63,11 @@ export async function scoreAssessment({ businessProblem, businessSolution, param
   const data = await response.json().catch(() => null);
 
   if (response.status === 403) {
-    const err = new Error(data?.message || 'Limit reached');
-    err.code = data?.error || 'LIMIT_REACHED';
-    err.meta = data || null;
-    throw err;
+    throw data;
   }
 
   if (!response.ok) {
-    const message = data?.error || data?.message || `Request failed (${response.status})`;
-    throw new Error(message);
+    throw data || { message: `Request failed (${response.status})` };
   }
 
   return data;

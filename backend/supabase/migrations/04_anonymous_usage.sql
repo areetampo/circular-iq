@@ -1,7 +1,17 @@
--- Create table for tracking anonymous user limits
+-- ============================================================================
+-- Anonymous Usage Tracking Migration
+-- ============================================================================
+-- Purpose: Track anonymous user assessment limits via IP+UA fingerprinting
+-- Security: Uses SHA-256 hashing for privacy, atomic operations for race conditions
+-- Cleanup: Auto-deletes records older than 30 days
+
+-- ============================================================================
+-- TABLE: anonymous_usage
+-- ============================================================================
+
 CREATE TABLE IF NOT EXISTS anonymous_usage (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  identifier_hash TEXT UNIQUE NOT NULL,
+  identifier_hash TEXT UNIQUE NOT NULL, -- SHA-256(IP + UA) - UNIQUE creates implicit index
   usage_count INTEGER DEFAULT 0 CHECK (usage_count >= 0),
   first_used_at TIMESTAMPTZ DEFAULT NOW(),
   last_used_at TIMESTAMPTZ DEFAULT NOW(),
@@ -10,14 +20,23 @@ CREATE TABLE IF NOT EXISTS anonymous_usage (
   user_agent_snippet TEXT
 );
 
--- Indexes for performance
-CREATE UNIQUE INDEX IF NOT EXISTS idx_anonymous_usage_hash ON anonymous_usage(identifier_hash);
+-- ============================================================================
+-- INDEXES
+-- ============================================================================
+-- NOTE: identifier_hash UNIQUE constraint creates implicit index automatically
+-- So we DON'T need: CREATE INDEX idx_anonymous_usage_hash ON anonymous_usage(identifier_hash);
+-- This would be a duplicate and cause the performance warning!
+
+-- Index for cleanup queries (finding old records)
 CREATE INDEX IF NOT EXISTS idx_anonymous_usage_last_used ON anonymous_usage(last_used_at);
 
--- Enable RLS (but allow anonymous inserts/updates)
+-- ============================================================================
+-- ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+
 ALTER TABLE anonymous_usage ENABLE ROW LEVEL SECURITY;
 
--- Policy: Allow service role full access
+-- Policy: Service role has full access (backend API)
 CREATE POLICY "Service role has full access to anonymous_usage"
   ON anonymous_usage
   FOR ALL
@@ -25,32 +44,43 @@ CREATE POLICY "Service role has full access to anonymous_usage"
   USING (true)
   WITH CHECK (true);
 
--- Policy: Anonymous users can read their own records
+-- Policy: Anonymous users can read their own usage stats
 CREATE POLICY "Anonymous users can read their usage"
   ON anonymous_usage
   FOR SELECT
   TO anon
   USING (true);
 
--- Add cleanup function for old records
+-- ============================================================================
+-- FUNCTION: cleanup_old_anonymous_usage
+-- ============================================================================
+-- Purpose: Delete records older than 30 days
+-- Schedule: Run via cron job or manual cleanup
+-- Security: SECURITY DEFINER with immutable search_path
+
 CREATE OR REPLACE FUNCTION cleanup_old_anonymous_usage()
-RETURNS void AS $$
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO public -- ✅ FIX: Use "TO" instead of "=" for immutable search_path
+AS $$
 BEGIN
   DELETE FROM anonymous_usage
-  WHERE last_used_at < NOW() - INTERVAL '90 days';
+  WHERE last_used_at < NOW() - INTERVAL '30 days';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
-COMMENT ON TABLE anonymous_usage IS 'Tracks anonymous user assessment attempts via IP+UA hashing';
-COMMENT ON COLUMN anonymous_usage.identifier_hash IS 'SHA-256 hash of (IP + User Agent)';
-COMMENT ON COLUMN anonymous_usage.usage_count IS 'Number of times this anonymous user has calculated scores';
-
+COMMENT ON FUNCTION cleanup_old_anonymous_usage IS
+  'Deletes anonymous usage records older than 30 days. Run periodically to maintain table size.';
 
 -- ============================================================================
--- ATOMIC USAGE INCREMENT FUNCTION (Prevents race conditions)
+-- FUNCTION: check_and_increment_anonymous_usage
 -- ============================================================================
+-- Purpose: Atomically check limit and increment usage count
+-- Returns: (current_count, is_allowed) for each attempt
+-- Security: Uses FOR UPDATE row locking to prevent race conditions
+--           SECURITY DEFINER with immutable search_path
 
--- Atomic function to check and increment usage count in one transaction
 CREATE OR REPLACE FUNCTION check_and_increment_anonymous_usage(
   p_identifier_hash TEXT,
   p_max_tries INTEGER,
@@ -60,7 +90,11 @@ CREATE OR REPLACE FUNCTION check_and_increment_anonymous_usage(
 RETURNS TABLE(
   current_count INTEGER,
   is_allowed BOOLEAN
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO public -- ✅ FIX: Use "TO" instead of "=" for immutable search_path
+AS $$
 DECLARE
   v_current_count INTEGER;
   v_new_count INTEGER;
@@ -72,7 +106,7 @@ BEGIN
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    -- First time user: insert new record
+    -- First time user: insert new record with count=1
     INSERT INTO anonymous_usage (
       identifier_hash,
       usage_count,
@@ -86,7 +120,7 @@ BEGIN
       p_user_agent_snippet
     );
 
-    -- Return: count=1, allowed=true (1 <= max_tries)
+    -- Return: count=1, allowed=(1 <= max_tries)
     RETURN QUERY SELECT 1::INTEGER, (1 <= p_max_tries)::BOOLEAN;
     RETURN;
   END IF;
@@ -112,8 +146,26 @@ BEGIN
   -- Return new count and whether it's still allowed
   RETURN QUERY SELECT v_new_count, (v_new_count <= p_max_tries)::BOOLEAN;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
--- Add helpful comment
 COMMENT ON FUNCTION check_and_increment_anonymous_usage IS
-  'Atomically checks and increments anonymous usage count. Returns (current_count, is_allowed). Uses row locking to prevent race conditions.';
+  'Atomically checks and increments anonymous usage count. Returns (current_count, is_allowed). Uses FOR UPDATE row locking to prevent race conditions.';
+
+-- ============================================================================
+-- TABLE COMMENTS
+-- ============================================================================
+
+COMMENT ON TABLE anonymous_usage IS
+  'Tracks anonymous user assessment attempts via IP+UA hashing for free trial limits';
+
+COMMENT ON COLUMN anonymous_usage.identifier_hash IS
+  'SHA-256 hash of (IP + User Agent) for privacy-preserving user tracking';
+
+COMMENT ON COLUMN anonymous_usage.usage_count IS
+  'Number of times this anonymous user has calculated scores';
+
+COMMENT ON COLUMN anonymous_usage.last_ip_hash IS
+  'SHA-256 hash of most recent IP address (for debugging, not for tracking)';
+
+COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS
+  'First 100 characters of User Agent string (for debugging)';

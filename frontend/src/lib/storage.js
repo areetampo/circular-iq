@@ -5,7 +5,7 @@
  * Storage Key Naming Convention:
  * All keys use 'ce_' prefix (Circular Economy) for consistency and clarity
  * - ce_session_id: Unique identifier for this browser session (persisted across page reloads)
- * - ce_evaluation_state: Current evaluation form state + unsaved results
+ * - ce_session_evaluation_state: Current evaluation form state + unsaved results
  * - ce_assessments: Locally saved assessments (offline capability)
  * - ce_anonymous_session: (see session.js) Anonymous user full session with inputs and results
  *
@@ -16,26 +16,46 @@
 // Session Management
 // ============================================================================
 
+// Simplified storage keys
+const SESSION_ID_KEY = 'session_id';
+const session_evaluation_state_KEY = 'session_evaluation_state';
+
+// Session expiry
+const SESSION_EXPIRY_DAYS = 30;
+
 /**
  * Get or create session ID for user tracking
  * @returns {string} Session ID
  */
 export function getSessionId() {
   try {
-    const key = 'ce_session_id';
     const legacyKey = 'gtg_session_id';
+    const oldCeKey = 'ce_session_id';
 
-    // Prefer the new key, but fallback to legacy and migrate if present
-    let sid = localStorage.getItem(key);
+    // Prefer the new key, but fallback to legacy keys and migrate if present
+    let sid = localStorage.getItem(SESSION_ID_KEY);
     if (sid) return sid;
 
+    // Try old ce_session_id key
+    const oldSid = localStorage.getItem(oldCeKey);
+    if (oldSid) {
+      try {
+        localStorage.setItem(SESSION_ID_KEY, oldSid);
+        localStorage.removeItem(oldCeKey);
+      } catch (e) {
+        console.warn('Failed to migrate old session ID:', e);
+      }
+      return oldSid;
+    }
+
+    // Try legacy key
     const legacySid = localStorage.getItem(legacyKey);
     if (legacySid) {
       try {
-        localStorage.setItem(key, legacySid);
+        localStorage.setItem(SESSION_ID_KEY, legacySid);
         localStorage.removeItem(legacyKey);
       } catch (e) {
-        // ignore storage errors
+        console.warn('Failed to migrate legacy session ID:', e);
       }
       return legacySid;
     }
@@ -43,9 +63,9 @@ export function getSessionId() {
     // Create new one when none present
     sid = generateSimpleUUID();
     try {
-      localStorage.setItem(key, sid);
+      localStorage.setItem(SESSION_ID_KEY, sid);
     } catch (e) {
-      // ignore
+      console.warn('Failed to save session ID:', e);
     }
     return sid;
   } catch {
@@ -72,34 +92,89 @@ function generateSimpleUUID() {
 // ============================================================================
 
 /**
- * Save evaluation state to localStorage
- * @param {Object} state - Evaluation state to save
+ * Save evaluation state with unified structure
+ * Supports partial updates: only provided fields are updated, others are preserved
+ * @param {Object} state - State to save (can be partial)
+ * @param {Object} state.inputs - User inputs (businessProblem, businessSolution, parameters)
+ * @param {Object|null} state.results - Complete results object (null to clear, undefined to preserve existing)
  */
 export function saveEvaluationState(state) {
   try {
-    localStorage.setItem('ce_evaluation_state', JSON.stringify(state));
+    // Load existing state to support partial updates
+    const existingState = loadEvaluationState() || {};
+
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
+
+    const stateToSave = {
+      // Always update inputs if provided. Use nullish coalescing so empty strings
+      // and empty objects are persisted ("" is a valid value and must not be
+      // treated as 'not provided'). The previous implementation used `||` and
+      // therefore ignored empty strings.
+      inputs: {
+        businessProblem:
+          state?.inputs?.businessProblem ??
+          state?.businessProblem ??
+          existingState.inputs?.businessProblem ??
+          '',
+        businessSolution:
+          state?.inputs?.businessSolution ??
+          state?.businessSolution ??
+          existingState.inputs?.businessSolution ??
+          '',
+        parameters:
+          state?.inputs?.parameters ?? state?.parameters ?? existingState.inputs?.parameters ?? {},
+      },
+      // PRESERVE existing results unless explicitly provided or set to null
+      // If state.results is undefined (not provided), keep the existing results
+      // If state.results is null, clear results
+      results:
+        state.results !== undefined
+          ? state.results || state.calculatedResults || null
+          : existingState.results || null,
+      timestamp: state.timestamp || existingState.timestamp || now.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+    };
+
+    localStorage.setItem(session_evaluation_state_KEY, JSON.stringify(stateToSave));
+    return true;
   } catch (error) {
-    console.warn('Failed to save evaluation state:', error);
-    // ignore storage errors (private mode or disabled storage)
+    console.error('Failed to save evaluation state:', error);
+    return false;
   }
 }
 
 /**
  * Load evaluation state from localStorage
- * @returns {Object|null} Saved state or null
+ * Returns null if expired or not found
  */
 export function loadEvaluationState() {
   try {
-    // Prefer new key, fallback to legacy 'gtg_eval_state' and migrate
-    const key = 'ce_evaluation_state';
     const legacyKey = 'gtg_eval_state';
+    const oldCeKey = 'ce_session_evaluation_state';
 
-    let raw = localStorage.getItem(key);
-    if (!raw) {
-      raw = localStorage.getItem(legacyKey);
-      if (raw) {
+    let stored = localStorage.getItem(session_evaluation_state_KEY);
+
+    // Try old ce_session_evaluation_state key
+    if (!stored) {
+      stored = localStorage.getItem(oldCeKey);
+      if (stored) {
         try {
-          localStorage.setItem(key, raw);
+          localStorage.setItem(session_evaluation_state_KEY, stored);
+          localStorage.removeItem(oldCeKey);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
+    // Try legacy key
+    if (!stored) {
+      stored = localStorage.getItem(legacyKey);
+      if (stored) {
+        try {
+          localStorage.setItem(session_evaluation_state_KEY, stored);
           localStorage.removeItem(legacyKey);
         } catch (e) {
           // ignore
@@ -107,9 +182,19 @@ export function loadEvaluationState() {
       }
     }
 
-    return raw ? JSON.parse(raw) : null;
+    if (!stored) return null;
+
+    const state = JSON.parse(stored);
+
+    // Check expiry
+    if (state.expiresAt && new Date(state.expiresAt) < new Date()) {
+      clearEvaluationState();
+      return null;
+    }
+
+    return state;
   } catch (error) {
-    console.warn('Failed to load evaluation state:', error);
+    console.error('Failed to load evaluation state:', error);
     return null;
   }
 }
@@ -119,11 +204,28 @@ export function loadEvaluationState() {
  */
 export function clearEvaluationState() {
   try {
-    localStorage.removeItem('ce_evaluation_state');
+    localStorage.removeItem(session_evaluation_state_KEY);
+    return true;
   } catch (error) {
-    console.warn('Failed to clear evaluation state:', error);
-    // ignore storage errors
+    console.error('Failed to clear evaluation state:', error);
+    return false;
   }
+}
+
+/**
+ * Check if evaluation state has any meaningful content
+ */
+export function hasEvaluationContent() {
+  const state = loadEvaluationState();
+  if (!state) return false;
+
+  const hasInputs = Boolean(
+    state.inputs?.businessProblem?.trim() || state.inputs?.businessSolution?.trim(),
+  );
+
+  const hasResults = Boolean(state.results);
+
+  return hasInputs || hasResults;
 }
 
 // ============================================================================
