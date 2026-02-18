@@ -29,19 +29,20 @@ test('public market-analysis remains reachable without API key when auth is enab
 });
 
 test('protected routes reject missing API key', async () => {
-  const res = await request(app).post('/api/score').send({});
+  // Use a truly protected endpoint (/api/profile) to verify API guard
+  const res = await request(app).get('/api/profile');
   assert.strictEqual(res.status, 401);
 });
 
 test('protected routes reject wrong API key', async () => {
-  const res = await request(app)
-    .post('/api/score')
-    .set('Authorization', 'Bearer wrong-key')
-    .send({});
+  // Wrong API key supplied should be rejected for protected endpoints
+  const res = await request(app).get('/api/profile').set('Authorization', 'Bearer wrong-key');
   assert.strictEqual(res.status, 401);
 });
 
 test('protected routes allow correct API key then enforce validation', async () => {
+  // Supplying the master API key in Authorization should be accepted by the global guard
+  // and the scoring endpoint will then perform input validation (400)
   const res = await request(app)
     .post('/api/score')
     .set('Authorization', 'Bearer test-key')

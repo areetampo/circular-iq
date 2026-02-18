@@ -56,6 +56,7 @@ const { default: createScoringRouter } = await import('./routes/scoring.js');
 const { requireAuth } = await import('../src/middleware/auth.js');
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -146,15 +147,12 @@ function apiKeyGuard(req, res, next) {
     return next();
   }
 
-  // If an Authorization bearer token is present but it is NOT the API key,
-  // treat it as a user token and allow the request through so route-level
-  // auth (requireAuth) can validate it where needed. This prevents the
-  // global API key guard from incorrectly rejecting legitimate user tokens.
-  if (bearerToken) {
-    return next();
-  }
+  // Only allow requests if the path is explicitly open or the master API key is provided.
+  // Do NOT allow arbitrary bearer tokens to bypass the global API guard.
+  // Route-level authentication (requireAuth) will not be reachable unless
+  // the request passes this global guard.
 
-  // No API key or bearer token provided — block access
+  // No API key or matching bearer token provided — block access
   return res
     .status(401)
     .json(
