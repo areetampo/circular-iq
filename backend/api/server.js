@@ -45,6 +45,7 @@ console.log('----------------------------');
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 // This ensures dotenv has finished before these files are read
 const { createClient } = await import('@supabase/supabase-js');
@@ -66,6 +67,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 // Middleware
+app.use(helmet());
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -85,7 +87,7 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '512kb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.urlencoded({ limit: '512kb', extended: true }));
 app.use(apiKeyGuard);
 
 // Initialize Supabase & OpenAI

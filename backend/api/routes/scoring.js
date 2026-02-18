@@ -287,7 +287,22 @@ export default function createScoringRouter(openai, supabase) {
    * }
    */
   router.post('/', scoringRateLimiter, async (req, res) => {
-    console.log('🎯 POST ENDPOINT HIT!');
+    // Short-circuit excessively large inputs before any debug logging or heavy work
+    const MAX_INPUT_LENGTH = 5000;
+    const _bp = req.body?.businessProblem;
+    const _bs = req.body?.businessSolution;
+    if (
+      (typeof _bp === 'string' && _bp.length > MAX_INPUT_LENGTH) ||
+      (typeof _bs === 'string' && _bs.length > MAX_INPUT_LENGTH)
+    ) {
+      return res.status(400).json(
+        errorResponse({
+          message: `Business Problem and Business Solution must be at most ${MAX_INPUT_LENGTH} characters`,
+          code: 'INPUT_TOO_LONG',
+        }),
+      );
+    }
+
     const startTime = Date.now();
     const requestId = Math.random().toString(36).slice(2, 9);
 
@@ -351,17 +366,6 @@ export default function createScoringRouter(openai, supabase) {
           errorResponse({
             message: `Business Solution is too short. Please provide ${MIN_LENGTH - businessSolution.length} more characters (currently ${businessSolution.length}/${MIN_LENGTH}).`,
             code: 'SOLUTION_TOO_SHORT',
-          }),
-        );
-      }
-
-      // Reject excessively large inputs to prevent token-exhaustion / DoS
-      const MAX_INPUT_LENGTH = 5000;
-      if (businessProblem.length > MAX_INPUT_LENGTH || businessSolution.length > MAX_INPUT_LENGTH) {
-        return res.status(400).json(
-          errorResponse({
-            message: `Business Problem and Business Solution must be at most ${MAX_INPUT_LENGTH} characters`,
-            code: 'INPUT_TOO_LONG',
           }),
         );
       }
