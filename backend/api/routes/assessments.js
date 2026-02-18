@@ -692,11 +692,12 @@ export default function createAssessmentsRouter(supabase) {
         console.warn('Assessment statistics query warning:', statsError.message);
       }
 
-      // Fetch the assessment to obtain user score and metadata
+      // Fetch the assessment to obtain user score and metadata (ownership enforced)
       const { data: assessmentRow, error: assessmentError } = await supabase
         .from('assessments')
         .select('overall_score, result_json, industry')
         .eq('id', id)
+        .eq('user_id', req.user.id)
         .maybeSingle();
 
       if (assessmentError) {
@@ -798,11 +799,12 @@ export default function createAssessmentsRouter(supabase) {
       const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
       if (statsError) console.warn('Assessment statistics query warning:', statsError.message);
 
-      // Fetch the assessment by public_id and ensure it is public
+      // Fetch the assessment by public_id and ensure it is public (DB-level check)
       const { data: assessmentRow, error: assessmentError } = await supabase
         .from('assessments')
         .select('overall_score, result_json, industry, is_public')
         .eq('public_id', publicId)
+        .eq('is_public', true)
         .maybeSingle();
 
       if (assessmentError) console.warn('Assessment fetch warning:', assessmentError.message);

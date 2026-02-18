@@ -84,7 +84,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '512kb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(apiKeyGuard);
 
@@ -116,12 +116,18 @@ function debugLog(...args) {
   if (!IS_PROD) console.log(...args);
 }
 
-const OPEN_ENDPOINTS = new Set(["/health", "/api/score", "/api/assessments/market-analysis"]);
+const OPEN_ENDPOINTS = new Set(['/health', '/api/score', '/api/assessments/market-analysis']);
 
 function apiKeyGuard(req, res, next) {
   // Debug incoming requests when API auth is enabled to help diagnose 401s
   if (API_AUTH_ENABLED) {
-    debugLog('[apiKeyGuard] incoming', { path: req.path, method: req.method, hasAuth: !!req.headers.authorization, hasXApiKey: !!req.headers['x-api-key'], openEndpoint: OPEN_ENDPOINTS.has(req.path) });
+    debugLog('[apiKeyGuard] incoming', {
+      path: req.path,
+      method: req.method,
+      hasAuth: !!req.headers.authorization,
+      hasXApiKey: !!req.headers['x-api-key'],
+      openEndpoint: OPEN_ENDPOINTS.has(req.path),
+    });
   }
 
   if (!API_AUTH_ENABLED) return next();

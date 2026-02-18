@@ -169,3 +169,9 @@ COMMENT ON COLUMN anonymous_usage.last_ip_hash IS
 
 COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS
   'First 100 characters of User Agent string (for debugging)';
+
+-- ============================================================================
+-- Restrict direct execution of the anonymous-usage RPC from public/anon roles
+-- Only the backend service role should be able to execute this function.
+-- ============================================================================
+REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) FROM public, anon;
