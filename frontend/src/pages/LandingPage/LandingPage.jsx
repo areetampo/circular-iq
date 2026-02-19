@@ -731,7 +731,7 @@ export default function LandingPage() {
               </div>
 
               {/* Test Case Selector */}
-              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
+              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden group/tc">
                 <Accordion
                   className="w-full"
                   variant="default"
@@ -739,7 +739,7 @@ export default function LandingPage() {
                 >
                   <Accordion.Item id="test-cases">
                     <Accordion.Heading>
-                      <Accordion.Trigger className="hover:bg-slate-50/80 group/tc flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                      <Accordion.Trigger className="hover:bg-slate-50/80 flex items-center gap-3 px-5 py-3 transition-colors duration-150">
                         <ClipboardList
                           className={cn(
                             'h-6 w-6 shrink-0 text-teal-500',

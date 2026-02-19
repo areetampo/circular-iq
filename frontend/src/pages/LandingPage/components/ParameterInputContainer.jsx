@@ -165,12 +165,22 @@ ParameterBox.propTypes = {
 };
 
 // ─── ParameterInputContainer ──────────────────────────────────────────────────
-export default function ParameterInputContainer({ loading }) {
+export default function ParameterInputContainer({
+  loading,
+  innerExpandedKeys,
+  onInnerExpandedChange,
+}) {
   const groupEntries = Object.entries(parameterGroups);
 
   return (
     <div className="w-full">
-      <Accordion className="w-full" variant="default" allowsMultipleExpanded>
+      <Accordion
+        className="w-full"
+        variant="default"
+        allowsMultipleExpanded
+        expandedKeys={innerExpandedKeys}
+        onExpandedChange={onInnerExpandedChange}
+      >
         {groupEntries.map(([groupName, group], groupIdx) => {
           const cfg = GROUP_CONFIG[groupName] ?? DEFAULT_CONFIG;
           const { Icon } = cfg;
@@ -178,6 +188,7 @@ export default function ParameterInputContainer({ loading }) {
           return (
             <Accordion.Item
               key={groupIdx}
+              id={groupName}
               className={cn('group/item', groupIdx > 0 && 'border-t border-slate-200/70')}
             >
               <Accordion.Heading>
@@ -243,4 +254,6 @@ export default function ParameterInputContainer({ loading }) {
 
 ParameterInputContainer.propTypes = {
   loading: PropTypes.bool.isRequired,
+  innerExpandedKeys: PropTypes.instanceOf(Set),
+  onInnerExpandedChange: PropTypes.func,
 };

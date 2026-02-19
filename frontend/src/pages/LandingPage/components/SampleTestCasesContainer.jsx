@@ -10,7 +10,10 @@ import { cn } from '@/utils/cn';
 import { useSession } from '@/features/session/hooks/useSession';
 import { CheckCircle2, BookOpen } from 'lucide-react';
 
-export default function SampleTestCasesContainer({ setShowEvaluationParameters = () => {} }) {
+export default function SampleTestCasesContainer({
+  setShowEvaluationParameters = () => {},
+  openEvalParams = () => {},
+}) {
   const { setValue, trigger, getValues } = useFormContext();
   const { openSpecificTestCaseDetailsModal } = useGlobalModal();
   const { openReplaceInputsDialog } = useGlobalDialog();
@@ -43,6 +46,7 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
       timeout: 4000,
     });
     setShowEvaluationParameters(true);
+    openEvalParams();
   };
 
   const hasUserInput = () => {
@@ -163,4 +167,5 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
 
 SampleTestCasesContainer.propTypes = {
   setShowEvaluationParameters: PropTypes.func,
+  openEvalParams: PropTypes.func,
 };
