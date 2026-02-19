@@ -105,7 +105,7 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
 
     render(
       <Wrapper>
-        <MemoryRouter initialEntries={["/results"]}>
+        <MemoryRouter initialEntries={['/results']}>
           <Routes>
             <Route path="/results" element={<ResultsPage />} />
           </Routes>
@@ -141,7 +141,7 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
 
     render(
       <Wrapper>
-        <MemoryRouter initialEntries={["/results"]}>
+        <MemoryRouter initialEntries={['/results']}>
           <Routes>
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/results/market-analysis" element={<div>SESSION_MARKET_ANALYSIS</div>} />
@@ -156,5 +156,53 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
 
     // Should navigate to the session-based route
     await waitFor(() => expect(screen.getByText('SESSION_MARKET_ANALYSIS')).toBeInTheDocument());
+  });
+
+  test('Case Summary shows snapshot problem/solution/parameters from session.results (immutable)', async () => {
+    const session = {
+      inputs: {
+        businessProblem: 'Editable BP',
+        businessSolution: 'Editable BS',
+        parameters: { public_participation: 50 },
+      },
+      results: {
+        overall_score: 90,
+        businessProblem: 'Snapshot BP',
+        businessSolution: 'Snapshot BS',
+        parameters: { public_participation: 5 },
+        metadata: { industry: 'energy' },
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    localStorage.setItem('session_evaluation_state', JSON.stringify(session));
+
+    const { default: ResultsPage } = await import('./ResultsPage');
+
+    render(
+      <Wrapper>
+        <MemoryRouter initialEntries={['/results']}>
+          <Routes>
+            <Route path="/results" element={<ResultsPage />} />
+          </Routes>
+        </MemoryRouter>
+      </Wrapper>,
+    );
+
+    // Open Problem accordion and verify snapshot problem text
+    fireEvent.click(await screen.findByText(/Problem/i));
+    expect(await screen.findByText('Snapshot BP')).toBeInTheDocument();
+
+    // Open Solution accordion and verify snapshot solution text
+    fireEvent.click(await screen.findByText(/Solution/i));
+    expect(await screen.findByText('Snapshot BS')).toBeInTheDocument();
+
+    // Open Parameters accordion and verify snapshot parameter value (should be 5, not the inputs' 50)
+    fireEvent.click(await screen.findByText(/Parameters/i));
+    const label = await screen.findByText('Public Participation');
+    expect(label).toBeInTheDocument();
+    // value is rendered as sibling text inside the same parameter row
+    expect(label.closest('div').textContent).toContain('5');
+    expect(label.closest('div').textContent).not.toContain('50');
   });
 });

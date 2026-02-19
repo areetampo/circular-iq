@@ -80,6 +80,12 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
       }),
     );
 
+    // Verify the snapshot inputs from session.results are included in the create payload
+    const payload = createSpy.mock.calls[0][0];
+    expect(payload.businessProblem).toBe('P1');
+    expect(payload.businessSolution).toBe('S1');
+    expect(payload.parameters).toEqual({});
+
     const { getSession } = await import('@/utils/session');
     const postState = getSession();
     expect(postState.results).toBeNull();
@@ -161,6 +167,12 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
       }),
     );
 
+    // The saved assessment payload should also include the case-summary fields
+    // taken from the session.results snapshot (not the editable inputs)
+    expect(payload.businessProblem).toBe('Problem A');
+    expect(payload.businessSolution).toBe('Solution A');
+    expect(payload.parameters).toEqual({ public_participation: 50 });
+
     // session_evaluation_state.results should be cleared after save
     const { getSession } = await import('@/utils/session');
     const postState = getSession();
@@ -182,13 +194,15 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     localStorage.setItem('session_evaluation_state', JSON.stringify(malformedSession));
 
     const assessmentApi = await import('@/features/assessments/api/assessmentApi');
-    const createSpy = vi.spyOn(assessmentApi, 'createAssessment').mockResolvedValue({ id: 'saved-xyz' });
+    const createSpy = vi
+      .spyOn(assessmentApi, 'createAssessment')
+      .mockResolvedValue({ id: 'saved-xyz' });
 
     const { default: ResultsPage } = await import('./ResultsPage');
 
     render(
       <Wrapper>
-        <MemoryRouter initialEntries={["/results"]}>
+        <MemoryRouter initialEntries={['/results']}>
           <ResultsPage />
         </MemoryRouter>
       </Wrapper>,
@@ -229,13 +243,15 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
       assessments: [{ id: 'dup-1', title: 'Existing Title' }],
       total: 1,
     });
-    const createSpy = vi.spyOn(assessmentApi, 'createAssessment').mockResolvedValue({ id: 'should-not-call' });
+    const createSpy = vi
+      .spyOn(assessmentApi, 'createAssessment')
+      .mockResolvedValue({ id: 'should-not-call' });
 
     const { default: ResultsPage } = await import('./ResultsPage');
 
     render(
       <Wrapper>
-        <MemoryRouter initialEntries={["/results"]}>
+        <MemoryRouter initialEntries={['/results']}>
           <ResultsPage />
         </MemoryRouter>
       </Wrapper>,
@@ -253,7 +269,9 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     await waitFor(() => expect(getAssessmentsSpy).toHaveBeenCalled());
 
     // Duplicate-name error should be shown in the dialog and createAssessment must NOT be called
-    expect(await screen.findByText(/already have an assessment with that name/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/already have an assessment with that name/i),
+    ).toBeInTheDocument();
     expect(createSpy).not.toHaveBeenCalled();
   });
 
@@ -274,7 +292,7 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
 
     render(
       <Wrapper>
-        <MemoryRouter initialEntries={["/results"]}>
+        <MemoryRouter initialEntries={['/results']}>
           <ResultsPage />
         </MemoryRouter>
       </Wrapper>,

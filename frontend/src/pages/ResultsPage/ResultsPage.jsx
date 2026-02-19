@@ -228,34 +228,52 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     return navigationFormData || sessionSnapshot?.formData || null;
   }, [isViewFromMyAssessments, navigationFormData, sessionSnapshot]);
 
-  // Save complete results to session (including formData used for calculation)
-  // IMPORTANT: results are a snapshot - the businessProblem/Solution/parameters within
-  // results MUST remain exactly as they were when calculated, never to be modified
+  // Save complete results to session (including inputs that generated the result).
+  // IMPORTANT: results are a snapshot and MUST remain exactly as they were when
+  // calculated. Do NOT overwrite session inputs unless the navigation provided
+  // formData (`resolvedFormData`) — inputs are intentionally independent.
   useEffect(() => {
-    // Skip if viewing saved assessment
     if (isViewFromMyAssessments || isPublicShare) return;
 
     const resultData = navigationResult || navigationResult?.result;
-
     if (!resultData) return;
 
     try {
-      saveSession({
-        inputs: {
-          businessProblem: resolvedFormData?.businessProblem || '',
-          businessSolution: resolvedFormData?.businessSolution || '',
-          parameters: resolvedFormData?.parameters || {},
-        },
+      // Prefer the explicit form data when available (navigation state), else
+      // fall back to the inputs embedded in the returned result (server now
+      // echoes `businessProblem` / `businessSolution` / `parameters`).
+      const snapshotInputs = {
+        businessProblem:
+          resolvedFormData?.businessProblem ??
+          resultData.businessProblem ??
+          resultData.problem ??
+          '',
+        businessSolution:
+          resolvedFormData?.businessSolution ??
+          resultData.businessSolution ??
+          resultData.solution ??
+          '',
+        parameters:
+          resolvedFormData?.parameters ??
+          resultData.parameters ??
+          resultData.input_parameters ??
+          {},
+      };
+
+      const stateToSave = {
+        // Only update `inputs` when we actually have form data from navigation.
+        // This preserves `session_evaluation_state.inputs` for other flows.
+        ...(resolvedFormData ? { inputs: { ...snapshotInputs } } : {}),
         results: {
-          // SNAPSHOT: Freeze the exact inputs that generated this result
-          // These inputs within results will NOT change if user edits the form later
-          businessProblem: resolvedFormData?.businessProblem || '',
-          businessSolution: resolvedFormData?.businessSolution || '',
-          parameters: resolvedFormData?.parameters || {},
-          // Include all calculated result data
+          // Embed the snapshot inputs inside results so the snapshot is self-contained
+          businessProblem: snapshotInputs.businessProblem,
+          businessSolution: snapshotInputs.businessSolution,
+          parameters: snapshotInputs.parameters,
           ...resultData,
         },
-      });
+      };
+
+      saveSession(stateToSave);
     } catch (e) {
       console.error('Failed to save results to session:', e);
     }
@@ -307,8 +325,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }
 
   // Save assessment handler
+  console.log();
   const handleSave = useCallback(
-    async (name, isPublic = false, contributeToGlobalBenchmarks = true) => {
+    async (name, isPublic = true, contributeToGlobalBenchmarks = true) => {
       try {
         const baseResult = currentData?.result_json || currentData || {};
         const inputParameters =
@@ -326,9 +345,29 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           industry: currentData?.metadata?.industry || 'Unknown',
           is_public: isPublic,
           contribute_to_global_benchmarks: contributeToGlobalBenchmarks,
-          businessProblem: resolvedFormData?.businessProblem || '',
-          businessSolution: resolvedFormData?.businessSolution || '',
-          parameters: inputParameters || undefined,
+          // Persist case-summary fields — prefer `resolvedFormData` (from in-memory form)
+          // but fall back to the calculated snapshot embedded in `currentData` (saved
+          // assessments use `result_json` or `business_problem` fields).
+          businessProblem:
+            resolvedFormData?.businessProblem ||
+            (resultPayload && (resultPayload.businessProblem || resultPayload.problem)) ||
+            currentData?.business_problem ||
+            '',
+          businessSolution:
+            resolvedFormData?.businessSolution ||
+            (resultPayload && (resultPayload.businessSolution || resultPayload.solution)) ||
+            currentData?.business_solution ||
+            '',
+          parameters:
+            // Prefer resolved form inputs, then any parameters embedded in the
+            // result payload (server returns `parameters` / `input_parameters`),
+            // then fall back to top-level `currentData` parameters.
+            resolvedFormData?.parameters ||
+            resultPayload?.parameters ||
+            resultPayload?.input_parameters ||
+            currentData?.parameters ||
+            currentData?.result_json?.parameters ||
+            undefined,
         };
 
         // Prevent duplicate assessment names for this user
@@ -959,7 +998,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                     toast.info('Redirecting to sign in', {
                       description: 'You will be returned to your evaluation after signing in',
-                      duration: 4000,
+                      duration: 5000,
                     });
 
                     setTimeout(() => {

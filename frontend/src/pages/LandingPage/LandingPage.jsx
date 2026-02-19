@@ -33,6 +33,7 @@ import {
   BookOpen,
   ClipboardList,
   FileBox,
+  SlidersHorizontal,
 } from 'lucide-react';
 import InfoIconButton from '@/components/common/InfoIconButton';
 
@@ -458,18 +459,16 @@ export default function LandingPage() {
       setError(null);
       const result = await scoreAssessment(formData);
 
+      // Persist inputs (unchanged behavior) and save the full result snapshot
+      // returned by the backend (the `result` now includes businessProblem,
+      // businessSolution and parameters so the snapshot is self-contained).
       saveSession({
         inputs: {
           businessProblem: formData.businessProblem,
           businessSolution: formData.businessSolution,
           parameters: formData.parameters || {},
         },
-        results: {
-          businessProblem: formData.businessProblem,
-          businessSolution: formData.businessSolution,
-          parameters: formData.parameters || {},
-          ...result,
-        },
+        results: result,
       });
 
       toast.success('Assessment complete!', {
@@ -477,8 +476,9 @@ export default function LandingPage() {
         timeout: 3000,
       });
 
-      // Navigate to results page with the result data
-      navigate('/results', { state: { result, formData } });
+      // Navigate to Results with only the `result` because it is now self-contained
+      // (frontend will read problem/solution/parameters from `result` if formData is not provided)
+      navigate('/results', { state: { result } });
     } catch (err) {
       // Handle anonymous limit reached
       if (err?.code === 'LIMIT_REACHED') {
@@ -647,28 +647,50 @@ export default function LandingPage() {
               </div>
 
               {/* EvaluationParameters Parameters Section */}
-              <Accordion className="w-full" variant="surface">
-                <Accordion.Item>
+              <Accordion
+                className="bg-surface-secondary w-full rounded-2xl border border-slate-200/60 shadow-sm"
+                variant="default"
+              >
+                <Accordion.Item
+                  className={cn(
+                    '[&_[data-slot=accordion-trigger]]:rounded-t-2xl',
+                    "[&:not(:has([data-slot=accordion-trigger][aria-expanded='true']))_[data-slot=accordion-trigger]]:rounded-b-2xl",
+                  )}
+                >
                   <Accordion.Heading>
-                    <Accordion.Trigger className="p-2">
-                      <div className="flex items-center justify-start">
-                        <FileBox className="w-6 h-6 mr-2 text-emerald-600" />
-                        <span className="font-semibold text-lg">Evaluation Parameters</span>
-                        <InfoIconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEvaluationParametersHeadingInfoModal();
-                          }}
-                          className="ml-3"
-                        />
+                    <Accordion.Trigger className="hover:bg-surface-tertiary group flex items-center gap-3 px-5 py-4">
+                      {/* Icon — same soft-square treatment as inner groups, emerald to match site palette */}
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                        <SlidersHorizontal className="h-5 w-5" strokeWidth={1.75} />
+                      </span>
+
+                      {/* Title + subtitle */}
+                      <div className="flex flex-col gap-0 text-left">
+                        <span className="font-semibold text-[15px] leading-5 text-slate-800">
+                          Evaluation Parameters
+                        </span>
+                        <span className="text-muted/80 text-xs font-normal leading-5">
+                          Score each dimension of circular value
+                        </span>
                       </div>
-                      <Accordion.Indicator>
+
+                      {/* Info button — stop propagation so it doesn't toggle the accordion */}
+                      <InfoIconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEvaluationParametersHeadingInfoModal();
+                        }}
+                        className="ml-1 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+                      />
+
+                      <Accordion.Indicator className="text-muted/50 [&>svg]:size-4">
                         <ChevronDown />
                       </Accordion.Indicator>
                     </Accordion.Trigger>
                   </Accordion.Heading>
+
                   <Accordion.Panel>
-                    <Accordion.Body className="w-full p-0">
+                    <Accordion.Body className="p-0">
                       <ParameterInputContainer loading={loading} />
                     </Accordion.Body>
                   </Accordion.Panel>

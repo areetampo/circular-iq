@@ -196,6 +196,16 @@ test('POST /score accepts valid input with all 8 parameters', async () => {
 
   // May return 200 if processing succeeds, or 500 if OpenAI/DB fails
   assert(res.status === 200 || res.status === 500, 'Valid input should be accepted');
+
+  // When successful, the response MUST include the original inputs so callers
+  // can persist a complete snapshot. If the endpoint returned 500 we skip
+  // the assertions to avoid flaky failures when external services are down.
+  if (res.status === 200) {
+    assert.strictEqual(res.body.businessProblem, 'A'.repeat(200));
+    assert.strictEqual(res.body.businessSolution, 'A'.repeat(200));
+    assert(res.body.parameters && typeof res.body.parameters === 'object');
+    assert(res.body.input_parameters && typeof res.body.input_parameters === 'object');
+  }
 });
 
 test('POST /score accepts boundary values (0 and 100)', async () => {

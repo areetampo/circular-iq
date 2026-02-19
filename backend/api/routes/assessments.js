@@ -63,15 +63,20 @@ export default function createAssessmentsRouter(supabase) {
         });
       }
 
+      // Ensure assessment stores the case-summary inputs even if the client
+      // provided them inside `result_json` instead of top-level fields.
+      const finalResultJson =
+        result_json || (result ? { ...result, input_parameters: parameters || null } : null);
+
       const assessmentData = {
         user_id: req.user.id,
         title: name || title?.substring(0, 255) || 'Untitled Assessment',
-        business_problem: businessProblem || '',
-        business_solution: businessSolution || '',
-        result_json: result_json || {
-          ...result,
-          input_parameters: parameters || null,
-        },
+        business_problem:
+          businessProblem || finalResultJson?.businessProblem || finalResultJson?.problem || '',
+        business_solution:
+          businessSolution || finalResultJson?.businessSolution || finalResultJson?.solution || '',
+        result_json: finalResultJson,
+        // Prefer explicit industry param, otherwise use metadata from result
         industry: industry || resultData.metadata?.industry || 'general',
         overall_score: Math.round(resultData.overall_score),
         business_viability_score: resultData.sub_scores?.business_viability || 0,
