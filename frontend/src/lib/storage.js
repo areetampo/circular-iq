@@ -127,11 +127,45 @@ export function saveEvaluationState(state) {
           state?.inputs?.parameters ?? state?.parameters ?? existingState.inputs?.parameters ?? {},
       },
       // PRESERVE existing results unless explicitly provided or set to null
-      // If state.results is undefined (not provided), keep the existing results
-      // If state.results is null, clear results
+      // If `state.results` is provided (including an empty object), we treat this as
+      // an intentional update of the snapshot. When a new snapshot is stored we
+      // ensure it contains the frozen inputs that generated the result so the
+      // snapshot is self-contained and immutable thereafter. If the caller did
+      // not include those fields we fall back to provided `state.inputs` or the
+      // previously persisted `existingState.inputs`.
       results:
         state.results !== undefined
-          ? state.results || state.calculatedResults || null
+          ? (function () {
+              // Explicit clear
+              if (!state.results) return state.results || state.calculatedResults || null;
+
+              // Ensure snapshot contains businessProblem / businessSolution / parameters
+              const srcInputs = state.inputs || existingState.inputs || {};
+
+              const ensured = {
+                businessProblem:
+                  state.results.businessProblem ??
+                  state.results.problem ??
+                  srcInputs.businessProblem ??
+                  '',
+                businessSolution:
+                  state.results.businessSolution ??
+                  state.results.solution ??
+                  srcInputs.businessSolution ??
+                  '',
+                // Prefer explicit `parameters` or `input_parameters` on the result,
+                // otherwise fall back to the inputs snapshot
+                parameters:
+                  state.results.parameters ??
+                  state.results.input_parameters ??
+                  srcInputs.parameters ??
+                  {},
+                // Preserve all original result fields (scores, metadata, similar_cases, etc.)
+                ...state.results,
+              };
+
+              return ensured;
+            })()
           : existingState.results || null,
       timestamp: state.timestamp || existingState.timestamp || now.toISOString(),
       expiresAt: expiresAt.toISOString(),

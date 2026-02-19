@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { Card, Input, Label, TextField, FieldError, Form } from '@heroui/react';
 import { Button } from '@/components/common';
 import { useToast } from '@/hooks/useToast';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { SITE_CONFIG } from '@/constants/siteConfig';
@@ -38,6 +39,7 @@ const signupSchema = z
 export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const { addToast } = useToast();
+  const location = useLocation();
 
   const {
     control,
@@ -92,7 +94,12 @@ export function SignupForm({ onSwitchToLogin }) {
       });
 
       reset();
-      window.location.href = '/';
+
+      // Respect return location if provided (navigator sent state.from), otherwise
+      // default to home ('/'). This ensures signup returns the user to the page
+      // they were on (e.g. /results) and prevents unexpected clearing of inputs.
+      const returnTo = location.state?.from || '/';
+      window.location.href = returnTo;
     } catch (error) {
       console.error('Sign up error:', error);
       const errorMessage =

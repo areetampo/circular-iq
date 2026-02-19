@@ -631,6 +631,13 @@ export default function createScoringRouter(openai, supabase) {
 
       // ========== STEP 6: COMPILE FINAL RESPONSE ==========
       const response = {
+        // Echo the original inputs so the response is self-contained and
+        // downstream callers (frontend / session storage) can rely on a single
+        // canonical object that includes the inputs that produced the result.
+        businessProblem,
+        businessSolution,
+        input_parameters: parameters || {},
+        // Main scoring results
         overall_score: scores.overall_score,
         confidence_level: scores.confidence_level,
         sub_scores: scores.sub_scores,
