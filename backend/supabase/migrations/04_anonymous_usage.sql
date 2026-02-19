@@ -178,4 +178,3 @@ REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, te
 
 -- Ensure backend service role retains execute permissions
 GRANT EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) TO service_role;
-GRANT EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) TO service_role;
