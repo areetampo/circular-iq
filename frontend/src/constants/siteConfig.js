@@ -3,14 +3,14 @@
  * Centralized location for app-wide settings
  */
 
-import Logo from '@/components/common/Logo';
+import SiteLogo from '@/components/common/SiteLogo';
 
 export const SITE_CONFIG = {
   url: 'https://circular-economy-evaluator.vercel.app',
   name: 'Sakura',
   fullName: 'Circular Economy Evaluation Platform',
   tagline: 'Sustainable Business Solutions',
-  logo: Logo,
+  siteLogo: SiteLogo,
   contact: {
     supportEmail: 'zahooriareeb47@gmail.com',
     github: 'https://github.com/areetampo/circular-economy',

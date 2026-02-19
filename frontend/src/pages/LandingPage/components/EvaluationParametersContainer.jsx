@@ -5,43 +5,8 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
 import { Label, NumberField, Accordion, cn, Separator } from '@heroui/react';
-import { ChevronDown, RadioTower, Coins, Recycle, BadgeInfo } from 'lucide-react';
-
-// ─── Group config ─────────────────────────────────────────────────────────────
-// RadioTower → Access Value      (signal, broadcast reach, participation)
-// Coins      → Embedded Value    (stored worth, monetary/material value retained)
-// Recycle    → Processing Value  (circular processing, transformation loop)
-const GROUP_STYLE_CONFIG = {
-  'Access Value': {
-    Icon: RadioTower,
-    iconColor: 'text-violet-500',
-    subtitle: 'Reach and participation across stakeholders',
-    paramBg: 'bg-violet-50',
-    paramTextColor: 'text-violet-700',
-  },
-  'Embedded Value': {
-    Icon: Coins,
-    iconColor: 'text-emerald-500',
-    subtitle: 'Intrinsic worth retained within the system',
-    paramBg: 'bg-emerald-50',
-    paramTextColor: 'text-emerald-700',
-  },
-  'Processing Value': {
-    Icon: Recycle,
-    iconColor: 'text-amber-500',
-    subtitle: 'Efficiency and safety of circular processes',
-    paramBg: 'bg-amber-100/50',
-    paramTextColor: 'text-amber-700',
-  },
-};
-
-const DEFAULT_CONFIG = {
-  Icon: Coins,
-  iconColor: 'text-slate-400',
-  subtitle: '',
-  paramBg: 'bg-slate-50',
-  paramTextColor: 'text-slate-700',
-};
+import { ChevronDown, BadgeInfo } from 'lucide-react';
+import { GROUP_STYLE_CONFIG, DEFAULT_CONFIG } from '@/constants/groupStyleConfig';
 
 const SCALE_COLORS = [
   'text-red-500 bg-red-50',
@@ -219,7 +184,6 @@ export default function EvaluationParametersContainer({
       >
         {groupEntries.map(([groupName, group], groupIdx) => {
           const cfg = GROUP_STYLE_CONFIG[groupName] ?? DEFAULT_CONFIG;
-          const { Icon } = cfg;
 
           return (
             <Accordion.Item
@@ -236,10 +200,10 @@ export default function EvaluationParametersContainer({
                   - py-3 stays the same — tight and compact
                 */}
                 <Accordion.Trigger className="hover:bg-slate-50/80 group flex items-center gap-3 px-5 py-3 transition-colors duration-200">
-                  <Icon
+                  <cfg.Icon
                     className={cn(
-                      'h-5 w-5 shrink-0',
                       cfg.iconColor,
+                      'h-5 w-5 shrink-0',
                       'transition-[scale,rotate] duration-300 ease-out',
                       'group-hover/item:scale-[1.2] group-hover/item:-rotate-[10deg] group-hover/item:drop-shadow-md mr-1.5',
                     )}

@@ -22,7 +22,7 @@ import LoaderIcon from '@/components/common/LoaderIcon';
 import { cn } from '@/utils/cn';
 import { Accordion } from '@heroui/react';
 import {
-  Sparkles,
+  Cpu,
   LayoutGrid,
   CheckCircle2,
   AlertTriangle,
@@ -35,6 +35,17 @@ import {
   SlidersHorizontal,
   BadgeInfo,
   Info,
+  CirclePile,
+  LayersPlus,
+  Bot,
+  Pickaxe,
+  PencilRuler,
+  NotepadText,
+  NotebookPen,
+  LaptopMinimalCheck,
+  FileSliders,
+  FileCheckCorner,
+  CircleCheck,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -519,6 +530,36 @@ export default function LandingPage() {
     }
   };
 
+  const FEATURE_CARDS = [
+    {
+      key: 'ai-powered',
+      title: 'AI-Powered',
+      desc: 'Machine learning analysis grounded in circular economy principles.',
+      Icon: Bot,
+      bg: 'bg-cyan-50',
+      borderClass: 'border-cyan-200/60',
+      iconColor: 'text-sky-600',
+    },
+    {
+      key: 'multi-dimensional',
+      title: 'Multi-Dimensional',
+      desc: 'Evaluates across key domains for clarity and depth.',
+      Icon: LayersPlus,
+      bg: 'bg-emerald-50',
+      borderClass: 'border-emerald-200/60',
+      iconColor: 'text-emerald-600',
+    },
+    {
+      key: 'actionable',
+      title: 'Actionable',
+      desc: 'Clear recommendations you can apply immediately to improve outcomes.',
+      Icon: Pickaxe,
+      bg: 'bg-amber-50',
+      borderClass: 'border-amber-200/60',
+      iconColor: 'text-amber-600',
+    },
+  ];
+
   return (
     <FormProvider {...methods}>
       <div ref={formContainerRef} className="w-full max-w-4xl mx-auto space-y-8">
@@ -531,56 +572,57 @@ export default function LandingPage() {
         >
           <motion.div>
             <Button onClick={openAssessmentMethodologyDrawer} size="lg" variant="success">
-              <BookOpen className="w-5 h-5" strokeWidth={2} />
               <span>Assessment Methodology</span>
+              <PencilRuler />
             </Button>
           </motion.div>
 
           <motion.div>
             <Button onClick={openEvaluationCriteriaDrawer} size="lg" variant="eco-soft">
-              <ClipboardList className="w-5 h-5" strokeWidth={2} />
               <span>Evaluation Criteria</span>
+              <NotebookPen />
             </Button>
           </motion.div>
         </motion.div>
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Card className="transition-all border border-blue-100 hover:shadow-lg hover:border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-400 shadow-lg shadow-blue-200/50">
-                <Sparkles className="w-7 h-7 text-white" strokeWidth={2} />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg text-center">AI-Powered</h3>
-              <p className="mt-3 text-sm text-center text-gray-600 leading-relaxed">
-                Machine learning analysis grounded in circular economy principles.
-              </p>
-            </div>
-          </Card>
+          {FEATURE_CARDS.map((card) => {
+            const Icon = card.Icon;
+            return (
+              <div
+                key={card.key}
+                role="article"
+                aria-label={card.title}
+                className={cn(
+                  'rounded-2xl p-1 group transform-gpu transition-transform duration-200 hover:-translate-y-1 shadow-sm',
+                  card.bg,
+                  card.borderClass,
+                  'ring-1 ring-white/60',
+                )}
+              >
+                <div className="p-6">
+                  <div className="flex flex-col items-center justify-center">
+                    <Icon
+                      className={cn(
+                        card.iconColor,
+                        'h-8 w-8 shrink-0 transition-[scale,rotate] duration-300 ease-out',
+                        'group-hover:scale-[1.2] group-hover:-rotate-[10deg] group-hover:drop-shadow-md',
+                      )}
+                      strokeWidth={1.75}
+                    />
 
-          <Card className="transition-all border border-emerald-100 hover:shadow-lg hover:border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-400 shadow-lg shadow-emerald-200/50">
-                <LayoutGrid className="w-7 h-7 text-white" strokeWidth={2} />
+                    <h3 className="font-semibold text-slate-900 text-lg text-center mt-4">
+                      {card.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-center text-slate-700 leading-relaxed max-w-xs">
+                      {card.desc}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <h3 className="font-bold text-gray-900 text-lg text-center">Multi-Dimensional</h3>
-              <p className="mt-3 text-sm text-center text-gray-600 leading-relaxed">
-                Evaluates across key domains for clarity and depth.
-              </p>
-            </div>
-          </Card>
-
-          <Card className="transition-all border border-amber-100 hover:shadow-lg hover:border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="flex items-center justify-center w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 shadow-lg shadow-amber-200/50">
-                <CheckCircle2 className="w-7 h-7 text-white" strokeWidth={2} />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg text-center">Actionable</h3>
-              <p className="mt-3 text-sm text-center text-gray-600 leading-relaxed">
-                Clear recommendations you can apply immediately to improve outcomes.
-              </p>
-            </div>
-          </Card>
+            );
+          })}
         </div>
 
         {/* Input Form */}
@@ -593,7 +635,7 @@ export default function LandingPage() {
             <div className="pb-8 px-2 sm:px-6 pt-6">
               <h2 className="inline-flex items-center gap-3 text-2xl font-bold text-teal-700">
                 Evaluate Your Circular Economy Business
-                <Leaf className="w-6 h-6" strokeWidth={3} />
+                <CircleCheck />
               </h2>
               <p className="text-gray-600 mt-2">
                 Describe your business idea using the same structure as real circular economy
@@ -759,9 +801,9 @@ export default function LandingPage() {
                   </Tooltip.Trigger>
                   <Tooltip.Content showArrow placement="top">
                     <Tooltip.Arrow />
-                    <p className="text-xs font-bold">
-                      Please fill out all required fields (min. 200 chars each)
-                    </p>
+                    <span>
+                      Please fill out business problem and solution fields (min. 200 chars each)
+                    </span>
                   </Tooltip.Content>
                 </Tooltip>
               </div>

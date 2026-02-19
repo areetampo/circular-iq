@@ -325,37 +325,6 @@ export default function AssessmentComparisonPage() {
 
   return (
     <div className="space-y-8 w-full">
-      {/* Header with Logo Icon */}
-      <div className="w-full">
-        <div className="flex flex-col items-center justify-between gap-4 px-4 sm:px-8">
-          {/* <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 shadow-lg">
-                <Activity className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-                  Assessment Comparison
-                </h1>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 font-medium ml-0 md:ml-14">
-              Comprehensive side-by-side analysis of two assessments
-            </p>
-          </div> */}
-          <div className="flex gap-2 shrink-0">
-            <Button variant="teal" onPress={() => exportComparisonCSV([assessment1, assessment2])}>
-              <Upload className="w-4 h-4" />
-              Export CSV
-            </Button>
-            <Button variant="neutral" onPress={handleBack}>
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Assessment Headers */}
       <div className="w-full px-4 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">

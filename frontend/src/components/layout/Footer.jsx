@@ -5,7 +5,7 @@ import { SITE_CONFIG } from '@/constants/siteConfig';
 export default function Footer() {
   return (
     <div className="flex flex-col items-center justify-center gap-2 m-6">
-      <SITE_CONFIG.logo />
+      <SITE_CONFIG.siteLogo />
       <span className="text-xs text-center text-zinc-500">
         <Copyright size={14} className="inline mb-0.5 mr-1" />
         {new Date().getFullYear()}&nbsp;{SITE_CONFIG.name}. All rights reserved. <br />

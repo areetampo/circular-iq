@@ -5,7 +5,7 @@ import { Avatar } from '@heroui/react';
 import { cn } from '@/utils/cn';
 import { SITE_CONFIG } from '@/constants/siteConfig';
 
-export default function Logo({ className = '' }) {
+export default function SiteLogo({ className = '' }) {
   const navigate = useNavigate();
 
   return (
@@ -15,14 +15,14 @@ export default function Logo({ className = '' }) {
       size="md"
       // color="success"
       // variant="soft"
-      aria-label={`${SITE_CONFIG.name} Logo - Click to go home`}
+      aria-label={`${SITE_CONFIG.name} SiteLogo - Click to go home`}
     >
-      <Avatar.Image alt={SITE_CONFIG.name} src="/logo.png" />
+      <Avatar.Image alt={SITE_CONFIG.name} src="/siteLogo.png" />
       <Avatar.Fallback>{SITE_CONFIG.name}</Avatar.Fallback>
     </Avatar>
   );
 }
 
-Logo.propTypes = {
+SiteLogo.propTypes = {
   className: PropTypes.string,
 };

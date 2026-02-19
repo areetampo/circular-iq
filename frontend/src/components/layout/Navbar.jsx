@@ -107,7 +107,7 @@ export default function Navbar() {
         menu: cn(NAVBAR_BG, 'pt-0 pb-4 px-4 md:hidden'),
       }}
     >
-      {/* LEFT: Caret Toggle + Logo + Name + Nav Items */}
+      {/* LEFT: Caret Toggle + SiteLogo + Name + Nav Items */}
       <NavbarContent className="gap-3" justify="start">
         {/* Caret Toggle - Only visible on mobile */}
         <button
@@ -129,7 +129,7 @@ export default function Navbar() {
             className="flex items-center gap-2 cursor-pointer"
             aria-label="Go to home"
           >
-            <SITE_CONFIG.logo />
+            <SITE_CONFIG.siteLogo />
             <span className="font-bold text-xl text-foreground">{SITE_CONFIG.name}</span>
           </button>
         </NavbarBrand>
@@ -190,14 +190,17 @@ export default function Navbar() {
                     isAuthenticated ? 'cursor-pointer transition-all duration-200' : '',
                   )}
                 >
-                  <Avatar color="success" size="sm" variant="soft">
-                    <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
-                    <Avatar.Fallback className="text-lg font-semibold">
-                      {getUserInitials()}
-                    </Avatar.Fallback>
-                  </Avatar>
                   {isAuthenticated ? (
                     <>
+                      <Avatar color="success" size="md" variant="soft">
+                        <Avatar.Image
+                          src={profile?.avatar_url || user?.avatar_url}
+                          alt="User avatar"
+                        />
+                        <Avatar.Fallback className="text-lg font-semibold">
+                          {getUserInitials()}
+                        </Avatar.Fallback>
+                      </Avatar>
                       <span className="hidden xxs:inline text-lg font-medium text-foreground">
                         {getUsername()}
                       </span>
@@ -212,7 +215,6 @@ export default function Navbar() {
                     <Button
                       onClick={() => navigate('/auth')}
                       variant="success"
-                      size="sm"
                       className="cursor-pointer"
                     >
                       Sign In

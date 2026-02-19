@@ -276,7 +276,6 @@ export default function Header({ title: titleOverride, subtitle: subtitleOverrid
 }
 
 Header.propTypes = {
-  showLogo: PropTypes.bool,
   title: PropTypes.string,
   subtitle: PropTypes.string,
 };
