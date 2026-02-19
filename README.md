@@ -12,7 +12,7 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 
 - **Deterministic Scoring Engine**: Computes all numeric metrics using code-based algorithms
 - **RAG-Powered Insights**: Leverages OpenAI embeddings and Supabase vector search to provide context-aware qualitative analysis
-- **Evidence-Based Validation**: Cross-references user inputs against a curated dataset of 1,108 high-quality circular economy projects
+- **Evidence-Based Validation**: Cross-references user inputs against a curated dataset of 4,000+ high-quality circular economy projects
 
 **Core Principle**: All numeric scores are calculated deterministically. The LLM only explains and contextualizes results—it never invents metrics.
 
@@ -70,7 +70,7 @@ The Circular Economy Business Auditor is a full-stack web application that evalu
 ### Dataset
 
 - **Source**: [GreenTechGuardians AI_EarthHack Dataset](https://github.com/techandy42/GreenTechGuardians)
-- **Size**: 1,108 verified circular economy projects
+- **Size**: 4,000+ verified circular economy projects
 - **Format**: CSV → Chunked JSON → Vector embeddings
 - **Location**: `backend/dataset/GreenTechGuardians/AI_EarthHack_Dataset.csv`
 

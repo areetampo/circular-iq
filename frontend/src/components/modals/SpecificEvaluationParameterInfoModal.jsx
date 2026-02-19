@@ -23,14 +23,19 @@ export default function SpecificEvaluationParameterInfoModal({ paramKey }) {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="2xl">
-        <Modal.Dialog aria-label="Parameter Information">
+        <Modal.Dialog
+          aria-label="Parameter Information"
+          aria-labelledby="parameter-info-modal-title"
+        >
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-100">
                 <ClipboardMinus className="size-5 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">Parameter Information</h2>
+                <h2 id="parameter-info-modal-title" className="text-lg font-semibold">
+                  Parameter Information
+                </h2>
                 <p className="text-sm text-gray-600">Detailed guidance for evaluation parameters</p>
               </div>
             </div>

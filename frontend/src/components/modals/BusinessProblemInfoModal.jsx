@@ -59,14 +59,19 @@ export default function BusinessProblemInfoModal() {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="2xl">
-        <Modal.Dialog aria-label="Business Problem Guide">
+        <Modal.Dialog
+          aria-label="Business Problem Guide"
+          aria-labelledby="business-problem-modal-title"
+        >
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-100">
                 <ClipboardMinus className="size-5 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">Business Problem Guide</h2>
+                <h2 id="business-problem-modal-title" className="text-lg font-semibold">
+                  Business Problem Guide
+                </h2>
                 <p className="text-sm text-gray-600">Environmental or circular economy challenge</p>
               </div>
             </div>

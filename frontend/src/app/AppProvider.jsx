@@ -5,9 +5,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toast, toast } from '@heroui/react';
 import { ErrorBoundary } from '@/components/error-boundaries';
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
-import { AuthProvider } from '@/contexts/AuthContext'; // ← ADD THIS IMPORT
-import { ModalProvider } from '@/contexts/ModalContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { DrawerProvider } from '@/contexts/DrawerContext'; // ← was ModalProvider
 import { DialogProvider } from '@/contexts/DialogContext';
+import DrawerManager from '@/components/drawers/DrawerManager'; // ← add this
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
@@ -49,15 +50,16 @@ export default function AppProvider({ children }) {
     <ErrorBoundary>
       <AuthProvider>
         <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
-        <ModalProvider>
+        <DrawerProvider>
           <DialogProvider>
             <QueryClientProvider client={queryClient}>
               <GlobalLoadingBar />
               {children}
+              <DrawerManager />
               <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
           </DialogProvider>
-        </ModalProvider>
+        </DrawerProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

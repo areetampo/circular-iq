@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext } from 'react-hook-form';
-import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import testCases from '@/data/testCases.json';
 import { ScrollShadow, toast } from '@heroui/react';
@@ -15,7 +15,7 @@ export default function SampleTestCasesContainer({
   openEvalParams = () => {},
 }) {
   const { setValue, trigger, getValues } = useFormContext();
-  const { openSpecificTestCaseDetailsModal } = useGlobalModal();
+  const { openSpecificTestCaseDetailsDrawer } = useGlobalDrawer();
   const { openReplaceInputsDialog } = useGlobalDialog();
   const { saveSession } = useSession();
   const [selectedCase, setSelectedCase] = useState('');
@@ -147,15 +147,15 @@ export default function SampleTestCasesContainer({
             <div className="flex justify-end">
               <Button
                 onClick={(e) => {
-                  openSpecificTestCaseDetailsModal(testCase);
+                  openSpecificTestCaseDetailsDrawer(testCase);
                   e.stopPropagation();
                 }}
                 variant="eco-soft"
                 size="sm"
-                className="flex items-center gap-1 text-xs"
+                className="flex items-center gap-2 text-xs"
               >
                 View details
-                <BookOpen className="h-3 w-3 ml-1" />
+                <BookOpen />
               </Button>
             </div>
           </div>

@@ -247,7 +247,7 @@ export default function createScoringRouter(openai, supabase) {
 
     const { data, error } = await serviceSupabase.rpc('check_and_increment_anonymous_usage', {
       p_identifier_hash: testHash,
-      p_max_tries: MAX_FREE_TRIES + 10000000,
+      p_max_tries: MAX_FREE_TRIES,
       p_ip_hash: 'test',
       p_user_agent_snippet: 'test',
     });

@@ -56,10 +56,9 @@ import {
   Globe,
   Copy,
 } from 'lucide-react';
-import LoaderIcon from '@/components/common/LoaderIcon';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import ResultsSkeleton from './components/ResultsSkeleton';
-import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
@@ -73,9 +72,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
-  const { saveEvaluation, restoreEvaluation } = useSession();
+  const { restoreEvaluation } = useSession();
   const { createAssessmentAsync } = useCreateAssessment();
-  const { openResultsDatabaseEvidenceDetailsModal } = useGlobalModal();
+  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   const reportTips = useMemo(
     () => [
@@ -125,7 +124,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     [],
   );
 
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [selectedTab, setSelectedTab] = useState('summary');
   const [sessionRestored, setSessionRestored] = useState(() => {
     // Initialize from sessionStorage to persist across page navigations
@@ -562,45 +560,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const resolvedBusinessViabilityScore = computeBusinessViabilityScore(actualResult);
 
-  const handleShareLink = useCallback(async () => {
-    // Check if assessment is saved before allowing share
-    if (!isViewFromMyAssessments && !id) {
-      toast.danger('Assessment Not Saved', {
-        description: 'Please save the assessment first before generating a shareable link.',
-        timeout: 4000,
-      });
-      return;
-    }
-
-    // Use public share URL if assessment is public and has public_id
-    const isPublic = optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public;
-    const publicId = currentData?.public_id;
-
-    if (isPublic && publicId) {
-      // Copy public share link (use new share route)
-      const shareUrl = `${window.location.origin}/assessments/share/${publicId}`;
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success('Public Link Copied', {
-          description: 'Anyone with this link can view your assessment.',
-          timeout: 3000,
-        });
-      } catch {
-        toast.danger('Failed to copy link', {
-          description: 'Please try again or copy manually: ' + shareUrl,
-          timeout: 4000,
-        });
-      }
-    } else {
-      // Assessment is not public - inform user
-      toast.info('Assessment Not Public', {
-        description:
-          'Enable public access in the Share Assessment section to generate a shareable link.',
-        timeout: 4000,
-      });
-    }
-  }, [addToast, toast, id, isViewFromMyAssessments, currentData, optimisticIsPublic]);
-
   const defaultAssessmentName = useMemo(() => {
     const source = isViewFromMyAssessments ? fetchedAssessment : currentData;
     if (!source) return '';
@@ -906,7 +865,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 Market Analysis
               </Button>
               {currentData && (
-                <Button variant="warning-soft" onPress={handleReevaluate}>
+                <Button variant="yellow-soft" onPress={handleReevaluate}>
                   <RefreshCw className="w-4 h-4" />
                   Re-evaluate
                 </Button>
@@ -1123,7 +1082,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
       {/* Case Summary */}
       <div data-export-section="case-summary">
-        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl mb-3">
           <div className="p-1 sm:p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <div>
@@ -1141,11 +1100,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               <Accordion className="w-full" allowsMultipleExpanded>
                 <Accordion.Item id="problem">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                          <Target className="w-5 h-5 text-emerald-700" />
-                        </div>
+                        <Target className="h-5 w-5 text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
                         <div>
                           <h4 className="font-bold text-slate-900">Problem</h4>
                           <p className="text-sm text-slate-600">
@@ -1167,11 +1124,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                 <Accordion.Item id="solution">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                          <Lightbulb className="w-5 h-5 text-orange-700" />
-                        </div>
+                        <Lightbulb className="h-5 w-5 text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
                         <div>
                           <h4 className="font-bold text-slate-900">Solution</h4>
                           <p className="text-sm text-slate-600">Proposed solution summary</p>
@@ -1191,11 +1146,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                 <Accordion.Item id="parameters">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <BarChart3 className="w-5 h-5 text-slate-700" />
-                        </div>
+                        <BarChart3 className="h-5 w-5 text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
                         <div>
                           <h4 className="font-bold text-slate-900">Parameters</h4>
                           <p className="text-sm text-slate-600">
@@ -1235,11 +1188,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                 <Accordion.Item id="industry">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <ClipboardList className="w-5 h-5 text-blue-700" />
-                        </div>
+                        <ClipboardList className="h-5 w-5 text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
                         <div>
                           <h4 className="font-bold text-slate-900">Industry</h4>
                           <p className="text-sm text-slate-600">Market or sector context</p>
@@ -1901,11 +1852,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 medium: 'bg-orange-50 border-orange-300',
                                 low: 'bg-yellow-50 border-yellow-300',
                               };
-                              const severityBadge = {
-                                high: 'bg-red-600 text-white',
-                                medium: 'bg-orange-600 text-white',
-                                low: 'bg-yellow-600 text-white',
-                              };
+
                               return (
                                 <div
                                   key={i}
@@ -2059,7 +2006,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               <button
                                 className="mt-1 mb-6 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline flex items-center gap-1"
                                 onClick={() =>
-                                  openResultsDatabaseEvidenceDetailsModal({
+                                  openResultsDatabaseEvidenceDetailsDrawer({
                                     caseItem,
                                     content,
                                     title: caseTitle,

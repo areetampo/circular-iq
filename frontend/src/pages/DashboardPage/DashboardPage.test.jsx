@@ -120,12 +120,12 @@ vi.mock('@/lib/formatting', () => ({
   getCurrentTimestampFormatted: () => '11 Feb 2026, 10:00 am',
 }));
 
-// Mock modal hook so Dashboard can call openDashboardFeaturedSolutionsModal without side effects
-vi.mock('@/hooks/useModal', () => ({
+// Mock drawer hook so Dashboard can call openDashboardFeaturedSolutionsDrawer without side effects
+vi.mock('@/hooks/useDrawer', () => ({
   default: () => ({
-    openDashboardFeaturedSolutionsModal: vi.fn(),
-    modal: null,
-    isModalOpen: false,
+    openDashboardFeaturedSolutionsDrawer: vi.fn(),
+    drawer: null,
+    isDrawerOpen: false,
     onClose: vi.fn(),
   }),
 }));
@@ -137,8 +137,8 @@ vi.mock('@/components/charts', () => ({
   ComboChart: (props) => React.createElement('div', { 'data-testid': 'combo-chart' }, 'ComboChart'),
 }));
 
-// Stub ModalManager to prevent modal render side-effects
-vi.mock('@/components/modals/ModalManager', () => ({
+// Stub DrawerManager to prevent drawer render side-effects
+vi.mock('@/components/drawers/DrawerManager', () => ({
   default: () => null,
 }));
 

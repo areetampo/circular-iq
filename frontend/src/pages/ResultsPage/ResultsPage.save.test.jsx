@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ModalProvider } from '@/contexts/ModalContext';
+import { DrawerProvider } from '@/contexts/DrawerContext';
 import { DialogProvider } from '@/contexts/DialogContext';
 
 // Mock authenticated user for this suite
@@ -15,7 +15,7 @@ function Wrapper({ children }) {
   return (
     <QueryClientProvider client={qc}>
       <DialogProvider>
-        <ModalProvider>{children}</ModalProvider>
+        <DrawerProvider>{children}</DrawerProvider>
       </DialogProvider>
     </QueryClientProvider>
   );

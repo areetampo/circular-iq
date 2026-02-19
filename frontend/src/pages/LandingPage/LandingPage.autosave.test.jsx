@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LandingPage from './LandingPage';
 import testCases from '@/data/testCases.json';
 import { DialogProvider } from '@/contexts/DialogContext';
-import { ModalProvider } from '@/contexts/ModalContext';
+import { DrawerProvider } from '@/contexts/DrawerContext';
 import SampleTestCasesContainer from './components/SampleTestCasesContainer';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Providers } from '@/test/test-utils';
@@ -35,16 +35,14 @@ function AppWrapper({ children }) {
 describe('LandingPage autosave integration', () => {
   it('landing page dependencies are available', async () => {
     // Use dynamic import() so ESM modules with .jsx extensions resolve correctly in Vitest
-    const { default: ParameterInputContainer } =
-      await import('./components/ParameterInputContainer');
+    const { default: EvaluationParametersContainer } =
+      await import('./components/EvaluationParametersContainer');
     const { default: LiveCharacterCounter } = await import('./components/LiveCharacterCounter');
-    const { default: InfoIconButton } = await import('@/components/common/InfoIconButton');
     const Common = await import('@/components/common');
 
     // granular checks
-    expect(ParameterInputContainer).toBeDefined();
+    expect(EvaluationParametersContainer).toBeDefined();
     expect(LiveCharacterCounter).toBeDefined();
-    expect(InfoIconButton).toBeDefined();
     expect(Common).toBeDefined();
     expect(typeof Common.Button === 'function').toBe(true);
   });
@@ -409,20 +407,20 @@ describe('LandingPage autosave integration', () => {
   it('diagnostic - render key landing child components', async () => {
     const React = await import('react');
     const { Button } = await import('@/components/common');
-    const ParameterInputContainer = (await import('./components/ParameterInputContainer')).default;
+    const EvaluationParametersContainer = (
+      await import('./components/EvaluationParametersContainer')
+    ).default;
     const SampleTestCasesContainer = (await import('./components/SampleTestCasesContainer'))
       .default;
     const LiveCharacterCounter = (await import('./components/LiveCharacterCounter')).default;
-    const InfoIconButton = (await import('@/components/common/InfoIconButton')).default;
     const LoaderIcon = (await import('@/components/common/LoaderIcon')).default;
     const { useForm, FormProvider } = await import('react-hook-form');
 
     // Basic assertions
     expect(typeof Button === 'function').toBe(true);
-    expect(typeof ParameterInputContainer === 'function').toBe(true);
+    expect(typeof EvaluationParametersContainer === 'function').toBe(true);
     expect(typeof SampleTestCasesContainer === 'function').toBe(true);
     expect(typeof LiveCharacterCounter === 'function').toBe(true);
-    expect(typeof InfoIconButton === 'function').toBe(true);
     expect(typeof LoaderIcon === 'function').toBe(true);
 
     // Create a small wrapper component to provide useForm context (hooks must
@@ -435,10 +433,9 @@ describe('LandingPage autosave integration', () => {
         <FormProvider {...methods}>
           <div>
             <Button>Test Button</Button>
-            <InfoIconButton onClick={() => {}} />
             <LoaderIcon />
             <div>
-              <ParameterInputContainer loading={false} />
+              <EvaluationParametersContainer loading={false} />
             </div>
             <div>
               <SampleTestCasesContainer />

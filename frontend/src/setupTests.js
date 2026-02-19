@@ -92,6 +92,9 @@ vi.mock('@heroui/react', () => {
   AlertDialog.Body = ({ children }) => React.createElement('div', null, children);
   AlertDialog.Footer = ({ children }) => React.createElement('div', null, children);
 
+  // Simple Form wrapper used by Login/Signup components
+  const Form = ({ children, ...props }) => React.createElement('form', props, children);
+
   const toast = {
     success: (msg, opts) => {},
     info: (msg, opts) => {},
@@ -104,6 +107,9 @@ vi.mock('@heroui/react', () => {
     Button,
     Label,
     Chip,
+    Input,
+    Switch,
+    Skeleton,
     Tabs,
     Select,
     ListBox,
@@ -115,6 +121,8 @@ vi.mock('@heroui/react', () => {
     AlertDialog,
     toast,
     Toast,
+    // utility helper used by several components in tests
+    cn: (...args) => args.filter(Boolean).join(' '),
   };
 });
 

@@ -41,14 +41,16 @@ export default function ResultsDatabaseEvidenceDetailsModal({ data = {} }) {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="2xl">
-        <Modal.Dialog aria-label="Evidence Details">
+        <Modal.Dialog aria-label="Evidence Details" aria-labelledby="evidence-details-modal-title">
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-slate-100">
                 <NotebookText className="size-5 text-slate-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">{title || 'Evidence Details'}</h2>
+                <h2 id="evidence-details-modal-title" className="text-lg font-semibold">
+                  {title || 'Evidence Details'}
+                </h2>
               </div>
             </div>
           </Modal.Header>

@@ -202,4 +202,7 @@
   .chip {
     @apply px-2;
   }
+  .info-icon {
+    @apply hover:scale-[1.05] transition-all duration-200 cursor-pointer;
+  }
 }

@@ -3,12 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@heroui/react';
-import ParameterInputContainer from '@/pages/LandingPage/components/ParameterInputContainer';
+import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
 // Session restore is handled globally via AppSessionManager + SessionRestoreDialog
 import { useSession } from '@/features/session/hooks/useSession';
-import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { getCharacterCount } from '@/lib/validation';
 import { loadEvaluationState } from '@/lib/storage';
@@ -33,8 +33,9 @@ import {
   BookOpen,
   ClipboardList,
   SlidersHorizontal,
+  BadgeInfo,
+  Info,
 } from 'lucide-react';
-import InfoIconButton from '@/components/common/InfoIconButton';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -51,15 +52,27 @@ export default function LandingPage() {
   } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
   const {
-    openBusinessProblemInfoModal,
-    openBusinessSolutionInfoModal,
-    openEvaluationParametersHeadingInfoModal,
-    openAssessmentMethodologyModal,
-    openEvaluationCriteriaModal,
-  } = useGlobalModal();
+    openBusinessProblemInfoDrawer,
+    openBusinessSolutionInfoDrawer,
+    openEvaluationParametersHeadingInfoDrawer,
+    openAssessmentMethodologyDrawer,
+    openEvaluationCriteriaDrawer,
+  } = useGlobalDrawer();
 
   const [showEvaluationParameters, setShowEvaluationParameters] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Controlled accordion state so we can imperatively open them (e.g. on test case select)
+  const [evalParamsExpandedKeys, setEvalParamsExpandedKeys] = useState(
+    new Set(['evaluation-parameters-heading']),
+  );
+  const ALL_INNER_KEYS = new Set(['Access Value', 'Embedded Value', 'Processing Value']);
+  const [innerExpandedKeys, setInnerExpandedKeys] = useState(new Set(ALL_INNER_KEYS));
+
+  const openEvalParams = () => {
+    setEvalParamsExpandedKeys(new Set(['evaluation-parameters-heading']));
+    setInnerExpandedKeys(new Set(ALL_INNER_KEYS));
+  };
   const [error, setError] = useState(null);
   // session prompt handled globally in AppSessionManager
   const skipAutosaveRef = useRef(false);
@@ -517,14 +530,14 @@ export default function LandingPage() {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <motion.div>
-            <Button onClick={openAssessmentMethodologyModal} size="lg" variant="success">
+            <Button onClick={openAssessmentMethodologyDrawer} size="lg" variant="success">
               <BookOpen className="w-5 h-5" strokeWidth={2} />
               <span>Assessment Methodology</span>
             </Button>
           </motion.div>
 
           <motion.div>
-            <Button onClick={openEvaluationCriteriaModal} size="lg" variant="eco-soft">
+            <Button onClick={openEvaluationCriteriaDrawer} size="lg" variant="eco-soft">
               <ClipboardList className="w-5 h-5" strokeWidth={2} />
               <span>Evaluation Criteria</span>
             </Button>
@@ -592,11 +605,16 @@ export default function LandingPage() {
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="ml-2 space-y-1">
-                    <div className="flex items-center justify-start gap-3">
+                    <div className="flex items-center justify-start gap-2">
                       <Label htmlFor="business-problem" className="text-base font-bold">
                         Business Problem
                       </Label>
-                      <InfoIconButton onClick={openBusinessProblemInfoModal} />
+                      <BadgeInfo
+                        className="info-icon"
+                        size={22}
+                        color="green"
+                        onClick={openBusinessProblemInfoDrawer}
+                      />
                     </div>
                     <p className="text-sm text-gray-600 font-semibold">
                       What environmental or circular economy challenge does your business address?
@@ -624,7 +642,12 @@ export default function LandingPage() {
                       <Label htmlFor="business-solution" className="text-base font-bold">
                         Business Solution
                       </Label>
-                      <InfoIconButton onClick={openBusinessSolutionInfoModal} />
+                      <BadgeInfo
+                        className="info-icon"
+                        size={22}
+                        color="green"
+                        onClick={openBusinessSolutionInfoDrawer}
+                      />
                     </div>
                     <p className="text-sm text-gray-600 font-semibold">
                       How does your business solve this problem? Include materials, processes, and
@@ -647,8 +670,14 @@ export default function LandingPage() {
 
               {/* EvaluationParameters Parameters Section */}
               <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
-                <Accordion className="w-full" variant="default">
-                  <Accordion.Item>
+                <Accordion
+                  className="w-full"
+                  variant="default"
+                  allowsMultipleExpanded
+                  expandedKeys={evalParamsExpandedKeys}
+                  onExpandedChange={setEvalParamsExpandedKeys}
+                >
+                  <Accordion.Item id="evaluation-parameters-heading">
                     <Accordion.Heading>
                       <Accordion.Trigger className="hover:bg-slate-50/80 group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150">
                         <SlidersHorizontal
@@ -660,22 +689,25 @@ export default function LandingPage() {
                           strokeWidth={1.75}
                         />
 
-                        <div className="flex flex-col gap-0.5 text-left">
-                          <span className="font-bold text-lg leading-6 text-slate-800">
-                            Evaluation Parameters
-                          </span>
+                        <div className="flex flex-col gap-1 text-left">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-lg leading-6 text-slate-800">
+                              Evaluation Parameters
+                            </span>
+                            <BadgeInfo
+                              className="info-icon"
+                              size={22}
+                              color="green"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEvaluationParametersHeadingInfoDrawer();
+                              }}
+                            />
+                          </div>
                           <span className="text-sm font-normal leading-4 text-slate-400">
                             Score each dimension of circular value
                           </span>
                         </div>
-
-                        <InfoIconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEvaluationParametersHeadingInfoModal();
-                          }}
-                          className="ml-1 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
-                        />
 
                         <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
                           <ChevronDown />
@@ -685,7 +717,11 @@ export default function LandingPage() {
 
                     <Accordion.Panel>
                       <Accordion.Body className="p-0 bg-transparent">
-                        <ParameterInputContainer loading={loading} />
+                        <EvaluationParametersContainer
+                          loading={loading}
+                          innerExpandedKeys={innerExpandedKeys}
+                          onInnerExpandedChange={setInnerExpandedKeys}
+                        />
                       </Accordion.Body>
                     </Accordion.Panel>
                   </Accordion.Item>
@@ -737,7 +773,7 @@ export default function LandingPage() {
                   variant="default"
                   defaultExpandedKeys={['test-cases']}
                 >
-                  <Accordion.Item id="test-cases">
+                  <Accordion.Item id="test-cases" defaultExpanded={true}>
                     <Accordion.Heading>
                       <Accordion.Trigger className="hover:bg-slate-50/80 flex items-center gap-3 px-5 py-3 transition-colors duration-150">
                         <ClipboardList
@@ -749,22 +785,25 @@ export default function LandingPage() {
                           strokeWidth={1.75}
                         />
 
-                        <div className="flex flex-col gap-0.5 text-left">
-                          <span className="font-bold text-[16px] leading-6 text-slate-800">
-                            Sample Test Cases
-                          </span>
+                        <div className="flex flex-col gap-1 text-left">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-[16px] leading-6 text-slate-800">
+                              Sample Test Cases
+                            </span>
+                            <BadgeInfo
+                              className="info-icon"
+                              size={22}
+                              color="green"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEvaluationParametersHeadingInfoDrawer();
+                              }}
+                            />
+                          </div>
                           <span className="text-xs font-normal leading-4 text-slate-400 italic">
                             Auto-fill the form with curated examples for quick testing
                           </span>
                         </div>
-
-                        <InfoIconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEvaluationParametersHeadingInfoModal();
-                          }}
-                          className="ml-1 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
-                        />
 
                         <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
                           <ChevronDown />
@@ -774,7 +813,10 @@ export default function LandingPage() {
 
                     <Accordion.Panel>
                       <Accordion.Body className="pt-2 bg-transparent">
-                        <SampleTestCasesContainer />
+                        <SampleTestCasesContainer
+                          setShowEvaluationParameters={setShowEvaluationParameters}
+                          openEvalParams={openEvalParams}
+                        />
                       </Accordion.Body>
                     </Accordion.Panel>
                   </Accordion.Item>

@@ -594,7 +594,7 @@ const AssessmentMethodologySection = () => {
         <p className="text-gray-600 text-lg leading-relaxed mb-8">
           This evaluation uses a proprietary AI-powered framework combining vector similarity search
           with GPT-4o-mini reasoning against a database of{' '}
-          <strong className="text-gray-900">1,108 high-quality circular economy projects</strong>.
+          <strong className="text-gray-900">4,000+ high-quality circular economy projects</strong>.
         </p>
 
         <div className="space-y-4 mb-8">
@@ -617,7 +617,7 @@ const AssessmentMethodologySection = () => {
           </h4>
           <p className="text-sm text-gray-700 leading-relaxed m-0">
             <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection of{' '}
-            <strong>1,108 high-quality</strong> circular economy solutions (filtered from 1,300)
+            <strong>4,000+ high-quality</strong> circular economy solutions (filtered from 1,300)
             spanning waste reduction, resource optimization, renewable energy, sustainable
             materials, and regenerative agriculture across multiple industries and geographic
             regions.

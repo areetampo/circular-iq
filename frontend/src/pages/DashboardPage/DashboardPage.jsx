@@ -22,7 +22,7 @@ import { toTitleCase } from '@/lib/formatting';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { useEnhancedAnalytics } from '@/features/assessments';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
-import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { sortByAverageScoreDesc, sortByAverageScoreAsc } from '@/features/assessments/utils';
 import { cn } from '@/utils/cn';
 import { exportDashboardToPDF } from '@/lib/exportDashboard';
@@ -234,8 +234,8 @@ export default function DashboardPage() {
     enabled: !isLoading,
   });
 
-  // Landing modal integration (use landing modal hook to open the shared modal)
-  const { openDashboardFeaturedSolutionsModal } = useGlobalModal();
+  // Landing drawer integration (use landing drawer hook to open the shared drawer)
+  const { openDashboardFeaturedSolutionsDrawer } = useGlobalDrawer();
 
   // Extra fetch to compute quick document stats (top keywords and count)
   const { solutions: statsSolutions = [], count: extendedCount = 0 } = useFeaturedSolutions({

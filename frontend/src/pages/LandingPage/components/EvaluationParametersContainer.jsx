@@ -1,36 +1,47 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useFormContext, Controller } from 'react-hook-form';
-import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
-import { Label, NumberField, Accordion, cn } from '@heroui/react';
-import InfoIconButton from '@/components/common/InfoIconButton';
-import { ChevronDown, RadioTower, Coins, Recycle } from 'lucide-react';
+import { Label, NumberField, Accordion, cn, Separator } from '@heroui/react';
+import { ChevronDown, RadioTower, Coins, Recycle, BadgeInfo } from 'lucide-react';
 
 // ─── Group config ─────────────────────────────────────────────────────────────
 // RadioTower → Access Value      (signal, broadcast reach, participation)
 // Coins      → Embedded Value    (stored worth, monetary/material value retained)
 // Recycle    → Processing Value  (circular processing, transformation loop)
-const GROUP_CONFIG = {
+const GROUP_STYLE_CONFIG = {
   'Access Value': {
     Icon: RadioTower,
-    iconCn: 'text-violet-500',
+    iconColor: 'text-violet-500',
     subtitle: 'Reach and participation across stakeholders',
+    paramBg: 'bg-violet-50',
+    paramTextColor: 'text-violet-700',
   },
   'Embedded Value': {
     Icon: Coins,
-    iconCn: 'text-emerald-500',
+    iconColor: 'text-emerald-500',
     subtitle: 'Intrinsic worth retained within the system',
+    paramBg: 'bg-emerald-50',
+    paramTextColor: 'text-emerald-700',
   },
   'Processing Value': {
     Icon: Recycle,
-    iconCn: 'text-amber-500',
+    iconColor: 'text-amber-500',
     subtitle: 'Efficiency and safety of circular processes',
+    paramBg: 'bg-amber-100/50',
+    paramTextColor: 'text-amber-700',
   },
 };
 
-const DEFAULT_CONFIG = { Icon: Coins, iconCn: 'text-slate-400', subtitle: '' };
+const DEFAULT_CONFIG = {
+  Icon: Coins,
+  iconColor: 'text-slate-400',
+  subtitle: '',
+  paramBg: 'bg-slate-50',
+  paramTextColor: 'text-slate-700',
+};
 
 const SCALE_COLORS = [
   'text-red-500 bg-red-50',
@@ -39,9 +50,9 @@ const SCALE_COLORS = [
 ];
 
 // ─── ParameterBox ─────────────────────────────────────────────────────────────
-const ParameterBox = React.memo(({ paramKey, loading }) => {
+const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
   const { control, getValues } = useFormContext();
-  const { openSpecificEvaluationParameterInfoModal } = useGlobalModal();
+  const { openSpecificEvaluationParameterInfoDrawer } = useGlobalDrawer();
   const { saveSession } = useSession();
 
   const scaleMarkers = React.useMemo(() => {
@@ -79,21 +90,44 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                 useGrouping: false,
               }}
             >
-              <Label className="mb-2 flex items-center gap-1 bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 cursor-default w-fit mx-auto">
-                <span className="font-semibold text-xs whitespace-nowrap">
+              <Label
+                className={cn(
+                  'mb-2 flex items-center gap-1.5 rounded-full px-3 py-1 w-fit mx-auto cursor-pointer shadow-sm hover:shadow-none transition-all hover:translate-y-px',
+                  (() => {
+                    const cfg =
+                      GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
+                      DEFAULT_CONFIG;
+                    return cn(cfg.paramBg, cfg.paramTextColor);
+                  })(),
+                )}
+                onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
+              >
+                <span className="font-semibold text-sm whitespace-nowrap">
                   {parameterLabels[paramKey].label}
                 </span>
-                <InfoIconButton
-                  size={13}
-                  onClick={() => openSpecificEvaluationParameterInfoModal(paramKey)}
-                  className="text-emerald-600 hover:text-emerald-800 transition-colors"
-                />
+                <BadgeInfo className="info-icon" size={20} />
               </Label>
 
               <NumberField.Group className="flex items-center gap-1">
-                <NumberField.DecrementButton className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
+                <NumberField.DecrementButton className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
                 <NumberField.Input
                   onChange={(e) => {
+                    let value = e.target.value;
+                    if (value.length > 1 && value.startsWith('0')) {
+                      value = value.replace(/^0+/, '') || '0';
+                    }
+                    const num = parseInt(value, 10);
+                    if (!isNaN(num) && num > 100) {
+                      e.target.value = '100';
+                      field.onChange(100);
+                      // Do NOT persist here — rely on LandingPage debounced autosave.
+                    } else {
+                      e.target.value = value;
+                      field.onChange(isNaN(num) ? 0 : num);
+                      // Do NOT persist here — rely on LandingPage debounced autosave.
+                    }
+                  }}
+                  onInput={(e) => {
                     let value = e.target.value;
                     if (value.length > 1 && value.startsWith('0')) {
                       value = value.replace(/^0+/, '') || '0';
@@ -119,13 +153,13 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                           parameters: values.parameters || {},
                         },
                       });
-                    } catch (_) {
+                    } catch (e) {
                       /* ignore */
                     }
                   }}
-                  className="w-14 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
+                  className="w-17 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
                 />
-                <NumberField.IncrementButton className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
+                <NumberField.IncrementButton className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
               </NumberField.Group>
             </NumberField>
 
@@ -160,12 +194,13 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
 
 ParameterBox.displayName = 'ParameterBox';
 ParameterBox.propTypes = {
+  paramGroupIdx: PropTypes.number.isRequired,
   paramKey: PropTypes.string.isRequired,
   loading: PropTypes.bool.isRequired,
 };
 
-// ─── ParameterInputContainer ──────────────────────────────────────────────────
-export default function ParameterInputContainer({
+// ─── EvaluationParametersContainer ──────────────────────────────────────────────────
+export default function EvaluationParametersContainer({
   loading,
   innerExpandedKeys,
   onInnerExpandedChange,
@@ -178,11 +213,12 @@ export default function ParameterInputContainer({
         className="w-full"
         variant="default"
         allowsMultipleExpanded
+        defaultExpandedKeys={innerExpandedKeys}
         expandedKeys={innerExpandedKeys}
         onExpandedChange={onInnerExpandedChange}
       >
         {groupEntries.map(([groupName, group], groupIdx) => {
-          const cfg = GROUP_CONFIG[groupName] ?? DEFAULT_CONFIG;
+          const cfg = GROUP_STYLE_CONFIG[groupName] ?? DEFAULT_CONFIG;
           const { Icon } = cfg;
 
           return (
@@ -203,7 +239,7 @@ export default function ParameterInputContainer({
                   <Icon
                     className={cn(
                       'h-5 w-5 shrink-0',
-                      cfg.iconCn,
+                      cfg.iconColor,
                       'transition-[scale,rotate] duration-300 ease-out',
                       'group-hover/item:scale-[1.2] group-hover/item:-rotate-[10deg] group-hover/item:drop-shadow-md mr-1.5',
                     )}
@@ -231,13 +267,13 @@ export default function ParameterInputContainer({
                     {group.map((key, idx) => (
                       <React.Fragment key={idx}>
                         <div className="flex-1 flex flex-col items-center py-1 px-2">
-                          <ParameterBox paramKey={key} loading={loading} />
+                          <ParameterBox paramGroupIdx={groupIdx} paramKey={key} loading={loading} />
                         </div>
                         {idx < group.length - 1 && (
-                          <>
-                            <div className="md:hidden h-px w-full bg-slate-200/60" />
+                          <div className="flex justify-center items-center">
                             <div className="hidden md:block w-px self-stretch bg-slate-200/60 my-2" />
-                          </>
+                            <Separator orientation="horizontal" className="md:hidden w-5/6" />
+                          </div>
                         )}
                       </React.Fragment>
                     ))}
@@ -252,7 +288,7 @@ export default function ParameterInputContainer({
   );
 }
 
-ParameterInputContainer.propTypes = {
+EvaluationParametersContainer.propTypes = {
   loading: PropTypes.bool.isRequired,
   innerExpandedKeys: PropTypes.instanceOf(Set),
   onInnerExpandedChange: PropTypes.func,

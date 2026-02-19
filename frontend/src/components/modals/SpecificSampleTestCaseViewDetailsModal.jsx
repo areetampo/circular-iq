@@ -18,14 +18,19 @@ export default function SpecificSampleTestCaseViewDetailsModal({ testCase }) {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="2xl">
-        <Modal.Dialog aria-label="Sample Test Case Information">
+        <Modal.Dialog
+          aria-label="Sample Test Case Information"
+          aria-labelledby="sample-testcase-detail-modal-title"
+        >
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-100">
                 <PencilLine className="size-5 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">{testCase.title}</h2>
+                <h2 id="sample-testcase-detail-modal-title" className="text-lg font-semibold">
+                  {testCase.title}
+                </h2>
                 <p className="text-sm text-gray-600">Sample test case details and parameters</p>
               </div>
             </div>

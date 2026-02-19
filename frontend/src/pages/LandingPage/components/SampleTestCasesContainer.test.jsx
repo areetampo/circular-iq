@@ -3,7 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
 import SampleTestCasesContainer from './SampleTestCasesContainer';
 import testCases from '@/data/testCases.json';
-import { ModalProvider } from '@/contexts/ModalContext';
+import { DrawerProvider } from '@/contexts/DrawerContext';
 import { DialogProvider } from '@/contexts/DialogContext';
 
 const mockSaveSession = vi.fn();
@@ -20,9 +20,9 @@ function Wrapper() {
   return (
     <FormProvider {...methods}>
       <DialogProvider>
-        <ModalProvider>
+        <DrawerProvider>
           <SampleTestCasesContainer />
-        </ModalProvider>
+        </DrawerProvider>
       </DialogProvider>
     </FormProvider>
   );

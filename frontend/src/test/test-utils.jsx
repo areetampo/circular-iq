@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DialogProvider } from '@/contexts/DialogContext';
-import { ModalProvider } from '@/contexts/ModalContext';
+import { DrawerProvider } from '@/contexts/DrawerContext';
 
 export function createTestQueryClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -19,7 +19,7 @@ export function Providers({ children, initialEntries = ['/'] }) {
       >
         <AuthProvider>
           <DialogProvider>
-            <ModalProvider>{children}</ModalProvider>
+            <DrawerProvider>{children}</DrawerProvider>
           </DialogProvider>
         </AuthProvider>
       </MemoryRouter>

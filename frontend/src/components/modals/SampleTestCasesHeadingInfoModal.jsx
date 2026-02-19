@@ -16,14 +16,16 @@ export default function SampleTestCasesHeadingInfoModal() {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="xl">
-        <Modal.Dialog aria-label="Sample Test Cases">
+        <Modal.Dialog aria-label="Sample Test Cases" aria-labelledby="sample-testcases-modal-title">
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-100">
                 <ClipboardPenLine className="size-5 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">Sample Test Cases</h2>
+                <h2 id="sample-testcases-modal-title" className="text-lg font-semibold">
+                  Sample Test Cases
+                </h2>
                 <p className="text-sm text-gray-600">Pre-filled business model examples</p>
               </div>
             </div>

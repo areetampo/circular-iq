@@ -17,14 +17,19 @@ export default function EvaluationParametersHeadingInfoModal() {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="3xl">
-        <Modal.Dialog aria-label="Evaluation Parameters Guide">
+        <Modal.Dialog
+          aria-label="Evaluation Parameters Guide"
+          aria-labelledby="evaluation-parameters-modal-title"
+        >
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-100">
                 <ClipboardMinus className="size-5 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">Evaluation Parameters Guide</h2>
+                <h2 id="evaluation-parameters-modal-title" className="text-lg font-semibold">
+                  Evaluation Parameters Guide
+                </h2>
                 <p className="text-sm text-gray-600">
                   Factors used to evaluate circularity potential
                 </p>

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Button } from '@/components/common';
 import { Card, Chip, Input } from '@heroui/react';
 import { useFeaturedSolutions } from '../../features/assessments/hooks/useFeaturedSolutions';
-import { useGlobalModal } from '@/contexts/ModalContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 
 export default function FeaturedSolutionsCard({ industry }) {
   const [featuredQuery, setFeaturedQuery] = useState('');
@@ -23,7 +23,7 @@ export default function FeaturedSolutionsCard({ industry }) {
     enabled: true,
   });
 
-  const { openDashboardFeaturedSolutionsModal } = useGlobalModal();
+  const { openDashboardFeaturedSolutionsDrawer } = useGlobalDrawer();
 
   const topKeywords = React.useMemo(() => {
     const stopWords = new Set([
@@ -143,7 +143,7 @@ export default function FeaturedSolutionsCard({ industry }) {
           <Button
             size="sm"
             className="ml-0 sm:ml-2"
-            onClick={() => openDashboardFeaturedSolutionsModal({ industry, q: featuredSearch })}
+            onClick={() => openDashboardFeaturedSolutionsDrawer({ industry, q: featuredSearch })}
           >
             Explore more
           </Button>

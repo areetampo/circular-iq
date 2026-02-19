@@ -1,19 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import MODALS from '@/components/modals/modalTypes';
+import DRAWERS from '@/components/drawers/drawerTypes';
 import {
-  AssessmentMethodologyModal,
-  EvaluationCriteriaModal,
-  BusinessProblemInfoModal,
-  BusinessSolutionInfoModal,
-  EvaluationParametersHeadingInfoModal,
-  SpecificEvaluationParameterInfoModal,
-  SampleTestCasesHeadingInfoModal,
-  SpecificSampleTestCaseViewDetailsModal,
-  ResultsDatabaseEvidenceDetailsModal,
-  DashboardFeaturedSolutionsModal,
-} from '@/components/modals';
-import { useGlobalModal } from '@/contexts/ModalContext';
+  AssessmentMethodologyDrawer,
+  EvaluationCriteriaDrawer,
+  BusinessProblemInfoDrawer,
+  BusinessSolutionInfoDrawer,
+  EvaluationParametersHeadingInfoDrawer,
+  SpecificEvaluationParameterInfoDrawer,
+  SampleTestCasesHeadingInfoDrawer,
+  SpecificSampleTestCaseViewDetailsDrawer,
+  ResultsDatabaseEvidenceDetailsDrawer,
+  DashboardFeaturedSolutionsDrawer,
+} from '@/components/drawers';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
 
 export default function ModalManager() {
   const { modal } = useGlobalModal();

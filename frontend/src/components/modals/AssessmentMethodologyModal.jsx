@@ -55,14 +55,19 @@ export default function AssessmentMethodologyModal() {
       isDismissable={true}
     >
       <Modal.Container placement="center" scroll="inside" size="3xl">
-        <Modal.Dialog aria-label="Assessment Methodology">
+        <Modal.Dialog
+          aria-label="Assessment Methodology"
+          aria-labelledby="assessment-methodology-modal-title"
+        >
           <Modal.Header className="pt-0 pb-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-indigo-100">
                 <ChartSpline className="size-5 text-indigo-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold">Assessment Methodology</h2>
+                <h2 id="assessment-methodology-modal-title" className="text-lg font-semibold">
+                  Assessment Methodology
+                </h2>
                 <p className="text-sm text-gray-600">Our AI-powered evaluation framework</p>
               </div>
             </div>
@@ -72,7 +77,7 @@ export default function AssessmentMethodologyModal() {
               <p className="text-sm text-gray-600 leading-relaxed">
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
-                <strong>1,108 high-quality circular economy projects</strong>.
+                <strong>4,000+ high-quality circular economy projects</strong>.
               </p>
 
               <div className="space-y-3">
@@ -103,7 +108,7 @@ export default function AssessmentMethodologyModal() {
                 </h4>
                 <p className="text-xs text-gray-600 leading-relaxed">
                   <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection of{' '}
-                  <strong>1,108 high-quality</strong> circular economy solutions (filtered from
+                  <strong>4,000+ high-quality</strong> circular economy solutions (filtered from
                   1,300) spanning waste reduction, resource optimization, renewable energy,
                   sustainable materials, and regenerative agriculture across multiple industries and
                   geographic regions.

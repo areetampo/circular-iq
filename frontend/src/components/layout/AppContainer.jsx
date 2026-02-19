@@ -6,7 +6,7 @@ import { cn } from '@/utils/cn';
 import Navbar from './Navbar';
 import Header from './Header';
 import Footer from './Footer';
-import { ModalManager } from '@/components/modals';
+
 import { DialogManager } from '@/components/dialogs';
 
 /**
@@ -338,9 +338,6 @@ export default function AppContainer({
         {/* Footer */}
         {showFooter && <Footer />}
       </div>
-
-      {/* Global Modal Manager */}
-      <ModalManager />
 
       {/* Global Dialog Manager */}
       <DialogManager />
