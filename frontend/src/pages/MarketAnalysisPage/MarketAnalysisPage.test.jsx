@@ -60,6 +60,7 @@ vi.mock('@/components/charts/LineChart', () => ({
   ),
 }));
 
+import { Providers } from '@/test/test-utils';
 import MarketAnalysisPage from './MarketAnalysisPage';
 import { getEnhancedAnalytics } from '@/features/assessments';
 
@@ -78,13 +79,11 @@ describe('MarketAnalysisPage', () => {
 
   test('renders export buttons and time range controls', async () => {
     render(
-      <Wrapper>
-        <MemoryRouter initialEntries={['/assessments/123/market-analysis']}>
-          <Routes>
-            <Route path="/assessments/:id/market-analysis" element={<MarketAnalysisPage />} />
-          </Routes>
-        </MemoryRouter>
-      </Wrapper>,
+      <Providers initialEntries={['/assessments/123/market-analysis']}>
+        <Routes>
+          <Route path="/assessments/:id/market-analysis" element={<MarketAnalysisPage />} />
+        </Routes>
+      </Providers>,
     );
 
     // Export buttons should be visible but disabled for anonymous users
@@ -142,13 +141,11 @@ describe('MarketAnalysisPage', () => {
     localStorage.setItem('session_evaluation_state', JSON.stringify(session));
 
     render(
-      <Wrapper>
-        <MemoryRouter initialEntries={['/results/market-analysis']}>
-          <Routes>
-            <Route path="/results/market-analysis" element={<MarketAnalysisPage />} />
-          </Routes>
-        </MemoryRouter>
-      </Wrapper>,
+      <Providers initialEntries={['/results/market-analysis']}>
+        <Routes>
+          <Route path="/results/market-analysis" element={<MarketAnalysisPage />} />
+        </Routes>
+      </Providers>,
     );
 
     // Aggregate export buttons should be present but disabled for anonymous users (page is public)
@@ -158,9 +155,11 @@ describe('MarketAnalysisPage', () => {
     expect(csvBtn).toHaveAttribute('title', 'Sign in to get access to them');
 
     // Enhanced analytics should be requested for the session industry's trend
-    await waitFor(() => expect(getEnhancedAnalytics).toHaveBeenCalledWith(
-      expect.objectContaining({ industry: 'energy' }),
-    ));
+    await waitFor(() =>
+      expect(getEnhancedAnalytics).toHaveBeenCalledWith(
+        expect.objectContaining({ industry: 'energy' }),
+      ),
+    );
 
     // Line chart should be rendered
     expect(await screen.findByTestId('line-chart')).toBeInTheDocument();

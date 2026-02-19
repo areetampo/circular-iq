@@ -135,7 +135,7 @@ export default function Navbar() {
         </NavbarBrand>
 
         {/* Desktop Nav Items */}
-        <div className="hidden md:flex justify-start items-start gap-6 ml-4">
+        <div className="hidden md:flex justify-start items-start gap-2 ml-4">
           {navigationItems.map((item) => {
             const isActive = isActivePath(item.path);
             return (
@@ -143,10 +143,10 @@ export default function Navbar() {
                 <button
                   onClick={() => handleNavigation(item)}
                   className={cn(
-                    'text-md font-semibold transition-colors cursor-pointer',
+                    'text-md font-semibold transition-colors cursor-pointer px-2 py-1 rounded-lg',
                     isActive
                       ? 'text-black bg-default-100'
-                      : 'text-foreground/50 hover:text-slate-700/90 hover:bg-default-50',
+                      : 'text-foreground/50 hover:text-slate-700/90',
                   )}
                 >
                   {item.name}

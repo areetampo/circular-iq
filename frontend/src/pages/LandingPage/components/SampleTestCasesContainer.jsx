@@ -4,12 +4,11 @@ import { useFormContext } from 'react-hook-form';
 import { useGlobalModal } from '@/contexts/ModalContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import testCases from '@/data/testCases.json';
-import { Card, Chip } from '@heroui/react';
+import { ScrollShadow, toast } from '@heroui/react';
 import { Button } from '@/components/common';
-import { toast, ScrollShadow } from '@heroui/react';
 import { cn } from '@/utils/cn';
-import { Scroll } from 'lucide-react';
 import { useSession } from '@/features/session/hooks/useSession';
+import { CheckCircle2, BookOpen } from 'lucide-react';
 
 export default function SampleTestCasesContainer({ setShowEvaluationParameters = () => {} }) {
   const { setValue, trigger, getValues } = useFormContext();
@@ -26,9 +25,6 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
     await trigger();
 
     // Persist immediately when a user explicitly selects a sample test case.
-    // Rationale: selecting a sample is an explicit user action and should be
-    // reliably reflected in persisted session state (avoid timing/race gaps
-    // where autosave debounce could be missed).
     try {
       saveSession({
         inputs: {
@@ -66,87 +62,102 @@ export default function SampleTestCasesContainer({ setShowEvaluationParameters =
         onConfirm: async () => {
           await handleSelectCase(testCase);
         },
-        onCancel: () => {
-          // Do nothing on cancel
-        },
+        onCancel: () => {},
       });
       return;
     }
     handleSelectCase(testCase);
   };
 
-  const getParameterColor = (value) => {
-    if (value >= 75) return 'bg-emerald-100 text-emerald-700 border-emerald-300';
-    if (value >= 50) return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-    return 'bg-red-100 text-red-700 border-red-300';
+  const getScoreStyle = (value) => {
+    if (value >= 75) return 'text-emerald-600 bg-emerald-50 ring-1 ring-emerald-200';
+    if (value >= 50) return 'text-amber-600 bg-amber-50 ring-1 ring-amber-200';
+    return 'text-red-500 bg-red-50 ring-1 ring-red-200';
   };
 
   return (
-    <>
-      <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
-        {testCases.testCases.map((testCase, index) => (
-          <Card
+    <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
+      {testCases.testCases.map((testCase, index) => {
+        const isSelected = selectedCase === testCase.id;
+
+        return (
+          <div
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'cursor-pointer transition-all duration-200 h-full border-2 shadow-sm hover:shadow-md data-active:scale-90',
-              selectedCase === testCase.id
-                ? 'border-teal-300/60 bg-teal-100/50'
-                : 'border-teal-100 bg-teal-50/70 hover:bg-teal-100/40 hover:border-teal-200',
+              'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer',
+              'border transition-all duration-200',
+              isSelected
+                ? // Selected: soft emerald tint — feels "loaded/active" not just "hovered"
+                  'border-emerald-300 bg-emerald-50/40 shadow-sm'
+                : // Default → hover: slate border lifts to a warm teal-green
+                  'border-slate-200/80 bg-white hover:border-teal-300 hover:bg-teal-50/20 hover:shadow-sm',
             )}
           >
-            <div className="flex flex-col h-full p-0">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <h4 className="flex-1 text-lg font-semibold leading-tight text-slate-900">
-                  {testCase.title}
-                </h4>
-                <Chip
-                  size="sm"
-                  variant="soft"
-                  color="success"
-                  className="text-xs font-semibold shrink-0"
+            {/* Header: index pill + title + check */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={cn(
+                    'text-xs font-bold px-2 py-0.5 rounded-full shrink-0',
+                    isSelected ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500',
+                  )}
                 >
                   #{index + 1}
-                </Chip>
+                </span>
+                <h4 className="text-sm font-semibold leading-snug text-slate-800 truncate">
+                  {testCase.title}
+                </h4>
               </div>
-
-              <p className="mb-3 text-xs leading-relaxed grow text-slate-600 line-clamp-2">
-                {testCase.problem.substring(0, 100)}...
-              </p>
-
-              <div className="flex flex-wrap gap-1.5">
-                {Object.entries(testCase.parameters)
-                  .slice(0, 3)
-                  .map(([key, value]) => (
-                    <span
-                      key={key}
-                      className={cn(
-                        'text-[9px] sm:text-xs px-2 py-1 rounded-md font-semibold border',
-                        getParameterColor(value),
-                      )}
-                    >
-                      {key.replace(/_/g, ' ')}: {value}
-                    </span>
-                  ))}
-              </div>
-
-              <div className="flex justify-end mt-4">
-                <Button
-                  onClick={(e) => {
-                    openSpecificTestCaseDetailsModal(testCase);
-                    e.stopPropagation();
-                  }}
-                  variant="eco-soft"
-                  size="sm"
-                >
-                  View details
-                </Button>
-              </div>
+              {isSelected && (
+                <CheckCircle2
+                  className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5"
+                  strokeWidth={2}
+                />
+              )}
             </div>
-          </Card>
-        ))}
-      </ScrollShadow>
-    </>
+
+            {/* Problem excerpt */}
+            <p className="text-xs leading-relaxed text-slate-400 line-clamp-2 grow">
+              {testCase.problem.substring(0, 110)}…
+            </p>
+
+            {/* Score pills */}
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(testCase.parameters)
+                .slice(0, 3)
+                .map(([key, value]) => (
+                  <span
+                    key={key}
+                    className={cn(
+                      'text-[10px] font-medium px-2 py-0.5 rounded-md',
+                      getScoreStyle(value),
+                    )}
+                  >
+                    {key.replace(/_/g, ' ')}: {value}
+                  </span>
+                ))}
+            </div>
+
+            {/* View details — no divider, just the button flush to bottom */}
+            <div className="flex justify-end">
+              <Button
+                onClick={(e) => {
+                  openSpecificTestCaseDetailsModal(testCase);
+                  e.stopPropagation();
+                }}
+                variant="eco-soft"
+                size="sm"
+                className="flex items-center gap-1 text-xs"
+              >
+                View details
+                <BookOpen className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </div>
+        );
+      })}
+    </ScrollShadow>
   );
 }
 

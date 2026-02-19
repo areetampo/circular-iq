@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS assessments (
   industry TEXT,
   overall_score INTEGER,
   business_viability_score INTEGER,
-  is_public BOOLEAN DEFAULT FALSE,
+  is_public BOOLEAN DEFAULT TRUE,
   public_id UUID DEFAULT gen_random_uuid(),
-  contribute_to_global_benchmarks BOOLEAN DEFAULT FALSE,
+  contribute_to_global_benchmarks BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

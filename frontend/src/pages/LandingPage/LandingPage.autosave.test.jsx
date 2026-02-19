@@ -8,6 +8,7 @@ import { DialogProvider } from '@/contexts/DialogContext';
 import { ModalProvider } from '@/contexts/ModalContext';
 import SampleTestCasesContainer from './components/SampleTestCasesContainer';
 import { useForm, FormProvider } from 'react-hook-form';
+import { Providers } from '@/test/test-utils';
 
 const mockSaveSession = vi.fn();
 
@@ -28,16 +29,7 @@ vi.mock('@/features/session/hooks/useSession', () => ({
 }));
 
 function AppWrapper({ children }) {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return (
-    <QueryClientProvider client={qc}>
-      <MemoryRouter>
-        <DialogProvider>
-          <ModalProvider>{children}</ModalProvider>
-        </DialogProvider>
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
+  return <Providers>{children}</Providers>;
 }
 
 describe('LandingPage autosave integration', () => {

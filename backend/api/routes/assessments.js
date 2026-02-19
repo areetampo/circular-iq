@@ -80,11 +80,11 @@ export default function createAssessmentsRouter(supabase) {
         industry: industry || resultData.metadata?.industry || 'general',
         overall_score: Math.round(resultData.overall_score),
         business_viability_score: resultData.sub_scores?.business_viability || 0,
-        is_public: typeof is_public === 'boolean' ? is_public : false,
+        is_public: typeof is_public === 'boolean' ? is_public : true,
         contribute_to_global_benchmarks:
           typeof contribute_to_global_benchmarks === 'boolean'
             ? contribute_to_global_benchmarks
-            : false,
+            : true,
       };
 
       // Insert assessment using an authenticated user client to respect RLS

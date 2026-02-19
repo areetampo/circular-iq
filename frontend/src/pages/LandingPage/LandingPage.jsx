@@ -32,7 +32,6 @@ import {
   ClipboardPenLine,
   BookOpen,
   ClipboardList,
-  FileBox,
   SlidersHorizontal,
 } from 'lucide-react';
 import InfoIconButton from '@/components/common/InfoIconButton';
@@ -647,55 +646,51 @@ export default function LandingPage() {
               </div>
 
               {/* EvaluationParameters Parameters Section */}
-              <Accordion
-                className="bg-surface-secondary w-full rounded-2xl border border-slate-200/60 shadow-sm"
-                variant="default"
-              >
-                <Accordion.Item
-                  className={cn(
-                    '[&_[data-slot=accordion-trigger]]:rounded-t-2xl',
-                    "[&:not(:has([data-slot=accordion-trigger][aria-expanded='true']))_[data-slot=accordion-trigger]]:rounded-b-2xl",
-                  )}
-                >
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="hover:bg-surface-tertiary group flex items-center gap-3 px-5 py-4">
-                      {/* Icon — same soft-square treatment as inner groups, emerald to match site palette */}
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-                        <SlidersHorizontal className="h-5 w-5" strokeWidth={1.75} />
-                      </span>
+              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
+                <Accordion className="w-full" variant="default">
+                  <Accordion.Item>
+                    <Accordion.Heading>
+                      <Accordion.Trigger className="hover:bg-slate-50/80 group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                        <SlidersHorizontal
+                          className={cn(
+                            'h-6 w-6 shrink-0 text-emerald-500',
+                            'transition-[scale,rotate] duration-300 ease-out',
+                            'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-[10deg] group-hover/parent:drop-shadow-md mr-1',
+                          )}
+                          strokeWidth={1.75}
+                        />
 
-                      {/* Title + subtitle */}
-                      <div className="flex flex-col gap-0 text-left">
-                        <span className="font-semibold text-[15px] leading-5 text-slate-800">
-                          Evaluation Parameters
-                        </span>
-                        <span className="text-muted/80 text-xs font-normal leading-5">
-                          Score each dimension of circular value
-                        </span>
-                      </div>
+                        <div className="flex flex-col gap-0.5 text-left">
+                          <span className="font-bold text-lg leading-6 text-slate-800">
+                            Evaluation Parameters
+                          </span>
+                          <span className="text-sm font-normal leading-4 text-slate-400">
+                            Score each dimension of circular value
+                          </span>
+                        </div>
 
-                      {/* Info button — stop propagation so it doesn't toggle the accordion */}
-                      <InfoIconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEvaluationParametersHeadingInfoModal();
-                        }}
-                        className="ml-1 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
-                      />
+                        <InfoIconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEvaluationParametersHeadingInfoModal();
+                          }}
+                          className="ml-1 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+                        />
 
-                      <Accordion.Indicator className="text-muted/50 [&>svg]:size-4">
-                        <ChevronDown />
-                      </Accordion.Indicator>
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
+                        <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                          <ChevronDown />
+                        </Accordion.Indicator>
+                      </Accordion.Trigger>
+                    </Accordion.Heading>
 
-                  <Accordion.Panel>
-                    <Accordion.Body className="p-0">
-                      <ParameterInputContainer loading={loading} />
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
+                    <Accordion.Panel>
+                      <Accordion.Body className="p-0 bg-transparent">
+                        <ParameterInputContainer loading={loading} />
+                      </Accordion.Body>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
+              </div>
 
               {error && (
                 <div className="p-1 sm:p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -736,39 +731,55 @@ export default function LandingPage() {
               </div>
 
               {/* Test Case Selector */}
-              <Accordion className="w-full" variant="surface" defaultExpandedKeys={['test-cases']}>
-                <Accordion.Item>
-                  <Accordion.Heading>
-                    <Accordion.Trigger>
-                      <ClipboardPenLine className="w-6 h-6 mr-2 text-emerald-600" />
-                      <div className="flex flex-col items-start justify-center">
-                        <div className="flex items-center justify-center gap-2.5">
-                          <span className="font-semibold text-lg">Sample Test Cases</span>
-                          <InfoIconButton
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEvaluationParametersHeadingInfoModal();
-                            }}
-                            className="mb-px"
-                          />
+              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
+                <Accordion
+                  className="w-full"
+                  variant="default"
+                  defaultExpandedKeys={['test-cases']}
+                >
+                  <Accordion.Item id="test-cases">
+                    <Accordion.Heading>
+                      <Accordion.Trigger className="hover:bg-slate-50/80 group/tc flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                        <ClipboardList
+                          className={cn(
+                            'h-6 w-6 shrink-0 text-teal-500',
+                            'transition-[scale,rotate] duration-300 ease-out',
+                            'group-hover/tc:scale-[1.2] group-hover/tc:-rotate-[10deg] group-hover/tc:drop-shadow-md mr-1',
+                          )}
+                          strokeWidth={1.75}
+                        />
+
+                        <div className="flex flex-col gap-0.5 text-left">
+                          <span className="font-bold text-[16px] leading-6 text-slate-800">
+                            Sample Test Cases
+                          </span>
+                          <span className="text-xs font-normal leading-4 text-slate-400 italic">
+                            Auto-fill the form with curated examples for quick testing
+                          </span>
                         </div>
-                        <span className="text-xs text-slate-600 text-wrap text-left italic">
-                          Use curated examples to explore how the evaluator scores, auto-fill the
-                          form for quick testing.
-                        </span>
-                      </div>
-                      <Accordion.Indicator>
-                        <ChevronDown />
-                      </Accordion.Indicator>
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-                  <Accordion.Panel>
-                    <Accordion.Body className="pt-2">
-                      <SampleTestCasesContainer />
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
+
+                        <InfoIconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEvaluationParametersHeadingInfoModal();
+                          }}
+                          className="ml-1 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+                        />
+
+                        <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                          <ChevronDown />
+                        </Accordion.Indicator>
+                      </Accordion.Trigger>
+                    </Accordion.Heading>
+
+                    <Accordion.Panel>
+                      <Accordion.Body className="pt-2 bg-transparent">
+                        <SampleTestCasesContainer />
+                      </Accordion.Body>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
+              </div>
             </div>
           </Card>
         </motion.div>

@@ -6,39 +6,32 @@ import { useSession } from '@/features/session/hooks/useSession';
 import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
 import { Label, NumberField, Accordion, cn } from '@heroui/react';
 import InfoIconButton from '@/components/common/InfoIconButton';
-import { ChevronDown, Share2, Gem, Zap } from 'lucide-react';
+import { ChevronDown, RadioTower, Coins, Recycle } from 'lucide-react';
 
 // ─── Group config ─────────────────────────────────────────────────────────────
-// Icon sits in a soft rounded square, exactly like the HeroUI custom styles
-// pattern — but using appropriate lucide icons instead of 3D pngs.
-// Share2   → "Access Value"    (connections radiating outward = reach/access)
-// Gem      → "Embedded Value"  (intrinsic worth locked inside)
-// Zap      → "Processing Value" (energy, transformation, throughput)
+// RadioTower → Access Value      (signal, broadcast reach, participation)
+// Coins      → Embedded Value    (stored worth, monetary/material value retained)
+// Recycle    → Processing Value  (circular processing, transformation loop)
 const GROUP_CONFIG = {
   'Access Value': {
-    Icon: Share2,
-    iconWrapCn: 'bg-violet-100 text-violet-600',
+    Icon: RadioTower,
+    iconCn: 'text-violet-500',
     subtitle: 'Reach and participation across stakeholders',
   },
   'Embedded Value': {
-    Icon: Gem,
-    iconWrapCn: 'bg-emerald-100 text-emerald-600',
+    Icon: Coins,
+    iconCn: 'text-emerald-500',
     subtitle: 'Intrinsic worth retained within the system',
   },
   'Processing Value': {
-    Icon: Zap,
-    iconWrapCn: 'bg-amber-100 text-amber-600',
+    Icon: Recycle,
+    iconCn: 'text-amber-500',
     subtitle: 'Efficiency and safety of circular processes',
   },
 };
 
-const DEFAULT_GROUP_CONFIG = {
-  Icon: Gem,
-  iconWrapCn: 'bg-slate-100 text-slate-500',
-  subtitle: '',
-};
+const DEFAULT_CONFIG = { Icon: Coins, iconCn: 'text-slate-400', subtitle: '' };
 
-// Scale badge colour per tier (low → mid → high)
 const SCALE_COLORS = [
   'text-red-500 bg-red-50',
   'text-amber-600 bg-amber-50',
@@ -60,14 +53,14 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
   const guidance = React.useMemo(() => parameterGuidance[paramKey], [paramKey]);
 
   return (
-    <div className="w-full flex flex-col items-center gap-3">
+    <div className="w-full flex flex-col items-center gap-2.5">
       <Controller
         name={`parameters.${paramKey}`}
         control={control}
         render={({ field }) => (
-          <div className="w-full flex flex-col items-center gap-3">
+          <div className="w-full flex flex-col items-center gap-2.5">
             <NumberField
-              className="w-full max-w-[190px] flex flex-col items-center"
+              className="w-full flex flex-col items-center"
               minValue={0}
               maxValue={100}
               step={1}
@@ -86,21 +79,19 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                 useGrouping: false,
               }}
             >
-              {/* Label row */}
-              <Label className="mb-2 flex items-center justify-center gap-1.5 cursor-default">
-                <span className="font-semibold text-sm text-slate-700">
+              <Label className="mb-2 flex items-center gap-1 bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 cursor-default w-fit mx-auto">
+                <span className="font-semibold text-xs whitespace-nowrap">
                   {parameterLabels[paramKey].label}
                 </span>
                 <InfoIconButton
-                  size={14}
+                  size={13}
                   onClick={() => openSpecificEvaluationParameterInfoModal(paramKey)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                  className="text-emerald-600 hover:text-emerald-800 transition-colors"
                 />
               </Label>
 
-              {/* +/- stepper */}
-              <NumberField.Group className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <NumberField.DecrementButton className="px-3 py-2 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors text-sm select-none" />
+              <NumberField.Group className="flex items-center gap-1">
+                <NumberField.DecrementButton className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
                 <NumberField.Input
                   onChange={(e) => {
                     let value = e.target.value;
@@ -132,20 +123,19 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
                       /* ignore */
                     }
                   }}
-                  className="w-12 text-center text-base font-bold text-emerald-600 border-x border-slate-200 bg-white py-2 focus:outline-none"
+                  className="w-14 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
                 />
-                <NumberField.IncrementButton className="px-3 py-2 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors text-sm select-none" />
+                <NumberField.IncrementButton className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
               </NumberField.Group>
             </NumberField>
 
-            {/* Scale badges */}
             {scaleMarkers && (
               <div className="flex flex-col items-center gap-1">
                 {scaleMarkers.map((marker, idx) => (
                   <span
                     key={idx}
                     className={cn(
-                      'px-2 py-0.5 text-[11px] font-medium rounded-md',
+                      'px-2.5 py-0.5 text-[11px] font-medium rounded-md w-fit',
                       SCALE_COLORS[idx],
                     )}
                   >
@@ -155,10 +145,9 @@ const ParameterBox = React.memo(({ paramKey, loading }) => {
               </div>
             )}
 
-            {/* Calibration example */}
             {guidance?.examples?.[0] && (
-              <p className="text-[11px] italic text-slate-400 text-center leading-relaxed px-1">
-                e.g. {guidance.examples[0].case} = {guidance.examples[0].score}
+              <p className="text-[11px] italic text-slate-400 text-center leading-relaxed px-2">
+                Example: {guidance.examples[0].case} = {guidance.examples[0].score}
                 {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
               </p>
             )}
@@ -180,83 +169,75 @@ export default function ParameterInputContainer({ loading }) {
   const groupEntries = Object.entries(parameterGroups);
 
   return (
-    // bg-surface-secondary + rounded-2xl is exactly what the HeroUI CustomStyles wrapper uses
-    <Accordion
-      className="bg-surface-secondary w-full rounded-2xl"
-      variant="default"
-      allowsMultipleExpanded
-    >
-      {groupEntries.map(([groupName, group], groupIdx) => {
-        const cfg = GROUP_CONFIG[groupName] ?? DEFAULT_GROUP_CONFIG;
-        const { Icon } = cfg;
-        const isLast = groupIdx === groupEntries.length - 1;
+    <div className="w-full">
+      <Accordion className="w-full" variant="default" allowsMultipleExpanded>
+        {groupEntries.map(([groupName, group], groupIdx) => {
+          const cfg = GROUP_CONFIG[groupName] ?? DEFAULT_CONFIG;
+          const { Icon } = cfg;
 
-        return (
-          <Accordion.Item
-            key={groupIdx}
-            className={cn(
-              'group/item',
-              // Mirror the exact selector pattern from the guide
-              'first:[&_[data-slot=accordion-trigger]]:rounded-t-2xl',
-              isLast &&
-                "[&:not(:has([data-slot=accordion-trigger][aria-expanded='true']))_[data-slot=accordion-trigger]]:rounded-b-2xl",
-            )}
-          >
-            <Accordion.Heading>
-              {/* Trigger mirrors the CustomStyles pattern exactly:
-                  icon-container | title + subtitle | indicator */}
-              <Accordion.Trigger className="hover:bg-surface-tertiary group flex items-center gap-3 px-4 py-3.5">
-                {/* Icon in a soft rounded square — animates on hover like the guide's img */}
-                <span
-                  className={cn(
-                    'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl',
-                    'transition-[transform,filter] duration-300 ease-out',
-                    'group-hover/item:scale-110 group-hover/item:-rotate-6 group-hover/item:drop-shadow-md',
-                    cfg.iconWrapCn,
-                  )}
-                >
-                  <Icon className="h-5 w-5" strokeWidth={1.75} />
-                </span>
-
-                {/* Text block */}
-                <div className="flex flex-col gap-0 text-left">
-                  <span className="font-semibold text-[15px] leading-5 text-slate-800">
-                    {groupName}
-                  </span>
-                  <span className="text-muted/80 text-xs font-normal leading-5">
-                    {cfg.subtitle}
-                  </span>
-                </div>
-
-                {/* Chevron — muted, small, just like the guide */}
-                <Accordion.Indicator className="text-muted/50 [&>svg]:size-4">
-                  <ChevronDown />
-                </Accordion.Indicator>
-              </Accordion.Trigger>
-            </Accordion.Heading>
-
-            <Accordion.Panel>
-              <Accordion.Body className="flex flex-col gap-6 pt-2 pb-5 md:flex-row md:items-start md:gap-0">
-                {group.map((key, idx) => (
-                  <React.Fragment key={idx}>
-                    <div className="flex-1 flex flex-col items-center py-2 px-3">
-                      <ParameterBox paramKey={key} loading={loading} />
-                    </div>
-                    {/* Hairline dividers between parameters */}
-                    {idx < group.length - 1 && (
-                      <>
-                        <div className="md:hidden h-px w-full bg-slate-100" />
-                        <div className="hidden md:block w-px self-stretch bg-slate-100 my-2" />
-                      </>
+          return (
+            <Accordion.Item
+              key={groupIdx}
+              className={cn('group/item', groupIdx > 0 && 'border-t border-slate-200/70')}
+            >
+              <Accordion.Heading>
+                {/*
+                  Child triggers are visually lighter than the parent:
+                  - icon is h-5 w-5 (vs parent's h-6 w-6)
+                  - title is text-[15px] font-semibold (vs parent's text-lg font-bold)
+                  - subtitle is text-xs (vs parent's text-sm)
+                  - py-3 stays the same — tight and compact
+                */}
+                <Accordion.Trigger className="hover:bg-slate-50/80 group flex items-center gap-3 px-5 py-3 transition-colors duration-200">
+                  <Icon
+                    className={cn(
+                      'h-5 w-5 shrink-0',
+                      cfg.iconCn,
+                      'transition-[scale,rotate] duration-300 ease-out',
+                      'group-hover/item:scale-[1.2] group-hover/item:-rotate-[10deg] group-hover/item:drop-shadow-md mr-1.5',
                     )}
-                  </React.Fragment>
-                ))}
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
-        );
-      })}
-    </Accordion>
+                    strokeWidth={1.75}
+                  />
+
+                  <div className="flex flex-col gap-0.5 text-left">
+                    <span className="font-semibold text-[16px] leading-5 text-slate-700">
+                      {groupName}
+                    </span>
+                    <span className="text-xs font-normal leading-4 text-slate-400">
+                      {cfg.subtitle}
+                    </span>
+                  </div>
+
+                  <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                    <ChevronDown />
+                  </Accordion.Indicator>
+                </Accordion.Trigger>
+              </Accordion.Heading>
+
+              <Accordion.Panel>
+                <Accordion.Body className="px-2 pt-1 pb-6 bg-transparent">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-0">
+                    {group.map((key, idx) => (
+                      <React.Fragment key={idx}>
+                        <div className="flex-1 flex flex-col items-center py-1 px-2">
+                          <ParameterBox paramKey={key} loading={loading} />
+                        </div>
+                        {idx < group.length - 1 && (
+                          <>
+                            <div className="md:hidden h-px w-full bg-slate-200/60" />
+                            <div className="hidden md:block w-px self-stretch bg-slate-200/60 my-2" />
+                          </>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </Accordion.Body>
+              </Accordion.Panel>
+            </Accordion.Item>
+          );
+        })}
+      </Accordion>
+    </div>
   );
 }
 

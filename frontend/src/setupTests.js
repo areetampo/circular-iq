@@ -1,5 +1,19 @@
 import '@testing-library/jest-dom';
 
+// Fail tests if `useAuth` is called outside `AuthProvider` so missing provider
+// usage is caught by CI instead of silently falling back. This converts the
+// specific console.warn into a thrown error during tests.
+const _originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  const msg = args[0] || '';
+  if (typeof msg === 'string' && msg.includes('useAuth called outside AuthProvider')) {
+    throw new Error(
+      'useAuth called outside AuthProvider — wrap with AuthProvider or mock `useAuth` in tests',
+    );
+  }
+  return _originalConsoleWarn.apply(console, args);
+};
+
 // Global test setup: mock browser/3rd-party UI libs that cause side effects in JSDOM
 import { vi } from 'vitest';
 import React from 'react';
@@ -103,6 +117,19 @@ vi.mock('@heroui/react', () => {
     Toast,
   };
 });
+
+// Mock Supabase client so `AuthProvider` can be mounted in unit tests without
+// requiring real environment variables or network calls. Tests can still
+// override this mock when they need specific auth behavior.
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn(async () => ({ data: { session: null } })),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: () => {} } } })),
+      signOut: vi.fn(async () => ({})),
+    },
+  },
+}));
 
 // Provide a basic ResizeObserver for Recharts
 global.ResizeObserver = class {
