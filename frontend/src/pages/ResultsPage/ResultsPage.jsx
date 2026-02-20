@@ -30,8 +30,11 @@ import {
   ListBox,
   Chip,
   Tooltip,
-  Switch,
+  // note: Switch imported from our common wrapper below so that
+  // variant/theming logic is applied consistently across the app.
 } from '@heroui/react';
+
+import { Switch } from '@/components/common';
 import { Button, CopyButton } from '@/components/common';
 import {
   BarChart3,
@@ -1011,8 +1014,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <div className={`${isResultsRoute ? 'pointer-events-none' : ''}`}>
                     <Switch
                       id="public-toggle"
-                      // size can be passed here if needed; our Switch wrapper applies
-                      // responsive sizing by default using ResponsiveSizeWrapper.
+                      variant="public"
+                      size="md md:lg"
+                      // size={?} //ResponsiveSizeWrapper used in components/common/Switch to auto-adjust size based on screen
                       isSelected={
                         optimisticIsPublic !== null
                           ? optimisticIsPublic
@@ -1037,15 +1041,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             </p>
                           </div>
 
-                          <Switch.Control className={isSelected ? 'bg-emerald-500/80' : ''}>
+                          <Switch.Control>
                             <Switch.Thumb>
-                              <Switch.Icon>
-                                {isSelected ? (
-                                  <LockOpen className="text-emerald-600 opacity-100" size={15} />
-                                ) : (
-                                  <Lock className="text-slate-500 opacity-70" size={15} />
-                                )}
-                              </Switch.Icon>
+                              <Switch.Icon />
                             </Switch.Thumb>
                           </Switch.Control>
                         </>

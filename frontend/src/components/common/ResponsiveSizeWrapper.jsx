@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 const BREAKPOINTS = {
+  xxs: 400,
   xs: 480,
   sm: 640,
   md: 768,
@@ -33,6 +34,7 @@ export default function ResponsiveSizeWrapper({ size = 'md', children }) {
       const width = window.innerWidth;
       let selected = sizeMap.base;
 
+      if (width >= BREAKPOINTS.xxs && sizeMap.xxs) selected = sizeMap.xxs;
       if (width >= BREAKPOINTS.xs && sizeMap.xs) selected = sizeMap.xs;
       if (width >= BREAKPOINTS.sm && sizeMap.sm) selected = sizeMap.sm;
       if (width >= BREAKPOINTS.md && sizeMap.md) selected = sizeMap.md;
@@ -58,7 +60,15 @@ export default function ResponsiveSizeWrapper({ size = 'md', children }) {
     };
   }, [sizeMap]);
 
-  // Inject the calculated size into the child component
+  // Inject the calculated size into the child component.  If the caller
+  // passed a function we treat it as a render-prop.  This allows higher-
+  // level wrappers (like our Switch component) to access the computed size
+  // and make decisions (e.g. calculate icon pixel values) without having to
+  // duplicate the ResponsiveSizeWrapper logic.
+  if (typeof children === 'function') {
+    return children(currentSize);
+  }
+
   if (!React.isValidElement(children)) return children;
 
   return React.cloneElement(children, { size: currentSize });

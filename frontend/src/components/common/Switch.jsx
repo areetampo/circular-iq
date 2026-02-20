@@ -1,40 +1,128 @@
-import React from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Switch as HeroSwitch } from '@heroui/react';
 import { ResponsiveSizeWrapper } from '@/components/common';
+import { Lock, LockOpen, X, Check } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
-// Wrapper around HeroUI Switch that automatically adjusts size responsively
-// and re-exports all of HeroUI's subcomponents so callers can compose as
-// they would with the original component.
-const Switch = React.forwardRef(function Switch({ size = 'md sm:lg', ...props }, ref) {
-  // we support passing a size prop, which can be either a single value
-  // (sm/md/lg) or a responsive string like "md sm:lg".  The
-  // ResponsiveSizeWrapper will parse it and inject the correct size
-  // into the HeroSwitch.  All remaining props are forwarded.
+// our own context allows subcomponents to know which variant and
+// what pixel icon size should be used.  the responsive wrapper only
+// gives the computed size to the immediate HeroSwitch element, so we
+// expose it here via context so Icon/Control wrappers can consume it.
+const SwitchContext = createContext({
+  variant: 'default',
+  iconSize: 14,
+  theme: {},
+});
+
+// variant themes for the two special cases we care about plus a default
+const VARIANT_THEMES = {
+  default: {
+    iconOn: Check,
+    iconOff: X,
+    controlSelectedClass: '',
+    iconOnClass: 'text-slate-700',
+    iconOffClass: 'text-slate-500',
+  },
+  public: {
+    iconOn: LockOpen,
+    iconOff: Lock,
+    controlSelectedClass: 'bg-emerald-500/80',
+    iconOnClass: 'text-emerald-600 opacity-100',
+    iconOffClass: 'text-slate-500 opacity-70',
+  },
+  benchmarks: {
+    iconOn: Check,
+    iconOff: X,
+    controlSelectedClass: 'bg-blue-500/80',
+    iconOnClass: 'text-blue-600 opacity-100',
+    iconOffClass: 'text-slate-500 opacity-70',
+  },
+};
+
+function computeIconSize(size) {
+  // match the logic previously spelled out in ChoiceCardSwitch comments
+  if (size === 'sm') return 10;
+  if (size === 'lg') return 17;
+  return 14; // md or fallback
+}
+
+const Switch = React.forwardRef(function Switch(
+  { size = 'sm xxs:md sm:lg', variant = 'default', children, ...props },
+  ref,
+) {
+  // derive current selection value: prefer controlled prop, fallback to
+  // defaultSelected (uncontrolled) if provided.  we don't track selection
+  // ourselves; our consumer pattern always passes isSelected as needed.
+  const internalSelected = props.defaultSelected || false;
+  const isSelectedValue = props.isSelected != null ? props.isSelected : internalSelected;
+
   return (
     <ResponsiveSizeWrapper size={size}>
-      {/* forward ref so parent components can access the underlying input */}
-      <HeroSwitch ref={ref} {...props} />
+      {(computedSize) => {
+        const iconSize = computeIconSize(computedSize);
+        const theme = VARIANT_THEMES[variant] || VARIANT_THEMES.default;
+        const contextValue = useMemo(
+          () => ({ variant, iconSize, theme, isSelected: isSelectedValue }),
+          [variant, iconSize, theme, isSelectedValue],
+        );
+
+        return (
+          <SwitchContext.Provider value={contextValue}>
+            {/* forward ref so parent components can access the underlying input */}
+            <HeroSwitch ref={ref} size={computedSize} {...props}>
+              {children}
+            </HeroSwitch>
+          </SwitchContext.Provider>
+        );
+      }}
     </ResponsiveSizeWrapper>
   );
 });
 
-// expose the static slots/components from the original HeroUI Switch
-// (only the parts that actually exist on the source component)
-Switch.Control = HeroSwitch.Control;
+// wrappers that automatically apply variant-specific styling/icons
+Switch.Control = React.forwardRef(function Control({ className = '', ...props }, ref) {
+  const { theme } = useContext(SwitchContext);
+  return (
+    <HeroSwitch.Control
+      ref={ref}
+      className={cn(theme.controlSelectedClass, className)}
+      {...props}
+    />
+  );
+});
+
 Switch.Thumb = HeroSwitch.Thumb;
-Switch.Icon = HeroSwitch.Icon;
-// `Content` isn't exposed as a static property by the upstream component
-// (usage typically just places arbitrary children or uses render props), so
-// we don't re-export it here.
+
+Switch.Icon = React.forwardRef(function Icon({ children, className = '', ...props }, ref) {
+  const { theme, iconSize, isSelected } = useContext(SwitchContext);
+
+  // if user supplied their own children, just forward them unchanged
+  if (children) {
+    return (
+      <HeroSwitch.Icon ref={ref} className={className} {...props}>
+        {children}
+      </HeroSwitch.Icon>
+    );
+  }
+
+  // otherwise render the appropriate icon based on current selection
+  const IconComp = isSelected ? theme.iconOn : theme.iconOff;
+  const colorClass = isSelected ? theme.iconOnClass : theme.iconOffClass;
+  return (
+    <HeroSwitch.Icon ref={ref} className={className} {...props}>
+      <IconComp size={iconSize} className={colorClass} />
+    </HeroSwitch.Icon>
+  );
+});
 
 Switch.propTypes = {
-  // most props are passed straight through to the underlying HeroUI Switch
-  // we include the common ones here for documentation / runtime warnings
-  // size can be a single value ('sm','md','lg') or a responsive
-  // string like 'md sm:lg'.  It controls the switch size passed to
-  // the underlying HeroUI component via ResponsiveSizeWrapper.
+  // responsive size string (same semantics as before)
   size: PropTypes.string,
+  // theme variants offered by this wrapper (defaults to "default")
+  variant: PropTypes.oneOf(['default', 'public', 'benchmarks']),
+
+  // props forwarded to HeroSwitch
   isSelected: PropTypes.bool,
   defaultSelected: PropTypes.bool,
   isDisabled: PropTypes.bool,

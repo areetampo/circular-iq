@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Check, Globe, Globe2, Lock, LockOpen, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Switch } from '@/components/common';
 
@@ -16,8 +15,12 @@ export default function ChoiceCardSwitch({
   title = '',
   description = '',
   icon = null,
-  variant = 'default',
+  variant = 'default', // card color variant
   size = 'md',
+  // allow callers to override which switch theme should be applied; if
+  // omitted we'll infer from the card variant (emerald -> public,
+  // blue -> benchmarks).
+  switchVariant,
   trailing = null,
   className = '',
   disabled = false,
@@ -47,30 +50,17 @@ export default function ChoiceCardSwitch({
   const theme = variants[variant] || variants.default;
   const selected = !!isSelected;
 
-  // icons map following HeroUI `With Icons` pattern — choose by title/variant
-  const icons = {
-    public: { off: Lock, on: LockOpen, selectedControlClass: 'bg-emerald-500/80' },
-    benchmarks: { off: X, on: Check, selectedControlClass: 'bg-blue-500/80' },
-    default: {
-      off: X,
-      on: Check,
-      selectedControlClass:
-        variant === 'emerald' ? 'bg-emerald-500/80' : variant === 'blue' ? 'bg-blue-500/80' : '',
-    },
+  // determine switch variant based on card color unless explicitly set
+  const switchVariantMap = {
+    emerald: 'public',
+    blue: 'benchmarks',
+    default: 'default',
   };
-
-  const isPublicCard = typeof title === 'string' && /public/i.test(title);
-  const isGlobalBenchmarksCard = typeof title === 'string' && /benchmark|global/i.test(title);
-  const iconKey = isPublicCard ? 'public' : isGlobalBenchmarksCard ? 'benchmarks' : 'default';
-  const ThumbOn = icons[iconKey].on;
-  const ThumbOff = icons[iconKey].off;
-  const selectedControlClass = icons[iconKey].selectedControlClass || '';
-
-  // compute numeric icon size based on `size` prop (use largest breakpoint)
-  // const iconSize = size === 'sm' ? 12 : size === 'lg' ? 20 : 14; // md -> 16px (lg:w-4), lg -> 20px (lg:w-5)
+  const finalSwitchVariant = switchVariant || switchVariantMap[variant] || 'default';
 
   return (
     <Switch
+      variant={finalSwitchVariant}
       isSelected={isSelected}
       onChange={onChange}
       isDisabled={disabled}
@@ -111,15 +101,9 @@ export default function ChoiceCardSwitch({
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <Switch.Control className={sel ? selectedControlClass : ''}>
+            <Switch.Control>
               <Switch.Thumb>
-                <Switch.Icon>
-                  {sel ? (
-                    <ThumbOn size={15} className={`${theme.iconSelected} opacity-100`} />
-                  ) : (
-                    <ThumbOff size={15} className="text-slate-500 opacity-70" />
-                  )}
-                </Switch.Icon>
+                <Switch.Icon />
               </Switch.Thumb>
             </Switch.Control>
 
@@ -138,6 +122,7 @@ ChoiceCardSwitch.propTypes = {
   description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   icon: PropTypes.node,
   variant: PropTypes.oneOf(['default', 'emerald', 'blue']),
+  switchVariant: PropTypes.oneOf(['default', 'public', 'benchmarks']),
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   trailing: PropTypes.node,
   className: PropTypes.string,
