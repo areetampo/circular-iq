@@ -119,7 +119,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   <Input
                     {...field}
                     type="text"
-                    placeholder="your username"
+                    placeholder="name"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
@@ -142,7 +142,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   <Input
                     {...field}
                     type="password"
-                    placeholder="your password"
+                    placeholder="••••••••"
                     disabled={isLoading}
                     className="mt-1.5"
                   />

@@ -33,7 +33,8 @@ import {
 import { toast } from '@heroui/react';
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
-import { Button, ErrorDisplay, CopyButton } from '@/components/common';
+import { Button, ErrorDisplay } from '@/components/common';
+import CopyButton from '@/components/modern-ui/copy-button';
 import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
@@ -52,7 +53,6 @@ import {
   AlertCircle,
   Globe,
   Share2,
-  Copy,
   Clock,
 } from 'lucide-react';
 
@@ -67,8 +67,6 @@ const AssessmentCard = React.memo(function AssessmentCard({
   onPrefetch,
   onTogglePublic,
   onToggleBenchmarks,
-  onCopyShareLink,
-  copiedId,
 }) {
   // Status mapping with icons
   const getStatus = (score) => {
@@ -246,17 +244,12 @@ const AssessmentCard = React.memo(function AssessmentCard({
             description="Share via link"
             trailing={
               <CopyButton
-                onPress={() => onCopyShareLink(assessment.id, assessment.public_id)}
-                isCopied={copiedId === assessment.id}
+                value={
+                  assessment.public_id
+                    ? `${window.location.origin}/assessments/share/${assessment.public_id}`
+                    : ''
+                }
                 disabled={!assessment.is_public || !assessment.public_id}
-                tooltip="Copy share link"
-                copiedTooltip="Copied!"
-                variant="info-soft"
-                className={`rounded-lg transition-all duration-200 ${
-                  assessment.is_public && assessment.public_id
-                    ? 'text-emerald-600 bg-emerald-100 hover:bg-emerald-200 hover:scale-110 cursor-pointer shadow-sm'
-                    : 'text-slate-300 bg-slate-100 cursor-not-allowed opacity-50'
-                }`}
               />
             }
           />
@@ -289,8 +282,6 @@ AssessmentCard.propTypes = {
   onPrefetch: PropTypes.func.isRequired,
   onTogglePublic: PropTypes.func.isRequired,
   onToggleBenchmarks: PropTypes.func.isRequired,
-  onCopyShareLink: PropTypes.func.isRequired,
-  copiedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 // Memoized AssessmentCardSkeleton - Matches the actual Assessment Card structure
@@ -388,8 +379,6 @@ const AssessmentList = React.memo(function AssessmentList({
   onPrefetch,
   onTogglePublic,
   onToggleBenchmarks,
-  onCopyShareLink,
-  copiedId,
 }) {
   return (
     <>
@@ -406,8 +395,6 @@ const AssessmentList = React.memo(function AssessmentList({
             onPrefetch={onPrefetch}
             onTogglePublic={onTogglePublic}
             onToggleBenchmarks={onToggleBenchmarks}
-            onCopyShareLink={onCopyShareLink}
-            copiedId={copiedId}
           />
         );
       })}
@@ -437,8 +424,6 @@ AssessmentList.propTypes = {
   onPrefetch: PropTypes.func.isRequired,
   onTogglePublic: PropTypes.func.isRequired,
   onToggleBenchmarks: PropTypes.func.isRequired,
-  onCopyShareLink: PropTypes.func.isRequired,
-  copiedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 // Memoized AssessmentListSkeleton - Matches the actual Assessment List structure
@@ -877,22 +862,6 @@ export default function MyAssessmentsPage() {
     [assessments, queryClient],
   );
 
-  const [copiedId, setCopiedId] = useState(null);
-
-  const handleCopyShareLink = useCallback(async (id, publicId) => {
-    if (!publicId) return; // button disabled when publicId missing
-
-    const shareUrl = `${window.location.origin}/assessments/share/${publicId}`;
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 1400);
-    } catch (error) {
-      console.error('Error copying share link:', error);
-      // fail silently (no toast)
-    }
-  }, []);
-
   const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
 
   // Render skeleton cards for initial load - Beautiful spacing
@@ -1318,8 +1287,6 @@ export default function MyAssessmentsPage() {
                   onPrefetch={prefetchAssessment}
                   onTogglePublic={handleTogglePublic}
                   onToggleBenchmarks={handleToggleBenchmarks}
-                  onCopyShareLink={handleCopyShareLink}
-                  copiedId={copiedId}
                 />
 
                 <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">

@@ -130,7 +130,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   <Input
                     {...field}
                     type="text"
-                    placeholder="create your username"
+                    placeholder="name"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
@@ -157,7 +157,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   <Input
                     {...field}
                     type="password"
-                    placeholder="create your password"
+                    placeholder="••••••••"
                     disabled={isLoading}
                     className="mt-1.5"
                   />
@@ -185,7 +185,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   <Input
                     {...field}
                     type="password"
-                    placeholder="confirm your password"
+                    placeholder="••••••••"
                     disabled={isLoading}
                     className="mt-1.5"
                   />

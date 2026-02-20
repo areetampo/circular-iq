@@ -35,7 +35,8 @@ import {
 } from '@heroui/react';
 
 import { Switch } from '@/components/common';
-import { Button, CopyButton } from '@/components/common';
+import { Button } from '@/components/common';
+import CopyButton from '@/components/modern-ui/copy-button';
 import {
   BarChart3,
   ClipboardList,
@@ -56,7 +57,6 @@ import {
   NotebookText,
   Lock,
   Globe,
-  Copy,
   Trash,
   Trash2,
   CircleX,
@@ -141,7 +141,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const [optimisticIsPublic, setOptimisticIsPublic] = useState(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [copiedShareLink, setCopiedShareLink] = useState(false);
   const { user } = useAuth();
   const { openSaveAssessmentDialog, openRenameAssessmentDialog, openDeleteAssessmentDialog } =
     useGlobalDialog();
@@ -625,21 +624,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     [id, isViewFromMyAssessments, toast, refetch],
   );
 
-  const handleCopyShareLink = async () => {
-    if (!currentData?.public_id) return; // button is disabled when public_id missing
-
-    const shareUrl = `${window.location.origin}/assessments/share/${currentData.public_id}`;
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopiedShareLink(true);
-      setTimeout(() => setCopiedShareLink(false), 1400);
-    } catch (error) {
-      console.error('Failed to copy link:', error);
-      // fail silently (no toast) — leave UI unchanged
-    }
-  };
-
   const handleConfirmRename = useCallback(
     async (newTitle) => {
       if (!id) throw new Error('No assessment selected');
@@ -1066,14 +1050,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             className="text-xs flex-1 bg-white"
                           />
                           <CopyButton
-                            onPress={handleCopyShareLink}
-                            isCopied={copiedShareLink}
-                            onCopiedChange={setCopiedShareLink}
+                            value={
+                              currentData?.public_id
+                                ? `${window.location.origin}/assessments/share/${currentData.public_id}`
+                                : ''
+                            }
                             disabled={isResultsRoute || !currentData?.public_id}
-                            tooltip="Copy share link"
-                            copiedTooltip="Copied!"
-                            variant="info-soft"
-                            className="rounded-lg"
                           />
                         </div>
                       )}

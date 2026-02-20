@@ -21,6 +21,7 @@ const VARIANT_THEMES = {
     iconOn: Check,
     iconOff: X,
     controlSelectedClass: '',
+    controlUnselectedClass: 'bg-slate-200',
     iconOnClass: 'text-slate-700',
     iconOffClass: 'text-slate-500',
   },
@@ -28,6 +29,7 @@ const VARIANT_THEMES = {
     iconOn: LockOpen,
     iconOff: Lock,
     controlSelectedClass: 'bg-emerald-500/80',
+    controlUnselectedClass: 'bg-slate-200',
     iconOnClass: 'text-emerald-600 opacity-100',
     iconOffClass: 'text-slate-500 opacity-70',
   },
@@ -35,6 +37,7 @@ const VARIANT_THEMES = {
     iconOn: Check,
     iconOff: X,
     controlSelectedClass: 'bg-blue-500/80',
+    controlUnselectedClass: 'bg-slate-200',
     iconOnClass: 'text-blue-600 opacity-100',
     iconOffClass: 'text-slate-500 opacity-70',
   },
@@ -82,14 +85,9 @@ const Switch = React.forwardRef(function Switch(
 
 // wrappers that automatically apply variant-specific styling/icons
 Switch.Control = React.forwardRef(function Control({ className = '', ...props }, ref) {
-  const { theme } = useContext(SwitchContext);
-  return (
-    <HeroSwitch.Control
-      ref={ref}
-      className={cn(theme.controlSelectedClass, className)}
-      {...props}
-    />
-  );
+  const { theme, isSelected } = useContext(SwitchContext);
+  const appliedClass = isSelected ? theme.controlSelectedClass : theme.controlUnselectedClass || '';
+  return <HeroSwitch.Control ref={ref} className={cn(appliedClass, className)} {...props} />;
 });
 
 Switch.Thumb = HeroSwitch.Thumb;

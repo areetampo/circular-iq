@@ -92,22 +92,25 @@ export default function ChoiceCardSwitch({
               <div className="text-sm sm:text-base font-semibold text-slate-900 truncate">
                 {title}
               </div>
-              {description && (
-                <div className="text-xs sm:text-sm text-slate-600 whitespace-normal">
-                  {description}
-                </div>
-              )}
+              <div className="flex items-center gap-0.5">
+                {description && (
+                  <div className="text-xs sm:text-sm text-slate-600 whitespace-normal">
+                    {description}
+                  </div>
+                )}
+                {trailing && <>{trailing}</>}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <Switch.Control>
               <Switch.Thumb>
                 <Switch.Icon />
               </Switch.Thumb>
             </Switch.Control>
 
-            {trailing && <div className="ml-2">{trailing}</div>}
+            {/* {trailing && <>{trailing}</>} */}
           </div>
         </>
       )}
