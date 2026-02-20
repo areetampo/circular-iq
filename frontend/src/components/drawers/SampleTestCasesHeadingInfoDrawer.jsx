@@ -116,7 +116,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
 
             <div className="p-3 border border-blue-200 rounded-lg bg-blue-50">
               <p className="flex items-start gap-2 m-0 text-xs text-blue-900">
-                <Lightbulb className="w-4 h-4 mt-0.5 text-blue-600 shrink-0" strokeWidth={2} />
+                <Lightbulb className="mt-0.5 text-blue-600 shrink-0" strokeWidth={2} size={16} />
                 <span>
                   <strong>Tip:</strong> Great for learning before submitting your own idea.
                 </span>

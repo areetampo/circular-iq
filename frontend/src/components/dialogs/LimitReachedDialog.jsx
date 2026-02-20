@@ -4,7 +4,19 @@ import PropTypes from 'prop-types';
 import { AlertDialog } from '@heroui/react';
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { Check, TriangleAlert, Infinity } from 'lucide-react';
+import {
+  Check,
+  TriangleAlert,
+  Infinity,
+  Skull,
+  OctagonX,
+  Share2,
+  Save,
+  Globe,
+  Share,
+  Orbit,
+  FileDown,
+} from 'lucide-react';
 
 export function LimitReachedDialog(props) {
   const { limit: propLimit, message: propMessage, isOpen: propIsOpen } = props || {};
@@ -26,6 +38,14 @@ export function LimitReachedDialog(props) {
     onClose();
   };
 
+  const LIMIT_REACHED_DIALOG_POINTS = [
+    { icon: Infinity, text: 'Unlimited evaluations' },
+    { icon: Share, text: 'Share assessments' },
+    { icon: Save, text: 'Save and compare results' },
+    { icon: Orbit, text: 'Access dashboard analytics' },
+    { icon: FileDown, text: 'Export reports (PDF, CSV)' },
+  ];
+
   return (
     <AlertDialog.Backdrop
       isOpen={isOpen}
@@ -41,43 +61,26 @@ export function LimitReachedDialog(props) {
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading className="flex items-center gap-2">
-                  <TriangleAlert className="size-6 text-yellow-600 inline-block" />
-                  <span>Free Trial Limit Reached</span>
+                <AlertDialog.Icon status="danger">
+                  <OctagonX size={25} />
+                </AlertDialog.Icon>
+                <AlertDialog.Heading className="text-red-600">
+                  Free Trial Limit Reached
                 </AlertDialog.Heading>
               </AlertDialog.Header>
-              <AlertDialog.Body>
-                <p className="text-yellow-600 mb-4 italic">
-                  {message || (
-                    <>
-                      You&apos;ve used your <span className="font-bold">{limit}</span> free
-                      evaluations. Create an account to continue assessing your circular economy
-                      initiatives!
-                    </>
-                  )}
+
+              <AlertDialog.Body className="space-y-3">
+                <p className="text-sm text-slate-500 font-medium">
+                  You&apos;ve used your <span className="font-bold">{limit}</span> free evaluations.
+                  Create an account to continue assessing your circular economy initiatives:
                 </p>
-                <p className="text-gray-600">Create a free account to get:</p>
-                <ul className="mt-2 space-y-2 text-gray-700">
-                  <li className="flex items-start">
-                    <Check className="size-5 text-green-600 mr-2 inline-block" />
-                    <span>Unlimited evaluations</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="size-5 text-green-600 mr-2 inline-block" />
-                    <span>Share assessments</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="size-5 text-green-600 mr-2 inline-block" />
-                    <span>Save and compare results</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="size-5 text-green-600 mr-2 inline-block" />
-                    <span>Access dashboard analytics</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="size-5 text-green-600 mr-2 inline-block" />
-                    <span>Export reports (PDF, CSV)</span>
-                  </li>
+                <ul className="mt-2 space-y-2.5">
+                  {LIMIT_REACHED_DIALOG_POINTS.map((point, idx) => (
+                    <li key={idx} className="flex items-center gap-2">
+                      <point.icon size={18} className="text-green-600" aria-hidden="true" />
+                      <span className="text-gray-700">{point.text}</span>
+                    </li>
+                  ))}
                 </ul>
               </AlertDialog.Body>
               <AlertDialog.Footer>
@@ -97,7 +100,7 @@ export function LimitReachedDialog(props) {
                     close();
                   }}
                 >
-                  Sign Up
+                  Sign In
                 </Button>
               </AlertDialog.Footer>
             </>

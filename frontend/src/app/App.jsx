@@ -1,11 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import AppProvider from './AppProvider';
 import AppRoutes from './AppRoutes';
 import { AppSessionManager } from '@/features/session';
 
 /**
- * App - Main application component (Phase 5 refactor)
- *
  * Clean separation of concerns:
  * - AppProvider: Wraps providers (ErrorBoundary, BrowserRouter, Toaster)
  * - AppRoutes: Defines all routes with lazy-loaded pages

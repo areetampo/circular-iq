@@ -37,6 +37,7 @@ vi.mock('@heroui/react', () => {
   const Switch = ({ children, ...props }) => React.createElement('div', props, children);
   Switch.Control = ({ children }) => React.createElement('div', null, children);
   Switch.Thumb = ({ children }) => React.createElement('div', null, children);
+  Switch.Icon = ({ children }) => React.createElement('div', null, children);
   const Skeleton = ({ children }) => React.createElement('div', null, children);
 
   // Simple stubs for Tabs and Select/ListBox compound components

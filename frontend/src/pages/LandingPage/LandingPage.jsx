@@ -773,7 +773,7 @@ export default function LandingPage() {
               {error && (
                 <div className="p-1 sm:p-3 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600" strokeWidth={2.5} />
+                    <AlertTriangle className="text-red-600" strokeWidth={2.5} size={16} />
                     <strong className="text-red-700">Validation Error:</strong>
                   </div>
                   <p className="text-red-600 text-sm font-semibold">{error}, please try again.</p>

@@ -24,7 +24,6 @@ import { updateAssessment } from '@/features/assessments/api/assessmentApi';
 import {
   Card,
   Tabs,
-  Switch,
   Input,
   Label,
   Accordion,
@@ -32,8 +31,9 @@ import {
   ListBox,
   Chip,
   Tooltip,
+  Switch,
 } from '@heroui/react';
-import { Button } from '@/components/common';
+import { Button, CopyButton } from '@/components/common';
 import {
   BarChart3,
   ClipboardList,
@@ -55,8 +55,14 @@ import {
   Lock,
   Globe,
   Copy,
+  Trash,
+  Trash2,
+  CircleX,
+  FolderPen,
+  MonitorDown,
 } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
+import { cn } from '@/utils/cn';
 import ResultsSkeleton from './components/ResultsSkeleton';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -133,6 +139,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const [optimisticIsPublic, setOptimisticIsPublic] = useState(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
   const { user } = useAuth();
   const { openSaveAssessmentDialog, openRenameAssessmentDialog, openDeleteAssessmentDialog } =
     useGlobalDialog();
@@ -617,28 +624,17 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   );
 
   const handleCopyShareLink = async () => {
-    if (!currentData?.public_id) {
-      toast.danger('Share link unavailable', {
-        description: 'This assessment does not have a public ID.',
-        timeout: 4000,
-      });
-      return;
-    }
+    if (!currentData?.public_id) return; // button is disabled when public_id missing
 
     const shareUrl = `${window.location.origin}/assessments/share/${currentData.public_id}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard', {
-        description: 'Anyone with this link can view your assessment.',
-        timeout: 3000,
-      });
+      setCopiedShareLink(true);
+      setTimeout(() => setCopiedShareLink(false), 1400);
     } catch (error) {
       console.error('Failed to copy link:', error);
-      toast.danger('Failed to copy link', {
-        description: 'Please try again or copy the link manually: ' + shareUrl,
-        timeout: 8000,
-      });
+      // fail silently (no toast) — leave UI unchanged
     }
   };
 
@@ -849,7 +845,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {/* Show public share notice for public viewers */}
           {isPublicShare && (
             <Chip variant="soft" color="accent" size="lg" className="gap-1">
-              <Globe className="w-3 h-3" />
+              <Globe size={12} />
               Public Shared Assessment
             </Chip>
           )}
@@ -857,16 +853,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {!isPublicShare && (
             <>
               <Button variant="info-soft" onPress={handleViewHistory}>
-                <FileText className="w-4 h-4" />
+                <FileText size={16} />
                 My Assessments
               </Button>
               <Button variant="teal-soft" onPress={handleMarketAnalysis}>
-                <BarChart3 className="w-4 h-4" />
+                <BarChart3 size={16} />
                 Market Analysis
               </Button>
               {currentData && (
                 <Button variant="yellow-soft" onPress={handleReevaluate}>
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw size={16} />
                   Re-evaluate
                 </Button>
               )}
@@ -883,7 +879,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   disabled={!user || isExporting}
                   title={!user ? 'Sign in to get access to them' : undefined}
                 >
-                  <FileText className="w-4 h-4" />
+                  <MonitorDown size={16} />
                   Download PDF
                 </Button>
               </Tooltip.Trigger>
@@ -908,7 +904,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   disabled={!user || isExporting}
                   title={!user ? 'Sign in to get access to them' : undefined}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download size={16} />
                   Cases CSV
                 </Button>
               </Tooltip.Trigger>
@@ -980,7 +976,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               variant="success"
               isDisabled={isExporting}
             >
-              <Save className="w-4 h-4" />
+              <Save size={16} />
               Save
             </Button>
           )}
@@ -991,11 +987,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             user?.id === currentData.user_id && (
               <>
                 <Button variant="info-soft" onPress={handleOpenRename}>
-                  <NotebookText className="w-4 h-4" />
+                  <FolderPen size={16} />
                   Rename
                 </Button>
                 <Button variant="danger-soft" onPress={handleOpenDelete}>
-                  <AlertCircle className="w-4 h-4" />
+                  <CircleX size={16} />
                   Delete
                 </Button>
               </>
@@ -1016,6 +1012,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <div className={`${isResultsRoute ? 'pointer-events-none' : ''}`}>
                     <Switch
                       id="public-toggle"
+                      size="md"
                       isSelected={
                         optimisticIsPublic !== null
                           ? optimisticIsPublic
@@ -1025,21 +1022,34 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       isDisabled={isUpdatingPublic || isResultsRoute}
                       className="flex items-center justify-between gap-4 px-2"
                     >
-                      <div className="">
-                        <Label
-                          htmlFor="public-toggle"
-                          className="font-semibold text-slate-900 flex items-center gap-2 justify-start"
-                        >
-                          <span>Public Access</span>
-                          <Link2 className="w-6 h-6 text-emerald-600" />
-                        </Label>
-                        <p className="text-sm text-slate-600">
-                          Allow anyone with the link to view this assessment
-                        </p>
-                      </div>
-                      <Switch.Control>
-                        <Switch.Thumb />
-                      </Switch.Control>
+                      {({ isSelected }) => (
+                        <>
+                          <div className="">
+                            <Label
+                              htmlFor="public-toggle"
+                              className="font-semibold text-slate-900 flex items-center gap-2 justify-start"
+                            >
+                              <span>Public Access</span>
+                              <Link2 className="text-emerald-600" size={20} />
+                            </Label>
+                            <p className="text-sm text-slate-600">
+                              Allow anyone with the link to view this assessment
+                            </p>
+                          </div>
+
+                          <Switch.Control className={isSelected ? 'bg-emerald-500/80' : ''}>
+                            <Switch.Thumb>
+                              <Switch.Icon>
+                                {isSelected ? (
+                                  <Globe className="text-emerald-600 opacity-100" size={16} />
+                                ) : (
+                                  <Lock className="text-slate-500 opacity-70" size={16} />
+                                )}
+                              </Switch.Icon>
+                            </Switch.Thumb>
+                          </Switch.Control>
+                        </>
+                      )}
                     </Switch>
 
                     {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
@@ -1057,14 +1067,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             }
                             className="flex-1 font-mono text-sm bg-white"
                           />
-                          <Button
-                            variant="info-soft"
+                          <CopyButton
                             onPress={handleCopyShareLink}
-                            isDisabled={isResultsRoute || !currentData?.public_id}
+                            isCopied={copiedShareLink}
+                            onCopiedChange={setCopiedShareLink}
                             disabled={isResultsRoute || !currentData?.public_id}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
+                            tooltip="Copy share link"
+                            copiedTooltip="Copied!"
+                            variant="info-soft"
+                            className="rounded-lg"
+                          />
                         </div>
                       )}
                   </div>
@@ -1102,7 +1114,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Heading>
                     <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <Target className="h-5 w-5 text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
+                        <Target
+                          className="text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          size={20}
+                        />
                         <div>
                           <h4 className="font-bold text-slate-900">Problem</h4>
                           <p className="text-sm text-slate-600">
@@ -1126,7 +1141,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Heading>
                     <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <Lightbulb className="h-5 w-5 text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
+                        <Lightbulb
+                          className="text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          size={20}
+                        />
                         <div>
                           <h4 className="font-bold text-slate-900">Solution</h4>
                           <p className="text-sm text-slate-600">Proposed solution summary</p>
@@ -1148,7 +1166,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Heading>
                     <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <BarChart3 className="h-5 w-5 text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
+                        <BarChart3
+                          className="text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          size={20}
+                        />
                         <div>
                           <h4 className="font-bold text-slate-900">Parameters</h4>
                           <p className="text-sm text-slate-600">
@@ -1190,7 +1211,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Heading>
                     <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
-                        <ClipboardList className="h-5 w-5 text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5" />
+                        <ClipboardList
+                          className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          size={20}
+                        />
                         <div>
                           <h4 className="font-bold text-slate-900">Industry</h4>
                           <p className="text-sm text-slate-600">Market or sector context</p>
@@ -1282,12 +1306,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             ? optimisticIsPublic
                             : currentData.is_public) === false ? (
                             <>
-                              <Lock className="w-3 h-3" />
+                              <Lock size={12} />
                               Private
                             </>
                           ) : (
                             <>
-                              <Globe className="w-3 h-3" />
+                              <Globe size={12} />
                               Contributing
                             </>
                           )}
@@ -1366,7 +1390,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       <p className="text-xs font-bold text-green-900 uppercase tracking-wide">
                         Strongest Factor
                       </p>
-                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <TrendingUp className="text-green-600" size={16} />
                     </div>
                     <p className="text-xl font-bold text-green-900 mb-1">
                       {topFactor ? titleize(topFactor[0]) : 'N/A'}
@@ -1381,7 +1405,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       <p className="text-xs font-bold text-orange-900 uppercase tracking-wide">
                         Focus Area
                       </p>
-                      <Target className="w-4 h-4 text-orange-600" />
+                      <Target className="text-orange-600" size={16} />
                     </div>
                     <p className="text-xl font-bold text-orange-900 mb-1">
                       {focusFactor ? titleize(focusFactor[0]) : 'N/A'}
@@ -1396,7 +1420,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       <p className="text-xs font-bold text-blue-900 uppercase tracking-wide">
                         Average Score
                       </p>
-                      <BarChart3 className="w-4 h-4 text-blue-600" />
+                      <BarChart3 className="text-blue-600" size={16} />
                     </div>
                     <p className="text-xl font-bold text-blue-900 mb-1">
                       {avgFactorScore}
@@ -1415,7 +1439,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               <div className="p-1 sm:p-3">
                 <Card.Header className="px-0 pb-4 pt-0 flex items-center gap-3">
                   <div className="mt-0.5 rounded-lg bg-blue-100/70 p-2">
-                    <Lightbulb className="w-5 h-5 text-blue-700" />
+                    <Lightbulb className="text-blue-700" size={20} />
                   </div>
                   <div>
                     <Card.Title className="text-lg text-blue-900 text-center">
@@ -1436,7 +1460,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       >
                         <Card.Header className="">
                           <Card.Title className="text-sm text-blue-900 flex items-center gap-2">
-                            <tip.Icon className={`w-4 h-4 ${tip.iconClassName}`} />
+                            <tip.Icon className={tip.iconClassName} size={16} />
                             {tip.title}
                           </Card.Title>
                         </Card.Header>
@@ -1457,7 +1481,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
                 <div className="p-1 sm:p-3">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                    <BarChart3 className="text-blue-600" size={20} />
                     Your Performance vs. Similar Projects
                   </h3>
                   <p className="text-sm text-slate-600 mb-4">
@@ -1525,11 +1549,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               </div>
                               {gap.gap > 0 ? (
                                 <div className="text-xs text-orange-700 font-semibold flex items-center gap-1">
-                                  <TrendingUp className="w-3 h-3" /> +{gap.gap}
+                                  <TrendingUp size={12} /> +{gap.gap}
                                 </div>
                               ) : (
                                 <div className="text-xs text-green-700 font-semibold flex items-center gap-1">
-                                  <Check className="w-3 h-3" /> +{Math.abs(gap.gap)}
+                                  <Check size={12} /> +{Math.abs(gap.gap)}
                                 </div>
                               )}
                             </div>
@@ -1547,7 +1571,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
                 <div className="p-1 sm:p-3">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <ClipboardList className="w-5 h-5 text-emerald-600" />
+                    <ClipboardList className="text-emerald-600" size={20} />
                     Project Classification
                   </h3>
                   <p className="text-sm text-slate-600 mb-4">
@@ -1782,7 +1806,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       >
                         <Accordion.Trigger className="px-4 py-3 hover:bg-green-100 transition-colors">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            <CheckCircle2 className="text-green-600" size={20} />
                             <span className="text-base font-bold text-green-900">
                               Strengths Validated
                             </span>
@@ -1803,7 +1827,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 key={i}
                                 className="flex gap-2 p-3 bg-white border border-green-200 rounded-lg"
                               >
-                                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                                <CheckCircle2
+                                  className="text-green-600 shrink-0 mt-0.5"
+                                  size={16}
+                                />
                                 <div className="flex-1">
                                   <p className="text-sm text-slate-700">
                                     {strength.issue || strength}
@@ -1829,7 +1856,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       >
                         <Accordion.Trigger className="px-4 py-3 hover:bg-orange-100 transition-colors">
                           <div className="flex items-center gap-2">
-                            <AlertCircle className="w-5 h-5 text-orange-600" />
+                            <AlertCircle className="text-orange-600" size={20} />
                             <span className="text-base font-bold text-orange-900">
                               Areas for Improvement
                             </span>
@@ -1858,7 +1885,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                   key={i}
                                   className={`flex gap-2 p-3 rounded-lg border bg-white ${severityColors[severity]}`}
                                 >
-                                  <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                                  <AlertCircle
+                                    className="text-orange-600 shrink-0 mt-0.5"
+                                    size={16}
+                                  />
                                   <div className="flex-1">
                                     <p className="text-sm text-slate-700">
                                       {(gap.issue || gap).replace(/_/g, ' ')}
@@ -1905,7 +1935,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             >
               <div className="p-1 sm:p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <FileText className="w-5 h-5 text-emerald-600" />
+                  <FileText className="text-emerald-600" size={20} />
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">Database Evidence</h3>
                   </div>
@@ -1984,7 +2014,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             <div className="flex flex-col gap-3">
                               <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
                                 <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
-                                  <Target className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+                                  <Target className="text-emerald-600" strokeWidth={2} size={16} />
                                   <strong>Problem Addressed:</strong>
                                 </div>
                                 <p className="m-0 text-xs leading-relaxed text-gray-700">
@@ -1993,7 +2023,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               </div>
                               <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
                                 <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
-                                  <Lightbulb className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+                                  <Lightbulb
+                                    className="text-emerald-600"
+                                    strokeWidth={2}
+                                    size={16}
+                                  />
                                   <strong>Solution Approach:</strong>
                                 </div>
                                 <p className="m-0 text-xs leading-relaxed text-gray-700">
@@ -2018,7 +2052,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 }
                               >
                                 View Full Details&nbsp;
-                                <ArrowRight className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+                                <ArrowRight
+                                  className="text-emerald-600"
+                                  strokeWidth={2}
+                                  size={16}
+                                />
                               </button>
                             </div>
                           </div>
@@ -2050,7 +2088,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <div className="space-y-4">
                     <div className="p-4 bg-linear-to-br from-green-50 to-green-100 border border-green-300 rounded-xl">
                       <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        <CheckCircle2 className="text-green-600" size={16} />
                         <p className="text-sm font-bold text-green-900">Strengths</p>
                       </div>
                       <ul className="space-y-2 text-sm text-slate-700">
@@ -2090,7 +2128,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     {gaps.length > 0 && (
                       <div className="p-4 bg-linear-to-br from-orange-50 to-orange-100 border border-orange-300 rounded-xl">
                         <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle className="w-4 h-4 text-orange-600" />
+                          <AlertCircle className="text-orange-600" size={16} />
                           <p className="text-sm font-bold text-orange-900">Areas for Improvement</p>
                         </div>
                         <ul className="space-y-2 text-sm text-slate-700">

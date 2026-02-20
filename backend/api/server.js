@@ -9,40 +9,6 @@
  * - GET /docs/methodology - Methodology documentation
  */
 
-import dotenv from 'dotenv';
-import path from 'path';
-
-dotenv.config();
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
-// --- Environment Verification ---
-const requiredKeys = [
-  'OPENAI_API_KEY',
-  'SUPABASE_URL',
-  'SUPABASE_ANON_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY',
-];
-const missingKeys = requiredKeys.filter((key) => !process.env[key]);
-
-console.log('🛠️  Environment Check:');
-console.log(`   - NODE_ENV: ${process.env.NODE_ENV}`);
-console.log(`   - FRONTEND_URL: ${process.env.FRONTEND_URL}`);
-console.log(`   - MAX_FREE_TRIES: ${process.env.MAX_FREE_TRIES}`);
-
-if (missingKeys.length > 0) {
-  console.error(`❌ MISSING CRITICAL KEYS: ${missingKeys.join(', ')}`);
-} else {
-  // Masking function for security
-  const mask = (val) => `${val.substring(0, 4)}...${val.substring(val.length - 4)}`;
-
-  console.log('✅ All API keys loaded.');
-  console.log(`   - OpenAI Key: ${mask(process.env.OPENAI_API_KEY)}`);
-  console.log(`   - Supabase Anon Key: ${mask(process.env.SUPABASE_ANON_KEY)}`);
-  console.log(`   - Supabase Service Key: ${mask(process.env.SUPABASE_SERVICE_ROLE_KEY)}`);
-}
-console.log('----------------------------');
-
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -59,55 +25,31 @@ const { requireAuth } = await import('../src/middleware/auth.js');
 const app = express();
 app.set('trust proxy', 1);
 
+const PORT = process.env.PORT || 3001;
+const IS_PROD = process.env.NODE_ENV === 'production';
+const OPEN_ENDPOINTS = new Set(['/health', '/api/score', '/api/assessments/market-analysis']);
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'http://localhost:3000',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-// Middleware
-app.use(helmet());
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.error(`CORS Error: Origin ${origin} not allowed`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }),
-);
-app.use(express.json({ limit: '512kb' }));
-app.use(express.urlencoded({ limit: '512kb', extended: true }));
-app.use(apiKeyGuard);
-
-// Initialize Supabase & OpenAI
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-const PORT = process.env.PORT || 3001;
-const IS_PROD = process.env.NODE_ENV === 'production';
-const API_AUTH_ENABLED = process.env.API_AUTH_ENABLED === 'true';
-const API_KEY = process.env.API_KEY || '';
-validateConfig();
+const getApiAuthEnabled = () => process.env.API_AUTH_ENABLED === 'true';
+const getApiKey = () => process.env.API_KEY || '';
 
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
 
-/**
- * Log API request/response
- * @private
- */
+function errorResponse(error, defaultMessage = 'Internal server error') {
+  return {
+    error: error.message || defaultMessage,
+    timestamp: new Date().toISOString(),
+    code: error.code || 'INTERNAL_ERROR',
+  };
+}
+
 function logRequest(method, path, status, duration) {
   if (!IS_PROD) {
     console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
@@ -118,11 +60,26 @@ function debugLog(...args) {
   if (!IS_PROD) console.log(...args);
 }
 
-const OPEN_ENDPOINTS = new Set(['/health', '/api/score', '/api/assessments/market-analysis']);
+function validateConfig() {
+  if (getApiAuthEnabled() && !getApiKey()) {
+    const message = 'API_AUTH_ENABLED=true but API_KEY is not set';
+    if (IS_PROD) {
+      throw new Error(message);
+    }
+    console.warn(message);
+  }
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    console.warn('Supabase URL or ANON_KEY is missing; database calls will fail.');
+  }
+}
 
 function apiKeyGuard(req, res, next) {
+  const authEnabled = getApiAuthEnabled();
+  const apiKey = getApiKey();
+
   // Debug incoming requests when API auth is enabled to help diagnose 401s
-  if (API_AUTH_ENABLED) {
+  if (authEnabled) {
     debugLog('[apiKeyGuard] incoming', {
       path: req.path,
       method: req.method,
@@ -132,10 +89,10 @@ function apiKeyGuard(req, res, next) {
     });
   }
 
-  if (!API_AUTH_ENABLED) return next();
+  if (!authEnabled) return next();
   if (OPEN_ENDPOINTS.has(req.path)) return next();
 
-  if (!API_KEY) {
+  if (!apiKey) {
     return res
       .status(500)
       .json(
@@ -151,7 +108,7 @@ function apiKeyGuard(req, res, next) {
   const apiKeyHeader = (req.headers['x-api-key'] || '').toString().trim();
 
   // Allow when the correct API key is supplied via X-API-Key or Bearer token
-  if (apiKeyHeader === API_KEY || bearerToken === API_KEY) {
+  if (apiKeyHeader === apiKey || bearerToken === apiKey) {
     return next();
   }
 
@@ -171,31 +128,37 @@ function apiKeyGuard(req, res, next) {
     );
 }
 
-function validateConfig() {
-  if (API_AUTH_ENABLED && !API_KEY) {
-    const message = 'API_AUTH_ENABLED=true but API_KEY is not set';
-    if (IS_PROD) {
-      throw new Error(message);
-    }
-    console.warn(message);
-  }
+// Middleware
+app.use(helmet());
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
 
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    console.warn('Supabase URL or anon key is missing; database calls will fail.');
-  }
-}
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error(`CORS Error: Origin ${origin} not allowed`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+  }),
+);
 
-/**
- * Error response formatter
- * @private
- */
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  return {
-    error: error.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error.code || 'INTERNAL_ERROR',
-  };
-}
+app.use(express.json({ limit: '512kb' }));
+app.use(express.urlencoded({ limit: '512kb', extended: true }));
+
+app.use(apiKeyGuard);
+
+// Initialize Supabase & OpenAI
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+validateConfig();
 
 // ============================================
 // HEALTH CHECK ENDPOINT

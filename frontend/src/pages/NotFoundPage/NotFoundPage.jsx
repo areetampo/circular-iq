@@ -15,7 +15,7 @@ export default function NotFoundPage() {
             <span className="text-sm font-semibold uppercase tracking-[0.35em]">
               Circular Economy Auditor
             </span>
-            <Leaf className="w-8 h-8" />
+            <Leaf size={32} />
           </div>
           <h1 className="mt-6 text-5xl font-bold text-slate-900">404</h1>
           <p className="text-lg text-gray-600 mt-2">Page Not Found</p>
@@ -29,7 +29,7 @@ export default function NotFoundPage() {
           <div className="grid gap-4 p-4 text-left border rounded-xl bg-white/80 sm:grid-cols-2">
             <div className="flex items-start gap-3">
               <div className="p-2 mt-1 rounded-full bg-emerald-100 text-emerald-700">
-                <Compass className="w-4 h-4" />
+                <Compass size={16} />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">Need guidance?</p>
@@ -40,7 +40,7 @@ export default function NotFoundPage() {
             </div>
             <div className="flex items-start gap-3">
               <div className="p-2 mt-1 text-blue-700 bg-blue-100 rounded-full">
-                <BarChart3 className="w-4 h-4 text-blue-700" />
+                <BarChart3 className="text-blue-700" size={16} />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">Review past work</p>
@@ -55,11 +55,11 @@ export default function NotFoundPage() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <Button onPress={() => navigate('/')} variant="tertiary">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft size={16} />
               Return Home
             </Button>
             <Button variant="tertiary" onPress={() => navigate('/assessments')}>
-              <BarChart3 className="w-4 h-4" />
+              <BarChart3 size={16} />
               My Assessments
             </Button>
           </div>

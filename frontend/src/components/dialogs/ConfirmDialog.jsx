@@ -33,16 +33,16 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  */
 export function ConfirmDialog({
   title = 'Confirm',
-  description,
+  description = 'Confirm your action',
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  onConfirm,
+  onConfirm = null,
   variant = 'default', // 'default' | 'destructive'
   isLoading = false,
 }) {
   const { isDialogOpen, onClose } = useGlobalDialog();
 
-  const status = variant === 'destructive' ? 'danger' : 'default';
+  const status = variant === 'destructive' ? 'danger' : 'accent';
   const buttonVariant = variant === 'destructive' ? 'danger' : 'primary';
   const icon = variant === 'destructive' ? <TriangleAlert /> : <AlertCircle />;
   const isClosingRef = useRef(false);

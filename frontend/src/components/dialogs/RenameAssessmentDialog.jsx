@@ -97,21 +97,18 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
         <AlertDialog.Dialog>
           {({ close }) => (
             <>
-              <AlertDialog.Header className="">
-                <AlertDialog.Icon status="default">
-                  <Edit className="w-6 h-6" />
+              <AlertDialog.Header>
+                <AlertDialog.Icon status="warning">
+                  <Edit size={25} />
                 </AlertDialog.Icon>
                 <AlertDialog.Heading>Rename Assessment</AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <AlertDialog.Body className="gap-6 pb-4">
-                <div className="flex flex-col gap-4 justify-center items-center">
-                  <Label
-                    htmlFor="assessment-name"
-                    className="text-sm font-semibold text-slate-700 leading-relaxed"
-                  >
-                    Update the assessment name to make it easier to find later.
-                  </Label>
+              <AlertDialog.Body>
+                <Label htmlFor="assessment-name" className="text-sm text-slate-500 font-medium">
+                  Update the assessment name to make it easier to find later.
+                </Label>
+                <div className="flex flex-col items-center gap-2 mt-2.5 px-2">
                   <Input
                     id="assessment-name"
                     placeholder="e.g., Circular Packaging Review"
@@ -121,14 +118,19 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                       setError('');
                     }}
                     maxLength={100}
-                    size="lg"
-                    className={cn('w-4/5 sm:w-3/5', error && 'border-red-600 focus:ring-red-600')}
+                    className={cn(
+                      'rounded-full mb-1',
+                      error && 'border-red-600 focus:ring-red-600',
+                      'text-xs xs:text-sm',
+                    )}
+                    fullWidth
                   />
+
                   {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
                 </div>
               </AlertDialog.Body>
 
-              <AlertDialog.Footer className="gap-3 pt-0">
+              <AlertDialog.Footer>
                 <Button
                   variant="neutral-soft"
                   onPress={() => {
@@ -136,16 +138,14 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                     onClose();
                   }}
                   isDisabled={isLoading}
-                  size="lg"
                 >
                   Cancel
                 </Button>
                 <Button
-                  variant="info"
+                  variant="success"
                   onPress={() => handleSubmit(close)}
                   isLoading={isLoading}
                   isDisabled={isLoading || name.trim() === (defaultName || '').trim()}
-                  size="lg"
                 >
                   Rename
                 </Button>

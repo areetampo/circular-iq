@@ -25,15 +25,16 @@ import {
   ListBox,
   Checkbox,
   Skeleton,
-  Switch,
   Separator,
   Popover,
   Button as HeroButton,
   Chip,
+  Tooltip,
 } from '@heroui/react';
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
-import { Button, ErrorDisplay } from '@/components/common';
+import { Button, ErrorDisplay, CopyButton } from '@/components/common';
+import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
   ArrowLeft,
@@ -46,10 +47,11 @@ import {
   Ghost,
   Edit,
   Trash2,
+  Check,
   CheckCircle2,
   AlertCircle,
   Globe,
-  Link2,
+  Share2,
   Copy,
   Clock,
 } from 'lucide-react';
@@ -66,6 +68,7 @@ const AssessmentCard = React.memo(function AssessmentCard({
   onTogglePublic,
   onToggleBenchmarks,
   onCopyShareLink,
+  copiedId,
 }) {
   // Status mapping with icons
   const getStatus = (score) => {
@@ -164,7 +167,7 @@ const AssessmentCard = React.memo(function AssessmentCard({
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Industry Badge */}
               <Chip variant="secondary" color="default" size="lg">
-                <Building className="w-3.5 h-3.5" />
+                <Building size={14} />
                 <Chip.Label className="uppercase">
                   {(assessment.industry || 'General').replace(/_/g, ' ')}
                 </Chip.Label>
@@ -189,13 +192,13 @@ const AssessmentCard = React.memo(function AssessmentCard({
 
               {/* Status Badge */}
               <Chip variant="soft" color={status.color} size="lg">
-                <StatusIcon className="w-3.5 h-3.5" />
+                <StatusIcon size={14} />
                 <Chip.Label>{status.text}</Chip.Label>
               </Chip>
 
               {/* Timestamp - Inline on desktop, wraps on mobile */}
               <div className="flex items-center gap-1.5 text-sm text-slate-500 ml-1">
-                <Clock className="w-3.5 h-3.5" />
+                <Clock size={14} />
                 <span className="italic">Created {formatTimestamp(assessment.created_at)}</span>
               </div>
             </div>
@@ -214,7 +217,7 @@ const AssessmentCard = React.memo(function AssessmentCard({
                 onPress={btn.onClick}
                 className={cn('flex-1 sm:flex-none', btn.className)}
               >
-                <Icon className="w-4 h-4" />
+                <Icon size={16} />
                 <span className="font-medium hidden xxs:inline">{btn.label}</span>
               </Button>
             );
@@ -223,103 +226,40 @@ const AssessmentCard = React.memo(function AssessmentCard({
 
         {/* Toggles Section - Enhanced visual design */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
-          {/* Global Benchmarks Toggle */}
-          <Switch
+          {/* Global Benchmarks Toggle (choice-card) */}
+          <ChoiceCardSwitch
             isSelected={assessment.contribute_to_global_benchmarks || false}
             onChange={() => onToggleBenchmarks(assessment.id)}
             size="md"
-            color="primary"
-            className="shrink-0"
-          >
-            <div
-              className={cn(
-                'w-full group/toggle flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border transition-all duration-300 flex-col xxs:flex-row',
-                assessment.contribute_to_global_benchmarks
-                  ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-sm'
-                  : 'bg-slate-50 border-slate-200 hover:border-blue-200 hover:bg-blue-50/50',
-              )}
-            >
-              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <div
-                  className={cn(
-                    'p-2 rounded-lg transition-all duration-300',
+            variant="blue"
+            title="Global Benchmarks"
+            description="Share anonymously"
+          />
 
-                    assessment.contribute_to_global_benchmarks
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'bg-slate-200 text-slate-600 group-hover/toggle:bg-blue-100 group-hover/toggle:text-blue-600',
-                  )}
-                >
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-slate-900">Global Benchmarks</div>
-                  <div className="text-xs text-slate-600 text-wrap">Share anonymously</div>
-                </div>
-              </div>
-              <Switch.Control className="transition-all duration-300">
-                <Switch.Thumb />
-              </Switch.Control>
-            </div>
-          </Switch>
-
-          {/* Public Access Toggle */}
-          <Switch
+          {/* Public Access Toggle (choice-card) */}
+          <ChoiceCardSwitch
             isSelected={assessment.is_public || false}
             onChange={() => onTogglePublic(assessment.id)}
             size="md"
-            color="success"
-            className="transition-all duration-300"
-          >
-            <div
-              className={cn(
-                'w-full group/toggle flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border transition-all duration-300 flex-col xxs:flex-row',
-                assessment.is_public
-                  ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-sm'
-                  : 'bg-slate-50 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/50',
-              )}
-            >
-              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <div
-                  className={cn(
-                    'p-2 rounded-lg transition-all duration-300',
-                    assessment.is_public
-                      ? 'bg-emerald-100 text-emerald-600'
-                      : 'bg-slate-200 text-slate-600 group-hover/toggle:bg-emerald-100 group-hover/toggle:text-emerald-600',
-                  )}
-                >
-                  <Link2 className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-slate-900">Public Access</div>
-                  <div className="text-xs text-slate-600 text-wrap">Share via link</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Switch.Control>
-                  <Switch.Thumb />
-                </Switch.Control>
-                <Button
-                  onClick={() => onCopyShareLink(assessment.id, assessment.public_id)}
-                  disabled={!assessment.is_public || !assessment.public_id}
-                  className={`
-                  rounded-lg transition-all duration-200
-                  ${
-                    assessment.is_public && assessment.public_id
-                      ? 'text-emerald-600 bg-emerald-100 hover:bg-emerald-200 hover:scale-110 cursor-pointer shadow-sm'
-                      : 'text-slate-300 bg-slate-100 cursor-not-allowed opacity-50'
-                  }
-                `}
-                  title={
-                    assessment.is_public && assessment.public_id
-                      ? 'Copy share link'
-                      : 'Enable public access first'
-                  }
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </Switch>
+            variant="emerald"
+            title="Public Access"
+            description="Share via link"
+            trailing={
+              <CopyButton
+                onPress={() => onCopyShareLink(assessment.id, assessment.public_id)}
+                isCopied={copiedId === assessment.id}
+                disabled={!assessment.is_public || !assessment.public_id}
+                tooltip="Copy share link"
+                copiedTooltip="Copied!"
+                variant="info-soft"
+                className={`rounded-lg transition-all duration-200 ${
+                  assessment.is_public && assessment.public_id
+                    ? 'text-emerald-600 bg-emerald-100 hover:bg-emerald-200 hover:scale-110 cursor-pointer shadow-sm'
+                    : 'text-slate-300 bg-slate-100 cursor-not-allowed opacity-50'
+                }`}
+              />
+            }
+          />
         </div>
       </div>
     </Card>
@@ -350,6 +290,7 @@ AssessmentCard.propTypes = {
   onTogglePublic: PropTypes.func.isRequired,
   onToggleBenchmarks: PropTypes.func.isRequired,
   onCopyShareLink: PropTypes.func.isRequired,
+  copiedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 // Memoized AssessmentCardSkeleton - Matches the actual Assessment Card structure
@@ -448,6 +389,7 @@ const AssessmentList = React.memo(function AssessmentList({
   onTogglePublic,
   onToggleBenchmarks,
   onCopyShareLink,
+  copiedId,
 }) {
   return (
     <>
@@ -465,6 +407,7 @@ const AssessmentList = React.memo(function AssessmentList({
             onTogglePublic={onTogglePublic}
             onToggleBenchmarks={onToggleBenchmarks}
             onCopyShareLink={onCopyShareLink}
+            copiedId={copiedId}
           />
         );
       })}
@@ -495,6 +438,7 @@ AssessmentList.propTypes = {
   onTogglePublic: PropTypes.func.isRequired,
   onToggleBenchmarks: PropTypes.func.isRequired,
   onCopyShareLink: PropTypes.func.isRequired,
+  copiedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 // Memoized AssessmentListSkeleton - Matches the actual Assessment List structure
@@ -932,24 +876,21 @@ export default function MyAssessmentsPage() {
     [assessments, addToast, queryClient],
   );
 
-  const handleCopyShareLink = useCallback(
-    async (id, publicId) => {
-      if (!publicId) {
-        addToast('Share link not available', 'error');
-        return;
-      }
+  const [copiedId, setCopiedId] = useState(null);
 
-      const shareUrl = `${window.location.origin}/assessments/share/${publicId}`;
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        addToast('Share link copied to clipboard', 'success');
-      } catch (error) {
-        console.error('Error copying share link:', error);
-        addToast(`Failed to copy share link: ${error}`, 'error');
-      }
-    },
-    [addToast],
-  );
+  const handleCopyShareLink = useCallback(async (id, publicId) => {
+    if (!publicId) return; // button disabled when publicId missing
+
+    const shareUrl = `${window.location.origin}/assessments/share/${publicId}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 1400);
+    } catch (error) {
+      console.error('Error copying share link:', error);
+      // fail silently (no toast)
+    }
+  }, []);
 
   const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
 
@@ -1094,7 +1035,7 @@ export default function MyAssessmentsPage() {
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-emerald-100/80 shrink-0">
-                    <Award className="w-6 h-6 text-emerald-700" />
+                    <Award className="text-emerald-700" size={24} />
                   </div>
                 </div>
               </div>
@@ -1150,7 +1091,7 @@ export default function MyAssessmentsPage() {
                     </p>
                   </div>
                   <div className="p-3 rounded-xl bg-indigo-100/80 shrink-0">
-                    <Building className="w-6 h-6 text-indigo-700" />
+                    <Building className="text-indigo-700" size={24} />
                   </div>
                 </div>
               </div>
@@ -1228,7 +1169,10 @@ export default function MyAssessmentsPage() {
                     <div className="flex flex-col gap-1">
                       <label className="text-sm font-semibold text-slate-700">Search</label>
                       <div className="relative">
-                        <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10" />
+                        <Search
+                          className="absolute transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10"
+                          size={16}
+                        />
                         <Input
                           type="text"
                           placeholder="Search by title..."
@@ -1278,7 +1222,7 @@ export default function MyAssessmentsPage() {
                     variant="teal"
                     size="md"
                   >
-                    <GitCompare className="w-4 h-4" />
+                    <GitCompare size={16} />
                     {selectedIds.size}/2 Compare Selected
                   </Button>
                 </div>
@@ -1317,7 +1261,7 @@ export default function MyAssessmentsPage() {
                 <div className="p-6 text-center">
                   <div className="flex justify-center mb-8">
                     <div className="p-5 rounded-2xl bg-linear-to-br from-slate-100 to-slate-200 shadow-inner">
-                      <Ghost className="w-12 h-12 text-slate-500" strokeWidth={1.5} />
+                      <Ghost className="text-slate-500" strokeWidth={1.5} size={48} />
                     </div>
                   </div>
                   <h3 className="font-bold text-2xl text-slate-900 mb-3">No assessments yet</h3>
@@ -1326,7 +1270,7 @@ export default function MyAssessmentsPage() {
                     personalized recommendations.
                   </p>
                   <Button onPress={handleBack} variant="success" size="lg">
-                    <Plus className="w-5 h-5" />
+                    <Plus size={20} />
                     Start Your First Assessment
                   </Button>
                 </div>
@@ -1336,7 +1280,7 @@ export default function MyAssessmentsPage() {
                 <div className="p-6 text-center">
                   <div className="flex justify-center mb-8">
                     <div className="p-5 rounded-2xl bg-linear-to-br from-slate-100 to-slate-200 shadow-inner">
-                      <Ghost className="w-12 h-12 text-slate-500" strokeWidth={1.5} />
+                      <Ghost className="text-slate-500" strokeWidth={1.5} size={48} />
                     </div>
                   </div>
                   <h3 className="font-bold text-2xl text-slate-900 mb-3">No assessments found</h3>
@@ -1370,6 +1314,7 @@ export default function MyAssessmentsPage() {
                   onTogglePublic={handleTogglePublic}
                   onToggleBenchmarks={handleToggleBenchmarks}
                   onCopyShareLink={handleCopyShareLink}
+                  copiedId={copiedId}
                 />
 
                 <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
@@ -1459,7 +1404,7 @@ export default function MyAssessmentsPage() {
       {/* Simple Back Home Button */}
       <div className="flex justify-center pt-2">
         <Button variant="neutral-soft" onPress={handleBack} size="lg">
-          <ArrowLeft className="w-5 h-5" strokeWidth={2.5} />
+          <ArrowLeft strokeWidth={2.5} size={20} />
           Back to Home
         </Button>
       </div>

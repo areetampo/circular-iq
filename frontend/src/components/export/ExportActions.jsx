@@ -32,16 +32,26 @@ export function ExportActions({
             disabled={!user || isExporting}
             variant="neutral-soft"
             aria-label="Export assessment data as CSV"
-            title={!user ? 'Sign in to get access to them' : isExporting ? 'Export in progress' : undefined}
+            title={
+              !user
+                ? 'Sign in to get access to them'
+                : isExporting
+                  ? 'Export in progress'
+                  : undefined
+            }
           >
-            {isExportingCSV ? <LoaderIcon /> : <Download className="w-4 h-4" />}
+            {isExportingCSV ? <LoaderIcon /> : <Download size={16} />}
             {isExportingCSV ? 'Exporting...' : 'Similar Cases CSV'}
           </Button>
         </Tooltip.Trigger>
         <Tooltip.Content showArrow placement="top">
           <Tooltip.Arrow />
           <p className="text-xs font-bold">
-            {user ? (isExporting ? 'Export in progress' : 'Export assessment data as CSV') : 'Sign in to get access to them'}
+            {user
+              ? isExporting
+                ? 'Export in progress'
+                : 'Export assessment data as CSV'
+              : 'Sign in to get access to them'}
           </p>
         </Tooltip.Content>
       </Tooltip>
@@ -55,16 +65,26 @@ export function ExportActions({
             disabled={!user || isExporting}
             variant="neutral-soft"
             aria-label="Export assessment as PDF"
-            title={!user ? 'Sign in to get access to them' : isExporting ? 'Export in progress' : undefined}
+            title={
+              !user
+                ? 'Sign in to get access to them'
+                : isExporting
+                  ? 'Export in progress'
+                  : undefined
+            }
           >
-            {isExportingPDF ? <LoaderIcon /> : <FileText className="w-4 h-4" />}
+            {isExportingPDF ? <LoaderIcon /> : <FileText size={16} />}
             {isExportingPDF ? 'Generating...' : 'Download as PDF'}
           </Button>
         </Tooltip.Trigger>
         <Tooltip.Content showArrow placement="top">
           <Tooltip.Arrow />
           <p className="text-xs font-bold">
-            {user ? (isExporting ? 'Export in progress' : 'Export assessment as PDF') : 'Sign in to get access to them'}
+            {user
+              ? isExporting
+                ? 'Export in progress'
+                : 'Export assessment as PDF'
+              : 'Sign in to get access to them'}
           </p>
         </Tooltip.Content>
       </Tooltip>

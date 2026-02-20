@@ -115,8 +115,9 @@ export default function SampleTestCasesContainer({
               </div>
               {isSelected && (
                 <CheckCircle2
-                  className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5"
+                  className="text-emerald-500 shrink-0 mt-0.5"
                   strokeWidth={2}
+                  size={16}
                 />
               )}
             </div>

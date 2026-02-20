@@ -75,7 +75,7 @@ export default function SharePage() {
 
         {error && (
           <div className="flex items-center gap-2 text-red-600">
-            <Frown className="w-5 h-5" />
+            <Frown size={20} />
             <span>{error}</span>
           </div>
         )}

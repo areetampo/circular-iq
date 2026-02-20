@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertDialog } from '@heroui/react';
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { FileCheck, MessageCircleWarning, RefreshCcw, RefreshCw } from 'lucide-react';
 
 /**
  * Session Restore Dialog
@@ -117,38 +118,31 @@ export function SessionRestoreDialog(props) {
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading>Restore Previous Session?</AlertDialog.Heading>
+                <AlertDialog.Icon status="success">
+                  <RefreshCw size={25} />
+                </AlertDialog.Icon>
+                <AlertDialog.Heading>
+                  Restore Previous Session from {formatDate(sessionData?.timestamp)}?
+                </AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <AlertDialog.Body>
-                <p className="text-gray-700 mb-3">
-                  We found a previous session from {formatDate(sessionData?.timestamp)}
-                </p>
-
-                <div className="space-y-2 mb-4">
-                  {hasInputs && (
-                    <div className="bg-amber-50 border border-amber-200 rounded p-3">
-                      <p className="text-sm font-medium text-amber-900">📝 Saved inputs</p>
-                      <p className="text-sm text-amber-700 mt-1">
-                        You started filling out the assessment form
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                    <p className="text-sm font-medium text-blue-900">📊 Calculated results</p>
-                    <p className="text-sm text-blue-700 mt-1">
-                      {hasResults
-                        ? 'You have unsaved assessment results'
-                        : 'No calculated results found to restore.'}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-600">
+              <AlertDialog.Body className="space-y-3">
+                <p className="text-sm text-gray-600 italic">
                   Your inputs are already saved locally — you can restore calculated results below
                   or continue from your saved inputs.
                 </p>
+
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                  <p className="text-[0.9rem] font-semibold text-blue-900 flex items-center gap-2">
+                    <FileCheck size={20} className="inline" />
+                    <span>Calculated results</span>
+                  </p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    {hasResults
+                      ? 'You have unsaved assessment results'
+                      : 'No calculated results found to restore.'}
+                  </p>
+                </div>
               </AlertDialog.Body>
 
               <AlertDialog.Footer>

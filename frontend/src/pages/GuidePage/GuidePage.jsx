@@ -506,7 +506,8 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
               <div className="absolute inset-0 flex items-center justify-center">
                 {SECTIONS.find((s) => s.id === activeSection) &&
                   React.createElement(SECTIONS.find((s) => s.id === activeSection).icon, {
-                    className: 'w-3 h-3 text-emerald-600',
+                    className: 'text-emerald-600',
+                    size: 12,
                   })}
               </div>
             </div>
@@ -515,9 +516,9 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
             </span>
           </div>
           {isMobileMenuOpen ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
+            <ChevronUp className="text-gray-400" size={20} />
           ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <ChevronDown className="text-gray-400" size={20} />
           )}
         </button>
 
@@ -545,7 +546,7 @@ Navigation.propTypes = {
 const AssessmentMethodologySection = () => {
   const METHODOLOGY_ITEMS = [
     {
-      icon: <Search className="w-5 h-5" />,
+      icon: <Search size={20} />,
       title: 'Semantic Analysis',
       description:
         'Uses OpenAI text-embedding-3-small (1536 dimensions) to find the most relevant projects matching your business model and problem space.',
@@ -553,7 +554,7 @@ const AssessmentMethodologySection = () => {
       bgColor: 'bg-blue-50',
     },
     {
-      icon: <Bot className="w-5 h-5" />,
+      icon: <Bot size={20} />,
       title: 'AI Reasoning',
       description:
         'GPT-4o-mini analyzes your submission against 3 similar cases with strict evidence-based reasoning and integrity checking.',
@@ -561,7 +562,7 @@ const AssessmentMethodologySection = () => {
       bgColor: 'bg-emerald-50',
     },
     {
-      icon: <ChartColumn className="w-5 h-5" />,
+      icon: <ChartColumn size={20} />,
       title: 'Multi-Dimensional Scoring',
       description:
         'Evaluates across 8 weighted parameters covering material innovation, circularity loops, market viability, and environmental impact.',
@@ -569,7 +570,7 @@ const AssessmentMethodologySection = () => {
       bgColor: 'bg-orange-50',
     },
     {
-      icon: <CircleCheck className="w-5 h-5" />,
+      icon: <CircleCheck size={20} />,
       title: 'Integrity Validation',
       description:
         'Cross-references your self-assessed scores against real-world benchmarks to identify overestimations and provide honest feedback.',
@@ -582,7 +583,7 @@ const AssessmentMethodologySection = () => {
     <section id="assessment-methodology" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium mb-4">
-          <ChartSpline className="w-4 h-4" />
+          <ChartSpline size={16} />
           <span>Assessment Methodology</span>
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-3">
@@ -613,7 +614,7 @@ const AssessmentMethodologySection = () => {
 
         <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-200 mb-8">
           <h4 className="flex items-center gap-2 mb-3 text-base font-bold text-emerald-800">
-            <BookCopy className="w-5 h-5" /> Data Source
+            <BookCopy size={20} /> Data Source
           </h4>
           <p className="text-sm text-gray-700 leading-relaxed m-0">
             <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection of{' '}
@@ -627,7 +628,7 @@ const AssessmentMethodologySection = () => {
         <div className="p-5 rounded-xl border-l-4 border-orange-500 bg-orange-50">
           <p className="text-sm text-gray-700 leading-relaxed m-0">
             <strong className="flex items-center gap-2 mb-2 text-orange-800">
-              <TriangleAlert className="w-4 h-4" /> Disclaimer:
+              <TriangleAlert size={16} /> Disclaimer:
             </strong>
             This assessment is designed to provide{' '}
             <strong>constructive feedback for early-stage ideation</strong>. Scores reflect
@@ -689,7 +690,7 @@ const BusinessProblemSection = () => {
     <section id="business-problem" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-4">
-          <Target className="w-4 h-4" />
+          <Target size={16} />
           <span>Business Problem</span>
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-3">
@@ -809,7 +810,7 @@ const BusinessSolutionSection = () => {
     <section id="business-solution" className="scroll-mt-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-teal-100">
-          <Lightbulb className="w-6 h-6 text-teal-600" />
+          <Lightbulb className="text-teal-600" size={24} />
         </div>
         <div>
           <h2 className="text-2xl font-bold">Business Solution Guide</h2>
@@ -885,7 +886,7 @@ const EvaluationCriteriaSection = () => {
   const VALUE_SECTIONS = [
     {
       title: 'Access Value',
-      icon: <Link className="w-6 h-6" />,
+      icon: <Link size={24} />,
       color: 'blue',
       description: 'Evaluates accessibility and participation aspects',
       factors: [
@@ -905,7 +906,7 @@ const EvaluationCriteriaSection = () => {
     },
     {
       title: 'Embedded Value',
-      icon: <CircleDollarSign className="w-6 h-6" />,
+      icon: <CircleDollarSign size={24} />,
       color: 'emerald',
       description: 'Evaluates inherent and economic value of resources',
       factors: [
@@ -930,7 +931,7 @@ const EvaluationCriteriaSection = () => {
     },
     {
       title: 'Processing Value',
-      icon: <Settings className="w-6 h-6" />,
+      icon: <Settings size={24} />,
       color: 'teal',
       description: 'Evaluates technical and operational factors',
       factors: [
@@ -979,7 +980,7 @@ const EvaluationCriteriaSection = () => {
     <section id="evaluation-criteria" className="scroll-mt-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-emerald-100">
-          <ClipboardMinus className="w-6 h-6 text-emerald-600" />
+          <ClipboardMinus className="text-emerald-600" size={24} />
         </div>
         <div>
           <h2 className="text-2xl font-bold">Evaluation Criteria</h2>
@@ -1136,7 +1137,7 @@ const EvaluationParametersSection = () => {
     <section id="evaluation-parameters" className="scroll-mt-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-emerald-100">
-          <BarChart3 className="w-6 h-6 text-emerald-600" />
+          <BarChart3 className="text-emerald-600" size={24} />
         </div>
         <div>
           <h2 className="text-2xl font-bold">Evaluation Parameters Guide</h2>
@@ -1176,7 +1177,7 @@ const ParameterDetailsSection = () => {
     <section id="parameter-details" className="scroll-mt-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-emerald-100">
-          <Settings className="w-6 h-6 text-emerald-600" />
+          <Settings className="text-emerald-600" size={24} />
         </div>
         <div>
           <h2 className="text-2xl font-bold">Parameter Details</h2>
@@ -1267,7 +1268,7 @@ const SampleTestCasesSection = () => {
     <section id="sample-test-cases" className="scroll-mt-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-blue-100">
-          <ClipboardPenLine className="w-6 h-6 text-blue-600" />
+          <ClipboardPenLine className="text-blue-600" size={24} />
         </div>
         <div>
           <h2 className="text-2xl font-bold">Sample Test Cases</h2>
@@ -1318,7 +1319,7 @@ const SampleTestCasesSection = () => {
 
         <div className="p-3 border border-blue-200 rounded-lg bg-blue-50">
           <p className="flex items-start gap-2 m-0 text-xs text-blue-900">
-            <Lightbulb className="w-4 h-4 mt-0.5 text-blue-600 shrink-0" strokeWidth={2} />
+            <Lightbulb className="mt-0.5 text-blue-600 shrink-0" strokeWidth={2} size={16} />
             <span>
               <strong>Tip:</strong> Great for learning before submitting your own idea.
             </span>

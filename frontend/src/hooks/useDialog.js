@@ -45,6 +45,16 @@ export default function useDialog() {
   const openDialogWithPriority = useCallback((type, data = null, priority = 0) => {
     setDialogState((prev) => {
       const currentPriority = prev?.priority || 0;
+      // console.log(
+      //   'Attempting to open dialog:',
+      //   type,
+      //   'with priority',
+      //   priority,
+      //   'Current dialog:',
+      //   prev?.type,
+      //   'priority',
+      //   currentPriority,
+      // );
       if (prev.type && currentPriority > priority) return prev;
       return { type, data, priority };
     });

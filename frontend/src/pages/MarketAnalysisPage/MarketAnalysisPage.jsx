@@ -352,7 +352,7 @@ export default function MarketAnalysisPage({
       {/* Back Button */}
       <div className="mb-6 flex items-center gap-3">
         <Button variant="neutral-soft" onClick={() => navigate(-1)} aria-label="Back to results">
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft size={16} />
           Back
         </Button>
         <div className="ml-auto flex items-center gap-2">
@@ -367,7 +367,7 @@ export default function MarketAnalysisPage({
                 aria-label="Export market data as CSV"
                 title={!user ? 'Sign in to get access to them' : undefined}
               >
-                <Download className="w-4 h-4 mr-2" /> Export CSV
+                <Download className="mr-2" size={16} /> Export CSV
               </Button>
             </Tooltip.Trigger>
             <Tooltip.Content showArrow placement="top">
@@ -388,7 +388,7 @@ export default function MarketAnalysisPage({
                 aria-label="Export market analysis as PDF"
                 title={!user ? 'Sign in to get access to them' : undefined}
               >
-                <Download className="w-4 h-4 mr-2" />{' '}
+                <Download className="mr-2" size={16} />{' '}
                 {isExportingPDF ? 'Exporting...' : 'Export PDF'}
               </Button>
             </Tooltip.Trigger>
@@ -425,7 +425,7 @@ export default function MarketAnalysisPage({
           {/* Header Section */}
           <div className="p-6 bg-linear-to-r from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
             <h1 className="flex items-center gap-2 text-3xl font-bold">
-              <BarChart3 className="w-8 h-8 text-white" strokeWidth={2.5} /> Market Landscape
+              <BarChart3 className="text-white" strokeWidth={2.5} size={32} /> Market Landscape
             </h1>
             <p className="mt-2 text-lg opacity-90">
               Benchmark your circular economy initiative against the broader market
@@ -437,7 +437,7 @@ export default function MarketAnalysisPage({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
                 <div className="flex justify-center mb-2 text-3xl">
-                  <TrendingUp className="w-9 h-9 text-primary-500" strokeWidth={2} />
+                  <TrendingUp className="text-primary-500" strokeWidth={2} size={36} />
                 </div>
                 <div className="text-sm text-gray-600">Average Score</div>
                 <div className="text-2xl font-bold text-primary-500">
@@ -446,7 +446,7 @@ export default function MarketAnalysisPage({
               </div>
               <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
                 <div className="flex justify-center mb-2 text-3xl">
-                  <Target className="w-9 h-9 text-primary-500" strokeWidth={2} />
+                  <Target className="text-primary-500" strokeWidth={2} size={36} />
                 </div>
                 <div className="text-sm text-gray-600">Median Score</div>
                 <div className="text-2xl font-bold text-primary-500">
@@ -455,7 +455,7 @@ export default function MarketAnalysisPage({
               </div>
               <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
                 <div className="flex justify-center mb-2 text-3xl">
-                  <BarChart3 className="w-9 h-9 text-[#2c3e50]" strokeWidth={2} />
+                  <BarChart3 className="text-[#2c3e50]" strokeWidth={2} size={36} />
                 </div>
                 <div className="text-sm text-gray-600">Total Projects</div>
                 <div className="text-2xl font-bold text-[#2c3e50]">{stats.total_count}</div>
@@ -463,7 +463,7 @@ export default function MarketAnalysisPage({
               {userScore != null && (
                 <div className="p-5 bg-linear-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-accent-500 shadow-md rounded-xl">
                   <div className="flex justify-center mb-2 text-3xl">
-                    <Star className="w-9 h-9 text-accent-500" strokeWidth={2} fill="#ff9800" />
+                    <Star className="text-accent-500" strokeWidth={2} fill="#ff9800" size={36} />
                   </div>
                   <div className="text-sm text-gray-600">Your Percentile</div>
                   <div className="text-2xl font-bold text-accent-500">{userPercentile}th</div>
@@ -581,7 +581,7 @@ export default function MarketAnalysisPage({
               return (
                 <div className="p-6 bg-white border-2 border-slate-200 shadow-md rounded-xl">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-slate-600" />
+                    <BarChart3 className="text-slate-600" size={20} />
                     Score by company scale
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -613,7 +613,7 @@ export default function MarketAnalysisPage({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-5 bg-white border-2 border-emerald-200 shadow-md rounded-xl">
                 <h3 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-emerald-600" />
+                  <Trophy className="text-emerald-600" size={16} />
                   Top 5 sectors by score
                 </h3>
                 <ul className="space-y-2">
@@ -637,7 +637,7 @@ export default function MarketAnalysisPage({
               </div>
               <div className="p-5 bg-white border-2 border-amber-200 shadow-md rounded-xl">
                 <h3 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-amber-600" />
+                  <TrendingUp className="text-amber-600" size={16} />
                   Improvement opportunities (lowest scores)
                 </h3>
                 <ul className="space-y-2">
@@ -775,7 +775,7 @@ export default function MarketAnalysisPage({
             <Card className="border shadow-sm border-slate-200 bg-gradient-to-br from-amber-50/50 to-orange-50/50">
               <Card.Header className="pb-3">
                 <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-                  <TrendingUp className="w-5 h-5 text-amber-600" />
+                  <TrendingUp className="text-amber-600" size={20} />
                   Market Dynamics & Competitive Landscape
                 </Card.Title>
               </Card.Header>
@@ -939,8 +939,8 @@ export default function MarketAnalysisPage({
           {barChartData.length > 0 && (
             <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] min-w-0 overflow-hidden">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Top Industries by
-                Average Score
+                <BarChart3 className="text-[#4a90e2]" strokeWidth={2.5} size={24} /> Top Industries
+                by Average Score
               </h2>
               <BarChart
                 data={barChartData}
@@ -959,7 +959,7 @@ export default function MarketAnalysisPage({
           {scatterChartData.length > 0 && (
             <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] min-w-0 overflow-hidden">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
-                <Target className="w-6 h-6 text-[#4a90e2]" strokeWidth={2.5} /> Score Distribution
+                <Target className="text-[#4a90e2]" strokeWidth={2.5} size={24} /> Score Distribution
                 by Industry
               </h2>
               <ScatterChart
@@ -1009,7 +1009,8 @@ export default function MarketAnalysisPage({
           {marketData.length > 0 && (
             <div className="bg-white py-7 px-7 rounded-[10px] border border-gray-300 shadow-[0_8px_24px_rgba(0,0,0,0.05)] overflow-x-auto min-w-0">
               <h2 className="text-[#2c3e50] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-accent-500" strokeWidth={2.5} /> Industry Benchmarks
+                <Trophy className="text-accent-500" strokeWidth={2.5} size={24} /> Industry
+                Benchmarks
               </h2>
 
               {/* Strategy Breakdown Chart */}
@@ -1097,7 +1098,7 @@ export default function MarketAnalysisPage({
                         <td className="px-2 py-2 pr-4 text-sm text-center text-gray-600 border-b border-gray-300 md:px-3 md:py-3">
                           <span className="inline-flex items-center gap-1">
                             {item.min_score}{' '}
-                            <ArrowRight className="w-3 h-3 text-gray-600" strokeWidth={2} />{' '}
+                            <ArrowRight className="text-gray-600" strokeWidth={2} size={12} />{' '}
                             {item.max_score}
                           </span>
                         </td>
@@ -1111,12 +1112,13 @@ export default function MarketAnalysisPage({
           {/* Key Insights */}
           <div className="bg-linear-to-br from-[#fff9e6] to-[#fffbf0] py-7 px-7 rounded-[10px] border-2 border-accent-500 shadow-[0_8px_24px_rgba(255,152,0,0.1)]">
             <h2 className="text-[#ff6f00] text-2xl font-bold mt-0 mb-6 flex items-center gap-2">
-              <Lightbulb className="w-6 h-6 text-[#ff6f00]" strokeWidth={2.5} /> Key Market Insights
+              <Lightbulb className="text-[#ff6f00]" strokeWidth={2.5} size={24} /> Key Market
+              Insights
             </h2>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <Target className="w-7 h-7 text-accent-500" strokeWidth={2} />
+                  <Target className="text-accent-500" strokeWidth={2} size={28} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Sectoral Performance</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -1127,7 +1129,7 @@ export default function MarketAnalysisPage({
               </div>
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <TrendingUp className="w-7 h-7 text-accent-500" strokeWidth={2} />
+                  <TrendingUp className="text-accent-500" strokeWidth={2} size={28} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Growth Opportunity</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -1138,7 +1140,7 @@ export default function MarketAnalysisPage({
               </div>
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <Briefcase className="w-7 h-7 text-accent-500" strokeWidth={2} />
+                  <Briefcase className="text-accent-500" strokeWidth={2} size={28} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Scale Factor</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -1149,7 +1151,7 @@ export default function MarketAnalysisPage({
               </div>
               <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                 <div className="flex mb-3 text-2xl">
-                  <Star className="w-7 h-7 text-accent-500" strokeWidth={2} fill="#ff9800" />
+                  <Star className="text-accent-500" strokeWidth={2} fill="#ff9800" size={28} />
                 </div>
                 <div className="text-base font-bold text-[#2c3e50] mb-2">Your Competitive Edge</div>
                 <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -1161,7 +1163,7 @@ export default function MarketAnalysisPage({
               {stats && (
                 <div className="bg-white py-6 px-6 rounded-lg border-l-4 border-accent-500 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
                   <div className="flex mb-3 text-2xl">
-                    <Info className="w-7 h-7 text-accent-500" strokeWidth={2} />
+                    <Info className="text-accent-500" strokeWidth={2} size={28} />
                   </div>
                   <div className="text-base font-bold text-[#2c3e50] mb-2">Score spread</div>
                   <div className="text-[0.85rem] text-gray-700 leading-6">
@@ -1184,7 +1186,7 @@ export default function MarketAnalysisPage({
           <Card className="border shadow-sm border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
             <Card.Header className="pb-3">
               <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-                <Trophy className="w-5 h-5 text-amber-500" />
+                <Trophy className="text-amber-500" size={20} />
                 Competitive Positioning Analysis
               </Card.Title>
             </Card.Header>
@@ -1244,7 +1246,7 @@ export default function MarketAnalysisPage({
           <Card className="border shadow-sm border-slate-200 bg-blue-50/50">
             <Card.Header className="pb-3">
               <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-                <Sparkles className="w-5 h-5 text-blue-500" />
+                <Sparkles className="text-blue-500" size={20} />
                 Personalized Strategic Pathways
               </Card.Title>
               <Card.Description className="text-sm text-slate-600">
@@ -1301,7 +1303,7 @@ export default function MarketAnalysisPage({
           <Card className="border shadow-sm border-slate-200 bg-sky-50/70">
             <Card.Header className="pb-2">
               <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
-                <Sparkles className="w-5 h-5 text-sky-500" />
+                <Sparkles className="text-sky-500" size={20} />
                 Strategic Recommendation
               </Card.Title>
             </Card.Header>

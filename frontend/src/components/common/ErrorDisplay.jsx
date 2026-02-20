@@ -105,7 +105,7 @@ export default function ErrorDisplay({
         <div className="p-6 pb-0 text-center">
           <div className={`flex justify-center mb-4`}>
             <div className={`p-3 rounded-full ${style.iconBg}`}>
-              <Icon className={`w-12 h-12 ${style.iconColor}`} strokeWidth={2} />
+              <Icon className={style.iconColor} strokeWidth={2} size={48} />
             </div>
           </div>
           <h1 className={`text-3xl font-bold ${style.titleColor}`}>{title}</h1>
@@ -123,7 +123,7 @@ export default function ErrorDisplay({
           {import.meta.env.DEV && errorDetails && (
             <div className="p-4 border-l-4 border-red-600 rounded bg-red-50">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-4 h-4 text-red-600" />
+                <AlertCircle className="text-red-600" size={16} />
                 <p className="text-xs font-semibold text-red-900">
                   Error Details (Development Only)
                 </p>
@@ -148,7 +148,7 @@ export default function ErrorDisplay({
                       size={action.size || 'md'}
                       className={`gap-2 ${action.className || ''}`}
                     >
-                      {ActionIcon && <ActionIcon className="w-4 h-4" />}
+                      {ActionIcon && <ActionIcon size={16} />}
                       {action.label}
                     </Button>
                   );

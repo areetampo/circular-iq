@@ -184,7 +184,7 @@ export default function Navbar() {
           <Menu as="div" className="relative">
             {({ open }) => (
               <>
-                <MenuButton
+                <div
                   className={cn(
                     'flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-transparent',
                     isAuthenticated ? 'cursor-pointer transition-all duration-200' : '',
@@ -220,7 +220,7 @@ export default function Navbar() {
                       Sign In
                     </Button>
                   )}
-                </MenuButton>
+                </div>
 
                 {isAuthenticated && (
                   <Transition
@@ -249,7 +249,7 @@ export default function Navbar() {
                               {profile?.username || user?.username || 'User'}
                             </p>
                             <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
-                              <Mail className="w-3 h-3 shrink-0" />
+                              <Mail size={12} className="shrink-0" />
                               <span className="truncate">{user?.email || 'user@example.com'}</span>
                             </p>
                           </div>
@@ -267,7 +267,7 @@ export default function Navbar() {
                                   'flex items-center gap-3 w-full px-4 py-2 text-sm cursor-pointer transition-colors hover:bg-slate-100',
                                 )}
                               >
-                                <item.icon className="w-4 h-4 text-default-500" />
+                                <item.icon className="text-default-500" size={16} />
                                 <span className="font-medium text-foreground">{item.name}</span>
                               </button>
                             )}
@@ -287,7 +287,7 @@ export default function Navbar() {
                                 'flex items-center gap-3 w-full px-4 py-2 text-sm cursor-pointer transition-colors text-danger hover:bg-red-50',
                               )}
                             >
-                              <LogOut className="w-4 h-4" />
+                              <LogOut size={16} />
                               <span className="font-semibold">Sign Out</span>
                             </button>
                           )}

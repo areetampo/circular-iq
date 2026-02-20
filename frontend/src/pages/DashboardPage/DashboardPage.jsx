@@ -57,11 +57,7 @@ const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'p
                 trend > 0 ? 'text-emerald-600' : 'text-rose-600',
               )}
             >
-              {trend > 0 ? (
-                <TrendingUp className="w-3 h-3" />
-              ) : (
-                <TrendingDown className="w-3 h-3" />
-              )}
+              {trend > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
               <span>
                 {Math.abs(trend).toFixed(1)}
                 {trend > 0 ? ' increase' : ' decrease'}
@@ -75,7 +71,7 @@ const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'p
             colorClasses[color],
           )}
         >
-          <Icon className="w-6 h-6" />
+          <Icon size={24} />
         </div>
       </Card.Header>
     </Card>
@@ -90,7 +86,7 @@ const ChartSection = memo(({ title, description, icon: Icon, children, actions }
     <Card.Header className="flex flex-row items-start justify-between gap-4 mt-1.5">
       <div className="flex-1 flex flex-col items-center justify-center gap-0.5">
         <Card.Title className="flex items-center gap-2 text-lg">
-          {Icon && <Icon className="w-5 h-5 text-primary" />}
+          {Icon && <Icon className="text-primary" size={20} />}
           {title}
         </Card.Title>
         {description && (
@@ -644,7 +640,7 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4 mr-2" />
+                    <Download className="mr-2" size={16} />
                     Export PDF
                   </>
                 )}
@@ -1042,7 +1038,7 @@ export default function DashboardPage() {
           <Card className="border border-slate-200 shadow-sm bg-white">
             <Card.Header className="border-b border-slate-100 py-3">
               <Card.Title className="flex items-center gap-2 text-slate-800 text-base">
-                <Sparkles className="w-4 h-4 text-slate-500" />
+                <Sparkles className="text-slate-500" size={16} />
                 Key Insights
               </Card.Title>
             </Card.Header>
