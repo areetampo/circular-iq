@@ -79,7 +79,12 @@
   /* ===== BREAKPOINTS ===== */
   --breakpoint-xxs: 400px;
   --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
   --breakpoint-sm_md: 680px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 }
 
 /* ===== KEYFRAME ANIMATIONS ===== */
@@ -199,10 +204,25 @@
 }
 
 @layer components {
+  .info-icon {
+    @apply hover:scale-[1.05] transition-all duration-200 cursor-pointer;
+  }
+
+  /*
+  ** heroui chip override
+  */
   .chip {
     @apply px-2;
   }
-  .info-icon {
-    @apply hover:scale-[1.05] transition-all duration-200 cursor-pointer;
+
+  /*
+  ** heroui toast override
+  */
+  .toast-region {
+    @apply w-4/5 sm:w-auto;
+  }
+
+  .toast__close-button {
+    display: none !important;
   }
 }

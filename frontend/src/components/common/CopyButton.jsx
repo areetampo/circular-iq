@@ -112,10 +112,3 @@ CopyButton.propTypes = {
   className: PropTypes.string,
   size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg', 'xl', '2xl']),
 };
-
-CopyButton.defaultProps = {
-  tooltip: 'Copy',
-  copiedTooltip: 'Copied!',
-  variant: 'info-soft',
-  size: 'md',
-};

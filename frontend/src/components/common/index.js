@@ -4,3 +4,5 @@ export { default as SiteLogo } from './SiteLogo';
 export { default as ErrorDisplay } from './ErrorDisplay';
 export { default as ChoiceCardSwitch } from './ChoiceCardSwitch';
 export { default as CopyButton } from './CopyButton';
+export { default as ResponsiveSizeWrapper } from './ResponsiveSizeWrapper';
+export { default as Switch } from './Switch';

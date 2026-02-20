@@ -4,6 +4,7 @@ import { getSession } from '@/utils/session';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import DIALOGS from '@/components/dialogs/dialogTypes';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@heroui/react';
 
 /**
  * Global session manager that shows restore prompt ONLY on page load/refresh
@@ -15,6 +16,7 @@ export function AppSessionManager() {
   const { openSessionRestoreDialog, dialog } = useGlobalDialog();
   const { isAuthenticated } = useAuth();
   const hasCheckedOnLoad = useRef(false);
+  const hasShownInputsToast = useRef(false); // track home-input-toast display
 
   useEffect(() => {
     // Only run once on component mount (page load)
@@ -65,6 +67,15 @@ export function AppSessionManager() {
       return;
     }
 
+    // ALWAYS show input-restore toast when appropriate on home path
+    if (location.pathname === '/' && sessionData?.inputs && !hasShownInputsToast.current) {
+      // delay until after render/paint
+      setTimeout(() => {
+        toast.info('Previous inputs restored.', { timeout: 3000 });
+      }, 0);
+      hasShownInputsToast.current = true;
+    }
+
     if (!sessionData) {
       hasCheckedOnLoad.current = true;
       return;
@@ -100,6 +111,26 @@ export function AppSessionManager() {
       },
     });
   }, []); // Empty deps = run once on mount only
+
+  // Show input restore toast when user navigates to home via SPA (only once)
+  useEffect(() => {
+    if (hasShownInputsToast.current) return;
+    if (location.pathname !== '/') return;
+
+    let sessionData = null;
+    try {
+      sessionData = getSession();
+    } catch {
+      return;
+    }
+
+    if (sessionData?.inputs) {
+      setTimeout(() => {
+        toast.info('Previous inputs restored.', { timeout: 3000 });
+      }, 0);
+      hasShownInputsToast.current = true;
+    }
+  }, [location.pathname]);
 
   // Post-login automatic save prompt intentionally disabled.
   // Users must explicitly click the Save button on the Results page to save.

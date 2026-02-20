@@ -44,7 +44,7 @@ if (missingKeys.length > 0) {
 } else {
   const mask = (val) => `${val.substring(0, 4)}...${val.substring(val.length - 4)}`;
 
-  console.log('✅ All API keys loaded.');
+  console.log('✅ All API keys loaded:');
   console.log(`   - OpenAI Key: ${mask(process.env.OPENAI_API_KEY)}`);
   console.log(`   - Supabase URL: ${process.env.SUPABASE_URL}`);
   console.log(`   - Supabase Anon Key: ${mask(process.env.SUPABASE_ANON_KEY)}`);

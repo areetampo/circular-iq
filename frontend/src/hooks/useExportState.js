@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useToast } from './useToast';
+import { toast } from '@heroui/react';
 
 /**
  * Custom hook for managing export operations with loading state and error handling
@@ -9,7 +9,7 @@ import { useToast } from './useToast';
  */
 export function useExportState() {
   const [isExporting, setIsExporting] = useState(false);
-  const { addToast } = useToast();
+  // toasts are shown directly via HeroUI's toast helper
 
   /**
    * Execute an export function with proper state management
@@ -21,14 +21,18 @@ export function useExportState() {
     setIsExporting(true);
     try {
       const result = await exportFn(...args);
-      addToast(
-        result.message || `${operationType} exported successfully`,
-        result.success ? 'success' : 'error',
-      );
+      // mimic previous wrapper behaviour: success=3000ms, error/danger=4000ms
+      if (result.success) {
+        toast.success(result.message || `${operationType} exported successfully`, {
+          timeout: 3000,
+        });
+      } else {
+        toast.danger(result.message || `${operationType} exported successfully`, { timeout: 4000 });
+      }
       return result;
     } catch (error) {
       const errorMsg = error.message || `Failed to export ${operationType}`;
-      addToast(errorMsg, 'error');
+      toast.danger(errorMsg, { timeout: 4000 });
       return { success: false, message: errorMsg };
     } finally {
       setIsExporting(false);

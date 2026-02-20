@@ -3,7 +3,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import PropTypes from 'prop-types';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSessionId } from '@/utils/session';
-import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatTimestamp, formatTruncatedList } from '@/lib/formatting';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
@@ -31,6 +30,7 @@ import {
   Chip,
   Tooltip,
 } from '@heroui/react';
+import { toast } from '@heroui/react';
 import Pagination from '@mui/material/Pagination';
 import PaginationItem from '@mui/material/PaginationItem';
 import { Button, ErrorDisplay, CopyButton } from '@/components/common';
@@ -491,7 +491,6 @@ export default function MyAssessmentsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [isRenaming, setIsRenaming] = useState(false);
-  const { addToast } = useToast();
   const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
   // Persist list filters in URL so users can share filtered lists
@@ -698,13 +697,13 @@ export default function MyAssessmentsPage() {
 
   const handleCompareSelected = useCallback(() => {
     if (selectedIds.size !== 2) {
-      addToast('Please select exactly 2 assessments to compare', 'info');
+      toast.info('Please select exactly 2 assessments to compare', { timeout: 3000 });
       return;
     }
 
     const ids = Array.from(selectedIds);
     navigate(`/assessments/compare?id1=${ids[0]}&id2=${ids[1]}`);
-  }, [selectedIds, addToast, navigate]);
+  }, [selectedIds, navigate]);
 
   const handleViewDetail = useCallback(
     (id) => {
@@ -716,7 +715,7 @@ export default function MyAssessmentsPage() {
   const handleConfirmDelete = useCallback(
     async (id) => {
       if (!id) {
-        addToast('No assessment selected for deletion', 'error');
+        toast.danger('No assessment selected for deletion', { timeout: 4000 });
         throw new Error('No assessment selected for deletion');
       }
 
@@ -730,23 +729,23 @@ export default function MyAssessmentsPage() {
           next.delete(id);
           return next;
         });
-        addToast('Assessment deleted successfully', 'success');
+        toast.success('Assessment deleted successfully', { timeout: 3000 });
 
         return result;
       } catch (err) {
         console.error('[DELETE_ERROR]', { id, error: err.message, fullError: err });
         const errorMsg = err?.message || 'Please try again.';
-        addToast(`Delete failed: ${errorMsg}`, 'error');
+        toast.danger(`Delete failed: ${errorMsg}`, { timeout: 4000 });
         throw err;
       }
     },
-    [removeAssessmentAsync, addToast],
+    [removeAssessmentAsync],
   );
 
   const handleConfirmRename = useCallback(
     async (assessmentId, newTitle) => {
       if (!assessmentId) {
-        addToast('No assessment selected for rename', 'error');
+        toast.danger('No assessment selected for rename', { timeout: 4000 });
         throw new Error('No assessment selected for rename');
       }
 
@@ -760,7 +759,7 @@ export default function MyAssessmentsPage() {
         )
       ) {
         const msg = 'You already have an assessment with that name';
-        addToast(msg, 'error');
+        toast.danger(msg, { timeout: 4000 });
         throw new Error(msg);
       }
 
@@ -788,7 +787,7 @@ export default function MyAssessmentsPage() {
       try {
         setIsRenaming(true);
         const result = await updateAssessment(assessmentId, { title: newTitle });
-        addToast('Assessment renamed successfully', 'success');
+        toast.success('Assessment renamed successfully', { timeout: 3000 });
         return result;
       } catch (err) {
         previousAssessments.forEach(([key, data]) => {
@@ -796,13 +795,13 @@ export default function MyAssessmentsPage() {
         });
         queryClient.setQueryData(detailCacheKey, previousAssessment);
         const errorMsg = err?.message || 'Please try again.';
-        addToast(`Rename failed: ${errorMsg}`, 'error');
+        toast.danger(`Rename failed: ${errorMsg}`, { timeout: 4000 });
         throw err;
       } finally {
         setIsRenaming(false);
       }
     },
-    [assessments, addToast, queryClient],
+    [assessments, queryClient],
   );
 
   const handleRenameAssessment = useCallback(
@@ -843,13 +842,15 @@ export default function MyAssessmentsPage() {
       try {
         await updateAssessment(id, { is_public: newValue });
         queryClient.invalidateQueries({ queryKey: ['assessments'] });
-        addToast(newValue ? 'Assessment is now public' : 'Assessment is now private', 'success');
+        toast.success(newValue ? 'Assessment is now public' : 'Assessment is now private', {
+          timeout: 3000,
+        });
       } catch (error) {
         console.error('Error updating public status:', error);
-        addToast(`Failed to update sharing settings: ${error}`, 'error');
+        toast.danger(`Failed to update sharing settings: ${error}`, { timeout: 4000 });
       }
     },
-    [assessments, addToast, queryClient],
+    [assessments, queryClient],
   );
 
   const handleToggleBenchmarks = useCallback(
@@ -862,18 +863,18 @@ export default function MyAssessmentsPage() {
       try {
         await updateAssessment(id, { contribute_to_global_benchmarks: newValue });
         queryClient.invalidateQueries({ queryKey: ['assessments'] });
-        addToast(
+        toast.success(
           newValue
             ? 'Now contributing to global benchmarks'
             : 'No longer contributing to global benchmarks',
-          'success',
+          { timeout: 3000 },
         );
       } catch (error) {
         console.error('Error updating benchmark settings:', error);
-        addToast(`Failed to update benchmark settings: ${error}`, 'error');
+        toast.danger(`Failed to update benchmark settings: ${error}`, { timeout: 4000 });
       }
     },
-    [assessments, addToast, queryClient],
+    [assessments, queryClient],
   );
 
   const [copiedId, setCopiedId] = useState(null);
@@ -1049,35 +1050,31 @@ export default function MyAssessmentsPage() {
                     <h3 className="text-2xl font-bold text-indigo-900 leading-tight">
                       {topIndustries && topIndustries.length > 0
                         ? (() => {
-                            const { display } = formatTruncatedList(topIndustries, 2);
-                            const hasMore = topIndustries.length > 2;
+                            const { display } = formatTruncatedList(topIndustries, 3);
+                            const hasMore = topIndustries.length > 3;
                             return hasMore ? `${display}...` : display;
                           })()
                         : '—'}
                     </h3>
-                    {topIndustries && topIndustries.length > 2 && (
+                    {topIndustries && topIndustries.length > 3 && (
                       <Popover>
                         <Popover.Trigger>
-                          <button
-                            type="button"
-                            className="text-indigo-700 bg-indigo-100/60 hover:bg-indigo-200/60 font-semibold mt-3 px-3 py-1 rounded-sm text-sm"
-                          >
+                          <Button size="xs" variant="info-soft" className="mt-2">
                             View All
-                          </button>
+                          </Button>
                         </Popover.Trigger>
                         <Popover.Content className="max-w-xs">
                           <Popover.Dialog>
-                            <Popover.Heading className="text-indigo-900 font-bold">
+                            {/* <Popover.Heading className="text-indigo-900 font-bold">
                               All Industries
-                            </Popover.Heading>
-                            <div className="mt-3 space-y-1.5">
+                            </Popover.Heading> */}
+                            <div className="space-y-0.5">
                               {topIndustries.map((industry, idx) => (
-                                <div key={idx} className="text-sm text-indigo-700">
-                                  •{' '}
+                                <p key={idx} className="text-sm text-indigo-700 italic">
                                   {industry.industry
                                     .replace(/_/g, ' ')
                                     .replace(/\b\w/g, (l) => l.toUpperCase())}
-                                </div>
+                                </p>
                               ))}
                             </div>
                           </Popover.Dialog>
@@ -1209,22 +1206,30 @@ export default function MyAssessmentsPage() {
                   </div>
                 )}
 
-                {/* Compare Section - Beautiful spacing */}
-                {/* <Separator orientation="horizontal" className="h-[1.5px]" /> */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <p className="text-sm text-slate-600 font-medium italic">
-                    Select exactly 2 assessments to see how your initiative evolved over time or
-                    compare strategies side-by-side.
-                  </p>
-                  <Button
-                    onPress={handleCompareSelected}
-                    isDisabled={selectedIds.size !== 2}
-                    variant="teal"
-                    size="md"
-                  >
-                    <GitCompare size={16} />
-                    {selectedIds.size}/2 Compare Selected
-                  </Button>
+                <Separator orientation="horizontal" />
+
+                {/* Compare 2 Assessments Button */}
+                <div className="flex justify-center items-center">
+                  <Tooltip delay={0} isDisabled={selectedIds.size === 2}>
+                    <Tooltip.Trigger>
+                      <Button
+                        onPress={handleCompareSelected}
+                        isDisabled={selectedIds.size !== 2}
+                        variant="teal"
+                        size="md"
+                      >
+                        <GitCompare size={16} />
+                        {selectedIds.size}/2 Compare Selected
+                      </Button>
+                    </Tooltip.Trigger>
+                    <Tooltip.Content showArrow placement="top">
+                      <Tooltip.Arrow />
+                      <span>
+                        Select exactly 2 assessments to see how your initiative evolved over time or
+                        compare strategies side-by-side.
+                      </span>
+                    </Tooltip.Content>
+                  </Tooltip>
                 </div>
               </div>
             </Card>
@@ -1362,6 +1367,7 @@ export default function MyAssessmentsPage() {
                           setPageSize(Number(value));
                           setPage(1);
                         }}
+                        aria-label="Select page size"
                       >
                         <Select.Trigger>
                           <Select.Value />

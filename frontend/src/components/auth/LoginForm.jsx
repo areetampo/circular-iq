@@ -8,7 +8,7 @@ import { z } from 'zod';
 import PropTypes from 'prop-types';
 import { Card, Input, Label, TextField, FieldError, Form } from '@heroui/react';
 import { Button } from '@/components/common';
-import { useToast } from '@/hooks/useToast';
+import { toast } from '@heroui/react';
 import { supabase } from '@/lib/supabase';
 import LoaderIcon from '@/components/common/LoaderIcon';
 
@@ -22,7 +22,7 @@ const loginSchema = z.object({
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
-  const { addToast } = useToast();
+  // toasts are shown via HeroUI toast helper
 
   const {
     control,
@@ -49,10 +49,9 @@ export function LoginForm({ onSwitchToSignup }) {
 
       if (error) throw error;
 
-      addToast({
-        title: 'Welcome back!',
+      toast.success('Welcome back!', {
         description: 'You have successfully signed in.',
-        variant: 'success',
+        timeout: 3000,
       });
 
       reset();
@@ -61,10 +60,9 @@ export function LoginForm({ onSwitchToSignup }) {
       window.location.href = returnTo;
     } catch (error) {
       console.error('Sign in error:', error);
-      addToast({
-        title: 'Sign in failed',
+      toast.danger('Sign in failed', {
         description: 'Invalid username or password.',
-        variant: 'destructive',
+        timeout: 4000,
       });
     } finally {
       setIsLoading(false);
@@ -72,11 +70,7 @@ export function LoginForm({ onSwitchToSignup }) {
   };
 
   const handleGoogleLogin = () => {
-    addToast({
-      title: 'Coming Soon',
-      description: 'Social login is coming soon.',
-      variant: 'default',
-    });
+    toast('Coming Soon', { description: 'Social login is coming soon.', timeout: 3000 });
   };
 
   return (

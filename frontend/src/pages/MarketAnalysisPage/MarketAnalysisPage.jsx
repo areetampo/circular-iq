@@ -732,6 +732,7 @@ export default function MarketAnalysisPage({
                       track: 'h-3 bg-primary-100',
                       indicator: 'bg-primary-500',
                     }}
+                    aria-label={`Industry average score: ${normalizedBenchmarkScore != null ? normalizedBenchmarkScore.toFixed(1) : 'N/A'} out of 100`}
                   />
                   {userIndicatorPosition != null && (
                     <div
@@ -1050,19 +1051,34 @@ export default function MarketAnalysisPage({
               <table className="w-full border-collapse text-[0.85rem] md:text-[0.95rem]">
                 <thead className="bg-gray-100 border-b-2 border-gray-300">
                   <tr>
-                    <th className="px-2 md:px-3 py-2 md:py-3 pl-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
+                    <th
+                      className="px-2 md:px-3 py-2 md:py-3 pl-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
+                      aria-label="Industry column header"
+                    >
                       Industry
                     </th>
-                    <th className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
+                    <th
+                      className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
+                      aria-label="Scale column header"
+                    >
                       Scale
                     </th>
-                    <th className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
+                    <th
+                      className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
+                      aria-label="Projects column header"
+                    >
                       Projects
                     </th>
-                    <th className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
+                    <th
+                      className="px-2 md:px-3 py-2 md:py-3 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
+                      aria-label="Average Score column header"
+                    >
                       Avg Score
                     </th>
-                    <th className="px-2 md:px-3 py-2 md:py-3 pr-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]">
+                    <th
+                      className="px-2 md:px-3 py-2 md:py-3 pr-4 text-left border-b border-gray-300 font-bold text-[#2c3e50]"
+                      aria-label="Range column header"
+                    >
                       Range
                     </th>
                   </tr>

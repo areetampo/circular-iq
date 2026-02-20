@@ -7,7 +7,7 @@ import { z } from 'zod';
 import PropTypes from 'prop-types';
 import { Card, Input, Label, TextField, FieldError, Form } from '@heroui/react';
 import { Button } from '@/components/common';
-import { useToast } from '@/hooks/useToast';
+import { toast } from '@heroui/react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import LoaderIcon from '@/components/common/LoaderIcon';
@@ -38,7 +38,7 @@ const signupSchema = z
 
 export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
-  const { addToast } = useToast();
+  // using HeroUI toast directly
   const location = useLocation();
 
   const {
@@ -87,10 +87,9 @@ export function SignupForm({ onSwitchToLogin }) {
 
       if (loginError) throw loginError;
 
-      addToast({
-        title: 'Account created successfully!',
+      toast.success('Account created successfully!', {
         description: `Welcome to ${SITE_CONFIG.fullName}.`,
-        variant: 'success',
+        timeout: 3000,
       });
 
       reset();
@@ -104,11 +103,7 @@ export function SignupForm({ onSwitchToLogin }) {
       console.error('Sign up error:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred during sign up.';
-      addToast({
-        title: 'Sign up failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      toast.danger('Sign up failed', { description: errorMessage, timeout: 4000 });
     } finally {
       setIsLoading(false);
     }
@@ -227,11 +222,7 @@ export function SignupForm({ onSwitchToLogin }) {
               type="button"
               className="w-full font-medium"
               onPress={() => {
-                addToast({
-                  title: 'Coming Soon',
-                  description: 'Social login is coming soon.',
-                  variant: 'default',
-                });
+                toast('Coming Soon', { description: 'Social login is coming soon.', timeout: 3000 });
               }}
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">

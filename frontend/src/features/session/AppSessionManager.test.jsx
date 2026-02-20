@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Router } from 'react-router-dom';
 import { vi } from 'vitest';
 
 // Mock useAuth to control authentication state
@@ -22,8 +22,14 @@ vi.mock('@/contexts/DialogContext', () => ({
 
 import AppSessionManager from './AppSessionManager';
 import DIALOGS from '@/components/dialogs/dialogTypes';
+import { toast } from '@heroui/react';
 
 describe('AppSessionManager (pending-save post-login)', () => {
+  beforeEach(() => {
+    // spy on toast.info for input restoration notifications
+    vi.spyOn(toast, 'info');
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -88,5 +94,56 @@ describe('AppSessionManager (pending-save post-login)', () => {
     // Inputs-only should NOT open the restore dialog on page load
     await new Promise((res) => setTimeout(res, 50));
     expect(openRestoreSpy).not.toHaveBeenCalled();
+  });
+
+  it('shows toast when page loads on home and inputs exist', async () => {
+    const persisted = {
+      inputs: { businessProblem: 'EXIST', businessSolution: 'KEEP', parameters: {} },
+      results: null,
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <AppSessionManager />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() =>
+      expect(toast.info).toHaveBeenCalledWith('Previous inputs restored.', expect.any(Object)),
+    );
+  });
+
+  it('shows toast when navigating to home via SPA after initial load', async () => {
+    const persisted = {
+      inputs: { businessProblem: 'X', businessSolution: 'Y', parameters: {} },
+      results: null,
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
+
+    // use custom history to control navigation
+    const { createMemoryHistory } = await import('history');
+    const history = createMemoryHistory({ initialEntries: ['/other'] });
+
+    const { rerender } = render(
+      <Router location={history.location} navigator={history}>
+        <AppSessionManager />
+      </Router>,
+    );
+
+    // ensure no toast initially
+    await new Promise((r) => setTimeout(r, 50));
+    expect(toast.info).not.toHaveBeenCalled();
+
+    history.push('/');
+    rerender(
+      <Router location={history.location} navigator={history}>
+        <AppSessionManager />
+      </Router>,
+    );
+
+    await waitFor(() => expect(toast.info).toHaveBeenCalled());
   });
 });

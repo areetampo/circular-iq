@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Switch } from '@heroui/react';
-import { Check, Globe, Lock, X } from 'lucide-react';
+import { Check, Globe, Globe2, Lock, LockOpen, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { Switch } from '@/components/common';
 
 /**
  * ChoiceCardSwitch — visual choice card that toggles an embedded HeroUI Switch.
@@ -49,7 +49,7 @@ export default function ChoiceCardSwitch({
 
   // icons map following HeroUI `With Icons` pattern — choose by title/variant
   const icons = {
-    public: { off: Lock, on: Globe, selectedControlClass: 'bg-emerald-500/80' },
+    public: { off: Lock, on: LockOpen, selectedControlClass: 'bg-emerald-500/80' },
     benchmarks: { off: X, on: Check, selectedControlClass: 'bg-blue-500/80' },
     default: {
       off: X,
@@ -67,16 +67,16 @@ export default function ChoiceCardSwitch({
   const selectedControlClass = icons[iconKey].selectedControlClass || '';
 
   // compute numeric icon size based on `size` prop (use largest breakpoint)
-  const iconSize = size === 'sm' ? 12 : size === 'lg' ? 20 : 16; // md -> 16px (lg:w-4), lg -> 20px (lg:w-5)
+  // const iconSize = size === 'sm' ? 12 : size === 'lg' ? 20 : 14; // md -> 16px (lg:w-4), lg -> 20px (lg:w-5)
 
   return (
     <Switch
       isSelected={isSelected}
       onChange={onChange}
-      size={size}
       isDisabled={disabled}
+      // size={size} //ResponsiveSizeWrapper used in components/common/Switch to auto-adjust size based on screen
       className={cn(
-        'w-full group/toggle flex items-center justify-between gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl border transition-all duration-300 cursor-pointer min-h-[56px] sm:min-h-[64px]',
+        'w-full group/toggle flex items-center justify-between gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl border transition-all duration-300 cursor-pointer min-h-14 sm:min-h-16',
         selected ? theme.selected : theme.unselected,
         className,
       )}
@@ -115,9 +115,9 @@ export default function ChoiceCardSwitch({
               <Switch.Thumb>
                 <Switch.Icon>
                   {sel ? (
-                    <ThumbOn size={iconSize} className={`${theme.iconSelected} opacity-100`} />
+                    <ThumbOn size={15} className={`${theme.iconSelected} opacity-100`} />
                   ) : (
-                    <ThumbOff size={iconSize} className="text-slate-500 opacity-70" />
+                    <ThumbOff size={15} className="text-slate-500 opacity-70" />
                   )}
                 </Switch.Icon>
               </Switch.Thumb>

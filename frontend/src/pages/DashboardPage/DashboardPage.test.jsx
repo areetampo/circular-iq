@@ -142,9 +142,20 @@ vi.mock('@/components/drawers/DrawerManager', () => ({
   default: () => null,
 }));
 
-// Stub export utility and toast hook
+// Stub export utility and prevent HeroUI toast side-effects
 vi.mock('@/lib/exportDashboard', () => ({ exportDashboardToPDF: async () => true }));
-vi.mock('@/hooks/useToast', () => ({ useToast: () => ({ addToast: () => {} }) }));
+vi.mock('@heroui/react', async () => {
+  const actual = await vi.importActual('@heroui/react');
+  return {
+    ...actual,
+    toast: {
+      success: vi.fn(),
+      danger: vi.fn(),
+      info: vi.fn(),
+      warning: vi.fn(),
+    },
+  };
+});
 
 // Stub industry filter component to a simple placeholder
 vi.mock('@/components/filters/IndustryChipFilter', () => ({

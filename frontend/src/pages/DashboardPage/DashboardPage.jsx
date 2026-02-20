@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, memo } from 'react';
-import { Card, Label, Chip, Tabs, Select, ListBox, Skeleton } from '@heroui/react';
+import { Card, Label, Chip, Tabs, Select, ListBox, Skeleton, toast } from '@heroui/react';
 import { Button } from '@/components/common';
 import { ChartContainer } from '@/components/common/ChartWrapper';
 import { useSearchParams } from 'react-router-dom';
@@ -26,7 +26,6 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { sortByAverageScoreDesc, sortByAverageScoreAsc } from '@/features/assessments/utils';
 import { cn } from '@/utils/cn';
 import { exportDashboardToPDF } from '@/lib/exportDashboard';
-import { useToast } from '@/hooks/useToast';
 import { PieChart, LineChart, ComboChart, BarChart } from '@/components/charts';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import IndustryChipFilter from '@/components/filters/IndustryChipFilter';
@@ -157,7 +156,7 @@ export default function DashboardPage() {
     setSearchParams(params, { replace: true });
   }, [selectedIndustries, timeRange, viewMode, industrySort]);
 
-  const { addToast } = useToast();
+  // toasts will be issued directly using HeroUI's toast helper
 
   // All available industries (prefer canonical list from INDUSTRY_THEMES + any metrics)
   const { industryMetrics: allIndustryMetrics } = useEnhancedAnalytics({
@@ -492,14 +491,14 @@ export default function DashboardPage() {
         filters: { industry: industryFilterParam, timeRange },
         timeRangeOptions,
       });
-      addToast('Dashboard exported successfully!', 'success');
+      toast.success('Dashboard exported successfully!', { timeout: 3000 });
     } catch (error) {
       console.error('Export error:', error);
-      addToast('Failed to export dashboard. Please try again.', 'error');
+      toast.danger('Failed to export dashboard. Please try again.', { timeout: 4000 });
     } finally {
       setIsExporting(false);
     }
-  }, [industryFilterParam, timeRange, timeRangeOptions, addToast]);
+  }, [industryFilterParam, timeRange, timeRangeOptions]);
 
   const timeRangeLabel = useMemo(
     () => timeRangeOptions.find((option) => option.value === timeRange)?.label || 'Last 6 Months',
@@ -613,10 +612,18 @@ export default function DashboardPage() {
                   </Select.Trigger>
                   <Select.Popover>
                     <ListBox>
-                      <ListBox.Item id="30d">30 Days</ListBox.Item>
-                      <ListBox.Item id="90d">3 Months</ListBox.Item>
-                      <ListBox.Item id="180d">6 Months</ListBox.Item>
-                      <ListBox.Item id="all">All Time</ListBox.Item>
+                      <ListBox.Item textValue="30 Days" id="30d">
+                        30 Days
+                      </ListBox.Item>
+                      <ListBox.Item textValue="3 Months" id="90d">
+                        3 Months
+                      </ListBox.Item>
+                      <ListBox.Item textValue="6 Months" id="180d">
+                        6 Months
+                      </ListBox.Item>
+                      <ListBox.Item textValue="All Time" id="all">
+                        All Time
+                      </ListBox.Item>
                     </ListBox>
                   </Select.Popover>
                 </Select>
@@ -670,9 +677,15 @@ export default function DashboardPage() {
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
-                <ListBox.Item id="overview">Overview</ListBox.Item>
-                <ListBox.Item id="detailed">Detailed</ListBox.Item>
-                <ListBox.Item id="trends">Trends</ListBox.Item>
+                <ListBox.Item textValue="Overview" id="overview">
+                  Overview
+                </ListBox.Item>
+                <ListBox.Item textValue="Detailed" id="detailed">
+                  Detailed
+                </ListBox.Item>
+                <ListBox.Item textValue="Trends" id="trends">
+                  Trends
+                </ListBox.Item>
               </ListBox>
             </Select.Popover>
           </Select>
@@ -810,10 +823,18 @@ export default function DashboardPage() {
                 </Select.Trigger>
                 <Select.Popover>
                   <ListBox>
-                    <ListBox.Item id="avg_desc">Avg Score (High → Low)</ListBox.Item>
-                    <ListBox.Item id="avg_asc">Avg Score (Low → High)</ListBox.Item>
-                    <ListBox.Item id="count_desc">Count (High → Low)</ListBox.Item>
-                    <ListBox.Item id="count_asc">Count (Low → High)</ListBox.Item>
+                    <ListBox.Item textValue="Avg Score (High → Low)" id="avg_desc">
+                      Avg Score (High → Low)
+                    </ListBox.Item>
+                    <ListBox.Item textValue="Avg Score (Low → High)" id="avg_asc">
+                      Avg Score (Low → High)
+                    </ListBox.Item>
+                    <ListBox.Item textValue="Count (High → Low)" id="count_desc">
+                      Count (High → Low)
+                    </ListBox.Item>
+                    <ListBox.Item textValue="Count (Low → High)" id="count_asc">
+                      Count (Low → High)
+                    </ListBox.Item>
                   </ListBox>
                 </Select.Popover>
               </Select>

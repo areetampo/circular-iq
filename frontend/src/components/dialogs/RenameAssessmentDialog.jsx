@@ -142,7 +142,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                   Cancel
                 </Button>
                 <Button
-                  variant="success"
+                  variant="yellow"
                   onPress={() => handleSubmit(close)}
                   isLoading={isLoading}
                   isDisabled={isLoading || name.trim() === (defaultName || '').trim()}

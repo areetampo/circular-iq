@@ -6,7 +6,6 @@ import RadarChart from '@/components/charts/RadarChart';
 import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { validKeys, categoryMapping, parameterLabels } from '@/constants/evaluationData';
 import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/content';
-import { useToast } from '@/hooks/useToast';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
@@ -60,6 +59,7 @@ import {
   CircleX,
   FolderPen,
   MonitorDown,
+  LockOpen,
 } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { cn } from '@/utils/cn';
@@ -76,7 +76,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
 
-  const { addToast } = useToast();
   const { isExporting, executeExport } = useExportState();
   const { restoreEvaluation } = useSession();
   const { createAssessmentAsync } = useCreateAssessment();
@@ -152,11 +151,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       restoreEvaluation()?.result &&
       !sessionRestored
     ) {
-      addToast('Previous session restored.', 'info');
+      toast.info('Previous session restored.', { timeout: 3000 });
       setSessionRestored(true);
       sessionStorage.setItem('sessionRestoredOnce', 'true');
     }
-  }, [isViewFromMyAssessments, navigationResult, restoreEvaluation, sessionRestored, addToast]);
+  }, [isViewFromMyAssessments, navigationResult, restoreEvaluation, sessionRestored]);
 
   // Fetch assessment data - use public endpoint for shared assessments
   const {
@@ -394,7 +393,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         }
 
         const result = await createAssessmentAsync(saveData);
-        addToast('Assessment saved successfully! Redirecting...', 'success');
+        toast.success('Assessment saved successfully! Redirecting...', { timeout: 3000 });
 
         // After successful save, clear only the results from local evaluation state but keep inputs
         try {
@@ -426,7 +425,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         throw error;
       }
     },
-    [currentData, resolvedFormData, createAssessmentAsync, addToast, navigate],
+    [currentData, resolvedFormData, createAssessmentAsync, navigate],
   );
 
   const actualResult = currentData?.result_json || currentData || null;
@@ -811,7 +810,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const handleDownloadCSV = async () => {
     if (!actualResult) {
-      addToast('No result data available to export', 'error');
+      toast.danger('No result data available to export', { timeout: 4000 });
       return;
     }
 
@@ -820,7 +819,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const handleDownloadPDF = async () => {
     if (!actualResult) {
-      addToast('No result data available to export', 'error');
+      toast.danger('No result data available to export', { timeout: 4000 });
       return;
     }
 
@@ -1012,7 +1011,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <div className={`${isResultsRoute ? 'pointer-events-none' : ''}`}>
                     <Switch
                       id="public-toggle"
-                      size="md"
+                      // size can be passed here if needed; our Switch wrapper applies
+                      // responsive sizing by default using ResponsiveSizeWrapper.
                       isSelected={
                         optimisticIsPublic !== null
                           ? optimisticIsPublic
@@ -1041,9 +1041,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             <Switch.Thumb>
                               <Switch.Icon>
                                 {isSelected ? (
-                                  <Globe className="text-emerald-600 opacity-100" size={16} />
+                                  <LockOpen className="text-emerald-600 opacity-100" size={15} />
                                 ) : (
-                                  <Lock className="text-slate-500 opacity-70" size={16} />
+                                  <Lock className="text-slate-500 opacity-70" size={15} />
                                 )}
                               </Switch.Icon>
                             </Switch.Thumb>
@@ -1054,7 +1054,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                     {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
                       currentData?.public_id && (
-                        <div className="flex flex-col sm:flex-row gap-2 mt-1">
+                        <div className="flex flex-row gap-2 mt-1">
                           <Input
                             id="share-url"
                             type="text"
@@ -1065,7 +1065,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 ? `${window.location.origin}/assessments/share/${currentData.public_id}`
                                 : ''
                             }
-                            className="flex-1 font-mono text-sm bg-white"
+                            className="text-xs flex-1 bg-white"
                           />
                           <CopyButton
                             onPress={handleCopyShareLink}
@@ -1110,9 +1110,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
             <div className="w-full">
               <Accordion className="w-full" allowsMultipleExpanded>
-                <Accordion.Item id="problem">
+                {/* --- Problem Item --- */}
+                <Accordion.Item id="problem" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <Target
                           className="text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
@@ -1137,9 +1138,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   </Accordion.Panel>
                 </Accordion.Item>
 
-                <Accordion.Item id="solution">
+                {/* --- Solution Item --- */}
+                <Accordion.Item id="solution" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <Lightbulb
                           className="text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
@@ -1162,9 +1164,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   </Accordion.Panel>
                 </Accordion.Item>
 
-                <Accordion.Item id="parameters">
+                {/* --- Parameters Item --- */}
+                <Accordion.Item id="parameters" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <BarChart3
                           className="text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
@@ -1172,9 +1175,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         />
                         <div>
                           <h4 className="font-bold text-slate-900">Parameters</h4>
-                          <p className="text-sm text-slate-600">
-                            Input parameters and values used in this assessment
-                          </p>
+                          <p className="text-sm text-slate-600">Input parameters and values</p>
                         </div>
                       </div>
                       <Accordion.Indicator />
@@ -1183,6 +1184,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Panel>
                     <Accordion.Body>
                       <div className="py-2">
+                        {' '}
                         {parameterEntries.length > 0 ? (
                           <div className="grid grid-cols-1 gap-2">
                             {parameterEntries.map((item) => (
@@ -1193,6 +1195,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 <span className="text-xs font-semibold text-slate-700">
                                   {item.label}
                                 </span>
+
                                 <span className="text-xs font-bold text-emerald-700">
                                   {item.value}
                                 </span>
@@ -1207,9 +1210,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   </Accordion.Panel>
                 </Accordion.Item>
 
-                <Accordion.Item id="industry">
+                {/* --- Industry Item --- */}
+                <Accordion.Item id="industry" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="group/case flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <ClipboardList
                           className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
@@ -1225,9 +1229,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   </Accordion.Heading>
                   <Accordion.Panel>
                     <Accordion.Body>
-                      <div className="py-2">
-                        <p className="text-sm text-slate-700 leading-relaxed">{industryText}</p>
-                      </div>
+                      <p className="text-sm text-slate-700 leading-relaxed rounded-xl py-1.5 px-3 bg-slate-100 w-fit">
+                        {industryText}
+                      </p>
                     </Accordion.Body>
                   </Accordion.Panel>
                 </Accordion.Item>
@@ -1261,9 +1265,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               </Select.Trigger>
               <Select.Popover>
                 <ListBox>
-                  <ListBox.Item id="summary">Summary</ListBox.Item>
-                  <ListBox.Item id="analysis">Detailed Analysis</ListBox.Item>
-                  <ListBox.Item id="recommendations">Recommendations</ListBox.Item>
+                  <ListBox.Item textValue="summary" id="summary">
+                    Summary
+                  </ListBox.Item>
+                  <ListBox.Item textValue="analysis" id="analysis">
+                    Detailed Analysis
+                  </ListBox.Item>
+                  <ListBox.Item textValue="recommendations" id="recommendations">
+                    Recommendations
+                  </ListBox.Item>
                 </ListBox>
               </Select.Popover>
             </Select>

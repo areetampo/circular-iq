@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/common';
 import { Avatar, Separator } from '@heroui/react';
 import {
@@ -23,7 +22,6 @@ export default function Navbar() {
   const { user, profile, isAuthenticated, signOut } = useAuth();
   // console.log('Auth state in Navbar:', { user, profile, isAuthenticated });
 
-  const { addToast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const navigationItems = [
@@ -181,48 +179,35 @@ export default function Navbar() {
       {/* RIGHT: Profile Dropdown */}
       <NavbarContent justify="end">
         <NavbarItem>
-          <Menu as="div" className="relative">
-            {({ open }) => (
-              <>
-                <div
-                  className={cn(
-                    'flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-transparent',
-                    isAuthenticated ? 'cursor-pointer transition-all duration-200' : '',
-                  )}
-                >
-                  {isAuthenticated ? (
-                    <>
-                      <Avatar color="success" size="md" variant="soft">
-                        <Avatar.Image
-                          src={profile?.avatar_url || user?.avatar_url}
-                          alt="User avatar"
-                        />
-                        <Avatar.Fallback className="text-lg font-semibold">
-                          {getUserInitials()}
-                        </Avatar.Fallback>
-                      </Avatar>
-                      <span className="hidden xxs:inline text-lg font-medium text-foreground">
-                        {getUsername()}
-                      </span>
-                      <ChevronDown
-                        className={cn(
-                          'w-4 h-4 text-default-500 transition-transform duration-200',
-                          open && 'rotate-180',
-                        )}
+          {isAuthenticated ? (
+            <Menu as="div" className="relative">
+              {({ open }) => (
+                <>
+                  <MenuButton
+                    className={cn(
+                      'flex items-center gap-2.5 bg-transparent border-0 focus:outline-none cursor-pointer transition-all duration-200',
+                    )}
+                  >
+                    <Avatar color="success" size="md" variant="soft">
+                      <Avatar.Image
+                        src={profile?.avatar_url || user?.avatar_url}
+                        alt="User avatar"
                       />
-                    </>
-                  ) : (
-                    <Button
-                      onClick={() => navigate('/auth')}
-                      variant="success"
-                      className="cursor-pointer"
-                    >
-                      Sign In
-                    </Button>
-                  )}
-                </div>
+                      <Avatar.Fallback className="text-lg font-semibold">
+                        {getUserInitials()}
+                      </Avatar.Fallback>
+                    </Avatar>
+                    <span className="hidden xxs:inline text-lg font-medium text-foreground">
+                      {getUsername()}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 text-default-500 transition-transform duration-200',
+                        open && 'rotate-180',
+                      )}
+                    />
+                  </MenuButton>
 
-                {isAuthenticated && (
                   <Transition
                     enter="transition ease-out duration-100"
                     enterFrom="transform opacity-0 scale-95"
@@ -295,10 +280,14 @@ export default function Navbar() {
                       </div>
                     </MenuItems>
                   </Transition>
-                )}
-              </>
-            )}
-          </Menu>
+                </>
+              )}
+            </Menu>
+          ) : (
+            <Button onClick={() => navigate('/auth')} variant="success" className="cursor-pointer">
+              Sign In
+            </Button>
+          )}
         </NavbarItem>
       </NavbarContent>
     </HeroNavbar>
