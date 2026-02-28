@@ -95,7 +95,14 @@ const parseAllowedOrigins = () => {
   // Always include the specific frontend URL
   const specificFrontend = env.FRONTEND_URL ? [env.FRONTEND_URL] : [];
 
-  return [...new Set([...defaults, ...envOrigins, ...specificFrontend])];
+  // Include common Vercel deployment domains
+  const vercelDomains = [
+    // Vercel preview deployments (*.vercel.app)
+    // These will be checked with pattern matching in the CORS middleware
+    'https://vercel.app',
+  ];
+
+  return [...new Set([...defaults, ...envOrigins, ...specificFrontend, ...vercelDomains])];
 };
 
 const parsePublicRoutes = () => {

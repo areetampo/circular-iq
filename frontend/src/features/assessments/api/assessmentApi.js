@@ -19,6 +19,7 @@ import {
   safeValidateGlobalAnalytics,
 } from '@/features/assessments/api/assessmentSchema';
 import { FRONTEND_CONFIG } from '@/config';
+import { buildApiUrl } from '@/lib/apiClient';
 
 const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 
@@ -51,7 +52,9 @@ async function request(path, options = {}) {
     },
   };
 
-  const response = await fetch(`${API_URL}${path}`, finalOptions);
+  // Use buildApiUrl to route through proxy in production
+  const url = buildApiUrl(path);
+  const response = await fetch(url, finalOptions);
   return response;
 }
 
@@ -137,8 +140,9 @@ export async function getPublicAssessment(publicId) {
     throw new Error('Public assessment ID is required');
   }
 
-  // Public endpoint - no auth required
-  const response = await fetch(`${API_URL}/api/assessments/public/${publicId}`, {
+  // Public endpoint - no auth required, but still use proxy in production
+  const url = buildApiUrl(`/api/assessments/public/${publicId}`);
+  const response = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
   });
 

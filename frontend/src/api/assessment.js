@@ -6,6 +6,7 @@
  */
 
 import { FRONTEND_CONFIG } from '@/config';
+import { buildApiUrl } from '@/lib/apiClient';
 
 const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 
@@ -18,7 +19,7 @@ const API_URL = FRONTEND_CONFIG.apiBaseUrl;
  */
 export async function submitForScoring(businessProblem, businessSolution, parameters) {
   try {
-    const response = await fetch(`${API_URL}/api/score`, {
+    const response = await fetch(buildApiUrl('/api/score'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ export async function submitForScoring(businessProblem, businessSolution, parame
  */
 export async function fetchAssessments() {
   try {
-    const response = await fetch(`${API_URL}/api/assessments`);
+    const response = await fetch(buildApiUrl('/api/assessments'));
     if (!response.ok) {
       throw new Error(`Failed to fetch assessments: ${response.status}`);
     }
@@ -66,7 +67,7 @@ export async function fetchAssessments() {
  */
 export async function saveAssessment(assessment) {
   try {
-    const response = await fetch(`${API_URL}/api/assessments`, {
+    const response = await fetch(buildApiUrl('/api/assessments'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ export async function saveAssessment(assessment) {
  */
 export async function deleteAssessment(assessmentId) {
   try {
-    const response = await fetch(`${API_URL}/api/assessments/${assessmentId}`, {
+    const response = await fetch(buildApiUrl(`/api/assessments/${assessmentId}`), {
       method: 'DELETE',
     });
 
