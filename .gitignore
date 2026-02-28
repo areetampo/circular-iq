@@ -5,24 +5,52 @@ node_modules/
 jspm_packages/
 
 ################################
-# Environment variables (SECRETS)
+# Environment Variables (SECRETS)
 ################################
-*.local
+# Root env folder (real values ignored)
+env/.env.shared
+env/.env.frontend
+env/.env.backend
+
+# Any accidental local env files
+.env
 .env.local
 .env.*.local
+*.local
+
+# Allow template
+!env/.env.example
 
 ################################
-# Build outputs
+# Datasets
+################################
+# 1. Enter the datasets directory
+backend/datasets/
+
+# 2. Ignore ALL files and subfolders by default
+backend/datasets/**/*
+
+# 3. UN-IGNORE (allow) all .gitkeep files at any depth
+# This keeps the folder structure (archives, raw, raw/epa_tri, etc.)
+!backend/datasets/**/.gitkeep
+
+# 4. UN-IGNORE all files directly inside the datasets root
+# (This covers any .js or .md files in the main folder)
+!backend/datasets/*
+
+# 5. UN-IGNORE all files in the scripts folder
+# (Optional: If you want your JS extraction scripts to be pushed)
+!backend/datasets/scripts/*
+
+################################
+# Build Outputs
 ################################
 dist/
 build/
 out/
 .next/
 dist-ssr/
-
-# Explicit project builds (safe but optional)
-frontend/dist/
-backend/build/
+.vite/
 
 ################################
 # Logs
@@ -47,7 +75,6 @@ coverage/
 .cache/
 .parcel-cache/
 .eslintcache
-.vite/
 
 ################################
 # IDE / Editor
@@ -62,7 +89,7 @@ coverage/
 *.sln
 
 ################################
-# OS files
+# OS Files
 ################################
 .DS_Store
 .DS_Store?
@@ -73,7 +100,7 @@ ehthumbs.db
 Thumbs.db
 
 ################################
-# Temp files
+# Temporary Files
 ################################
 *.tmp
 *.temp
@@ -84,6 +111,6 @@ Thumbs.db
 temp/
 
 ################################
-# Backend-specific
+# Misc
 ################################
-backend/dataset/chunks.json
+prompt.md

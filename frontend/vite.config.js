@@ -9,12 +9,14 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  envDir: '../env',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/api': path.resolve(__dirname, './src/api'),
       '@/app': path.resolve(__dirname, './src/app'),
       '@/components': path.resolve(__dirname, './src/components'),
+      '@/config': path.resolve(__dirname, './src/config'),
       '@/constants': path.resolve(__dirname, './src/constants'),
       '@/data': path.resolve(__dirname, './src/data'),
       '@/features': path.resolve(__dirname, './src/features'),

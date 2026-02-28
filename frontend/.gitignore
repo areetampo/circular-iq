@@ -1,10 +1,6 @@
 # Dependencies
 node_modules/
 
-# Secrets & Local Overrides
-.env.local
-.env.*.local
-
 # Vite specific
 .vite/
 dist/

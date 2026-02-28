@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { SITE_CONFIG } from '@/constants/siteConfig';
+import { SITE_NAME } from '@/components/common';
 
 /**
  * Route-based header configuration
@@ -12,7 +12,7 @@ const ROUTE_CONFIGS = [
   {
     path: '/',
     exact: true,
-    title: SITE_CONFIG.fullName,
+    title: SITE_NAME,
     subtitle: 'Assess and enhance your circular economy business ideas with AI-driven insights.',
     titleSize: 'text-3xl xxs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl', // Largest - hero page
     subtitleSize: 'text-md xxs:text-lg md:text-xl lg:text-2xl',
@@ -147,7 +147,7 @@ const ROUTE_CONFIGS = [
   // Default fallback
   {
     path: '*',
-    title: SITE_CONFIG.fullName,
+    title: SITE_NAME,
     subtitle: "Evaluate your business idea's circularity potential using AI-driven analysis",
     titleSize: 'text-3xl sm:text-4xl md:text-5xl',
     subtitleSize: 'text-base md:text-lg',

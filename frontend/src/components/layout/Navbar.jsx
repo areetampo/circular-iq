@@ -13,8 +13,8 @@ import {
   NavbarMenuItem,
 } from '@heroui/navbar';
 import { Menu, Transition, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
-import { SITE_CONFIG } from '@/constants/siteConfig';
 import { User, Settings, HelpCircle, LogOut, Mail, ChevronDown } from 'lucide-react';
+import { SiteName, SiteLogo } from '@/components/common';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -127,8 +127,8 @@ export default function Navbar() {
             className="flex items-center gap-2 cursor-pointer"
             aria-label="Go to home"
           >
-            <SITE_CONFIG.siteLogo />
-            <span className="font-bold text-xl text-foreground">{SITE_CONFIG.name}</span>
+            <SiteLogo />
+            <SiteName className="font-bold text-xl text-foreground" />
           </button>
         </NavbarBrand>
 

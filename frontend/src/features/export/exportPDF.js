@@ -254,7 +254,8 @@ export async function exportAssessmentPDF(assessment, options = {}) {
     assessment.title ||
     assessment.caseName ||
     assessment.projectTitle ||
-    metadata.industry ||
+    assessment.industry ||
+    result.industry ||
     'Assessment';
   const assessmentDate = assessment.created_at || metadata.date || result.created_at;
   const formattedDate = assessmentDate ? formatDate(assessmentDate) : null;
@@ -361,7 +362,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
       <table class="metadata-table">
         <tr>
           <td>Industry</td>
-          <td>${formatTextForPDF(metadata.industry || 'N/A')}</td>
+          <td>${formatTextForPDF(assessment.industry || result.industry || 'N/A')}</td>
         </tr>
         <tr>
           <td>Scale</td>

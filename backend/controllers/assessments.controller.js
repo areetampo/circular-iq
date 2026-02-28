@@ -1,0 +1,769 @@
+/**
+ * Assessments Controller
+ * Handles all business logic for assessment operations
+ * - Save new assessments
+ * - Fetch assessments (user and public)
+ * - Retrieve statistics
+ * - Market analysis
+ * - Assessment updates and deletion
+ */
+
+import { createSupabaseClientWithAuth } from '#database/supabase.client.js';
+import { BACKEND_CONFIG } from '#config/backend.config.js';
+
+const IS_PROD = BACKEND_CONFIG.isProduction;
+
+/**
+ * Log API operation
+ * @private
+ */
+function logOperation(operation, status, duration) {
+  if (!IS_PROD) {
+    console.log(`[${new Date().toISOString()}] ${operation} - ${status} (${duration}ms)`);
+  }
+}
+
+/**
+ * Format error response
+ * @private
+ */
+function errorResponse(error, defaultMessage = 'Internal server error') {
+  return {
+    error: error.message || defaultMessage,
+    timestamp: new Date().toISOString(),
+    code: error.code || 'INTERNAL_ERROR',
+  };
+}
+
+/**
+ * Save a new assessment
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {Object} validatedBody - Validated request body from middleware
+ * @param {Object} rawBody - Raw request body
+ * @param {string} token - Authorization token
+ * @returns {Promise<Object>} Assessment data with id
+ */
+export async function saveAssessment(supabase, user, validatedBody, rawBody, token) {
+  const startTime = Date.now();
+
+  try {
+    const { name, industry, result_json, is_public, contribute_to_global_benchmarks } =
+      validatedBody;
+    const { title, businessProblem, businessSolution, result, parameters } = rawBody;
+
+    // Check for required result data (either from result_json or result field)
+    const resultData = result_json || result;
+    if (!resultData || !resultData.overall_score) {
+      throw new Error('result with overall_score is required');
+    }
+
+    // Ensure assessment stores the case-summary inputs even if the client
+    // provided them inside `result_json` instead of top-level fields.
+    const finalResultJson =
+      result_json || (result ? { ...result, input_parameters: parameters || null } : null);
+
+    const assessmentData = {
+      user_id: user.id,
+      title: name || title?.substring(0, 255) || 'Untitled Assessment',
+      business_problem:
+        businessProblem || finalResultJson?.businessProblem || finalResultJson?.problem || '',
+      business_solution:
+        businessSolution || finalResultJson?.businessSolution || finalResultJson?.solution || '',
+      result_json: finalResultJson,
+      // Use industry field only; metadata should not supply this value
+      industry: industry ?? null,
+      overall_score: Math.round(resultData.overall_score),
+      business_viability_score: resultData.sub_scores?.business_viability || 0,
+      is_public: typeof is_public === 'boolean' ? is_public : true,
+      contribute_to_global_benchmarks:
+        typeof contribute_to_global_benchmarks === 'boolean'
+          ? contribute_to_global_benchmarks
+          : true,
+    };
+
+    // Insert assessment using an authenticated user client to respect RLS
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+
+    const { data, error } = await userClient.from('assessments').insert([assessmentData]).select();
+
+    if (error) throw error;
+
+    logOperation('saveAssessment', 'success', Date.now() - startTime);
+
+    return {
+      id: data[0].id,
+      message: 'Assessment saved successfully',
+      assessment: data[0],
+    };
+  } catch (error) {
+    logOperation('saveAssessment', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Fetch user's assessments with filtering, sorting, pagination
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} token - Authorization token
+ * @param {Object} query - Query parameters (industry, sortBy, order, page, pageSize, search, etc.)
+ * @returns {Promise<Object>} Assessments array, total count, pagination info
+ */
+export async function fetchUserAssessments(supabase, user, token, query) {
+  const startTime = Date.now();
+
+  try {
+    const {
+      industry,
+      sortBy: sortByRaw = 'created_at',
+      order: orderRaw = 'desc',
+      page = 1,
+      pageSize = 20,
+      search,
+      createdFrom,
+      createdTo,
+      minScore,
+      maxScore,
+    } = query;
+
+    const currentPage = Math.max(1, parseInt(page));
+    const size = Math.max(1, Math.min(100, parseInt(pageSize)));
+    const from = (currentPage - 1) * size;
+    const to = from + size - 1;
+
+    const allowedSort = new Set(['created_at', 'overall_score', 'title']);
+    const sortBy = allowedSort.has(String(sortByRaw)) ? String(sortByRaw) : 'created_at';
+    const orderDirection = String(orderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
+
+    // Create authenticated user client to respect RLS policies
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+
+    let queryBuilder = userClient.from('assessments').select('*', { count: 'exact' });
+
+    // Filter by user_id to match the authenticated user (mirrors RLS policy)
+    if (user && user.id) {
+      queryBuilder = queryBuilder.eq('user_id', user.id);
+    }
+
+    if (industry) {
+      const industries = String(industry)
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+
+      if (industries.length === 1) {
+        queryBuilder = queryBuilder.eq('industry', industries[0]);
+      } else if (industries.length > 1) {
+        queryBuilder = queryBuilder.in('industry', industries);
+      }
+    }
+
+    if (search && String(search).trim().length > 0) {
+      const term = String(search).trim().toLowerCase();
+      // OR filter across title and industry fields using ilike
+      queryBuilder = queryBuilder.or(`title.ilike.%${term}%,industry.ilike.%${term}%`);
+    }
+
+    if (createdFrom) {
+      queryBuilder = queryBuilder.gte('created_at', new Date(createdFrom).toISOString());
+    }
+    if (createdTo) {
+      queryBuilder = queryBuilder.lte('created_at', new Date(createdTo).toISOString());
+    }
+    if (minScore != null && !Number.isNaN(Number(minScore))) {
+      queryBuilder = queryBuilder.gte('overall_score', Number(minScore));
+    }
+    if (maxScore != null && !Number.isNaN(Number(maxScore))) {
+      queryBuilder = queryBuilder.lte('overall_score', Number(maxScore));
+    }
+
+    const { data, error, count } = await queryBuilder
+      .order(sortBy, { ascending: orderDirection === 'asc' })
+      .range(from, to);
+
+    if (error) {
+      console.error('Query error:', error);
+      throw error;
+    }
+
+    logOperation('fetchUserAssessments', 'success', Date.now() - startTime);
+
+    return {
+      assessments: data || [],
+      total: count || 0,
+      page: currentPage,
+      pageSize: size,
+    };
+  } catch (error) {
+    logOperation('fetchUserAssessments', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Get aggregate statistics for user's assessments
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} token - Authorization token
+ * @returns {Promise<Object>} Statistics including average score, top industries
+ */
+export async function getAssessmentStats(supabase, user, token) {
+  const startTime = Date.now();
+
+  try {
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+
+    // Get all assessments for the user (no pagination) - fetch both score and industry
+    let queryBuilder = userClient
+      .from('assessments')
+      .select('overall_score, industry', { count: 'exact' });
+
+    if (user && user.id) {
+      queryBuilder = queryBuilder.eq('user_id', user.id);
+    }
+
+    const { data, error, count } = await queryBuilder;
+
+    if (error) {
+      console.error('Query error:', error);
+      throw error;
+    }
+
+    // Calculate statistics
+    const scores = (data || []).map((a) => a.overall_score || 0).filter((s) => s !== null);
+
+    // Calculate top industry (handle ties by showing all industries with max count)
+    let topIndustries = null;
+    if (data && data.length > 0) {
+      const industryCounts = (data || []).reduce((acc, assessment) => {
+        const ind = assessment.industry || 'general';
+        acc[ind] = (acc[ind] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Find max count
+      const maxCount = Math.max(...Object.values(industryCounts));
+
+      // Get all industries with max count
+      const topIndustriesArray = Object.entries(industryCounts)
+        .filter(([, cnt]) => cnt === maxCount)
+        .map(([ind, cnt]) => ({ industry: ind, count: cnt }))
+        .sort((a, b) => a.industry.localeCompare(b.industry));
+
+      topIndustries = topIndustriesArray;
+    }
+
+    const stats = {
+      totalAssessments: count || 0,
+      averageScore:
+        scores.length > 0
+          ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100
+          : 0,
+      highestScore: scores.length > 0 ? Math.max(...scores) : 0,
+      lowestScore: scores.length > 0 ? Math.min(...scores) : 0,
+      topIndustries,
+    };
+
+    logOperation('getAssessmentStats', 'success', Date.now() - startTime);
+
+    return stats;
+  } catch (error) {
+    logOperation('getAssessmentStats', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Fetch a public assessment by public_id
+ * @param {Object} supabase - Supabase client
+ * @param {string} publicId - Public assessment ID
+ * @returns {Promise<Object>} Assessment data with readonly flag
+ */
+export async function getPublicAssessment(supabase, publicId) {
+  const startTime = Date.now();
+
+  try {
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('*')
+      .eq('public_id', publicId)
+      .eq('is_public', true)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      const notFoundError = new Error('Assessment not found or is not public');
+      notFoundError.code = 'NOT_FOUND';
+      throw notFoundError;
+    }
+
+    logOperation('getPublicAssessment', 'success', Date.now() - startTime);
+
+    return { assessment: data, readonly: true };
+  } catch (error) {
+    logOperation('getPublicAssessment', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Validate a public assessment ID
+ * @param {Object} supabase - Supabase client
+ * @param {string} publicId - Public assessment ID to validate
+ * @returns {Promise<Object>} Validation result
+ */
+export async function validatePublicId(supabase, publicId) {
+  const startTime = Date.now();
+
+  try {
+    // Quick UUID format check (basic)
+    const uuidRegex =
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(publicId)) {
+      const error = new Error('Invalid public id format');
+      error.code = 'INVALID_FORMAT';
+      throw error;
+    }
+
+    const { data, error } = await supabase
+      .from('assessments')
+      .select('id,is_public')
+      .eq('public_id', publicId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      const notFoundError = new Error('Invalid Public ID');
+      notFoundError.code = 'NOT_FOUND';
+      throw notFoundError;
+    }
+
+    if (!data.is_public) {
+      const forbiddenError = new Error('Assessment not publicly available');
+      forbiddenError.code = 'FORBIDDEN';
+      throw forbiddenError;
+    }
+
+    logOperation('validatePublicId', 'success', Date.now() - startTime);
+
+    return { valid: true };
+  } catch (error) {
+    logOperation('validatePublicId', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Fetch market analysis data (aggregate stats)
+ * @param {Object} supabase - Supabase client
+ * @returns {Promise<Object>} Market data and statistics
+ */
+export async function getMarketAnalysis(supabase) {
+  const startTime = Date.now();
+
+  try {
+    const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+
+    if (marketError) {
+      console.warn('Market data query warning:', marketError.message);
+      // Return empty structure if function not available yet
+      return {
+        market_data: [],
+        stats: null,
+      };
+    }
+
+    const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
+
+    if (statsError) {
+      console.warn('Assessment statistics query warning:', statsError.message);
+    }
+
+    logOperation('getMarketAnalysis', 'success', Date.now() - startTime);
+
+    return {
+      market_data: marketData || [],
+      stats: stats?.[0] || null,
+    };
+  } catch (error) {
+    logOperation('getMarketAnalysis', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Fetch a single assessment by ID (user-specific)
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} token - Authorization token
+ * @param {string} id - Assessment ID
+ * @returns {Promise<Object>} Assessment data
+ */
+export async function getAssessmentById(supabase, user, token, id) {
+  const startTime = Date.now();
+
+  try {
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+
+    let queryBuilder = userClient.from('assessments').select('*').eq('id', id);
+
+    if (user && user.id) {
+      queryBuilder = queryBuilder.eq('user_id', user.id);
+    }
+
+    const { data, error } = await queryBuilder.maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      const notFoundError = new Error('Assessment not found');
+      notFoundError.code = 'NOT_FOUND';
+      throw notFoundError;
+    }
+
+    logOperation('getAssessmentById', 'success', Date.now() - startTime);
+
+    return { assessment: data };
+  } catch (error) {
+    logOperation('getAssessmentById', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Update assessment fields
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} token - Authorization token
+ * @param {string} id - Assessment ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<Object>} Updated assessment data
+ */
+export async function updateAssessment(supabase, user, token, id, updates) {
+  const startTime = Date.now();
+
+  try {
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+
+    // If setting is_public to true and no public_id exists, generate one
+    const updateData = { ...updates };
+    if (updates.is_public === true) {
+      const { data: current } = await userClient
+        .from('assessments')
+        .select('public_id')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single();
+
+      // If no public_id exists, generate one using database function
+      if (!current?.public_id) {
+        updateData.public_id = null; // Let database generate via DEFAULT
+      }
+    }
+
+    // Update only if the assessment belongs to the authenticated user
+    const { data, error } = await userClient
+      .from('assessments')
+      .update(updateData)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    if (!data) {
+      const notFoundError = new Error('Assessment not found or unauthorized');
+      notFoundError.code = 'NOT_FOUND';
+      throw notFoundError;
+    }
+
+    logOperation('updateAssessment', 'success', Date.now() - startTime);
+
+    return { assessment: data, message: 'Assessment updated successfully' };
+  } catch (error) {
+    logOperation('updateAssessment', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Delete an assessment
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} token - Authorization token
+ * @param {string} id - Assessment ID
+ * @returns {Promise<Object>} Deletion confirmation
+ */
+export async function deleteAssessment(supabase, user, token, id) {
+  const startTime = Date.now();
+  const userId = user.id;
+
+  try {
+    console.log('[DELETE_REQUEST]', { id, userId });
+
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+
+    // Verify assessment exists and belongs to user before deleting
+    const { data: assessment, error: getError } = await userClient
+      .from('assessments')
+      .select('id')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (getError || !assessment) {
+      console.log('[DELETE_NOT_FOUND]', { id, userId, getError });
+      const notFoundError = new Error(
+        'Assessment not found or you do not have permission to delete it',
+      );
+      notFoundError.code = 'NOT_FOUND';
+      throw notFoundError;
+    }
+
+    // Delete the assessment using authenticated client
+    const { error: deleteError } = await userClient
+      .from('assessments')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (deleteError) {
+      console.error('[DELETE_ERROR]', { id, userId, deleteError });
+      throw new Error(`Deletion failed: ${deleteError.message}`);
+    }
+
+    console.log('[DELETE_SUCCESS]', { id, userId });
+    logOperation('deleteAssessment', 'success', Date.now() - startTime);
+
+    return { message: 'Assessment deleted successfully', id };
+  } catch (error) {
+    console.error('Error deleting assessment:', error);
+    logOperation('deleteAssessment', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Get per-assessment market analysis (user-specific)
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} id - Assessment ID
+ * @returns {Promise<Object>} Market analysis data including benchmarks
+ */
+export async function getPerAssessmentMarketAnalysis(supabase, user, id) {
+  const startTime = Date.now();
+
+  try {
+    // Fetch market-level aggregates
+    const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+    if (marketError) {
+      console.warn('Market data query warning:', marketError.message);
+    }
+
+    const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
+    if (statsError) {
+      console.warn('Assessment statistics query warning:', statsError.message);
+    }
+
+    // Fetch the assessment to obtain user score and metadata (ownership enforced)
+    const { data: assessmentRow, error: assessmentError } = await supabase
+      .from('assessments')
+      .select('overall_score, result_json, industry')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (assessmentError) {
+      console.warn('Assessment fetch warning:', assessmentError.message);
+    }
+
+    const userScore = assessmentRow?.overall_score ?? null;
+    const userIndustry = assessmentRow?.industry ?? null; // structured column only
+
+    // Compute percentile if possible
+    let userPercentile = null;
+    if (typeof userScore === 'number') {
+      const { count: lessOrEqualCount } = await supabase
+        .from('assessments')
+        .select('id', { count: 'exact' })
+        .lte('overall_score', userScore);
+
+      const total = stats?.[0]?.total_assessments || null;
+      if (total && typeof lessOrEqualCount === 'number') {
+        userPercentile = Math.round((lessOrEqualCount / total) * 100);
+      }
+    }
+
+    // Compute industry benchmark for the user's industry
+    let industryBenchmark = null;
+    if (userIndustry && Array.isArray(marketData)) {
+      const match = marketData.find((m) => m.industry === userIndustry);
+      if (match) {
+        industryBenchmark = {
+          avg_score: match.avg_score,
+          min_score: match.min_score,
+          max_score: match.max_score,
+          count: match.count,
+          scale: match.scale,
+        };
+      }
+    }
+
+    // Build strategy breakdown
+    const strategyMap = {};
+    (marketData || []).forEach((m) => {
+      const strat = m.r_strategy || 'unknown';
+      if (!strategyMap[strat]) {
+        strategyMap[strat] = { strategy: strat, avg_score: 0, count: 0 };
+      }
+      strategyMap[strat].avg_score =
+        (strategyMap[strat].avg_score * strategyMap[strat].count +
+          Number(m.avg_score || 0) * (m.count || 0)) /
+        (strategyMap[strat].count + (m.count || 0) || 1);
+      strategyMap[strat].count += m.count || 0;
+    });
+    const strategyBreakdown = Object.values(strategyMap).sort((a, b) => b.count - a.count);
+
+    // Normalize stats keys for frontend compatibility
+    const normalizedStats = stats?.[0]
+      ? {
+          avg_score: stats[0].avg_score,
+          median_score: stats[0].median_score,
+          min_score: stats[0].min_score,
+          max_score: stats[0].max_score,
+          total_count: stats[0].total_assessments,
+        }
+      : null;
+
+    logOperation('getPerAssessmentMarketAnalysis', 'success', Date.now() - startTime);
+
+    return {
+      market_data: marketData || [],
+      stats: normalizedStats,
+      userScore,
+      user_percentile: userPercentile,
+      userIndustry,
+      industry_benchmark: industryBenchmark,
+      strategy_breakdown: strategyBreakdown,
+    };
+  } catch (error) {
+    logOperation('getPerAssessmentMarketAnalysis', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Get per-assessment market analysis for public assessments
+ * @param {Object} supabase - Supabase client
+ * @param {string} publicId - Public assessment ID
+ * @returns {Promise<Object>} Market analysis data with readonly flag
+ */
+export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
+  const startTime = Date.now();
+
+  try {
+    // Fetch market aggregates
+    const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
+    if (marketError) console.warn('Market data query warning:', marketError.message);
+
+    const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
+    if (statsError) console.warn('Assessment statistics query warning:', statsError.message);
+
+    // Fetch the assessment by public_id and ensure it is public
+    const { data: assessmentRow, error: assessmentError } = await supabase
+      .from('assessments')
+      .select('overall_score, result_json, industry, is_public')
+      .eq('public_id', publicId)
+      .eq('is_public', true)
+      .maybeSingle();
+
+    if (assessmentError) console.warn('Assessment fetch warning:', assessmentError.message);
+
+    if (!assessmentRow) {
+      const notFoundError = new Error('Assessment not found or not public');
+      notFoundError.code = 'NOT_FOUND';
+      throw notFoundError;
+    }
+
+    // Defensive check: return 403 if the record exists but is not public
+    if (!assessmentRow.is_public) {
+      const forbiddenError = new Error('Assessment is not public');
+      forbiddenError.code = 'FORBIDDEN';
+      throw forbiddenError;
+    }
+
+    const userScore = assessmentRow?.overall_score ?? null;
+    const userIndustry = assessmentRow?.industry ?? null; // structured column only
+
+    let userPercentile = null;
+    if (typeof userScore === 'number') {
+      const { count: lessOrEqualCount } = await supabase
+        .from('assessments')
+        .select('id', { count: 'exact' })
+        .lte('overall_score', userScore);
+
+      const total = stats?.[0]?.total_assessments || null;
+      if (total && typeof lessOrEqualCount === 'number') {
+        userPercentile = Math.round((lessOrEqualCount / total) * 100);
+      }
+    }
+
+    let industryBenchmark = null;
+    if (userIndustry && Array.isArray(marketData)) {
+      const match = marketData.find((m) => m.industry === userIndustry);
+      if (match) {
+        industryBenchmark = {
+          avg_score: match.avg_score,
+          min_score: match.min_score,
+          max_score: match.max_score,
+          count: match.count,
+          scale: match.scale,
+        };
+      }
+    }
+
+    const strategyMap = {};
+    (marketData || []).forEach((m) => {
+      const strat = m.r_strategy || 'unknown';
+      if (!strategyMap[strat]) {
+        strategyMap[strat] = { strategy: strat, avg_score: 0, count: 0 };
+      }
+      strategyMap[strat].avg_score =
+        (strategyMap[strat].avg_score * strategyMap[strat].count +
+          Number(m.avg_score || 0) * (m.count || 0)) /
+        (strategyMap[strat].count + (m.count || 0) || 1);
+      strategyMap[strat].count += m.count || 0;
+    });
+    const strategyBreakdown = Object.values(strategyMap).sort((a, b) => b.count - a.count);
+
+    const normalizedStats = stats?.[0]
+      ? {
+          avg_score: stats[0].avg_score,
+          median_score: stats[0].median_score,
+          min_score: stats[0].min_score,
+          max_score: stats[0].max_score,
+          total_count: stats[0].total_assessments,
+        }
+      : null;
+
+    logOperation('getPublicPerAssessmentMarketAnalysis', 'success', Date.now() - startTime);
+
+    return {
+      market_data: marketData || [],
+      stats: normalizedStats,
+      userScore,
+      user_percentile: userPercentile,
+      userIndustry,
+      industry_benchmark: industryBenchmark,
+      strategy_breakdown: strategyBreakdown,
+      readonly: true,
+    };
+  } catch (error) {
+    logOperation('getPublicPerAssessmentMarketAnalysis', 'error', Date.now() - startTime);
+    throw error;
+  }
+}

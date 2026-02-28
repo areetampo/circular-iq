@@ -1,16 +1,7 @@
 # Dependencies
 node_modules/
 
-# Secrets (The most important part)
-.env.local
-.env.*.local
-
-# If you want to keep .env purely for production
-# and never risk it being in Git:
-# .env
-
 # Generated Data & Caches
-dataset/chunks.json
 logs/
 *.log
 

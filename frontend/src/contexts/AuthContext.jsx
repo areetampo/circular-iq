@@ -6,13 +6,11 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { supabase } from '@/lib/supabase';
-import { SITE_CONFIG } from '@/constants/siteConfig';
-import { getSession, saveSession } from '@/utils/session';
+import { FRONTEND_CONFIG } from '@/config';
 
-const API_URL = SITE_CONFIG.apiBaseUrl;
+const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 
 // Create the context
 const AuthContext = createContext(undefined);
@@ -70,7 +68,6 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const navigate = useNavigate();
 
   /**
    * Sign out the current user

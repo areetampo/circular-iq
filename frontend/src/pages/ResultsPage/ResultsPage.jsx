@@ -57,15 +57,11 @@ import {
   NotebookText,
   Lock,
   Globe,
-  Trash,
-  Trash2,
   CircleX,
   FolderPen,
   MonitorDown,
-  LockOpen,
 } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
-import { cn } from '@/utils/cn';
 import ResultsSkeleton from './components/ResultsSkeleton';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -320,11 +316,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       });
     }
 
-    // coerce metadata fields that should be strings
+    // Ensure metadata is a plain object if present, but do not mutate industry/region
     if (out.metadata && typeof out.metadata === 'object') {
       out.metadata = { ...out.metadata };
-      if (out.metadata.industry == null) out.metadata.industry = out.metadata.industry || undefined;
-      if (out.metadata.region == null) out.metadata.region = out.metadata.region || undefined;
     }
 
     return out;
@@ -348,7 +342,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         const saveData = {
           name,
           result_json: resultPayload,
-          industry: currentData?.metadata?.industry || 'Unknown',
+          industry: currentData?.industry ?? null,
           is_public: isPublic,
           contribute_to_global_benchmarks: contributeToGlobalBenchmarks,
           // Persist case-summary fields — prefer `resolvedFormData` (from in-memory form)
@@ -456,8 +450,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       res.audit?.businessSolution ||
       caseProblemSolution?.solution ||
       'Solution data unavailable';
+    // Prefer structured `industry` field from the server/session snapshot
     industryText =
-      (res.metadata?.industry && titleize(res.metadata.industry)) ||
       (res.industry && titleize(res.industry)) ||
       (res.audit?.industry && titleize(res.audit.industry)) ||
       'Industry data unavailable';
@@ -1573,7 +1567,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         Industry
                       </div>
                       <div className="text-sm font-bold text-slate-900">
-                        {titleize(actualResult.metadata.industry)}
+                        {titleize(actualResult.industry || '')}
                       </div>
                       <div className="text-xs text-slate-600 mt-1 italic">{fieldHelp.industry}</div>
                     </div>

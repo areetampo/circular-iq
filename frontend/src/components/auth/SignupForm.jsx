@@ -6,12 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import PropTypes from 'prop-types';
 import { Card, Input, Label, TextField, FieldError, Form } from '@heroui/react';
-import { Button } from '@/components/common';
+import { Button, SITE_NAME, LoaderIcon } from '@/components/common';
 import { toast } from '@heroui/react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import LoaderIcon from '@/components/common/LoaderIcon';
-import { SITE_CONFIG } from '@/constants/siteConfig';
 
 const minUsernameLength = 3;
 const maxUsernameLength = 30;
@@ -88,7 +86,7 @@ export function SignupForm({ onSwitchToLogin }) {
       if (loginError) throw loginError;
 
       toast.success('Account created successfully!', {
-        description: `Welcome to ${SITE_CONFIG.fullName}.`,
+        description: `Welcome to ${SITE_NAME}.`,
         timeout: 3000,
       });
 

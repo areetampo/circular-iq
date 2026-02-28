@@ -6,10 +6,10 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { SITE_CONFIG } from '@/constants/siteConfig';
+import { FRONTEND_CONFIG } from '@/config';
 
-const supabaseUrl = SITE_CONFIG.supabase.url;
-const supabaseAnonKey = SITE_CONFIG.supabase.anonKey;
+const supabaseUrl = FRONTEND_CONFIG.supabase.url;
+const supabaseAnonKey = FRONTEND_CONFIG.supabase.anonKey;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(

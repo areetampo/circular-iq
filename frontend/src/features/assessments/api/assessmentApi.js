@@ -1,4 +1,15 @@
 import { supabase } from '@/lib/supabase';
+
+/**
+ * @typedef {Object} DocumentSearchResult
+ * @property {string} id
+ * @property {string} title
+ * @property {string|null} industry
+ * @property {string|null} category
+ * @property {string|null} source
+ * @property {number} similarity
+ * @property {number|null} rrf_score
+ */
 import {
   validateAssessment,
   validateAssessmentsList,
@@ -7,9 +18,9 @@ import {
   AssessmentSchema,
   safeValidateGlobalAnalytics,
 } from '@/features/assessments/api/assessmentSchema';
-import { SITE_CONFIG } from '@/constants/siteConfig';
+import { FRONTEND_CONFIG } from '@/config';
 
-const API_URL = SITE_CONFIG.apiBaseUrl;
+const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 
 /**
  * Add Authorization header with bearer token if session exists
@@ -224,9 +235,7 @@ export async function getMarketAnalysisPublic(publicId) {
 
 export async function getGlobalAnalytics(filters = {}) {
   const params = new URLSearchParams();
-  if (filters?.industry && filters.industry !== 'all') {
-    params.set('industry', filters.industry);
-  }
+  if (filters?.industry) params.set('industry', filters.industry);
   if (filters?.timeRange && filters.timeRange !== 'all') {
     params.set('timeRange', filters.timeRange);
   }
@@ -237,9 +246,7 @@ export async function getGlobalAnalytics(filters = {}) {
 
 export async function getEnhancedAnalytics(filters = {}) {
   const params = new URLSearchParams();
-  if (filters?.industry && filters.industry !== 'all') {
-    params.set('industry', filters.industry);
-  }
+  if (filters?.industry) params.set('industry', filters.industry);
   if (filters?.timeRange && filters.timeRange !== 'all') {
     params.set('timeRange', filters.timeRange);
   }
@@ -257,7 +264,7 @@ export async function getEnhancedAnalytics(filters = {}) {
  */
 export async function getFeaturedSolutions({ limit = 3, industry, q } = {}) {
   const params = new URLSearchParams({ limit: String(limit) });
-  if (industry) params.set('industry', industry);
+  if (industry != null) params.set('industry', industry);
   if (q) params.set('q', q);
   const path = params.toString()
     ? `/api/analytics/featured-solutions?${params}`

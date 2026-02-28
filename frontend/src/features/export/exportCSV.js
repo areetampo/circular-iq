@@ -96,7 +96,6 @@ export function exportAssessmentCSV(assessments) {
       assessment.title ||
       assessment.caseName ||
       assessment.projectTitle ||
-      metadata.industry ||
       `Assessment ${index + 1}`;
     const createdAt = assessment.created_at || metadata.date || result.created_at || null;
 
@@ -104,6 +103,7 @@ export function exportAssessmentCSV(assessments) {
       name,
       date: createdAt ? formatDate(createdAt) : 'N/A',
       metadata,
+      industry: assessment.industry ?? null,
       subScores: result.sub_scores || {},
       overallScore: result.overall_score ?? 'N/A',
     };
@@ -119,7 +119,7 @@ export function exportAssessmentCSV(assessments) {
   csvLines.push('');
   csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
   csvLines.push(
-    ['Industry', ...assessmentData.map((a) => escapeCSV(a.metadata.industry || 'N/A'))].join(','),
+    ['Industry', ...assessmentData.map((a) => escapeCSV(a.industry || 'N/A'))].join(','),
   );
   csvLines.push(['Date', ...assessmentData.map((a) => escapeCSV(a.date))].join(','));
   csvLines.push('');
@@ -254,10 +254,7 @@ export function exportComparisonCSV(assessments) {
   csvLines.push(metadataHeader.join(','));
 
   // Industry row
-  const industryRow = [
-    'Industry',
-    ...assessmentData.map((a) => escapeCSV(a.metadata.industry || 'N/A')),
-  ];
+  const industryRow = ['Industry', ...assessmentData.map((a) => escapeCSV(a.industry || 'N/A'))];
   csvLines.push(industryRow.join(','));
 
   // Scale row
