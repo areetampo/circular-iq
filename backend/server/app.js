@@ -83,7 +83,7 @@ function safeCompare(providedKey, storedKey) {
   return crypto.timingSafeEqual(providedBuffer, storedBuffer);
 }
 
-function apiKeyGuard(req, res, next) {
+export function apiKeyGuard(req, res, next) {
   const isPublic = isPublicRoute(req.path);
 
   if (apiAuthEnabled) {
@@ -339,3 +339,4 @@ app.use((err, req, res, next) => {
 });
 
 export default app;
+export { app };

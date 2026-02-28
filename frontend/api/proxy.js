@@ -94,6 +94,19 @@ export default async function handler(req, res) {
       }
     });
 
+    // Forward client IP headers so backend can track original client IP
+    // Prefer existing x-forwarded-for if present, otherwise set to the socket remote address
+    if (req.headers['x-forwarded-for']) {
+      headers['x-forwarded-for'] = req.headers['x-forwarded-for'];
+    } else if (req.socket && req.socket.remoteAddress) {
+      headers['x-forwarded-for'] = req.socket.remoteAddress;
+    }
+
+    // Forward x-real-ip and cf-connecting-ip if present
+    if (req.headers['x-real-ip']) headers['x-real-ip'] = req.headers['x-real-ip'];
+    if (req.headers['cf-connecting-ip'])
+      headers['cf-connecting-ip'] = req.headers['cf-connecting-ip'];
+
     // Prepare request body
     let requestBody;
     if (['POST', 'PATCH', 'PUT'].includes(method) && req.body) {

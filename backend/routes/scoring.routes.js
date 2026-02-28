@@ -71,6 +71,19 @@ export default function createScoringRouter(openai, supabase) {
   router.post('/', scoringRateLimiter, async (req, res) => {
     const start = Date.now();
     try {
+      // Enforce anonymous usage limits before heavy processing
+      const anonCheck = await scoringController.enforceAnonymousUsage(
+        req,
+        supabaseClient,
+        serviceSupabase,
+      );
+
+      if (anonCheck && anonCheck.blocked) {
+        const status = anonCheck.status || 403;
+        logRequest('POST', '/score', status, Date.now() - start);
+        return res.status(status).json(anonCheck.body);
+      }
+
       const response = await scoringController.performScoring(
         req,
         openaiClient || sharedOpenAI,
