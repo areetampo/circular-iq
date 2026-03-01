@@ -5,6 +5,7 @@ import {
   getMarketAnalysisPublic,
   getPublicAssessment,
 } from '@/features/assessments';
+import { getIndustry } from '@/lib/metadata';
 
 /**
  * Hook for fetching market analysis data
@@ -40,7 +41,12 @@ export function useMarketAnalysis({ assessmentId, publicId, enabled = true } = {
   const assessment =
     assessmentQuery.data?.assessment?.result_json || assessmentQuery.data?.assessment;
   const userScore = assessment?.overall_score || null;
-  const userIndustry = assessment?.metadata?.industry || null;
+  let userIndustry = null;
+  try {
+    userIndustry = getIndustry(assessment) || null;
+  } catch (e) {
+    userIndustry = assessment?.industry || assessment?.metadata?.industry || null;
+  }
 
   return {
     marketData: marketQuery.data?.marketData || [],

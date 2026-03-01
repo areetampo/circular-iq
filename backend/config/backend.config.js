@@ -14,6 +14,8 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   // ensure auth is off unless specifically tested
   process.env.API_AUTH_ENABLED = 'false';
+  // provide a dummy API key in test environment to satisfy schema refinements
+  process.env.API_KEY = process.env.API_KEY || 'test-api-key';
 }
 
 /* ------------------------------ */

@@ -144,17 +144,22 @@ app.use(
     origin: function (origin, callback) {
       if (!origin && !IS_PROD) return callback(null, true);
 
+      // direct match
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.error(`CORS Error: Origin ${origin} not allowed`);
-        callback(new Error('Not allowed by CORS'));
+        return callback(null, true);
       }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
-  }),
+
+      // wildcard support for vercel domains
+      if (
+        (origin && origin.endsWith('.vercel.app')) ||
+        (origin && origin.endsWith('.vercel.sh'))
+      ) {
+        // allow any preview deployment or .vercel.sh alias
+        return callback(null, true);
+      }
+
+      console.error(`CORS Error: Origin ${origin} not allowed`);
+      return callback(new Error('Not allowed by CORS'));
 );
 
 app.use(express.json({ limit: '512kb' }));

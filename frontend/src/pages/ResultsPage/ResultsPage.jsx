@@ -426,7 +426,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const actualResult = currentData?.result_json || currentData || null;
   const caseId = actualResult?.case_id || currentData?.id || id;
-  const caseIndustry = actualResult?.metadata?.industry || '';
+  let caseIndustry = '';
+  try {
+    // eslint-disable-next-line global-require
+    const { getIndustry } = require('@/lib/metadata');
+    caseIndustry = getIndustry(actualResult) || '';
+  } catch (e) {
+    caseIndustry = actualResult?.industry || actualResult?.metadata?.industry || '';
+  }
   const caseProblemSolution = useMemo(
     () => extractProblemSolution(actualResult || currentData || {}),
     [actualResult, currentData],
@@ -566,8 +573,19 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     const source = isViewFromMyAssessments ? fetchedAssessment : currentData;
     if (!source) return '';
 
-    const base =
-      source.caseName || source.projectTitle || source.metadata?.industry || 'Assessment';
+    // Prefer structured industry when available
+    import.meta.env; // keep this module reference stable for bundlers
+    // lazily import helper to avoid circular imports in some test setups
+    let industryVal = null;
+    try {
+      // eslint-disable-next-line global-require
+      const { getIndustry } = require('@/lib/metadata');
+      industryVal = getIndustry(source);
+    } catch (e) {
+      industryVal = source.industry || source.metadata?.industry || null;
+    }
+
+    const base = source.caseName || source.projectTitle || industryVal || 'Assessment';
 
     const date = new Date().toISOString().split('T')[0];
     return `${base} - ${date}`;

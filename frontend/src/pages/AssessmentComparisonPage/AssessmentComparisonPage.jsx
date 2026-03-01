@@ -999,14 +999,42 @@ export default function AssessmentComparisonPage() {
                     <TableCell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
-                          {titleize(assessment1.result_json?.metadata?.industry)}
+                          {titleize(
+                            (function () {
+                              try {
+                                // eslint-disable-next-line global-require
+                                const { getIndustry } = require('@/lib/metadata');
+                                return getIndustry(assessment1.result_json) || '';
+                              } catch (e) {
+                                return (
+                                  assessment1.result_json?.industry ||
+                                  assessment1.result_json?.metadata?.industry ||
+                                  ''
+                                );
+                              }
+                            })(),
+                          )}
                         </Chip.Label>
                       </Chip>
                     </TableCell>
                     <TableCell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
-                          {titleize(assessment2.result_json?.metadata?.industry)}
+                          {titleize(
+                            (function () {
+                              try {
+                                // eslint-disable-next-line global-require
+                                const { getIndustry } = require('@/lib/metadata');
+                                return getIndustry(assessment2.result_json) || '';
+                              } catch (e) {
+                                return (
+                                  assessment2.result_json?.industry ||
+                                  assessment2.result_json?.metadata?.industry ||
+                                  ''
+                                );
+                              }
+                            })(),
+                          )}
                         </Chip.Label>
                       </Chip>
                     </TableCell>
@@ -1288,17 +1316,47 @@ export default function AssessmentComparisonPage() {
                   )}
                 </div>
 
-                {assessment1.result_json?.metadata?.industry !==
-                  assessment2.result_json?.metadata?.industry && (
-                  <div className="flex items-center gap-2">
-                    <strong className="text-slate-900">Industry Change:</strong>
-                    <span className="flex items-center gap-1 text-slate-600 font-medium">
-                      {titleize(assessment1.result_json?.metadata?.industry)}
-                      <ArrowRight size={12} />
-                      {titleize(assessment2.result_json?.metadata?.industry)}
-                    </span>
-                  </div>
-                )}
+                {(function () {
+                  try {
+                    // eslint-disable-next-line global-require
+                    const { getIndustry } = require('@/lib/metadata');
+                    const a1 = getIndustry(assessment1.result_json) || '';
+                    const a2 = getIndustry(assessment2.result_json) || '';
+                    if (a1 && a2 && a1 !== a2) {
+                      return (
+                        <div className="flex items-center gap-2">
+                          <strong className="text-slate-900">Industry Change:</strong>
+                          <span className="flex items-center gap-1 text-slate-600 font-medium">
+                            {titleize(a1)}
+                            <ArrowRight size={12} />
+                            {titleize(a2)}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  } catch (e) {
+                    const a1 =
+                      assessment1.result_json?.industry ||
+                      assessment1.result_json?.metadata?.industry;
+                    const a2 =
+                      assessment2.result_json?.industry ||
+                      assessment2.result_json?.metadata?.industry;
+                    if (a1 && a2 && a1 !== a2) {
+                      return (
+                        <div className="flex items-center gap-2">
+                          <strong className="text-slate-900">Industry Change:</strong>
+                          <span className="flex items-center gap-1 text-slate-600 font-medium">
+                            {titleize(a1)}
+                            <ArrowRight size={12} />
+                            {titleize(a2)}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }
+                })()}
 
                 <div className="text-slate-600 pt-2 border-t border-slate-200">
                   <strong className="text-slate-900">Compared: </strong>

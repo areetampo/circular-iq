@@ -5,6 +5,7 @@ import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
 import LineChart from '@/components/charts/LineChart';
 import { titleize } from '@/lib/formatting';
+import { getIndustry } from '@/lib/metadata';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import { useMarketAnalysis, getEnhancedAnalytics } from '@/features/assessments';
 import { useSession } from '@/features/session';
@@ -73,7 +74,13 @@ export default function MarketAnalysisPage({
   const isSessionView = !id && !isPublicShare && !!sessionResult;
   const userScore = isSessionView ? (sessionResult.overall_score ?? apiUserScore) : apiUserScore;
   const userIndustry = isSessionView
-    ? sessionResult?.metadata?.industry || sessionResult?.industry || apiUserIndustry
+    ? (function () {
+        try {
+          return getIndustry(sessionResult) || apiUserIndustry;
+        } catch (e) {
+          return sessionResult?.industry || sessionResult?.metadata?.industry || apiUserIndustry;
+        }
+      })()
     : apiUserIndustry;
 
   // If session-based, compute percentile & industryBenchmark client-side using stats/marketData

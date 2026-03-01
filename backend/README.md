@@ -193,6 +193,16 @@ import { DATASETS_PROCESSED_DIR } from '#utils/datasetsUtils.js';
 
 Avoid relative paths (`../../`); always use canonical aliases for consistency.
 
+## Note on structured metadata (industry & category)
+
+Recent database migrations add `industry` and `category` as first-class columns on the `documents` table (in addition to the existing `metadata` JSONB). The pipeline and storage scripts populate these columns at ingest time. Implementation notes:
+
+- Prefer the top-level `industry` and `category` columns for filtering, grouping, and UI display when present, and fall back to `metadata.industry`/`metadata.category` only for backward compatibility.
+- The `metadata` JSONB is still preserved for flexible fields (scale, r_strategy, primary_material, geographic_focus, etc.). Do not remove it; continue to use `metadata` for non-structured attributes.
+- The ingestion pipeline (`pipeline/store_embeddings.js`) already assigns `industry` and `category` when inserting document rows; queries and response mapping in controllers should prefer `row.industry`/`row.category`.
+
+This change improves query performance (indexable columns) and simplifies frontend consumption while retaining backward compatibility with older clients.
+
 ## Data Flow
 
 > **Note:** All filesystem paths used by dataset and pipeline scripts are defined
