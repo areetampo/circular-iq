@@ -93,6 +93,25 @@ export async function storeInSupabase(embeddedChunks) {
     `\nStoring ${embeddedChunks.length} documents${DRY_RUN ? ' (dry-run -> local JSONL)' : ' in Supabase'}...`,
   );
 
+  if (!DRY_RUN) {
+    const testUrl = `${BACKEND_CONFIG.supabase.url}/rest/v1/documents?select=count`;
+    console.log(`📡 Testing raw connection to: ${testUrl}`);
+
+    try {
+      const response = await fetch(testUrl, {
+        headers: {
+          apikey: BACKEND_CONFIG.supabase.serviceKey,
+          Authorization: `Bearer ${BACKEND_CONFIG.supabase.serviceKey}`,
+        },
+      });
+      console.log(`✅ Status: ${response.status} ${response.statusText}`);
+    } catch (err) {
+      console.error('❌ RAW FETCH FAILED');
+      console.error('Check: Is there a VPN/Firewall/Proxy active?');
+      console.log('Error Cause:', err.cause); // This will tell us if it's ECONNREFUSED or ENOTFOUND
+    }
+  }
+
   // Determine target table and function names based on archive flag
   const targetTable = dbConfig.tables.documents;
 
@@ -296,23 +315,6 @@ async function validateStorage() {
  * @async
  */
 export async function main() {
-  const testUrl = `${BACKEND_CONFIG.supabase.url}/rest/v1/documents?select=count`;
-  console.log(`📡 Testing raw connection to: ${testUrl}`);
-
-  try {
-    const response = await fetch(testUrl, {
-      headers: {
-        apikey: BACKEND_CONFIG.supabase.serviceKey,
-        Authorization: `Bearer ${BACKEND_CONFIG.supabase.serviceKey}`,
-      },
-    });
-    console.log(`✅ Status: ${response.status} ${response.statusText}`);
-  } catch (err) {
-    console.error('❌ RAW FETCH FAILED');
-    console.error('Check: Is there a VPN/Firewall/Proxy active?');
-    console.log('Error Cause:', err.cause); // This will tell us if it's ECONNREFUSED or ENOTFOUND
-  }
-
   const embeddedChunksPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON;
 
   try {
