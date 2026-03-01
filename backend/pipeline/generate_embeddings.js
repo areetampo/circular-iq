@@ -19,6 +19,9 @@ import {
   CHUNKS_JSON,
   ARCHIVES_CHUNKS_JSON,
   ARCHIVES_EMBEDDED_CHUNKS_JSON,
+  EMBEDDED_CHUNKS_JSON,
+  writeJson,
+  prepareWrite,
 } from '#utils/datasetsUtils.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
@@ -33,7 +36,6 @@ import {
   isValidEmbedding,
 } from '#config/embedding.js';
 import { fileURLToPath } from 'url';
-import { EMBEDDED_CHUNKS_JSON } from '#utils/datasetsUtils.js';
 
 // switch to archives mode if --archives or --archive flag is provided
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
@@ -117,10 +119,21 @@ export function loadChunks(chunksFilePath) {
  * @returns {Promise<Array>} Chunks with embedded vectors
  * @throws {Error} If embedding generation fails after retries
  */
-export async function generateEmbeddings(chunks) {
+export async function generateEmbeddings(chunks, opts = {}) {
+  const { progressPath = null } = opts;
+
   console.log(`\nGenerating embeddings for ${chunks.length} chunks...`);
   console.log(`  Model: ${EMBEDDING_MODEL}`);
   console.log(`  Dimension: ${EMBEDDING_DIMENSION}`);
+
+  // when a progress file path is provided we will write the current state of
+  // the embeddings array after each batch; this allows long runs to be
+  // inspected mid-flight and also ensures the file is created/cleared on first
+  // use.
+  if (progressPath) {
+    // prepare the file (clears existing contents)
+    await prepareWrite(progressPath, { clear: true });
+  }
 
   const embeddedChunks = [];
 
@@ -235,6 +248,22 @@ export async function generateEmbeddings(chunks) {
         throw new Error(`Embedding generation failed at batch ${batchNum}: ${errorMsg}`);
       }
     }
+
+    // if progress path provided write current state of embedded chunks
+    if (progressPath) {
+      try {
+        const partial = chunks.map((chunk) => ({
+          ...chunk,
+          embeddings: chunk._embeddings || { doc: null, fields: {} },
+          embedding_model: EMBEDDING_MODEL,
+          embedding_dimension: EMBEDDING_DIMENSION,
+          created_at: new Date().toISOString(),
+        }));
+        await writeJson(progressPath, partial);
+      } catch (e) {
+        console.warn(`⚠ failed to flush progress after batch ${batchNum}:`, e.message);
+      }
+    }
   }
 
   // Build output preserving original chunks + embeddings
@@ -251,6 +280,16 @@ export async function generateEmbeddings(chunks) {
     if (chunks[c]._embeddings) delete chunks[c]._embeddings;
   }
 
+  // if we were flushing on every batch we should also make sure final copy is
+  // written (probably redundant but harmless)
+  if (progressPath) {
+    try {
+      await writeJson(progressPath, embeddedChunks);
+    } catch {
+      /* ignore */
+    }
+  }
+
   console.log(`\n✓ Successfully generated embeddings for ${embeddedChunks.length} chunks\n`);
   return embeddedChunks;
 }
@@ -260,20 +299,13 @@ export async function generateEmbeddings(chunks) {
  * @param {Array} embeddedChunks - Chunks with embeddings
  * @param {string} outputPath - Output file path
  */
-export function saveEmbeddedChunks(embeddedChunks, outputPath) {
-  const outputDir = path.dirname(outputPath);
-
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  fs.writeFileSync(outputPath, JSON.stringify(embeddedChunks, null, 2));
-  // Make read-only to prevent accidental edits
+export async function saveEmbeddedChunks(embeddedChunks, outputPath) {
   try {
-    fs.chmodSync(outputPath, 0o444);
-  } catch {
-    // ignore chmod errors (Windows etc.)
+    await writeJson(outputPath, embeddedChunks);
+  } catch (err) {
+    throw new Error(`Failed to write embedded chunks: ${err.message}`);
   }
+
   console.log(`✓ Saved ${embeddedChunks.length} embedded chunks to ${outputPath}`);
 }
 
@@ -300,10 +332,12 @@ export async function main() {
     const chunks = loadChunks(chunksPath);
 
     // Step 2: Generate embeddings with full error handling
-    const embeddedChunks = await generateEmbeddings(chunks);
+    // provide the desired output path so the routine will flush progress
+    // to disk after each batch (useful for large datasets and dry runs)
+    const embeddedChunks = await generateEmbeddings(chunks, { progressPath: outputPath });
 
     // Step 3: Save embedded chunks
-    saveEmbeddedChunks(embeddedChunks, outputPath);
+    await saveEmbeddedChunks(embeddedChunks, outputPath);
 
     // Success summary
     console.log('╔════════════════════════════════════════════════════════════════════╗');

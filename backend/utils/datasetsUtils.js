@@ -12,11 +12,11 @@
  * Follows DRY principle to eliminate boilerplate across all dataset scripts.
  */
 
+/* global process */
 import path from 'path';
 import fs from 'fs';
 import { stringify } from 'csv-stringify/sync';
 import { fileURLToPath } from 'url';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -590,6 +590,166 @@ export async function ensureDir(dirPath) {
 }
 
 /**
+ * Ensure that a filesystem path exists as a file.
+ *
+ * - Creates parent directory (using ensureDir) if it doesn't exist.
+ * - If the file did not previously exist, an empty file is written.
+ * - Returns `true` if the file already existed, `false` if we created it.
+ *
+ * This is useful for scripts that may toggle the read-only bit later or
+ * append to the file; calling this guarantees the folder is present and the
+ * first write will operate on an empty file.
+ *
+ * Example:
+ *   await ensureFile(outputPath);
+ *   // now write/append freely, file is guaranteed to exist
+ */
+export async function ensureFile(filePath) {
+  const dir = path.dirname(filePath);
+  await ensureDir(dir);
+  try {
+    await fs.promises.access(filePath);
+    return true; // already existed
+  } catch {
+    // create empty file
+    await fs.promises.writeFile(filePath, '');
+    return false;
+  }
+}
+
+/**
+ * Synchronous counterpart to `ensureFile` for scripts that prefer sync I/O.
+ *
+ * Mirrors the behaviour: create parent directory, touch empty file if missing.
+ */
+export function ensureFileSync(filePath) {
+  const dir = path.dirname(filePath);
+  fs.mkdirSync(dir, { recursive: true });
+  if (fs.existsSync(filePath)) {
+    return true;
+  }
+  fs.writeFileSync(filePath, '');
+  return false;
+}
+/**
+ * Prepare a file for writing by ensuring its parent directory exists, touching
+ * an empty placeholder on first use, and unlocking it if it is currently
+ * read-only. The function accepts an optional `{clear:true}` flag which will
+ * also wipe any existing contents (useful at the start of a batch-driven
+ * script).
+ *
+ * This mirrors the logic used throughout the pipeline and dataset
+ * scripts and centralizes permission management.
+ *
+ * Returns `true` if the file already existed prior to the call (note that
+ * `{clear:true}` will still return `true` but will have emptied the file),
+ * `false` if it was newly created.
+ */
+export async function prepareWrite(filePath, opts = {}) {
+  const { clear = false } = opts;
+  const dir = path.dirname(filePath);
+  await ensureDir(dir);
+
+  let existed = fs.existsSync(filePath);
+  if (existed) {
+    // unlock file so we can overwrite/append
+    try {
+      fs.chmodSync(filePath, 0o644);
+    } catch {
+      // ignore errors on platforms that don't support chmod
+    }
+
+    // optionally wipe the existing contents if the caller requests a fresh start
+    if (clear) {
+      try {
+        await fs.promises.writeFile(filePath, '');
+      } catch {
+        // ignore
+      }
+      existed = false;
+    }
+  } else {
+    // create an empty placeholder to guarantee the path exists
+    fs.writeFileSync(filePath, '');
+  }
+
+  return existed;
+}
+
+/**
+ * Helper for writing CSV data in a consistent manner. Rows are passed in as an
+ * array of objects and will be stringified using the shared
+ * `STRINGIFY_OPTIONS` constant. The output file is prepared with
+ * `prepareWrite` and marked read-only once the write completes.
+ */
+export async function writeCsv(filePath, rows) {
+  await prepareWrite(filePath);
+  const csv = stringify(rows, STRINGIFY_OPTIONS);
+  await fs.promises.writeFile(filePath, csv);
+  try {
+    fs.chmodSync(filePath, 0o444);
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Write or append newline-delimited JSON (JSONL) entries to a file.
+ *
+ * @param {string} filePath
+ * @param {Array<Object>} items
+ * @param {Object} [opts]
+ * @param {boolean} opts.append - if true, append lines; otherwise overwrite
+ * @param {boolean} opts.clearOnFirst - if true, clear existing contents on first flush
+ */
+export async function writeJsonl(filePath, items, opts = {}) {
+  const { append = true, clearOnFirst = false } = opts;
+  if (!items || items.length === 0) return;
+
+  await prepareWrite(filePath);
+
+  // If requested, clear the file on first use
+  if (clearOnFirst) {
+    try {
+      await fs.promises.writeFile(filePath, '');
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const lines = items.map((it) => JSON.stringify(it)).join('\n') + '\n';
+
+  if (append) {
+    await fs.promises.appendFile(filePath, lines, 'utf8');
+  } else {
+    await fs.promises.writeFile(filePath, lines, 'utf8');
+  }
+
+  try {
+    await fs.promises.chmod(filePath, 0o444);
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Write a JSON array to a file (overwrites). Uses prepareWrite to ensure
+ * directory exists and unlocks file before writing, then marks read-only.
+ *
+ * @param {string} filePath
+ * @param {any} obj
+ */
+export async function writeJson(filePath, obj) {
+  await prepareWrite(filePath);
+  const json = JSON.stringify(obj, null, 2);
+  await fs.promises.writeFile(filePath, json, 'utf8');
+  try {
+    fs.chmodSync(filePath, 0o444);
+  } catch {
+    // ignore
+  }
+}
+/**
  * Append rows to the dataset's archive CSV, creating or clearing as requested.
  * @param {string} key - dataset key
  * @param {Array<Object>} rows - rows ready for stringify
@@ -601,31 +761,23 @@ export async function appendToArchive(key, rows, opts = {}) {
   const archivePath = getDatasetArchivePath(key);
   if (!archivePath) return; // nothing to do for datasets without archive
 
+  // ensure archive directory exists
   await ensureDir(DATASETS_ARCHIVES_DIR);
-  let exists = true;
-  try {
-    await fs.promises.access(archivePath);
-  } catch {
-    exists = false;
-  }
 
-  if (clear && exists) {
-    // unlock and wipe
-    await fs.promises.chmod(archivePath, 0o666).catch(() => {});
-    await fs.promises.writeFile(archivePath, '');
-    exists = false;
-  }
+  // prepare file – this will also unlock it and optionally clear existing contents
+  const hadBefore = await prepareWrite(archivePath, { clear });
 
-  const options = exists ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
+  // if the file existed previously and we didn't clear it, omit header on append
+  const options = hadBefore && !clear ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
   const csv = stringify(rows, options);
 
-  if (exists) {
+  if (hadBefore && !clear) {
     await fs.promises.appendFile(archivePath, csv);
   } else {
     await fs.promises.writeFile(archivePath, csv);
   }
 
-  // make read-only after write
+  // lock file after writing
   await fs.promises.chmod(archivePath, 0o444).catch(() => {});
 }
 

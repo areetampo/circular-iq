@@ -9,6 +9,15 @@ Complete guide for executing the document processing pipeline that transforms CS
 > (e.g. `../../`) when editing or creating new scripts; import the required
 > constants instead.
 >
+> **File handling note:** When a script writes an output file it first ensures
+> the parent folder exists (creating it if necessary) and touches an empty
+> placeholder file on the first write. Generated files are marked read-only
+> after creation; scripts will temporarily unlock them when run again so that
+> re‑running a stage doesn't require manual permission changes. Stages that
+> produce multiple batches (chunking, embedding generation, dry‑run storage)
+> clear the target file on the very first write and will flush progress back to
+> disk after every batch — the helper functions take care of making the file
+> writable before each write and locking it again immediately afterwards.>
 > **Running scrapers:** the Puppeteer‑based scrapers are located under
 > `datasets/scripts/scrape_*.js`. They default to headless mode so the browser
 > does not spawn a visible window. If you need to observe the automation,
@@ -18,6 +27,13 @@ Complete guide for executing the document processing pipeline that transforms CS
 > node datasets/scripts/scrape_ecesp.js          # headless
 > node datasets/scripts/scrape_ecesp.js --show   # open browser window
 > ```
+>
+> **Running everything at once:** rather than calling each dataset script by
+> hand you can use the orchestrator in `backend/pipeline/run_datasets_scripts.js`.
+> The npm alias `npm run datatsets-scripts` invokes it for you; it will execute all
+> `extract_*.js` files first followed by any `scrape_*.js` files, aborting on
+> the first error. This is handy when updating multiple sources or after
+> pulling upstream changes.
 
 **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
 **Stage 2: Chunk** - Split into semantic units → chunks.json

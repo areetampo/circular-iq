@@ -16,6 +16,7 @@ import {
   DATASETS_PROCESSED_DIR,
   DATASETS_MANUAL_ENTRIES_DIR,
   ARCHIVES_COMBINED_INPUT_CSV,
+  prepareWrite,
 } from '#utils/datasetsUtils.js';
 
 // allow writing to archives instead of normal output for a "run archives" variant
@@ -52,7 +53,7 @@ function readCsvFile(filePath) {
 /**
  * Main merge function
  */
-function mergeCsvFiles() {
+async function mergeCsvFiles() {
   console.log('\n' + '='.repeat(70));
   console.log('Circular Economy Dataset Merger');
   console.log('Merging CSV files from processed/ and manual_entries/ folders');
@@ -143,18 +144,14 @@ function mergeCsvFiles() {
   }
 
   try {
-    const outputDir = path.dirname(OUTPUT_FILE);
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-
+    // ensure parent dir (touch on first use) and wipe existing contents
+    await prepareWrite(OUTPUT_FILE, { clear: true });
     const output = [expectedHeader, ...mergedRows].join('\n');
-    fs.writeFileSync(OUTPUT_FILE, output, 'utf-8');
-    // ensure file is read-only to prevent accidental edits
+    await fs.promises.writeFile(OUTPUT_FILE, output, 'utf8');
     try {
-      fs.chmodSync(OUTPUT_FILE, 0o444);
+      await fs.promises.chmod(OUTPUT_FILE, 0o444);
     } catch (_chmodErr) {
-      // chmod might fail on Windows depending on permissions; ignore
+      // ignore chmod errors on some platforms
     }
     console.log(`\n✓ Merged file created: ${path.relative(process.cwd(), OUTPUT_FILE)}`);
   } catch (error) {
@@ -199,12 +196,14 @@ function mergeCsvFiles() {
 
 // Execute if run directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  try {
-    mergeCsvFiles();
-  } catch (error) {
-    console.error('\n❌ Fatal error:', error.message);
-    process.exit(1);
-  }
+  (async () => {
+    try {
+      await mergeCsvFiles();
+    } catch (error) {
+      console.error('\n❌ Fatal error:', error.message);
+      process.exit(1);
+    }
+  })();
 }
 
 export { mergeCsvFiles };

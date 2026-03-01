@@ -29,6 +29,8 @@ import {
   CHUNKS_JSON,
   ARCHIVES_COMBINED_INPUT_CSV,
   ARCHIVES_CHUNKS_JSON,
+  ARCHIVES_CHUNKS_JSON,
+  writeJson,
 } from '#utils/datasetsUtils.js';
 
 const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
@@ -442,20 +444,13 @@ function splitLongText(text, targetWords) {
  * @param {Array} chunks - Array of chunk objects
  * @param {string} outputPath - Output file path
  */
-export function saveChunksToFile(chunks, outputPath) {
-  const outputDir = path.dirname(outputPath);
-
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  fs.writeFileSync(outputPath, JSON.stringify(chunks, null, 2));
-  // make the chunks file read-only to avoid accidental edits
+export async function saveChunksToFile(chunks, outputPath) {
   try {
-    fs.chmodSync(outputPath, 0o444);
-  } catch {
-    // ignore chmod errors on platforms that don't support it
+    await writeJson(outputPath, chunks);
+  } catch (err) {
+    throw new Error(`Failed to write chunks file: ${err.message}`);
   }
+
   console.log(`✓ Saved ${chunks.length} chunks to ${outputPath}`);
 
   // Log statistics
@@ -487,17 +482,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const datasetPath = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV;
   const outputPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
   if (useArchive) console.log('⚠️  running in archives mode; writing output to archives folder');
-  // Ensure output directory exists
+  // ensure output folder is ready (writeJson will also handle this later)
   const outDir = path.dirname(outputPath);
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
-  }
+  await ensureDir(outDir);
 
   (async () => {
     try {
       const records = loadDataset(datasetPath);
       const chunks = createChunks(records);
-      saveChunksToFile(chunks, outputPath);
+      await saveChunksToFile(chunks, outputPath);
       console.log('\n✓ Chunking complete!');
       process.exit(0);
     } catch (error) {

@@ -28,6 +28,9 @@ import {
   EMBEDDED_CHUNKS_JSON,
   STORED_DOCUMENTS_JSONL,
   ARCHIVES_STORED_DOCUMENTS_JSONL,
+  prepareWrite,
+  ensureDir,
+  writeJsonl,
 } from '#utils/datasetsUtils.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { isValidTextForEmbedding, isValidEmbedding } from '#config/embedding.js';
@@ -127,6 +130,11 @@ export async function storeInSupabase(embeddedChunks) {
   // Determine output path for dry-run mode
   const dryRunOutputPath = useArchive ? ARCHIVES_STORED_DOCUMENTS_JSONL : STORED_DOCUMENTS_JSONL;
 
+  // if we're in dry-run mode we want to start with a clean file each time
+  if (DRY_RUN) {
+    await prepareWrite(dryRunOutputPath, { clear: true });
+  }
+
   const SUPABASE_BATCH_SIZE = 10;
   let totalStored = 0;
   let batchNum = 0;
@@ -200,26 +208,13 @@ export async function storeInSupabase(embeddedChunks) {
 
     // Insert batch with error handling
     if (DRY_RUN) {
-      // Ensure output directory exists before writing
-      const outDir = path.dirname(dryRunOutputPath);
-      if (!fs.existsSync(outDir)) {
-        fs.mkdirSync(outDir, { recursive: true });
-      }
-
+      // Ensure output directory exists; file itself has already been prepared
+      await ensureDir(path.dirname(dryRunOutputPath));
       try {
-        // If file exists and is read-only, make it writable temporarily
-        if (fs.existsSync(dryRunOutputPath)) {
-          fs.chmodSync(dryRunOutputPath, 0o644);
-        }
-
-        // Write batch documents
-        for (const doc of documentsToInsert) {
-          fs.appendFileSync(dryRunOutputPath, JSON.stringify(doc) + '\n', 'utf8');
-        }
-
-        // Make file read-only for durability
-        fs.chmodSync(dryRunOutputPath, 0o444);
-
+        await writeJsonl(dryRunOutputPath, documentsToInsert, {
+          append: true,
+          // no need to clear here because we cleared before the loop
+        });
         totalStored += documentsToInsert.length;
         console.log(
           `  ✔ Batch ${batchNum}/${totalBatches}: Wrote ${documentsToInsert.length} documents (total: ${totalStored}) to ${dryRunOutputPath}`,

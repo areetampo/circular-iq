@@ -4,7 +4,17 @@ Complete guide for sourcing, preparing, and integrating new circular economy dat
 
 ## Overview
 
-New datasets go through a lifecycle:
+> **Filesystem behaviour:** all backend scripts (pipeline & dataset) will
+> automatically create any missing output directories before writing data. On
+> the very first write they touch an empty file so that the presence of the
+> output path is guaranteed, and after a script completes the generated file is
+> marked read-only. When a stage produces multiple batches (embeddings,
+> backups) the target file is cleared at the start of the run and remains locked
+> between writes; the file is also repeatedly flushed during the processing loop
+> so you can inspect progress mid‑flight. Scripts that append data (scrapers,
+> dry‑run storage) will temporarily unlock the file on each write.
+
+> New datasets go through a lifecycle:
 
 ```
 Source (Web/File) → Extract/Transform → Standardize Format → Process → Merge → Pipeline
@@ -53,11 +63,17 @@ npm run merge
    node datasets/scripts/scrape_new_source.js
    ```
 
-4. **Output:** CSV in `datasets/raw/new_source/`
+> **Tip:** when you have multiple extractor/scraper scripts in the project
+> you don't need to invoke them one at a time. A runner script exists at
+> `backend/pipeline/run_datasets_scripts.js` which will sequentially execute
+> all `extract_*.js` scripts before the `scrape_*.js` ones and will exit on
+> the first error. You can call it directly or via the npm shortcut:
 
-### Option B: PDF Extraction
+```bash
+npm run datatsets-scripts
+```
 
-**When to use:** Data is in PDF documents
+> **When to use:** Data is in PDF documents
 
 1. **Use Puppeteer + PDF parser** (already in dependencies)
 

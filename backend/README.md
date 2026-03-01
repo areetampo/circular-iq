@@ -24,6 +24,10 @@ The backend is a Node.js/Express server that powers a document processing pipeli
 │  ├─ Embedding (generate_embeddings.js)                   │
 │  └─ Storage (store_embeddings.js)                        │
 │                                                             │
+│  *Utility*                                               │
+│  └─ run_datasets_scripts.js  - orchestrates all extractor │
+│      and scraper dataset scripts in the correct order     │
+│                                                             │
 │  Database Layer (Supabase PostgreSQL + pgvector)         │
 │  ├─ documents - Vector-searchable document store (switchable with USE_DOCUMENTS_ARCHIVES_TABLE to documents_archives)
 │  ├─ documents_archives - optional archive dataset mirror  │
@@ -507,6 +511,16 @@ npm run embed:archives  # Generate embeddings → archives/embedded_chunks.json
 ```
 
 All files written (both `out/` and `archives/` folders) are automatically set to read-only after generation to prevent accidental modifications.
+
+> **Filesystem behaviour:** pipeline and dataset scripts will create any
+> missing parent directories before writing output, touch an empty placeholder
+> file on the first write, and then mark the final file as read-only. The
+> first time a file is written during a run it is cleared to ensure stale data
+> is removed; stages that work in batches (chunking, embedding, dry‑run
+> storage) will also flush intermediate progress back to disk after each
+> iteration so that partial results are visible. When you re-run a stage the
+> script temporarily unlocks the file, so regenerating results does not require
+> manual permission changes.
 
 ### Validation & Testing
 

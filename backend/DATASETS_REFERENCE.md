@@ -1,6 +1,18 @@
 # Current Datasets Reference
 
-Reference guide for all datasets currently integrated into the system.
+## Reference guide for all datasets currently integrated into the system.
+
+## File I/O behaviour (centralised)
+
+All backend scripts use helper functions exported from `utils/datasetsUtils.js` for consistent file I/O. When a script writes an output file the behaviour is unified:
+
+- the parent directory is created automatically if missing;
+- the first write touches an empty file so the path exists and downstream tooling can rely on it;
+- existing files are temporarily unlocked (made writable) before being updated and are set back to read-only after the write completes;
+- stages that operate in multiple batches (for example generating or storing embeddings) clear their target file on the first write and then flush progress repeatedly while locking between writes;
+- scrapers periodically flush intermediate results into `datasets/archives/scrape_backup/<dataset>/` and write final processed CSVs to `datasets/processed/`.
+
+Use the helpers `ensureDir`, `ensureFile`, `prepareWrite` (now with an optional `{clear:true}` argument), `ensureFileSync`, and `writeCsv` from `utils/datasetsUtils.js` when adding or modifying scripts to follow this convention.
 
 ## Dataset Inventory
 
@@ -358,6 +370,14 @@ const finalRows = data.map((r, idx) => ({
 
 const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
 await ensureDir(path.dirname(OUTPUT_FILE));
+
+// make sure the file exists empty on first write and unlock if previously read-only
+if (!fs.existsSync(OUTPUT_FILE)) {
+  await fs.promises.writeFile(OUTPUT_FILE, '');
+} else {
+  await fs.promises.chmod(OUTPUT_FILE, 0o644).catch(() => {});
+}
+
 const csvOut = stringify(finalRows, STRINGIFY_OPTIONS);
 await fs.promises.writeFile(OUTPUT_FILE, csvOut);
 await fs.promises.chmod(OUTPUT_FILE, 0o444); // Read-only
@@ -397,6 +417,18 @@ This is optional - the merge script auto-discovers all CSVs regardless.
 # From backend/ directory
 node datasets/scripts/extract_xyz.js  # or scrape_xyz.js
 ```
+
+> **Tip:** instead of invoking each file manually you can run **all** of the
+> dataset generation scripts in one go. The helper runner lives at
+> `backend/pipeline/run_datasets_scripts.js` and is wired to the convenience
+> npm script below. It executes `extract_*.js` files first, followed by
+> `scrape_*.js`, stopping immediately if any step fails.
+>
+> ```bash
+> npm run datatsets-scripts      # runs the pipeline runner
+> # or
+> node pipeline/run_datasets_scripts.js
+> ```
 
 ### 4. Verify Output
 
