@@ -70,7 +70,7 @@ npm run merge
 > the first error. You can call it directly or via the npm shortcut:
 
 ```bash
-npm run datatsets-scripts
+npm run datasets-scripts
 ```
 
 > **When to use:** Data is in PDF documents

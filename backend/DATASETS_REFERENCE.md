@@ -425,7 +425,7 @@ node datasets/scripts/extract_xyz.js  # or scrape_xyz.js
 > `scrape_*.js`, stopping immediately if any step fails.
 >
 > ```bash
-> npm run datatsets-scripts      # runs the pipeline runner
+> npm run datasets-scripts      # runs the pipeline runner
 > # or
 > node pipeline/run_datasets_scripts.js
 > ```

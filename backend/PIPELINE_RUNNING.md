@@ -30,7 +30,7 @@ Complete guide for executing the document processing pipeline that transforms CS
 >
 > **Running everything at once:** rather than calling each dataset script by
 > hand you can use the orchestrator in `backend/pipeline/run_datasets_scripts.js`.
-> The npm alias `npm run datatsets-scripts` invokes it for you; it will execute all
+> The npm alias `npm run datasets-scripts` invokes it for you; it will execute all
 > `extract_*.js` files first followed by any `scrape_*.js` files, aborting on
 > the first error. This is handy when updating multiple sources or after
 > pulling upstream changes.
