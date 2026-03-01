@@ -13,7 +13,9 @@ async function poll(timeoutMs = 20 * 60 * 1000, intervalMs = 10000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      const { count, error } = await supabase.from('documents').select('*', { count: 'exact' });
+      const { count, error } = await supabase
+        .from(BACKEND_CONFIG.db.tables.documents)
+        .select('*', { count: 'exact' });
       if (error) {
         console.error('Supabase error:', error.message);
       } else {

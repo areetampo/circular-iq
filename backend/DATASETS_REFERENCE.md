@@ -88,8 +88,8 @@ All datasets follow this standardized processing pipeline:
 
 7. Database Storage (Supabase)
    └─ Storage commands
-      ├─ `npm run store` - Reads `datasets/out/embedded_chunks.json` and stores embeddings into `documents_archives` (used for archival/testing; same schema as `documents`).
-      ├─ `npm run store:archives` - Reads `datasets/archives/embedded_chunks.json` and stores embeddings into the primary `documents` table (used by production queries).
+      ├─ `npm run store` - Reads `datasets/out/embedded_chunks.json` and stores embeddings into the primary `documents` table (used by production queries).
+      ├─ `npm run store:archives` - Reads `datasets/archives/embedded_chunks.json` and stores embeddings into `documents_archives` (archive/testing dataset; same schema as `documents`).
       └─ Both tables share the same schema and indexing (see `database/sql/01_vector_infrastructure.sql`).
 ```
 

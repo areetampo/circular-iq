@@ -397,11 +397,11 @@ export async function performScoring(req, openai, supabase) {
 
       const [searchResults, industryResults] = await Promise.allSettled([
         Promise.all([
-          supabase.rpc('search_documents_hybrid', rpcParamsProblem),
-          supabase.rpc('search_documents_hybrid', rpcParamsSolution),
+          supabase.rpc(BACKEND_CONFIG.db.functions.search_documents_hybrid, rpcParamsProblem),
+          supabase.rpc(BACKEND_CONFIG.db.functions.search_documents_hybrid, rpcParamsSolution),
         ]),
         metadata?.industry
-          ? supabase.rpc('search_documents_by_industry', {
+          ? supabase.rpc(BACKEND_CONFIG.db.functions.search_documents_by_industry, {
               query_embedding: problemVector,
               industry_filter: metadata.industry,
               match_count: 5,

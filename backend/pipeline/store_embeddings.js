@@ -20,7 +20,12 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { isValidTextForEmbedding, isValidEmbedding } from '#config/embedding.js';
 import { fileURLToPath } from 'url';
 
-const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
+// Determine whether we should target the archive dataset.
+// CLI flags take precedence but falling back to environment via BACKEND_CONFIG
+const useArchive =
+  process.argv.includes('--archives') ||
+  process.argv.includes('--archive') ||
+  (BACKEND_CONFIG.db && BACKEND_CONFIG.db.tables.documents === 'documents_archives');
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.supabase.serviceKey;
 
 let supabase = null;
@@ -67,8 +72,19 @@ export async function storeInSupabase(embeddedChunks) {
 
   // Determine target table based on archives flag:
   // - If --archives (or --archive) is present: write archives embedded_chunks.json -> `documents` table
-  // - Otherwise: write out embedded_chunks.json -> `documents_archives` table
-  const targetTable = useArchive ? 'documents' : 'documents_archives';
+  // Determine target table and function names based on archive flag
+  // Note: useArchive from CLI flag takes precedence over environment USE_DOCUMENTS_ARCHIVES_TABLE
+  const effectiveUseArchive = useArchive;
+  const dbConfig = {
+    tables: {
+      documents: effectiveUseArchive ? 'documents_archives' : 'documents',
+    },
+    functions: {
+      truncate: effectiveUseArchive ? 'truncate_documents_archives' : 'truncate_documents',
+    },
+  };
+
+  const targetTable = dbConfig.tables.documents;
 
   if (!DRY_RUN) {
     console.log('  Using SUPABASE_SERVICE_ROLE_KEY (required for RLS bypass)\n');
@@ -76,15 +92,19 @@ export async function storeInSupabase(embeddedChunks) {
 
     try {
       if (targetTable === 'documents') {
-        const { error: truncateError } = await supabase.rpc('truncate_documents');
+        const { error: truncateError } = await supabase.rpc(dbConfig.functions.truncate);
         if (truncateError) {
           throw new Error(`Truncate failed: ${truncateError.message}`);
         }
-      } else {
-        // documents_archives does not have a dedicated RPC; delete all rows via service role
-        const { error: delErr } = await supabase.from(targetTable).delete().neq('id', '');
-        if (delErr) {
-          throw new Error(`Failed to clear ${targetTable}: ${delErr.message}`);
+      } else if (targetTable === 'documents_archives') {
+        // Try RPC first (if available), otherwise delete all rows via service role
+        const { error: truncateError } = await supabase.rpc(dbConfig.functions.truncate);
+        if (truncateError) {
+          console.log('  RPC truncate not available; using direct delete for ' + targetTable);
+          const { error: delErr } = await supabase.from(targetTable).delete().neq('id', '');
+          if (delErr) {
+            throw new Error(`Failed to clear ${targetTable}: ${delErr.message}`);
+          }
         }
       }
 
@@ -221,13 +241,13 @@ async function validateStorage() {
   console.log('\nValidating stored embeddings...');
 
   try {
-    // Count total documents in `documents` (primary table used by queries)
+    // Count total documents in the target table (dynamic based on archive flag)
     try {
       const { count, error: countErr } = await supabase
-        .from('documents')
+        .from(dbConfig.tables.documents)
         .select('id', { head: true, count: 'exact' });
       if (!countErr) {
-        console.log(`  ✓ Total documents in database: ${count}`);
+        console.log(`  ✓ Total documents in ${dbConfig.tables.documents}: ${count}`);
       }
     } catch (e) {
       console.warn('  ⚠ Could not retrieve documents count:', e.message);
@@ -235,7 +255,7 @@ async function validateStorage() {
 
     // Test vector search with a dummy embedding
     const testEmbedding = Array(1536).fill(0.1);
-    const searchResult = await supabase.rpc('match_documents', {
+    const searchResult = await supabase.rpc(dbConfig.functions.match_documents, {
       query_embedding: testEmbedding,
       match_count: 1,
     });

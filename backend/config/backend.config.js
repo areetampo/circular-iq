@@ -12,6 +12,7 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   process.env.SUPABASE_URL = 'http://localhost';
   process.env.SUPABASE_ANON_KEY = 'anon-key-0000000000';
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+  process.env.FRONTEND_URL = 'http://localhost:5173';
   // ensure auth is off unless specifically tested
   process.env.API_AUTH_ENABLED = 'false';
   // provide a dummy API key in test environment to satisfy schema refinements
@@ -36,6 +37,7 @@ if (!parsed.success) {
     process.env.SUPABASE_URL = 'http://localhost';
     process.env.SUPABASE_ANON_KEY = 'anon-key-0000000000';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+    process.env.FRONTEND_URL = 'http://localhost:5173';
     process.env.API_AUTH_ENABLED = 'false';
 
     parsed = envSchema.safeParse(process.env);
@@ -92,34 +94,19 @@ const parseAllowedOrigins = () => {
       ? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
       : [];
 
-  const envOrigins = env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()) : [];
+  // env.ALLOWED_ORIGINS is already an array thanks to Zod!
+  // env.FRONTEND_URL is required and will be included as well
 
-  // Always include the specific frontend URL
-  const specificFrontend = env.FRONTEND_URL ? [env.FRONTEND_URL] : [];
-
-  // Include common Vercel deployment domains
-  const vercelDomains = [
-    // Vercel preview deployments (*.vercel.app)
-    // These will be checked with pattern matching in the CORS middleware
-    'https://vercel.app',
-  ];
-
-  return [...new Set([...defaults, ...envOrigins, ...specificFrontend, ...vercelDomains])];
+  return [...new Set([...defaults, ...env.ALLOWED_ORIGINS, env.FRONTEND_URL])];
 };
 
 const parsePublicRoutes = () => {
   // /health is ALWAYS included as a public route
   const defaults = ['/health'];
 
-  // Parse additional routes from the PUBLIC_ROUTES env variable (comma-separated)
-  const envRoutes = env.PUBLIC_ROUTES
-    ? env.PUBLIC_ROUTES.split(',')
-        .map((route) => route.trim())
-        .filter(Boolean)
-    : [];
+  // env.PUBLIC_ROUTES is already an array!
 
-  const allRoutes = [...defaults, ...envRoutes];
-  return new Set(allRoutes);
+  return [...new Set([...defaults, ...env.PUBLIC_ROUTES])];
 };
 
 // Factory function to create route matchers for dynamic routes
@@ -137,6 +124,36 @@ const createRouteMatchers = (publicRoutes) => {
 
 const publicRoutes = parsePublicRoutes();
 
+/**
+ * Builds database configuration based on environment flag
+ * Dynamically maps tables and functions between 'documents' and 'documents_archives'
+ * @private
+ */
+const buildDatabaseConfig = (useArchive) => {
+  const tableName = useArchive ? 'documents_archives' : 'documents';
+
+  // helper that appends _archives suffix to both "documents" and "document"
+  // Uses regex with callback to handle both singular and plural forms
+  const archiveize = (fnName) =>
+    fnName.replace(/documents|document/g, (m) => `${m}${useArchive ? '_archives' : ''}`);
+
+  const baseFunctions = [
+    'match_documents',
+    'search_documents_by_industry',
+    'search_documents_by_category',
+    'search_documents_hybrid',
+    'search_documents_hybrid_filtered',
+    'truncate_documents',
+    'get_document_statistics',
+    'count_documents_by_category',
+  ];
+
+  return {
+    tables: { documents: tableName },
+    functions: Object.fromEntries(baseFunctions.map((fn) => [fn, archiveize(fn)])),
+  };
+};
+
 export const BACKEND_CONFIG = deepFreeze({
   port: env.PORT,
   nodeEnv: env.NODE_ENV,
@@ -152,15 +169,20 @@ export const BACKEND_CONFIG = deepFreeze({
     serviceKey: env.SUPABASE_SERVICE_ROLE_KEY,
   },
 
+  db: buildDatabaseConfig(env.USE_DOCUMENTS_ARCHIVES_TABLE),
+
   app: {
-    frontendUrl: env.FRONTEND_URL ?? 'http://localhost:5173',
+    frontendUrl: env.FRONTEND_URL,
     allowedOrigins: parseAllowedOrigins(),
     publicRoutes,
     routeMatchers: createRouteMatchers(publicRoutes),
+
     maxFreeTries: env.MAX_FREE_TRIES,
+
     logLevel: env.LOG_LEVEL,
-    apiKey: env.API_KEY ?? '',
+
     apiAuthEnabled: env.API_AUTH_ENABLED,
+    apiKey: env.API_KEY,
     strictEnv: env.STRICT_ENV,
   },
 });

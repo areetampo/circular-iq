@@ -25,9 +25,33 @@ npm run merge         # Merge CSVs → combined_input.csv
 npm run chunk         # Create chunks → chunks.json
 npm run embed         # Generate embeddings → embedded_chunks.json
 npm run store         # Store in Supabase → documents table
+
+# To target the archive dataset instead of live:
+USE_DOCUMENTS_ARCHIVES_TABLE=true npm run store   # store into documents_archives
+# or equivalently:
+npm run store -- --archives
 ```
 
 ## Data Sources
+
+### Switching Data Source (live vs archive)
+
+The backend can operate against either the **primary `documents` table** or an
+alternative **`documents_archives` table** containing archived vectors. This is
+controlled by the `USE_DOCUMENTS_ARCHIVES_TABLE` environment variable (boolean) or the
+`--archives` / `--archive` flag used by CLI scripts. When active, all database
+calls (table names and RPC function names) automatically switch to the archive
+variants (e.g. `search_documents_hybrid` → `search_documents_archives_hybrid`).
+
+Set in `.env.local`:
+
+```env
+USE_DOCUMENTS_ARCHIVES_TABLE=true   # default false
+```
+
+Alternatively, many pipeline scripts accept `--archives` on the command line
+which takes precedence over the environment variable. See individual stage
+commands below for examples.
 
 ### Processed Datasets
 
@@ -220,10 +244,10 @@ SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 # Test locally without Supabase (writes JSONL)
 npm run store -- --dry-run
 
-# Production (normal run stores out/embedded_chunks.json into `documents_archives`)
+# Production (normal run stores out/embedded_chunks.json into the primary `documents` table)
 npm run store
 
-# Archives store (reads datasets/archives/embedded_chunks.json and stores into `documents`)
+# Archive mode: read from archives directory and write into `documents_archives`
 npm run store:archives
 ```
 
@@ -233,8 +257,8 @@ npm run store:archives
 2. Prepares documents for insertion (validates embeddings)
 3. Clears target table before inserting:
 
-- `npm run store` clears `documents_archives` (DELETE all rows)
-- `npm run store:archives` truncates `documents` via RPC (`truncate_documents`)
+- `npm run store` clears the primary target table (usually `documents` via RPC)
+- `npm run store:archives` clears the archive table (`documents_archives`) using RPC if available
 
 4. Batches inserts (10 documents per batch) into the chosen target table
 5. Reports statistics (count, storage validation)

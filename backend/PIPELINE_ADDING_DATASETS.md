@@ -232,8 +232,8 @@ Once dataset is prepared:
 npm run merge    # Merge new dataset into combined_input.csv
 npm run chunk    # Split into semantic chunks
 npm run embed    # Generate embeddings
-npm run store    # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents_archives)
-npm run store:archives  # Store archive embeddings (datasets/archives/embedded_chunks.json → documents)
+npm run store    # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents)
+npm run store:archives  # Store archive embeddings (datasets/archives/embedded_chunks.json → documents_archives)
 ```
 
 Or run complete pipeline:

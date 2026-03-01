@@ -71,8 +71,8 @@ async function main() {
     return;
   }
 
-  console.log('Querying Supabase match_documents RPC...');
-  const { data, error } = await supabase.rpc('match_documents', {
+  console.log(`Querying Supabase ${BACKEND_CONFIG.db.functions.match_documents} RPC...`);
+  const { data, error } = await supabase.rpc(BACKEND_CONFIG.db.functions.match_documents, {
     query_embedding: qvec,
     match_count: 10,
   });

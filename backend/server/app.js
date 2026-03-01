@@ -150,16 +150,15 @@ app.use(
       }
 
       // wildcard support for vercel domains
-      if (
-        (origin && origin.endsWith('.vercel.app')) ||
-        (origin && origin.endsWith('.vercel.sh'))
-      ) {
+      if ((origin && origin.endsWith('.vercel.app')) || (origin && origin.endsWith('.vercel.sh'))) {
         // allow any preview deployment or .vercel.sh alias
         return callback(null, true);
       }
 
       console.error(`CORS Error: Origin ${origin} not allowed`);
       return callback(new Error('Not allowed by CORS'));
+    },
+  }),
 );
 
 app.use(express.json({ limit: '512kb' }));

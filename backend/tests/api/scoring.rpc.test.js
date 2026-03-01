@@ -4,14 +4,16 @@ import express from 'express';
 import request from 'supertest';
 import createScoringRouter, { setOpenAIClient } from '#routes/scoring.routes.js';
 
+import { BACKEND_CONFIG } from '#config/backend.config.js';
+
 // Minimal mock supabase for scoring that returns controlled RPC data
 function makeMockSupabase(searchResults = [], industryResults = []) {
   return {
     rpc: async (name, params) => {
-      if (name === 'search_documents_hybrid') {
+      if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
         return { data: searchResults, error: null };
       }
-      if (name === 'search_documents_by_industry') {
+      if (name === BACKEND_CONFIG.db.functions.search_documents_by_industry) {
         return { data: industryResults, error: null };
       }
       return { data: [], error: null };

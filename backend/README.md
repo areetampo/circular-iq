@@ -25,7 +25,8 @@ The backend is a Node.js/Express server that powers a document processing pipeli
 │  └─ Storage (store_embeddings.js)                        │
 │                                                             │
 │  Database Layer (Supabase PostgreSQL + pgvector)         │
-│  ├─ documents - Vector-searchable document store         │
+│  ├─ documents - Vector-searchable document store (switchable with USE_DOCUMENTS_ARCHIVES_TABLE to documents_archives)
+│  ├─ documents_archives - optional archive dataset mirror  │
 │  ├─ user_assessments - Evaluation results                │
 │  ├─ user_profiles - Anonymous usage tracking             │
 │  └─ RPC Functions - Hybrid search logic                  │
@@ -431,6 +432,11 @@ Hybrid search combining vector similarity + keyword matching.
 
 ### Required Variables (.env.local)
 
+The new boolean variable `USE_DOCUMENTS_ARCHIVES_TABLE` toggles the database
+source between the default `documents` table and the archival
+`documents_archives` table. It defaults to `false` and can also be
+controlled per-run via CLI flags (`--archives`) in the pipeline scripts.
+
 ```env
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 SUPABASE_URL=https://your-project.supabase.co
@@ -438,6 +444,7 @@ SUPABASE_ANON_KEY=eyxxxxxxxxxxxxx
 SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 PORT=8000
 NODE_ENV=development
+USE_DOCUMENTS_ARCHIVES_TABLE=false   # when true, API/rpc calls target documents_archives table
 ```
 
 ### Configuration Files
@@ -470,8 +477,8 @@ npm run populate      # Complete pipeline: merge → chunk → embed → store
 npm run merge         # Just merge CSVs (processed/ + manual_entries/) → out/
 npm run chunk         # Just create chunks (CSV → chunks.json) → out/
 npm run embed         # Generate embeddings (chunks → embedded_chunks.json) → out/
-npm run store         # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents_archives)
-npm run store:archives  # Store archive embeddings (datasets/archives/embedded_chunks.json → documents)
+npm run store         # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents)
+npm run store:archives  # Store archive embeddings (datasets/archives/embedded_chunks.json → documents_archives)
 npm run embed -- --dry-run  # Test embedding generation locally
 npm run store -- --dry-run     # Test storage locally (writes JSONL)
 ```

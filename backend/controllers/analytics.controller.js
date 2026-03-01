@@ -589,7 +589,7 @@ export function getFeaturedSolutions(supabase) {
 
         // RPC filters handle industry/category/source; no client-side filtering required
         const { data: rpcResults, error: rpcErr } = await supabase.rpc(
-          'search_documents_hybrid',
+          BACKEND_CONFIG.db.functions.search_documents_hybrid,
           rpcParams,
         );
         if (rpcErr) throw rpcErr;
@@ -635,7 +635,7 @@ export function getFeaturedSolutions(supabase) {
 
       // No query provided — fall back to sampling recent documents with structured column filters
       let docsQuery = supabase
-        .from('documents')
+        .from(BACKEND_CONFIG.db.tables.documents)
         .select('id, content, metadata, industry, category, source')
         .limit(limit * 8) // Fetch extra to ensure diversity
         .order('created_at', { ascending: false });
@@ -759,7 +759,9 @@ export function postEmbeddingsReindex() {
 export function getDocumentsStats(supabase) {
   return async (req, res) => {
     try {
-      const { data, error } = await supabase.rpc('get_document_statistics');
+      const { data, error } = await supabase.rpc(
+        BACKEND_CONFIG.db.functions.get_document_statistics,
+      );
       if (error) throw error;
       res.json({ stats: data });
     } catch (err) {

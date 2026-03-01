@@ -45,9 +45,13 @@ async function testPipeline() {
       console.warn('⚠ Supabase client not configured; skipping DB checks');
     } else {
       try {
-        const { count, error } = await supabase.from('documents').select('*', { count: 'exact' });
+        const { count, error } = await supabase
+          .from(BACKEND_CONFIG.db.tables.documents)
+          .select('*', { count: 'exact' });
         if (error) throw error;
-        console.log(`✓ Supabase documents table: ${count} vectors stored`);
+        console.log(
+          `✓ Supabase '${BACKEND_CONFIG.db.tables.documents}' table: ${count} vectors stored`,
+        );
 
         if (count === 0) {
           console.warn('⚠ Warning: No vectors in Supabase. Embeddings may still be processing.');
@@ -61,7 +65,7 @@ async function testPipeline() {
       try {
         // Create a test query embedding (dummy values for testing)
         const testEmbedding = Array(1536).fill(0.1);
-        const { data, error } = await supabase.rpc('match_documents', {
+        const { data, error } = await supabase.rpc(BACKEND_CONFIG.db.functions.match_documents, {
           query_embedding: testEmbedding,
           match_count: 5,
         });

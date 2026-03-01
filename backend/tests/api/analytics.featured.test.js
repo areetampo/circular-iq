@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import express from 'express';
 import request from 'supertest';
 import createAnalyticsRouter, { setOpenAIClient } from '#routes/analytics.routes.js';
+import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 // Mock Supabase chains used in the featured-solutions endpoint
 // It optionally asserts that `.eq` filters are applied at the query builder level.
@@ -83,7 +84,7 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
   // Mock Supabase RPC to return expected format
   const mockSupabase = {
     rpc: async (name, params) => {
-      if (name === 'search_documents_hybrid') {
+      if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
         // ensure our new filter parameters are present (may be null)
         assert.ok('industry_filter' in params);
         assert.ok('category_filter' in params);

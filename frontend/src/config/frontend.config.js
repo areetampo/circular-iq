@@ -1,12 +1,29 @@
 import { frontendSchema } from './env.schema';
 
-const parsed = frontendSchema.parse(import.meta.env);
+const rawEnv = {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
 
-if (import.meta.env.PROD && parsed.VITE_API_URL.includes('localhost')) {
-  throw new Error(
-    '⚠️  Production build cannot use localhost API URL. Please set VITE_API_URL to the correct backend URL.',
-  );
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+
+  MODE: import.meta.env.MODE,
+  PROD: import.meta.env.PROD,
+};
+
+const result = frontendSchema.safeParse(rawEnv);
+
+if (!result.success) {
+  console.error('❌ Frontend Environment Validation Failed:', result.error.flatten().fieldErrors);
+
+  // In development, this helps catch issues immediately in the browser console
+  if (import.meta.env.DEV) {
+    alert('Environment Variable Error: Check browser console');
+  }
+
+  throw new Error('Invalid environment configuration');
 }
+
+const env = result.data;
 
 const deepFreeze = (obj) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
@@ -18,13 +35,13 @@ const deepFreeze = (obj) => {
 };
 
 export const FRONTEND_CONFIG = deepFreeze({
-  apiBaseUrl: parsed.VITE_API_URL,
+  apiBaseUrl: env.VITE_API_URL,
 
   supabase: {
-    url: parsed.VITE_SUPABASE_URL,
-    anonKey: parsed.VITE_SUPABASE_ANON_KEY,
+    url: env.VITE_SUPABASE_URL,
+    anonKey: env.VITE_SUPABASE_ANON_KEY,
   },
 
-  isProd: import.meta.env.PROD,
-  mode: import.meta.env.MODE,
+  isProd: env.PROD,
+  mode: env.MODE,
 });
