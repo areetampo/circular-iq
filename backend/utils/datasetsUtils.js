@@ -58,6 +58,13 @@ export const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
 export const COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
 export const CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
 export const EMBEDDED_CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.json');
+export const STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
+
+// archived stored documents (for dry-run in archive mode)
+export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
+  DATASETS_ARCHIVES_DIR,
+  'stored_documents.jsonl',
+);
 
 // =============================================================================
 // DATASET REGISTRY
@@ -675,12 +682,14 @@ export const CSV_COLUMNS = [
  * Used in stringify() cast method to sanitize all string values.
  */
 export const cleanText = (str) => {
-  if (!str) return '';
+  if (typeof str !== 'string' || !str) return '';
+
   return str
     .replace(/\r?\n|\r/g, ' ') // Remove line breaks
-    .replace(/\s\s+/g, ' ') // Remove double spaces
-    .replace(/"/g, "'") // Change double quotes to single quotes
-    .trim();
+    .replace(/[\u201C\u201D"]/g, "'") // Convert "smart" and standard double quotes to single
+    .replace(/'{2,}/g, "'") // Flatten ''x'' or '''x''' to 'x'
+    .replace(/\s+/g, ' ') // Collapse all whitespace (tabs/multiple spaces) to one space
+    .trim(); // Remove leading/trailing junk
 };
 
 /**
@@ -725,18 +734,37 @@ export function formatId(prefix, index) {
 // =============================================================================
 
 /**
- * Get standard Puppeteer browser launch options.
- * Respects production vs dev environments via BACKEND_CONFIG.
+ * Get standard Puppeteer browser launch options used by scraper scripts.
  *
- * Production: headless mode with sandbox restrictions (faster, secure)
- * Development: GUI mode with maximized window for debugging
+ * Historically the behaviour differed between production and development,
+ * but in our repo scraping never runs in production.  Instead the default is
+ * always headless; pass `--show` on the command line if you want a visible
+ * browser window for troubleshooting.
  */
 export function getBrowserLaunchOptions() {
-  const isProduction = BACKEND_CONFIG.isProduction;
+  // Most scraping runs happen locally during development.  By default we
+  // keep Puppeteer in headless mode so that the browser window does **not**
+  // open whenever a script is executed.  This makes automated runs faster
+  // and avoids cluttering the desktop.  A simple command‑line flag can be
+  // used when debugging.
+  //
+  // Usage:
+  //   node datasets/scripts/scrape_ecesp.js            # headless (default)
+  //   node datasets/scripts/scrape_ecesp.js --show     # open browser window
+  const showUi = process.argv.includes('--show');
 
+  if (showUi) {
+    // visible window, maximise for easier inspection
+    return {
+      headless: false,
+      args: ['--start-maximized'],
+    };
+  }
+
+  // headless mode with sandbox restrictions (safe and fast)
   return {
-    headless: isProduction ? 'new' : false,
-    args: isProduction ? ['--no-sandbox', '--disable-setuid-sandbox'] : ['--start-maximized'],
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   };
 }
 

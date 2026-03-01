@@ -99,6 +99,16 @@ All datasets follow this standardized processing pipeline:
 
 ### Scraper-based Datasets (Puppeteer automation)
 
+> **Tip:** all Puppeteer scraper scripts import shared helpers from
+> `#utils/datasetsUtils.js` which provide standard launch/viewport/user-agent
+> options. Browsers are headless by default; add `--show` when running the
+> script if you need to watch the page for troubleshooting.
+>
+> ```bash
+> node datasets/scripts/scrape_emf.js          # headless (no UI)
+> node datasets/scripts/scrape_emf.js --show   # open Chromium window
+> ```
+
 **C2C Registry** – `c2c` key
 
 - Source: https://c2ccertified.org/certified-products
@@ -306,6 +316,10 @@ All datasets follow this standardized processing pipeline:
       ├─ Stores embeddings + metadata in documents table
       ├─ Indexes for semantic search
       └─ Enables RAG retrieval
+   └─ npm run store -- --dry-run (optional)
+      ├─ Writes to datasets/out/stored_documents.jsonl instead
+      ├─ Useful for testing without Supabase
+      └─ File maintained as read-only for durability
 ```
 
 ## Adding a New Dataset

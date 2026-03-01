@@ -96,12 +96,14 @@ backend/
 │   │   ├── chunks.json           # OUTPUT: Processed chunks
 │   │   └── embedded_chunks.json  # OUTPUT: Embedded vectors
 │   └── scripts/                  # Dataset extraction scripts
+│                                  #   * scraping scripts default to headless
+│                                  #     use `--show` when running to see UI
 |
 ├── pipeline/                     # Data processing pipeline
 │   ├── merge_datasets.js         # CSV merge (processed/ & manual_entries/)
 │   ├── generate_chunks.js        # CSV → chunks.json
 │   ├── generate_embeddings.js    # chunks.json → embedded_chunks.json
-│   ├── store_embeddings.js       # embedded_chunks.json → Supabase
+│   ├── store_embeddings.js       # embedded_chunks.json → Supabase (or local JSONL with --dry-run)
 │   ├── validate_pipeline.js      # Pipeline validation
 │   ├── test_score_fetch.js       # Scoring test
 │   ├── test_validate_input.js    # Input validation test

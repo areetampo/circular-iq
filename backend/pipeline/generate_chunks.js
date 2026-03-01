@@ -35,8 +35,6 @@ const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
 
 // allow writing to archives folder instead of normal output
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
-// when in archive mode, read from archives/combined_input.csv and write to archives/chunks.json
-const DEFAULT_INPUT_CSV = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV;
 
 const TOKENS_PER_WORD = 1.3; // Rough estimate for token counting
 const WORDS_PER_CHUNK = Math.floor(CHUNK_SIZE_TOKENS / TOKENS_PER_WORD);
@@ -486,8 +484,8 @@ export function saveChunksToFile(chunks, outputPath) {
  * Loads dataset, creates chunks, and saves to file
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const datasetPath = process.argv[2] || DEFAULT_INPUT_CSV;
-  const outputPath = process.argv[3] || (useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON);
+  const datasetPath = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV;
+  const outputPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
   if (useArchive) console.log('⚠️  running in archives mode; writing output to archives folder');
   // Ensure output directory exists
   const outDir = path.dirname(outputPath);

@@ -37,6 +37,16 @@ npm run merge
    fs.writeFileSync(path.join(DATASETS_RAW_DIR, 'new_source', 'data.csv'), data);
    ```
 
+   > **Note:** if your scraper uses Puppeteer you can import
+   > `getBrowserLaunchOptions`, `getViewportOptions`, `getUserAgentOptions`
+   > and `getExtraHttpHeaders` from `#utils/datasetsUtils.js`. These helpers
+   > centralize common settings and support the `--show` CLI flag which
+   > toggles a visible browser window for debugging:
+   >
+   > ```bash
+   > node datasets/scripts/scrape_new_source.js --show
+   > ```
+
 3. **Run scraper:**
 
    ```bash

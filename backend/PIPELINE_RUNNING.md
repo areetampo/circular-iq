@@ -8,6 +8,16 @@ Complete guide for executing the document processing pipeline that transforms CS
 > defined in `utils/datasetsUtils.js`. Avoid using relative paths
 > (e.g. `../../`) when editing or creating new scripts; import the required
 > constants instead.
+>
+> **Running scrapers:** the Puppeteer‑based scrapers are located under
+> `datasets/scripts/scrape_*.js`. They default to headless mode so the browser
+> does not spawn a visible window. If you need to observe the automation,
+> append the `--show` flag when invoking the node command as shown below:
+>
+> ```bash
+> node datasets/scripts/scrape_ecesp.js          # headless
+> node datasets/scripts/scrape_ecesp.js --show   # open browser window
+> ```
 
 **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
 **Stage 2: Chunk** - Split into semantic units → chunks.json
@@ -241,27 +251,40 @@ SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 ### Command
 
 ```bash
-# Test locally without Supabase (writes JSONL)
-npm run store -- --dry-run
-
-# Production (normal run stores out/embedded_chunks.json into the primary `documents` table)
+# Normal: read from out/ and store in Supabase's `documents` table
 npm run store
 
-# Archive mode: read from archives directory and write into `documents_archives`
+# Archive mode: read from archives/ and store in `documents_archives` table
 npm run store:archives
+
+# Dry-run: write to local JSONL file without touching Supabase
+npm run store -- --dry-run
+
+# Dry-run archive mode: write to archives/stored_documents.jsonl
+npm run store -- --archives --dry-run
 ```
 
 ### What It Does
 
-1. Reads `datasets/out/embedded_chunks.json` (normal run) or `datasets/archives/embedded_chunks.json` (when using `npm run store:archives`)
-2. Prepares documents for insertion (validates embeddings)
-3. Clears target table before inserting:
+1. **Normal Mode** (`npm run store`):
+   - Reads `datasets/out/embedded_chunks.json`
+   - Clears the `documents` table (truncate)
+   - Batches inserts (10 documents per batch) into `documents`
+   - Validates stored embeddings with test query
 
-- `npm run store` clears the primary target table (usually `documents` via RPC)
-- `npm run store:archives` clears the archive table (`documents_archives`) using RPC if available
+2. **Archive Mode** (`npm run store:archives`):
+   - Reads `datasets/archives/embedded_chunks.json`
+   - Clears the `documents_archives` table
+   - Batches inserts into `documents_archives`
 
-4. Batches inserts (10 documents per batch) into the chosen target table
-5. Reports statistics (count, storage validation)
+3. **Dry-run Mode** (`npm run store -- --dry-run`):
+   - Reads embeddings (from `out/` or `archives/`)
+   - **Skips** Supabase truncate operations
+   - Writes documents to a local JSONL file:
+     - `datasets/out/stored_documents.jsonl` (normal mode)
+     - `datasets/archives/stored_documents.jsonl` (with `--archives`)
+   - Maintains output file as read-only for durability
+   - Useful for testing or offline inspection
 
 ### Troubleshooting
 

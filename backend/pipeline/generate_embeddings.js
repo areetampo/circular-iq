@@ -282,9 +282,8 @@ export function saveEmbeddedChunks(embeddedChunks, outputPath) {
  * @async
  */
 export async function main() {
-  const chunksPath = process.argv[2] || (useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON);
-  const outputPath =
-    process.argv[3] || (useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON);
+  const chunksPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
+  const outputPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON;
   if (useArchive) console.log('⚠️  running in archives mode; using archives folder paths');
 
   try {
@@ -296,7 +295,7 @@ export async function main() {
       `║  Dimension: ${EMBEDDING_DIMENSION}                                              ║`,
     );
     console.log('╚════════════════════════════════════════════════════════════════════╝\n');
-
+    console.log(chunksPath);
     // Step 1: Load chunks
     const chunks = loadChunks(chunksPath);
 
