@@ -28,6 +28,17 @@ Complete guide for executing the document processing pipeline that transforms CS
 > node datasets/scripts/scrape_ecesp.js --show   # open browser window
 > ```
 >
+> **Script documentation:** Each script includes a comprehensive file-level header
+> describing its purpose, features, usage flags, input/output formats, and dependencies.
+> Open any script in your editor to see the full documentation block (JSDoc format).
+> Key functions also include type annotations and descriptions for IDE autocomplete support.
+>
+> To access detailed documentation for a specific dataset:
+>
+> - View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-25)
+> - See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for documentation overview
+> - Check the [dataset inventory table](DATASETS_REFERENCE.md#dataset-inventory) for all 23 datasets
+
 > **Backup & Recovery Mode:** scraper scripts save intermediate results every N
 > pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a
 > scrape is interrupted (network timeout, user cancellation), you can rebuild

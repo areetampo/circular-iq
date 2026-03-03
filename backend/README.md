@@ -100,8 +100,14 @@ backend/
 │   │   ├── chunks.json           # OUTPUT: Processed chunks
 │   │   └── embedded_chunks.json  # OUTPUT: Embedded vectors
 │   └── scripts/                  # Dataset extraction scripts
-│                                  #   * scraping scripts default to headless
-│                                  #     use `--show` when running to see UI
+│       ├── scrape_*.js           # Web scraping scripts (Puppeteer automation)
+│       │                          #   Each script includes comprehensive file-level header
+│       │                          #   with purpose, features, usage flags, and input/output
+│       │                          #   Use `--show` flag to debug with visible browser
+│       │                          #   Use `--use-backup` flag to rebuild from saved backups
+│       └── extract_*.js          # Data extraction scripts (CSV/PDF/API parsing)
+│                                  #   Each script includes file-level documentation
+│                                  #   and JSDoc comments on key functions
 |
 ├── pipeline/                     # Data processing pipeline
 │   ├── merge_datasets.js         # CSV merge (processed/ & manual_entries/)
@@ -215,6 +221,68 @@ Recent database migrations add `industry` and `category` as first-class columns 
 - The ingestion pipeline (`pipeline/store_embeddings.js`) already assigns `industry` and `category` when inserting document rows; queries and response mapping in controllers should prefer `row.industry`/`row.category`.
 
 This change improves query performance (indexable columns) and simplifies frontend consumption while retaining backward compatibility with older clients.
+
+## Dataset Script Documentation
+
+All dataset extraction and scraping scripts follow comprehensive documentation standards for maintainability:
+
+### File-Level Headers
+
+Every script in `datasets/scripts/` includes a JSDoc header block (lines 1-25) describing:
+
+```
+📋 Script name and purpose
+🎯 Target dataset and source
+🔧 Key features and capabilities
+💻 Usage instructions with CLI flags
+📥 Input file formats and locations
+📤 Output file formats and locations
+🔌 Dependencies and requirements
+```
+
+**Examples:**
+
+- `scrape_c2c.js` – Cradle-to-Cradle certified products (Puppeteer)
+- `extract_cgr_2025.js` – Circularity Gap Report PDF extraction
+- `extract_epa_tri.js` – EPA pollution data with multi-dimensional scoring
+- `scrape_ecesp.js` – European circular economy practices (dynamic pagination)
+- `extract_fashion_transparency.js` – Supply chain transparency analysis
+
+### Function Documentation
+
+Key functions include JSDoc comments with:
+
+- `@param {type} description` – Parameter type and description
+- `@returns {type} description` – Return type and description
+- `@async` – For asynchronous functions
+- `@throws {Error}` – For error conditions
+
+**IDE Support:** Browse function signatures and documentation using Ctrl+Space (autocomplete) in your editor.
+
+### Script Flags
+
+Common CLI flags supported by scripts:
+
+- `--show` – Display browser window during scraping (Puppeteer scripts only)
+- `--use-backup` – Rebuild final CSV from saved backup (scraper scripts only)
+- `--clear-logs` – Clear script log file before running (optional)
+
+Example:
+
+```bash
+node datasets/scripts/scrape_c2c.js --show        # Debug with visible browser
+node datasets/scripts/scrape_c2c.js --use-backup  # Recover from interruption
+```
+
+### Quick Script Reference
+
+See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for:
+
+- Complete documentation overview
+- Table of all 23 datasets (source, method, key features)
+- Category-based grouping (Scraper, PDF, CSV, JSON/API)
+
+For adding new scripts, see [PIPELINE_ADDING_DATASETS.md](PIPELINE_ADDING_DATASETS.md#script-documentation-best-practices).
 
 ## Data Flow
 

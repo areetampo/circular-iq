@@ -2,6 +2,23 @@
 
 ## Reference guide for all datasets currently integrated into the system.
 
+## Script Documentation
+
+All dataset extraction and scraping scripts include comprehensive documentation:
+
+- **File-level headers:** Each script (`datasets/scripts/scrape_*.js` and `datasets/scripts/extract_*.js`) includes a detailed JSDoc header block with:
+  - Script purpose and data source
+  - List of key features and capabilities
+  - Usage instructions with command-line flags
+  - Input and output file formats
+  - Dependencies and requirements (e.g., API access, Python scripts)
+
+- **Function documentation:** Key functions include JSDoc comments with parameter types, return types, and descriptions. This provides IDE hover documentation and clear function contracts.
+
+- **Quick reference:** Look at the top of any script to understand its purpose, or use IDE autocomplete to explore function signatures.
+
+Examples: `scrape_c2c.js`, `extract_cgr_2025.js`, `extract_epa_tri.js`
+
 ## File I/O behaviour (centralised)
 
 All backend scripts use helper functions exported from `utils/datasetsUtils.js` for consistent file I/O. When a script writes an output file the behaviour is unified:

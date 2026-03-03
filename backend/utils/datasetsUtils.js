@@ -402,6 +402,22 @@ export const DATASETS = [
     scrape_backup_folder: 'opf_scrape_backup',
   },
   {
+    key: 'refed',
+    name: 'ReFED Food Waste Solutions',
+    raw_folder: null, // No raw files needed; fetched via API
+    processed_csv: 'refed_processed.csv', // Output CSV filename
+    scrape_script: null, // Not a Puppeteer scraper
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'fetch_refed.js'), // API fetch script
+    source_url: 'https://insights.refed.org/solution-database', // Main website
+    urls: {
+      api: 'https://api.refed.org/v2/solution_database/solutions', // Direct API endpoint
+      website: 'https://insights.refed.org/',
+    },
+    raw_folder_contents: null, // No raw files
+    // Optional: if you want to explicitly document the backup location
+    scrape_backup_folder: 'refed_scrape_backup', // Backup CSV will be stored here
+  },
+  {
     key: 'sei',
     name: 'SEI Construction',
     raw_folder: 'sei_construction',
@@ -957,6 +973,30 @@ export async function appendBackupLog(key, message) {
   }
 }
 
+/**
+ * Clear the backup log file for a dataset.
+ * If the file exists, it is truncated (emptied). If it doesn't exist, nothing happens.
+ * @param {string} key - dataset key
+ */
+export async function clearBackupLog(key) {
+  if (!process.argv.includes('--clear-logs')) return;
+
+  const logPath = getDatasetBackupLogPath(key);
+  if (!logPath) return;
+
+  // This one line does: ensureDir, chmod 644, and wipes the file!
+  await prepareWrite(logPath, { clear: true });
+
+  // Optional: Lock it back to read-only
+  await fs.promises.chmod(logPath, 0o444).catch(() => {});
+
+  const ds = DATASET_LOOKUP[key];
+  appendBackupLog(
+    key,
+    `🧹 Backup log cleared for ${ds.processed_csv} (${ds.name})\nThis message confirms that the log was successfully cleared.`,
+  );
+}
+
 // =============================================================================
 // BACKUP HELPER (createBackupHelper)
 // =============================================================================
@@ -971,7 +1011,23 @@ export async function appendBackupLog(key, message) {
 export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_PAGES_FALLBACK = 1) {
   let counter = 0;
   let buffer = [];
-  let firstFlush = true; // track first write to disk
+  let overallFirstRow = null;
+  let overallLastRow = null;
+  let totalRowsWritten = 0;
+  let firstFlush = true;
+
+  const flushMsg = (flushReason, rowsToWrite, counter, batchFirst, batchLast) =>
+    `💾 Backup flush (${flushReason}):\n` +
+    `Wrote ${rowsToWrite} rows to scrape backup file.\n` +
+    `Calls/pages processed since last flush: ${counter}\n` +
+    `First row in this batch: ${JSON.stringify(batchFirst)}\n\n` +
+    `Last row in this batch: ${JSON.stringify(batchLast)}`;
+
+  const endMsg = (overallFirstRow, overallLastRow, totalRowsWritten) =>
+    `✅ FINALLY:\n` +
+    `Overall first row of entire scrape: ${JSON.stringify(overallFirstRow)}\n\n` +
+    `Overall last row of entire scrape: ${JSON.stringify(overallLastRow)}\n\n` +
+    `TOTAL ROWS WRITTEN THIS SCRAPE: ${totalRowsWritten}`;
 
   return {
     async add(rows) {
@@ -979,26 +1035,53 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
       buffer.push(...rows);
       counter++;
 
-      // Flush when interval reached OR when we hit the fallback limit
-      // Flush only when interval reached – NOT on fallback limit
-      if (counter % interval === 0) {
+      // Update overall first/last across the entire scrape
+      if (overallFirstRow === null) {
+        overallFirstRow = rows[0];
+      }
+      overallLastRow = rows[rows.length - 1];
+
+      // Determine flush reason
+      const isIntervalFlush = counter % interval === 0;
+      const isFallbackFlush = counter >= MAX_PAGES_FALLBACK;
+
+      if (isIntervalFlush || isFallbackFlush) {
+        const flushReason = isFallbackFlush ? 'fallback limit' : 'interval';
         const rowsToWrite = buffer.length;
+        totalRowsWritten += rowsToWrite;
+
+        // Per‑flush first/last rows (current buffer)
+        const batchFirst = buffer[0];
+        const batchLast = buffer[rowsToWrite - 1];
+
         await appendToArchive(key, buffer, { clear: firstFlush && clearOnFirst });
         await appendBackupLog(
           key,
-          `💾 Backup flush (interval): wrote ${rowsToWrite} rows to disk.`,
+          flushMsg(flushReason, rowsToWrite, counter, batchFirst, batchLast),
         );
         firstFlush = false;
         buffer = [];
       }
     },
     async flush() {
-      if (buffer.length > 0) {
-        const rowsToWrite = buffer.length;
-        await appendToArchive(key, buffer, { clear: false });
-        await appendBackupLog(key, `💾 Backup flush (manual): wrote ${rowsToWrite} rows to disk.`);
-        buffer = [];
+      if (buffer.length === 0) {
+        await appendBackupLog(
+          key,
+          `(No final flush needed, buffer is empty)\n${endMsg(overallFirstRow, overallLastRow, totalRowsWritten)}`,
+        );
+        return;
       }
+      const rowsToWrite = buffer.length;
+      totalRowsWritten += rowsToWrite;
+
+      // Per‑flush first/last rows (remaining buffer)
+      const batchFirst = buffer[0];
+      const batchLast = buffer[rowsToWrite - 1];
+
+      await appendToArchive(key, buffer, { clear: false });
+      await appendBackupLog(key, flushMsg('manual', rowsToWrite, counter, batchFirst, batchLast));
+      await appendBackupLog(key, endMsg(overallFirstRow, overallLastRow, totalRowsWritten));
+      buffer = [];
     },
   };
 }

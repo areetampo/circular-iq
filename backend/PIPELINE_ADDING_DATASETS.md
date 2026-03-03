@@ -98,6 +98,58 @@ npm run merge
    >
    > See the existing scrapers (scrape_c2c.js, scrape_ecesp.js, etc.) for full examples.
 
+### Script Documentation Best Practices
+
+When creating new extraction or scraping scripts, follow these documentation conventions to keep the codebase maintainable:
+
+> **File-level header:** Add a JSDoc block at the top of every script describing:
+>
+> - **Purpose:** What dataset is extracted and from where
+> - **Features:** Key capabilities (pagination, parsing method, backup support, etc.)
+> - **Usage:** How to run the script, including CLI flags (e.g., `--show`, `--use-backup`)
+> - **Input/Output:** File paths and formats for data sources and outputs
+> - **Dependencies:** External requirements (APIs, Python scripts, special libraries)
+>
+> Example:
+>
+> ```javascript
+> /**
+>  * scrape_my_source.js
+>  *
+>  * Scrapes circular economy data from My Data Source registry.
+>  * Extracts product details including certifications and environmental metrics.
+>  *
+>  * Features:
+>  *   - Pagination handling with retry logic
+>  *   - Per-product detail extraction
+>  *   - Quality scoring based on data completeness
+>  *   - Backup system with recovery mode
+>  *
+>  * Usage:
+>  *   node scrape_my_source.js                 # normal run
+>  *   node scrape_my_source.js --use-backup    # rebuild from backup
+>  *   node scrape_my_source.js --show          # show browser window
+>  *
+>  * For detailed logs, see the path printed at the start of the run.
+>  */
+> ```
+
+> **Function documentation:** Add JSDoc comments to key functions with parameter and return types:
+>
+> ```javascript
+> /**
+>  * Score items based on completeness and relevance metrics.
+>  * @param {string} description - Item description text
+>  * @param {number} dataCompleteness - Percentage of available fields (0-100)
+>  * @returns {number} Quality score from 0 to 100
+>  */
+> function scoreItem(description, dataCompleteness) {
+>   // implementation...
+> }
+> ```
+>
+> Refer to [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for examples of well-documented scripts like `scrape_c2c.js` and `extract_cgr_2025.js`.
+
 3. **Run scraper:**
 
    ```bash
