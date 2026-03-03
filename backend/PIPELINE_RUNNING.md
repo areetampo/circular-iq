@@ -28,17 +28,31 @@ Complete guide for executing the document processing pipeline that transforms CS
 > node datasets/scripts/scrape_ecesp.js --show   # open browser window
 > ```
 >
+> **Backup & Recovery Mode:** scraper scripts save intermediate results every N
+> pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a
+> scrape is interrupted (network timeout, user cancellation), you can rebuild
+> the final CSV from saved backup content:
+>
+> ```bash
+> # Interrupted scrape? Add --use-backup flag to rebuild from backup:
+> node datasets/scripts/scrape_ecesp.js --use-backup
+> ```
+>
+> This skips web fetching and directly processes backup rows to produce the
+> final `datasets/processed/<dataset>_processed.csv`. See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md)
+> for details on backup behavior and which scrapers support this feature.
+>
 > **Running everything at once:** rather than calling each dataset script by
 > hand you can use the orchestrator in `backend/pipeline/run_datasets_scripts.js`.
 > The npm alias `npm run datasets-scripts` invokes it for you; it will execute all
 > `extract_*.js` files first followed by any `scrape_*.js` files, aborting on
 > the first error. This is handy when updating multiple sources or after
 > pulling upstream changes.
-
-**Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
-**Stage 2: Chunk** - Split into semantic units → chunks.json
-**Stage 3: Generate** - Generate embeddings → embedded_chunks.json
-**Stage 4: Store** - Store embeddings in Supabase documents table
+>
+> **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
+> **Stage 2: Chunk** - Split into semantic units → chunks.json
+> **Stage 3: Generate** - Generate embeddings → embedded_chunks.json
+> **Stage 4: Store** - Store embeddings in Supabase documents table
 
 ## Quick Start
 

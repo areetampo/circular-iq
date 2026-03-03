@@ -56,6 +56,47 @@ npm run merge
    > ```bash
    > node datasets/scripts/scrape_new_source.js --show
    > ```
+   >
+   > **Implementing Backup & Recovery:** to add robustness against network
+   > interruptions, import `createBackupHelper`, `isBackupRecoveryMode`, and
+   > `readBackupCsv` from `#utils/datasetsUtils.js`. These enable:
+   >
+   > - Saving intermediate results every N pages to `datasets/archives/scrape_backup/`
+   > - Automatic console logging for feedback (✅ Backup saved, ⚠️️️ Backup failed)
+   > - Rebuild mode: `node script.js --use-backup` rebuilds final CSV from saved backups
+   >
+   > Example pattern in your scraper:
+   >
+   > ```javascript
+   > import {
+   >   createBackupHelper,
+   >   isBackupRecoveryMode,
+   >   readBackupCsv,
+   >   writeCsv,
+   >   getDatasetOutputPath,
+   > } from '#utils/datasetsUtils.js';
+   >
+   > const BACKUP_INTERVAL = 3; // flush every 3 pages
+   > const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true);
+   >
+   > async function main() {
+   >   if (isBackupRecoveryMode()) {
+   >     console.log('♻️ BACKUP RECOVERY MODE...');
+   >     await rebuildFromBackup();
+   >     return;
+   >   }
+   >
+   >   // Normal scraping loop:
+   >   for (const page of pages) {
+   >     const rows = await scrapePage(page);
+   >     await backup.add(rows); // auto-flushes every 3 calls
+   >   }
+   >   await backup.flush(); // final flush
+   >   await writeCsv(outputPath, finalRows);
+   > }
+   > ```
+   >
+   > See the existing scrapers (scrape_c2c.js, scrape_ecesp.js, etc.) for full examples.
 
 3. **Run scraper:**
 
@@ -302,7 +343,7 @@ After running `npm run merge`:
 
 ```bash
 # Check combined_input.csv includes new records
-grep "new_001" datasets/out/combined_input.csv
+grep "new_00001" datasets/out/combined_input.csv
 
 # Check row count increases
 wc -l datasets/out/combined_input.csv
@@ -311,7 +352,7 @@ wc -l datasets/out/combined_input.csv
 Or if using archives mode:
 
 ```bash
-grep "new_001" datasets/archives/combined_input.csv
+grep "new_00001" datasets/archives/combined_input.csv
 ```
 
 ## Common Issues & Fixes
@@ -330,13 +371,13 @@ grep "new_001" datasets/archives/combined_input.csv
 
 ### Issue: ID format validation errors
 
-**Problem:** IDs not in `prefix_NNN` format
+**Problem:** IDs not in `prefix_NNNNN` format
 
 **Fix:**
 
 1. Generate IDs programmatically before CSV write
 2. Ensure IDs are unique per dataset
-3. Use 3-digit zero-padded numbers: `new_001`, `new_002`, `new_100`
+3. Use 5-digit zero-padded numbers: `new_00001`, `new_00002`, `new_00100`
 
 ### Issue: Problem/solution fields missing
 

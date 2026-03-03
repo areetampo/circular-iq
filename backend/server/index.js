@@ -107,7 +107,7 @@ export function startServer() {
 
     const authStatus = BACKEND_CONFIG.app.apiAuthEnabled
       ? chalk.bgGreen.black.bold('🛡️  API AUTH: ACTIVE  ')
-      : chalk.white.bold('⚠️  API AUTH: DISABLED  ');
+      : chalk.white.bold('⚠️️️  API AUTH: DISABLED  ');
 
     const content = [
       '',

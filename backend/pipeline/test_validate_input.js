@@ -4,7 +4,7 @@ import { validateInput } from '#services/scoring.service.js';
 
 // Ensure API key is available for validation
 if (!BACKEND_CONFIG.openai.apiKey) {
-  console.warn('⚠️  OPENAI_API_KEY not configured, running validation logic offline');
+  console.warn('⚠️️️  OPENAI_API_KEY not configured, running validation logic offline');
 }
 
 const cases = [

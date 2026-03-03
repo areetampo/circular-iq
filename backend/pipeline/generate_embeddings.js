@@ -79,7 +79,7 @@ async function retryWithBackoff(fn, maxRetries = EMBEDDING_MAX_RETRIES) {
       lastError = error;
       if (attempt < maxRetries - 1) {
         const delay = EMBEDDING_RETRY_DELAY_MS * Math.pow(2, attempt);
-        console.warn(`  ⚠ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
+        console.warn(`  ⚠️️ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -157,7 +157,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
   }
 
   if (items.length === 0) {
-    console.warn('⚠ No valid text items to embed (all below minimum length)');
+    console.warn('⚠️️ No valid text items to embed (all below minimum length)');
     return chunks;
   }
 
@@ -261,7 +261,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
         }));
         await writeJson(progressPath, partial);
       } catch (e) {
-        console.warn(`⚠ failed to flush progress after batch ${batchNum}:`, e.message);
+        console.warn(`⚠️️ failed to flush progress after batch ${batchNum}:`, e.message);
       }
     }
   }
@@ -316,7 +316,7 @@ export async function saveEmbeddedChunks(embeddedChunks, outputPath) {
 export async function main() {
   const chunksPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
   const outputPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON;
-  if (useArchive) console.log('⚠️  running in archives mode; using archives folder paths');
+  if (useArchive) console.log('⚠️️️  running in archives mode; using archives folder paths');
 
   try {
     console.log('╔════════════════════════════════════════════════════════════════════╗');

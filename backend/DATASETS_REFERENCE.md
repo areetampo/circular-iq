@@ -14,6 +14,65 @@ All backend scripts use helper functions exported from `utils/datasetsUtils.js` 
 
 Use the helpers `ensureDir`, `ensureFile`, `prepareWrite` (now with an optional `{clear:true}` argument), `ensureFileSync`, and `writeCsv` from `utils/datasetsUtils.js` when adding or modifying scripts to follow this convention.
 
+## Scraper Backup & Recovery Mode
+
+All Puppeteer scraper scripts save intermediate results to backup CSV files during execution to protect against interrupted connections or user cancellation.
+
+### Backup Behavior
+
+- **Location:** `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`
+- **Interval:** Every 3 pages for pagination-based scrapers (configurable via `BACKUP_INTERVAL`)
+- **Contents:** Per-page/per-interval rows in the same standardized format as final CSV
+- **Clearing:** Backup file is automatically cleared on the first write (`CLEAR_BACKUP_ON_START = true`)
+- **Locking:** Files are marked read-only after each flush to prevent manual interference
+
+### Recovery Mode
+
+If a scrape is interrupted (connection timeout, user cancellation), you can rebuild the final CSV from saved backup content using the `--use-backup` flag:
+
+```bash
+# Current execution:
+node datasets/scripts/scrape_c2c.js
+
+# Interrupted? Rebuild final CSV from backup:
+node datasets/scripts/scrape_c2c.js --use-backup
+```
+
+**What happens in recovery mode:**
+
+1. Script skips web fetching entirely
+2. Reads all rows from `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`
+3. Applies the same filtering/deduplication logic as normal run
+4. Writes final CSV to `datasets/processed/<dataset>_processed.csv`
+
+**Console feedback during backup saves:**
+
+```
+✅ Backup: Saved 45 rows from page 3
+⚠️️️ Backup add failed at page 2: [error reason]
+```
+
+**Recovery mode output:**
+
+```
+♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...
+📖 Processing 135 backup rows...
+✅ Selected 42 high-quality rows from backup
+✨ Successfully rebuilt 42 C2C products from backup
+📁 Saved to: /path/to/datasets/processed/c2c_registry.csv
+```
+
+### Supported Scrapers with Backup & Recovery
+
+Currently implemented for:
+
+- `scrape_c2c.js` – Cradle-to-Cradle certified products
+- `scrape_ecesp.js` – ECESP good practices
+- `scrape_emf.js` – Ellen MacArthur Foundation case studies
+- `scrape_open_beauty_facts.js` – Beauty product data
+- `scrape_open_food_facts.js` – Food product data
+- `scrape_open_products_facts.js` – General product data
+
 ## Dataset Inventory
 
 | ID  | Key        | Prefix      | Processed CSV                              | Source Type | Parsing Method | Key Features                                 |

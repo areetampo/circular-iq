@@ -481,7 +481,7 @@ export async function saveChunksToFile(chunks, outputPath) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const datasetPath = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV;
   const outputPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
-  if (useArchive) console.log('⚠️  running in archives mode; writing output to archives folder');
+  if (useArchive) console.log('⚠️️️  running in archives mode; writing output to archives folder');
   // ensure output folder is ready (writeJson will also handle this later)
   const outDir = path.dirname(outputPath);
   await ensureDir(outDir);

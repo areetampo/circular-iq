@@ -144,7 +144,7 @@ export default function BusinessSolutionInfoModal() {
               </div>
 
               <p className="text-xs italic text-gray-500 p-3 bg-gray-100 rounded-lg">
-                ⚠️ <strong>Minimum 200 characters required</strong>
+                ⚠️️️ <strong>Minimum 200 characters required</strong>
               </p>
             </div>
           </Modal.Body>

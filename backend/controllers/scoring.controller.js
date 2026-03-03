@@ -107,7 +107,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // 2. Check if serviceSupabase is available for tracking
     if (!serviceSupabase) {
       console.warn(
-        '⚠️ serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
+        '⚠️️️ serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
       );
       // Allow when tracking is not configured
       return null;
@@ -233,7 +233,7 @@ export async function performScoring(req, openai, supabase) {
 
   console.log('='.repeat(20));
   console.log(`📥 NEW SCORING REQUEST - ${requestId}`);
-  console.log('Authorization header:', req.headers.authorization ? 'PRESENT ⚠️' : 'MISSING ✅');
+  console.log('Authorization header:', req.headers.authorization ? 'PRESENT ⚠️️️' : 'MISSING ✅');
   console.log('IP:', extractIPAddress(req));
   console.log('='.repeat(20));
 

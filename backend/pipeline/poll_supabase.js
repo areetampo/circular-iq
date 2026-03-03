@@ -3,7 +3,7 @@ import { createSupabaseClient } from '#database/supabase.client.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 if (!BACKEND_CONFIG.supabase.serviceKey) {
-  console.warn('⚠️  Supabase service key not configured. poll_supabase will exit.');
+  console.warn('⚠️️️  Supabase service key not configured. poll_supabase will exit.');
   process.exit(0);
 }
 

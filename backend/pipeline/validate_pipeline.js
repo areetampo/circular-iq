@@ -13,7 +13,7 @@ let supabase = null;
 if (BACKEND_CONFIG.supabase && BACKEND_CONFIG.supabase.serviceKey) {
   supabase = createSupabaseClient();
 } else {
-  console.warn('⚠️  Supabase service key not found; Supabase checks will be skipped');
+  console.warn('⚠️️️ ️  Supabase service key not found; Supabase checks will be skipped');
 }
 
 async function testPipeline() {
@@ -42,7 +42,7 @@ async function testPipeline() {
     // Test 3: Check embeddings in Supabase
     console.log('\n3️⃣  Checking embeddings in Supabase...');
     if (!supabase) {
-      console.warn('⚠ Supabase client not configured; skipping DB checks');
+      console.warn('⚠️️️  Supabase client not configured; skipping DB checks');
     } else {
       try {
         const { count, error } = await supabase
@@ -54,10 +54,10 @@ async function testPipeline() {
         );
 
         if (count === 0) {
-          console.warn('⚠ Warning: No vectors in Supabase. Embeddings may still be processing.');
+          console.warn('⚠️️️  Warning: No vectors in Supabase. Embeddings may still be processing.');
         }
       } catch (err) {
-        console.warn('⚠ Supabase query failed (continuing):', err.message);
+        console.warn('⚠️️️  Supabase query failed (continuing):', err.message);
       }
 
       // Test 4: Test retrieval
@@ -71,7 +71,7 @@ async function testPipeline() {
         });
 
         if (error) {
-          console.warn('⚠ Retrieval test skipped (RPC may not be ready): ', error.message);
+          console.warn('⚠️️️  Retrieval test skipped (RPC may not be ready): ', error.message);
         } else {
           console.log(`✓ Retrieved ${data?.length || 0} similar documents`);
           if (data && data.length > 0) {
@@ -82,7 +82,7 @@ async function testPipeline() {
           }
         }
       } catch (err) {
-        console.warn('⚠ Retrieval test error (continuing):', err.message);
+        console.warn('⚠️️️  Retrieval test error (continuing):', err.message);
       }
     }
 

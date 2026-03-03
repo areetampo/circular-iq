@@ -145,6 +145,12 @@ The backend follows a **strict layered architecture** for clean separation of co
 └────────────────────────────────────────────────┘
 ```
 
+**ID Format**
+
+- **Source:** `utils/datasetsUtils.js` defines `ID_DIGITS = 5` and the helper `formatId(prefix, index)` for consistent ID generation. See [backend/utils/datasetsUtils.js](backend/utils/datasetsUtils.js#L75).
+- **Convention:** IDs follow `prefix_NNNNN` (5-digit zero-padded) — for example `new_00001`, `c2c_00042`.
+- **Usage:** When creating or transforming datasets, use `formatId()` (or the exported `ID_DIGITS`) rather than hardcoding padding to keep IDs consistent across scripts and pipeline stages.
+
 ### Layer Responsibilities
 
 1. **Routes** - Define HTTP methods, paths, rate limiting
@@ -488,6 +494,47 @@ npm run store:archives  # Store archive embeddings (datasets/archives/embedded_c
 npm run embed -- --dry-run  # Test embedding generation locally
 npm run store -- --dry-run     # Test storage locally (writes JSONL)
 ```
+
+### Dataset Scrapers
+
+Pull data from web sources using Puppeteer automation:
+
+```bash
+# Individual scraper scripts:
+node datasets/scripts/scrape_c2c.js          # Cradle-to-Cradle certified products
+node datasets/scripts/scrape_ecesp.js        # ECESP good practices
+node datasets/scripts/scrape_emf.js          # EMF case studies
+node datasets/scripts/scrape_open_food_facts.js      # Food products
+node datasets/scripts/scrape_open_beauty_facts.js    # Beauty products
+node datasets/scripts/scrape_open_products_facts.js  # General products
+
+# Run all extract & scrape scripts in sequence:
+npm run datasets-scripts   # Runs all extract_*.js then scrape_*.js
+
+# Debugging: show browser window while scraping
+node datasets/scripts/scrape_ecesp.js --show
+```
+
+**Backup & Recovery Mode:**
+
+All scrapers save intermediate results every N pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a scrape is interrupted, rebuild the final CSV from saved backup content:
+
+```bash
+# Interrupted scrape? Use --use-backup to rebuild from backup:
+node datasets/scripts/scrape_c2c.js --use-backup
+
+# This skips web fetching and builds final CSV from
+# datasets/archives/scrape_backup/c2c_scrape_backup.csv
+```
+
+**Console Feedback During Backup Saves:**
+
+```
+✅ Backup: Saved 45 rows from page 3
+⚠️️️ Backup add failed: [error reason]
+```
+
+See **DATASETS_REFERENCE.md** for complete scraper documentation and **PIPELINE_ADDING_DATASETS.md** for adding new scrapers with backup support.
 
 ### Archives Run Pipeline
 

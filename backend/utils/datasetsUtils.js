@@ -8,6 +8,7 @@
  *   - Text cleaning
  *   - Puppeteer browser configuration
  *   - User agent & HTTP headers
+ *   - Backup folder and log management
  *
  * Follows DRY principle to eliminate boilerplate across all dataset scripts.
  */
@@ -34,12 +35,12 @@ export const DATASETS_PROCESSED_DIR = path.join(DATASETS_DIR, 'processed');
 export const DATASETS_MANUAL_ENTRIES_DIR = path.join(DATASETS_DIR, 'manual_entries');
 export const DATASETS_SCRIPTS_DIR = path.join(DATASETS_DIR, 'scripts');
 
+// archived output files stored at root of archives/
 export const DATASETS_ARCHIVES_DIR = path.join(DATASETS_DIR, 'archives');
-export const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_backup');
-// older name kept temporarily for backward compatibility pointing at same path
-export const DATASETS_SCRAPE_ARCHIVES_DIR = DATASETS_SCRAPE_BACKUP_DIR;
 
-// archived output files stored at root of archives/ alongside scrape_backup
+export const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_backup');
+// subfolders are created within scrape_backup/ for specific datasets' backup,
+// each containing a CSV file and a logs.txt file.
 
 export const ARCHIVES_COMBINED_INPUT_CSV = path.join(DATASETS_ARCHIVES_DIR, 'combined_input.csv');
 export const ARCHIVES_CHUNKS_JSON = path.join(DATASETS_ARCHIVES_DIR, 'chunks.json');
@@ -87,6 +88,7 @@ export const ID_DIGITS = 5;
  *   urls               object containing API/config URLs used by script (or null). Keys should be descriptive so scripts can reference them directly.
  *   raw_folder_contents object containing specific file references in raw folder (or null). This must enumerate **every** file actually present, with clear property names, allowing downstream scripts to access them by name rather than hardcoding filenames.
  *   prefix             auto-generated as key + '_'
+ *   scrape_backup_folder name of the folder inside archives/scrape_backup/ (or null if no backup)
  */
 export const DATASETS = [
   {
@@ -101,7 +103,7 @@ export const DATASETS = [
       homepage: 'https://c2ccertified.org/certified-products',
     },
     raw_folder_contents: null,
-    archive_csv: 'c2c_scrape_backup.csv',
+    scrape_backup_folder: 'c2c_scrape_backup',
   },
   {
     key: 'cgr',
@@ -115,11 +117,9 @@ export const DATASETS = [
       homepage: 'https://www.circularity-gap.world/2025',
     },
     raw_folder_contents: {
-      report: 'cgr_2025.pdf',
-      // the raw folder actually contains additional csv/pdf files but they are
-      // not consumed by the current extraction logic; listed for completeness
+      input_file: 'cgr_2025.pdf',
     },
-    archive_csv: null, // no scraping
+    scrape_backup_folder: null, // no scraping
   },
   {
     key: 'dataeu',
@@ -140,7 +140,7 @@ export const DATASETS = [
       pdf_2: 'KS-05-24-071-EN-N.pdf',
       pdf_3: '63329.pdf',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'ecesp',
@@ -155,7 +155,7 @@ export const DATASETS = [
       target: 'https://circulareconomy.europa.eu/platform/en/good-practices',
     },
     raw_folder_contents: null,
-    archive_csv: 'ecesp_good_practices_scrape_backup.csv',
+    scrape_backup_folder: 'ecesp_good_practices_scrape_backup',
   },
   {
     key: 'emf',
@@ -170,7 +170,7 @@ export const DATASETS = [
         'https://www.ellenmacarthurfoundation.org/explore?sortBy=dateDesc&contentType=CaseStudy',
     },
     raw_folder_contents: null,
-    archive_csv: 'emf_scrape_backup.csv',
+    scrape_backup_folder: 'emf_scrape_backup',
   },
   {
     key: 'env',
@@ -184,7 +184,7 @@ export const DATASETS = [
     raw_folder_contents: {
       data: 'environmental_sustainability.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'epa',
@@ -199,7 +199,7 @@ export const DATASETS = [
       us_data: '2024_us.csv',
       transfers: 'chemical_transfer.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'eulac',
@@ -213,7 +213,7 @@ export const DATASETS = [
     raw_folder_contents: {
       cases: 'eulac_case_studies.pdf',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'eurostat',
@@ -231,24 +231,24 @@ export const DATASETS = [
       dmc_per_capita: 'eurostat_dmc_per_capita.csv',
       waste: 'waste_generation.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'fashion',
     name: 'Fashion Transparency Index',
     raw_folder: 'fashion_transparency_index',
-    processed_csv: 'fashion_transparency_processed.csv',
+    processed_csv: 'fashion_transparency.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_fashion_transparency.js'),
     source_url: null,
     urls: null,
     raw_folder_contents: {
       what_fuels_fashion_report: 'what_fuels_fashion_report.pdf',
-      input_answers: 'Wikirate-2026_02_24_185804-Fashion_Transparency_Index_2025+Input Answer.csv',
-      answers_1: 'Wikirate-2026_02_24_190235-Fashion_Transparency_Index_2025+Answer.csv',
+      inputFile: 'Wikirate-2026_02_24_185804-Fashion_Transparency_Index_2025+Input Answer.csv',
+      scoreFile: 'Wikirate-2026_02_24_190235-Fashion_Transparency_Index_2025+Answer.csv',
       answers_2: 'Wikirate-2026_02_24_190257-Fashion_Transparency_Index_2025+Answer.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'ghg',
@@ -269,7 +269,7 @@ export const DATASETS = [
       pm2_5: 'EDGAR_PM2.5_1970_2024.csv',
       iea_co2: 'IEA_EDGAR_CO2_1970_2024.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'gewm',
@@ -284,7 +284,7 @@ export const DATASETS = [
       data: 'global_ewaste_monitor_raw.csv',
       report: 'global_ewaste_monitor_2024.pdf',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'gtg',
@@ -302,7 +302,7 @@ export const DATASETS = [
       training: 'extracted_data_training_dataset.jsonl',
       validation: 'extracted_data_validation_dataset.jsonl',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'kaggle',
@@ -319,7 +319,7 @@ export const DATASETS = [
       livestock: 'GLEAM_LivestockEmissions.csv',
       supply_chain: 'green_supply_chain_dataset_1000.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'mnd',
@@ -338,7 +338,7 @@ export const DATASETS = [
       network_scores: 'Combined Network Centrality Scores.xlsx',
       business_model: 'sustainable business model dataset.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'oecd',
@@ -354,7 +354,7 @@ export const DATASETS = [
       selected_streams: 'oecd_selected_streams.csv',
       capmf: 'oecd_capmf.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'obf',
@@ -369,7 +369,7 @@ export const DATASETS = [
       product: 'https://world.openbeautyfacts.org/product',
     },
     raw_folder_contents: null,
-    archive_csv: 'obf_scrape_backup.csv',
+    scrape_backup_folder: 'obf_scrape_backup',
   },
   {
     key: 'off',
@@ -384,7 +384,7 @@ export const DATASETS = [
       product: 'https://world.openfoodfacts.org/product',
     },
     raw_folder_contents: null,
-    archive_csv: 'off_scrape_backup.csv',
+    scrape_backup_folder: 'off_scrape_backup',
   },
   {
     key: 'opf',
@@ -399,7 +399,7 @@ export const DATASETS = [
       product: 'https://world.openproductsfacts.org/product',
     },
     raw_folder_contents: null,
-    archive_csv: 'opf_scrape_backup.csv',
+    scrape_backup_folder: 'opf_scrape_backup',
   },
   {
     key: 'sei',
@@ -429,7 +429,7 @@ export const DATASETS = [
       peoples_pavilion: 'SEI-CE-WG-Circular-Economy-Case-Studies_16-Peoples-Pavilion_2025.pdf',
       holbein_gardens: 'SEI-CE-WG-Circular-Economy-Case-Studies_17-Holbein-Gardens_2025.pdf',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'unep',
@@ -450,7 +450,7 @@ export const DATASETS = [
       gwmo: 'gwmo_consolidated_2024.csv',
       countries_msw: 'countries_msw.csv',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'wbcsd',
@@ -492,7 +492,7 @@ export const DATASETS = [
       // latest KPI report file included dynamically as needed by scripts
       fsg_kpi: 'FSG-KPI-Results_2025.pdf',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
   {
     key: 'wbp',
@@ -517,7 +517,7 @@ export const DATASETS = [
       report_iraq: 'reports/report_iraq_fiscal.pdf',
       report_comoros: 'reports/report_comoros_policy.pdf',
     },
-    archive_csv: null,
+    scrape_backup_folder: null,
   },
 ];
 
@@ -559,26 +559,57 @@ export function getDatasetRawDir(key) {
 }
 
 /**
- * Get the full path to a dataset's processed CSV output.
- * Usage: const outPath = getDatasetOutputPath('epa');
+ * Get the full path to a dataset's processed CSV file.
+ * Usage: const csvPath = getDatasetProcessedCsvPath('epa');
+ * Returns null if the dataset doesn't have a processed CSV defined.
  */
-export function getDatasetOutputPath(key) {
+export function getDatasetProcessedCsvPath(key) {
   const dataset = DATASET_LOOKUP[key];
   if (!dataset) throw new Error(`Dataset key not found: ${key}`);
+  if (!dataset.processed_csv) return null;
   return path.join(DATASETS_PROCESSED_DIR, dataset.processed_csv);
 }
 
+// =============================================================================
+// BACKUP FOLDER PATHS (new)
+// =============================================================================
+
 /**
- * Get the path to the dataset's archive CSV (if defined).
- * Returns null if dataset.archive_csv is null.
- * Scrape backups are stored in DATASETS_SCRAPE_BACKUP_DIR (datasets/archives/scrape_backup/).
+ * Get the full path to a dataset's backup folder (inside archives/scrape_backup/).
+ * Uses dataset.scrape_backup_folder if defined, otherwise returns null.
  */
-export function getDatasetArchivePath(key) {
+export function getDatasetBackupFolderPath(key) {
   const dataset = DATASET_LOOKUP[key];
   if (!dataset) throw new Error(`Dataset key not found: ${key}`);
-  if (!dataset.archive_csv) return null;
-  return path.join(DATASETS_SCRAPE_BACKUP_DIR, dataset.archive_csv);
+  if (!dataset.scrape_backup_folder) return null;
+  return path.join(DATASETS_SCRAPE_BACKUP_DIR, dataset.scrape_backup_folder);
 }
+
+/**
+ * Get the full path to a dataset's backup CSV file.
+ * The CSV filename is the folder name + '.csv'.
+ */
+export function getDatasetBackupCsvPath(key) {
+  const folder = getDatasetBackupFolderPath(key);
+  if (!folder) return null;
+  const folderName = path.basename(folder);
+  return path.join(folder, `${folderName}.csv`);
+}
+
+/**
+ * Get the full path to a dataset's backup log file.
+ * The log filename is the folder name + '_logs.txt'.
+ */
+export function getDatasetBackupLogPath(key) {
+  const folder = getDatasetBackupFolderPath(key);
+  if (!folder) return null;
+  const folderName = path.basename(folder);
+  return path.join(folder, `${folderName}_logs.txt`);
+}
+
+// =============================================================================
+// FILE UTILITIES (ensureDir, ensureFile, prepareWrite, writeCsv, etc.)
+// =============================================================================
 
 /**
  * Ensure a directory exists, creating it recursively if necessary.
@@ -602,7 +633,7 @@ export async function ensureDir(dirPath) {
  *
  * Example:
  *   await ensureFile(outputPath);
- *   // now write/append freely, file is guaranteed to exist
+ *   now write/append freely, file is guaranteed to exist
  */
 export async function ensureFile(filePath) {
   const dir = path.dirname(filePath);
@@ -749,8 +780,13 @@ export async function writeJson(filePath, obj) {
     // ignore
   }
 }
+
+// =============================================================================
+// BACKUP CSV HANDLING (appendToArchive, readBackupCsv)
+// =============================================================================
+
 /**
- * Append rows to the dataset's archive CSV, creating or clearing as requested.
+ * Append rows to the dataset's backup CSV, creating or clearing as requested.
  * @param {string} key - dataset key
  * @param {Array<Object>} rows - rows ready for stringify
  * @param {Object} [opts]
@@ -758,51 +794,209 @@ export async function writeJson(filePath, obj) {
  */
 export async function appendToArchive(key, rows, opts = {}) {
   const { clear = false } = opts;
-  const archivePath = getDatasetArchivePath(key);
-  if (!archivePath) return; // nothing to do for datasets without archive
-
-  // ensure archive directory exists
-  await ensureDir(DATASETS_ARCHIVES_DIR);
+  const csvPath = getDatasetBackupCsvPath(key);
+  if (!csvPath) return; // dataset has no backup folder defined
 
   // prepare file – this will also unlock it and optionally clear existing contents
-  const hadBefore = await prepareWrite(archivePath, { clear });
+  const hadBefore = await prepareWrite(csvPath, { clear });
 
   // if the file existed previously and we didn't clear it, omit header on append
   const options = hadBefore && !clear ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
   const csv = stringify(rows, options);
 
   if (hadBefore && !clear) {
-    await fs.promises.appendFile(archivePath, csv);
+    await fs.promises.appendFile(csvPath, csv);
   } else {
-    await fs.promises.writeFile(archivePath, csv);
+    await fs.promises.writeFile(csvPath, csv);
   }
 
   // lock file after writing
-  await fs.promises.chmod(archivePath, 0o444).catch(() => {});
+  await fs.promises.chmod(csvPath, 0o444).catch(() => {});
 }
+
+/**
+ * Read backup CSV content for a dataset and parse rows.
+ * Used in recovery mode to rebuild final CSV without re-scraping.
+ *
+ * @param {string} key - dataset key
+ * @returns {Promise<Array<Object>>} - array of parsed CSV rows (empty array if no backup exists)
+ */
+export async function readBackupCsv(key) {
+  const csvPath = getDatasetBackupCsvPath(key);
+  if (!csvPath) return [];
+
+  try {
+    await fs.promises.access(csvPath);
+  } catch {
+    console.warn(`⚠️️️ Backup file not found: ${csvPath}`);
+    return [];
+  }
+
+  try {
+    const content = await fs.promises.readFile(csvPath, 'utf8');
+    if (!content.trim()) {
+      console.warn(`⚠️️️ Backup file is empty: ${csvPath}`);
+      return [];
+    }
+
+    const lines = content.trim().split('\n');
+    if (lines.length < 1) return [];
+
+    const headerLine = lines[0];
+    const headers = headerLine
+      .split(',')
+      .map((h) => h.trim().replace(/^"|"$/g, ''))
+      .filter((h) => h);
+
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+
+      const row = {};
+      let currentField = '';
+      let inQuotes = false;
+      let colIdx = 0;
+
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+        const nextChar = line[j + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            currentField += '"';
+            j++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          if (colIdx < headers.length) {
+            row[headers[colIdx]] = currentField.trim();
+          }
+          currentField = '';
+          colIdx++;
+        } else {
+          currentField += char;
+        }
+      }
+
+      if (colIdx < headers.length) {
+        row[headers[colIdx]] = currentField.trim();
+      }
+
+      rows.push(row);
+    }
+
+    console.log(`✅ Read ${rows.length} rows from backup: ${csvPath}`);
+    return rows;
+  } catch (err) {
+    console.error(`❌ Error reading backup CSV: ${err.message}`);
+    return [];
+  }
+}
+
+// =============================================================================
+// BACKUP LOGGING (new)
+// =============================================================================
+
+/**
+ * Append a timestamped message to the dataset's backup log file.
+ * The log file is never cleared; messages are appended chronologically.
+ * Follows the same file locking pattern: ensure dir, make writable, append, make read-only.
+ *
+ * @param {string} key - dataset key
+ * @param {string} message - log message (without timestamp)
+ */
+export async function appendBackupLog(key, message) {
+  const logPath = getDatasetBackupLogPath(key);
+  if (!logPath) return; // no backup folder defined
+
+  // Ensure directory exists
+  await ensureDir(path.dirname(logPath));
+
+  // Prepare file: unlock if exists, create if not (but never clear)
+  let existed = fs.existsSync(logPath);
+  if (existed) {
+    try {
+      fs.chmodSync(logPath, 0o644);
+    } catch {
+      // ignore
+    }
+  } else {
+    // create empty file
+    fs.writeFileSync(logPath, '');
+  }
+
+  const now = new Date();
+
+  const day = now.getDate().toString().padStart(2, '0');
+
+  const monthYear = now.toLocaleDateString('en-GB', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
+
+  const timeStr = now.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata',
+  });
+
+  const logLine = `\n[🕰️ ${day} ${monthYear} — ${timeStr} IST]\n${message}\n`;
+
+  await fs.promises.appendFile(logPath, logLine, 'utf8');
+
+  // lock file
+  try {
+    await fs.promises.chmod(logPath, 0o444);
+  } catch {
+    // ignore
+  }
+}
+
+// =============================================================================
+// BACKUP HELPER (createBackupHelper)
+// =============================================================================
 
 /**
  * Helper to batch backup rows every `interval` calls and manage clearing.
  * @param {string} key dataset key
  * @param {number} interval number of calls/pages between writes
  * @param {boolean} clearOnFirst whether to clear file on first write
+ * @param {number} MAX_PAGES_FALLBACK fallback limit to force flush when reached
  */
-export function createBackupHelper(key, interval = 3, clearOnFirst = false) {
+export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_PAGES_FALLBACK = 1) {
   let counter = 0;
   let buffer = [];
+  let firstFlush = true; // track first write to disk
+
   return {
     async add(rows) {
       if (!rows || rows.length === 0) return;
       buffer.push(...rows);
       counter++;
+
+      // Flush when interval reached OR when we hit the fallback limit
+      // Flush only when interval reached – NOT on fallback limit
       if (counter % interval === 0) {
-        await appendToArchive(key, buffer, { clear: counter === interval && clearOnFirst });
+        const rowsToWrite = buffer.length;
+        await appendToArchive(key, buffer, { clear: firstFlush && clearOnFirst });
+        await appendBackupLog(
+          key,
+          `💾 Backup flush (interval): wrote ${rowsToWrite} rows to disk.`,
+        );
+        firstFlush = false;
         buffer = [];
       }
     },
     async flush() {
       if (buffer.length > 0) {
+        const rowsToWrite = buffer.length;
         await appendToArchive(key, buffer, { clear: false });
+        await appendBackupLog(key, `💾 Backup flush (manual): wrote ${rowsToWrite} rows to disk.`);
         buffer = [];
       }
     },
@@ -857,7 +1051,11 @@ export const STRINGIFY_OPTIONS = {
   delimiter: ',',
   record_delimiter: '\n',
   cast: {
-    string: (value) => cleanText(value),
+    string: (value, context) => {
+      // Preserve JSON structure in metadata_json – do NOT clean it
+      if (context.column === 'metadata_json') return value;
+      return cleanText(value);
+    },
   },
 };
 
@@ -901,8 +1099,8 @@ export function getBrowserLaunchOptions() {
   // used when debugging.
   //
   // Usage:
-  //   node datasets/scripts/scrape_ecesp.js            # headless (default)
-  //   node datasets/scripts/scrape_ecesp.js --show     # open browser window
+  //   node datasets/scripts/scrape_xyz.js            # headless (default)
+  //   node datasets/scripts/scrape_xyz.js --show     # open browser window
   const showUi = process.argv.includes('--show');
 
   if (showUi) {
@@ -924,12 +1122,18 @@ export function getBrowserLaunchOptions() {
  * Get standard viewport settings for Puppeteer.
  * Ensures consistent element rendering across all scripts.
  */
-export function getViewportOptions() {
-  return {
-    width: 1920,
-    height: 1080,
-    deviceScaleFactor: 1,
+export function getViewportOptions(size = 'lg') {
+  const viewports = {
+    xs: { width: 375, height: 667 },
+    sm: { width: 768, height: 1024 },
+    md: { width: 1280, height: 800 },
+    lg: { width: 1920, height: 1080 },
   };
+  //give each a deviceScaleFactor = 1
+  Object.values(viewports).forEach((vp) => {
+    vp.deviceScaleFactor = 1;
+  });
+  return viewports[size] || viewports['lg'];
 }
 
 /**
@@ -963,4 +1167,20 @@ export function getExtraHttpHeaders() {
   return {
     'accept-language': 'en-US,en;q=0.9',
   };
+}
+
+// =============================================================================
+// BACKUP RECOVERY MODE
+// =============================================================================
+
+/**
+ * Check if the script is running in backup recovery mode.
+ * Usage: node script.js --use-backup
+ * If true, the script should skip web fetching and build the final CSV from
+ * the backup scrape content instead.
+ *
+ * @returns {boolean} - true if --use-backup flag is present in process.argv
+ */
+export function isBackupRecoveryMode() {
+  return process.argv.includes('--use-backup');
 }

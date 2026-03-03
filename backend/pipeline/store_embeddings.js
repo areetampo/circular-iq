@@ -289,7 +289,7 @@ async function validateStorage() {
         console.log(`  ✓ Total documents in ${dbConfig.tables.documents}: ${count}`);
       }
     } catch (e) {
-      console.warn('  ⚠ Could not retrieve documents count:', e.message);
+      console.warn('  ⚠️️ Could not retrieve documents count:', e.message);
     }
 
     // Test vector search with a dummy embedding
@@ -306,7 +306,7 @@ async function validateStorage() {
       }
     }
   } catch (error) {
-    console.warn('  ⚠ Validation warning:', error.message);
+    console.warn('  ⚠️️ Validation warning:', error.message);
   }
 }
 
