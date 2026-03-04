@@ -348,7 +348,7 @@ The merge script automatically discovers all CSV files in both directories.
 Once dataset is prepared:
 
 ```bash
-npm run merge    # Merge new dataset into combined_input.csv
+npm run merge    # Merge new dataset into combined_input.csv (duplicates removed automatically)
 npm run chunk    # Split into semantic chunks
 npm run embed    # Generate embeddings
 npm run store    # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents)

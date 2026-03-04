@@ -1,5 +1,5 @@
 /**
- * fetch_refed.js
+ * fetch_refed.js - API based fetching not exactly a scraper but similar concept
  *
  * Fetches food waste solution data from the ReFED Insights Engine API v2.
  * Transforms each solution into your standardized problem/solution format.
@@ -27,14 +27,16 @@ import {
   cleanText,
   getDatasetProcessedCsvPath,
   writeCsv,
+  hasAppendFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
   appendBackupLog,
   clearBackupLog,
+  DATASET_KEYS,
 } from '#utils/datasetsUtils.js';
 
-const DATASET_KEY = 'refed';
+const DATASET_KEY = DATASET_KEYS.refed;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const BACKUP_INTERVAL = 10; // Save backup every 10 solutions
 const MAX_SOLUTIONS = 500; // Safety limit (there are ~40 solutions currently)
@@ -47,6 +49,7 @@ const CATEGORIES_URL = `${API_BASE}/solution_database/categories`;
 const SECTORS_URL = `${API_BASE}/sectors`;
 const FOOD_TYPES_URL = `${API_BASE}/solution_database/food_types`;
 
+const APPEND = hasAppendFlag();
 // Create backup helper
 const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true, MAX_SOLUTIONS);
 
@@ -189,7 +192,7 @@ function transformSolution(solution, lookups, index) {
   };
 
   return {
-    ID: formatId(`${DATASET_KEY}_`, index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     problem: cleanText(problem),
     solution: cleanText(solutionDesc),
     materials: cleanText(materials),
@@ -212,7 +215,7 @@ async function rebuildFromBackup() {
     return;
   }
   console.log(`📖 Processing ${backupRows.length} backup rows...`);
-  await writeCsv(OUTPUT_PATH, backupRows);
+  await writeCsv(OUTPUT_PATH, backupRows, APPEND);
   console.log(`✅ Rebuilt ${backupRows.length} rows from backup.`);
 }
 
@@ -250,12 +253,12 @@ async function fetchAndTransform() {
 
   // Now assign sequential IDs based on final order
   const finalRows = rowsWithoutIds.map((row, idx) => ({
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     ...row,
   }));
 
   // Write final CSV (writeCsv handles locking and read-only)
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(OUTPUT_PATH, finalRows, APPEND);
   console.log(`✅ Successfully transformed ${finalRows.length} solutions.`);
   appendBackupLog(DATASET_KEY, `Completed: ${finalRows.length} rows written to ${OUTPUT_PATH}`);
 }

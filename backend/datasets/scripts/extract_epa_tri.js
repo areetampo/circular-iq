@@ -31,7 +31,7 @@ import {
   cleanText,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
@@ -39,7 +39,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.epa;
 const rawDir = getDatasetRawDir(DATASET_KEY);
 const inputFile = path.join(rawDir, '2024_us.csv');
-const outputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Target number of rows to output
 const TARGET_ROWS = 300;
@@ -190,13 +190,13 @@ async function main() {
 
   // 7. Add IDs
   const finalRows = processed.map((row, index) => ({
-    ID: formatId(DATASET_KEY + '_', index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
   // 8. Write output
-  await writeCsv(outputFile, finalRows);
-  console.log(`✅ Successfully wrote ${finalRows.length} records to ${outputFile}`);
+  await writeCsv(OUTPUT_PATH, finalRows);
+  console.log(`✅ Successfully wrote ${finalRows.length} records to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

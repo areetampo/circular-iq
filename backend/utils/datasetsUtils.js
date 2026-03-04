@@ -158,6 +158,77 @@ export const DATASETS = [
     scrape_backup_folder: 'ecesp_good_practices_scrape_backup',
   },
   {
+    key: 'eippcb',
+    name: 'EIPPCB BAT Conclusions and BREFs',
+    raw_folder: 'eippcb', // points to datasets/raw/eippcb/
+    processed_csv: 'eippcb_processed.csv',
+    scrape_script: null,
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_eippcb.js'),
+    source_url: 'https://bureau-industrial-transformation.jrc.ec.europa.eu/reference',
+    urls: {
+      iron_and_steel: {
+        sector: 'Iron and Steel',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32012D0135',
+      },
+      glass: {
+        sector: 'Glass',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32012D0134',
+      },
+      non_ferrous_metals: {
+        sector: 'Non-ferrous Metals',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016D1032',
+      },
+      cement_lime_mgo: {
+        sector: 'Cement, Lime, Magnesium Oxide',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32013D0163',
+      },
+      pulp_paper_board: {
+        sector: 'Pulp, Paper, Board',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014D0687',
+      },
+      textiles: {
+        sector: 'Textiles',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022D2508',
+      },
+      waste_treatment: {
+        sector: 'Waste Treatment',
+        type: 'BAT Conclusion',
+        sourceUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32018D1147',
+      },
+      ceramic_manufacturing: {
+        sector: 'Ceramic Manufacturing',
+        type: 'BREF',
+        sourceUrl: 'https://eippcb.jrc.ec.europa.eu/reference/ceramic-manufacturing',
+      },
+      surface_treatment: {
+        sector: 'Surface Treatment of Metals and Plastics',
+        type: 'BREF',
+        sourceUrl:
+          'https://eippcb.jrc.ec.europa.eu/reference/surface-treatment-metals-and-plastics',
+      },
+    },
+    raw_folder_contents: {
+      iron_and_steel_production_2012: 'bat_conclusions/iron_and_steel_production_2012.pdf',
+      manufacture_of_glass_2012: 'bat_conclusions/manufacture_of_glass_2012.pdf',
+      non_ferrous_metals_industries_2016: 'bat_conclusions/non_ferrous_metals_industries_2016.pdf',
+      production_of_cement_lime_and_magnesium_oxide_2013:
+        'bat_conclusions/production_of_cement_lime_and_magnesium_oxide_2013.pdf',
+      production_of_pulp_paper_and_board_2014:
+        'bat_conclusions/production_of_pulp_paper_and_board_2014.pdf',
+      textiles_industry_2022: 'bat_conclusions/textiles_industry_2022.pdf',
+      waste_treatment_2018: 'bat_conclusions/waste_treatment_2018.pdf',
+      ceramic_manufacturing_bref_2007: 'bref/ceramic_manufacturing_bref_2007.pdf',
+      surface_treatment_bref_2006: 'bref/surface_treatment_bref_2006.pdf',
+    },
+    scrape_backup_folder: null,
+  },
+  {
     key: 'emf',
     name: 'EMF Case Studies',
     raw_folder: null,
@@ -301,6 +372,29 @@ export const DATASETS = [
       extracted_sample: 'extracted_data_first_200_rows.jsonl',
       training: 'extracted_data_training_dataset.jsonl',
       validation: 'extracted_data_validation_dataset.jsonl',
+    },
+    scrape_backup_folder: null,
+  },
+  {
+    key: 'ifixit',
+    name: 'iFixit Repairability Scores',
+    raw_folder: 'ifixit',
+    processed_csv: 'ifixit_processed.csv',
+    scrape_script: null,
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_ifixit.js'),
+    source_url: 'https://www.ifixit.com/repairability',
+    urls: {
+      homepage: 'https://www.ifixit.com/repairability',
+    },
+    raw_folder_contents: {
+      e_readers: 'e_readers.csv',
+      handheld_game_consoles: 'handheld_game_consoles.csv',
+      laptops: 'laptops.csv',
+      mini_pcs: 'mini_pcs.csv',
+      smartphones: 'smartphones.csv',
+      smartwatches: 'smartwatches.csv',
+      tablets: 'tablets.csv',
+      wireless_earbuds: 'wireless_earbuds.csv',
     },
     scrape_backup_folder: null,
   },
@@ -535,6 +629,82 @@ export const DATASETS = [
     },
     scrape_backup_folder: null,
   },
+  {
+    key: 'wrap_extract',
+    name: 'WRAP Reports (extract)',
+    raw_folder: 'wrap_resources',
+    processed_csv: 'wrap_extract_processed.csv',
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_wrap.js'),
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_wrap.js'),
+    source_url: 'https://www.wrap.ngo',
+    urls: {
+      homepage: 'https://www.wrap.ngo/resources',
+      case_studies:
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All',
+      guide: 'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All',
+      reports:
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All',
+      innovations_in_recycled_content_applications:
+        'https://www.wrap.ngo/resources/case-study/innovations-recycled-content-applications',
+      food_waste_reduction_roadmap:
+        'https://www.wrap.ngo/resources/report/food-waste-reduction-roadmap-progress-update-2024',
+      uk_plastics_pact_progress_report:
+        'https://www.wrap.ngo/resources/report/uk-plastics-pact-progress-report-202425',
+      textiles_2030_progress_report:
+        'https://www.wrap.ngo/resources/report/textiles-2030-annual-progress-update-2022-23',
+      weee_workspace_collections:
+        'https://www.wrap.ngo/resources/case-study/weee-collection-trials-and-monitoring-case-studies',
+    },
+    raw_folder_contents: {
+      food_redistribution_survey_2022: 'food_redistribution_survey_2022.pdf',
+      food_waste_reduction_roadmap_2024: 'food_waste_reduction_roadmap_2024.pdf',
+      innovations_recycled_content_2022: 'innovations_recycled_content_2022.pdf',
+      'textiles_2030_progress_2022-23': 'textiles_2030_progress_2022-23.pdf',
+      'uk_plastics_pact_2024-25': 'uk_plastics_pact_2024-25.pdf',
+      weee_workspace_collections: 'weee_workspace_collections.pdf',
+      guides_folder: 'guides',
+      reports_folder: 'reports',
+    },
+    scrape_backup_folder: 'wrap_scrape_backup',
+  },
+  {
+    key: 'wrap_scrape',
+    name: 'WRAP Case Studies/Reports/Guides (scrape)',
+    raw_folder: 'wrap_resources',
+    processed_csv: 'wrap_scrape_processed.csv',
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_wrap.js'),
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_wrap.js'),
+    source_url: 'https://www.wrap.ngo',
+    urls: {
+      homepage: 'https://www.wrap.ngo/resources',
+      case_studies:
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All',
+      guide: 'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All',
+      reports:
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All',
+      innovations_in_recycled_content_applications:
+        'https://www.wrap.ngo/resources/case-study/innovations-recycled-content-applications',
+      food_waste_reduction_roadmap:
+        'https://www.wrap.ngo/resources/report/food-waste-reduction-roadmap-progress-update-2024',
+      uk_plastics_pact_progress_report:
+        'https://www.wrap.ngo/resources/report/uk-plastics-pact-progress-report-202425',
+      textiles_2030_progress_report:
+        'https://www.wrap.ngo/resources/report/textiles-2030-annual-progress-update-2022-23',
+      weee_workspace_collections:
+        'https://www.wrap.ngo/resources/case-study/weee-collection-trials-and-monitoring-case-studies',
+    },
+    raw_folder_contents: {
+      food_redistribution_survey_2022: 'food_redistribution_survey_2022.pdf',
+      food_waste_reduction_roadmap_2024: 'food_waste_reduction_roadmap_2024.pdf',
+      innovations_recycled_content_2022: 'innovations_recycled_content_2022.pdf',
+      'textiles_2030_progress_2022-23': 'textiles_2030_progress_2022-23.pdf',
+      'uk_plastics_pact_2024-25': 'uk_plastics_pact_2024-25.pdf',
+      weee_workspace_collections: 'weee_workspace_collections.pdf',
+      guides_folder: 'guides',
+      reports_folder: 'reports',
+    },
+    scrape_backup_folder: 'wrap_scrape_backup',
+  },
 ];
 
 // Automatically add prefix field from key
@@ -729,7 +899,92 @@ export async function prepareWrite(filePath, opts = {}) {
  * `STRINGIFY_OPTIONS` constant. The output file is prepared with
  * `prepareWrite` and marked read-only once the write completes.
  */
-export async function writeCsv(filePath, rows) {
+export function hasAppendFlag() {
+  // simple CLI helper used by scrape scripts to detect the --append flag
+  // this avoids repeating `process.argv.includes` in every file
+  return process.argv.includes('--append');
+}
+
+export async function writeCsv(filePath, rows, append = false) {
+  // when appending, a few special behaviors are required:
+  //   * if the target file already exists, we must preserve its header
+  //     and push new rows onto the end of the file rather than overwriting.
+  //   * if the rows being written contain an "id" field and the existing
+  //     file contains an "id" column, bump the numeric suffix on each new
+  //     id so that it continues after the last row in the existing CSV.
+  if (append) {
+    // ensure directory exists / unlock file but do not clear it
+    const hadBefore = await prepareWrite(filePath);
+
+    // determine id suffix offset if possible
+    let lastSuffix = 0;
+    let hasIdColumn = false;
+    if (hadBefore) {
+      try {
+        const content = await fs.promises.readFile(filePath, 'utf8');
+        const lines = content.trim().split('\n');
+        if (lines.length > 1) {
+          const headers = lines[0].split(',');
+          // case-insensitive header search for "id"
+          const idIdx = headers.findIndex((h) => h.toLowerCase() === 'id');
+          if (idIdx !== -1) {
+            hasIdColumn = true;
+            for (let i = 1; i < lines.length; i++) {
+              const cols = lines[i].split(',');
+              const val = cols[idIdx] || '';
+              const m = val.match(/_(\d+)$/);
+              if (m) {
+                const num = parseInt(m[1], 10);
+                if (!isNaN(num) && num > lastSuffix) {
+                  lastSuffix = num;
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        // if the file can't be read for some reason, just proceed without
+        // attempting to bump ids.
+      }
+    }
+
+    // adjust ids of new rows if necessary
+    if (hasIdColumn && rows && rows.length > 0) {
+      rows = rows.map((row, idx) => {
+        // support both lowercase and uppercase property
+        const currentId = row.id != null ? row.id : row.ID;
+        if (currentId == null) return row;
+        const m = String(currentId).match(/^(.*?)(?:_(\d+))?$/);
+        const base = m ? m[1] : String(currentId);
+        const newId = `${base}_${lastSuffix + idx + 1}`;
+        if (row.id != null) {
+          return { ...row, id: newId };
+        }
+        if (row.ID != null) {
+          return { ...row, ID: newId };
+        }
+        return row;
+      });
+    }
+
+    const options = hadBefore ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
+    const csv = stringify(rows, options);
+
+    if (hadBefore) {
+      await fs.promises.appendFile(filePath, csv);
+    } else {
+      await fs.promises.writeFile(filePath, csv);
+    }
+
+    try {
+      fs.chmodSync(filePath, 0o444);
+    } catch {
+      // ignore
+    }
+    return;
+  }
+
+  // default non-append behaviour (overwrite)
   await prepareWrite(filePath);
   const csv = stringify(rows, STRINGIFY_OPTIONS);
   await fs.promises.writeFile(filePath, csv);
@@ -1006,9 +1261,9 @@ export async function clearBackupLog(key) {
  * @param {string} key dataset key
  * @param {number} interval number of calls/pages between writes
  * @param {boolean} clearOnFirst whether to clear file on first write
- * @param {number} MAX_PAGES_FALLBACK fallback limit to force flush when reached
+ * @param {number} MAX_PAGES_TO_FETCH fallback limit to force flush when reached
  */
-export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_PAGES_FALLBACK = 1) {
+export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_PAGES_TO_FETCH = 1) {
   let counter = 0;
   let buffer = [];
   let overallFirstRow = null;
@@ -1043,10 +1298,13 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
 
       // Determine flush reason
       const isIntervalFlush = counter % interval === 0;
-      const isFallbackFlush = counter >= MAX_PAGES_FALLBACK;
+      const isFallbackFlush = counter >= MAX_PAGES_TO_FETCH;
 
       if (isIntervalFlush || isFallbackFlush) {
-        const flushReason = isFallbackFlush ? 'fallback limit' : 'interval';
+        const flushReason = isFallbackFlush
+          ? `fallback limit (
+          counter reached ${counter} calls, exceeding fallback threshold of ${MAX_PAGES_TO_FETCH})`
+          : `interval (${interval})`;
         const rowsToWrite = buffer.length;
         totalRowsWritten += rowsToWrite;
 
@@ -1151,15 +1409,15 @@ export const STRINGIFY_OPTIONS = {
  *   formatId('epa_', 99999) => 'epa_99999'
  *   formatId('epa_', 100000) => 'epa_100000'
  */
-export function formatId(prefix, index) {
+export function formatId(DATASET_KEY, index) {
   const baseLimit = Math.pow(10, ID_DIGITS) - 1;
 
   if (index <= baseLimit) {
-    return `${prefix}${String(index).padStart(ID_DIGITS, '0')}`;
+    return `${DATASET_KEY}_${String(index).padStart(ID_DIGITS, '0')}`;
   }
 
   // Overflow → expand digits naturally
-  return `${prefix}${String(index)}`;
+  return `${DATASET_KEY}_${String(index)}`;
 }
 
 // =============================================================================

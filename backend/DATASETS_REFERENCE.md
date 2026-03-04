@@ -47,6 +47,8 @@ All Puppeteer scraper scripts save intermediate results to backup CSV files duri
 
 If a scrape is interrupted (connection timeout, user cancellation), you can rebuild the final CSV from saved backup content using the `--use-backup` flag:
 
+You can also run scraper scripts with `--append` to add new rows to an existing CSV. This will renumber any `ID`/`id` values so they continue from the last row.
+
 ```bash
 # Current execution:
 node datasets/scripts/scrape_c2c.js
@@ -433,7 +435,7 @@ import path from 'path';
 const DATASET_KEY = 'xyz'; // your dataset key
 // ... your scraping logic ...
 const finalRows = data.map((r, idx) => ({
-  ID: formatId(`${DATASET_KEY}_`, idx + 1),
+  ID: formatId(DATASET_KEY, idx + 1),
   problem: r.problem,
   solution: r.solution,
   materials: r.materials || '',

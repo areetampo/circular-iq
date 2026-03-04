@@ -10,7 +10,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
   writeJson,
 } from '#utils/datasetsUtils.js';
@@ -26,7 +26,7 @@ const DATASET_KEY = DATASET_KEYS.wbp;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 const REPORTS_DIR = path.join(RAW_DIR, 'reports');
-const OUTPUT_PATH = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // File paths for fetched JSON
 const BASIC_JSON = path.join(RAW_DIR, dataset.raw_folder_contents.basic_json);
@@ -502,7 +502,7 @@ async function main() {
 
   // 8. Remove temporary _scoreValue and assign final IDs
   const finalRows = topRows.map(({ _scoreValue, ...rest }, idx) => ({
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     ...rest,
   }));
 

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
-import { prepareWrite, writeJsonl } from '#utils/datasetsUtils.js';
+import { prepareWrite, writeJsonl, writeCsv, hasAppendFlag } from '#utils/datasetsUtils.js';
 
 const TMP_DIR = path.join(process.cwd(), 'backend', 'tests', 'tmp');
 
@@ -51,6 +51,82 @@ test('writeJsonl appends and honors clearOnFirst', async () => {
   content = await fs.promises.readFile(file, 'utf8');
   assert.ok(content.includes('"a":1'));
   assert.ok(content.includes('"b":2'));
+});
+
+// --- new tests for append flag and writeCsv ---
+
+test('hasAppendFlag detects --append argument', () => {
+  const original = [...process.argv];
+  process.argv.push('--append');
+  assert.strictEqual(hasAppendFlag(), true);
+  process.argv = original;
+});
+
+test('writeCsv append mode bumps id suffix and preserves existing file', async () => {
+  const file = path.join(TMP_DIR, 'csv.txt');
+  await fs.promises.rm(file, { force: true });
+
+  // create initial file with two rows and id column
+  const initial = [
+    { id: 'foo_1', value: 'one' },
+    { id: 'foo_2', value: 'two' },
+  ];
+  await writeCsv(file, initial);
+
+  // append new rows; ids should be rewritten to foo_3, foo_4
+  const toAdd = [
+    { id: 'foo_1', value: 'three' },
+    { id: 'foo_2', value: 'four' },
+  ];
+  await writeCsv(file, toAdd, true);
+
+  let content = await fs.promises.readFile(file, 'utf8');
+  let lines = content.trim().split('\n');
+  assert.strictEqual(lines[0], 'id,value');
+  assert.strictEqual(lines[1], 'foo_1,one');
+  assert.strictEqual(lines[2], 'foo_2,two');
+  assert.strictEqual(lines[3], 'foo_3,three');
+  assert.strictEqual(lines[4], 'foo_4,four');
+});
+
+// append without id column should just tack rows on
+test('writeCsv append with no id column does simple append', async () => {
+  const file = path.join(TMP_DIR, 'csv2.txt');
+  await fs.promises.rm(file, { force: true });
+
+  const initial = [{ foo: 'a' }];
+  await writeCsv(file, initial);
+
+  const toAdd = [{ foo: 'b' }];
+  await writeCsv(file, toAdd, true);
+
+  const content = await fs.promises.readFile(file, 'utf8');
+  const lines = content.trim().split('\n');
+  assert.strictEqual(lines.length, 3);
+  assert.strictEqual(lines[1], 'a');
+  assert.strictEqual(lines[2], 'b');
+});
+
+// uppercase ID field should also be bumped correctly
+test('writeCsv append rewrites uppercase ID column', async () => {
+  const file = path.join(TMP_DIR, 'csv3.txt');
+  await fs.promises.rm(file, { force: true });
+
+  const initial = [
+    { ID: 'bar_5', value: 'five' },
+    { ID: 'bar_6', value: 'six' },
+  ];
+  await writeCsv(file, initial);
+
+  const toAdd = [{ ID: 'bar_1', value: 'seven' }];
+  await writeCsv(file, toAdd, true);
+
+  const content = await fs.promises.readFile(file, 'utf8');
+  const lines = content.trim().split('\n');
+  assert.strictEqual(lines[0], 'ID,value');
+  assert.strictEqual(lines[1], 'bar_5,five');
+  assert.strictEqual(lines[2], 'bar_6,six');
+  assert.strictEqual(lines[3], 'bar_7,seven');
 });
 
 // cleanup task after tests

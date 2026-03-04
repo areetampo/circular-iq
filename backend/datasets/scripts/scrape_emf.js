@@ -1,3 +1,4 @@
+/* global process */
 /**
  * scrape_emf.js
  *
@@ -6,7 +7,7 @@
  * companies, case study descriptions, and measurable impact metrics.
  *
  * Features:
- *   - Dynamic pagination via "Load More" button clicking (up to MAX_PAGES_FALLBACK)
+ *   - Dynamic pagination via "Load More" button clicking (up to MAX_PAGES_TO_FETCH)
  *   - Per-item detail extraction from individual case study pages
  *   - Quality scoring based on result descriptions and quantified impact metrics
  *   - Backup system: incremental batch-level backup with recovery mode
@@ -35,6 +36,7 @@ import {
   DATASET_KEYS,
   getDatasetProcessedCsvPath,
   writeCsv,
+  hasAppendFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -51,18 +53,20 @@ const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const BACKUP_INTERVAL = 3;
 const CLEAR_BACKUP_ON_START = true;
 
+const APPEND = hasAppendFlag();
+
 // load more button as pagination – we will click it up to END_LOAD_COUNT times, collecting items after each click
 // Click range configuration – collect items only between START_LOAD_COUNT and END_LOAD_COUNT (inclusive)
 const START_LOAD_COUNT = 0; // 0 = include items before any clicks
-const END_LOAD_COUNT = 50; //50 collect up to this many clicks (must be <= MAX_PAGES_FALLBACK)
-const MAX_PAGES_FALLBACK = 50; // safety maximum number of clicks
+const END_LOAD_COUNT = 50; //50 collect up to this many clicks
+const MAX_PAGES_TO_FETCH = 50; // safety maximum number of clicks
 
 // Create backup helper
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
   CLEAR_BACKUP_ON_START,
-  MAX_PAGES_FALLBACK,
+  MAX_PAGES_TO_FETCH,
 );
 
 /**
@@ -116,7 +120,7 @@ async function rebuildFromBackup() {
     }
 
     const finalRows = items.map((item, idx) => ({
-      ID: formatId(`${DATASET_KEY}_`, idx + 1),
+      ID: formatId(DATASET_KEY, idx + 1),
       problem: cleanText(item.problem || ''),
       solution: cleanText(item.solution || ''),
       materials: cleanText(item.materials || ''),
@@ -127,7 +131,7 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} EMF case studies from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendBackupLog(
@@ -156,9 +160,10 @@ async function scrape_emf() {
 
   let browser;
   try {
+    const FINAL_FETCH_PAGE = Math.min(END_LOAD_COUNT, START_LOAD_COUNT + MAX_PAGES_TO_FETCH - 1);
     await appendBackupLog(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${dataset.urls.target}, START_LOAD_COUNT: ${START_LOAD_COUNT}, END_LOAD_COUNT: ${END_LOAD_COUNT}, MAX_PAGES_FALLBACK: ${MAX_PAGES_FALLBACK}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${dataset.urls.target}, PAGES: ${START_LOAD_COUNT}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
     );
 
     browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
@@ -214,8 +219,8 @@ async function scrape_emf() {
       }
     }
 
-    // Now click "Load More" up to END_LOAD_COUNT, but no more than MAX_PAGES_FALLBACK
-    while (loadCount < END_LOAD_COUNT && loadCount < MAX_PAGES_FALLBACK) {
+    // Now click "Load More" up to END_LOAD_COUNT, but no more than MAX_PAGES_TO_FETCH
+    while (loadCount < END_LOAD_COUNT && loadCount < MAX_PAGES_TO_FETCH) {
       try {
         const loadMoreButton = await page.$('button.ais-InfiniteHits-loadMore');
         if (!loadMoreButton) {
@@ -281,8 +286,8 @@ async function scrape_emf() {
 
     if (loadCount === END_LOAD_COUNT) {
       await appendBackupLog(DATASET_KEY, `✅ Reached target end click count (${END_LOAD_COUNT}).`);
-    } else if (loadCount === MAX_PAGES_FALLBACK) {
-      const limitMsg = `⚠️ Reached fallback max clicks (${MAX_PAGES_FALLBACK}) – stopping.`;
+    } else if (loadCount === MAX_PAGES_TO_FETCH) {
+      const limitMsg = `⚠️ Reached fallback max clicks (${MAX_PAGES_TO_FETCH}) – stopping.`;
       console.warn(limitMsg);
       await appendBackupLog(DATASET_KEY, limitMsg);
     }
@@ -304,7 +309,7 @@ async function scrape_emf() {
 
     // --- STEP 3: Save to CSV ---
     const finalRows = collected.map((item, idx) => ({
-      ID: formatId(`${DATASET_KEY}_`, idx + 1),
+      ID: formatId(DATASET_KEY, idx + 1),
       problem: item.problem,
       solution: item.solution,
       materials: item.materials,
@@ -315,7 +320,7 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✅ Scraped ${finalRows.length} EMF case studies.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendBackupLog(

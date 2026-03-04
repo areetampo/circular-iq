@@ -33,7 +33,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   ensureDir,
   writeCsv,
 } from '#utils/datasetsUtils.js';
@@ -43,7 +43,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.gtg;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Priority for JSONL files (higher number = more fields)
 const PRIORITY = {
@@ -55,7 +55,7 @@ const PRIORITY = {
 
 async function main() {
   // Ensure output directory exists
-  await ensureDir(path.dirname(OUTPUT_FILE));
+  await ensureDir(path.dirname(OUTPUT_PATH));
 
   // Read all JSONL files
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.endsWith('.jsonl'));
@@ -171,7 +171,7 @@ async function main() {
 
   // Write CSV using writeCsv (handles quoting, directory, locking)
   const finalMapped = finalRows.map((r, index) => ({
-    ID: formatId(`${DATASET_KEY}_`, index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     problem: r.problem || '',
     solution: r.solution || '',
     materials: r.materials || '',
@@ -182,8 +182,8 @@ async function main() {
     metadata_json: typeof r.metadata_json === 'string' ? r.metadata_json : JSON.stringify(r),
   }));
 
-  await writeCsv(OUTPUT_FILE, finalMapped);
-  console.log(`✅ Written ${finalMapped.length} rows to ${OUTPUT_FILE}`);
+  await writeCsv(OUTPUT_PATH, finalMapped);
+  console.log(`✅ Written ${finalMapped.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

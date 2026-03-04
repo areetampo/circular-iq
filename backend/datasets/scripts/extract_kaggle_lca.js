@@ -34,14 +34,14 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.kaggle;
 const rawDir = getDatasetRawDir(DATASET_KEY);
-const outputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Target total rows
 const TARGET_ROWS = 500;
@@ -223,11 +223,11 @@ async function main() {
   // Assign sequential IDs
   const rowsWithIds = finalRows.map((row, idx) => ({
     ...row,
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
   }));
 
-  await writeCsv(outputFile, rowsWithIds);
-  console.log(`✅ Successfully wrote ${rowsWithIds.length} rows to ${outputFile}`);
+  await writeCsv(OUTPUT_PATH, rowsWithIds);
+  console.log(`✅ Successfully wrote ${rowsWithIds.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

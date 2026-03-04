@@ -33,7 +33,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
@@ -41,7 +41,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.eulac;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_PDF = path.join(getDatasetRawDir(DATASET_KEY), 'eulac_case_studies.pdf');
-const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Known field headers (used as stop markers)
 const FIELD_HEADERS = [
@@ -306,12 +306,12 @@ async function main() {
 
   // Assign IDs with proper formatting
   const finalRows = rows.map((row, index) => ({
-    ID: formatId(DATASET_KEY + '_', index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
-  await writeCsv(OUTPUT_FILE, finalRows);
-  console.log(`✅ Saved ${finalRows.length} rows to ${OUTPUT_FILE}`);
+  await writeCsv(OUTPUT_PATH, finalRows);
+  console.log(`✅ Saved ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

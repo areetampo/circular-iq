@@ -30,7 +30,7 @@ import {
   formatId,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
@@ -38,7 +38,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.env;
 const rawDir = getDatasetRawDir(DATASET_KEY);
 const INPUT_FILE = path.join(rawDir, 'environmental_sustainability.csv');
-const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const aggregateNames = new Set([
   'Arab States',
@@ -104,13 +104,13 @@ async function main() {
 
   // 5. Add IDs
   const finalRows = processed.map((row, index) => ({
-    ID: formatId(DATASET_KEY + '_', index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
   // 6. Write output (helper creates directory, handles locking)
-  await writeCsv(OUTPUT_FILE, finalRows);
-  console.log(`✅ Successfully wrote ${finalRows.length} records to ${OUTPUT_FILE}`);
+  await writeCsv(OUTPUT_PATH, finalRows);
+  console.log(`✅ Successfully wrote ${finalRows.length} records to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

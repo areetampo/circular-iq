@@ -38,7 +38,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 
@@ -48,7 +48,7 @@ const DATASET_KEY = DATASET_KEYS.gewm;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 const RAW_CSV = path.join(RAW_DIR, dataset.raw_folder_contents.data);
-const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Known region names to identify data rows (as they appear in the PDF)
 const REGIONS = new Set(['Asia', 'Europe', 'Africa', 'Americas', 'Oceania']);
@@ -259,16 +259,16 @@ async function cleanData() {
   });
 
   // Write final CSV
-  const outputDir = path.dirname(OUTPUT_FILE);
+  const outputDir = path.dirname(OUTPUT_PATH);
   if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
   const finalMapped = mapped.map((r, idx) => ({
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     ...r,
   }));
 
-  await writeCsv(OUTPUT_FILE, finalMapped); // now allowed inside async function
-  console.log(`✅ Final cleaned CSV written to ${OUTPUT_FILE} with ${finalMapped.length} rows.`);
+  await writeCsv(OUTPUT_PATH, finalMapped); // now allowed inside async function
+  console.log(`✅ Final cleaned CSV written to ${OUTPUT_PATH} with ${finalMapped.length} rows.`);
 }
 
 // ----------------------------------------------------------------------

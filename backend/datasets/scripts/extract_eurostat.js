@@ -33,7 +33,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   ensureDir,
   writeCsv,
 } from '#utils/datasetsUtils.js';
@@ -42,7 +42,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.eurostat;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-const outputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MIN_YEAR = 2019;
 const MAX_ROWS_PER_DATASET = 120;
@@ -250,7 +250,7 @@ function parseEurostatCSV(filePath) {
 // ==================== MAIN ====================
 
 async function main() {
-  await ensureDir(path.dirname(outputFile));
+  await ensureDir(path.dirname(OUTPUT_PATH));
   let allRows = [];
 
   for (const ds of datasets) {
@@ -322,12 +322,12 @@ async function main() {
   }
 
   const finalRows = allRows.map((row, index) => ({
-    ID: formatId(DATASET_KEY + '_', index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
-  await writeCsv(outputFile, finalRows);
-  console.log(`✅ Written ${finalRows.length} curated rows to ${outputFile}`);
+  await writeCsv(OUTPUT_PATH, finalRows);
+  console.log(`✅ Written ${finalRows.length} curated rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

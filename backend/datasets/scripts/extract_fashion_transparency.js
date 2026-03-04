@@ -35,16 +35,15 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
-  ensureDir,
-  writeCsv, // <-- added
+  getDatasetProcessedCsvPath,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.fashion; // now correctly imported
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-const outputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MAX_ROWS = 500;
 const YEAR = 2025;
@@ -404,13 +403,13 @@ async function main() {
 
   // Assign sequential IDs with prefix
   const rowsWithIds = finalRows.map((row, index) => ({
-    ID: formatId(DATASET_KEY + '_', index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
   // ---- 6. Write CSV ----
-  await writeCsv(outputFile, rowsWithIds);
-  console.log(`✅ Written to ${outputFile}`);
+  await writeCsv(OUTPUT_PATH, rowsWithIds);
+  console.log(`✅ Written to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

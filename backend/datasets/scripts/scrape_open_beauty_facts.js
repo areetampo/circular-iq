@@ -31,6 +31,7 @@ import {
   DATASET_KEYS,
   getDatasetProcessedCsvPath,
   writeCsv,
+  hasAppendFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -46,46 +47,57 @@ const outputFile = getDatasetProcessedCsvPath(DATASET_KEY);
 // Configuration
 const BASE_URL = dataset.urls.search;
 const PRODUCT_URL_BASE = dataset.urls.product;
-const PAGE_SIZE = 200;
-const MAX_PAGES_FALLBACK = 50; //50 Maximum number of pages per keyword (or combined search)
 const TARGET_ROWS = 250; // Desired final rows
 const BACKUP_INTERVAL = 3; // Flush backup every 3 pages
 const CLEAR_BACKUP_ON_START = true;
 
+// each entry can override the paging parameters that were previously
+// global constants. this mirrors the pattern used in scrape_c2c.js and
+// scrape_wrap.js so that we can tune individual keywords without touching
+// the shared defaults.
+const KEYWORDS = [
+  { keyword: 'refillable', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'glass', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  {
+    keyword: 'microplastic-free',
+    START_PAGE: 1,
+    END_PAGE: 50,
+    PAGE_SIZE: 200,
+    MAX_PAGES_TO_FETCH: 50,
+  },
+  { keyword: 'recycled', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'recyclable', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'reuse', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'biodegradable', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'compostable', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'eco-friendly', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'sustainable', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'plastic-free', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'zero waste', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'aluminum', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+  { keyword: 'paper', START_PAGE: 1, END_PAGE: 50, PAGE_SIZE: 200, MAX_PAGES_TO_FETCH: 50 },
+];
+
+// Calculate total maximum pages across all keywords and initialize backup helper
+const TOTAL_MAX_PAGES = KEYWORDS.reduce((sum, kw) => sum + kw.MAX_PAGES_TO_FETCH, 0);
+const APPEND = hasAppendFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
   CLEAR_BACKUP_ON_START,
-  MAX_PAGES_FALLBACK,
+  TOTAL_MAX_PAGES,
 );
-
-const KEYWORDS = [
-  'refillable',
-  'glass',
-  'microplastic-free',
-  'recycled',
-  'recyclable',
-  'reuse',
-  'biodegradable',
-  'compostable',
-  'eco-friendly',
-  'sustainable',
-  'plastic-free',
-  'zero waste',
-  'aluminum',
-  'paper',
-];
 
 /**
  * Fetch a single page of products from Open Beauty Facts API.
  */
-async function fetchPage(searchTerms, page) {
+async function fetchPage(searchTerms, page, pageSize = 200) {
   const params = new URLSearchParams({
     search_terms: searchTerms,
     search_simple: '1',
     action: 'process',
     json: '1',
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
     page: page,
   });
 
@@ -176,10 +188,17 @@ function transformProduct(product) {
   };
 }
 
-async function fetchAllForKeyWord(keyword) {
+async function fetchAllForKeyWord({
+  keyword,
+  PAGE_SIZE = 200,
+  START_PAGE = 1,
+  END_PAGE = 50,
+  MAX_PAGES_TO_FETCH: keywordFallback = 50,
+}) {
+  const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + keywordFallback - 1);
   const all = [];
-  for (let page = 1; page <= MAX_PAGES_FALLBACK; page++) {
-    const products = await fetchPage(keyword, page);
+  for (let page = START_PAGE; page <= FINAL_FETCH_PAGE; page++) {
+    const products = await fetchPage(keyword, page, PAGE_SIZE);
     if (products.length === 0) break;
 
     const transformed = products
@@ -201,8 +220,8 @@ async function fetchAllForKeyWord(keyword) {
       await appendBackupLog(DATASET_KEY, errMsg);
     }
 
-    if (page === MAX_PAGES_FALLBACK) {
-      const limitMsg = `⚠️ Reached fallback max pages (${MAX_PAGES_FALLBACK}) for keyword "${keyword}" – stopping.`;
+    if (page === keywordFallback) {
+      const limitMsg = `⚠️ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`;
       console.warn(limitMsg);
       await appendBackupLog(DATASET_KEY, limitMsg);
     }
@@ -247,7 +266,7 @@ async function rebuildFromBackup() {
         uniqueMap.set(row.source_url, row);
       }
     }
-    const uniqueRows = Array.from(uniqueMap.values());
+    let uniqueRows = Array.from(uniqueMap.values());
 
     if (uniqueRows.length > TARGET_ROWS) {
       uniqueRows = uniqueRows.slice(0, TARGET_ROWS);
@@ -263,7 +282,7 @@ async function rebuildFromBackup() {
       const metadataJson =
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row);
       return {
-        ID: formatId(`${DATASET_KEY}_`, idx + 1),
+        ID: formatId(DATASET_KEY, idx + 1),
         problem: row.problem || '',
         solution: row.solution || '',
         materials: row.materials || '',
@@ -275,7 +294,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(outputFile, finalRows);
+    await writeCsv(outputFile, finalRows, APPEND);
     console.log(
       `\n✨ Successfully rebuilt ${finalRows.length} Open Beauty Facts products from backup`,
     );
@@ -306,80 +325,28 @@ async function main() {
 
   await appendBackupLog(
     DATASET_KEY,
-    `🚀 Scrape started. BASE_URL: ${BASE_URL}, MAX_PAGES_FALLBACK: ${MAX_PAGES_FALLBACK}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+    `🚀 Scrape started. BASE_URL: ${BASE_URL}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
   );
 
   let allProducts = [];
   const pagesProcessed = [];
+  const productMap = new Map(); // deduplicate by source_url across all keywords
 
-  // Combined search
-  try {
-    const combined = [];
-    for (let page = 1; page <= MAX_PAGES_FALLBACK; page++) {
-      const products = await fetchPage(KEYWORDS.join(' '), page);
-      if (products.length === 0) break;
-
-      const transformed = products
-        .map(transformProduct)
-        .filter((p) => p.problem && (p.materials || p.category));
-      combined.push(...transformed);
-
-      // Log page details to backup log
-      await appendBackupLog(
-        DATASET_KEY,
-        `Combined search page ${page}: got ${products.length} raw, kept ${transformed.length} (total so far: ${combined.length})`,
-      );
-
-      if (transformed.length > 0) {
-        try {
-          await backup.add(transformed);
-        } catch (e) {
-          const errMsg = `⚠️ Backup add failed for combined page ${page}: ${e.message}`;
-          console.warn(errMsg);
-          await appendBackupLog(DATASET_KEY, errMsg);
-        }
-        pagesProcessed.push(`combined-${page}`);
+  // Fetch each keyword with its individual paging parameters
+  console.log('🔍 Fetching per keyword with individual parameters...');
+  for (const kw of KEYWORDS) {
+    const FINAL_FETCH_PAGE = Math.min(kw.END_PAGE, kw.START_PAGE + kw.MAX_PAGES_TO_FETCH - 1);
+    console.log(`\n📦 Keyword: "${kw.keyword}" (PAGES: ${kw.START_PAGE}-${FINAL_FETCH_PAGE})`);
+    const products = await fetchAllForKeyWord(kw);
+    for (const p of products) {
+      if (!productMap.has(p.source_url)) {
+        productMap.set(p.source_url, p);
       }
-
-      if (page === MAX_PAGES_FALLBACK) {
-        const limitMsg = `⚠️ Reached fallback max pages (${MAX_PAGES_FALLBACK}) for combined search – stopping.`;
-        console.warn(limitMsg);
-        await appendBackupLog(DATASET_KEY, limitMsg);
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 300));
     }
-
-    if (combined.length > 0) {
-      allProducts = combined;
-      console.log(`✅ Combined search returned ${allProducts.length} products.`);
-    } else {
-      console.log('⚠️ Combined search returned 0 products. Falling back to per‑keyword fetching.');
-    }
-  } catch (err) {
-    const errMsg = `⚠️ Combined search failed: ${err.message}`;
-    console.warn(errMsg);
-    await appendBackupLog(DATASET_KEY, errMsg);
+    console.log(`   → Unique total so far: ${productMap.size}`);
+    pagesProcessed.push(kw.keyword);
   }
-
-  // Per‑keyword fallback
-  if (allProducts.length === 0) {
-    console.log('🔍 Fetching per keyword...');
-    const productMap = new Map(); // deduplicate by source_url
-
-    for (const keyword of KEYWORDS) {
-      console.log(`\n📦 Keyword: "${keyword}"`);
-      const products = await fetchAllForKeyWord(keyword);
-      for (const p of products) {
-        if (!productMap.has(p.source_url)) {
-          productMap.set(p.source_url, p);
-        }
-      }
-      console.log(`   → Unique total so far: ${productMap.size}`);
-      pagesProcessed.push(keyword);
-    }
-    allProducts = Array.from(productMap.values());
-  }
+  allProducts = Array.from(productMap.values());
 
   if (allProducts.length === 0) {
     console.log('❌ No products fetched. Exiting.');
@@ -401,7 +368,7 @@ async function main() {
   await appendBackupLog(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
 
   const finalRows = transformed.map((row, idx) => ({
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     problem: row.problem || '',
     solution: row.solution || '',
     materials: row.materials || '',
@@ -412,7 +379,7 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(outputFile, finalRows);
+  await writeCsv(outputFile, finalRows, APPEND);
   await backup.flush();
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;

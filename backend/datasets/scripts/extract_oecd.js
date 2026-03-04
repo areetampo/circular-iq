@@ -7,7 +7,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.oecd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-const combinedOutputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // --- Adjust sampling to target ~500 total rows ---
 const SAMPLE_FRACTION = 0.04; // 4% sampling to target ~500 rows total across all datasets
@@ -250,7 +250,7 @@ async function writeCombined(rows) {
   }
 
   const finalRows = rows.map((row, index) => ({
-    ID: formatId(`${DATASET_KEY}_`, index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     problem: row.problem || '',
     solution: row.solution || '',
     materials: row.materials || '',
@@ -261,10 +261,8 @@ async function writeCombined(rows) {
     metadata_json: row.metadata_json || '',
   }));
 
-  await writeCsv(combinedOutputFile, finalRows);
-  console.log(
-    `\n✅ Combined output written to ${combinedOutputFile} (${finalRows.length} total rows)`,
-  );
+  await writeCsv(OUTPUT_PATH, finalRows);
+  console.log(`\n✅ Combined output written to ${OUTPUT_PATH} (${finalRows.length} total rows)`);
 }
 
 // --- Main function ---

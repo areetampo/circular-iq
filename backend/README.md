@@ -110,7 +110,7 @@ backend/
 │                                  #   and JSDoc comments on key functions
 |
 ├── pipeline/                     # Data processing pipeline
-│   ├── merge_datasets.js         # CSV merge (processed/ & manual_entries/)
+│   ├── merge_datasets.js         # CSV merge (processed/ & manual_entries/) with duplicate row removal
 │   ├── generate_chunks.js        # CSV → chunks.json
 │   ├── generate_embeddings.js    # chunks.json → embedded_chunks.json
 │   ├── store_embeddings.js       # embedded_chunks.json → Supabase (or local JSONL with --dry-run)
@@ -266,6 +266,7 @@ Common CLI flags supported by scripts:
 - `--show` – Display browser window during scraping (Puppeteer scripts only)
 - `--use-backup` – Rebuild final CSV from saved backup (scraper scripts only)
 - `--clear-logs` – Clear script log file before running (optional)
+- `--append` – Append results to existing processed CSV instead of overwriting. Existing IDs will be renumbered to continue sequentially.
 
 Example:
 

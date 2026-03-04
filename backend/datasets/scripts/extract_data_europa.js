@@ -33,14 +33,14 @@ import {
   formatId,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.dataeu;
 const rawDir = getDatasetRawDir(DATASET_KEY);
-const outputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Translation toggle – set to false to skip translation (useful for testing)
 const ENABLE_TRANSLATION = true;
@@ -213,7 +213,7 @@ async function main() {
   }
 
   const finalRows = allRows.map((r, idx) => ({
-    ID: formatId(DATASET_KEY + '_', idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     problem: r.problem || '',
     solution: r.solution || '',
     materials: r.materials || '',
@@ -224,9 +224,9 @@ async function main() {
     metadata_json: typeof r.metadata_json === 'string' ? r.metadata_json : JSON.stringify(r),
   }));
 
-  await writeCsv(outputFile, finalRows);
+  await writeCsv(OUTPUT_PATH, finalRows);
   console.log(`\n✨ Successfully unified files into ${finalRows.length} high-quality rows.`);
-  console.log(`📁 Saved to: ${outputFile}`);
+  console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

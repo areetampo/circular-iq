@@ -30,6 +30,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
+  hasAppendFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -47,17 +48,19 @@ const outputFile = getDatasetProcessedCsvPath(DATASET_KEY);
 const BASE_URL = dataset.urls.search;
 const PRODUCT_URL_BASE = dataset.urls.product;
 const PAGE_SIZE = 100;
-const MAX_PAGES_FALLBACK = 50; //50 Maximum number of pages to fetch
+const START_PAGE = 1;
+const END_PAGE = 50;
+const MAX_PAGES_TO_FETCH = 50; // Maximum number of pages to fetch
 const TARGET_ROWS = 250; // Desired final rows
 const BACKUP_INTERVAL = 3; // Flush backup every 3 pages
 const CLEAR_BACKUP_ON_START = true;
 
-// Backup helper – fourth argument (MAX_PAGES_FALLBACK) passed for consistency
+const APPEND = hasAppendFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
   CLEAR_BACKUP_ON_START,
-  MAX_PAGES_FALLBACK,
+  MAX_PAGES_TO_FETCH,
 );
 
 /**
@@ -208,7 +211,7 @@ async function rebuildFromBackup() {
       const metadataJson =
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row);
       return {
-        ID: formatId(`${DATASET_KEY}_`, idx + 1),
+        ID: formatId(DATASET_KEY, idx + 1),
         problem: row.problem || '',
         solution: row.solution || '',
         materials: row.materials || '',
@@ -220,7 +223,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(outputFile, finalRows);
+    await writeCsv(outputFile, finalRows, APPEND);
     console.log(
       `\n✨ Successfully rebuilt ${finalRows.length} Open Food Facts products from backup`,
     );
@@ -249,15 +252,16 @@ async function main() {
   const logFilePath = getDatasetBackupLogPath(DATASET_KEY);
   console.log(`Scraping OFF. Detailed logs: ${logFilePath}`);
 
+  const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
   await appendBackupLog(
     DATASET_KEY,
-    `🚀 Scrape started. BASE_URL: ${BASE_URL}, MAX_PAGES_FALLBACK: ${MAX_PAGES_FALLBACK}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+    `🚀 Scrape started. BASE_URL: ${BASE_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
   );
 
   const allProducts = [];
   const pagesScraped = [];
 
-  for (let page = 1; page <= MAX_PAGES_FALLBACK; page++) {
+  for (let page = START_PAGE; page <= FINAL_FETCH_PAGE; page++) {
     try {
       const products = await fetchPage(page);
       if (products.length === 0) {
@@ -288,10 +292,11 @@ async function main() {
       allProducts.push(...products);
       pagesScraped.push(page);
 
-      if (page === MAX_PAGES_FALLBACK) {
-        const limitMsg = `⚠️ Reached fallback max pages (${MAX_PAGES_FALLBACK}) – stopping.`;
+      if (page === FINAL_FETCH_PAGE) {
+        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         console.warn(limitMsg);
         await appendBackupLog(DATASET_KEY, limitMsg);
+        break;
       }
 
       // Polite delay
@@ -331,7 +336,7 @@ async function main() {
 
   // Prepare final rows with proper IDs
   const finalRows = transformed.map((row, idx) => ({
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     problem: row.problem || '',
     solution: row.solution || '',
     materials: row.materials || '',
@@ -342,7 +347,7 @@ async function main() {
     metadata_json: row.metadata_json, // already a JSON string
   }));
 
-  await writeCsv(outputFile, finalRows);
+  await writeCsv(outputFile, finalRows, APPEND);
   await backup.flush(); // ensure any remaining buffer is written
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages scraped: ${pagesScraped.join(', ')}.`;

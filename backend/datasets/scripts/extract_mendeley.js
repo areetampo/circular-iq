@@ -33,7 +33,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   ensureDir,
   writeCsv,
 } from '#utils/datasetsUtils.js';
@@ -42,7 +42,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.mnd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const MENDELEY_DIR = getDatasetRawDir(DATASET_KEY);
-const OUTPUT_PATH = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Sample sizes (same as original)
 const SME_SAMPLE_SIZE = 300;
@@ -460,7 +460,7 @@ async function main() {
   }
 
   const finalRows = allRows.map((r, index) => ({
-    ID: formatId(`${DATASET_KEY}_`, index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     problem: r.problem,
     solution: r.solution,
     materials: r.materials,

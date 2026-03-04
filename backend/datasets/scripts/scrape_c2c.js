@@ -31,6 +31,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
+  hasAppendFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -47,14 +48,16 @@ const dataset = DATASET_LOOKUP[DATASET_KEY];
 const TARGET_URL = dataset.urls.homepage;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const START_PAGE = 1;
-const MAX_PAGES_FALLBACK = 56; // 56
+const END_PAGE = 56; // As of June 2024, there are 56 pages total (1..56)
+const MAX_PAGES_TO_FETCH = 56; // 56
 const MAX_ROWS = 450;
 
+const APPEND = hasAppendFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
   CLEAR_BACKUP_ON_START,
-  MAX_PAGES_FALLBACK,
+  MAX_PAGES_TO_FETCH,
 );
 
 /**
@@ -149,7 +152,7 @@ async function rebuildFromBackup() {
         raw_extracted: rawExtracted,
       };
       return {
-        ID: formatId(`${DATASET_KEY}_`, index + 1),
+        ID: formatId(DATASET_KEY, index + 1),
         problem: cleanText(`Circular economy solutions - ${product.title}`),
         solution: cleanText(
           `${product.title} - Cradle-to-Cradle certified. Category: ${product.category}`,
@@ -165,7 +168,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} C2C products from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendBackupLog(
@@ -198,9 +201,10 @@ async function scrape_c2c() {
 
   let browser;
   try {
+    const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
     await appendBackupLog(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${TARGET_URL}, START_PAGE: ${START_PAGE}, MAX_PAGES_FALLBACK: ${MAX_PAGES_FALLBACK}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${TARGET_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
     );
 
     browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
@@ -212,7 +216,7 @@ async function scrape_c2c() {
     const productDetails = [];
     const pagesScraped = [];
 
-    for (let pageNum = START_PAGE; pageNum <= MAX_PAGES_FALLBACK; pageNum++) {
+    for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
       let retries = 3;
       let success = false;
       let pageLinks = [];
@@ -396,8 +400,8 @@ async function scrape_c2c() {
 
       pagesScraped.push(pageNum);
 
-      if (pageNum === MAX_PAGES_FALLBACK) {
-        const limitMsg = `⚠️ Reached fallback max pages (${MAX_PAGES_FALLBACK}) – stopping.`;
+      if (pageNum === FINAL_FETCH_PAGE) {
+        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         console.warn(limitMsg);
         await appendBackupLog(DATASET_KEY, limitMsg);
         break;
@@ -428,7 +432,7 @@ async function scrape_c2c() {
           raw_extracted: { ...product },
         };
         return {
-          ID: formatId(`${DATASET_KEY}_`, index + 1),
+          ID: formatId(DATASET_KEY, index + 1),
           problem: cleanText(`Circular economy solutions - ${product.title}`),
           solution: cleanText(
             `${product.title} - Cradle-to-Cradle certified. Category: ${product.category}`,
@@ -444,7 +448,7 @@ async function scrape_c2c() {
         };
       });
 
-      await writeCsv(OUTPUT_PATH, finalRows);
+      await writeCsv(OUTPUT_PATH, finalRows, APPEND);
       await backup.flush();
 
       console.log(`\n✅ Scraped ${finalRows.length} C2C products.`);

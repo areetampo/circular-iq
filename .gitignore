@@ -22,7 +22,7 @@ env/.env.backend
 !env/.env.example
 
 ################################
-# Datasets
+# Datasets - migrated to git lfs
 ################################
 # 1. Enter the datasets directory
 # backend/datasets/

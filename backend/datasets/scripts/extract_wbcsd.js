@@ -36,7 +36,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
@@ -50,7 +50,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 const DATASET_KEY = DATASET_KEYS.wbcsd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-const OUTPUT_PATH = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // ----------------------------------------------------------------------
 // Helper: extract and clean text from a PDF using Uint8Array
@@ -652,7 +652,7 @@ async function main() {
 
   // Remove temporary fields and add ID
   const final = scored.map(({ _scoreValue, score, ...rest }, idx) => ({
-    ID: formatId(`${DATASET_KEY}_`, idx + 1),
+    ID: formatId(DATASET_KEY, idx + 1),
     ...rest,
   }));
 

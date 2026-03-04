@@ -33,7 +33,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
@@ -41,7 +41,7 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.ghg;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MAX_ROWS = 500;
 const RECENT_YEARS = [2020, 2021, 2022, 2023, 2024];
@@ -221,12 +221,12 @@ async function main() {
   console.log(`Selected ${finalRows.length} rows.`);
 
   const rowsWithIds = finalRows.map((row, index) => ({
-    ID: formatId(`${DATASET_KEY}_`, index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
-  await writeCsv(OUTPUT_FILE, rowsWithIds);
-  console.log(`✅ Written to ${OUTPUT_FILE}`);
+  await writeCsv(OUTPUT_PATH, rowsWithIds);
+  console.log(`✅ Written to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

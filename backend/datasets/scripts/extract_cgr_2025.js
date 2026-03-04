@@ -30,7 +30,7 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
 
@@ -43,7 +43,7 @@ if (!input_file) {
   throw new Error(`No input file defined in raw_folder_contents for dataset ${DATASET_KEY}`);
 }
 const inputFile = path.join(getDatasetRawDir(DATASET_KEY), input_file);
-const outputFile = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 /**
  * Normalize text by removing extra whitespace, hyphens, and trimming.
@@ -139,14 +139,14 @@ async function main() {
 
   // Assign IDs with proper formatting
   const finalRows = insights.map((row, index) => ({
-    ID: formatId(DATASET_KEY + '_', index + 1),
+    ID: formatId(DATASET_KEY, index + 1),
     ...row,
   }));
 
   // use centralized helper which handles directory creation, clearing on the
   // first write and read-only locking after the file is written
-  await writeCsv(outputFile, finalRows);
-  console.log(`Wrote ${finalRows.length} rows to ${outputFile}`);
+  await writeCsv(OUTPUT_PATH, finalRows);
+  console.log(`Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 
 // only run when executed directly

@@ -34,6 +34,7 @@ import {
   DATASET_KEYS,
   getDatasetProcessedCsvPath,
   writeCsv,
+  hasAppendFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -49,16 +50,18 @@ const dataset = DATASET_LOOKUP[DATASET_KEY];
 const BASE_URL = dataset.urls.target;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const START_PAGE = 0; // pagination is 0‑based index
-const MAX_PAGES_FALLBACK = 63; //63 pagination goes 0 – 63 (0‑based)
+const END_PAGE = 63; // 0-based index for the last page
+const MAX_PAGES_TO_FETCH = 64;
 const BEST_LIMIT = 450; // Max items to keep
 const BACKUP_INTERVAL = 3; // pages per backup flush
 const CLEAR_BACKUP_ON_START = true;
 
+const APPEND = hasAppendFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
   CLEAR_BACKUP_ON_START,
-  MAX_PAGES_FALLBACK,
+  MAX_PAGES_TO_FETCH,
 );
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -210,7 +213,7 @@ async function rebuildFromBackup() {
 
     // Build final output rows
     const finalRows = bestItems.map((item, index) => ({
-      ID: formatId(`${DATASET_KEY}_`, index + 1),
+      ID: formatId(DATASET_KEY, index + 1),
       problem: cleanText(item.problem || ''),
       solution: cleanText(item.solution || ''),
       materials: cleanText(item.materials || ''),
@@ -221,7 +224,7 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} ECESP items from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendBackupLog(
@@ -250,9 +253,10 @@ async function scrape_ecesp() {
 
   let browser;
   try {
+    const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
     await appendBackupLog(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${BASE_URL}, START_PAGE: ${START_PAGE}, MAX_PAGES_FALLBACK: ${MAX_PAGES_FALLBACK}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${BASE_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
     );
 
     browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
@@ -265,7 +269,7 @@ async function scrape_ecesp() {
     const allItems = []; // will hold items with full metadata
     const pagesScraped = [];
 
-    for (let pageNum = START_PAGE; pageNum <= MAX_PAGES_FALLBACK; pageNum++) {
+    for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
       const listUrl = pageNum === 0 ? BASE_URL : `${BASE_URL}?page=${pageNum}`;
       await appendBackupLog(DATASET_KEY, `Fetching page ${pageNum}...`);
 
@@ -548,8 +552,8 @@ async function scrape_ecesp() {
 
       pagesScraped.push(pageNum);
 
-      if (pageNum === MAX_PAGES_FALLBACK) {
-        const limitMsg = `⚠️ Reached fallback max pages (${MAX_PAGES_FALLBACK}) – stopping.`;
+      if (pageNum === FINAL_FETCH_PAGE) {
+        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         console.warn(limitMsg);
         await appendBackupLog(DATASET_KEY, limitMsg);
         break;
@@ -605,7 +609,7 @@ async function scrape_ecesp() {
 
     // Write final CSV
     const finalRows = bestItems.map((item, index) => ({
-      ID: formatId(`${DATASET_KEY}_`, index + 1),
+      ID: formatId(DATASET_KEY, index + 1),
       problem: item.problem,
       solution: item.solution,
       materials: item.materials,
@@ -616,7 +620,7 @@ async function scrape_ecesp() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✅ Scraped ${finalRows.length} ECESP items.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendBackupLog(

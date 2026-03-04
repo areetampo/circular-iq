@@ -137,6 +137,17 @@ async function mergeCsvFiles() {
 
   console.log(`\nTotal records collected: ${totalRecords}`);
 
+  // dedupe rows to prevent duplicates from multiple sources
+  const uniqueRowsSet = new Set(mergedRows);
+  if (uniqueRowsSet.size !== mergedRows.length) {
+    const removed = mergedRows.length - uniqueRowsSet.size;
+    console.log(`✓ Removed ${removed} duplicate row${removed === 1 ? '' : 's'} during merge`);
+  }
+  const deduped = Array.from(uniqueRowsSet);
+  mergedRows.length = 0;
+  mergedRows.push(...deduped);
+  totalRecords = mergedRows.length;
+
   // Write output
   if (totalRecords === 0) {
     console.error('\n✗ ERROR: No records were merged!');
@@ -191,6 +202,9 @@ async function mergeCsvFiles() {
   console.log('  2. Run: npm run chunk');
   console.log('  3. Run: npm run embed');
   console.log('  4. Run: npm run store');
+  console.log(
+    '  5. use --archives flag to write to archives/ instead of datasets/out/ for a "run archives" variant',
+  );
   console.log('='.repeat(30) + '\n');
 }
 
