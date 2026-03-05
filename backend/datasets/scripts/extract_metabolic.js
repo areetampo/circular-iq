@@ -1,20 +1,13 @@
 /**
- * extract_metabolic.js
+ * extract_metabolic.js – Improved version with stricter filtering and reduced row limit
  *
- * Extracts problem‑solution‑impact rows from Metabolic Open Reports PDFs.
- * Uses pdfjs-dist for text extraction with proper worker configuration.
  * Features:
- *   - Processes all PDFs in datasets/raw/metabolic/
- *   - Splits text into meaningful chunks (paragraphs/sentences)
- *   - Attempts to identify problem, solution, impact via heuristics
- *   - Quality scoring to keep best rows
- *   - Writes standardised CSV with ID, problem, solution, materials, strategy, category, impact, source_url, metadata_json
+ *   - Higher score threshold (35) to keep only higher-quality chunks.
+ *   - Additional filters: problem length > 50, problem ≠ solution.
+ *   - Final row limit reduced to 400.
  *
  * Usage:
  *   node extract_metabolic.js
- *
- * Input: PDF files in datasets/raw/metabolic/
- * Output: datasets/processed/metabolic_processed.csv
  */
 
 import fs from 'fs';
@@ -40,9 +33,26 @@ const DATASET_KEY = DATASET_KEYS.metabolic;
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-const MAX_ROWS_PER_PDF = 30; // maximum rows to extract from one PDF
-const MIN_CHUNK_LENGTH = 200; // minimum characters for a chunk
-const MAX_CHUNK_LENGTH = 1200; // maximum characters for a chunk
+const MAX_ROWS_PER_PDF = 30;
+const MIN_CHUNK_LENGTH = 200;
+const MAX_CHUNK_LENGTH = 1200;
+const MIN_SCORE = 35; // increased from 20 to 35
+const FINAL_ROW_LIMIT = 400; // reduced from 500 to 400
+
+/**
+ * Check if a file starts with the PDF header.
+ */
+function isValidPdf(filePath) {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buffer = Buffer.alloc(5);
+    fs.readSync(fd, buffer, 0, 5, 0);
+    fs.closeSync(fd);
+    return buffer.toString() === '%PDF-';
+  } catch (err) {
+    return false;
+  }
+}
 
 /**
  * Extract text from a PDF file using pdfjs-dist.
@@ -51,7 +61,7 @@ async function extractTextFromPdf(filePath) {
   const dataBuffer = await fs.promises.readFile(filePath);
   const uint8Array = new Uint8Array(dataBuffer);
   const loadingTask = pdfjsLib.getDocument({ data: uint8Array, useSystemFonts: true });
-  let pdfDocument = null;
+  let pdfDocument;
   try {
     pdfDocument = await loadingTask.promise;
   } catch (err) {
@@ -66,20 +76,17 @@ async function extractTextFromPdf(filePath) {
     const strings = content.items.map((item) => item.str);
     fullText += strings.join(' ') + '\n';
   }
-  return fullText.replace(/\s+/g, ' '); // Normalise spaces
+  return fullText.replace(/\s+/g, ' ');
 }
 
 /**
- * Score a chunk for quality.
+ * Score a chunk for overall quality (same as before).
  */
 function scoreChunk(text) {
   let score = 0;
   const lower = text.toLowerCase();
 
-  // Presence of numbers (quantified impact)
   if (/\d+%|\d+\s?(tonnes|tons|kg|t|co2|ghg|€|\$)/i.test(lower)) score += 30;
-
-  // Keywords indicating problem or solution
   if (
     lower.includes('challenge') ||
     lower.includes('problem') ||
@@ -101,25 +108,20 @@ function scoreChunk(text) {
     lower.includes('circular')
   )
     score += 10;
-
-  // Length score (longer chunks often contain more detail)
   if (text.length > 400) score += 10;
   if (text.length > 800) score += 5;
-
   return score;
 }
 
 /**
- * Split text into candidate chunks.
+ * Split text into candidate chunks (paragraphs or sentences).
  */
 function chunkText(text) {
-  // Split by double newlines (paragraphs)
   const paragraphs = text.split(/\n\s*\n/).filter((p) => {
     const trimmed = p.trim();
     return trimmed.length >= MIN_CHUNK_LENGTH && trimmed.length <= MAX_CHUNK_LENGTH;
   });
 
-  // If too few paragraphs, split by sentences into larger chunks
   if (paragraphs.length < 3) {
     const sentences = text.split(/(?<=[.!?])\s+/);
     const chunks = [];
@@ -232,6 +234,205 @@ function inferCategory(text, filename) {
 }
 
 /**
+ * Enhanced extraction of problem, solution, impact from a chunk.
+ * Uses sentence‑level scoring with expanded keywords.
+ */
+function extractProblemSolutionImpact(chunk) {
+  // Split into sentences (roughly)
+  const sentences = chunk.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 15);
+  if (sentences.length === 0) {
+    return {
+      problem: chunk,
+      solution: chunk,
+      impact: 'Qualitative impact described.',
+    };
+  }
+
+  // Keyword sets
+  const problemKeywords = [
+    'challenge',
+    'problem',
+    'issue',
+    'barrier',
+    'difficulty',
+    'obstacle',
+    'need',
+    'lack',
+    'shortage',
+    'concern',
+    'threat',
+    'risk',
+    'gap',
+    'inefficiency',
+  ];
+  const solutionKeywords = [
+    'solution',
+    'approach',
+    'method',
+    'measure',
+    'initiative',
+    'action',
+    'implement',
+    'develop',
+    'create',
+    'introduce',
+    'launch',
+    'establish',
+    'strategy',
+    'framework',
+    'policy',
+    'project',
+    'program',
+    'tool',
+    'technique',
+  ];
+  const actionVerbs = [
+    'developed',
+    'created',
+    'designed',
+    'implemented',
+    'used',
+    'applied',
+    'launched',
+    'established',
+    'introduced',
+    'adopted',
+    'built',
+    'constructed',
+  ];
+
+  // Score each sentence for problem, solution, and impact
+  let problemSentences = [];
+  let solutionSentences = [];
+  let impactSentences = [];
+
+  sentences.forEach((s, idx) => {
+    const lower = s.toLowerCase();
+    let pScore = 0,
+      sScore = 0,
+      iScore = 0;
+
+    // Impact: numbers with units
+    if (/\d+%|\d+\s?(tonnes|tons|kg|t|co2|ghg|€|\$|million|billion)/i.test(lower)) {
+      iScore += 3;
+    }
+
+    // Problem keywords
+    problemKeywords.forEach((kw) => {
+      if (lower.includes(kw)) pScore += 1;
+    });
+    // If the sentence starts with "Challenge:" or similar, give high score
+    if (/^\s*(challenge|problem|issue|barrier)\s*[:;]/.test(lower)) pScore += 5;
+
+    // Solution keywords
+    solutionKeywords.forEach((kw) => {
+      if (lower.includes(kw)) sScore += 1;
+    });
+    // Action verbs
+    actionVerbs.forEach((v) => {
+      if (lower.includes(v)) sScore += 1;
+    });
+    // Headings like "Solution:", "Approach:"
+    if (/^\s*(solution|approach|method|initiative)\s*[:;]/.test(lower)) sScore += 5;
+
+    if (pScore > 0) {
+      problemSentences.push({ text: s, score: pScore, index: idx });
+    }
+    if (sScore > 0) {
+      solutionSentences.push({ text: s, score: sScore, index: idx });
+    }
+    if (iScore > 0) {
+      impactSentences.push({ text: s, score: iScore, index: idx });
+    }
+  });
+
+  // Sort by score desc
+  problemSentences.sort((a, b) => b.score - a.score);
+  solutionSentences.sort((a, b) => b.score - a.score);
+  impactSentences.sort((a, b) => b.score - a.score);
+
+  // Choose best problem and solution
+  let bestProblem = problemSentences.length > 0 ? problemSentences[0] : null;
+  let bestSolution = solutionSentences.length > 0 ? solutionSentences[0] : null;
+
+  // If we have both, use them.
+  if (bestProblem && bestSolution) {
+    // If they are the same sentence, we need to decide: maybe the sentence contains both.
+    if (bestProblem.index === bestSolution.index && solutionSentences.length > 1) {
+      bestSolution = solutionSentences[1];
+    }
+  }
+
+  // If only problem, try to find a nearby sentence as solution
+  if (bestProblem && !bestSolution) {
+    const problemIdx = bestProblem.index;
+    for (let offset = 1; offset <= 2; offset++) {
+      if (problemIdx + offset < sentences.length) {
+        const cand = sentences[problemIdx + offset];
+        if (cand.length > 20) {
+          bestSolution = { text: cand, score: 0, index: problemIdx + offset };
+          break;
+        }
+      }
+      if (problemIdx - offset >= 0) {
+        const cand = sentences[problemIdx - offset];
+        if (cand.length > 20) {
+          bestSolution = { text: cand, score: 0, index: problemIdx - offset };
+          break;
+        }
+      }
+    }
+  }
+
+  // If only solution, try to find a nearby problem
+  if (!bestProblem && bestSolution) {
+    const solIdx = bestSolution.index;
+    for (let offset = 1; offset <= 2; offset++) {
+      if (solIdx + offset < sentences.length) {
+        const cand = sentences[solIdx + offset];
+        if (cand.length > 20) {
+          bestProblem = { text: cand, score: 0, index: solIdx + offset };
+          break;
+        }
+      }
+      if (solIdx - offset >= 0) {
+        const cand = sentences[solIdx - offset];
+        if (cand.length > 20) {
+          bestProblem = { text: cand, score: 0, index: solIdx - offset };
+          break;
+        }
+      }
+    }
+  }
+
+  // Impact: take best impact sentence
+  let bestImpact = impactSentences.length > 0 ? impactSentences[0].text : null;
+
+  // Fallback: if still no problem/solution, use first sentence as problem, rest as solution
+  if (!bestProblem) {
+    bestProblem = { text: sentences[0], score: 0, index: 0 };
+  }
+  if (!bestSolution) {
+    // If only one sentence, use it as both
+    if (sentences.length === 1) {
+      bestSolution = bestProblem;
+    } else {
+      // Use remaining sentences as solution
+      const rest = sentences.slice(bestProblem.index + 1).join(' ');
+      bestSolution = { text: rest || bestProblem.text, score: 0 };
+    }
+  }
+
+  const problem = bestProblem.text;
+  const solution = bestSolution.text;
+  const impact =
+    bestImpact ||
+    (impactSentences.length > 0 ? impactSentences[0].text : 'Qualitative impact described.');
+
+  return { problem, solution, impact };
+}
+
+/**
  * Process a single PDF file.
  */
 async function processPdf(filePath, filename) {
@@ -253,31 +454,13 @@ async function processPdf(filePath, filename) {
 
   for (const chunk of chunks) {
     const score = scoreChunk(chunk);
-    if (score < 20) continue; // low quality
+    if (score < MIN_SCORE) continue; // increased threshold
 
     const materials = extractMaterials(chunk);
     const strategy = inferStrategy(chunk);
     const category = inferCategory(chunk, filename);
 
-    // Attempt to split chunk into problem and solution
-    const sentences = chunk.split(/(?<=[.!?])\s+/);
-    let problem, solution;
-    if (sentences.length >= 2) {
-      problem = sentences[0];
-      solution = sentences.slice(1).join(' ');
-    } else {
-      problem = chunk;
-      solution = chunk;
-    }
-
-    // Impact: try to extract a sentence containing numbers
-    let impact = '';
-    const numSentence = sentences.find((s) => /\d+%|\d+\s?(tonnes|tons|kg|t|co2|€|\$)/i.test(s));
-    if (numSentence) {
-      impact = numSentence;
-    } else {
-      impact = 'Qualitative impact described.';
-    }
+    const { problem, solution, impact } = extractProblemSolutionImpact(chunk);
 
     rows.push({
       problem: cleanText(problem.substring(0, 500)),
@@ -312,7 +495,6 @@ async function main() {
   console.log(`Found ${files.length} PDF files in ${RAW_DIR}`);
 
   let allRows = [];
-  let failedFiles = [];
 
   for (const file of files) {
     const filePath = path.join(RAW_DIR, file);
@@ -321,22 +503,26 @@ async function main() {
       allRows.push(...rows);
     } catch (err) {
       console.error(`❌ Unexpected error processing ${file}: ${err.message}`);
-      failedFiles.push(file);
     }
-  }
-
-  if (failedFiles.length > 0) {
-    console.warn(`\n⚠️ The following files could not be processed and were skipped:`);
-    failedFiles.forEach((f) => console.warn(`   - ${f}`));
   }
 
   console.log(`\nTotal raw rows extracted: ${allRows.length}`);
 
-  // Sort by quality score and keep top 500
-  const sorted = allRows.sort((a, b) => b._score - a._score);
-  const topRows = sorted.slice(0, 500);
+  // Apply additional filters before sorting
+  const filteredRows = allRows.filter((row) => {
+    // Problem must be longer than 50 characters (avoid fragments)
+    if (row.problem.length < 50) return false;
+    // Problem and solution should not be identical (fallback case)
+    if (row.problem === row.solution) return false;
+    return true;
+  });
 
-  // Remove temporary _score field and assign IDs
+  console.log(`After length and duplicate filters: ${filteredRows.length}`);
+
+  // Sort by score and take top FINAL_ROW_LIMIT
+  const sorted = filteredRows.sort((a, b) => b._score - a._score);
+  const topRows = sorted.slice(0, FINAL_ROW_LIMIT);
+
   const finalRows = topRows.map((row, idx) => {
     const { _score, ...rest } = row;
     return {
