@@ -40,9 +40,9 @@ import {
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
-  appendBackupLog,
-  clearBackupLog,
-  getDatasetBackupLogPath,
+  appendLogs,
+  clearLogs,
+  getDatasetScrapeLogsPath,
 } from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
@@ -77,19 +77,19 @@ async function rebuildFromBackup() {
   console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
   try {
-    await appendBackupLog(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
+    await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
-      await appendBackupLog(DATASET_KEY, msg);
-      await appendBackupLog(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
+      await appendLogs(DATASET_KEY, msg);
+      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
       return;
     }
 
     console.log(`📖 Processing ${backupRows.length} backup rows...`);
-    await appendBackupLog(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
+    await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     const items = backupRows
       .map((row) => {
@@ -114,8 +114,8 @@ async function rebuildFromBackup() {
 
     if (items.length === 0) {
       console.warn(`⚠️ No valid items could be reconstructed from backup.`);
-      await appendBackupLog(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
-      await appendBackupLog(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
+      await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
+      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
 
@@ -134,34 +134,34 @@ async function rebuildFromBackup() {
     await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} EMF case studies from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
-    await appendBackupLog(
+    await appendLogs(
       DATASET_KEY,
       `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
     );
-    await appendBackupLog(DATASET_KEY, `\n--- End of recovery run ---\n`);
+    await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
     console.error('❌ Error rebuilding from backup:', error.message);
-    await appendBackupLog(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
-    await appendBackupLog(DATASET_KEY, `\n--- Recovery aborted ---\n`);
+    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
 }
 
 async function scrape_emf() {
-  await clearBackupLog(DATASET_KEY);
+  await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
     await rebuildFromBackup();
     return;
   }
 
-  const logFilePath = getDatasetBackupLogPath(DATASET_KEY);
+  const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
   console.log(`Scraping EMF. Detailed logs: ${logFilePath}`);
 
   let browser;
   try {
     const FINAL_FETCH_PAGE = Math.min(END_LOAD_COUNT, START_LOAD_COUNT + MAX_PAGES_TO_FETCH - 1);
-    await appendBackupLog(
+    await appendLogs(
       DATASET_KEY,
       `🚀 Scrape started. Target: ${dataset.urls.target}, PAGES: ${START_LOAD_COUNT}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
     );
@@ -172,11 +172,11 @@ async function scrape_emf() {
     await page.setUserAgent(getUserAgentOptions());
     await page.setExtraHTTPHeaders(getExtraHttpHeaders());
 
-    await appendBackupLog(DATASET_KEY, `Navigating to EMF Case Study Hub...`);
+    await appendLogs(DATASET_KEY, `Navigating to EMF Case Study Hub...`);
     await page.goto(dataset.urls.target, { waitUntil: 'networkidle2' });
 
     // --- STEP 1: Handle "Load More" with incremental collection ---
-    await appendBackupLog(DATASET_KEY, `⏳ Loading cases incrementally...`);
+    await appendLogs(DATASET_KEY, `⏳ Loading cases incrementally...`);
     let loadCount = 0;
     let previousUrls = new Set();
     const collected = [];
@@ -196,7 +196,7 @@ async function scrape_emf() {
 
     // If START_LOAD_COUNT == 0, collect initial items
     if (START_LOAD_COUNT === 0 && currentUrls.length > 0) {
-      await appendBackupLog(DATASET_KEY, `Initial load: ${currentUrls.length} items.`);
+      await appendLogs(DATASET_KEY, `Initial load: ${currentUrls.length} items.`);
       // Fetch details for initial items
       const pageRows = [];
       for (const link of currentUrls) {
@@ -209,11 +209,11 @@ async function scrape_emf() {
       if (pageRows.length > 0) {
         try {
           await backup.add(pageRows);
-          await appendBackupLog(DATASET_KEY, `Initial load: collected ${pageRows.length} items.`);
+          await appendLogs(DATASET_KEY, `Initial load: collected ${pageRows.length} items.`);
         } catch (e) {
           const backupErr = `⚠️ Backup add failed for initial load: ${e.message}`;
           console.warn(backupErr);
-          await appendBackupLog(DATASET_KEY, backupErr);
+          await appendLogs(DATASET_KEY, backupErr);
         }
         pagesCollected.push(0);
       }
@@ -224,14 +224,14 @@ async function scrape_emf() {
       try {
         const loadMoreButton = await page.$('button.ais-InfiniteHits-loadMore');
         if (!loadMoreButton) {
-          await appendBackupLog(DATASET_KEY, `  ✓ No more "Load More" button – stopping.`);
+          await appendLogs(DATASET_KEY, `  ✓ No more "Load More" button – stopping.`);
           break;
         }
 
         await loadMoreButton.scrollIntoView();
         await loadMoreButton.click();
         loadCount++;
-        await appendBackupLog(
+        await appendLogs(
           DATASET_KEY,
           `  ↳ Clicked "Load More" (${loadCount}/${END_LOAD_COUNT})...`,
         );
@@ -240,7 +240,7 @@ async function scrape_emf() {
         // Get new URLs after this click
         currentUrls = await getCurrentUrls();
         const newUrls = currentUrls.filter((url) => !previousUrls.has(url));
-        await appendBackupLog(DATASET_KEY, `     → Found ${newUrls.length} new items.`);
+        await appendLogs(DATASET_KEY, `     → Found ${newUrls.length} new items.`);
 
         // Only collect if this click is within the desired range
         if (loadCount >= START_LOAD_COUNT) {
@@ -256,22 +256,19 @@ async function scrape_emf() {
           if (pageRows.length > 0) {
             try {
               await backup.add(pageRows);
-              await appendBackupLog(
+              await appendLogs(
                 DATASET_KEY,
                 `Click ${loadCount}: found ${newUrls.length} new, collected ${pageRows.length} items.`,
               );
             } catch (e) {
               const backupErr = `⚠️ Backup add failed for click ${loadCount}: ${e.message}`;
               console.warn(backupErr);
-              await appendBackupLog(DATASET_KEY, backupErr);
+              await appendLogs(DATASET_KEY, backupErr);
             }
             pagesCollected.push(loadCount);
           }
         } else {
-          await appendBackupLog(
-            DATASET_KEY,
-            `     (Skipping collection – before START_LOAD_COUNT)`,
-          );
+          await appendLogs(DATASET_KEY, `     (Skipping collection – before START_LOAD_COUNT)`);
         }
 
         // Update previous URLs for next iteration
@@ -279,28 +276,28 @@ async function scrape_emf() {
       } catch (e) {
         const clickErr = `  ⚠️ Load More click failed at count ${loadCount}: ${e.message}`;
         console.warn(clickErr);
-        await appendBackupLog(DATASET_KEY, clickErr);
+        await appendLogs(DATASET_KEY, clickErr);
         break;
       }
     }
 
     if (loadCount === END_LOAD_COUNT) {
-      await appendBackupLog(DATASET_KEY, `✅ Reached target end click count (${END_LOAD_COUNT}).`);
+      await appendLogs(DATASET_KEY, `✅ Reached target end click count (${END_LOAD_COUNT}).`);
     } else if (loadCount === MAX_PAGES_TO_FETCH) {
       const limitMsg = `⚠️ Reached fallback max clicks (${MAX_PAGES_TO_FETCH}) – stopping.`;
       console.warn(limitMsg);
-      await appendBackupLog(DATASET_KEY, limitMsg);
+      await appendLogs(DATASET_KEY, limitMsg);
     }
 
     // Flush any remaining backup rows
     await backup.flush();
 
-    await appendBackupLog(DATASET_KEY, `Total raw items collected: ${collected.length}`);
+    await appendLogs(DATASET_KEY, `Total raw items collected: ${collected.length}`);
 
     if (collected.length === 0) {
       console.log('❌ No items collected. Exiting.');
-      await appendBackupLog(DATASET_KEY, `⚠️ No items collected.`);
-      await appendBackupLog(DATASET_KEY, `\n--- End of run (no output) ---\n`);
+      await appendLogs(DATASET_KEY, `⚠️ No items collected.`);
+      await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
     }
 
@@ -323,15 +320,27 @@ async function scrape_emf() {
     await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✅ Scraped ${finalRows.length} EMF case studies.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
-    await appendBackupLog(
+
+    const firstRow = finalRows[0];
+    const lastRow = finalRows[finalRows.length - 1];
+
+    await appendLogs(
       DATASET_KEY,
       `✅ Scrape complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}. Clicks with data: ${pagesCollected.join(', ')}.`,
     );
-    await appendBackupLog(DATASET_KEY, `\n--- End of run ---\n`);
+    await appendLogs(
+      DATASET_KEY,
+      `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
+    );
+    await appendLogs(
+      DATASET_KEY,
+      `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
+    );
+    await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
   } catch (error) {
     console.error('❌ Fatal error in scrape_emf:', error);
-    await appendBackupLog(DATASET_KEY, `❌ Fatal error: ${error.message}`);
-    await appendBackupLog(DATASET_KEY, `\n--- Run aborted ---\n`);
+    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
   } finally {
     if (browser) await browser.close();
@@ -409,7 +418,7 @@ async function fetchDetail(browser, link) {
       return { item, backupRow };
     } else {
       // Log skipped items only to backup log, not console
-      await appendBackupLog(
+      await appendLogs(
         DATASET_KEY,
         `⏩ Skipped (problem too short): ${data.title.substring(0, 40)}`,
       );
@@ -418,16 +427,30 @@ async function fetchDetail(browser, link) {
   } catch (err) {
     const errMsg = `⚠️ Error on ${link}: ${err.message}`;
     console.warn(errMsg);
-    await appendBackupLog(DATASET_KEY, errMsg);
+    await appendLogs(DATASET_KEY, errMsg);
     return null;
   } finally {
     if (detailPage) await detailPage.close();
   }
 }
 
+// Main entry point: handles both normal and recovery modes
+async function main() {
+  if (isBackupRecoveryMode()) {
+    await rebuildFromBackup();
+  } else {
+    await scrape_emf();
+  }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  scrape_emf().catch((err) => {
-    console.error('❌ Scrape EMF failed:', err.message);
-    process.exit(1);
-  });
+  main()
+    .then(async () => {
+      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
+    })
+    .catch(async (err) => {
+      console.error('❌ Scrape EMF failed:', err.message);
+      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+      process.exit(1);
+    });
 }

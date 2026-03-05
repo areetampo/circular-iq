@@ -34,9 +34,9 @@ import {
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
-  appendBackupLog,
-  clearBackupLog,
-  getDatasetBackupLogPath,
+  appendLogs,
+  clearLogs,
+  getDatasetScrapeLogsPath,
   getDatasetProcessedCsvPath,
 } from '#utils/datasetsUtils.js';
 
@@ -80,7 +80,7 @@ async function fetchPage(page) {
   });
 
   const url = `${BASE_URL}?${params.toString()}`;
-  await appendBackupLog(DATASET_KEY, `Fetching page ${page}`);
+  await appendLogs(DATASET_KEY, `Fetching page ${page}`);
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -170,19 +170,19 @@ async function rebuildFromBackup() {
   console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
   try {
-    await appendBackupLog(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
+    await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
-      await appendBackupLog(DATASET_KEY, msg);
-      await appendBackupLog(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
+      await appendLogs(DATASET_KEY, msg);
+      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
       return;
     }
 
     console.log(`📖 Processing ${backupRows.length} backup rows...`);
-    await appendBackupLog(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
+    await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Apply the same strict filter as live scrape
     let transformed = backupRows.filter((p) => {
@@ -195,8 +195,8 @@ async function rebuildFromBackup() {
 
     if (transformed.length === 0) {
       console.warn(`⚠️ No rows passed the filter.`);
-      await appendBackupLog(DATASET_KEY, `⚠️ No rows passed the filter.`);
-      await appendBackupLog(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
+      await appendLogs(DATASET_KEY, `⚠️ No rows passed the filter.`);
+      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
 
@@ -205,7 +205,7 @@ async function rebuildFromBackup() {
     }
 
     console.log(`✅ Selected ${transformed.length} high-quality rows from backup`);
-    await appendBackupLog(DATASET_KEY, `Selected ${transformed.length} rows after filtering.`);
+    await appendLogs(DATASET_KEY, `Selected ${transformed.length} rows after filtering.`);
 
     const finalRows = transformed.map((row, idx) => {
       const metadataJson =
@@ -228,32 +228,32 @@ async function rebuildFromBackup() {
       `\n✨ Successfully rebuilt ${finalRows.length} Open Food Facts products from backup`,
     );
     console.log(`📁 Saved to: ${outputFile}`);
-    await appendBackupLog(
+    await appendLogs(
       DATASET_KEY,
       `✅ Recovery complete. Wrote ${finalRows.length} rows to ${outputFile}`,
     );
-    await appendBackupLog(DATASET_KEY, `\n--- End of recovery run ---\n`);
+    await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
     console.error('❌ Error rebuilding from backup:', error.message);
-    await appendBackupLog(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
-    await appendBackupLog(DATASET_KEY, `\n--- Recovery aborted ---\n`);
+    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
 }
 
 async function main() {
-  await clearBackupLog(DATASET_KEY);
+  await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
     await rebuildFromBackup();
     return;
   }
 
-  const logFilePath = getDatasetBackupLogPath(DATASET_KEY);
+  const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
   console.log(`Scraping OFF. Detailed logs: ${logFilePath}`);
 
   const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
-  await appendBackupLog(
+  await appendLogs(
     DATASET_KEY,
     `🚀 Scrape started. BASE_URL: ${BASE_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
   );
@@ -265,7 +265,7 @@ async function main() {
     try {
       const products = await fetchPage(page);
       if (products.length === 0) {
-        await appendBackupLog(DATASET_KEY, 'No more products found.');
+        await appendLogs(DATASET_KEY, 'No more products found.');
         break;
       }
 
@@ -275,7 +275,7 @@ async function main() {
         .filter((p) => p.problem && (p.materials || p.category));
 
       // Log page details to backup log
-      await appendBackupLog(
+      await appendLogs(
         DATASET_KEY,
         `Page ${page}: got ${products.length} raw, kept ${pageRows.length} rows (total so far: ${allProducts.length + products.length})`,
       );
@@ -286,7 +286,7 @@ async function main() {
       } catch (e) {
         const errMsg = `⚠️ Backup add failed for page ${page}: ${e.message}`;
         console.warn(errMsg);
-        await appendBackupLog(DATASET_KEY, errMsg);
+        await appendLogs(DATASET_KEY, errMsg);
       }
 
       allProducts.push(...products);
@@ -295,7 +295,7 @@ async function main() {
       if (page === FINAL_FETCH_PAGE) {
         const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         console.warn(limitMsg);
-        await appendBackupLog(DATASET_KEY, limitMsg);
+        await appendLogs(DATASET_KEY, limitMsg);
         break;
       }
 
@@ -304,15 +304,15 @@ async function main() {
     } catch (err) {
       const errMsg = `❌ Failed to fetch page ${page}: ${err.message}`;
       console.error(errMsg);
-      await appendBackupLog(DATASET_KEY, errMsg);
+      await appendLogs(DATASET_KEY, errMsg);
       break;
     }
   }
 
   if (allProducts.length === 0) {
     console.log('❌ No products fetched. Exiting.');
-    await appendBackupLog(DATASET_KEY, `⚠️ No products fetched.`);
-    await appendBackupLog(DATASET_KEY, `\n--- End of run (no output) ---\n`);
+    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
+    await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
 
@@ -332,7 +332,7 @@ async function main() {
     transformed = transformed.slice(0, TARGET_ROWS);
   }
 
-  await appendBackupLog(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
+  await appendLogs(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
 
   // Prepare final rows with proper IDs
   const finalRows = transformed.map((row, idx) => ({
@@ -352,13 +352,27 @@ async function main() {
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages scraped: ${pagesScraped.join(', ')}.`;
   console.log(summary);
-  await appendBackupLog(DATASET_KEY, summary);
-  await appendBackupLog(DATASET_KEY, `\n--- End of run ---\n`);
+
+  const firstRow = finalRows[0];
+  const lastRow = finalRows[finalRows.length - 1];
+
+  await appendLogs(DATASET_KEY, summary);
+  await appendLogs(
+    DATASET_KEY,
+    `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
+  );
+  await appendLogs(DATASET_KEY, `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`);
+  await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
-    process.exit(1);
-  });
+  main()
+    .then(async () => {
+      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
+    })
+    .catch(async (err) => {
+      console.error('\n❌ Fatal error:', err.message);
+      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+      process.exit(1);
+    });
 }

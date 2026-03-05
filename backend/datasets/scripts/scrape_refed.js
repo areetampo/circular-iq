@@ -31,8 +31,8 @@ import {
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
-  appendBackupLog,
-  clearBackupLog,
+  appendLogs,
+  clearLogs,
   DATASET_KEYS,
 } from '#utils/datasetsUtils.js';
 
@@ -103,7 +103,7 @@ async function fetchAllSolutions() {
       hasMore = false;
     } else {
       allSolutions = allSolutions.concat(solutions);
-      appendBackupLog(DATASET_KEY, `Page ${page}: fetched ${solutions.length} solutions`);
+      appendLogs(DATASET_KEY, `Page ${page}: fetched ${solutions.length} solutions`);
       page++;
       // Small delay to be polite
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -225,17 +225,17 @@ async function rebuildFromBackup() {
 async function fetchAndTransform() {
   console.log('Fetching lookup data...');
   const lookups = await fetchLookups();
-  appendBackupLog(DATASET_KEY, 'Lookup data fetched');
+  appendLogs(DATASET_KEY, 'Lookup data fetched');
 
   console.log('Fetching solutions...');
   const solutions = await fetchAllSolutions();
   console.log(`Fetched ${solutions.length} total solutions`);
-  appendBackupLog(DATASET_KEY, `Fetched ${solutions.length} solutions`);
+  appendLogs(DATASET_KEY, `Fetched ${solutions.length} solutions`);
 
   // Filter to only include solutions that are included in the model
   const validSolutions = solutions.filter((s) => s.attributes?.include_in_model === true);
   console.log(`${validSolutions.length} solutions are included in the model`);
-  appendBackupLog(DATASET_KEY, `${validSolutions.length} solutions marked include_in_model=true`);
+  appendLogs(DATASET_KEY, `${validSolutions.length} solutions marked include_in_model=true`);
 
   // Transform each solution to a row (without ID yet)
   const rowsWithoutIds = [];
@@ -260,7 +260,16 @@ async function fetchAndTransform() {
   // Write final CSV (writeCsv handles locking and read-only)
   await writeCsv(OUTPUT_PATH, finalRows, APPEND);
   console.log(`✅ Successfully transformed ${finalRows.length} solutions.`);
-  appendBackupLog(DATASET_KEY, `Completed: ${finalRows.length} rows written to ${OUTPUT_PATH}`);
+
+  const firstRow = finalRows[0];
+  const lastRow = finalRows[finalRows.length - 1];
+
+  await appendLogs(DATASET_KEY, `Completed: ${finalRows.length} rows written to ${OUTPUT_PATH}`);
+  await appendLogs(
+    DATASET_KEY,
+    `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
+  );
+  await appendLogs(DATASET_KEY, `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`);
 }
 
 // --- Entry point ---
@@ -271,7 +280,7 @@ if (isBackupRecoveryMode()) {
 }
 
 async function main() {
-  clearBackupLog(DATASET_KEY);
+  clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
     console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
@@ -283,8 +292,13 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
-    process.exit(1);
-  });
+  main()
+    .then(async () => {
+      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
+    })
+    .catch(async (err) => {
+      console.error('\n❌ Fatal error:', err.message);
+      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+      process.exit(1);
+    });
 }

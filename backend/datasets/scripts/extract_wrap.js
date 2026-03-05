@@ -33,7 +33,7 @@ const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
 pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 
-const DATASET_KEY = DATASET_KEYS.wrap_extract;
+const DATASET_KEY = DATASET_KEYS.wrap;
 
 // Problem/solution keywords
 const PROBLEM_KEYWORDS = [

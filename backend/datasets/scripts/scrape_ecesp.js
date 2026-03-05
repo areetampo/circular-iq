@@ -38,9 +38,9 @@ import {
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
-  appendBackupLog,
-  clearBackupLog,
-  getDatasetBackupLogPath,
+  appendLogs,
+  clearLogs,
+  getDatasetScrapeLogsPath,
 } from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
@@ -135,19 +135,19 @@ async function rebuildFromBackup() {
   console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
   try {
-    await appendBackupLog(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
+    await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
-      await appendBackupLog(DATASET_KEY, msg);
-      await appendBackupLog(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
+      await appendLogs(DATASET_KEY, msg);
+      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
       return;
     }
 
     console.log(`📖 Processing ${backupRows.length} backup rows...`);
-    await appendBackupLog(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
+    await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Reconstruct items from the stored metadata_json
     const items = backupRows
@@ -199,15 +199,12 @@ async function rebuildFromBackup() {
     const bestItems = uniqueItems.slice(0, BEST_LIMIT);
 
     console.log(`✅ Selected ${bestItems.length} best items from backup`);
-    await appendBackupLog(
-      DATASET_KEY,
-      `Selected ${bestItems.length} items after scoring/filtering.`,
-    );
+    await appendLogs(DATASET_KEY, `Selected ${bestItems.length} items after scoring/filtering.`);
 
     if (bestItems.length === 0) {
       console.warn(`⚠️ No valid items could be reconstructed from backup.`);
-      await appendBackupLog(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
-      await appendBackupLog(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
+      await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
+      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
 
@@ -227,34 +224,34 @@ async function rebuildFromBackup() {
     await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} ECESP items from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
-    await appendBackupLog(
+    await appendLogs(
       DATASET_KEY,
       `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
     );
-    await appendBackupLog(DATASET_KEY, `\n--- End of recovery run ---\n`);
+    await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
     console.error('❌ Error rebuilding from backup:', error.message);
-    await appendBackupLog(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
-    await appendBackupLog(DATASET_KEY, `\n--- Recovery aborted ---\n`);
+    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
 }
 
 async function scrape_ecesp() {
-  await clearBackupLog(DATASET_KEY);
+  await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
     await rebuildFromBackup();
     return;
   }
 
-  const logFilePath = getDatasetBackupLogPath(DATASET_KEY);
+  const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
   console.log(`Scraping ECESP. Detailed logs: ${logFilePath}`);
 
   let browser;
   try {
     const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
-    await appendBackupLog(
+    await appendLogs(
       DATASET_KEY,
       `🚀 Scrape started. Target: ${BASE_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
     );
@@ -271,7 +268,7 @@ async function scrape_ecesp() {
 
     for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
       const listUrl = pageNum === 0 ? BASE_URL : `${BASE_URL}?page=${pageNum}`;
-      await appendBackupLog(DATASET_KEY, `Fetching page ${pageNum}...`);
+      await appendLogs(DATASET_KEY, `Fetching page ${pageNum}...`);
 
       let retries = 3;
       let success = false;
@@ -290,24 +287,24 @@ async function scrape_ecesp() {
           );
 
           if (pageLinks.length === 0) {
-            await appendBackupLog(
+            await appendLogs(
               DATASET_KEY,
               `  ✓ No practices found on page ${pageNum}. Stopping pagination.`,
             );
             break;
           }
 
-          await appendBackupLog(DATASET_KEY, `  ✓ Found ${pageLinks.length} practices.`);
+          await appendLogs(DATASET_KEY, `  ✓ Found ${pageLinks.length} practices.`);
           success = true;
         } catch (err) {
           retries--;
           const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
           console.warn(msg);
-          await appendBackupLog(DATASET_KEY, msg);
+          await appendLogs(DATASET_KEY, msg);
           if (retries === 0) {
             const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
             console.warn(skipMsg);
-            await appendBackupLog(DATASET_KEY, skipMsg);
+            await appendLogs(DATASET_KEY, skipMsg);
             break;
           } else {
             await sleep(10000 * (3 - retries)); // exponential backoff
@@ -347,7 +344,7 @@ async function scrape_ecesp() {
               }
             } catch (e) {
               // cookie error is non‑critical, just log to backup
-              await appendBackupLog(DATASET_KEY, `  - Cookie handling error: ${e.message}`);
+              await appendLogs(DATASET_KEY, `  - Cookie handling error: ${e.message}`);
             }
 
             await detailPage.waitForSelector('.field-node--field-cecon-description .field-item', {
@@ -516,13 +513,10 @@ async function scrape_ecesp() {
             detailSuccess = true;
           } catch (err) {
             detailRetries--;
-            const errMsg = `    ⚠️ Error processing detail (retries left: ${detailRetries}): ${err.message}`;
-            console.warn(errMsg);
-            await appendBackupLog(DATASET_KEY, errMsg);
+            const errMsg = `⚠️ Error processing detail (retries left: ${detailRetries}): ${err.message}`;
+            await appendLogs(DATASET_KEY, errMsg);
             if (detailRetries === 0) {
-              const skipMsg = `    ⚠️ Skipping this practice after 2 failed attempts.`;
-              console.warn(skipMsg);
-              await appendBackupLog(DATASET_KEY, skipMsg);
+              await appendLogs(DATASET_KEY, `⚠️ Skipping this practice after 2 failed attempts.`);
             } else {
               await sleep(5000);
             }
@@ -539,23 +533,22 @@ async function scrape_ecesp() {
       if (pageRows.length > 0) {
         try {
           await backup.add(pageRows);
-          await appendBackupLog(
+          await appendLogs(
             DATASET_KEY,
             `Page ${pageNum}: found ${pageLinks.length} links, processed ${pageRows.length} practices.`,
           );
         } catch (e) {
-          const backupErr = `  ⚠️ Backup add failed for page ${pageNum}: ${e.message}`;
-          console.warn(backupErr);
-          await appendBackupLog(DATASET_KEY, backupErr);
+          await appendLogs(DATASET_KEY, `⚠️ Backup add failed for page ${pageNum}: ${e.message}`);
         }
       }
 
       pagesScraped.push(pageNum);
 
       if (pageNum === FINAL_FETCH_PAGE) {
-        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
-        console.warn(limitMsg);
-        await appendBackupLog(DATASET_KEY, limitMsg);
+        await appendLogs(
+          DATASET_KEY,
+          `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`,
+        );
         break;
       }
 
@@ -565,12 +558,12 @@ async function scrape_ecesp() {
     // Flush any remaining backup rows
     await backup.flush();
 
-    await appendBackupLog(DATASET_KEY, `Total raw practices collected: ${allItems.length}`);
+    await appendLogs(DATASET_KEY, `Total raw practices collected: ${allItems.length}`);
 
     if (allItems.length === 0) {
       console.log('❌ No items scraped. Exiting.');
-      await appendBackupLog(DATASET_KEY, `⚠️ No items scraped.`);
-      await appendBackupLog(DATASET_KEY, `\n--- End of run (no output) ---\n`);
+      await appendLogs(DATASET_KEY, `⚠️ No items scraped.`);
+      await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
     }
 
@@ -602,10 +595,7 @@ async function scrape_ecesp() {
     // Take top BEST_LIMIT
     const bestItems = uniqueItems.slice(0, BEST_LIMIT);
 
-    await appendBackupLog(
-      DATASET_KEY,
-      `After filtering and scoring: ${bestItems.length} items kept.`,
-    );
+    await appendLogs(DATASET_KEY, `After filtering and scoring: ${bestItems.length} items kept.`);
 
     // Write final CSV
     const finalRows = bestItems.map((item, index) => ({
@@ -623,15 +613,27 @@ async function scrape_ecesp() {
     await writeCsv(OUTPUT_PATH, finalRows, APPEND);
     console.log(`\n✅ Scraped ${finalRows.length} ECESP items.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
-    await appendBackupLog(
+
+    const firstRow = finalRows[0];
+    const lastRow = finalRows[finalRows.length - 1];
+
+    await appendLogs(
       DATASET_KEY,
       `✅ Scrape complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}. Pages scraped: ${pagesScraped.join(', ')}.`,
     );
-    await appendBackupLog(DATASET_KEY, `\n--- End of run ---\n`);
+    await appendLogs(
+      DATASET_KEY,
+      `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
+    );
+    await appendLogs(
+      DATASET_KEY,
+      `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
+    );
+    await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
   } catch (error) {
     console.error('❌ Fatal error in scrape_ecesp:', error);
-    await appendBackupLog(DATASET_KEY, `❌ Fatal error: ${error.message}`);
-    await appendBackupLog(DATASET_KEY, `\n--- Run aborted ---\n`);
+    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
   } finally {
     if (browser) await browser.close();
@@ -639,9 +641,23 @@ async function scrape_ecesp() {
   }
 }
 
+// Main entry point: handles both normal and recovery modes
+async function main() {
+  if (isBackupRecoveryMode()) {
+    await rebuildFromBackup();
+  } else {
+    await scrape_ecesp();
+  }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  scrape_ecesp().catch((err) => {
-    console.error('❌ Fatal error:', err.message);
-    process.exit(1);
-  });
+  main()
+    .then(async () => {
+      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
+    })
+    .catch(async (err) => {
+      console.error('❌ Fatal error:', err.message);
+      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+      process.exit(1);
+    });
 }

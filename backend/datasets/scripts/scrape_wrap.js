@@ -45,18 +45,19 @@ import {
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
-  appendBackupLog,
-  clearBackupLog,
-  getDatasetBackupLogPath,
+  appendLogs,
+  clearLogs,
+  getDatasetScrapeLogsPath,
   DATASET_LOOKUP,
   ensureDir,
   getDatasetRawDir,
+  DATASET_KEYS,
 } from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
 
 // ===== CONFIGURATION =====
-const DATASET_KEY = 'wrap_scrape';
+const DATASET_KEY = DATASET_KEYS.wrap;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
 const BACKUP_INTERVAL = 3;
@@ -69,8 +70,7 @@ const GUIDES_DIR = await ensureDir(path.join(rawDir, dataset.raw_folder_contents
 const ALL_CATEGORIES = [
   {
     name: 'case-studies',
-    listUrl:
-      'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All&page=',
+    listUrl: `${dataset.urls.case_studies}` + '&page=',
     // 20 pages total (0..19)
     START_PAGE: 0,
     END_PAGE: 19,
@@ -79,8 +79,7 @@ const ALL_CATEGORIES = [
   },
   {
     name: 'guides',
-    listUrl:
-      'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All&page=',
+    listUrl: `${dataset.urls.guides}` + '&page=',
     // 21 pages total (0..20)
     START_PAGE: 0,
     END_PAGE: 20,
@@ -89,8 +88,7 @@ const ALL_CATEGORIES = [
   },
   {
     name: 'reports',
-    listUrl:
-      'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All&page=',
+    listUrl: `${dataset.urls.reports}` + '&page=',
     // 29 pages total (0..28)
     START_PAGE: 0,
     END_PAGE: 28,
@@ -234,7 +232,7 @@ async function downloadReportOrGuide(page, url, outputDir) {
   }
 
   if (success) {
-    appendBackupLog(
+    appendLogs(
       DATASET_KEY,
       `Downloaded PDF: ${filename} from ${pdfUrl} (category: ${
         outputDir.includes('reports') ? 'report' : 'guide'
@@ -273,7 +271,7 @@ async function processResource(browser, url, category) {
     } else {
       // reports/guides: download PDF
       const result = await downloadReportOrGuide(page, url, category.outputDir);
-      appendBackupLog(
+      appendLogs(
         DATASET_KEY,
         result
           ? `Successfully processed resource: ${url}`
@@ -320,7 +318,7 @@ async function scrapeCategory(browser, category) {
   console.log(
     `\n=== Scraping category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE} (max ${MAX_PAGES_TO_FETCH} pages) ===`,
   );
-  await appendBackupLog(
+  await appendLogs(
     DATASET_KEY,
     `Starting category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, max pages: ${MAX_PAGES_TO_FETCH}`,
   );
@@ -331,7 +329,7 @@ async function scrapeCategory(browser, category) {
   for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
     const pageUrl = listUrl + pageNum;
     console.log(`  Page ${pageNum}/${FINAL_FETCH_PAGE}: ${pageUrl}`);
-    await appendBackupLog(DATASET_KEY, `Page ${pageNum}: ${pageUrl}`);
+    await appendLogs(DATASET_KEY, `Page ${pageNum}: ${pageUrl}`);
 
     let retries = 3;
     let success = false;
@@ -348,7 +346,7 @@ async function scrapeCategory(browser, category) {
         );
         if (links.length === 0) {
           console.log('    No more resources found. Stopping pagination for this category.');
-          await appendBackupLog(DATASET_KEY, `  No resources found on page ${pageNum}.`);
+          await appendLogs(DATASET_KEY, `  No resources found on page ${pageNum}.`);
           break;
         }
         console.log(`    Found ${links.length} resources.`);
@@ -357,11 +355,11 @@ async function scrapeCategory(browser, category) {
         retries--;
         const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
         console.warn(msg);
-        await appendBackupLog(DATASET_KEY, msg);
+        await appendLogs(DATASET_KEY, msg);
         if (retries === 0) {
           const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
           console.warn(skipMsg);
-          await appendBackupLog(DATASET_KEY, skipMsg);
+          await appendLogs(DATASET_KEY, skipMsg);
         } else {
           await sleep(5000 * (3 - retries));
         }
@@ -407,11 +405,11 @@ async function scrapeCategory(browser, category) {
           resourceRetries--;
           const errMsg = `      ⚠️ Resource error (retries left: ${resourceRetries}): ${err.message}`;
           console.warn(errMsg);
-          await appendBackupLog(DATASET_KEY, errMsg);
+          await appendLogs(DATASET_KEY, errMsg);
           if (resourceRetries === 0) {
             const skipMsg = `      ⚠️ Skipping resource after 2 failed attempts.`;
             console.warn(skipMsg);
-            await appendBackupLog(DATASET_KEY, skipMsg);
+            await appendLogs(DATASET_KEY, skipMsg);
           } else {
             await sleep(3000);
           }
@@ -424,19 +422,13 @@ async function scrapeCategory(browser, category) {
     if (name === 'case-studies' && pageRows.length > 0) {
       try {
         await backup.add(pageRows);
-        await appendBackupLog(
-          DATASET_KEY,
-          `Page ${pageNum}: added ${pageRows.length} rows to backup.`,
-        );
+        await appendLogs(DATASET_KEY, `Page ${pageNum}: added ${pageRows.length} rows to backup.`);
       } catch (e) {
         console.warn(`  ⚠️ Backup add failed: ${e.message}`);
-        await appendBackupLog(DATASET_KEY, `  ⚠️ Backup add failed: ${e.message}`);
+        await appendLogs(DATASET_KEY, `  ⚠️ Backup add failed: ${e.message}`);
       }
     } else if (name !== 'case-studies') {
-      await appendBackupLog(
-        DATASET_KEY,
-        `Page ${pageNum}: downloaded ${pdfCount} PDFs to ${outputDir}`,
-      );
+      await appendLogs(DATASET_KEY, `Page ${pageNum}: downloaded ${pdfCount} PDFs to ${outputDir}`);
     }
 
     await sleep(2000 + Math.floor(Math.random() * 3000));
@@ -453,16 +445,16 @@ async function scrapeCategory(browser, category) {
 // ========== MAIN ==========
 
 async function scrape_wrap() {
-  await clearBackupLog(DATASET_KEY);
+  await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
     await rebuildFromBackup();
     return;
   }
 
-  const logFilePath = getDatasetBackupLogPath(DATASET_KEY);
+  const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
   console.log(`Scraping WRAP resources. Detailed logs: ${logFilePath}`);
-  await appendBackupLog(
+  await appendLogs(
     DATASET_KEY,
     `🚀 Scrape started. Categories: ${ACTIVE_CATEGORIES.map((c) => c.name).join(', ')}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
   );
@@ -502,6 +494,18 @@ async function scrape_wrap() {
       await writeCsv(OUTPUT_PATH, finalRows);
       console.log(`\n✅ Scraped ${finalRows.length} case study rows.`);
       console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+
+      const firstRow = finalRows[0];
+      const lastRow = finalRows[finalRows.length - 1];
+
+      await appendLogs(
+        DATASET_KEY,
+        `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
+      );
+      await appendLogs(
+        DATASET_KEY,
+        `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
+      );
     } else {
       console.log(`\nℹ️ No case study rows scraped.`);
     }
@@ -512,13 +516,13 @@ async function scrape_wrap() {
       console.log(`   - Guides: ${GUIDES_DIR}`);
     }
 
-    await appendBackupLog(
+    await appendLogs(
       DATASET_KEY,
       `✅ Scrape complete. Rows: ${allRows.length}, PDFs: ${totalPdfs}`,
     );
   } catch (err) {
     console.error('❌ Fatal error:', err);
-    await appendBackupLog(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+    await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
     throw err;
   } finally {
     if (browser) await browser.close();
@@ -526,9 +530,23 @@ async function scrape_wrap() {
   }
 }
 
+// Main entry point: handles both normal and recovery modes
+async function main() {
+  if (isBackupRecoveryMode()) {
+    await rebuildFromBackup();
+  } else {
+    await scrape_wrap();
+  }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  scrape_wrap().catch((err) => {
-    console.error('❌ Fatal error:', err.message);
-    process.exit(1);
-  });
+  main()
+    .then(async () => {
+      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
+    })
+    .catch(async (err) => {
+      console.error('❌ Fatal error:', err.message);
+      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+      process.exit(1);
+    });
 }

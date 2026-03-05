@@ -122,6 +122,21 @@ export const DATASETS = [
     scrape_backup_folder: null, // no scraping
   },
   {
+    key: 'circle_knowledge_hub',
+    name: 'Circle Economy Knowledge Hub Cases',
+    raw_folder: null,
+    processed_csv: 'circle_knowledge_hub_processed.csv',
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_circle_knowledge_hub.js'),
+    extract_script: null,
+    source_url: 'https://knowledge-hub.circle-economy.com/cases',
+    urls: {
+      listings: 'https://knowledge-hub.circle-economy.com/cases?_sort=3',
+      base: 'https://knowledge-hub.circle-economy.com',
+    },
+    raw_folder_contents: null,
+    scrape_backup_folder: 'circle_knowledge_hub_scrape_backup',
+  },
+  {
     key: 'dataeu',
     name: 'Data Europa',
     raw_folder: 'data_europa',
@@ -416,6 +431,141 @@ export const DATASETS = [
     scrape_backup_folder: null,
   },
   {
+    key: 'kalundborg',
+    name: 'Kalundborg Symbiosis Case Studies',
+    raw_folder: null,
+    processed_csv: 'kalundborg_processed.csv',
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_kalundborg.js'),
+    extract_script: null,
+    source_url: 'https://www.symbiosis.dk/en/category/case/',
+    urls: {
+      listing: 'https://www.symbiosis.dk/en/category/case/',
+    },
+    raw_folder_contents: null,
+    scrape_backup_folder: 'kalundborg_scrape_backup',
+  },
+  {
+    key: 'metabolic',
+    name: 'Metabolic Open Reports',
+    raw_folder: 'metabolic',
+    processed_csv: 'metabolic_processed.csv',
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_metabolic.js'),
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_metabolic.js'),
+    source_url: 'https://www.metabolic.nl',
+    urls: {
+      publications: 'https://www.metabolic.nl/publications/',
+    },
+    raw_folder_contents: {
+      // filename (saved in raw folder) -> detail page URL
+      'circular_agrifood.pdf': 'https://www.metabolic.nl/publications/circular-agrifood/',
+      'circular_electronics_landscape_assessment.pdf':
+        'https://www.metabolic.nl/publications/circular-electronics-landscape-assessment-executive-summary/',
+      'circular_cities_program_executive_summary.pdf':
+        'https://www.metabolic.nl/publications/circular-cities-program-executive-summary/',
+      'circular_cities_program_lublin.pdf':
+        'https://www.metabolic.nl/publications/circular-cities-program-lublin/',
+      'circular_cities_program_krakow.pdf':
+        'https://www.metabolic.nl/publications/circular-cities-program-krakow/',
+      'circular_cities_program_gdansk.pdf':
+        'https://www.metabolic.nl/publications/circular-cities-program-gdansk/',
+      'circularity_in_the_built_environment_in_europe.pdf':
+        'https://www.metabolic.nl/publications/circularity-in-the-built-environment-in-europe/',
+      'framework_for_circular_buildings_breeam.pdf':
+        'https://www.metabolic.nl/publications/a-framework-for-circular-buildings-breeam/',
+      'rotterdams_urban_mine.pdf': 'https://www.metabolic.nl/publications/rotterdams-urban-mine/',
+      'circular_boulder.pdf': 'https://www.metabolic.nl/publications/circular-boulder/',
+      'circular_charlotte.pdf': 'https://www.metabolic.nl/publications/circular-charlotte-pdf/',
+      'circular_rotterdam.pdf': 'https://www.metabolic.nl/publications/circular-rotterdam/',
+      'circular_amsterdam_spatial_implications.pdf':
+        'https://www.metabolic.nl/publications/circular-amsterdam-spatial-implications/',
+      'city_of_amsterdam_roadmap_circular_land_tendering.pdf':
+        'https://www.metabolic.nl/publications/city-of-amsterdam-roadmap-circular-land-tendering/',
+      'circular_buiksloterham_roadmap_amsterdam.pdf':
+        'https://www.metabolic.nl/publications/circular-buiksloterham-roadmap-amsterdams-first-circular-neighborhood/',
+      'circular_fryslan.pdf':
+        'https://www.metabolic.nl/publications/circular-fryslan-a-vision-and-strategy-for-circular-regional-development/',
+      'circular_opportunities_waste_system_capital_region_denmark.pdf':
+        'https://www.metabolic.nl/publications/circular-opportunities-in-the-waste-system-in-the-capital-region-of-denmark/',
+      'zero_plastic_waste_thailand.pdf':
+        'https://www.metabolic.nl/publications/zero-plastic-waste-thailand/',
+      'nature_based_solutions_policy_tracker_report.pdf':
+        'https://www.metabolic.nl/publications/nature-based-solutions-policy-tracker-report/',
+      'financing_circular_economy_innovation_netherlands.pdf':
+        'https://www.metabolic.nl/publications/financing-circular-economy-innovation-netherlands/',
+      'towards_climate_neutral_and_circular_procurement.pdf':
+        'https://www.metabolic.nl/publications/towards-climate-neutral-and-circular-procurement/',
+      'metal_demand_for_electric_vehicles.pdf':
+        'https://www.metabolic.nl/publications/metal-demand-for-electric-vehicles-pdf/',
+      'prospecting_urban_mines_of_amsterdam.pdf':
+        'https://www.metabolic.nl/publications/prospecting_the_urban_mines_of_amsterdam_15082019-pdf/',
+      'vang_opportunities_circular_economy_cities_regions_nl.pdf':
+        'https://www.metabolic.nl/publications/vang-opportunities-for-the-circular-economy-in-cities-and-regions-nl/',
+      'handboek_circulaire_gebiedsontwikkeling.pdf':
+        'https://www.metabolic.nl/publications/handboek-circulaire-gebiedsontwikkeling/',
+      'framework_voor_circulaire_bestaande_gebouwen.pdf':
+        'https://www.metabolic.nl/publications/framework-voor-circulaire-bestaande-gebouwen/',
+      'circular_building_hubs.pdf': 'https://www.metabolic.nl/publications/circular-building-hubs/',
+      'circular_demolition.pdf': 'https://www.metabolic.nl/publications/circular-demolition/',
+      'biobased_renovation.pdf': 'https://www.metabolic.nl/publications/biobased-renovation/',
+      'using_timber_in_construction.pdf':
+        'https://www.metabolic.nl/publications/using-timber-in-construction/',
+      'circular_revenue_models.pdf':
+        'https://www.metabolic.nl/publications/circular-revenue-models/',
+      'materials_passports.pdf': 'https://www.metabolic.nl/publications/materials-passports/',
+      'circular_design_of_buildings.pdf':
+        'https://www.metabolic.nl/publications/the-circular-design-of-buildings/',
+      'building_with_recycled_building_materials.pdf':
+        'https://www.metabolic.nl/publications/building-with-recycled-building-materials/',
+      'environmental_impact_of_building_materials_eci_epb.pdf':
+        'https://www.metabolic.nl/publications/the-environmental-impact-of-building-materials-eci-and-epb/',
+      'digitization_within_circular_built_environment.pdf':
+        'https://www.metabolic.nl/publications/digitization-within-the-circular-built-environment/',
+      'determining_ecological_thresholds_for_dairy.pdf':
+        'https://www.metabolic.nl/publications/determining-ecological-thresholds-for-dairy/',
+      'alpro_regenerative_agriculture_journey.pdf':
+        'https://www.metabolic.nl/publications/alpros-regenerative-agriculture-journey/',
+      'portland_clean_industry_study.pdf':
+        'https://www.metabolic.nl/publications/portland-clean-industry-study/',
+      'circular_intensive_care_unit.pdf':
+        'https://www.metabolic.nl/publications/circular-intensive-care-unit/',
+      'e_waste_metropoolregio_amsterdam.pdf':
+        'https://www.metabolic.nl/publications/e-waste-in-de-metropoolregio-amsterdam/',
+      'milieustraten_provincie_utrecht.pdf':
+        'https://www.metabolic.nl/publications/milieustraten-provincie-utrecht/',
+      'gemeente_amsterdam_portfolio_scan.pdf':
+        'https://www.metabolic.nl/publications/gemeente-amsterdam-portfolio-scan/',
+      'impact_scan_gemeente_amsterdam.pdf':
+        'https://www.metabolic.nl/publications/impact-scan-gemeente-amsterdam/',
+      'urban_mining_scan.pdf': 'https://www.metabolic.nl/publications/urban-mining-scan/',
+      'waddeneilanden_circulair.pdf':
+        'https://www.metabolic.nl/publications/waddeneilanden-circulair/',
+      'carbon_footprint_erasmus_mc.pdf':
+        'https://www.metabolic.nl/publications/carbon-footprint-of-erasmus-mc/',
+      'analysing_waste_material_flows_in_port_areas.pdf':
+        'https://www.metabolic.nl/publications/analysing-waste-material-flows-in-port-areas/',
+      'our_food_future_wp1_food_waste_flow_study.pdf':
+        'https://www.metabolic.nl/publications/our-food-future-wp1-food-food-waste-flow-study/',
+      'handboek_voor_een_afvalvrij_festival.pdf':
+        'https://www.metabolic.nl/publications/handboek-voor-een-afvalvrij-festival/',
+      'coresym_carbon_monoxide_reuse_industrial_symbiosis.pdf':
+        'https://www.metabolic.nl/publications/coresym-carbon-monoxide-re-use-through-industrial-symbiosis/',
+      'delfland_circulair_nl.pdf': 'https://www.metabolic.nl/publications/delfland-circulair-nl/',
+      'welcome_to_the_circular_village.pdf':
+        'https://www.metabolic.nl/publications/welcome-to-the-circular-village/',
+      'afvalvrij_dgtl.pdf': 'https://www.metabolic.nl/publications/afvalvrij-dgtl/',
+      'roadmap_circulaire_gronduitgifte.pdf':
+        'https://www.metabolic.nl/publications/roadmap-circulaire-gronduitgifte/',
+      'notitie_rijk_van_nijmegen_circulair.pdf':
+        'https://www.metabolic.nl/publications/notitie-rijk-van-nijmegen-circulair/',
+      'circulair_voedsel_system_noordoost_brabant.pdf':
+        'https://www.metabolic.nl/publications/circulair-voedsel-system-noordoost-brabant/',
+      'circular_economy_indicators_infrastructure_spaarndammertunnel_amsterdam_nl.pdf':
+        'https://www.metabolic.nl/publications/circular-economy-indicators-infrastructure-spaarndammertunnel-amsterdam/',
+      'cleantech_playground.pdf': 'https://www.metabolic.nl/publications/cleantech-playground/',
+    },
+    scrape_backup_folder: 'metabolic_scrape_backup',
+  },
+  {
     key: 'mnd',
     name: 'Mendeley Data',
     raw_folder: 'mendeley_downloads',
@@ -630,10 +780,10 @@ export const DATASETS = [
     scrape_backup_folder: null,
   },
   {
-    key: 'wrap_extract',
-    name: 'WRAP Reports (extract)',
+    key: 'wrap',
+    name: 'WRAP Case Studies + Reports/Guides PDF links (scrape) + Reports/Guides PDF (extract)',
     raw_folder: 'wrap_resources',
-    processed_csv: 'wrap_extract_processed.csv',
+    processed_csv: 'wrap_processed.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_wrap.js'),
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_wrap.js'),
     source_url: 'https://www.wrap.ngo',
@@ -641,65 +791,12 @@ export const DATASETS = [
       homepage: 'https://www.wrap.ngo/resources',
       case_studies:
         'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All',
-      guide: 'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All',
+      guides:
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All',
       reports:
         'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All',
-      innovations_in_recycled_content_applications:
-        'https://www.wrap.ngo/resources/case-study/innovations-recycled-content-applications',
-      food_waste_reduction_roadmap:
-        'https://www.wrap.ngo/resources/report/food-waste-reduction-roadmap-progress-update-2024',
-      uk_plastics_pact_progress_report:
-        'https://www.wrap.ngo/resources/report/uk-plastics-pact-progress-report-202425',
-      textiles_2030_progress_report:
-        'https://www.wrap.ngo/resources/report/textiles-2030-annual-progress-update-2022-23',
-      weee_workspace_collections:
-        'https://www.wrap.ngo/resources/case-study/weee-collection-trials-and-monitoring-case-studies',
     },
     raw_folder_contents: {
-      food_redistribution_survey_2022: 'food_redistribution_survey_2022.pdf',
-      food_waste_reduction_roadmap_2024: 'food_waste_reduction_roadmap_2024.pdf',
-      innovations_recycled_content_2022: 'innovations_recycled_content_2022.pdf',
-      'textiles_2030_progress_2022-23': 'textiles_2030_progress_2022-23.pdf',
-      'uk_plastics_pact_2024-25': 'uk_plastics_pact_2024-25.pdf',
-      weee_workspace_collections: 'weee_workspace_collections.pdf',
-      guides_folder: 'guides',
-      reports_folder: 'reports',
-    },
-    scrape_backup_folder: 'wrap_scrape_backup',
-  },
-  {
-    key: 'wrap_scrape',
-    name: 'WRAP Case Studies/Reports/Guides (scrape)',
-    raw_folder: 'wrap_resources',
-    processed_csv: 'wrap_scrape_processed.csv',
-    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_wrap.js'),
-    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_wrap.js'),
-    source_url: 'https://www.wrap.ngo',
-    urls: {
-      homepage: 'https://www.wrap.ngo/resources',
-      case_studies:
-        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All',
-      guide: 'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All',
-      reports:
-        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All',
-      innovations_in_recycled_content_applications:
-        'https://www.wrap.ngo/resources/case-study/innovations-recycled-content-applications',
-      food_waste_reduction_roadmap:
-        'https://www.wrap.ngo/resources/report/food-waste-reduction-roadmap-progress-update-2024',
-      uk_plastics_pact_progress_report:
-        'https://www.wrap.ngo/resources/report/uk-plastics-pact-progress-report-202425',
-      textiles_2030_progress_report:
-        'https://www.wrap.ngo/resources/report/textiles-2030-annual-progress-update-2022-23',
-      weee_workspace_collections:
-        'https://www.wrap.ngo/resources/case-study/weee-collection-trials-and-monitoring-case-studies',
-    },
-    raw_folder_contents: {
-      food_redistribution_survey_2022: 'food_redistribution_survey_2022.pdf',
-      food_waste_reduction_roadmap_2024: 'food_waste_reduction_roadmap_2024.pdf',
-      innovations_recycled_content_2022: 'innovations_recycled_content_2022.pdf',
-      'textiles_2030_progress_2022-23': 'textiles_2030_progress_2022-23.pdf',
-      'uk_plastics_pact_2024-25': 'uk_plastics_pact_2024-25.pdf',
-      weee_workspace_collections: 'weee_workspace_collections.pdf',
       guides_folder: 'guides',
       reports_folder: 'reports',
     },
@@ -784,13 +881,14 @@ export function getDatasetBackupCsvPath(key) {
 
 /**
  * Get the full path to a dataset's backup log file.
- * The log filename is the folder name + '_logs.txt'.
+ * The log filename is the folder name - 'backup' + 'logs.txt'.
  */
-export function getDatasetBackupLogPath(key) {
+export function getDatasetScrapeLogsPath(key) {
   const folder = getDatasetBackupFolderPath(key);
   if (!folder) return null;
   const folderName = path.basename(folder);
-  return path.join(folder, `${folderName}_logs.txt`);
+  //remove backup from folder name and add logs.txt
+  return path.join(folder, `${folderName.replace('backup', 'logs')}.txt`);
 }
 
 // =============================================================================
@@ -1178,8 +1276,8 @@ export async function readBackupCsv(key) {
  * @param {string} key - dataset key
  * @param {string} message - log message (without timestamp)
  */
-export async function appendBackupLog(key, message) {
-  const logPath = getDatasetBackupLogPath(key);
+export async function appendLogs(key, message) {
+  const logPath = getDatasetScrapeLogsPath(key);
   if (!logPath) return; // no backup folder defined
 
   // Ensure directory exists
@@ -1233,10 +1331,10 @@ export async function appendBackupLog(key, message) {
  * If the file exists, it is truncated (emptied). If it doesn't exist, nothing happens.
  * @param {string} key - dataset key
  */
-export async function clearBackupLog(key) {
+export async function clearLogs(key) {
   if (!process.argv.includes('--clear-logs')) return;
 
-  const logPath = getDatasetBackupLogPath(key);
+  const logPath = getDatasetScrapeLogsPath(key);
   if (!logPath) return;
 
   // This one line does: ensureDir, chmod 644, and wipes the file!
@@ -1246,7 +1344,7 @@ export async function clearBackupLog(key) {
   await fs.promises.chmod(logPath, 0o444).catch(() => {});
 
   const ds = DATASET_LOOKUP[key];
-  appendBackupLog(
+  appendLogs(
     key,
     `🧹 Backup log cleared for ${ds.processed_csv} (${ds.name})\nThis message confirms that the log was successfully cleared.`,
   );
@@ -1313,17 +1411,14 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
         const batchLast = buffer[rowsToWrite - 1];
 
         await appendToArchive(key, buffer, { clear: firstFlush && clearOnFirst });
-        await appendBackupLog(
-          key,
-          flushMsg(flushReason, rowsToWrite, counter, batchFirst, batchLast),
-        );
+        await appendLogs(key, flushMsg(flushReason, rowsToWrite, counter, batchFirst, batchLast));
         firstFlush = false;
         buffer = [];
       }
     },
     async flush() {
       if (buffer.length === 0) {
-        await appendBackupLog(
+        await appendLogs(
           key,
           `(No final flush needed, buffer is empty)\n${endMsg(overallFirstRow, overallLastRow, totalRowsWritten)}`,
         );
@@ -1337,8 +1432,8 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
       const batchLast = buffer[rowsToWrite - 1];
 
       await appendToArchive(key, buffer, { clear: false });
-      await appendBackupLog(key, flushMsg('manual', rowsToWrite, counter, batchFirst, batchLast));
-      await appendBackupLog(key, endMsg(overallFirstRow, overallLastRow, totalRowsWritten));
+      await appendLogs(key, flushMsg('manual', rowsToWrite, counter, batchFirst, batchLast));
+      await appendLogs(key, endMsg(overallFirstRow, overallLastRow, totalRowsWritten));
       buffer = [];
     },
   };
@@ -1480,11 +1575,26 @@ export function getViewportOptions(size = 'lg') {
 /**
  * Get standard user agent settings for Puppeteer.
  * Mimics a modern Chrome browser to avoid detection as a bot.
+ * Returns a random user agent string from the USER_AGENTS list.
+ * Useful for rotating user agents to avoid bot detection.
  */
 export function getUserAgentOptions() {
+  /**
+   * List of realistic user agent strings for rotation.
+   * Includes various Chrome versions on Windows and macOS.
+   */
+  const USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  ];
+
   return {
-    userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    userAgent: USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
     userAgentMetadata: {
       brands: [
         { brand: 'Not_A Brand', version: '8' },
@@ -1525,3 +1635,16 @@ export function getExtraHttpHeaders() {
 export function isBackupRecoveryMode() {
   return process.argv.includes('--use-backup');
 }
+
+// =============================================================================
+// MISC UTILITIES
+// =============================================================================
+
+/**
+ * Generates a random delay between min and max (inclusive).
+ * @param {number} min - The minimum delay in milliseconds.
+ * @param {number} max - The maximum delay in milliseconds.
+ * @returns {Promise<void>} A promise that resolves after the random delay.
+ */
+export const randomDelay = (min, max) =>
+  new Promise((r) => setTimeout(r, Math.floor(Math.random() * (max - min + 1) + min)));
