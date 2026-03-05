@@ -478,8 +478,7 @@ export const DATASETS = [
       'circular_rotterdam.pdf': 'https://www.metabolic.nl/publications/circular-rotterdam/',
       'circular_amsterdam_spatial_implications.pdf':
         'https://www.metabolic.nl/publications/circular-amsterdam-spatial-implications/',
-      'city_of_amsterdam_roadmap_circular_land_tendering.pdf':
-        'https://www.metabolic.nl/publications/city-of-amsterdam-roadmap-circular-land-tendering/',
+      // 'city_of_amsterdam_roadmap_circular_land_tendering.pdf': 'https://www.metabolic.nl/publications/city-of-amsterdam-roadmap-circular-land-tendering/',
       'circular_buiksloterham_roadmap_amsterdam.pdf':
         'https://www.metabolic.nl/publications/circular-buiksloterham-roadmap-amsterdams-first-circular-neighborhood/',
       'circular_fryslan.pdf':
