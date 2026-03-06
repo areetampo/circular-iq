@@ -259,12 +259,12 @@ export function ClearFormDialog({ isOpen, onOpenChange, onConfirm }) {
 
 Search for dialog imports to find all usages:
 
-```bash
+```pwsh
 # Find all dialog usages
-grep -r "from '@/components/dialogs'" src/
+Get-ChildItem -Path src/ -Recurse -Filter "*.jsx" -o "*.js" | Select-String "from '@/components/dialogs'"
 
 # Find specific dialog
-grep -r "ConfirmationDialog" src/
+Get-ChildItem -Path src/ -Recurse -Filter "*.jsx" -o "*.js" | Select-String "ConfirmationDialog"
 ```
 
 ## 🧪 Testing Dialogs

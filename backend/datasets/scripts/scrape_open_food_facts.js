@@ -1,36 +1,38 @@
+/* global process */
+
 /**
- * scrape_open_food_facts.js
+ * scrape_open_food_facts.js - Food and beverage products scraping from Open Food Facts API
  *
- * Scrapes food and beverage products from the Open Food Facts API.
- * Focuses on products with poor Ecoscore ratings (D and E grades) to identify
- * food system environmental challenges and circular economy improvement opportunities.
- * Extracts corporate food waste issues, packaging sustainability, and ingredient sourcing.
+ * Focuses on products with poor Ecoscore ratings (D and E grades) to identify food system
+ * environmental challenges and circular economy improvement opportunities. Extracts corporate
+ * food waste issues, packaging sustainability, and ingredient sourcing.
  *
  * Features:
- *   - Targeted search for low Ecoscore products (environmental impact baseline)
- *   - API pagination with error handling
- *   - Per-product detail extraction (categories, ingredients, packaging, Ecoscore, Nutriscore)
- *   - Intelligent problem/solution mapping based on environmental performance metrics
- *   - Backup system: incremental batch-level backup with recovery mode
- *   - Quality filtering for significant environmental impact cases
- *   - Detailed logging to dataset-specific log file
+ *   • Targeted search for low Ecoscore products (environmental impact baseline)
+ *   • API pagination with error handling
+ *   • Per-product detail extraction (categories, ingredients, packaging, Ecoscore, Nutriscore)
+ *   • Intelligent problem/solution mapping based on environmental performance metrics
+ *   • Backup system: incremental batch-level backup with recovery mode
+ *   • Quality filtering for significant environmental impact cases
+ *   • Detailed logging to dataset-specific log file
  *
  * Usage:
  *   node scrape_open_food_facts.js                 # normal run
  *   node scrape_open_food_facts.js --use-backup    # rebuild final CSV from backup
  *   node scrape_open_food_facts.js --clear-logs    # clear the log file before starting
+ *   node scrape_open_food_facts.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_open_food_facts.js --append-backup     # append to backup instead of clearing on start
  *
  * For detailed logs, see the path printed at the start of the run.
  * Note: Requires active internet connection to access Open Food Facts API
  */
-
-import { fileURLToPath } from 'url';
 import {
   formatId,
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
-  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -55,11 +57,12 @@ const TARGET_ROWS = 250; // Desired final rows
 const BACKUP_INTERVAL = 3; // Flush backup every 3 pages
 const CLEAR_BACKUP_ON_START = true;
 
-const APPEND = hasAppendFlag();
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
   MAX_PAGES_TO_FETCH,
 );
 
@@ -223,7 +226,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(outputFile, finalRows, APPEND);
+    await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
     console.log(
       `\n✨ Successfully rebuilt ${finalRows.length} Open Food Facts products from backup`,
     );
@@ -347,7 +350,7 @@ async function main() {
     metadata_json: row.metadata_json, // already a JSON string
   }));
 
-  await writeCsv(outputFile, finalRows, APPEND);
+  await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
   await backup.flush(); // ensure any remaining buffer is written
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages scraped: ${pagesScraped.join(', ')}.`;
@@ -366,13 +369,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('\n❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

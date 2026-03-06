@@ -1,5 +1,5 @@
 /**
- * extract_wbcsd.js
+ * extract_wbcsd.js — WBCSD Circular Economy Case Studies Extraction
  *
  * Extracts circular economy case studies and business case data from World Business
  * Council for Sustainable Development (WBCSD) reports and guidelines. Processes PDF
@@ -7,23 +7,24 @@
  * and circular economy strategy implementations.
  *
  * Features:
- *   - PDF text extraction using pdfjs-dist with proper worker configuration
- *   - Multi-document processing with metadata preservation per source
- *   - Business case identification and impact assessment extraction
- *   - Company commitment and circular strategy categorization
- *   - Sustainability metric and ROI calculation extraction
- *   - Smart problem/solution generation from business case narratives
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
- *   - Page-level content extraction with efficient buffering
+ *   • PDF text extraction using pdfjs-dist with proper worker configuration
+ *   • Multi-document processing with metadata preservation per source
+ *   • Business case identification and impact assessment extraction
+ *   • Company commitment and circular strategy categorization
+ *   • Sustainability metric and ROI calculation extraction
+ *   • Smart problem/solution generation from business case narratives
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
  *
  * Usage:
  *   node extract_wbcsd.js
  *
- * Input: WBCSD PDF reports with business case studies and sustainability commitments
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
+ * Input: WBCSD PDF reports in datasets/raw/wbcsd/
+ * Output: CSV file with standardized columns in datasets/processed/
  * Scope: Corporate circular economy strategies, supply chain improvements, business models
  */
+
+/* global process */
 
 import fs from 'fs';
 import path from 'path';
@@ -39,7 +40,6 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const require = createRequire(import.meta.url);
 
@@ -50,6 +50,14 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 const DATASET_KEY = DATASET_KEYS.wbcsd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+if (!RAW_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // ----------------------------------------------------------------------

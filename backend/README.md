@@ -87,7 +87,7 @@ backend/
 ├── datasets/                      # Data ingestion & processing
 │   ├── manual_entries/
 │   │   └── manual_entries.csv    # User-added problem/solution pairs
-│   ├── processed/                # 31 standardized CSV files
+	│   ├── processed/                # 32 standardized CSV files from registered datasets
 │   ├── raw/                      # Original unprocessed source files
 │   ├── archives/                 # Archive outputs & scraped data (for testing/archival)
 │   │   ├── combined_input.csv    # merged CSV output (archive mode only)
@@ -270,7 +270,7 @@ Common CLI flags supported by scripts:
 
 Example:
 
-```bash
+```pwsh
 node datasets/scripts/scrape_c2c.js --show        # Debug with visible browser
 node datasets/scripts/scrape_c2c.js --use-backup  # Recover from interruption
 ```
@@ -280,8 +280,8 @@ node datasets/scripts/scrape_c2c.js --use-backup  # Recover from interruption
 See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for:
 
 - Complete documentation overview
-- Table of all 23 datasets (source, method, key features)
 - Category-based grouping (Scraper, PDF, CSV, JSON/API)
+- For the complete dataset registry, check `backend/utils/datasetsUtils.js` (30+ datasets)
 
 For adding new scripts, see [PIPELINE_ADDING_DATASETS.md](PIPELINE_ADDING_DATASETS.md#script-documentation-best-practices).
 
@@ -310,7 +310,7 @@ combined_input.csv
 (13,000-14,000 rows + header)
 ```
 
-**Command:** `npm run merge` → outputs to `datasets/out/combined_input.csv` (normal) or `datasets/archives/combined_input.csv` (archives run)
+**Command:** `npm run merge` → outputs to `datasets/out/combined_input.csv` by default. Append `-- --archives` (or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`) to produce the merged CSV in `datasets/archives/` instead.
 
 ### 2. Chunking Pipeline
 
@@ -539,7 +539,7 @@ USE_DOCUMENTS_ARCHIVES_TABLE=false   # when true, API/rpc calls target documents
 
 ### Server
 
-```bash
+```pwsh
 npm run start         # Production server (set NODE_ENV=production)
 npm run dev           # Development with watch mode
 ```
@@ -553,13 +553,12 @@ Test mode is automatically enabled when `NODE_ENV=test`. The server will:
 
 ### Data Pipeline
 
-```bash
+```pwsh
 npm run populate      # Complete pipeline: merge → chunk → embed → store
-npm run merge         # Just merge CSVs (processed/ + manual_entries/) → out/
-npm run chunk         # Just create chunks (CSV → chunks.json) → out/
-npm run embed         # Generate embeddings (chunks → embedded_chunks.json) → out/
-npm run store         # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents)
-npm run store:archives  # Store archive embeddings (datasets/archives/embedded_chunks.json → documents_archives)
+npm run merge         # Just merge CSVs (processed/ + manual_entries/) → out/ (use -- --archives for archives)
+npm run chunk         # Just create chunks (CSV → chunks.json) → out/ (use -- --archives for archives)
+npm run embed         # Generate embeddings (chunks → embedded_chunks.json) → out/ (use -- --archives for archives)
+npm run store         # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents); add -- --archives or set USE_DOCUMENTS_ARCHIVES_TABLE=true to operate on archives
 npm run embed -- --dry-run  # Test embedding generation locally
 npm run store -- --dry-run     # Test storage locally (writes JSONL)
 ```
@@ -568,7 +567,7 @@ npm run store -- --dry-run     # Test storage locally (writes JSONL)
 
 Pull data from web sources using Puppeteer automation:
 
-```bash
+```pwsh
 # Individual scraper scripts:
 node datasets/scripts/scrape_c2c.js          # Cradle-to-Cradle certified products
 node datasets/scripts/scrape_ecesp.js        # ECESP good practices
@@ -588,7 +587,7 @@ node datasets/scripts/scrape_ecesp.js --show
 
 All scrapers save intermediate results every N pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a scrape is interrupted, rebuild the final CSV from saved backup content:
 
-```bash
+```pwsh
 # Interrupted scrape? Use --use-backup to rebuild from backup:
 node datasets/scripts/scrape_c2c.js --use-backup
 
@@ -605,28 +604,33 @@ node datasets/scripts/scrape_c2c.js --use-backup
 
 See **DATASETS_REFERENCE.md** for complete scraper documentation and **PIPELINE_ADDING_DATASETS.md** for adding new scrapers with backup support.
 
-### Archives Run Pipeline
+### Archive Mode
 
-For testing or archival purposes, use the archives pipeline to isolate outputs in `datasets/archives/`. The archives directory will contain only root-level generated files:
+Any pipeline command can be executed in archive mode by appending
+`-- --archives` to the npm script or by setting the environment variable
+`USE_DOCUMENTS_ARCHIVES_TABLE=true`. Archive mode behaves identically to the
+normal pipeline except that:
 
+- Outputs are written to `datasets/archives/` instead of `datasets/out/`.
+- Storage operations target the `documents_archives` table instead of
+  `documents`.
+
+Example usage:
+
+```pwsh
+npm run merge -- --archives
+npm run chunk -- --archives
+npm run embed -- --archives
+npm run store -- --archives
 ```
-archives/
-├─ combined_input.csv
-├─ chunks.json
-├─ embedded_chunks.json
-└─ scrape_backup/     (from dataset scrapers)
-```
 
-Use the following commands:
+> **Note:** Archive mode is controlled via the `-- --archives` flag or the
+> `USE_DOCUMENTS_ARCHIVES_TABLE` environment variable. Both the `-- --archives`
+> flag and the env variable approach are supported. The flag takes precedence
+> if both are present.
 
-```bash
-npm run archives        # Complete archives run: merge:archives → chunk:archives → embed:archives
-npm run merge:archives  # Merge CSVs → archives/combined_input.csv
-npm run chunk:archives  # Create chunks → archives/chunks.json
-npm run embed:archives  # Generate embeddings → archives/embedded_chunks.json
-```
-
-All files written (both `out/` and `archives/` folders) are automatically set to read-only after generation to prevent accidental modifications.
+All generated files (whether in `out/` or `archives/`) are marked read-only
+by the scripts to prevent accidental modification.
 
 > **Filesystem behaviour:** pipeline and dataset scripts will create any
 > missing parent directories before writing output, touch an empty placeholder
@@ -640,7 +644,7 @@ All files written (both `out/` and `archives/` folders) are automatically set to
 
 ### Validation & Testing
 
-```bash
+```pwsh
 npm run validate          # End-to-end pipeline validation
 npm test                  # Full test suite (all *.test.js files)
 npm run test:validate     # Run input validation checks (pipeline/test_validate_input.js)
@@ -650,7 +654,7 @@ npm run poll:supabase     # Monitor vector storage (pipeline/poll_supabase.js)
 
 ## Datasets Included
 
-**31 processed datasets** totaling ~14,000 records from diverse sources:
+**32 processed datasets** totaling ~14,000-19,000 records from diverse sources:
 
 - GreenTechGuardians: 2,286 case studies
 - Ellen MacArthur Foundation: 3,825+ case studies
@@ -721,7 +725,7 @@ See **DATASETS_REFERENCE.md** for complete inventory.
 
 ### Debug Logging
 
-```bash
+```pwsh
 DEBUG=* npm run embed   # debug embedding stage
 DEBUG=* npm run store   # debug storage stage
 DEBUG=backend:* npm run dev

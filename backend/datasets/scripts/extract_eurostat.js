@@ -1,20 +1,21 @@
+/* global process */
+
 /**
- * extract_eurostat.js
+ * extract_eurostat.js - European circular economy and waste management statistics extraction
  *
- * Extracts European circular economy and waste management statistics from Eurostat
- * (European statistical office) datasets. Aggregates multiple CSV sources covering
- * waste generation, recycling rates, and circular material flows across EU countries.
- * Focuses on recent data (year >= MIN_YEAR) with configurable row limits per dataset.
+ * Aggregates multiple CSV sources from Eurostat (European statistical office) datasets covering
+ * waste generation, recycling rates, and circular material flows across EU countries. Focuses
+ * on recent data (year >= MIN_YEAR) with configurable row limits per dataset.
  *
  * Features:
- *   - Multi-file CSV parsing with automatic column name matching
- *   - Time-series filtering (minimum year threshold configurable)
- *   - Dataset-specific row limits to balance coverage and detail
- *   - Auto-mapped problem/solution generation based on waste type and metrics
- *   - Row-level sampling for large datasets
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
- *   - Per-dataset file validation (checks for raw_folder_contents definition)
+ *   • Multi-file CSV parsing with automatic column name matching
+ *   • Time-series filtering (minimum year threshold configurable)
+ *   • Dataset-specific row limits to balance coverage and detail
+ *   • Auto-mapped problem/solution generation based on waste type and metrics
+ *   • Row-level sampling for large datasets
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
+ *   • Per-dataset file validation (checks for raw_folder_contents definition)
  *
  * Usage:
  *   node extract_eurostat.js
@@ -37,11 +38,18 @@ import {
   ensureDir,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.eurostat;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
+if (!rawDir) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(rawDir)) {
+  console.error(`❌ Raw directory does not exist: ${rawDir}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MIN_YEAR = 2019;

@@ -1,21 +1,22 @@
+/* global process */
+
 /**
- * extract_fashion_transparency.js
+ * extract_fashion_transparency.js - Supply chain transparency and environmental accountability extraction
  *
- * Extracts supply chain transparency and environmental accountability data from the
- * Fashion Transparency Index (FTI). Processes company-level transparency scores,
- * environmental impact assessments, and knowledge assessments from both CSV and PDF sources.
- * Focuses on identifying transparency gaps and circular economy improvement opportunities
- * in the fashion and apparel industry.
+ * Processes data from the Fashion Transparency Index (FTI). Extracts company-level transparency
+ * scores, environmental impact assessments, and knowledge assessments from both CSV and PDF sources.
+ * Focuses on identifying transparency gaps and circular economy improvement opportunities in the
+ * fashion and apparel industry.
  *
  * Features:
- *   - Multi-source data extraction (CSV and PDF)
- *   - PDF text parsing with page-level precision
- *   - Dual scoring systems: Overall transparency index + environmental knowledge assessment
- *   - Company-level aggregation with deduplication
- *   - Configurable row limits and data filtering
- *   - Smart problem/solution generation based on transparency gaps
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
+ *   • Multi-source data extraction (CSV and PDF)
+ *   • PDF text parsing with page-level precision
+ *   • Dual scoring systems: Overall transparency index + environmental knowledge assessment
+ *   • Company-level aggregation with deduplication
+ *   • Configurable row limits and data filtering
+ *   • Smart problem/solution generation based on transparency gaps
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
  *
  * Usage:
  *   node extract_fashion_transparency.js
@@ -38,11 +39,18 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
-const DATASET_KEY = DATASET_KEYS.fashion; // now correctly imported
+const DATASET_KEY = DATASET_KEYS.fashion_transparency;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
+if (!rawDir) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(rawDir)) {
+  console.error(`❌ Raw directory does not exist: ${rawDir}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MAX_ROWS = 500;

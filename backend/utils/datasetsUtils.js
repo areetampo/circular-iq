@@ -1,19 +1,32 @@
 /**
- * datasetsUtils.js
+ * datasetsUtils.js — Centralized Dataset Processing Utilities
  *
- * Centralized utilities for dataset scripts:
- *   - filesystem paths
- *   - dataset registry (DATASETS, DATASET_LOOKUP)
- *   - CSV processing (columns, stringify options, ID formatting)
- *   - Text cleaning
- *   - Puppeteer browser configuration
- *   - User agent & HTTP headers
- *   - Backup folder and log management
+ * This module provides all shared utilities, configurations, and helpers needed
+ * by dataset extraction and scraping scripts to maintain consistency across the pipeline.
  *
- * Follows DRY principle to eliminate boilerplate across all dataset scripts.
+ * PRIMARY EXPORTS:
+ *   • DATASETS & DATASET_LOOKUP: Complete dataset registry with metadata
+ *   • getDatasetRawDir, getDatasetProcessedCsvPath: Path helpers
+ *   • getDatasetBackupFolderPath, getDatasetBackupCsvPath: Backup storage paths
+ *   • writeCsv, writeJsonl, writeJson: Centralized file writing with locking
+ *   • appendToArchive, readBackupCsv: Backup management
+ *   • appendLogs, clearLogs: Backup logging
+ *   • createBackupHelper: Batched backup flushing during long scrapes
+ *   • cleanText, formatId: Text sanitization and ID formatting
+ *   • CSV_COLUMNS, STRINGIFY_OPTIONS: Standard CSV configuration
+ *   • getBrowserLaunchOptions, getViewportOptions, getUserAgentOptions: Puppeteer config
+ *   • getExtraHttpHeaders, randomDelay: HTTP utilities
+ *
+ * KEY PRINCIPLES:
+ *   ✓ DRY: All common logic centralized, no duplication across scripts
+ *   ✓ File Locking: All writes unlock, modify, then re-lock (chmod 0o644 → 0o444)
+ *   ✓ Backup Management: Incremental saves with recovery mode (--use-backup)
+ *   ✓ Logging: Timestamped backups with dataset-specific log files
+ *   ✓ Consistency: All CSV processing uses shared columns and stringify options
  */
 
 /* global process */
+
 import path from 'path';
 import fs from 'fs';
 import { stringify } from 'csv-stringify/sync';
@@ -320,7 +333,22 @@ export const DATASETS = [
     scrape_backup_folder: null,
   },
   {
-    key: 'fashion',
+    key: 'fashion_innovation',
+    name: 'Fashion for Good Innovation Programme',
+    raw_folder: null,
+    processed_csv: 'fashion_innovation_processed.csv',
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_fashion_innovation.js'),
+    extract_script: null,
+    source_url: 'https://www.fashionforgood.com/innovation-platform-2/innovators/',
+    urls: {
+      listing: 'https://www.fashionforgood.com/innovation-platform-2/innovators/',
+      base: 'https://www.fashionforgood.com',
+    },
+    raw_folder_contents: null,
+    scrape_backup_folder: 'fashion_innovation_scrape_backup',
+  },
+  {
+    key: 'fashion_transparency',
     name: 'Fashion Transparency Index',
     raw_folder: 'fashion_transparency_index',
     processed_csv: 'fashion_transparency.csv',
@@ -649,8 +677,8 @@ export const DATASETS = [
     name: 'ReFED Food Waste Solutions',
     raw_folder: null, // No raw files needed; fetched via API
     processed_csv: 'refed_processed.csv', // Output CSV filename
-    scrape_script: null, // Not a Puppeteer scraper
-    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'fetch_refed.js'), // API fetch script
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_refed.js'), // API fetch script
+    extract_script: null,
     source_url: 'https://insights.refed.org/solution-database', // Main website
     urls: {
       api: 'https://api.refed.org/v2/solution_database/solutions', // Direct API endpoint
@@ -659,6 +687,25 @@ export const DATASETS = [
     raw_folder_contents: null, // No raw files
     // Optional: if you want to explicitly document the backup location
     scrape_backup_folder: 'refed_scrape_backup', // Backup CSV will be stored here
+  },
+  {
+    key: 'rema', // Short, unique key for 'Remanufacturing EU'
+    name: 'Remanufacturing EU Case Studies',
+    raw_folder: 'remanufacturing_eu', // PDFs will be saved here
+    processed_csv: 'rema_processed.csv', // Final CSV after extraction
+    scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_remanufacturing_eu.js'),
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_remanufacturing_eu.js'),
+    source_url: 'https://www.remanufacturing.eu',
+    urls: {
+      case_studies: 'https://www.remanufacturing.eu/case-study-tool.php',
+    },
+    raw_folder_contents: {
+      // everything will be downloaded by the scraper, so we don't have specific filenames yet. The scraper will need to handle naming and saving these files appropriately.
+      // This will be populated dynamically by the scraper. We don't know filenames yet.
+      // We'll leave it null or as an empty object, as the scraper will handle file naming.
+      pdf_files: 'to_be_downloaded',
+    },
+    scrape_backup_folder: 'rema_scrape_backup', // For backing up progress during scrape
   },
   {
     key: 'sei',
@@ -837,7 +884,16 @@ export function getDatasetRawDir(key) {
   const dataset = DATASET_LOOKUP[key];
   if (!dataset) throw new Error(`Dataset key not found: ${key}`);
   if (!dataset.raw_folder) return null;
-  return path.join(DATASETS_RAW_DIR, dataset.raw_folder);
+
+  // ensure the raw directory exists so callers can safely read/write files
+  const dir = path.join(DATASETS_RAW_DIR, dataset.raw_folder);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    // if we cannot create the directory (permissions etc.) we'll let the
+    // caller handle the resulting errors when they actually try to use it.
+  }
+  return dir;
 }
 
 /**
@@ -901,6 +957,28 @@ export function getDatasetScrapeLogsPath(key) {
 export async function ensureDir(dirPath) {
   await fs.promises.mkdir(dirPath, { recursive: true });
   return dirPath;
+}
+
+/**
+ * Assert that a file exists. Throws an Error if the path is missing.
+ * @param {string} filePath
+ * @param {string} [description] - optional description of the file's purpose
+ */
+export function assertFileExists(filePath, description) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`${description || 'Required file'} not found: ${filePath}`);
+  }
+}
+
+/**
+ * Assert that a directory exists. Throws an Error if the path is missing or not a directory.
+ * @param {string} dirPath
+ * @param {string} [description] - optional description of the directory's purpose
+ */
+export function assertDirExists(dirPath, description) {
+  if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
+    throw new Error(`${description || 'Required directory'} not found: ${dirPath}`);
+  }
 }
 
 /**
@@ -996,10 +1074,12 @@ export async function prepareWrite(filePath, opts = {}) {
  * `STRINGIFY_OPTIONS` constant. The output file is prepared with
  * `prepareWrite` and marked read-only once the write completes.
  */
-export function hasAppendFlag() {
-  // simple CLI helper used by scrape scripts to detect the --append flag
-  // this avoids repeating `process.argv.includes` in every file
-  return process.argv.includes('--append');
+export function hasAppendProcessedFlag() {
+  return process.argv.includes('--append-processed');
+}
+
+export function hasAppendBackupFlag() {
+  return process.argv.includes('--append-backup');
 }
 
 export async function writeCsv(filePath, rows, append = false) {
@@ -1442,9 +1522,24 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
 // CSV PROCESSING
 // =============================================================================
 
+// =============================================================================
+// CSV PROCESSING & STANDARDIZATION
+// =============================================================================
+
 /**
  * Standard columns for all processed dataset CSVs.
- * Used by stringify() in all scripts.
+ * Every script must output these columns in this order.
+ *
+ * Column descriptions:
+ *   - ID:                 unique dataset-prefixed identifier (e.g. cgr_00001)
+ *   - problem:            the initiative/challenge/area of focus
+ *   - solution:           the intervention/strategy/approach taken
+ *   - materials:          materials/resources involved or addressed
+ *   - circular_strategy:  category of circular economy strategy (e.g "Reverse Logistics")
+ *   - category:           thematic categorization (e.g "Construction", "EIPPCB BAT Conclusions")
+ *   - impact:             quantified or qualitative impact/outcome metrics
+ *   - source_url:         URL to the original source or document
+ *   - metadata_json:      JSON-encoded metadata specific to extraction (never cleaned)
  */
 export const CSV_COLUMNS = [
   'ID',
@@ -1459,8 +1554,18 @@ export const CSV_COLUMNS = [
 ];
 
 /**
- * Clean text for CSV cells: remove line breaks, compress whitespace, convert quotes.
- * Used in stringify() cast method to sanitize all string values.
+ * Sanitize text for CSV cells:
+ *   • Remove all line breaks (CR/LF)
+ *   • Convert "smart" quotes ("") and standard double quotes to single quotes (')
+ *   • Collapse multiple single quotes to one
+ *   • Compress all whitespace (tabs, spaces, etc.) to single spaces
+ *   • Trim leading/trailing whitespace
+ *
+ * NOTE: This function is imported by all scripts from datasetsUtils.
+ * Do NOT define cleanText locally in individual scripts.
+ *
+ * @param {any} str - any value; coerced to string if needed
+ * @returns {string} cleaned string ready for CSV output
  */
 export const cleanText = (str) => {
   if (typeof str !== 'string' || !str) return '';
@@ -1474,10 +1579,18 @@ export const cleanText = (str) => {
 };
 
 /**
- * Standard CSV stringify options.
- * Uses cleanText in the cast method to sanitize all string values.
- * In case of overrides, use destructuring to maintain cleanText:
- * eg: const options = { ...STRINGIFY_OPTIONS, header: false };
+ * Standard CSV stringify options for all dataset processing scripts.
+ *
+ * Properties:
+ *   - header:            Include CSV header row
+ *   - columns:           Use CSV_COLUMNS for consistent column order
+ *   - quoted:            Quote all fields for safety
+ *   - delimiter:         Use standard comma delimiter
+ *   - record_delimiter:  Use standard newline record separator
+ *   - cast:              Custom string handler to preserve JSON in metadata_json field
+ *
+ * To override while preserving cleanText behavior in string columns:
+ *   const options = { ...STRINGIFY_OPTIONS, header: false };
  */
 export const STRINGIFY_OPTIONS = {
   header: true,
@@ -1495,13 +1608,19 @@ export const STRINGIFY_OPTIONS = {
 };
 
 /**
- * Format ID with overflow handling.
- * Pads ID with zeros up to ID_DIGITS, then expands naturally on overflow.
+ * Format ID with automatic overflow handling.
  *
- * Example:
- *   formatId('epa_', 1) => 'epa_00001'
- *   formatId('epa_', 99999) => 'epa_99999'
- *   formatId('epa_', 100000) => 'epa_100000'
+ * Pads the numeric suffix with leading zeros up to ID_DIGITS (5 by default),
+ * then expands naturally when the maximum is exceeded (100000+ instead of 00000).
+ *
+ * Examples:
+ *   formatId('epa_', 1)      => 'epa_00001'
+ *   formatId('epa_', 99999)  => 'epa_99999'
+ *   formatId('epa_', 100000) => 'epa_100000'  (natural expansion on overflow)
+ *
+ * @param {string} DATASET_KEY - dataset key with underscore suffix (e.g. 'cgr_')
+ * @param {number} index - sequential numeric ID
+ * @returns {string} formatted ID ready for CSV output
  */
 export function formatId(DATASET_KEY, index) {
   const baseLimit = Math.pow(10, ID_DIGITS) - 1;
@@ -1634,10 +1753,6 @@ export function getExtraHttpHeaders() {
 export function isBackupRecoveryMode() {
   return process.argv.includes('--use-backup');
 }
-
-// =============================================================================
-// MISC UTILITIES
-// =============================================================================
 
 /**
  * Generates a random delay between min and max (inclusive).

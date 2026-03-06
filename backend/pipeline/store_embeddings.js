@@ -31,6 +31,7 @@ import {
   prepareWrite,
   ensureDir,
   writeJsonl,
+  assertFileExists,
 } from '#utils/datasetsUtils.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { isValidTextForEmbedding, isValidEmbedding } from '#config/embedding.js';
@@ -40,6 +41,12 @@ import { fileURLToPath } from 'url';
 // CLI flags take precedence but falling back to environment via BACKEND_CONFIG
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.supabase.serviceKey;
+
+// make sure the chunks file we intend to read actually exists before proceeding
+assertFileExists(
+  useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON,
+  'embedded chunks file',
+);
 
 // Build database config based on archive flag (at module scope for use in multiple functions)
 const dbConfig = {

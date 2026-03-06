@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { DATASETS_SCRIPTS_DIR } from '#utils/datasetsUtils.js';
+import { DATASETS_SCRIPTS_DIR, assertDirExists } from '#utils/datasetsUtils.js';
 
 // run_datasets_scripts.js
 // Orchestrator for dataset scripts with flags to control behavior.
@@ -15,8 +15,10 @@ import { DATASETS_SCRIPTS_DIR } from '#utils/datasetsUtils.js';
 // Only one flag may be provided. The runner exits on the first script failure.
 
 function collectFiles() {
-  if (!fs.existsSync(DATASETS_SCRIPTS_DIR)) {
-    console.error(`✗ datasets/scripts directory not found: ${DATASETS_SCRIPTS_DIR}`);
+  try {
+    assertDirExists(DATASETS_SCRIPTS_DIR, 'datasets/scripts directory');
+  } catch (err) {
+    console.error(`✗ ERROR: ${err.message}`);
     process.exit(1);
   }
 

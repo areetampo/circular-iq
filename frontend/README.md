@@ -248,7 +248,7 @@ frontend/
 
 ### Installation Steps
 
-```bash
+```pwsh
 # 1. Clone the repository
 git clone <repo-url>
 cd frontend
@@ -257,7 +257,7 @@ cd frontend
 npm install
 
 # 3. Create environment file (see Configuration section)
-cp .env.example .env.local
+Copy-Item .env.example .env.local
 
 # 4. Configure environment variables
 # Edit .env.local with your values (see Configuration section below)
@@ -268,7 +268,7 @@ npm run dev
 
 ### Verify Installation
 
-```bash
+```pwsh
 # Check that dev server starts without errors
 npm run dev
 # Expected: Vite server running at http://localhost:5173
@@ -527,7 +527,7 @@ const industry = getIndustry(assessment.result_json);
 
 ### Running the Dev Server
 
-```bash
+```pwsh
 npm run dev
 ```
 
@@ -537,7 +537,7 @@ npm run dev
 
 ### Building for Production
 
-```bash
+```pwsh
 npm run build
 ```
 
@@ -547,7 +547,7 @@ npm run build
 
 ### Preview Production Build
 
-```bash
+```pwsh
 npm run preview
 ```
 
@@ -614,7 +614,7 @@ export const EVALUATION_PARAMETERS = {
 
 ### Running Tests
 
-```bash
+```pwsh
 # Run all tests
 npm test
 
@@ -682,7 +682,7 @@ Vercel is the recommended hosting platform (serverless functions + static hostin
 
 #### Deployment Steps
 
-```bash
+```pwsh
 # 1. Push code to GitHub
 git push origin main
 
@@ -691,11 +691,11 @@ git push origin main
 
 # 3. Configure environment variables
 # In Vercel dashboard → Settings → Environment Variables:
-VITE_API_URL=https://api.example.com
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_FRONTEND_URL=https://your-app.vercel.app
-INTERNAL_BACKEND_API_KEY=your-secret-backend-key
+# VITE_API_URL=https://api.example.com
+# VITE_SUPABASE_URL=https://your-project.supabase.co
+# VITE_SUPABASE_ANON_KEY=your-anon-key
+# VITE_FRONTEND_URL=https://your-app.vercel.app
+# INTERNAL_BACKEND_API_KEY=your-secret-backend-key
 
 # 4. Deploy
 # Automatic on every git push, or manual trigger in dashboard
@@ -906,7 +906,7 @@ Use `<img>` with srcset or consider next-gen formats:
 
 Check bundle size:
 
-```bash
+```pwsh
 npm run build -- --analyze
 # or use Vercel Analytics dashboard
 ```

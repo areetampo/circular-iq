@@ -1,3 +1,18 @@
+/* global process */
+
+/**
+ * extract_world_bank_projects.js - World Bank project data fetching and transformation
+ *
+ * Fetches and transforms World Bank project data into a curated CSV of circular-economy-relevant
+ * projects. Handles PDF report text extraction for additional metadata when available.
+ *
+ * Usage:
+ *   node extract_world_bank_projects.js
+ *
+ * Input: JSON files retrieved from World Bank API plus associated PDF reports
+ * Output: final CSV with project metadata, including descriptions from PDFs
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';

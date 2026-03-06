@@ -24,6 +24,8 @@
  * Sampling: Configurable sample sizes per research category (SME_SAMPLE_SIZE, SBM_SAMPLE_SIZE)
  */
 
+/* global process */
+
 import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
@@ -42,6 +44,14 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.mnd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const MENDELEY_DIR = getDatasetRawDir(DATASET_KEY);
+if (!MENDELEY_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(MENDELEY_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${MENDELEY_DIR}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Sample sizes (same as original)
@@ -475,7 +485,7 @@ async function main() {
   console.log(`\n✅ Successfully wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 
-if (process.argv[1] && process.argv[1].endsWith('extract_mendeley.js')) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
     console.error('\n❌ Fatal error:', err.message);
     process.exit(1);

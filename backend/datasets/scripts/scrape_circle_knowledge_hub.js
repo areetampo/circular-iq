@@ -1,24 +1,27 @@
+/* global process */
+
 /**
- * scrape_circle_knowledge_hub.js
+ * scrape_circle_knowledge_hub.js - Case studies scraping from Circle Economy Knowledge Hub
  *
- * Scrapes case studies from the Circle Economy Knowledge Hub.
  * Features:
- *   - Pagination using _start=0,10,20... (10 cases per page)
- *   - Sorted by most popular (_sort=3) to prioritize quality
- *   - Extracts Problem, Solution, Outcome sections where available
- *   - Falls back to full text for unstructured cases
- *   - Filters out "TBC" and empty cases
- *   - Quality scoring based on content richness and quantified impact
- *   - Backup every 5 pages (BACKUP_INTERVAL)
- *   - Recovery mode with `--use-backup`
- *   - Clear logs with `--clear-logs`
- *   - Show browser with `--show`
+ *   • Pagination using _start=0,10,20... (10 cases per page)
+ *   • Sorted by most popular (_sort=3) to prioritize quality
+ *   • Extracts Problem, Solution, Outcome sections where available
+ *   • Falls back to full text for unstructured cases
+ *   • Filters out "TBC" and empty cases
+ *   • Quality scoring based on content richness and quantified impact
+ *   • Backup every 5 pages (BACKUP_INTERVAL)
+ *   • Recovery mode with `--use-backup`
+ *   • Clear logs with `--clear-logs`
+ *   • Show browser with `--show`
  *
  * Usage:
  *   node scrape_circle_knowledge_hub.js                 # normal run
  *   node scrape_circle_knowledge_hub.js --use-backup    # rebuild from backup
  *   node scrape_circle_knowledge_hub.js --clear-logs    # clear log file
  *   node scrape_circle_knowledge_hub.js --show          # open browser window
+ *   node scrape_circle_knowledge_hub.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_circle_knowledge_hub.js --append-backup     # append to backup instead of clearing on start
  */
 
 import puppeteerExtra from 'puppeteer-extra';
@@ -33,6 +36,8 @@ import {
   getUserAgentOptions,
   getExtraHttpHeaders,
   writeCsv,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -59,10 +64,12 @@ const END_PAGE = 528; // Based on total cases and 10 per page, but we will also 
 const MAX_PAGES_TO_FETCH = 1;
 const MAX_ROWS = 500; // Keep top MAX_ROWS highest-scoring cases
 
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
   MAX_PAGES_TO_FETCH,
 );
 
@@ -434,7 +441,7 @@ async function rebuildFromBackup() {
     };
   });
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
   await appendLogs(
     DATASET_KEY,
@@ -625,7 +632,7 @@ async function scrape() {
       };
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Final rows kept: ${finalRows.length}`);
@@ -663,13 +670,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

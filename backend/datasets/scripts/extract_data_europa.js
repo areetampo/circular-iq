@@ -1,19 +1,20 @@
+/* global process */
+
 /**
- * extract_data_europa.js
+ * extract_data_europa.js - Sustainability and environmental policy data extraction
  *
- * Extracts sustainability and environmental policy data from European Commission
- * (Data Europa) PDF reports. Promotes EU-wide environmental data and SDG indicators.
- * Processes high-level policy context and ecosystem accounting frameworks
- * from European Union data repositories.
+ * Extracts from European Commission (Data Europa) PDF reports. Promotes EU-wide environmental
+ * data and SDG indicators. Processes high-level policy context and ecosystem accounting
+ * frameworks from European Union data repositories.
  *
  * Features:
- *   - PDF text extraction with page limits (max 20 pages)
- *   - Semantic chunking based on paragraph breaks (>300 chars)
- *   - Batch translation from French to English with caching and fallback
- *   - Google Translate API integration with error resilience
- *   - CSV parsing support for multi-format data sources
- *   - Centralized CSV writing with metadata preservation
- *   - Configurable translation toggle for testing
+ *   • PDF text extraction with page limits (max 20 pages)
+ *   • Semantic chunking based on paragraph breaks (>300 chars)
+ *   • Batch translation from French to English with caching and fallback
+ *   • Google Translate API integration with error resilience
+ *   • CSV parsing support for multi-format data sources
+ *   • Centralized CSV writing with metadata preservation
+ *   • Configurable translation toggle for testing
  *
  * Usage:
  *   ENABLE_TRANSLATION=true node extract_data_europa.js     # with translation
@@ -36,10 +37,18 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.dataeu;
 const rawDir = getDatasetRawDir(DATASET_KEY);
+if (!rawDir) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+// rawDir is created automatically by getDatasetRawDir, but still verify
+if (!fs.existsSync(rawDir)) {
+  console.error(`❌ Raw directory does not exist: ${rawDir}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Translation toggle – set to false to skip translation (useful for testing)

@@ -1,19 +1,21 @@
+/* global process */
+
 /**
- * extract_eulac_case_studies.js
+ * extract_eulac_case_studies.js - EU-LAC circular economy case studies extraction
  *
- * Extracts EU-LAC (Europe-Latin America-Caribbean) circular economy best practice case
- * studies from a structured PDF document. Each case study covers a company implementing
- * circular economy strategies with detailed information on background, context, motivation,
- * objectives, implementation steps, and social/environmental contributions.
+ * EU-LAC (Europe-Latin America-Caribbean) circular economy best practice case studies extraction
+ * from a structured PDF document. Each case study covers a company implementing circular economy
+ * strategies with detailed information on background, context, motivation, objectives,
+ * implementation steps, and social/environmental contributions.
  *
  * Features:
- *   - PDF text extraction with UTF-8 support
- *   - Structured field-based parsing using pre-defined case boundaries and field headers
- *   - Case-insensitive field detection with regex pattern matching
- *   - Automatic text normalization (whitespace, special character handling)
- *   - Per-case metadata preservation (case ID, name, website)
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
+ *   • PDF text extraction with UTF-8 support
+ *   • Structured field-based parsing using pre-defined case boundaries and field headers
+ *   • Case-insensitive field detection with regex pattern matching
+ *   • Automatic text normalization (whitespace, special character handling)
+ *   • Per-case metadata preservation (case ID, name, website)
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
  *
  * Usage:
  *   node extract_eulac_case_studies.js
@@ -36,11 +38,20 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.eulac;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_PDF = path.join(getDatasetRawDir(DATASET_KEY), 'eulac_case_studies.pdf');
+if (!fs.existsSync(path.dirname(RAW_PDF))) {
+  console.error(
+    `❌ Raw directory missing for dataset key "${DATASET_KEY}": ${path.dirname(RAW_PDF)}`,
+  );
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_PDF)) {
+  console.error(`❌ Required input PDF not found: ${RAW_PDF}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Known field headers (used as stop markers)

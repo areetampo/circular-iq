@@ -22,6 +22,7 @@ import {
   EMBEDDED_CHUNKS_JSON,
   writeJson,
   prepareWrite,
+  assertFileExists,
 } from '#utils/datasetsUtils.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
@@ -39,6 +40,9 @@ import { fileURLToPath } from 'url';
 
 // switch to archives mode if --archives or --archive flag is provided
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
+
+// make sure input chunks file exists before doing any heavy work
+assertFileExists(CHUNKS_JSON, 'chunks.json');
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;
 
 let openai = null;

@@ -1,22 +1,27 @@
 /**
- * scrape_kalundborg.js
+ * scrape_kalundborg.js - Case studies scraping from Kalundborg Symbiosis
  *
- * Scrapes case studies from Kalundborg Symbiosis (https://www.symbiosis.dk/en/category/case/)
+ * URL: https://www.symbiosis.dk/en/category/case/
+ *
  * Features:
- *   - Scrapes all cases from the listing page (no pagination needed)
- *   - Visits each detail page to extract full content
- *   - Quality scoring based on impact quantification and material richness
- *   - Backup every 3 cases (BACKUP_INTERVAL)
- *   - Recovery mode with `--use-backup`
- *   - Clear logs with `--clear-logs`
- *   - Show browser with `--show`
+ *   • Scrapes all cases from the listing page (no pagination needed)
+ *   • Visits each detail page to extract full content
+ *   • Quality scoring based on impact quantification and material richness
+ *   • Backup every 3 cases (BACKUP_INTERVAL)
+ *   • Recovery mode with `--use-backup`
+ *   • Clear logs with `--clear-logs`
+ *   • Show browser with `--show`
  *
  * Usage:
  *   node scrape_kalundborg.js                 # normal run
  *   node scrape_kalundborg.js --use-backup    # rebuild from backup
  *   node scrape_kalundborg.js --clear-logs    # clear log file
  *   node scrape_kalundborg.js --show          # open browser window
+ *   node scrape_kalundborg.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_kalundborg.js --append-backup     # append to backup instead of clearing on start
  */
+
+/* global process */
 
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
@@ -30,6 +35,8 @@ import {
   getUserAgentOptions,
   getExtraHttpHeaders,
   writeCsv,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -53,7 +60,13 @@ const END_PAGE = 1;
 const MAX_PAGES_TO_FETCH = 1;
 const MAX_ROWS = 170;
 
-const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, CLEAR_BACKUP_ON_START);
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
+const backup = createBackupHelper(
+  DATASET_KEY,
+  BACKUP_INTERVAL,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
+);
 
 /**
  * Calculate a quality score for a case based on its content.
@@ -336,7 +349,7 @@ async function rebuildFromBackup() {
     };
   });
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
   await appendLogs(
     DATASET_KEY,
@@ -430,7 +443,7 @@ async function scrape() {
       };
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);
@@ -470,13 +483,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

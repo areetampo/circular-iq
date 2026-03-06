@@ -1,16 +1,21 @@
+/* global process */
+
 /**
- * scrape_metabolic.js
+ * scrape_metabolic.js - Metabolic publications downloading and management
  *
- * Downloads selected Metabolic publications (from raw_folder_contents) as PDFs.
+ * Visits detail pages, finds PDF download links, and downloads PDFs. Uses dataset configuration
+ * to know what to download. Provides backup tracking and recovery mode.
+ *
  * Features:
- *   - Uses dataset.raw_folder_contents (filename -> detail page URL) to know what to download.
- *   - Visits each detail page, finds PDF download link.
- *   - Downloads PDF to datasets/raw/metabolic/ with the predefined filename.
- *   - Skips already downloaded files.
- *   - Backup every 3 publications to track progress.
- *   - Recovery mode with `--use-backup` (though less needed).
- *   - Clear logs with `--clear-logs`
- *   - Show browser with `--show`
+ *   • Uses dataset.raw_folder_contents (filename -> detail page URL) to know what to download.
+ *   • Visits each detail page, finds PDF download link.
+ *   • Downloads PDF to datasets/raw/metabolic/ with the predefined filename.
+ *   • Skips already downloaded files.
+ *   • Writes a metadata.json file in the raw folder for later extraction.
+ *   • Backup every 3 publications to track progress (logs only).
+ *   • Recovery mode with `--use-backup` (though less needed).
+ *   • Clear logs with `--clear-logs`
+ *   • Show browser with `--show`
  *
  * Usage:
  *   node scrape_metabolic.js                 # normal run
@@ -45,10 +50,6 @@ const DATASET_KEY = DATASET_KEYS.metabolic;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 
-// no need for backup csv writing since we are just downloading pdf urls from dataset.raw_folder_contents
-// logs are still made for monitoring progress and errors, but backup is less critical since we are not extracting new URLs during the scrape
-// const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, CLEAR_BACKUP_ON_START, 60);
-
 async function rebuildFromBackup() {
   const msg =
     'Rebuild from backup not implemented for this scraper since we are not extracting new URLs during the scrape, only PDFs are downloaded based on dataset.raw_folder_contents.';
@@ -63,7 +64,6 @@ async function scrape() {
 
   // Launch browser with stealth
   const launchOptions = getBrowserLaunchOptions();
-  // Add extra argument to reduce automation detection
   launchOptions.args = launchOptions.args || [];
   launchOptions.args.push('--disable-blink-features=AutomationControlled');
 
@@ -72,6 +72,7 @@ async function scrape() {
   await page.setViewport(getViewportOptions());
   await page.setUserAgent(getUserAgentOptions());
   await page.setExtraHTTPHeaders(getExtraHttpHeaders());
+  const randomUA = getUserAgentOptions();
 
   // Override navigator.webdriver property
   await page.evaluateOnNewDocument(() => {
@@ -87,23 +88,24 @@ async function scrape() {
     console.log(`Found ${entries.length} publications to download.`);
     await appendLogs(DATASET_KEY, `Found ${entries.length} publications in raw_folder_contents.`);
 
-    const downloaded = [];
+    const metadataList = []; // will store { filename, detailUrl, pdfUrl }
 
     for (let i = 0; i < entries.length; i++) {
       const [filename, detailUrl] = entries[i];
       console.log(`[${i + 1}/${entries.length}] ${filename} -> ${detailUrl}`);
 
       const localPath = path.join(RAW_DIR, filename);
+      let pdfUrl = null;
+      let downloaded = false;
+
       if (fs.existsSync(localPath)) {
         console.log(`  File already exists, skipping.`);
         await appendLogs(DATASET_KEY, `  Already exists: ${filename}`);
-        // still record for backup
-        downloaded.push({ filename, detailUrl, status: 'exists' });
-        // await backup.add([]); // increment counter
+        // Still record metadata for existing file
+        metadataList.push({ filename, detailUrl, pdfUrl: '' });
         continue;
       }
 
-      let pdfUrl = null;
       try {
         await randomDelay(2000, 5000);
         await page.goto(detailUrl, { waitUntil: 'networkidle2', timeout: 60000 });
@@ -137,7 +139,6 @@ async function scrape() {
           const pageTitle = await page.title().catch(() => 'unknown');
           console.warn(`  No iframe found for ${detailUrl}. Page title: "${pageTitle}"`);
           await appendLogs(DATASET_KEY, `  No iframe found, page title: ${pageTitle}`);
-          // await backup.add([]);
           continue;
         }
 
@@ -154,7 +155,6 @@ async function scrape() {
         if (!pdfUrl) {
           console.warn('  No PDF URL found in iframe');
           await appendLogs(DATASET_KEY, `  No PDF URL in iframe: ${detailUrl}`);
-          // await backup.add([]);
           continue;
         }
 
@@ -194,7 +194,6 @@ async function scrape() {
         const contentType = response.headers['content-type'];
         if (!contentType || !contentType.includes('pdf')) {
           console.warn(`  Content-Type is not PDF: ${contentType}`);
-          // Read a chunk to see what it is
           let preview = '';
           response.data.on('data', (chunk) => {
             preview += chunk.toString('utf8', 0, 200);
@@ -202,7 +201,6 @@ async function scrape() {
           });
           await new Promise((resolve) => response.data.on('end', resolve));
           console.warn(`  Preview: ${preview}`);
-          await backup.add([]);
           continue;
         }
 
@@ -215,27 +213,25 @@ async function scrape() {
         });
 
         console.log(`  Saved PDF (size: ${fs.statSync(localPath).size} bytes)`);
-
-        // await backup.add([{ filename, detailUrl, pdfUrl }]);
+        downloaded = true;
         await appendLogs(DATASET_KEY, `  Downloaded: ${filename}`);
       } catch (err) {
         console.error(`  Error: ${err.message}`);
         await appendLogs(DATASET_KEY, `  ERROR: ${detailUrl} - ${err.message}`);
-        // await backup.add([]);
       }
 
+      // Record metadata regardless of success/failure (pdfUrl may be empty if failed)
+      metadataList.push({ filename, detailUrl, pdfUrl: pdfUrl || '' });
       await randomDelay(3000, 7000);
     }
 
-    // await backup.flush();
+    // Write metadata.json file
+    const metadataPath = path.join(RAW_DIR, 'metadata.json');
+    await fs.promises.writeFile(metadataPath, JSON.stringify(metadataList, null, 2));
+    console.log(`✅ Wrote metadata to ${metadataPath}`);
+    await appendLogs(DATASET_KEY, `Metadata saved for ${metadataList.length} entries.`);
 
-    console.log(
-      `\n✅ Processed ${downloaded.length} publications. Downloaded new ones: ${downloaded.filter((d) => d.status === 'downloaded').length}`,
-    );
-    await appendLogs(
-      DATASET_KEY,
-      `Downloaded ${downloaded.filter((d) => d.status === 'downloaded').length} new PDFs.`,
-    );
+    console.log(`\n✅ Processed ${entries.length} publications.`);
   } catch (error) {
     console.error('❌ Fatal error:', error);
     await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
@@ -255,13 +251,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

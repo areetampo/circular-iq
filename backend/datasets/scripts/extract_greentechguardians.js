@@ -24,6 +24,8 @@
  * Configuration: PRIORITY object defines merge order and field preference
  */
 
+/* global process */
+
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -43,6 +45,14 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.gtg;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+if (!RAW_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Priority for JSONL files (higher number = more fields)

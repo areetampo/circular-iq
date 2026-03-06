@@ -1,21 +1,20 @@
 /**
- * extract_unep.js
+ * extract_unep.js - Environmental impact and waste management data extraction
  *
- * Extracts environmental impact and waste management data from United Nations
- * Environment Programme (UNEP) datasets. Processes CSV data streams with event-based
- * parsing for efficient handling of large environmental databases. Focuses on
- * global environmental statistics and pollution/waste indicators.
+ * Processes datasets from United Nations Environment Programme (UNEP) with event-based
+ * CSV parsing for efficient handling of large environmental databases. Focuses on global
+ * environmental statistics and pollution/waste indicators.
  *
  * Features:
- *   - Stream-based CSV parsing for memory-efficient processing of large files
- *   - Event-driven row processing with callback patterns
- *   - Multi-file aggregation with configurable target row limits
- *   - UNEP environmental indicator classification and mapping
- *   - Pollution and waste stream categorization
- *   - Smart problem/solution generation based on environmental metrics
- *   - Skip list support for filtering specific rows/regions
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
+ *   • Stream-based CSV parsing for memory-efficient processing of large files
+ *   • Event-driven row processing with callback patterns
+ *   • Multi-file aggregation with configurable target row limits
+ *   • UNEP environmental indicator classification and mapping
+ *   • Pollution and waste stream categorization
+ *   • Smart problem/solution generation based on environmental metrics
+ *   • Skip list support for filtering specific rows/regions
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
  *
  * Usage:
  *   node extract_unep.js
@@ -24,6 +23,8 @@
  * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
  * Configuration: Target row count (TARGET_ROWS), regional filters, environmental indicators
  */
+
+/* global process */
 
 import fs from 'fs';
 import path from 'path';
@@ -42,6 +43,14 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.unep;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+if (!RAW_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const TARGET_ROWS = 400;

@@ -1,21 +1,24 @@
+/* global process */
+
 /**
- * scrape_ecesp.js
+ * scrape_ecesp.js - European Commission Circular Economy and Sustainability Practices extraction
  *
- * Scrapes European Commission Circular Economy and Sustainability Practices (ECESP)
- * good practice examples from the official registry. Extracts detailed case studies
- * including organizations, problem statements, solutions, and sustainability impact metrics.
+ * Extracts good practice examples from official registry. Extracts detailed case studies including
+ * organizations, problem statements, solutions, and sustainability impact metrics.
  *
  * Features:
- *   - Pagination handling with dynamic load-more button clicking
- *   - Per-item detail extraction (organization, description, impact metrics)
- *   - Quality scoring based on content completeness and measurable impact indicators
- *   - Backup system: incremental batch-level backup and recovery mode
- *   - Detailed logging to dataset-specific log file
+ *   • Pagination handling with dynamic load-more button clicking
+ *   • Per-item detail extraction (organization, description, impact metrics)
+ *   • Quality scoring based on content completeness and measurable impact indicators
+ *   • Backup system: incremental batch-level backup and recovery mode
+ *   • Detailed logging to dataset-specific log file
  *
  * Usage:
  *   node scrape_ecesp.js                 # normal run
  *   node scrape_ecesp.js --use-backup    # rebuild final CSV from backup
  *   node scrape_ecesp.js --clear-logs    # clear the log file before starting
+ *   node scrape_ecesp.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_ecesp.js --append-backup     # append to backup instead of clearing on start
  *
  * For detailed logs, see the path printed at the start of the run.
  */
@@ -34,7 +37,8 @@ import {
   DATASET_KEYS,
   getDatasetProcessedCsvPath,
   writeCsv,
-  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -56,11 +60,12 @@ const BEST_LIMIT = 450; // Max items to keep
 const BACKUP_INTERVAL = 3; // pages per backup flush
 const CLEAR_BACKUP_ON_START = true;
 
-const APPEND = hasAppendFlag();
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
   MAX_PAGES_TO_FETCH,
 );
 
@@ -221,7 +226,7 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} ECESP items from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
@@ -610,7 +615,7 @@ async function scrape_ecesp() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✅ Scraped ${finalRows.length} ECESP items.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 
@@ -651,13 +656,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

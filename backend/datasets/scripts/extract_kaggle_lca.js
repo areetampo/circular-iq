@@ -1,20 +1,21 @@
+/* global process */
+
 /**
- * extract_kaggle_lca.js
+ * extract_kaggle_lca.js - Life cycle assessment (LCA) data extraction
  *
- * Extracts life cycle assessment (LCA) data from Kaggle datasets. Processes
- * multi-source LCA data (CSV format) with automatic delimiter detection (comma or semicolon).
- * Identifies key environmental impact indicators and generates insights about
- * product life cycles, material flows, and circular potential.
+ * Processes multi-source LCA data from Kaggle datasets in CSV format with automatic delimiter
+ * detection (comma or semicolon). Identifies key environmental impact indicators and generates
+ * insights about product life cycles, material flows, and circular potential.
  *
  * Features:
- *   - Automatic CSV delimiter detection (comma or semicolon)
- *   - UTF-8 BOM handling (removes byte-order marks from headers)
- *   - Flexible column name matching across multiple datasets
- *   - LCA impact category identification (energy, water, emissions, etc.)
- *   - Problem/solution generation based on product life cycle stages
- *   - Row-level sampling for large LCA datasets
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
+ *   • Automatic CSV delimiter detection (comma or semicolon)
+ *   • UTF-8 BOM handling (removes byte-order marks from headers)
+ *   • Flexible column name matching across multiple datasets
+ *   • LCA impact category identification (energy, water, emissions, etc.)
+ *   • Problem/solution generation based on product life cycle stages
+ *   • Row-level sampling for large LCA datasets
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
  *
  * Usage:
  *   node extract_kaggle_lca.js
@@ -41,6 +42,14 @@ import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.kaggle;
 const rawDir = getDatasetRawDir(DATASET_KEY);
+if (!rawDir) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(rawDir)) {
+  console.error(`❌ Raw directory does not exist: ${rawDir}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Target total rows

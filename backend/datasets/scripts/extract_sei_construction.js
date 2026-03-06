@@ -1,21 +1,20 @@
 /**
- * extract_sei_construction.js
+ * extract_sei_construction.js - Circular economy case studies and best practices extraction
  *
- * Extracts circular economy case studies and best practices from Stockholm Environment
- * Institute (SEI) construction industry reports and guidelines. Processes PDF documents
- * to extract structured case studies, building material innovations, and circular
- * construction strategy implementations across different project types.
+ * Extracts from Stockholm Environment Institute (SEI) construction industry reports and guidelines.
+ * Processes PDF documents to extract structured case studies, building material innovations, and
+ * circular construction strategy implementations.
  *
  * Features:
- *   - PDF text extraction using pdfjs-dist with proper worker configuration
- *   - Multi-document processing with metadata preservation
- *   - Case study identification and section-level parsing
- *   - Construction-specific vocabulary and classification
- *   - Building material and waste stream categorization
- *   - Smart problem/solution generation for construction sector
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
- *   - Page-level content extraction with character buffering
+ *   • PDF text extraction using pdfjs-dist with proper worker configuration
+ *   • Multi-document processing with metadata preservation
+ *   • Case study identification and section-level parsing
+ *   • Construction-specific vocabulary and classification
+ *   • Building material and waste stream categorization
+ *   • Smart problem/solution generation for construction sector
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation and file locking
+ *   • Page-level content extraction with character buffering
  *
  * Usage:
  *   node extract_sei_construction.js
@@ -24,6 +23,8 @@
  * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
  * Scope: Covers circular design, material reuse, waste management in construction sector
  */
+
+/* global process */
 
 import fs from 'fs';
 import path from 'path';
@@ -50,6 +51,14 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 const DATASET_KEY = DATASET_KEYS.sei;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+if (!RAW_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // ----------------------------------------------------------------------

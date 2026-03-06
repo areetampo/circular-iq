@@ -1,20 +1,25 @@
 /* global process */
 
 /**
- * extract_metabolic.js - Quality improved version with enhanced problem/solution filtering
+ * extract_remanufacturing_eu.js - Remanufacturing EU case study publications and text extraction
  *
- * IMPORTANT: Scraping must be done first using scrape_metabolic.js to download the PDFs.
+ * IMPORTANT: Scraping must be done first using scrape_remanufacturing_eu.js to download PDFs.
+ *
+ * Extracts text from downloaded Remanufacturing EU case study PDFs, chunks and scores content,
+ * and produces a standardized CSV.
  *
  * Features:
- *   • Reads metadata.json from raw folder to populate source_url for each PDF
- *   • Higher MIN_SCORE (35), longer MIN_CHUNK_LENGTH (250)
+ *   • Higher MIN_SCORE (35) for quality filtering
+ *   • Longer MIN_CHUNK_LENGTH (250) for meaningful content
+ *   • Filters duplicate rows where problem == solution
  *   • Sentence-aware chunking to reduce truncation
- *   • Filters out rows where problem == solution or one is substring of the other
- *   • Ensures problem and solution come from different sentences when possible
- *   • Final row limit remains 400
+ *   • Automatic ID generation with dataset key prefix
  *
  * Usage:
- *   node extract_metabolic.js
+ *   node extract_remanufacturing_eu.js
+ *
+ * Input: PDF documents in datasets/raw/remanufacturing_eu/
+ * Output: CSV with standardized columns in datasets/processed/
  */
 
 import fs from 'fs';
@@ -22,6 +27,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { Buffer } from 'buffer';
 import {
   formatId,
   cleanText,
@@ -35,7 +41,7 @@ const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
 pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 
-const DATASET_KEY = DATASET_KEYS.metabolic;
+const DATASET_KEY = DATASET_KEYS.rema; // 'rema'
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 if (!RAW_DIR) {
   console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
@@ -47,12 +53,12 @@ if (!fs.existsSync(RAW_DIR)) {
 }
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-// Improved extraction parameters
+// Adjusted extraction parameters
 const MAX_ROWS_PER_PDF = 30;
 const MIN_CHUNK_LENGTH = 250; // increased from 200
 const MAX_CHUNK_LENGTH = 1200;
-const MIN_SCORE = 35; // increased from 20/35
-const FINAL_ROW_LIMIT = 400; // keep top 400 rows
+const MIN_SCORE = 35; // increased from 30
+const FINAL_ROW_LIMIT = 500; // keep top 500 rows overall
 
 /**
  * Check if a file starts with the PDF header.
@@ -95,7 +101,7 @@ async function extractTextFromPdf(filePath) {
 }
 
 /**
- * Score a chunk for overall quality.
+ * Score a chunk for overall quality (presence of keywords, numbers, length).
  */
 function scoreChunk(text) {
   let score = 0;
@@ -165,7 +171,11 @@ function chunkText(text) {
     currentChunk.push(sentence);
     currentLength += sentenceLength;
 
-    // If current chunk already meets minimum length, we can consider finalizing later
+    // If current chunk already meets minimum length, consider finalizing if it's also near max or we're at end
+    if (currentLength >= MIN_CHUNK_LENGTH && currentLength <= MAX_CHUNK_LENGTH) {
+      // We can choose to keep it, but we'll continue accumulating until we hit max or end of sentences
+      // To avoid overly long chunks, we'll finalize when we exceed max or when this is the last sentence
+    }
   }
 
   // Handle the last chunk
@@ -176,7 +186,7 @@ function chunkText(text) {
     }
   }
 
-  // If we ended up with no chunks, fallback to paragraph splitting
+  // If we ended up with no chunks (rare), fallback to paragraph splitting
   if (chunks.length === 0) {
     const paragraphs = text.split(/\n\s*\n/).filter((p) => {
       const trimmed = p.trim();
@@ -266,36 +276,13 @@ function inferStrategy(text) {
 }
 
 /**
- * Infer category from text and filename.
- */
-function inferCategory(text, filename) {
-  const lower = text.toLowerCase() + ' ' + filename.toLowerCase();
-  if (
-    lower.includes('construction') ||
-    lower.includes('built environment') ||
-    lower.includes('building')
-  )
-    return 'Built Environment';
-  if (lower.includes('textile') || lower.includes('fashion')) return 'Textiles';
-  if (lower.includes('food') || lower.includes('agriculture') || lower.includes('agrifood'))
-    return 'Food & Agriculture';
-  if (lower.includes('plastic') || lower.includes('packaging')) return 'Plastics & Packaging';
-  if (lower.includes('electronics') || lower.includes('e-waste')) return 'Electronics';
-  if (lower.includes('city') || lower.includes('urban') || lower.includes('regional'))
-    return 'Cities & Regions';
-  if (lower.includes('policy')) return 'Policy';
-  if (lower.includes('business') || lower.includes('company')) return 'Business';
-  return 'General';
-}
-
-/**
  * Extract problem, solution, impact from a chunk using sentence scoring.
  * Returns null if problem and solution are too similar.
  */
 function extractProblemSolutionImpact(chunk) {
   const sentences = chunk.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 15);
   if (sentences.length === 0) {
-    return null;
+    return null; // not enough content
   }
 
   const problemKeywords = [
@@ -380,6 +367,7 @@ function extractProblemSolutionImpact(chunk) {
     if (iScore > 0) impactSentences.push({ text: s, score: iScore, index: idx });
   });
 
+  // Sort by score desc
   problemSentences.sort((a, b) => b.score - a.score);
   solutionSentences.sort((a, b) => b.score - a.score);
   impactSentences.sort((a, b) => b.score - a.score);
@@ -387,18 +375,21 @@ function extractProblemSolutionImpact(chunk) {
   let bestProblem = problemSentences[0] || null;
   let bestSolution = solutionSentences[0] || null;
 
-  // If same sentence, try alternatives
+  // If they are the same sentence, try to pick alternatives
   if (bestProblem && bestSolution && bestProblem.index === bestSolution.index) {
+    // Prefer different sentences for problem and solution
     if (solutionSentences.length > 1) {
       bestSolution = solutionSentences[1];
     } else if (problemSentences.length > 1) {
       bestProblem = problemSentences[1];
     } else {
-      return null; // discard
+      // No alternative – discard this chunk later
+      bestProblem = null;
+      bestSolution = null;
     }
   }
 
-  // Fallback: find nearby sentences if missing
+  // Fallback: if missing, use nearby sentences
   if (bestProblem && !bestSolution) {
     const idx = bestProblem.index;
     for (let offset = 1; offset <= 2; offset++) {
@@ -426,20 +417,23 @@ function extractProblemSolutionImpact(chunk) {
     }
   }
 
+  // If still missing, use first/last resort
   if (!bestProblem) bestProblem = { text: sentences[0], score: 0, index: 0 };
   if (!bestSolution) {
     if (sentences.length > 1) {
+      // Use all sentences after the problem as solution
       const rest = sentences.slice(bestProblem.index + 1).join(' ');
       bestSolution = { text: rest || sentences[0], score: 0, index: -1 };
     } else {
-      bestSolution = bestProblem; // will be filtered later
+      bestSolution = bestProblem; // fallback, will be filtered later
     }
   }
 
+  // Clean the texts
   const problemText = bestProblem.text.substring(0, 500);
   const solutionText = bestSolution.text.substring(0, 800);
 
-  // Similarity filter
+  // **Similarity filter**: if problem and solution are identical or one is a substring of the other, discard
   const cleanProblem = problemText.replace(/\s+/g, ' ').trim().toLowerCase();
   const cleanSolution = solutionText.replace(/\s+/g, ' ').trim().toLowerCase();
   if (
@@ -464,24 +458,28 @@ function extractProblemSolutionImpact(chunk) {
 async function main() {
   // Read metadata.json from raw folder
   const metadataPath = path.join(RAW_DIR, 'metadata.json');
-  let metadataMap = new Map(); // filename -> sourceUrl (detailUrl)
+  let metadataMap = new Map(); // filename -> { industry, title, description, pdf_url }
   if (fs.existsSync(metadataPath)) {
     const metadataRaw = await fs.promises.readFile(metadataPath, 'utf8');
     const metadataList = JSON.parse(metadataRaw);
     for (const item of metadataList) {
-      // item has { filename, detailUrl, pdfUrl }
-      metadataMap.set(item.filename, item.detailUrl || '');
+      // item has { filename, industry, title, description, pdf_url } from scraper
+      metadataMap.set(item.filename, {
+        industry: item.industry,
+        title: item.title,
+        description: item.description,
+        pdf_url: item.pdf_url,
+      });
     }
-    console.log(`Loaded source URLs for ${metadataMap.size} files from metadata.json.`);
+    console.log(`Loaded metadata for ${metadataMap.size} PDFs from metadata.json.`);
   } else {
-    console.warn('⚠️  metadata.json not found – source_url will be empty.');
+    console.warn('⚠️  metadata.json not found – categories will be "Unknown".');
   }
 
   if (!fs.existsSync(RAW_DIR)) {
     console.error(`Raw directory not found: ${RAW_DIR}`);
     process.exit(1);
   }
-
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.toLowerCase().endsWith('.pdf'));
   console.log(`Found ${files.length} PDF files in ${RAW_DIR}`);
 
@@ -489,9 +487,14 @@ async function main() {
 
   for (const file of files) {
     const filePath = path.join(RAW_DIR, file);
-    const sourceUrl = metadataMap.get(file) || '';
+    const meta = metadataMap.get(file) || {
+      industry: 'Unknown',
+      title: 'Unknown',
+      description: '',
+      pdf_url: `https://www.remanufacturing.eu/studies/${file}`,
+    };
 
-    console.log(`\nProcessing ${file}...`);
+    console.log(`\nProcessing ${file} (${meta.industry})...`);
 
     if (!isValidPdf(filePath)) {
       console.log('  Invalid PDF header – skipping.');
@@ -513,13 +516,14 @@ async function main() {
 
       const materials = extractMaterials(chunk);
       const strategy = inferStrategy(chunk);
-      const category = inferCategory(chunk, file);
+      const category = meta.industry; // use industry from metadata as category
 
       const extracted = extractProblemSolutionImpact(chunk);
-      if (!extracted) continue;
+      if (!extracted) continue; // failed similarity check
 
       const { problem, solution, impact } = extracted;
 
+      // Basic length filter (problem already >50 from extract function, but double-check)
       if (problem.length < 50) continue;
 
       allRows.push({
@@ -527,11 +531,14 @@ async function main() {
         solution: cleanText(solution),
         materials,
         circular_strategy: strategy,
-        category,
+        category: cleanText(category),
         impact: cleanText(impact),
-        source_url: sourceUrl,
+        source_url: meta.pdf_url,
         metadata_json: JSON.stringify({
           original_filename: file,
+          title: meta.title,
+          description: meta.description,
+          industry: meta.industry,
           chunk_preview: chunk.substring(0, 500),
           score,
         }),

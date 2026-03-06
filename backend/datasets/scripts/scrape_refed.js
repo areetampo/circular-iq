@@ -1,21 +1,24 @@
+/* global process */
+
 /**
- * fetch_refed.js - API based fetching not exactly a scraper but similar concept
+ * scrape_refed.js - Food waste solution data fetching from the ReFED Insights Engine API v2
  *
- * Fetches food waste solution data from the ReFED Insights Engine API v2.
- * Transforms each solution into your standardized problem/solution format.
+ * Transforms each solution into standardized problem/solution format.
  *
  * Features:
- *   - Fetches all solutions from the `/solutions` endpoint
- *   - Enriches with group and category names from supporting endpoints
- *   - Parses quantified impact metrics (tons, GHG, water, meals, jobs)
- *   - Pagination through all available solutions
- *   - Backup every 10 solutions with recovery mode
- *   - Detailed logging to file
+ *   • Fetches all solutions from the `/solutions` endpoint
+ *   • Enriches with group and category names from supporting endpoints
+ *   • Parses quantified impact metrics (tons, GHG, water, meals, jobs)
+ *   • Pagination through all available solutions
+ *   • Backup every 10 solutions with recovery mode
+ *   • Detailed logging to file
  *
  * Usage:
- *   node fetch_refed.js                 # normal run
- *   node fetch_refed.js --use-backup    # rebuild final CSV from backup
- *   node fetch_refed.js --clear-logs    # clear log file before starting
+ *   node scrape_refed.js                 # normal run
+ *   node scrape_refed.js --use-backup    # rebuild final CSV from backup
+ *   node scrape_refed.js --clear-logs    # clear log file before starting
+ *   node scrape_refed.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_refed.js --append-backup     # append to backup instead of clearing on start
  *
  * Output: datasets/processed/refed_processed.csv
  */
@@ -27,7 +30,8 @@ import {
   cleanText,
   getDatasetProcessedCsvPath,
   writeCsv,
-  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -49,9 +53,15 @@ const CATEGORIES_URL = `${API_BASE}/solution_database/categories`;
 const SECTORS_URL = `${API_BASE}/sectors`;
 const FOOD_TYPES_URL = `${API_BASE}/solution_database/food_types`;
 
-const APPEND = hasAppendFlag();
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 // Create backup helper
-const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true, MAX_SOLUTIONS);
+const backup = createBackupHelper(
+  DATASET_KEY,
+  BACKUP_INTERVAL,
+  true && !APPEND_BACKUP,
+  MAX_SOLUTIONS,
+);
 
 /**
  * Fetch lookup data (groups, categories, etc.) to enrich solutions.
@@ -215,7 +225,7 @@ async function rebuildFromBackup() {
     return;
   }
   console.log(`📖 Processing ${backupRows.length} backup rows...`);
-  await writeCsv(OUTPUT_PATH, backupRows, APPEND);
+  await writeCsv(OUTPUT_PATH, backupRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${backupRows.length} rows from backup.`);
 }
 
@@ -258,7 +268,7 @@ async function fetchAndTransform() {
   }));
 
   // Write final CSV (writeCsv handles locking and read-only)
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Successfully transformed ${finalRows.length} solutions.`);
 
   const firstRow = finalRows[0];
@@ -292,13 +302,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('\n❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

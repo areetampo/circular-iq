@@ -1,3 +1,25 @@
+/* global process */
+
+/**
+ * extract_oecd.js - OECD Environmental Data Extraction
+ *
+ * Samples and processes OECD environmental data CSVs (municipal waste, material use, etc.)
+ * to generate a condensed dataset of high-value rows for analysis. Applies 4% random
+ * sampling to approximate around 500 records.
+ *
+ * Features:
+ *   • CSV parsing via csv-parse/sync
+ *   • Statistical data extraction and sampling
+ *   • Multi-dataset consolidation with consistent formatting
+ *   • Automatic ID generation with dataset key prefix
+ *
+ * Usage:
+ *   node extract_oecd.js
+ *
+ * Input: CSV files in datasets/raw/oecd/
+ * Output: CSV with standardized columns in datasets/processed/
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -10,11 +32,18 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.oecd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
+if (!rawDir) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(rawDir)) {
+  console.error(`❌ Raw directory does not exist: ${rawDir}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // --- Adjust sampling to target ~500 total rows ---

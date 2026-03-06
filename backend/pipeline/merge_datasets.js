@@ -17,6 +17,7 @@ import {
   DATASETS_MANUAL_ENTRIES_DIR,
   ARCHIVES_COMBINED_INPUT_CSV,
   prepareWrite,
+  assertDirExists,
 } from '#utils/datasetsUtils.js';
 
 // allow writing to archives instead of normal output for a "run archives" variant
@@ -60,13 +61,17 @@ async function mergeCsvFiles() {
   console.log('='.repeat(70));
 
   // Verify directories exist
-  if (!fs.existsSync(INPUT_PROCESSED_DIR)) {
-    console.error(`✗ ERROR: Directory '${INPUT_PROCESSED_DIR}' not found`);
+  try {
+    assertDirExists(INPUT_PROCESSED_DIR, 'processed datasets directory');
+  } catch (err) {
+    console.error(`✗ ERROR: ${err.message}`);
     process.exit(1);
   }
 
-  if (!fs.existsSync(INPUT_MANUAL_ENTRIES_DIR)) {
-    console.error(`✗ ERROR: Directory '${INPUT_MANUAL_ENTRIES_DIR}' not found`);
+  try {
+    assertDirExists(INPUT_MANUAL_ENTRIES_DIR, 'manual entries directory');
+  } catch (err) {
+    console.error(`✗ ERROR: ${err.message}`);
     process.exit(1);
   }
 
@@ -138,10 +143,31 @@ async function mergeCsvFiles() {
   console.log(`\nTotal records collected: ${totalRecords}`);
 
   // dedupe rows to prevent duplicates from multiple sources
-  const uniqueRowsSet = new Set(mergedRows);
-  if (uniqueRowsSet.size !== mergedRows.length) {
-    const removed = mergedRows.length - uniqueRowsSet.size;
-    console.log(`✓ Removed ${removed} duplicate row${removed === 1 ? '' : 's'} during merge`);
+  // First, dedupe based on ID (first field) to handle potential ID conflicts
+  const idToRowMap = new Map();
+  let duplicateIds = 0;
+  for (const row of mergedRows) {
+    const id = row.split(',')[0]; // assume ID is first field, no commas in ID
+    if (!idToRowMap.has(id)) {
+      idToRowMap.set(id, row);
+    } else {
+      duplicateIds++;
+    }
+  }
+  const dedupedById = Array.from(idToRowMap.values());
+  if (duplicateIds > 0) {
+    console.log(
+      `✓ Removed ${duplicateIds} duplicate row${duplicateIds === 1 ? '' : 's'} based on ID during merge`,
+    );
+  }
+
+  // Then, dedupe exact rows as additional safety
+  const uniqueRowsSet = new Set(dedupedById);
+  if (uniqueRowsSet.size !== dedupedById.length) {
+    const removed = dedupedById.length - uniqueRowsSet.size;
+    console.log(
+      `✓ Removed ${removed} additional duplicate row${removed === 1 ? '' : 's'} during merge`,
+    );
   }
   const deduped = Array.from(uniqueRowsSet);
   mergedRows.length = 0;

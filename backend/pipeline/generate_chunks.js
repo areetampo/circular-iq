@@ -29,11 +29,14 @@ import {
   CHUNKS_JSON,
   ARCHIVES_COMBINED_INPUT_CSV,
   ARCHIVES_CHUNKS_JSON,
-  ARCHIVES_CHUNKS_JSON,
   writeJson,
+  assertFileExists,
 } from '#utils/datasetsUtils.js';
 
 const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
+
+// ensure input exists before doing any work
+assertFileExists(COMBINED_INPUT_CSV, 'combined_input.csv');
 
 // allow writing to archives folder instead of normal output
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');

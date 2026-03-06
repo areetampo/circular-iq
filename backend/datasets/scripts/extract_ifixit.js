@@ -1,20 +1,18 @@
 /**
- * extract_ifixit.js
+ * extract_ifixit.js - Extracts problem/solution pairs from iFixit repairability scores
  *
- * Extracts problem/solution pairs from iFixit repairability score CSV files.
- * Processes multiple device categories and converts each bullet point in the
- * "Summary" field into a standardized row.
+ * Processes multiple device categories and converts each bullet point in the "Summary"
+ * field into a standardized row.
  *
  * Features:
- *   - Reads all CSV files from datasets/raw/ifixit/
- *   - Determines category from filename
- *   - Parses the Summary field (bullet list with +, -, •)
- *   - For each bullet, generates a problem and solution (with fallbacks)
- *   - Stores bullet type and original data in metadata_json
- *   - Scores each row based on text length, keyword density, bullet type,
- *     and repairability score extremity
- *   - Keeps only the top MAX_ROWS (default 300) highest‑quality rows
- *   - Outputs standardized CSV to datasets/processed/ifixit_processed.csv
+ *   • Reads all CSV files from datasets/raw/ifixit/
+ *   • Determines category from filename
+ *   • Parses the Summary field (bullet list with +, -, •)
+ *   • For each bullet, generates a problem and solution (with fallbacks)
+ *   • Stores bullet type and original data in metadata_json
+ *   • Scores each row based on text length, keyword density, bullet type, and repairability score extremity
+ *   • Keeps only the top MAX_ROWS (default 300) highest-quality rows
+ *   • Outputs standardized CSV to datasets/processed/ifixit_processed.csv
  *
  * Usage:
  *   node datasets/scripts/extract_ifixit.js
@@ -24,9 +22,10 @@
  *   - #utils/datasetsUtils.js for path helpers, writeCsv, formatId, cleanText
  */
 
+/* global process */
+
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
   formatId,

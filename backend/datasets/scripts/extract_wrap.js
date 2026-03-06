@@ -1,15 +1,16 @@
+/* global process */
+
 /**
- * extract_wrap.js
+ * extract_wrap.js - Problem/solution pair extraction from WRAP PDF reports and case studies
  *
- * Extracts problem/solution pairs from WRAP PDF reports and case studies.
- * Processes all PDFs in datasets/raw/wrap_resources/ and its subfolders
- * (reports/, guides/). Uses pdfjs-dist with worker configuration.
+ * Processes all PDFs in datasets/raw/wrap_resources/ and its subfolders (reports/, guides/).
+ * Uses pdfjs-dist with worker configuration.
  *
  * Features:
- *   - Recursive PDF scanning (root + subfolders)
- *   - Sentence‑level problem/solution extraction
- *   - Category guessed from filename or folder
- *   - Outputs standardized CSV
+ *   • Recursive PDF scanning (root + subfolders)
+ *   • Sentence-level problem/solution extraction
+ *   • Category guessed from filename or folder
+ *   • Outputs standardized CSV
  *
  * Usage:
  *   node datasets/scripts/extract_wrap.js

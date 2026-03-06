@@ -14,10 +14,13 @@
  *   node scrape_c2c.js                 # normal run
  *   node scrape_c2c.js --use-backup    # rebuild final CSV from backup
  *   node scrape_c2c.js --clear-logs    # clear the log file before starting
+ *   node scrape_c2c.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_c2c.js --append-backup     # append to backup instead of clearing on start
  *
  * For detailed logs, see the path printed at the start of the run.
  */
 
+/* global process */
 import puppeteerExtra from 'puppeteer-extra';
 import { fileURLToPath } from 'url';
 import {
@@ -31,7 +34,8 @@ import {
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
-  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -52,11 +56,12 @@ const END_PAGE = 56; // As of Feb 2026, there are 56 pages total (1..56)
 const MAX_PAGES_TO_FETCH = 56; // 56
 const MAX_ROWS = 450;
 
-const APPEND = hasAppendFlag();
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
   MAX_PAGES_TO_FETCH,
 );
 
@@ -168,7 +173,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} C2C products from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
@@ -446,7 +451,7 @@ async function scrape_c2c() {
         };
       });
 
-      await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+      await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
       await backup.flush();
 
       console.log(`\n✅ Scraped ${finalRows.length} C2C products.`);
@@ -493,13 +498,8 @@ async function main() {
 
 // Self‑execution when run directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

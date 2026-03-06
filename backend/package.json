@@ -1,3 +1,78 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:098c70ebdfe5eccab751c7806b3ebb524e3242992b276f0b237a9a6c64d619d2
-size 3020
+{
+  "name": "backend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "RAG-powered evaluator for circular economy business evaluations",
+  "author": "Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>",
+  "license": "UNLICENSED",
+  "main": "server/index.js",
+  "type": "module",
+  "imports": {
+    "#config/*": "./config/*",
+    "#controllers/*": "./controllers/*",
+    "#database/*": "./database/*",
+    "#datasets/*": "./datasets/*",
+    "#middleware/*": "./middleware/*",
+    "#pipeline/*": "./pipeline/*",
+    "#routes/*": "./routes/*",
+    "#server/*": "./server/*",
+    "#services/*": "./services/*",
+    "#tests/*": "./tests/*",
+    "#utils/*": "./utils/*"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "datasets-scripts": "node pipeline/run_datasets_scripts.js",
+    "merge": "node pipeline/merge_datasets.js",
+    "chunk": "node pipeline/generate_chunks.js",
+    "embed": "node pipeline/generate_embeddings.js",
+    "store": "node pipeline/store_embeddings.js",
+    "populate": "npm run merge && npm run chunk && npm run embed && npm run store",
+    "validate": "node pipeline/validate_pipeline.js",
+    "verify": "node pipeline/validate_pipeline.js",
+    "test:validate": "node pipeline/test_validate_input.js",
+    "test:score-fetch": "node pipeline/test_score_fetch.js",
+    "poll:supabase": "node pipeline/poll_supabase.js",
+    "test": "node --test",
+    "clean": "npx rimraf node_modules package-lock.json",
+    "pip:install": "py -m pip install -r requirements-dev.txt",
+    "pip:save": "pip freeze > requirements-dev.txt"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
+    "boxen": "^8.0.1",
+    "canvas": "^3.2.1",
+    "chalk": "^4.1.2",
+    "cors": "^2.8.6",
+    "csv-parse": "^5.5.2",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^6.0.1",
+    "openai": "^4.28.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "axios": "^1.13.5",
+    "cheerio": "^1.2.0",
+    "csv-stringify": "^6.6.0",
+    "eslint": "^9.39.2",
+    "globals": "^17.1.0",
+    "google-translate-api-x": "^10.7.2",
+    "got": "^14.6.6",
+    "nodemon": "^3.1.11",
+    "pdfjs-dist": "^5.4.624",
+    "puppeteer": "^24.37.5",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "supertest": "^6.3.4",
+    "tabula-js": "^1.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -22,7 +22,7 @@ Source (Web/File) → Extract/Transform → Standardize Format → Process → M
 
 ## Step 1: Source Your Data
 
-npm run merge
+### Option A: Web Scraping
 
 **When to use:** Data is on a website without direct download
 
@@ -53,7 +53,7 @@ npm run merge
    > centralize common settings and support the `--show` CLI flag which
    > toggles a visible browser window for debugging:
    >
-   > ```bash
+   > ```pwsh
    > node datasets/scripts/scrape_new_source.js --show
    > ```
    >
@@ -73,9 +73,10 @@ npm run merge
    >   isBackupRecoveryMode,
    >   readBackupCsv,
    >   writeCsv,
-   >   getDatasetOutputPath,
+   >   getDatasetProcessedCsvPath,
    > } from '#utils/datasetsUtils.js';
    >
+   > const DATASET_KEY = 'new_source'; // Must match dataset key in registry
    > const BACKUP_INTERVAL = 3; // flush every 3 pages
    > const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true);
    >
@@ -92,13 +93,49 @@ npm run merge
    >     await backup.add(rows); // auto-flushes every 3 calls
    >   }
    >   await backup.flush(); // final flush
-   >   await writeCsv(outputPath, finalRows);
+   >   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+   >   await writeCsv(csvPath, finalRows);
    > }
    > ```
    >
    > See the existing scrapers (scrape_c2c.js, scrape_ecesp.js, etc.) for full examples.
 
-### Script Documentation Best Practices
+3. **Run scraper:**
+
+   ```pwsh
+   node datasets/scripts/scrape_new_source.js
+   ```
+
+### Option B: PDF Extraction
+
+**When to use:** Data is in PDF documents
+
+1. **Use Puppeteer + PDF parser** (already in dependencies)
+
+2. **Create extraction script:**
+
+   ```javascript
+   import pdfParser from 'pdf-parse';
+   import fs from 'fs';
+
+   const pdf = await pdfParser(fs.readFileSync('file.pdf'));
+   const text = pdf.text;
+   // Parse text into problem/solution structure
+   ```
+
+3. **Convert extracted data to CSV** with headers matching standard format
+
+4. **Output:** CSV in `datasets/raw/new_source/`
+
+### Option C: Direct File Upload
+
+**When to use:** Data provided as CSV/JSON file
+
+1. **Create directory:** `datasets/raw/new_source/` (or use `DATASETS_RAW_DIR` constant)
+2. **Place file:** `datasets/raw/new_source/data.csv`
+3. **Create README:** `datasets/raw/new_source/README.md` describing the source
+
+## Script Documentation Best Practices
 
 When creating new extraction or scraping scripts, follow these documentation conventions to keep the codebase maintainable:
 
@@ -150,46 +187,19 @@ When creating new extraction or scraping scripts, follow these documentation con
 >
 > Refer to [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for examples of well-documented scripts like `scrape_c2c.js` and `extract_cgr_2025.js`.
 
-3. **Run scraper:**
+> **Optional registry step:** if you want the dataset to appear in the
+> documentation tables or take advantage of the path helpers by key name,
+> add an entry to the `DATASETS` array in `utils/datasetsUtils.js`. See
+> [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md) for the exact schema and examples.
 
-   ```bash
-   node datasets/scripts/scrape_new_source.js
-   ```
-
-> **Tip:** when you have multiple extractor/scraper scripts in the project
-> you don't need to invoke them one at a time. A runner script exists at
-> `backend/pipeline/run_datasets_scripts.js` which will sequentially execute
-> all `extract_*.js` scripts before the `scrape_*.js` ones and will exit on
-> the first error. You can call it directly or via the npm shortcut:
-
-```bash
-npm run datasets-scripts
-```
-
-> **When to use:** Data is in PDF documents
-
-1. **Use Puppeteer + PDF parser** (already in dependencies)
-
-2. **Create extraction script:**
-
-   ```javascript
-   import pdfParser from 'pdf-parse';
-   import fs from 'fs';
-
-   const pdf = await pdfParser(fs.readFileSync('file.pdf'));
-   const text = pdf.text;
-   // Parse text into problem/solution structure
-   ```
-
-3. **Convert extracted data to CSV** with headers matching standard format
-
-4. **Output:** CSV in `datasets/raw/new_source/`
-
-### Option C: Direct File Upload
-
-**When to use:** Data provided as CSV/JSON file
-
-1. **Create directory:** `datasets/raw/new_source/` (or use `DATASETS_RAW_DIR` constant) 2. **Place file:** `datasets/raw/new_source/data.csv` 3. **Create README:** `datasets/raw/new_source/README.md` describing the source
+> **Running all dataset scripts:** Rather than executing scripts individually, you can use the
+> orchestrator in `backend/pipeline/run_datasets_scripts.js` which runs all
+> `extract_*.js` files first followed by any `scrape_*.js` files. Use it after
+> pulling upstream changes or when updating multiple sources:
+>
+> ```pwsh
+> npm run datasets-scripts
+> ```
 
 ## Step 2: Optional - Transform & Extract
 
@@ -199,8 +209,10 @@ npm run datasets-scripts
 
 1. **Create transformation script** in `datasets/scripts/`:
 
-   ```javascript
-   // Transform source data to problem/solution pairs
+   ```pwsh
+   # Transform source data to problem/solution pairs
+   # (JavaScript code - same for all shells)
+   """
    import fs from 'fs';
    import { parse } from 'csv-parse/sync';
 
@@ -216,11 +228,12 @@ npm run datasets-scripts
    }));
 
    fs.writeFileSync('output.csv', formatAsCSV(transformed));
+   """
    ```
 
 2. **Run transformation:**
 
-   ```bash
+   ```pwsh
    node datasets/scripts/transform_new_source.js
    ```
 
@@ -294,7 +307,7 @@ ID,problem,solution,materials,circular_strategy,category,impact,source_url,metad
    - Write to CSV with proper quoting
 
 3. **Validation script:**
-   ```bash
+   ```pwsh
    node datasets/scripts/validate_csv.js datasets/raw/new_source/data.csv
    # Checks: headers match, quotes consistent, IDs unique
    ```
@@ -303,12 +316,12 @@ ID,problem,solution,materials,circular_strategy,category,impact,source_url,metad
 
 Once standardized, move to processed directory:
 
-```bash
+```pwsh
 # Move standardized CSV
-mv datasets/raw/new_source/data.csv datasets/processed/new_source.csv
+Move-Item datasets/raw/new_source/data.csv datasets/processed/new_source.csv
 
 # Or if using a specific prefix
-mv datasets/raw/new_source/data.csv datasets/processed/new_data.csv
+Move-Item datasets/raw/new_source/data.csv datasets/processed/new_data.csv
 ```
 
 ### File Naming Convention
@@ -329,7 +342,7 @@ If you want to track the dataset metadata (source URL, documentation, etc.) for 
 1. Standardize the CSV in `datasets/processed/` format
 2. Run merge command:
 
-```bash
+```pwsh
 npm run merge    # Merges all processed/*.csv and manual_entries.csv
 ```
 
@@ -339,53 +352,52 @@ The merge script automatically discovers all CSV files in both directories.
 
 1. **Add to:** `datasets/manual_entries/manual_entries.csv`
 2. **Run merge:**
-   ```bash
+   ```pwsh
    npm run merge  # Merges manual_entries.csv with all processed/*.csv files
    ```
 
-## Step 8: Full Pipeline
+## Step 7: Full Pipeline
 
 Once dataset is prepared:
 
-```bash
+```pwsh
 npm run merge    # Merge new dataset into combined_input.csv (duplicates removed automatically)
 npm run chunk    # Split into semantic chunks
 npm run embed    # Generate embeddings
-npm run store    # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents)
-npm run store:archives  # Store archive embeddings (datasets/archives/embedded_chunks.json → documents_archives)
+npm run store    # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents); add -- --archives or set USE_DOCUMENTS_ARCHIVES_TABLE=true to target archives output/table
 ```
 
 Or run complete pipeline:
 
-```bash
+```pwsh
 npm run populate  # Runs: merge → chunk → embed → store
 ```
 
-## Step 9: Validation & Quality Checks
+## Step 8: Validation & Quality Checks
 
 ### Pre-Pipeline Checks
 
 1. **Check file exists:**
 
-   ```bash
-   ls -lh datasets/processed/new_data.csv
+   ```pwsh
+   Get-ChildItem datasets/processed/new_data.csv | Format-List FullName, Length
    ```
 
 2. **Check format:**
 
-   ```bash
-   head -2 datasets/processed/new_data.csv
+   ```pwsh
+   Get-Content datasets/processed/new_data.csv -TotalCount 2
    # Should show: header row (unquoted) + first data row (quoted)
    ```
 
 3. **Check row count:**
 
-   ```bash
-   wc -l datasets/processed/new_data.csv
+   ```pwsh
+   (Get-Content datasets/processed/new_data.csv | Measure-Object -Line).Lines
    ```
 
 4. **Validate CSV:**
-   ```bash
+   ```pwsh
    node datasets/scripts/check_csv.js datasets/processed/new_data.csv
    ```
 
@@ -393,18 +405,19 @@ npm run populate  # Runs: merge → chunk → embed → store
 
 After running `npm run merge`:
 
-```bash
+```pwsh
 # Check combined_input.csv includes new records
-grep "new_00001" datasets/out/combined_input.csv
+Select-String "new_00001" datasets/out/combined_input.csv
 
 # Check row count increases
-wc -l datasets/out/combined_input.csv
+(Get-Content datasets/out/combined_input.csv | Measure-Object -Line).Lines
 ```
 
-Or if using archives mode:
+If you ran the merge command with `-- --archives` then inspect the
+archives output instead:
 
-```bash
-grep "new_00001" datasets/archives/combined_input.csv
+```pwsh
+Select-String "new_00001" datasets/archives/combined_input.csv
 ```
 
 ## Common Issues & Fixes
@@ -417,7 +430,7 @@ grep "new_00001" datasets/archives/combined_input.csv
 
 1. Verify file is in `datasets/processed/` or `datasets/manual_entries/`
 2. Ensure filename ends with `.csv`
-3. Check for permission issues: `ls -la datasets/processed/`
+3. Check for permission issues: `Get-ChildItem -Force datasets/processed/`
 
 # 4. Re-run: `npm run merge`
 
@@ -456,21 +469,22 @@ grep "new_00001" datasets/archives/combined_input.csv
 
 ### End-to-End Test
 
-```bash
+```pwsh
 # 1. Place new dataset
-cp my_data.csv datasets/processed/
+Copy-Item my_data.csv datasets/processed/
 
 # 2. Merge datasets
 npm run merge
 
 # 3. Check merged output
-grep "my_001" datasets/out/combined_input.csv
+Select-String "my_001" datasets/out/combined_input.csv
 
 # 4. Chunk
 npm run chunk
 
-# 5. Verify chunks.json
-jq '.\[] | select(.metadata.source_id | contains("my_"))' datasets/out/chunks.json | head -5
+# 5. Verify chunks.json - filter chunks by source_id containing "my_" and show first 5
+$chunks = Get-Content datasets/out/chunks.json | ConvertFrom-Json
+$chunks | Where-Object { $_.metadata.source_id -like '*my_*' } | Select-Object -First 5 | ConvertTo-Json
 
 # 6. Generate embeddings (dry-run first)
 npm run embed -- --dry-run

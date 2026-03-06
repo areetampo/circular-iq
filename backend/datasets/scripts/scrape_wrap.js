@@ -1,29 +1,33 @@
+/* global process */
+
 /**
- * scrape_wrap.js
+ * scrape_wrap.js - WRAP Resources and Case Studies
  *
- * Scrapes WRAP resources (case studies, guides, reports) from the paginated listing pages.
- * Extracts problem/solution/impact directly from the HTML content.
+ * Scrapes WRAP resources (case studies, guides, reports) from paginated listing pages.
+ * Extracts problem/solution/impact directly from HTML content.
  *
  * Features:
- *   - Three independent scrapes in one file, each with its own START_PAGE, END_PAGE and MAX_PAGES_TO_FETCH
- *   - Run all categories by default, or use flags to run only specific ones
- *   - Per‑resource extraction using category‑specific selectors
- *   - Backup every 3 pages with recovery mode
- *   - Detailed logging to dataset‑specific log file
+ *   • Three independent scrapes in one file: case studies, guides, reports
+ *   • Run all categories by default or use flags for specific ones
+ *   • Per-resource extraction using category-specific selectors
+ *   • Backup every 3 pages with recovery mode
+ *   • Detailed logging to dataset-specific log file
  *
  * Usage:
- *   node datasets/scripts/scrape_wrap.js                         # all categories
- *   node datasets/scripts/scrape_wrap.js --case-studies          # only case studies
- *   node datasets/scripts/scrape_wrap.js --guides                # only guides
- *   node datasets/scripts/scrape_wrap.js --reports               # only reports
- *   node datasets/scripts/scrape_wrap.js --use-backup            # rebuild from backup (independent of scraping, whatever is in the backup wll be used)
- *   node datasets/scripts/scrape_wrap.js --show                  # show browser
- *   node datasets/scripts/scrape_wrap.js --clear-logs            # clear log file
+ *   node scrape_wrap.js                    # all categories
+ *   node scrape_wrap.js --case-studies     # only case studies
+ *   node scrape_wrap.js --guides           # only guides
+ *   node scrape_wrap.js --reports          # only reports
+ *   node scrape_wrap.js --use-backup       # rebuild from backup
+ *   node scrape_wrap.js --show             # show browser
+ *   node scrape_wrap.js --clear-logs       # clear log file
+ *   node scrape_wrap.js --append-processed # append to CSV
+ *   node scrape_wrap.js --append-backup    # append to backup
  *
  * Output:
- *   - Processed CSV (case studies): datasets/processed/wrap_scrape_processed.csv
- *   - Downloaded PDFs: datasets/raw/wrap_resources/reports/ and .../guides/
- *   - Backup: datasets/archives/scrape_backup/wrap_scrape_backup/ (case studies only)
+ *   • Processed CSV in datasets/processed/
+ *   • Downloaded PDFs in datasets/raw/wrap_resources/
+ *   • Backup in datasets/archives/scrape_backup/wrap_scrape_backup/
  */
 
 import puppeteerExtra from 'puppeteer-extra';
@@ -42,6 +46,9 @@ import {
   getUserAgentOptions,
   getExtraHttpHeaders,
   writeCsv,
+  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -116,11 +123,14 @@ const ACTIVE_CATEGORIES = hasAnyFlag
 
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
+
 const TOTAL_MAX_PAGES = ACTIVE_CATEGORIES.reduce((sum, cat) => sum + cat.MAX_PAGES_TO_FETCH, 0);
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
   TOTAL_MAX_PAGES,
 );
 
@@ -305,7 +315,7 @@ async function rebuildFromBackup() {
     source_url: row.source_url || '',
     metadata_json: row.metadata_json || '{}',
   }));
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} case study rows.`);
   return;
 }
@@ -491,7 +501,7 @@ async function scrape_wrap() {
         source_url: row.source_url,
         metadata_json: row.metadata_json,
       }));
-      await writeCsv(OUTPUT_PATH, finalRows);
+      await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
       console.log(`\n✅ Scraped ${finalRows.length} case study rows.`);
       console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 

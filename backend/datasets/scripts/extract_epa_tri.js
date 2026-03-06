@@ -1,19 +1,21 @@
+/* global process */
+
 /**
- * extract_epa_tri.js
+ * extract_epa_tri.js - Toxic Release Inventory (TRI) database extraction
  *
- * Extracts and scores U.S. industrial facility pollution data from EPA's Toxic Release
- * Inventory (TRI) database. Identifies facilities with significant pollution and waste
- * streams, highlighting opportunities for circular economy interventions (recovery,
- * recycling, safer material substitution) and waste reduction strategies.
+ * Extracts and scores U.S. industrial facility pollution data from EPA's Toxic Release Inventory
+ * (TRI) database. Identifies facilities with significant pollution and waste streams, highlighting
+ * opportunities for circular economy interventions (recovery, recycling, safer material substitution)
+ * and waste reduction strategies.
  *
  * Features:
- *   - CSV parsing with robust column name matching (handles variation in column headers)
- *   - Multi-dimensional facility scoring (pollution severity, recovery potential, waste disposal ratios)
- *   - Configurable weighting system for different scoring dimensions
- *   - Facility-level aggregation and high-value row selection
- *   - Numeric field parsing with comma removal and null handling
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with file locking
+ *   • CSV parsing with robust column name matching (handles variation in column headers)
+ *   • Multi-dimensional facility scoring (pollution severity, recovery potential, waste disposal ratios)
+ *   • Configurable weighting system for different scoring dimensions
+ *   • Facility-level aggregation and high-value row selection
+ *   • Numeric field parsing with comma removal and null handling
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with file locking
  *
  * Usage:
  *   node extract_epa_tri.js
@@ -24,8 +26,8 @@
  */
 
 import fs from 'fs/promises';
-import { parse } from 'csv-parse/sync';
 import path from 'path';
+import { parse } from 'csv-parse/sync';
 import {
   formatId,
   cleanText,
@@ -34,10 +36,17 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.epa;
 const rawDir = getDatasetRawDir(DATASET_KEY);
+if (!rawDir) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(rawDir)) {
+  console.error(`❌ Raw directory does not exist: ${rawDir}`);
+  process.exit(1);
+}
 const inputFile = path.join(rawDir, '2024_us.csv');
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 

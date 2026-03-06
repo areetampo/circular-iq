@@ -24,6 +24,8 @@
  * Scope: Covers CO2, CH4 (methane), N2O (nitrous oxide), and F-gases with proper weighting
  */
 
+/* global process */
+
 import fs from 'fs/promises';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -41,6 +43,14 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.ghg;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+if (!RAW_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
+  process.exit(1);
+}
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MAX_ROWS = 500;

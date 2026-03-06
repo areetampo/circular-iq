@@ -1,12 +1,20 @@
+/* global process */
+
 /**
- * extract_eippcb.js
- * * Hybrid extraction for EIPPCB BAT Conclusions and BREFs.
+ * extract_eippcb.js - Hybrid extraction for EIPPCB BAT Conclusions and BREFs
+ *
  * Filters for the top 300 highest-quality rows based on quantified impacts.
+ *
+ * Usage:
+ *   node extract_eippcb.js
+ *
+ * Input: multiple PDF files specified in dataset.raw_folder_contents
+ * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
  */
 
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL, fileURLToPath } from 'url';
+import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -27,6 +35,14 @@ const DATASET_KEY = DATASET_KEYS.eippcb;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+if (!RAW_DIR) {
+  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
+  process.exit(1);
+}
+if (!fs.existsSync(RAW_DIR)) {
+  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
+  process.exit(1);
+}
 const LIMIT_ROWS = 300; // Filter to top 300
 
 /**

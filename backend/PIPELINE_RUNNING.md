@@ -23,7 +23,7 @@ Complete guide for executing the document processing pipeline that transforms CS
 > does not spawn a visible window. If you need to observe the automation,
 > append the `--show` flag when invoking the node command as shown below:
 >
-> ```bash
+> ```pwsh
 > node datasets/scripts/scrape_ecesp.js          # headless
 > node datasets/scripts/scrape_ecesp.js --show   # open browser window
 > ```
@@ -37,14 +37,14 @@ Complete guide for executing the document processing pipeline that transforms CS
 >
 > - View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-25)
 > - See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for documentation overview
-> - Check the [dataset inventory table](DATASETS_REFERENCE.md#dataset-inventory) for all 23 datasets
+> - Check the [dataset inventory table](DATASETS_REFERENCE.md#dataset-inventory) for all 32 datasets
 
 > **Backup & Recovery Mode:** scraper scripts save intermediate results every N
 > pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a
 > scrape is interrupted (network timeout, user cancellation), you can rebuild
 > the final CSV from saved backup content:
 >
-> ```bash
+> ```pwsh
 > # Interrupted scrape? Add --use-backup flag to rebuild from backup:
 > node datasets/scripts/scrape_ecesp.js --use-backup
 > ```
@@ -67,7 +67,7 @@ Complete guide for executing the document processing pipeline that transforms CS
 
 ## Quick Start
 
-```bash
+```pwsh
 # Complete pipeline (recommended)
 npm run populate
 
@@ -78,7 +78,7 @@ npm run embed         # Generate embeddings → embedded_chunks.json
 npm run store         # Store in Supabase → documents table
 
 # To target the archive dataset instead of live:
-USE_DOCUMENTS_ARCHIVES_TABLE=true npm run store   # store into documents_archives
+$env:USE_DOCUMENTS_ARCHIVES_TABLE = 'true'; npm run store   # store into documents_archives
 # or equivalently:
 npm run store -- --archives
 ```
@@ -108,7 +108,7 @@ commands below for examples.
 
 **Location:** `datasets/processed/`
 
-Contains 31 standardized CSV files from diverse sources:
+Contains 32 standardized CSV files from diverse sources:
 
 - GreenTechGuardians: 2,286 case studies
 - Ellen MacArthur Foundation: 3,825+ case studies
@@ -128,10 +128,12 @@ Add custom problem/solution pairs here using the standard CSV format.
 
 ### Command
 
-```bash
-npm run merge          # Normal mode → datasets/out/combined_input.csv
-npm run merge:archives   # Archives mode → datasets/archives/combined_input.csv
+```pwsh
+npm run merge          # → datasets/out/combined_input.csv (add -- --archives for archives)
 ```
+
+**Note:** Pass `-- --archives` (or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`)
+to write the merged file into `datasets/archives/` instead of `out/`.
 
 ### What It Does
 
@@ -141,7 +143,9 @@ npm run merge:archives   # Archives mode → datasets/archives/combined_input.cs
 4. Normalizes column names and formats
 5. Makes output file read-only
 
-**Note:** Both `npm run merge` and `npm run merge:archives` merge the same sources (processed/ & manual_entries/), they only differ in output location.
+**Note:** The merge script always scans the same source CSVs; the only difference is
+output location. Append `-- --archives` (or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`)
+to write the merged file into `datasets/archives/` instead of `out/`.
 
 ### Expected Output
 
@@ -156,18 +160,18 @@ combined_input.csv created with:
 
 **combined_input.csv is empty:**
 
-```bash
+```pwsh
 # Verify directory structure
-ls datasets/processed/ | head -5
-ls datasets/manual_entries/
+Get-ChildItem datasets/processed/ | Select-Object -First 5
+Get-ChildItem datasets/manual_entries/
 ```
 
 ## Stage 2: Semantic Chunking
 
 ### Command
 
-```bash
-npm run chunk
+```pwsh
+npm run chunk        # produces chunks in out/ (add -- --archives for archives output)
 ```
 
 ### What It Does
@@ -215,12 +219,12 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 
 ### Command
 
-```bash
+```pwsh
 # Test locally without API calls (fake embeddings)
 npm run embed -- --dry-run
 
 # Production (real OpenAI embeddings)
-npm run embed
+npm run embed        # write to out/ by default (add -- --archives for archives)
 ```
 
 ### What It Does
@@ -249,12 +253,12 @@ The embedding logic is implemented in `services/embedding.service.js`.
 
 **"401 Unauthorized" from OpenAI:**
 
-```bash
+```pwsh
 # Verify key exists
-echo $OPENAI_API_KEY
+Write-Host $env:OPENAI_API_KEY
 
 # Ensure it starts with 'sk-'
-echo $OPENAI_API_KEY | head -c 3
+Write-Host $env:OPENAI_API_KEY.Substring(0, 3)
 ```
 
 **Rate limit (429 error):**
@@ -270,9 +274,9 @@ Then run: `npm run embed`
 
 **Hangs or timeouts:**
 
-```bash
+```pwsh
 # Test network connectivity
-ping api.openai.com
+Test-Connection api.openai.com -Count 1
 
 # Try dry-run (local, no API calls)
 npm run embed -- --dry-run
@@ -291,17 +295,19 @@ SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 
 ### Command
 
-```bash
+```pwsh
 # Normal: read from out/ and store in Supabase's `documents` table
 npm run store
 
-# Archive mode: read from archives/ and store in `documents_archives` table
-npm run store:archives
+# Archive mode: add `-- --archives` (or set USE_DOCUMENTS_ARCHIVES_TABLE=true)
+#             reads from archives/ and stores into `documents_archives`
+npm run store -- --archives
+```
 
 # Dry-run: write to local JSONL file without touching Supabase
 npm run store -- --dry-run
 
-# Dry-run archive mode: write to archives/stored_documents.jsonl
+# Dry-run archive mode: add the flag too
 npm run store -- --archives --dry-run
 ```
 
@@ -313,7 +319,7 @@ npm run store -- --archives --dry-run
    - Batches inserts (10 documents per batch) into `documents`
    - Validates stored embeddings with test query
 
-2. **Archive Mode** (`npm run store:archives`):
+2. **Archive Mode** (pass `-- --archives` or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`):
    - Reads `datasets/archives/embedded_chunks.json`
    - Clears the `documents_archives` table
    - Batches inserts into `documents_archives`
@@ -338,7 +344,7 @@ npm run store -- --archives --dry-run
 
 ### Option 1: Complete (Recommended)
 
-```bash
+```pwsh
 npm run populate
 ```
 
@@ -348,7 +354,7 @@ Typical execution time: 4-6 minutes
 
 ### Option 2: Individual Stages
 
-```bash
+```pwsh
 npm run merge         # 1-2 sec
 npm run chunk         # 5-10 sec
 npm run embed         # 3-5 min
@@ -357,37 +363,39 @@ npm run store         # 1-2 min
 
 Useful for testing each stage independently.
 
-### Option 3: Archives Run (Isolated Testing)
+### Option 3: Archive Mode (Isolated Testing)
 
-```bash
-npm run archives        # Complete archives run (outputs to datasets/archives/)
+Archive mode is enabled by appending `-- --archives` to any of the pipeline
+npm scripts (or by setting `USE_DOCUMENTS_ARCHIVES_TABLE=true`). It behaves the
+same as normal operation except that:
+
+- All generated files go into `datasets/archives/` instead of `datasets/out/`.
+- The storage step targets `documents_archives` instead of `documents`.
+
+```pwsh
+# run full pipeline in archive mode
+npm run merge -- --archives
+npm run chunk -- --archives
+npm run embed -- --archives
+npm run store -- --archives
 ```
 
-**archives/ folder contents:**
+When archive mode is active the `datasets/archives/` directory will contain:
 
 ```
 archives/
-├─ combined_input.csv      # merged CSV output
-├─ chunks.json              # chunk output
-├─ embedded_chunks.json     # embeddings output
-└─ scrape_backup/           # scrape script data (archive backup)
+├─ combined_input.csv
+├─ chunks.json
+├─ embedded_chunks.json
+└─ scrape_backup/   (from dataset scrapers)
 ```
 
-Or run individual stages:
-
-```bash
-npm run merge:archives   # Merge CSVs → archives/combined_input.csv (1-2 sec)
-npm run chunk:archives   # Create chunks → archives/chunks.json (5-10 sec)
-npm run embed:archives   # Gen embeddings → archives/embedded_chunks.json (3-5 min)
-```
-
-- Outputs saved to: `datasets/archives/` instead of `datasets/out/`
-- Useful for testing without affecting main pipeline output
-- All files set to read-only after generation
+This mode is useful for experimentation or capturing a snapshot without
+overwriting your primary outputs. All generated files are marked read-only.
 
 ### Option 4: Add/Update Data
 
-```bash
+```pwsh
 # 1. Edit datasets/manual_entries/manual_entries.csv
 # 2. Re-run pipeline
 npm run merge
@@ -400,22 +408,22 @@ npm run store
 
 ### Check Merged CSV
 
-```bash
+```pwsh
 # Count total rows (including header)
-wc -l datasets/out/combined_input.csv
+(Get-Content datasets/out/combined_input.csv | Measure-Object -Line).Lines
 
 # Sample first record
-head -2 datasets/out/combined_input.csv
+Get-Content datasets/out/combined_input.csv -TotalCount 2
 ```
 
 ### Check Chunks JSON
 
-```bash
+```pwsh
 # Count chunks
-jq 'length' datasets/out/chunks.json
+(Get-Content datasets/out/chunks.json | ConvertFrom-Json | Measure-Object).Count
 
-# View first chunk structure
-jq '.\[0\]' datasets/out/chunks.json
+# View first chunk structure (requires PowerShell v7+)
+Get-Content datasets/out/chunks.json | ConvertFrom-Json | Select-Object -First 1 | ConvertTo-Json
 ```
 
 ### Check Supabase
@@ -446,14 +454,14 @@ Currently: ~14,000-19,000 chunks processed per run
 
 ## Resetting the Pipeline
 
-```bash
+```pwsh
 # Remove all outputs
-rm datasets/out/combined_input.csv
-rm datasets/out/chunks.json
+Remove-Item datasets/out/combined_input.csv -ErrorAction SilentlyContinue
+Remove-Item datasets/out/chunks.json -ErrorAction SilentlyContinue
 
 # Supabase: Truncate documents table
 # In Supabase SQL Editor:
-TRUNCATE documents;
+# TRUNCATE documents;
 
 # Re-run full pipeline
 npm run populate

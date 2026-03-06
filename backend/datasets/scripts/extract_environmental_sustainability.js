@@ -1,19 +1,20 @@
+/* global process */
+
 /**
- * extract_environmental_sustainability.js
+ * extract_environmental_sustainability.js - Environmental sustainability indicators and country-level extraction
  *
- * Extracts environmental sustainability indicators and country-level environmental
- * performance data from UN/UNDP environmental databases. Filters out aggregate regions
- * and focuses on specific country records with quantified environmental metrics.
+ * Processes environmental performance data from UN/UNDP environmental databases. Filters out
+ * aggregate regions and focuses on specific country records with quantified environmental metrics.
  * Scores countries by data completeness and selects top performers.
  *
  * Features:
- *   - CSV parsing with automatic column detection
- *   - Aggregation filtering (removes region-level aggregates to focus on countries)
- *   - Quality scoring based on completeness of environmental data (non-null fields)
- *   - Top N selection after comprehensive sorting by score
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation
- *   - Conflict resolution via stable sorting order
+ *   • CSV parsing with automatic column detection
+ *   • Aggregation filtering (removes region-level aggregates to focus on countries)
+ *   • Quality scoring based on completeness of environmental data (non-null fields)
+ *   • Top N selection after comprehensive sorting by score
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with directory creation
+ *   • Conflict resolution via stable sorting order
  *
  * Usage:
  *   node extract_environmental_sustainability.js
@@ -24,8 +25,8 @@
  */
 
 import fs from 'fs/promises';
-import { parse } from 'csv-parse/sync';
 import path from 'path';
+import { parse } from 'csv-parse/sync';
 import {
   formatId,
   DATASET_KEYS,
@@ -33,7 +34,6 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.env;
 const rawDir = getDatasetRawDir(DATASET_KEY);

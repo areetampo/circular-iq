@@ -1,25 +1,25 @@
 /* global process */
+
 /**
- * scrape_emf.js
+ * scrape_emf.js - Ellen MacArthur Foundation Case Studies
  *
- * Scrapes Ellen MacArthur Foundation (EMF) case studies from their online repository.
- * Extracts detailed information about circular economy implementations including
- * companies, case study descriptions, and measurable impact metrics.
+ * Scrapes EMF case studies from their online repository. Extracts detailed information
+ * about circular economy implementations including companies, case study descriptions,
+ * and measurable impact metrics.
  *
  * Features:
- *   - Dynamic pagination via "Load More" button clicking (up to MAX_PAGES_TO_FETCH)
- *   - Per-item detail extraction from individual case study pages
- *   - Quality scoring based on result descriptions and quantified impact metrics
- *   - Backup system: incremental batch-level backup with recovery mode
- *   - Detailed logging to dataset-specific log file
- *   - Configurable collection range (START_LOAD_COUNT to END_LOAD_COUNT)
+ *   • Dynamic pagination via "Load More" button clicking
+ *   • Per-item detail extraction from individual case study pages
+ *   • Quality scoring based on descriptions and impact metrics
+ *   • Backup system: incremental batch-level backup with recovery mode
+ *   • Detailed logging to dataset-specific log file
  *
  * Usage:
  *   node scrape_emf.js                 # normal run
- *   node scrape_emf.js --use-backup    # rebuild final CSV from backup
- *   node scrape_emf.js --clear-logs    # clear the log file before starting
- *
- * For detailed logs, see the path printed at the start of the run.
+ *   node scrape_emf.js --use-backup    # rebuild from backup
+ *   node scrape_emf.js --clear-logs    # clear the log file
+ *   node scrape_emf.js --append-processed  # append to CSV instead of overwriting
+ *   node scrape_emf.js --append-backup     # append to backup instead of clearing
  */
 
 import puppeteerExtra from 'puppeteer-extra';
@@ -36,7 +36,8 @@ import {
   DATASET_KEYS,
   getDatasetProcessedCsvPath,
   writeCsv,
-  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -53,20 +54,21 @@ const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const BACKUP_INTERVAL = 3;
 const CLEAR_BACKUP_ON_START = true;
 
-const APPEND = hasAppendFlag();
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 
-// load more button as pagination – we will click it up to END_LOAD_COUNT times, collecting items after each click
-// Click range configuration – collect items only between START_LOAD_COUNT and END_LOAD_COUNT (inclusive)
-const START_LOAD_COUNT = 0; // 0 = include items before any clicks
-const END_LOAD_COUNT = 50; //50 collect up to this many clicks
-const MAX_PAGES_TO_FETCH = 50; // safety maximum number of clicks
+// load more button as pagination – we will click it up to END_LOAD times, collecting items after each click
+// Click range configuration – collect items only between START_LOAD and END_LOAD (inclusive)
+const START_LOAD = 0; // 0 = include items before any clicks
+const END_LOAD = 50; // 50 collect up to this many clicks
+const MAX_LOADS_TO_FETCH = 50; // safety maximum number of clicks
 
 // Create backup helper
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
-  MAX_PAGES_TO_FETCH,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
+  MAX_LOADS_TO_FETCH,
 );
 
 /**
@@ -131,7 +133,7 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} EMF case studies from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
@@ -160,10 +162,10 @@ async function scrape_emf() {
 
   let browser;
   try {
-    const FINAL_FETCH_PAGE = Math.min(END_LOAD_COUNT, START_LOAD_COUNT + MAX_PAGES_TO_FETCH - 1);
+    const FINAL_FETCH_LOAD = Math.min(END_LOAD, START_LOAD + MAX_LOADS_TO_FETCH - 1);
     await appendLogs(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${dataset.urls.target}, PAGES: ${START_LOAD_COUNT}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${dataset.urls.target}, LOADS: ${START_LOAD}-${FINAL_FETCH_LOAD}, MAX_LOADS_TO_FETCH: ${MAX_LOADS_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
     );
 
     browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
@@ -194,8 +196,8 @@ async function scrape_emf() {
     let currentUrls = await getCurrentUrls();
     previousUrls = new Set(currentUrls);
 
-    // If START_LOAD_COUNT == 0, collect initial items
-    if (START_LOAD_COUNT === 0 && currentUrls.length > 0) {
+    // If START_LOAD == 0, collect initial items
+    if (START_LOAD === 0 && currentUrls.length > 0) {
       await appendLogs(DATASET_KEY, `Initial load: ${currentUrls.length} items.`);
       // Fetch details for initial items
       const pageRows = [];
@@ -219,8 +221,8 @@ async function scrape_emf() {
       }
     }
 
-    // Now click "Load More" up to END_LOAD_COUNT, but no more than MAX_PAGES_TO_FETCH
-    while (loadCount < END_LOAD_COUNT && loadCount < MAX_PAGES_TO_FETCH) {
+    // Now click "Load More" up to END_LOAD, but no more than MAX_LOADS_TO_FETCH
+    while (loadCount < END_LOAD && loadCount < MAX_LOADS_TO_FETCH) {
       try {
         const loadMoreButton = await page.$('button.ais-InfiniteHits-loadMore');
         if (!loadMoreButton) {
@@ -231,10 +233,7 @@ async function scrape_emf() {
         await loadMoreButton.scrollIntoView();
         await loadMoreButton.click();
         loadCount++;
-        await appendLogs(
-          DATASET_KEY,
-          `  ↳ Clicked "Load More" (${loadCount}/${END_LOAD_COUNT})...`,
-        );
+        await appendLogs(DATASET_KEY, `  ↳ Clicked "Load More" (${loadCount}/${END_LOAD})...`);
         await new Promise((r) => setTimeout(r, 2500)); // wait for new content
 
         // Get new URLs after this click
@@ -268,7 +267,7 @@ async function scrape_emf() {
             pagesCollected.push(loadCount);
           }
         } else {
-          await appendLogs(DATASET_KEY, `     (Skipping collection – before START_LOAD_COUNT)`);
+          await appendLogs(DATASET_KEY, `     (Skipping collection – before START_LOAD)`);
         }
 
         // Update previous URLs for next iteration
@@ -281,10 +280,10 @@ async function scrape_emf() {
       }
     }
 
-    if (loadCount === END_LOAD_COUNT) {
-      await appendLogs(DATASET_KEY, `✅ Reached target end click count (${END_LOAD_COUNT}).`);
-    } else if (loadCount === MAX_PAGES_TO_FETCH) {
-      const limitMsg = `⚠️ Reached fallback max clicks (${MAX_PAGES_TO_FETCH}) – stopping.`;
+    if (loadCount === END_LOAD) {
+      await appendLogs(DATASET_KEY, `✅ Reached target end click count (${END_LOAD}).`);
+    } else if (loadCount === MAX_LOADS_TO_FETCH) {
+      const limitMsg = `⚠️ Reached fallback max clicks (${MAX_LOADS_TO_FETCH}) – stopping.`;
       console.warn(limitMsg);
       await appendLogs(DATASET_KEY, limitMsg);
     }
@@ -317,7 +316,7 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND);
+    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✅ Scraped ${finalRows.length} EMF case studies.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 
@@ -444,13 +443,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('❌ Scrape EMF failed:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }

@@ -1,30 +1,30 @@
 /**
- * extract_cgr_2025.js
+ * extract_cgr_2025.js - Circularity Gap Report 2025 Insights
  *
  * Extracts insights and statistics from the Circularity Gap Report (CGR) 2025 PDF.
- * The CGR provides comprehensive global analysis of material flows and circular
- * economy implementation rates. Extracts sentences with quantified statistics
- * and structured metadata about material usage, recycling, and circularity metrics.
+ * The CGR provides comprehensive global analysis of material flows and circular economy
+ * implementation rates. Extracts sentences with quantified statistics and metadata.
  *
  * Features:
- *   - PDF text extraction using pdfjs-dist with UTF-8 character handling
- *   - Statistical pattern matching (percentages, tonnage, consumption rates)
- *   - Sentence-level segmentation with length filtering (120-600 chars)
- *   - Automatic ID generation with DATASET_KEY prefix
- *   - Centralized CSV writing with directory creation and file locking
- *   - Structured metadata capture with extracted statistics
+ *   • PDF text extraction using pdfjs-dist with UTF-8 character handling
+ *   • Statistical pattern matching (percentages, tonnage, consumption rates)
+ *   • Sentence-level segmentation with length filtering (120-600 chars)
+ *   • Automatic ID generation with dataset key prefix
+ *   • Centralized CSV writing with file management
+ *   • Structured metadata capture with extracted statistics
  *
  * Usage:
  *   node extract_cgr_2025.js
  *
- * Input: PDF file specified in DATASET_LOOKUP[DATASET_KEYS.cgr].raw_folder_contents
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
+ * Input: PDF file in datasets/raw/circularity_gap_report/
+ * Output: CSV with standardized columns in datasets/processed/
  */
 
-import fs from 'fs/promises';
+/* global process */
+
+import fs from 'fs';
 import path from 'path';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { fileURLToPath } from 'url';
 import {
   formatId,
   DATASET_LOOKUP,
@@ -34,19 +34,43 @@ import {
   writeCsv,
 } from '#utils/datasetsUtils.js';
 
+// =============================================================================
+// DATASET INITIALIZATION
+// =============================================================================
+
 const DATASET_KEY = DATASET_KEYS.cgr;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
-// derive the filename from raw_folder_contents; several keys may exist
+
+// Validate raw folder contains required input file
 const rawFiles = dataset.raw_folder_contents || {};
 const input_file = rawFiles.input_file;
 if (!input_file) {
   throw new Error(`No input file defined in raw_folder_contents for dataset ${DATASET_KEY}`);
 }
+
 const inputFile = path.join(getDatasetRawDir(DATASET_KEY), input_file);
+if (!fs.existsSync(path.dirname(inputFile))) {
+  console.error(
+    `❌ Raw directory missing for dataset key "${DATASET_KEY}": ${path.dirname(inputFile)}`,
+  );
+  process.exit(1);
+}
+if (!fs.existsSync(inputFile)) {
+  console.error(`❌ Input file not found: ${inputFile}`);
+  process.exit(1);
+}
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
+// =============================================================================
+// HELPERS
+// =============================================================================
+
 /**
- * Normalize text by removing extra whitespace, hyphens, and trimming.
+ * Normalize text by removing extra whitespace and trimming.
+ * NOTE: This local variant is used instead of datasetsUtils.cleanText() as it
+ * has different requirements for this PDF extraction (removes hyphens).
+ *
  * @param {string} text - Raw text to clean
  * @returns {string} Cleaned text with normalized whitespace
  */

@@ -1,37 +1,39 @@
+/* global process */
+
 /**
- * scrape_open_products_facts.js
+ * scrape_open_products_facts.js - Products scraping from Open Products Journal (Open Products Facts) API
  *
- * Scrapes products from the Open Products Journal (Open Products Facts) API.
- * Searches for products with circular economy attributes (refillable, recycled materials,
- * sustainable sourcing, modular design, biodegradable, reusable) and extracts
- * detailed product information with environmental impact assessments.
+ * Searches for products with circular economy attributes (refillable, recycled materials, sustainable
+ * sourcing, modular design, biodegradable, reusable) and extracts detailed product information with
+ * environmental impact assessments.
  *
  * Features:
- *   - Keyword-based search targeting specific circular economy strategies
- *   - Intelligent keyword-to-strategy mapping (refillable, recycled, FSC, modular, etc.)
- *   - API pagination with graceful handling of search result limits
- *   - Per-product detail extraction (company, category, packaging, ingredients, certifications)
- *   - Contextual problem/solution generation based on detected attributes
- *   - Quality filtering based on content completeness (minimum word counts)
- *   - Backup system: incremental batch-level backup with recovery mode
- *   - Detailed logging to dataset-specific log file
+ *   • Keyword-based search targeting specific circular economy strategies
+ *   • Intelligent keyword-to-strategy mapping (refillable, recycled, FSC, modular, etc.)
+ *   • API pagination with graceful handling of search result limits
+ *   • Per-product detail extraction (company, category, packaging, ingredients, certifications)
+ *   • Contextual problem/solution generation based on detected attributes
+ *   • Quality filtering based on content completeness (minimum word counts)
+ *   • Backup system: incremental batch-level backup with recovery mode
+ *   • Detailed logging to dataset-specific log file
  *
  * Usage:
  *   node scrape_open_products_facts.js                 # normal run
  *   node scrape_open_products_facts.js --use-backup    # rebuild final CSV from backup
  *   node scrape_open_products_facts.js --clear-logs    # clear the log file before starting
+ *   node scrape_open_products_facts.js --append-processed  # append to processed CSV instead of overwriting
+ *   node scrape_open_products_facts.js --append-backup     # append to backup instead of clearing on start
  *
  * For detailed logs, see the path printed at the start of the run.
  * Note: Requires active internet connection to access Open Products Facts API
  */
-
-import { fileURLToPath } from 'url';
 import {
   formatId,
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
-  hasAppendFlag,
+  hasAppendProcessedFlag,
+  hasAppendBackupFlag,
   createBackupHelper,
   isBackupRecoveryMode,
   readBackupCsv,
@@ -131,11 +133,12 @@ const KEYWORD_CONFIG = [
 
 // Calculate total maximum pages across all keyword configs and initialize backup helper
 const TOTAL_MAX_PAGES = KEYWORD_CONFIG.reduce((sum, cfg) => sum + cfg.MAX_PAGES_TO_FETCH, 0);
-const APPEND = hasAppendFlag();
+const APPEND_PROCESSED = hasAppendProcessedFlag();
+const APPEND_BACKUP = hasAppendBackupFlag();
 const backup = createBackupHelper(
   DATASET_KEY,
   BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START,
+  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
   TOTAL_MAX_PAGES,
 );
 
@@ -384,7 +387,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(outputFile, finalRows, APPEND);
+    await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
     console.log(
       `\n✨ Successfully rebuilt ${finalRows.length} Open Products Facts products from backup`,
     );
@@ -476,7 +479,7 @@ async function main() {
     metadata_json: row.metadata_json, // already a JSON string
   }));
 
-  await writeCsv(outputFile, finalRows, APPEND);
+  await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
   await backup.flush(); // ensure any remaining buffer is written
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
@@ -498,13 +501,8 @@ async function main() {
 const KEYWORDS = KEYWORD_CONFIG.flatMap((cfg) => cfg.keywords);
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
-    .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
-    })
-    .catch(async (err) => {
-      console.error('\n❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
-      process.exit(1);
-    });
+  main().catch((err) => {
+    console.error('\n❌ Fatal error:', err.message);
+    process.exit(1);
+  });
 }
