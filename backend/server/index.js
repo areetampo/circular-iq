@@ -98,7 +98,7 @@ export function startServer() {
       { m: 'GET', p: '/docs/methodology', d: 'Framework Docs' },
       { m: 'GET', p: '/api/profile', d: 'User Data' },
       { m: 'GET', p: '/api/analytics', d: 'Doc Stats' },
-      { m: 'POST', p: '/api/scoring', d: 'RAG Analysis' },
+      { m: 'POST', p: '/api/score', d: 'RAG Analysis' },
       { m: 'CRUD', p: '/api/assessments', d: 'User Results' },
     ].map(
       (route) =>

@@ -4,202 +4,564 @@ Complete guide for sourcing, preparing, and integrating new circular economy dat
 
 ## Overview
 
-> **Filesystem behaviour:** all backend scripts (pipeline & dataset) will
-> automatically create any missing output directories before writing data. On
-> the very first write they touch an empty file so that the presence of the
-> output path is guaranteed, and after a script completes the generated file is
-> marked read-only. When a stage produces multiple batches (embeddings,
-> backups) the target file is cleared at the start of the run and remains locked
-> between writes; the file is also repeatedly flushed during the processing loop
-> so you can inspect progress mid‑flight. Scripts that append data (scrapers,
-> dry‑run storage) will temporarily unlock the file on each write.
+### Dataset Lifecycle
 
-> New datasets go through a lifecycle:
+New datasets follow this standard flow:
 
 ```
-Source (Web/File) → Extract/Transform → Standardize Format → Process → Merge → Pipeline
+Source (Web/File)
+  → Extract/Transform (dataset scripts)
+  → Standardize Format (CSV with standard columns)
+  → Register in DATASETS array (utils/datasetsUtils.js)
+  → Merge into combined CSV (pipeline/merge_datasets.js)
+  → Chunk into semantic units (pipeline/generate_chunks.js)
+  → Generate embeddings (pipeline/generate_embeddings.js)
+  → Store in Supabase (pipeline/store_embeddings.js)
 ```
 
-## Step 1: Source Your Data
+### File I/O Best Practices
 
-### Option A: Web Scraping
+all backend scripts use `utils/datasetsUtils.js` helpers for consistent file handling:
 
-**When to use:** Data is on a website without direct download
+- **Automatic Directory Creation:** Parent directories created if missing
+- **Path Constants:** Use exported constants (e.g., `DATASETS_PROCESSED_DIR`) instead of hardcoded strings
+- **First Write:** Empty file created immediately so paths exist for downstream scripts
+- **Permission Management:** Files unlocked before write, re-locked after (prevents manual interference)
+- **Batch Stages:** Multi-write stages (embeddings, scraping backups) clear on first write, then flush repeatedly with locking
+- **Scraper Backups:** Intermediate saves to `datasets/archives/scrape_backup/<dataset_key>/` for recovery
+- **Final Output:** Processed CSVs written to `datasets/processed/` following standardized format
 
-1. **Identify target:** Website URL, data format (table, JSON, PDF)
+## Step 1: Register Dataset in DATASETS Array
 
-2. **Create scraper script** in `datasets/scripts/`:
+Before creating scripts, add your dataset to the registry in `backend/utils/datasetsUtils.js`:
 
-   ```javascript
-   // datasets/scripts/scrape_new_source.js
-   import axios from 'axios';
-   import { parse } from 'csv-parse/sync';
-   import fs from 'fs';
-   import path from 'path';
-   // use canonical path constants instead of hard‑coding strings
-   import { DATASETS_RAW_DIR } from '#utils/datasetsUtils.js';
+```javascript
+{
+  key: 'my_source',           // Unique short identifier
+  name: 'My Data Source',      // Human-readable title
+  raw_folder: 'my_source',     // null if no raw folder (web-scraped)
+  processed_csv: 'my_source_processed.csv',  // Output filename
+  scrape_script: scrape_script_path || null,
+  extract_script: extract_script_path || null,
+  source_url: 'https://example.com',  // Primary source URL
+  urls: {                      // Additional URLs (keyed by purpose)
+    api: 'https://api.example.com/v2/data',
+    listing: 'https://example.com/list?page=',
+  },
+  raw_folder_contents: {       // Maps property names to actual filenames
+    primary_csv: 'input.csv',
+    supplementary: 'additional_data.xlsx',
+    // null if not applicable
+  },
+  scrape_backup_folder: 'my_source_scrape_backup',  // null if no scraping
+}
+```
 
-   const url = 'https://example.com/data';
-   const response = await axios.get(url);
-   const data = parse(response.data, { columns: true });
+**Why register?**
 
-   // write into the raw folder using the constant
-   fs.writeFileSync(path.join(DATASETS_RAW_DIR, 'new_source', 'data.csv'), data);
-   ```
+- Get path helpers that work with your key: `getDatasetRawDir('my_source')`
+- Enable backup recovery for scrapers: `getDatasetBackupCsvPath('my_source')`
+- Automatic prefix generation for IDs
+- Documentation consistency
 
-   > **Note:** if your scraper uses Puppeteer you can import
-   > `getBrowserLaunchOptions`, `getViewportOptions`, `getUserAgentOptions`
-   > and `getExtraHttpHeaders` from `#utils/datasetsUtils.js`. These helpers
-   > centralize common settings and support the `--show` CLI flag which
-   > toggles a visible browser window for debugging:
-   >
-   > ```pwsh
-   > node datasets/scripts/scrape_new_source.js --show
-   > ```
-   >
-   > **Implementing Backup & Recovery:** to add robustness against network
-   > interruptions, import `createBackupHelper`, `isBackupRecoveryMode`, and
-   > `readBackupCsv` from `#utils/datasetsUtils.js`. These enable:
-   >
-   > - Saving intermediate results every N pages to `datasets/archives/scrape_backup/`
-   > - Automatic console logging for feedback (✅ Backup saved, ⚠️️️ Backup failed)
-   > - Rebuild mode: `node script.js --use-backup` rebuilds final CSV from saved backups
-   >
-   > Example pattern in your scraper:
-   >
-   > ```javascript
-   > import {
-   >   createBackupHelper,
-   >   isBackupRecoveryMode,
-   >   readBackupCsv,
-   >   writeCsv,
-   >   getDatasetProcessedCsvPath,
-   > } from '#utils/datasetsUtils.js';
-   >
-   > const DATASET_KEY = 'new_source'; // Must match dataset key in registry
-   > const BACKUP_INTERVAL = 3; // flush every 3 pages
-   > const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true);
-   >
-   > async function main() {
-   >   if (isBackupRecoveryMode()) {
-   >     console.log('♻️ BACKUP RECOVERY MODE...');
-   >     await rebuildFromBackup();
-   >     return;
-   >   }
-   >
-   >   // Normal scraping loop:
-   >   for (const page of pages) {
-   >     const rows = await scrapePage(page);
-   >     await backup.add(rows); // auto-flushes every 3 calls
-   >   }
-   >   await backup.flush(); // final flush
-   >   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
-   >   await writeCsv(csvPath, finalRows);
-   > }
-   > ```
-   >
-   > See the existing scrapers (scrape_c2c.js, scrape_ecesp.js, etc.) for full examples.
+## Step 2: Source Your Data
 
-3. **Run scraper:**
+### Option A: Web Scraping with Puppeteer
 
-   ```pwsh
-   node datasets/scripts/scrape_new_source.js
-   ```
+**When to use:** Data is on a website without direct download or API
+
+1. **Create script:** `datasets/scripts/scrape_my_source.js`
+
+2. **Import utilities from datasetsUtils.js:**
+
+```javascript
+import puppeteer from 'puppeteer';
+import {
+  DATASET_LOOKUP,
+  getBrowserLaunchOptions,
+  getViewportOptions,
+  getUserAgentOptions,
+  getExtraHttpHeaders,
+  createBackupHelper,
+  isBackupRecoveryMode,
+  readBackupCsv,
+  writeCsv,
+  getDatasetProcessedCsvPath,
+  CSV_COLUMNS,
+  STRINGIFY_OPTIONS,
+  randomDelay,
+  cleanText,
+  formatId,
+} from '#utils/datasetsUtils.js';
+
+const DATASET_KEY = 'my_source';
+const BACKUP_INTERVAL = 3; // flush backup every 3 pages
+```
+
+3. **Use backup recovery pattern:**
+
+```javascript
+async function main() {
+  if (isBackupRecoveryMode()) {
+    console.log('♻️ BACKUP RECOVERY MODE...');
+    // Rebuild from saved backup instead of scraping
+    const backupRows = await readBackupCsv(DATASET_KEY);
+    // ... apply filtering/deduplication
+    const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+    await writeCsv(csvPath, finalizedRows);
+    return;
+  }
+
+  // Normal scraping with periodic backups
+  const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true);
+  const browser = await puppeteer.launch(getBrowserLaunchOptions());
+
+  try {
+    for (const page of pages) {
+      const rows = await scrapePage(page);
+      await backup.add(rows); // Auto-flushes every 3 calls
+      console.log(`✅ Page ${page}: ${rows.length} rows`);
+    }
+    await backup.flush(); // Final flush
+
+    const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+    await writeCsv(csvPath, allRows);
+  } finally {
+    await browser.close();
+  }
+}
+
+main().catch(console.error);
+```
+
+4. **Puppeteer helper functions:**
+
+```javascript
+// All these are imported from datasetsUtils.js
+const browser = await puppeteer.launch(getBrowserLaunchOptions());
+const page = await browser.newPage();
+
+// Standard settings across all scrapers
+await page.setViewport(getViewportOptions());
+await page.setUserAgent(getUserAgentOptions());
+await page.setExtraHTTPHeaders(getExtraHttpHeaders());
+
+// Random delays between requests (prevents blocking)
+await page.goto(url);
+await page.waitForTimeout(randomDelay());
+```
+
+5. **Add file-level JSDoc header:**
+
+```javascript
+/**
+ * scrape_my_source.js
+ *
+ * Scrapes circular economy data from My Data Source.
+ * Extracts product details including specs and impact metrics.
+ *
+ * Features:
+ *   - Pagination with retry logic (max 5 attempts per page)
+ *   - Per-product detail extraction
+ *   - Quality filtering (excludes incomplete entries)
+ *   - Backup & recovery system (--use-backup flag)
+ *
+ * Usage:
+ *   node scrape_my_source.js                 # Normal run
+ *   node scrape_my_source.js --show          # Debug with visible browser
+ *   node scrape_my_source.js --use-backup    # Rebuild from backup
+ *   node scrape_my_source.js --append        # Add rows to existing CSV
+ *
+ * Output: datasets/processed/my_source_processed.csv
+ * Backup: datasets/archives/scrape_backup/my_source_scrape_backup/
+ */
+```
+
+6. **Run the scraper:**
+
+```pwsh
+# Normal run (headless)
+node datasets/scripts/scrape_my_source.js
+
+# Debug with browser window
+node datasets/scripts/scrape_my_source.js --show
+
+# If interrupted, rebuild from backup
+node datasets/scripts/scrape_my_source.js --use-backup
+
+# Add new rows to existing CSV
+node datasets/scripts/scrape_my_source.js --append
+```
 
 ### Option B: PDF Extraction
 
-**When to use:** Data is in PDF documents
+**When to use:** Data is contained in PDF documents
 
-1. **Use Puppeteer + PDF parser** (already in dependencies)
+1. **Create script:** `datasets/scripts/extract_my_source.js`
 
-2. **Create extraction script:**
+2. **Use pdf-parse and utilities:**
 
-   ```javascript
-   import pdfParser from 'pdf-parse';
-   import fs from 'fs';
+```javascript
+import pdf from 'pdf-parse';
+import fs from 'fs';
+import {
+  getDatasetRawDir,
+  getDatasetProcessedCsvPath,
+  writeCsv,
+  cleanText,
+  formatId,
+  CSV_COLUMNS,
+  STRINGIFY_OPTIONS,
+} from '#utils/datasetsUtils.js';
 
-   const pdf = await pdfParser(fs.readFileSync('file.pdf'));
-   const text = pdf.text;
-   // Parse text into problem/solution structure
-   ```
+const DATASET_KEY = 'my_source';
 
-3. **Convert extracted data to CSV** with headers matching standard format
+async function main() {
+  const rawDir = getDatasetRawDir(DATASET_KEY);
+  const pdfPath = `${rawDir}/document.pdf`;
 
-4. **Output:** CSV in `datasets/raw/new_source/`
+  // Read and parse PDF
+  const pdfBuffer = fs.readFileSync(pdfPath);
+  const data = await pdf(pdfBuffer);
+  const text = data.text;
 
-### Option C: Direct File Upload
+  // Extract structured data (parse text into rows)
+  const rows = [];
+  // ... your extraction logic ...
 
-**When to use:** Data provided as CSV/JSON file
+  // Format for CSV output
+  rows.forEach((row, index) => {
+    row.ID = formatId(DATASET_KEY, index + 1);
+    row.problem = cleanText(row.problem);
+    row.solution = cleanText(row.solution);
+    // ... standardize other columns ...
+  });
 
-1. **Create directory:** `datasets/raw/new_source/` (or use `DATASETS_RAW_DIR` constant)
-2. **Place file:** `datasets/raw/new_source/data.csv`
-3. **Create README:** `datasets/raw/new_source/README.md` describing the source
+  // Write standardized CSV
+  const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+  await writeCsv(csvPath, rows, { clear: true });
 
-## Script Documentation Best Practices
+  console.log(`✅ Extracted ${rows.length} rows to ${csvPath}`);
+}
 
-When creating new extraction or scraping scripts, follow these documentation conventions to keep the codebase maintainable:
+main().catch(console.error);
+```
 
-> **File-level header:** Add a JSDoc block at the top of every script describing:
->
-> - **Purpose:** What dataset is extracted and from where
-> - **Features:** Key capabilities (pagination, parsing method, backup support, etc.)
-> - **Usage:** How to run the script, including CLI flags (e.g., `--show`, `--use-backup`)
-> - **Input/Output:** File paths and formats for data sources and outputs
-> - **Dependencies:** External requirements (APIs, Python scripts, special libraries)
->
-> Example:
->
-> ```javascript
-> /**
->  * scrape_my_source.js
->  *
->  * Scrapes circular economy data from My Data Source registry.
->  * Extracts product details including certifications and environmental metrics.
->  *
->  * Features:
->  *   - Pagination handling with retry logic
->  *   - Per-product detail extraction
->  *   - Quality scoring based on data completeness
->  *   - Backup system with recovery mode
->  *
->  * Usage:
->  *   node scrape_my_source.js                 # normal run
->  *   node scrape_my_source.js --use-backup    # rebuild from backup
->  *   node scrape_my_source.js --show          # show browser window
->  *
->  * For detailed logs, see the path printed at the start of the run.
->  */
-> ```
+3. **Add JSDoc header describing parsing logic**
 
-> **Function documentation:** Add JSDoc comments to key functions with parameter and return types:
->
-> ```javascript
-> /**
->  * Score items based on completeness and relevance metrics.
->  * @param {string} description - Item description text
->  * @param {number} dataCompleteness - Percentage of available fields (0-100)
->  * @returns {number} Quality score from 0 to 100
->  */
-> function scoreItem(description, dataCompleteness) {
->   // implementation...
-> }
-> ```
->
-> Refer to [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for examples of well-documented scripts like `scrape_c2c.js` and `extract_cgr_2025.js`.
+4. **Run the extractor:**
 
-> **Optional registry step:** if you want the dataset to appear in the
-> documentation tables or take advantage of the path helpers by key name,
-> add an entry to the `DATASETS` array in `utils/datasetsUtils.js`. See
-> [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md) for the exact schema and examples.
+```pwsh
+node datasets/scripts/extract_my_source.js
+```
 
-> **Running all dataset scripts:** Rather than executing scripts individually, you can use the
-> orchestrator in `backend/pipeline/run_datasets_scripts.js` which runs all
-> `extract_*.js` files first followed by any `scrape_*.js` files. Use it after
-> pulling upstream changes or when updating multiple sources:
->
-> ```pwsh
-> npm run datasets-scripts
-> ```
+### Option C: CSV/JSON File Extraction
+
+**When to use:** Data provided as downloadable files
+
+1. **Create directory:** `datasets/raw/my_source/`
+2. **Place raw file:** `datasets/raw/my_source/data.csv` (or .json, .xlsx)
+3. **Create extraction script:** `datasets/scripts/extract_my_source.js`
+
+```javascript
+import fs from 'fs';
+import path from 'path';
+import { parse } from 'csv-parse/sync';
+import {
+  getDatasetRawDir,
+  getDatasetProcessedCsvPath,
+  writeCsv,
+  formatId,
+  cleanText,
+  CSV_COLUMNS,
+} from '#utils/datasetsUtils.js';
+
+const DATASET_KEY = 'my_source';
+
+async function main() {
+  const rawDir = getDatasetRawDir(DATASET_KEY);
+  const inputPath = path.join(rawDir, 'data.csv');
+
+  // Read and parse CSV
+  const fileContent = fs.readFileSync(inputPath, 'utf-8');
+  const records = parse(fileContent, { columns: true });
+
+  // Transform to standard format
+  const rows = records.map((record, index) => ({
+    ID: formatId(DATASET_KEY, index + 1),
+    problem: cleanText(record.problem_field || ''),
+    solution: cleanText(record.solution_field || ''),
+    materials: record.materials || '',
+    circular_strategy: record.strategy || '',
+    category: record.category || '',
+    impact: record.impact || '',
+    source_url: 'https://example.com',
+    metadata_json: JSON.stringify({
+      original_id: record.id,
+      // ... other metadata ...
+    }),
+  }));
+
+  // Write to processed/
+  const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+  await writeCsv(csvPath, rows, { clear: true });
+
+  console.log(`✅ Processed ${rows.length} records`);
+}
+
+main().catch(console.error);
+```
+
+### Option D: API Data Fetching
+
+**When to use:** Data available via REST or GraphQL API
+
+```javascript
+import axios from 'axios';
+import {
+  DATASET_LOOKUP,
+  getDatasetProcessedCsvPath,
+  writeCsv,
+  formatId,
+  cleanText,
+} from '#utils/datasetsUtils.js';
+
+const DATASET_KEY = 'my_source';
+
+async function main() {
+  const dataset = DATASET_LOOKUP[DATASET_KEY];
+  const apiUrl = dataset.urls.api; // From registry
+
+  // Fetch via API
+  const response = await axios.get(apiUrl, {
+    params: { limit: 1000, sort: '-date' },
+    timeout: 10000,
+  });
+
+  const records = response.data.results;
+
+  // Transform to standard CSV format
+  const rows = records.map((record, index) => ({
+    ID: formatId(DATASET_KEY, index + 1),
+    problem: cleanText(record.problem),
+    solution: cleanText(record.solution),
+    // ... map other fields ...
+  }));
+
+  const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+  await writeCsv(csvPath, rows, { clear: true });
+
+  console.log(`✅ Fetched and processed ${rows.length} records`);
+}
+
+main().catch(console.error);
+```
+
+## Step 3: Standardize CSV Format
+
+All datasets must follow the same CSV structure for pipeline compatibility:
+
+### CSV Schema
+
+**Header (unquoted):**
+
+```
+ID,problem,solution,materials,circular_strategy,category,impact,source_url,metadata_json
+```
+
+**Data rows (fully quoted):**
+
+```csv
+"c2c_00001","Product certification system for cradle-to-cradle design principles","Implement material tracking and lifecycle assessment standards","plastics,metals,textiles","design_for_recycling","product_design","Enables circular material flows","https://c2ccertified.org","{\"certifications\": \"C2C Gold\", \"region\": \"global\"}"
+```
+
+### Column Definitions
+
+| Column              | Type   | Required | Notes                                                                |
+| ------------------- | ------ | -------- | -------------------------------------------------------------------- |
+| `ID`                | String | Yes      | Unique identifier: `prefix_NNNNN` (use `formatId()` helper)          |
+| `problem`           | String | Yes      | Describe the circular economy challenge (20+ chars)                  |
+| `solution`          | String | Yes      | Describe the proposed solution approach (20+ chars)                  |
+| `materials`         | String | No       | Comma-separated material types (e.g., \"plastics,metals\")           |
+| `circular_strategy` | String | No       | R-strategy: reduce, reuse, repair, refurbish, recycle, recover, etc. |
+| `category`          | String | No       | Industry/sector category                                             |
+| `impact`            | String | No       | Environmental or economic impact metrics                             |
+| `source_url`        | String | No       | URL to original source/case study                                    |
+| `metadata_json`     | String | No       | Additional structured data as JSON object                            |
+
+### ID Format
+
+Use the `formatId()` helper from datasetsUtils.js:
+
+```javascript
+import { formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
+
+// With ID_DIGITS=5 (default)
+formatId('c2c', 1); // → 'c2c_00001'
+formatId('c2c', 42); // → 'c2c_00042'
+formatId('c2c', 100000); // → 'c2c_100000' (auto-expands beyond 5 digits)
+```
+
+**Why use the helper?** It handles overflow automatically and keeps IDs consistent across all datasets.
+
+### Text Sanitization
+
+Use `cleanText()` from datasetsUtils.js for CSV compatibility:
+
+```javascript
+import { cleanText } from '#utils/datasetsUtils.js';
+
+cleanText('Problem: \"Waste\" in\\nSupply chains');
+// → 'Problem: Waste in Supply chains'
+```
+
+This removes:
+
+- Surrounding whitespace
+- Newlines and tabs
+- Double quotes
+- Other problematic CSV characters
+
+### CSV Writing with Standard Options
+
+```javascript
+import { writeCsv, CSV_COLUMNS, STRINGIFY_OPTIONS } from '#utils/datasetsUtils.js';
+
+// Write with automatic formatting
+await writeCsv(csvPath, rows, { clear: true });
+
+// rows is an array of objects with CSV_COLUMNS keys
+// STRINGIFY_OPTIONS ensures proper quoting and escaping
+```
+
+## Step 4: Register Dataset Scripts with Orchestrator
+
+The `pipeline/run_datasets_scripts.js` orchestrator can run all scripts automatically:
+
+```pwsh
+# Run ALL extraction scripts first, then scraper scripts
+node pipeline/run_datasets_scripts.js
+
+# Or via npm
+npm run datasets-scripts
+```
+
+The orchestrator:
+
+1. Discovers all `datasets/scripts/extract_*.js` files
+2. Runs them sequentially, aborting on first error
+3. Then discovers all `datasets/scripts/scrape_*.js` files
+4. Runs them sequentially
+
+Add your script and it will be included automatically (no registration needed).
+
+## Step 5: Verify Output
+
+After running your dataset script:
+
+```pwsh
+# Check if processed CSV was created
+ls datasets/processed/my_source_processed.csv
+
+# Verify header row
+head -n 1 datasets/processed/my_source_processed.csv
+
+# Count rows
+(cat datasets/processed/my_source_processed.csv | Measure-Object -Line).Lines - 1
+```
+
+Expected output:
+
+```powershell
+ID,problem,solution,materials,circular_strategy,category,impact,source_url,metadata_json
+"my_src_00001","Problem description","Solution description",...
+```
+
+## Step 6: Test the Pipeline
+
+After creating your dataset script, test the full pipeline:
+
+```pwsh
+# Merge all datasets (including new one)
+npm run merge
+
+# Chunk the merged data
+npm run chunk
+
+# Generate embeddings (test mode)
+npm run embed -- --dry-run
+
+# Dry-run storage to verify JSON format
+npm run store -- --dry-run
+```
+
+All stages should complete without errors.
+
+## Documentation Best Practices
+
+### File-Level Headers (Required)
+
+Every script needs a clear header block:
+
+```javascript
+/**
+ * extract_my_source.js
+ *
+ * Extracts circular economy case studies from My Data Source database.
+ * Parses structured product/solution pairs with environmental metrics.
+ *
+ * Features:
+ *   - Batch processing of 100+ records
+ *   - Quality scoring based on data completeness
+ *   - Deduplication by source URL
+ *   - Metadata enrichment with category assignments
+ *
+ * Usage:
+ *   node extract_my_source.js                  # Normal run
+ *   node extract_my_source.js --append         # Add to existing CSV
+ *
+ * Input:
+ *   - datasets/raw/my_source/input.xlsx
+ *
+ * Output:
+ *   - datasets/processed/my_source_processed.csv
+ *
+ * Dependencies:
+ *   - xlsx (for Excel parsing)
+ *   - utils/datasetsUtils.js (for path helpers and CSV writing)
+ */
+```
+
+### Function Documentation
+
+For key functions, add JSDoc comments:
+
+```javascript
+/**
+ * Scores a record based on data completeness and relevance.
+ * @param {Object} record - The data record to score
+ * @param {string} record.problem - Problem description
+ * @param {string} record.solution - Solution description
+ * @returns {number} Quality score from 0-100
+ * @throws {Error} If required fields are missing
+ */
+function scoreRecord(record) {
+  // implementation...
+}
+```
+
+### Examples to Reference
+
+Look at existing well-documented scripts:
+
+- `scrape_c2c.js` – Puppeteer pagination with backup
+- `extract_epa_tri.js` – Multi-dimensional CSV with quality scoring
+- `extract_cgr_2025.js` – PDF text extraction with structured output
+  > npm run datasets-scripts
+  >
+  > ```
+  >
+  > ```
 
 ## Step 2: Optional - Transform & Extract
 

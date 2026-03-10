@@ -34,10 +34,10 @@ Complete guide for executing the document processing pipeline that transforms CS
 > Key functions also include type annotations and descriptions for IDE autocomplete support.
 >
 > To access detailed documentation for a specific dataset:
->
-> - View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-25)
-> - See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for documentation overview
-> - Check the [dataset inventory table](DATASETS_REFERENCE.md#dataset-inventory) for all 32 datasets
+
+- View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-30)
+- See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#dataset-inventory) for complete documentation
+- Check the [dataset inventory](DATASETS_REFERENCE.md#complete-dataset-inventory-34-datasets) for all 34 registered datasets
 
 > **Backup & Recovery Mode:** scraper scripts save intermediate results every N
 > pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a
@@ -305,11 +305,14 @@ npm run store -- --archives
 ```
 
 # Dry-run: write to local JSONL file without touching Supabase
+
 npm run store -- --dry-run
 
 # Dry-run archive mode: add the flag too
+
 npm run store -- --archives --dry-run
-```
+
+````
 
 ### What It Does
 
@@ -346,7 +349,7 @@ npm run store -- --archives --dry-run
 
 ```pwsh
 npm run populate
-```
+````
 
 Runs all stages in sequence: merge → chunk → embed → store
 Outputs saved to: `datasets/out/`

@@ -4,9 +4,15 @@ Complete technical documentation of the circular economy business auditor backen
 
 ## System Overview
 
-The backend is a Node.js/Express server that powers a document processing pipeline and RAG (Retrieval-Augmented Generation) system for circular economy business evaluation. It processes CSV datasets into semantic chunks, generates embeddings using OpenAI, stores vectors in Supabase PostgreSQL with pgvector, and provides REST APIs for hybrid search and scoring.
+The backend is a Node.js/Express server that powers a document processing pipeline and RAG (Retrieval-Augmented Generation) system for circular economy business evaluation and problem-solution matching. It:
 
-### Core Components
+1. **Ingests** 34+ datasets from various sources (scraped/extracted/API)
+2. **Processes** CSV data into semantic chunks with metadata extraction
+3. **Generates** vector embeddings using OpenAI's text-embedding-3-small model
+4. **Stores** embeddings in Supabase PostgreSQL with pgvector extension
+5. **Serves** REST APIs for hybrid search, scoring, and assessment management
+
+### Core Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -15,25 +21,39 @@ The backend is a Node.js/Express server that powers a document processing pipeli
 │                                                             │
 │  API Layer (Express.js)                                   │
 │  ├─ /analytics - Data analytics & filtering              │
-│  ├─ /scoring - Business problem scoring & RAG            │
+│  ├─ /scoring - Business problem scoring & hybrid search  │
 │  └─ /assessments - User assessment management            │
 │                                                             │
+│  Business Logic Layer (Services)                          │
+│  ├─ scoring.service.js - RPC calls + hybrid search       │
+│  ├─ embedding.service.js - OpenAI API integration        │
+│  ├─ chunking.service.js - Semantic text splitting        │
+│  ├─ assessment.service.js - CRUD operations              │
+│  └─ scoring.logic.js - Pure scoring algorithms           │
+│                                                             │
 │  Data Processing Pipeline                                 │
+│  ├─ Extraction Layer (34 dataset extraction scripts)      │
+│  │  ├─ scrape_*.js (Puppeteer web automation)            │
+│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)           │
 │  ├─ Ingestion (merge_datasets.js)                        │
 │  ├─ Chunking (generate_chunks.js)                        │
 │  ├─ Embedding (generate_embeddings.js)                   │
 │  └─ Storage (store_embeddings.js)                        │
 │                                                             │
-│  *Utility*                                               │
-│  └─ run_datasets_scripts.js  - orchestrates all extractor │
-│      and scraper dataset scripts in the correct order     │
+│  Orchestration                                            │
+│  └─ run_datasets_scripts.js - Automate dataset processing │
 │                                                             │
 │  Database Layer (Supabase PostgreSQL + pgvector)         │
-│  ├─ documents - Vector-searchable document store (switchable with USE_DOCUMENTS_ARCHIVES_TABLE to documents_archives)
-│  ├─ documents_archives - optional archive dataset mirror  │
-│  ├─ user_assessments - Evaluation results                │
+│  ├─ documents - Primary vector-searchable document store  │
+│  ├─ documents_archives - Optional archived dataset mirror │
+│  ├─ user_assessments - Evaluation result persistence     │
 │  ├─ user_profiles - Anonymous usage tracking             │
-│  └─ RPC Functions - Hybrid search logic                  │
+│  └─ RPC Functions - Hybrid search logic (embeddings + BM25) │
+│                                                             │
+│  Utilities & Configuration                               │
+│  ├─ datasetsUtils.js - Dataset registry & path helpers   │
+│  ├─ backend.config.js - Centralized config               │
+│  └─ anonymousTracking.js - Usage analytics               │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -42,94 +62,121 @@ The backend is a Node.js/Express server that powers a document processing pipeli
 
 ```
 backend/
-├── server/                       # Express server bootstrap
-│   ├── index.js                  # Server lifecycle (startServer/stopServer)
-│   ├── app.js                    # Express application setup
-│   └── bootstrap.js              # Initialization logic
+├── server/                       # Express server bootstrap & lifecycle
+│   ├── index.js                  # startServer() / stopServer() functions
+│   ├── app.js                    # Express app setup with routes/middleware
+│   └── bootstrap.js              # Server initialization logic
 │
 ├── config/                       # Centralized configuration
-│   ├── backend.config.js         # Main config object (with test defaults)
-│   ├── env.schema.js             # Zod validation schema
-│   ├── embedding.js              # Embedding constants
-│   └── loadEnv.js                # Environment variable loader
+│   ├── backend.config.js         # Main config object (includes test defaults)
+│   ├── env.schema.js             # Zod schema for environment validation
+│   ├── embedding.js              # OpenAI embedding model constants
+│   └── loadEnv.js                # Environment variable loader (.env.local)
 │
 ├── routes/                       # API route definitions (thin Express wrappers)
-│   ├── analytics.routes.js       # Analytics endpoints
-│   ├── assessments.routes.js     # Assessment endpoints
-│   └── scoring.routes.js         # RAG scoring endpoints
+│   ├── analytics.routes.js       # GET /analytics/... endpoints
+│   ├── assessments.routes.js     # POST/GET /assessments/... endpoints
+│   └── scoring.routes.js         # POST /scoring/... endpoints
 │
 ├── controllers/                  # Request handlers & business logic delegation
-│   ├── analytics.controller.js   # Analytics logic
-│   ├── assessments.controller.js # Assessment logic
+│   ├── analytics.controller.js   # Analytics query logic
+│   ├── assessments.controller.js # Assessment CRUD logic
 │   └── scoring.controller.js     # Scoring validation & response formatting
 │
 ├── services/                     # Core business logic & integrations
-│   ├── scoring.service.js        # Scoring RPC + hybrid search
-│   ├── scoring.logic.js          # Pure scoring calculations
-│   ├── embedding.service.js      # OpenAI embedding operations
-│   ├── chunking.service.js       # Document chunking logic
-│   └── assessment.service.js     # Assessment CRUD operations
+│   ├── scoring.service.js        # Hybrid search RPC + scoring orchestration
+│   ├── scoring.logic.js          # Pure scoring algorithms (no side effects)
+│   ├── embedding.service.js      # OpenAI API integration & batching
+│   ├── chunking.service.js       # Semantic text splitting from CSV
+│   └── assessment.service.js     # Assessment data CRUD
 │
 ├── middleware/                   # Express middleware
-│   ├── auth.middleware.js        # Authentication & authorization
-│   └── validation.middleware.js  # Input validation
+│   ├── auth.middleware.js        # API key validation & JWT verification
+│   └── validation.middleware.js  # Input schema validation (Zod)
 │
 ├── database/                     # Database layer
 │   ├── supabase.client.js        # Supabase client initialization
-│   ├── migrations/               # Migration tracking
-│   └── sql/                      # SQL schema files
+│   ├── migrations/               # SQL migration tracking files
+│   │   └── documents_archives.sql
+│   └── sql/                      # Database schema (DDL)
+│       ├── 01_vector_infrastructure.sql  # pgvector setup
+│       ├── 02_user_assessments.sql       # Assessment tables
+│       ├── 03_user_profiles.sql          # Anonymous tracking
+│       └── 04_anonymous_usage.sql        # Usage analytics
 │
-├── utils/                        # Utility functions
-│   ├── anonymousTracking.js      # Usage analytics
-│   ├── datasetsUtils.js          # Dataset path constants
-│   └── ...                       # Other helpers
+├── utils/                        # Utility functions & helpers
+│   ├── datasetsUtils.js          # Dataset registry, path constants, file I/O helpers
+│   ├── anonymousTracking.js      # User tracking without PII
+│   └── ...                       # Other utility modules
 │
-├── datasets/                      # Data ingestion & processing
-│   ├── manual_entries/
-│   │   └── manual_entries.csv    # User-added problem/solution pairs
-	│   ├── processed/                # 32 standardized CSV files from registered datasets
-│   ├── raw/                      # Original unprocessed source files
-│   ├── archives/                 # Archive outputs & scraped data (for testing/archival)
+├── datasets/                      # Data ingestion & processing (33GB+)
+│   ├── raw/                      # Original unprocessed source files (by dataset)
+│   │   ├── c2c/
+│   │   ├── epa_tri/
+│   │   ├── eurostat/
+│   │   └── ...                   # 30+ other dataset raw folders
+│   │
+│   ├── processed/                # Standardized CSV files (ready for pipeline)
+│   │   ├── c2c_registry.csv      # From scrape_c2c.js
+│   │   ├── epa_tri_processed.csv # From extract_epa_tri.js
+│   │   ├── emf_case_studies.csv  # From scrape_emf.js
+│   │   └── ...                   # 34 total processed datasets
+│   │
+│   ├── manual_entries/           # User-contributed problem/solution pairs
+│   │   └── manual_entries.csv    # Standardized format (same columns as processed/)
+│   │
+│   ├── archives/                 # Archive outputs (for dry-runs & testing)
 │   │   ├── combined_input.csv    # merged CSV output (archive mode only)
-│   │   ├── chunks.json           # chunk output (archive mode only)
-│   │   ├── embedded_chunks.json  # embedding output (archive mode only)
-│   │   └── scrape_backup/       # scraped pages from dataset scripts (backup mode)
-
-│   ├── out/                      # Generated outputs (ignored by git)
-│   │   ├── combined_input.csv    # OUTPUT: Merged CSVs
-│   │   ├── chunks.json           # OUTPUT: Processed chunks
-│   │   └── embedded_chunks.json  # OUTPUT: Embedded vectors
-│   └── scripts/                  # Dataset extraction scripts
-│       ├── scrape_*.js           # Web scraping scripts (Puppeteer automation)
-│       │                          #   Each script includes comprehensive file-level header
-│       │                          #   with purpose, features, usage flags, and input/output
-│       │                          #   Use `--show` flag to debug with visible browser
-│       │                          #   Use `--use-backup` flag to rebuild from saved backups
-│       └── extract_*.js          # Data extraction scripts (CSV/PDF/API parsing)
-│                                  #   Each script includes file-level documentation
-│                                  #   and JSDoc comments on key functions
-|
-├── pipeline/                     # Data processing pipeline
-│   ├── merge_datasets.js         # CSV merge (processed/ & manual_entries/) with duplicate row removal
-│   ├── generate_chunks.js        # CSV → chunks.json
-│   ├── generate_embeddings.js    # chunks.json → embedded_chunks.json
-│   ├── store_embeddings.js       # embedded_chunks.json → Supabase (or local JSONL with --dry-run)
-│   ├── validate_pipeline.js      # Pipeline validation
-│   ├── test_score_fetch.js       # Scoring test
-│   ├── test_validate_input.js    # Input validation test
+│   │   ├── chunks.json           # chunked output
+│   │   ├── embedded_chunks.json  # embedding output
+│   │   ├── stored_documents.jsonl # storage output
+│   │   └── scrape_backup/        # Scraped backup files (recovery mode)
+│   │       ├── c2c_scrape_backup/
+│   │       │   ├── c2c_scrape_backup.csv
+│   │       │   └── c2c_logs.txt
+│   │       └── ...               # One folder per scraper
+│   │
+│   ├── out/                      # Live pipeline outputs (ignored by git)
+│   │   ├── combined_input.csv    # Stage 1: Merged CSVs
+│   │   ├── chunks.json           # Stage 2: Processed chunks
+│   │   ├── embedded_chunks.json  # Stage 3: Embedded vectors
+│   │   └── stored_documents.jsonl # Stage 4: Storage verification
+│   │
+│   └── scripts/                  # Dataset extraction scripts (34 total)
+│       ├── scrape_c2c.js         # Puppeteer web scraper
+│       ├── scrape_ecesp.js       # Another web scraper
+│       ├── scrape_emf.js         # Ellen MacArthur Foundation scraper
+│       ├── extract_cgr_2025.js   # PDF text extraction
+│       ├── extract_epa_tri.js    # CSV/Excel parsing
+│       ├── extract_eippcb.js     # Multi-file extraction
+│       ├── extract_metabolic.js  # Metabolic reports extraction
+│       ├── run_datasets_scripts.js # Orchestrator (runs all extract_*, then scrape_*)
+│       └── ...                   # 25+ other scripts (see DATASETS_REFERENCE.md)
+│
+├── pipeline/                     # Data processing stages
+│   ├── merge_datasets.js         # Stage 1: CSV merge (processed/ + manual_entries/)
+│   ├── generate_chunks.js        # Stage 2: Semantic chunking
+│   ├── generate_embeddings.js    # Stage 3: OpenAI embedding generation
+│   ├── store_embeddings.js       # Stage 4: Supabase storage
+│   ├── validate_pipeline.js      # Schema validation for all stages
+│   ├── test_score_fetch.js       # Test scoring RPC
+│   ├── test_validate_input.js    # Test input validation
 │   └── poll_supabase.js          # Monitor Supabase vector storage
 │
 ├── tests/                        # Test suite
+│   ├── anonymous.test.js         # Anonymous tracking tests
+│   ├── apiKeyGuard.test.js       # Auth middleware tests
+│   ├── datasetsUtils.test.js     # Dataset utility tests
 │   ├── api/                      # API integration tests
-│   ├── services/                 # Service unit tests
-│   └── integration/              # End-to-end integration tests
+│   ├── integration/              # End-to-end pipeline tests
+│   └── services/                 # Service unit tests
 │
-├── package.json                  # Dependencies & scripts
-├── .env.local (gitignored)      # Environment secrets
-├── eslint.config.js             # Linting configuration
-├── DATASETS_REFERENCE.md        # Dataset inventory
+├── package.json                  # Dependencies & npm scripts
+├── .env.local                    # Environment secrets (gitignored)
+├── eslint.config.js             # ESLint rules
+├── DATASETS_REFERENCE.md        # Complete dataset inventory (34 datasets)
 ├── PIPELINE_ADDING_DATASETS.md  # Guide: Adding new datasets
-├── PIPELINE_RUNNING.md          # Guide: Running the pipeline
+├── PIPELINE_RUNNING.md          # Guide: Running the processing pipeline
 └── README.md                     # This file
 ```
 
@@ -151,163 +198,336 @@ The backend follows a **strict layered architecture** for clean separation of co
 └────────────────────────────────────────────────┘
 ```
 
-**ID Format**
+## ID Format and Generation
 
-- **Source:** `utils/datasetsUtils.js` defines `ID_DIGITS = 5` and the helper `formatId(prefix, index)` for consistent ID generation. See [backend/utils/datasetsUtils.js](backend/utils/datasetsUtils.js#L75).
-- **Convention:** IDs follow `prefix_NNNNN` (5-digit zero-padded) — for example `new_00001`, `c2c_00042`.
-- **Usage:** When creating or transforming datasets, use `formatId()` (or the exported `ID_DIGITS`) rather than hardcoding padding to keep IDs consistent across scripts and pipeline stages.
+Each document across all datasets has a unique ID format: `prefix_NNNNN` where:
+
+- **prefix**: 2-3 character dataset key (e.g., 'c2c', 'epa', 'emf')
+- **underscore**: Separator
+- **NNNNN**: Zero-padded index (5 digits by default, auto-expands beyond)
+
+### ID Generation
+
+Use the `formatId()` helper from `utils/datasetsUtils.js` for consistency:
+
+```javascript
+import { formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
+
+formatId('c2c', 1); // → 'c2c_00001'
+formatId('c2c', 42); // → 'c2c_00042'
+formatId('c2c', 100000); // → 'c2c_100000' (auto-expands beyond 5 digits)
+
+// ID_DIGITS is exported (currently 5) for use in custom logic
+const padding = index.toString().padStart(ID_DIGITS, '0');
+```
+
+**Why use the helper?** It handles overflow automatically and keeps IDs consistent across all dataset scripts.
+
+### Dataset Registry
+
+The `DATASETS` array in `utils/datasetsUtils.js` contains metadata for all 34 registered datasets. Each entry includes:
+
+- `key`: Unique identifier (e.g., 'c2c')
+- `name`: Human-readable title
+- `raw_folder`: Directory path for raw source files (null if web-scraped)
+- `processed_csv`: Output CSV filename
+- `scrape_script` / `extract_script`: Path to processing script
+- `source_url`: Primary data source URL
+- `urls`: Additional URLs (API endpoints, paginated lists, etc.)
+- `raw_folder_contents`: File inventory (maps property names to actual filenames)
+- `scrape_backup_folder`: Backup location for recovery mode (null if no scraping)
+
+See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md) for the complete registry with all 34 datasets.
+
+## Layered Architecture & Separation of Concerns
+
+The backend follows a **strict 5-layer architecture** for clean code organization:
+
+```
+┌────────────────────────────────────────────┐
+│       REST API (Express Routes)            │  ← HTTP request/response
+├────────────────────────────────────────────┤
+│    Controllers (Request Handlers)          │  ← Validation, formatting
+├────────────────────────────────────────────┤
+│      Services (Business Logic)             │  ← Core algorithms, RPC calls
+├────────────────────────────────────────────┤
+│     Utilities (Helper Functions)           │  ← Reusable logic and constants
+├────────────────────────────────────────────┤
+│   Database Client (Supabase)               │  ← Data persistence
+└────────────────────────────────────────────┘
+```
 
 ### Layer Responsibilities
 
-1. **Routes** - Define HTTP methods, paths, rate limiting
+1. **Routes** — Define HTTP methods, paths, and rate limiting
    - No business logic
    - Delegate to controllers
-   - Example: `routes/scoring.routes.js`
+   - Example: [routes/scoring.routes.js](routes/scoring.routes.js)
 
-2. **Controllers** - Handle requests & responses
-   - Request validation
-   - Error formatting
-   - Response serialization
-   - Delegate to services
-   - Example: `controllers/scoring.controller.js`
+2. **Controllers** — Handle requests and format responses
+   - Request validation using middleware
+   - Error formatting and status codes
+   - Response serialization (JSON)
+   - Delegate to services for business logic
+   - Example: [controllers/scoring.controller.js](controllers/scoring.controller.js)
 
-3. **Services** - Core business logic
-   - Complex algorithms
+3. **Services** — Core business logic and integrations
+   - Complex algorithms and calculations
    - Database/external API calls
-   - Pure business rules
-   - Example: `services/scoring.service.js`
+   - Pure business rules (no HTTP context)
+   - Example: [services/scoring.service.js](services/scoring.service.js)
 
-4. **Utils** - Shared utilities
-   - Constants
-   - Helper functions
-   - Path utilities
-   - Example: `utils/datasetsUtils.js`
+4. **Utilities** — Shared helper functions and constants
+   - Path constants and file I/O helpers
+   - ID formatting and text sanitization
+   - Configuration values
+   - Example: [utils/datasetsUtils.js](utils/datasetsUtils.js)
 
-5. **Database** - Data access
-   - Supabase client
+5. **Database** — Data access layer
+   - Supabase client initialization
    - Connection management
-   - Schema definitions
-   - Example: `database/supabase.client.js`
+   - Schema definitions and migrations
+   - Example: [database/supabase.client.js](database/supabase.client.js)
 
 ### Import Pattern (Canonical Aliases)
 
-All imports use canonical aliases defined in `package.json`:
+All imports use canonical aliases defined in `package.json` to avoid relative paths:
 
 ```javascript
-// Routes
+// ✅ GOOD (use canonical aliases)
 import { performScoring } from '#controllers/scoring.controller.js';
-
-// Controllers
 import { getScores } from '#services/scoring.service.js';
-
-// Services
 import supabase from '#database/supabase.client.js';
-
-// Config
 import { OPENAI_API_KEY } from '#config/backend.config.js';
-
-// Utils
 import { DATASETS_PROCESSED_DIR } from '#utils/datasetsUtils.js';
+
+// ❌ AVOID (relative paths)
+import { performScoring } from '../../controllers/scoring.controller.js';
+import supabase from '../../../../database/supabase.client.js';
 ```
 
-Avoid relative paths (`../../`); always use canonical aliases for consistency.
+**Why?** Canonical aliases make code more maintainable when files move, and they're much shorter and clearer.
 
-## Note on structured metadata (industry & category)
+## Structured Metadata: industry & category
 
-Recent database migrations add `industry` and `category` as first-class columns on the `documents` table (in addition to the existing `metadata` JSONB). The pipeline and storage scripts populate these columns at ingest time. Implementation notes:
+Recent database migrations add `industry` and `category` as first-class columns on the `documents` table, alongside the existing `metadata` JSONB column. This improves query performance and simplifies filtering.
 
-- Prefer the top-level `industry` and `category` columns for filtering, grouping, and UI display when present, and fall back to `metadata.industry`/`metadata.category` only for backward compatibility.
-- The `metadata` JSONB is still preserved for flexible fields (scale, r_strategy, primary_material, geographic_focus, etc.). Do not remove it; continue to use `metadata` for non-structured attributes.
-- The ingestion pipeline (`pipeline/store_embeddings.js`) already assigns `industry` and `category` when inserting document rows; queries and response mapping in controllers should prefer `row.industry`/`row.category`.
+### Column Strategy
 
-This change improves query performance (indexable columns) and simplifies frontend consumption while retaining backward compatibility with older clients.
+- **Top-level columns (indexed):** `industry`, `category` → Use for filtering, grouping, display
+- **JSONB column (flexible):** `metadata` → Store flexible fields like scale, r_strategy, primary_material, geographic_focus
 
-## Dataset Script Documentation
+### Storage Pipeline
 
-All dataset extraction and scraping scripts follow comprehensive documentation standards for maintainability:
+The ingestion pipeline ([pipeline/store_embeddings.js](pipeline/store_embeddings.js)) automatically populates both:
 
-### File-Level Headers
-
-Every script in `datasets/scripts/` includes a JSDoc header block (lines 1-25) describing:
-
+```javascript
+// When inserting documents into Supabase:
+await supabase.from('documents').insert({
+  content: chunk.content,
+  embedding: vectorArray,
+  industry: 'textiles', // ← top-level column
+  category: 'circular_design', // ← top-level column
+  metadata: {
+    // ← JSONB column (flexible)
+    scale: 'medium',
+    r_strategy: 'recycling',
+    primary_material: 'cotton',
+    geographic_focus: 'europe',
+    // ... additional flexible fields
+  },
+});
 ```
-📋 Script name and purpose
-🎯 Target dataset and source
-🔧 Key features and capabilities
-💻 Usage instructions with CLI flags
-📥 Input file formats and locations
-📤 Output file formats and locations
-🔌 Dependencies and requirements
+
+### Querying Strategy
+
+Prefer the top-level columns for queries and UI display:
+
+```javascript
+// ✅ FAST (uses indexes)
+const results = await supabase
+  .from('documents')
+  .select('*')
+  .eq('industry', 'textiles')
+  .eq('category', 'design');
+
+// ✅ WORKS (JSONB filtering)
+const results = await supabase
+  .from('documents')
+  .select('*')
+  .contains('metadata', { scale: 'medium' });
+
+// For backward compatibility, fall back to metadata if needed:
+const industry = row.industry ?? row.metadata.industry;
 ```
 
-**Examples:**
+This design improves performance while maintaining backward compatibility with older clients.
 
-- `scrape_c2c.js` – Cradle-to-Cradle certified products (Puppeteer)
-- `extract_cgr_2025.js` – Circularity Gap Report PDF extraction
-- `extract_epa_tri.js` – EPA pollution data with multi-dimensional scoring
-- `scrape_ecesp.js` – European circular economy practices (dynamic pagination)
-- `extract_fashion_transparency.js` – Supply chain transparency analysis
+## Dataset Script Documentation Standards
+
+All dataset extraction and scraping scripts follow comprehensive documentation conventions:
+
+### File-Level Headers (Required)
+
+Every script includes a JSDoc header block (lines 1-30) with:
+
+```javascript
+/**
+ * scrape_my_dataset.js
+ *
+ * Scrapes circular economy case studies from My Data Source.
+ * Extracts product/solution pairs with environmental impact metrics.
+ *
+ * Features:
+ *   - Pagination with retry logic (max 5 attempts per page)
+ *   - Per-item detail extraction via dynamic content
+ *   - Quality filtering (excludes incomplete entries)
+ *   - Backup & recovery system (--use-backup flag)
+ *
+ * Usage:
+ *   node scrape_my_dataset.js                 # Normal run (headless)
+ *   node scrape_my_dataset.js --show          # Debug with visible browser
+ *   node scrape_my_dataset.js --use-backup    # Rebuild from backup (if interrupted)
+ *   node scrape_my_dataset.js --append        # Add rows to existing CSV
+ *
+ * Input:
+ *   - https://example.com/listings (dynamic pagination)
+ *
+ * Output:
+ *   - datasets/processed/my_dataset_processed.csv
+ *
+ * Backup:
+ *   - datasets/archives/scrape_backup/my_dataset_scrape_backup/
+ *   - Saved every 3 pages to prevent data loss on network interruption
+ *
+ * Dependencies:
+ *   - puppeteer (for browser automation)
+ *   - csv-stringify (for CSV output)
+ *   - utils/datasetsUtils.js (for path helpers)
+ */
+```
 
 ### Function Documentation
 
-Key functions include JSDoc comments with:
+Key functions include JSDoc with types and descriptions:
 
-- `@param {type} description` – Parameter type and description
-- `@returns {type} description` – Return type and description
-- `@async` – For asynchronous functions
-- `@throws {Error}` – For error conditions
+```javascript
+/**
+ * Scores a data record based on completeness and relevance.
+ * @param {Object} record - The data record to score
+ * @param {string} record.problem - Problem description
+ * @param {string} record.solution - Solution description
+ * @param {number} [record.completeness] - Data completeness percentage
+ * @returns {number} Quality score from 0-100
+ * @throws {Error} If problem or solution is missing
+ */
+function scoreRecord(record) {
+  // implementation...
+}
+```
 
-**IDE Support:** Browse function signatures and documentation using Ctrl+Space (autocomplete) in your editor.
+**IDE Support:** Use Ctrl+Space (autocomplete) to browse function signatures and hover-documentation.
 
-### Script Flags
+### CLI Flags Supported
 
-Common CLI flags supported by scripts:
+Common flags supported by extraction and scraping scripts:
 
-- `--show` – Display browser window during scraping (Puppeteer scripts only)
-- `--use-backup` – Rebuild final CSV from saved backup (scraper scripts only)
-- `--clear-logs` – Clear script log file before running (optional)
-- `--append` – Append results to existing processed CSV instead of overwriting. Existing IDs will be renumbered to continue sequentially.
+- `--show` – Display browser window during scraping (Puppeteer only)
+- `--use-backup` – Rebuild final CSV from saved backup (scrapers only)
+- `--append` – Add new rows to existing CSV (renumbers IDs sequentially)
+- `--clear-logs` – Clear previous run logs before starting
 
 Example:
 
 ```pwsh
-node datasets/scripts/scrape_c2c.js --show        # Debug with visible browser
-node datasets/scripts/scrape_c2c.js --use-backup  # Recover from interruption
+node datasets/scripts/scrape_my_dataset.js --show        # Debug with browser
+node datasets/scripts/scrape_my_dataset.js --use-backup  # Recover from interrupt
+node datasets/scripts/scrape_my_dataset.js --append      # Add new products
 ```
 
-### Quick Script Reference
+## Data Flow & Processing Pipeline
 
-See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#script-documentation) for:
+### Complete Data Lifecycle
 
-- Complete documentation overview
-- Category-based grouping (Scraper, PDF, CSV, JSON/API)
-- For the complete dataset registry, check `backend/utils/datasetsUtils.js` (30+ datasets)
-
-For adding new scripts, see [PIPELINE_ADDING_DATASETS.md](PIPELINE_ADDING_DATASETS.md#script-documentation-best-practices).
-
-## Data Flow
-
-> **Note:** All filesystem paths used by dataset and pipeline scripts are defined
-> centrally in `utils/datasetsUtils.js`. Scripts should import constants
-> (e.g. `COMBINED_INPUT_CSV`, `DATASETS_PROCESSED_DIR`, `DATASETS_ARCHIVES_DIR`) rather than
-> using `../../` relative paths to avoid errors.
-
-### 1. Ingestion Pipeline
+All datasets follow a standardized flow from raw source to production queries:
 
 ```
-combined_input.csv
-     ↓
-[Merge CSVs from processed/ and manual_entries/]
+1️⃣ RAW SOURCE DATA (datasets/raw/*)
+   ↓
+   [Extract/Scrape via dataset scripts]
+   ├─ datasets/scripts/scrape_*.js (Puppeteer web automation)
+   ├─ datasets/scripts/extract_*.js (CSV/PDF/JSON/API parsers)
+   └─ [Optional: Incremental backups to datasets/archives/scrape_backup/]
+
+2️⃣ PROCESSED DATASETS (datasets/processed/*)
+   ↓
+   [Standardized CSV with fixed columns]
+   ├─ ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
+   ├─ 34 total processed datasets (c2c_registry.csv, emf_case_studies.csv, epa_tri_processed.csv, etc.)
+   └─ [One CSV file per dataset]
+
+3️⃣ MANUAL ENTRIES (datasets/manual_entries/manual_entries.csv)
+   ↓
+   [User-contributed problem/solution pairs (same standardized format)]
+
+4️⃣ MERGED INPUT (datasets/out/combined_input.csv or archives/)
+   ↓
+   npm run merge
+   ├─ Concatenates all datasets/processed/*.csv
+   ├─ Appends datasets/manual_entries/manual_entries.csv
+   ├─ Removes duplicate rows
+   ├─ Validates headers and formatting
+   └─ Output: 50,000+ combined records
+
+5️⃣ SEMANTIC CHUNKS (datasets/out/chunks.json or archives/)
+   ↓
+   npm run chunk
+   ├─ Splits each CSV row into ~300-500 char semantic units
+   ├─ Preserves problem/solution context
+   ├─ Extracts metadata (industry, category, r_strategy, etc.)
+   ├─ Generates chunk_00001...chunk_N format
+   └─ Output: 100,000+ chunks with metadata
+
+6️⃣ VECTOR EMBEDDINGS (datasets/out/embedded_chunks.json or archives/)
+   ↓
+   npm run embed (or npm run embed -- --dry-run for testing)
+   ├─ Generates OpenAI embeddings (text-embedding-3-small, 1536 dims)
+   ├─ Batches requests (20 chunks per API call)
+   ├─ Rate limit handling with exponential backoff
+   ├─ Saves cost & timing metrics
+   └─ Output: 100,000+ chunks with vectors + metadata
+
+7️⃣ DATABASE STORAGE (Supabase PostgreSQL + pgvector)
+   ↓
+   npm run store (or npm run store -- --archives for archived table)
+   ├─ Reads datasets/out/embedded_chunks.json
+   ├─ Inserts into documents table (or documents_archives)
+   ├─ Creates pgvector indexes for similarity search
+   ├─ Enables RPC-based hybrid search (vector + BM25)
+   └─ Production queries ready!
+
+8️⃣ QUERY & SCORING (Live API)
+   ↓
+   POST /scoring/score-problem-solutions (or GET /analytics/...)
+   ├─ Receives user problem/constraints
+   ├─ Calls search_documents_hybrid RPC
+   ├─ Performs hybrid search (vector + text matching)
+   ├─ Scores results using scoring.logic.js
+   └─ Returns ranked solutions with explanations
+```
+
      ↓& manual_entries/]
      ↓
-- All processed/*.csv files
+
+- All processed/\*.csv files
 - manual_entries.csv
 - Normalize columns
 - Preserve quoted format
 - Validate integrity
-     ↓
-combined_input.csv
-(13,000-14,000 rows + header)
+  ↓
+  combined_input.csv
+  (13,000-14,000 rows + header)
+
 ```
 
 **Command:** `npm run merge` → outputs to `datasets/out/combined_input.csv` by default. Append `-- --archives` (or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`) to produce the merged CSV in `datasets/archives/` instead.
@@ -315,30 +535,33 @@ combined_input.csv
 ### 2. Chunking Pipeline
 
 ```
+
 combined_input.csv
-     ↓
+↓
 [Parse & validate records]
-     ↓
+↓
+
 - Extract: problem, solution, materials, strategy, impact
 - Validate: min length, quality checks
 - Skip invalid records
-     ↓
-[Create semantic chunks]
-     ↓
+  ↓
+  [Create semantic chunks]
+  ↓
 - Primary: problem + solution (always together)
 - Secondary: + context fields (if substantial)
 - Split long content into sub-chunks
-     ↓
-[Extract metadata]
-     ↓
+  ↓
+  [Extract metadata]
+  ↓
 - industry (agriculture, textiles, packaging, etc)
 - scale (micro, small, medium, large)
 - r_strategy (reduction, reuse, recycling, regeneration)
 - primary_material (plastic, metal, textile, organic, etc)
 - geographic_focus (asia, africa, europe, americas, global)
-     ↓
-chunks.json
-(14,000-19,000 chunks with metadata)
+  ↓
+  chunks.json
+  (14,000-19,000 chunks with metadata)
+
 ```
 
 **Command:** `npm run chunk`
@@ -346,32 +569,35 @@ chunks.json
 ### 3. Embedding & Storage Pipeline
 
 ```
+
 chunks.json
-     ↓
+↓
 [Load & validate chunks]
-     ↓
+↓
 [Generate embeddings]
-     ↓
+↓
+
 - OpenAI text-embedding-3-small API
 - Batch: 20 chunks per request
 - Delay: 500ms between batches
 - Retry: Exponential backoff on rate limits
 - Validate: Check dimension (1536) and structure
-     ↓
-[Store in Supabase]
-     ↓
+  ↓
+  [Store in Supabase]
+  ↓
 - Truncate documents table (fresh load)
 - Batch insert: 10 docs per request
 - Structured columns: industry, category, source
 - Full metadata preserved in JSONB
-     ↓
-[Verify & report]
-     ↓
+  ↓
+  [Verify & report]
+  ↓
 - Test RPC functions
 - Count documents
 - Verify vector dimension
 - Report timing & costs
-```
+
+````
 
 **Command:** `npm run embed` to generate embeddings and `npm run store` to push them to Supabase. For a dry run use `npm run embed -- --dry-run` followed by `npm run store -- --dry-run`.
 
@@ -401,7 +627,7 @@ Returns aggregated statistics across all documents.
   "categories": {...},
   "sources": {...}
 }
-```
+````
 
 #### GET `/api/analytics/enhanced`
 
@@ -413,7 +639,7 @@ Top-rated solutions grouped by industry for dashboard.
 
 ### Scoring Endpoint
 
-#### POST `/api/scoring`
+#### POST `/api/score`
 
 RAG-powered business problem analysis and solution scoring.
 

@@ -1,57 +1,304 @@
-# Current Datasets Reference
+# Datasets Reference: Complete Integration Guide
 
-## Reference guide for all datasets currently integrated into the system.
+Complete reference for all 34 datasets integrated into the circular economy system, datasetsUtils.js utilities, and processing pipeline documentation.
 
-## Script Documentation
+## Quick Links
 
-All dataset extraction and scraping scripts include comprehensive documentation:
+- **Dataset Registry:** All metadata in `backend/utils/datasetsUtils.js` (DATASETS array)
+- **Path Constants:** Centralized filesystem paths in `datasetsUtils.js`
+- **Processing Scripts:** `datasets/scripts/scrape_*.js` (Puppeteer) and `extract_*.js` (parsers)
+- **Pipeline Guide:** See [PIPELINE_RUNNING.md](PIPELINE_RUNNING.md) for execution
+- **Adding Datasets:** See [PIPELINE_ADDING_DATASETS.md](PIPELINE_ADDING_DATASETS.md) for setup
 
-- **File-level headers:** Each script (`datasets/scripts/scrape_*.js` and `datasets/scripts/extract_*.js`) includes a detailed JSDoc header block with:
-  - Script purpose and data source
-  - List of key features and capabilities
-  - Usage instructions with command-line flags
-  - Input and output file formats
-  - Dependencies and requirements (e.g., API access, Python scripts)
+## Script Documentation Standards
 
-- **Function documentation:** Key functions include JSDoc comments with parameter types, return types, and descriptions. This provides IDE hover documentation and clear function contracts.
+All dataset extraction and scraping scripts follow comprehensive documentation conventions:
 
-- **Quick reference:** Look at the top of any script to understand its purpose, or use IDE autocomplete to explore function signatures.
+### File-Level Headers (Required)
 
-Examples: `scrape_c2c.js`, `extract_cgr_2025.js`, `extract_epa_tri.js`
+Each script (`datasets/scripts/scrape_*.js` and `datasets/scripts/extract_*.js`) includes a JSDoc header block with:
 
-## File I/O behaviour (centralised)
+- **Purpose:** What dataset is extracted and from where
+- **Features:** Key capabilities (pagination, parsing method, backup support, etc.)
+- **Usage:** How to run the script with CLI flags
+  - `--show` (scrapers only): Debug with visible browser window
+  - `--use-backup`: Rebuild from saved backup CSV (scrapers only)
+  - `--append`: Add new rows to existing CSV with sequential IDs
+- **Input/Output:** File paths and formats for sources and outputs
+- **Dependencies:** Required APIs, Python scripts, special libraries
 
-All backend scripts use helper functions exported from `utils/datasetsUtils.js` for consistent file I/O. When a script writes an output file the behaviour is unified:
+### Function Documentation
 
-- the parent directory is created automatically if missing;
-- the first write touches an empty file so the path exists and downstream tooling can rely on it;
-- existing files are temporarily unlocked (made writable) before being updated and are set back to read-only after the write completes;
-- stages that operate in multiple batches (for example generating or storing embeddings) clear their target file on the first write and then flush progress repeatedly while locking between writes;
-- scrapers periodically flush intermediate results into `datasets/archives/scrape_backup/<dataset>/` and write final processed CSVs to `datasets/processed/`.
-
-Use the helpers `ensureDir`, `ensureFile`, `prepareWrite` (now with an optional `{clear:true}` argument), `ensureFileSync`, and `writeCsv` from `utils/datasetsUtils.js` when adding or modifying scripts to follow this convention.
-
-## Path Helpers for Dataset Access
-
-The `utils/datasetsUtils.js` module exports dataset registry (`DATASETS`, `DATASET_LOOKUP`, `DATASET_KEYS`) and path helper functions for programmatic access:
-
-- **`getDatasetRawDir(key)`** – Full path to dataset's raw directory (creates if missing)
-- **`getDatasetProcessedCsvPath(key)`** – Full path to dataset's processed CSV file
-- **`getDatasetBackupFolderPath(key)`** – Full path to dataset's backup folder (scrape_backup/)
-- **`getDatasetBackupCsvPath(key)`** – Full path to dataset's backup CSV file
-- **`getDatasetScrapeLogsPath(key)`** – Full path to dataset's scrape logs file
-
-Example usage in a script:
+Key functions include JSDoc comments:
 
 ```javascript
-import { getDatasetProcessedCsvPath, DATASET_LOOKUP } from '#utils/datasetsUtils.js';
-
-const datasetKey = 'c2c';
-const csvPath = getDatasetProcessedCsvPath(datasetKey); // → datasets/processed/c2c_registry.csv
-const dataset = DATASET_LOOKUP[datasetKey]; // → full dataset metadata object
-console.log(dataset.name); // → "C2C Registry"
-console.log(dataset.source_url); // → "https://c2ccertified.org/certified-products"
+/**
+ * Fetches and parses data from source
+ * @param {string} url - The source URL
+ * @returns {Promise<Array>} Array of parsed records
+ * @throws {Error} If fetch fails
+ */
+async function fetchData(url) { ... }
 ```
+
+**IDE Support:** Browse function signatures using Ctrl+Space (autocomplete) in your editor.
+
+### Example Scripts
+
+- `scrape_c2c.js` – Cradle-to-Cradle certified products (Puppeteer pagination)
+- `extract_cgr_2025.js` – Circularity Gap Report PDF extraction
+- `extract_epa_tri.js` – EPA pollution data with multi-dimensional scoring
+- `scrape_ecesp.js` – European circular economy practices (dynamic pagination)
+- `extract_fashion_transparency.js` – Supply chain transparency analysis
+- `scrape_metabolic.js` – Metabolic publications with multi-format handling
+
+## datasetsUtils.js: Centralized Utilities
+
+The `utils/datasetsUtils.js` module is the single source of truth for all dataset operations. It provides:
+
+### Path Constants
+
+Used throughout scripts instead of hardcoded relative paths:
+
+```javascript
+import {
+  BACKEND_ROOT,
+  DATASETS_DIR,
+  DATASETS_RAW_DIR,
+  DATASETS_PROCESSED_DIR,
+  DATASETS_MANUAL_ENTRIES_DIR,
+  DATASETS_SCRIPTS_DIR,
+  DATASETS_ARCHIVES_DIR,
+  DATASETS_SCRAPE_BACKUP_DIR,
+  DATASETS_OUTPUT_DIR,
+  COMBINED_INPUT_CSV,
+  CHUNKS_JSON,
+  EMBEDDED_CHUNKS_JSON,
+  STORED_DOCUMENTS_JSONL,
+} from '#utils/datasetsUtils.js';
+```
+
+### Dataset Registry
+
+**DATASETS Array:** Contains 34 registered datasets (see registry table below) with:
+
+- `key`: Unique identifier (e.g., 'c2c', 'emf', 'refed')
+- `name`: Human-readable title
+- `raw_folder`: Raw data directory under `datasets/raw/` (null if web-sourced)
+- `processed_csv`: Output CSV filename in `datasets/processed/`
+- `scrape_script`: Path to Puppeteer scraper (null if not scraped)
+- `extract_script`: Path to extraction script (null if not extracted)
+- `source_url`: Primary source/homepage URL (null for private datasets)
+- `urls`: Object with additional API/config URLs keyed by purpose
+- `raw_folder_contents`: Maps descriptive property names to actual filenames
+- `scrape_backup_folder`: Folder name inside `archives/scrape_backup/` for recovery
+- `prefix`: Auto-generated from key (e.g., 'c2c\_')
+
+**DATASET_LOOKUP:** Quick lookup by key:
+
+```javascript
+import { DATASET_LOOKUP } from '#utils/datasetsUtils.js';
+const ds = DATASET_LOOKUP['emf'];
+// ds.name → 'EMF Case Studies'
+// ds.processed_csv → 'emf_case_studies.csv'
+```
+
+**DATASET_KEYS:** Constant keys to avoid typos:
+
+```javascript
+import { DATASET_KEYS } from '#utils/datasetsUtils.js';
+console.log(DATASET_KEYS.c2c); // 'c2c'
+```
+
+### Path Helper Functions
+
+Always use these instead of constructing paths manually:
+
+```javascript
+// Get raw data directory (auto-creates if needed)
+const rawDir = getDatasetRawDir('epa');
+// → /absolute/path/datasets/raw/epa_tri
+
+// Get processed CSV path
+const csvPath = getDatasetProcessedCsvPath('emf');
+// → /absolute/path/datasets/processed/emf_case_studies.csv
+
+// Get backup folder (for scrapers with recovery)
+const backupFolder = getDatasetBackupFolderPath('c2c');
+// → /absolute/path/datasets/archives/scrape_backup/c2c_scrape_backup
+
+// Get backup CSV path
+const backupCsv = getDatasetBackupCsvPath('c2c');
+// → /absolute/path/.../c2c_scrape_backup/c2c_scrape_backup.csv
+
+// Get backup log file
+const logsPath = getDatasetScrapeLogsPath('c2c');
+// → /absolute/path/.../c2c_scrape_backup/c2c_logs.txt
+```
+
+### File Management Utilities
+
+**Directory and File Creation:**
+
+```javascript
+// Create directory recursively
+await ensureDir(dirPath);
+
+// Assert file/directory exists (throws if missing)
+assertFileExists(filePath, 'Configuration');
+assertDirExists(dirPath, 'Data folder');
+
+// Create file synchronously if missing
+ensureFileSync(filePath);
+```
+
+**File Writing with Automatic Locking:**
+
+```javascript
+// Write CSV (automatically unlocks, writes, re-locks)
+await writeCsv(csvPath, rows, { clear: true });
+// clear: true → truncates file on first write (for batch stages)
+// Automatically handles permission changes (chmod 0o644 → 0o444)
+
+// Write JSON
+await writeJson(jsonPath, data);
+
+// Write JSONL (one JSON object per line)
+await writeJsonl(jsonlPath, objects);
+
+// Prepare directory and file before write
+await prepareWrite(filePath, { clear: false });
+// Returns unlocked file ready for writing
+```
+
+**Backup Management:**
+
+```javascript
+// Read backup CSV (for recovery mode)
+const backupRows = await readBackupCsv(key);
+
+// Append rows to archive
+await appendToArchive(archiveCsvPath, rows);
+
+// Add timestamped log entries
+await appendLogs(logsPath, 'Data batch 3 saved');
+await clearLogs(logsPath);
+```
+
+### Backup & Recovery System
+
+**createBackupHelper():** For batched writes during long scrapes:
+
+```javascript
+import { createBackupHelper } from '#utils/datasetsUtils.js';
+
+const backup = createBackupHelper(
+  'c2c', // Dataset key
+  3, // Flush every 3 pages
+  true, // Clear on start
+);
+
+// During scrape loop:
+for (const page of pages) {
+  const rows = await scrapePage(page);
+  await backup.add(rows); // Auto-flushes every 3 pages
+  console.log(`✅ Page ${page}: ${rows.length} rows`);
+}
+await backup.flush(); // Final flush
+```
+
+**isBackupRecoveryMode():** Check for `--use-backup` flag:
+
+```javascript
+if (isBackupRecoveryMode()) {
+  console.log('♻️ BACKUP RECOVERY MODE...');
+  // Rebuild from saved backup instead of scraping
+  const rows = await readBackupCsv('c2c');
+  // ... process and write final CSV
+}
+```
+
+### Text Processing & ID Generation
+
+```javascript
+import { cleanText, formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
+
+// Sanitize CSV text (remove quotes, newlines, etc.)
+const clean = cleanText('Problem: "Waste"\n');
+// → 'Problem: Waste'
+
+// Generate zero-padded IDs
+const id = formatId('c2c', 42); // With ID_DIGITS=5
+// → 'c2c_00042'
+
+// Auto-increment IDs with overflow handling
+const id2 = formatId('wrap', 100000); // Exceeds 5 digits
+// → 'wrap_100000'  (automatic expansion, no padding)
+
+// Use ID_DIGITS constant in your own logic
+const padding = String(index).padStart(ID_DIGITS, '0');
+```
+
+### CSV Format Standards
+
+**CSV_COLUMNS:** Standard header for all datasets:
+
+```javascript
+import { CSV_COLUMNS, STRINGIFY_OPTIONS } from '#utils/datasetsUtils.js';
+
+// Create header row
+const headers = CSV_COLUMNS;
+// → ['ID', 'problem', 'solution', 'materials', ...]
+
+// Write using standard options
+const csv = stringify(rows, STRINGIFY_OPTIONS);
+// Automatically quoted, proper escaping, etc.
+```
+
+**Header:** ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
+
+### Web Scraping Utilities (Puppeteer)
+
+For Puppeteer-based scrapers:
+
+```javascript
+import {
+  getBrowserLaunchOptions,
+  getViewportOptions,
+  getUserAgentOptions,
+  getExtraHttpHeaders,
+  randomDelay,
+} from '#utils/datasetsUtils.js';
+
+// Launch browser with standardized options
+const browser = await puppeteer.launch(getBrowserLaunchOptions());
+
+// Set viewport (all scrapers use same dimensions)
+const page = await browser.newPage();
+await page.setViewport(getViewportOptions());
+
+// Set user agent (pools of rotating agents)
+const ua = getUserAgentOptions();
+await page.setUserAgent(ua);
+
+// Set HTTP headers (helps with bot detection)
+await page.setExtraHTTPHeaders(getExtraHttpHeaders());
+
+// Random delays between requests (prevents blocking)
+await page.goto(url);
+await page.waitForTimeout(randomDelay());
+```
+
+## File I/O Behavior (Unified)
+
+All scripts use datasetsUtils.js helpers for consistent file handling:
+
+1. **Directory Creation:** Parent directories created automatically
+2. **First Write:** Empty file created so path exists immediately
+3. **Permission Management:** Files unlocked before write, re-locked after
+4. **Batch Handling:** Multi-stage outputs cleared once, flushed repeatedly with locking
+5. **Scraper Backups:** Intermediate saves to `datasets/archives/scrape_backup/`
+6. **Final Output:** Processed CSVs written to `datasets/processed/`
 
 ## Scraper Backup & Recovery Mode
 
@@ -122,13 +369,11 @@ Currently implemented for:
 - `scrape_remanufacturing_eu.js` – Remanufacturing case studies
 - `scrape_wrap.js` – WRAP resources and case studies
 
-## Dataset Inventory
+## Complete Dataset Inventory (34 Datasets)
 
-The full catalog of available datasets is maintained as the `DATASETS` array in
-`backend/utils/datasetsUtils.js`. This array currently contains **32 registered datasets**
-listed below. The registry is the authoritative source of truth.
+All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` array). This is the authoritative source of truth.
 
-### Complete Dataset Registry (32 Datasets)
+### Dataset Registry Table
 
 | #   | Key                    | Dataset Name                       | Type                 | Source                                                           |
 | --- | ---------------------- | ---------------------------------- | -------------------- | ---------------------------------------------------------------- |
@@ -146,7 +391,7 @@ listed below. The registry is the authoritative source of truth.
 | 12  | `fashion_innovation`   | Fashion for Good Innovation        | Puppeteer Scrape     | https://www.fashionforgood.com/innovation-platform-2/innovators/ |
 | 13  | `fashion_transparency` | Fashion Transparency Index         | Mixed (PDF + CSV)    | WikiRate / Apparel Coalition                                     |
 | 14  | `ghg`                  | GHG Emissions (EDGAR/IEA)          | CSV Extract          | UN Environment Programme                                         |
-| 15  | `gewm`                 | Global E-Waste Monitor 2024        | PDF Table Extract    | https://ewastemonitor.info/                                      |
+| 15  | `gewm`                 | Global E-Waste Monitor 2024        | PDF Extract          | https://ewastemonitor.info/                                      |
 | 16  | `gtg`                  | Greentech Guardians                | Mixed (CSV + JSONL)  | AI EarthHack                                                     |
 | 17  | `ifixit`               | iFixit Repairability Scores        | CSV Extract          | https://www.ifixit.com/repairability                             |
 | 18  | `kaggle`               | Kaggle LCA                         | CSV Extract          | Kaggle                                                           |
@@ -159,7 +404,7 @@ listed below. The registry is the authoritative source of truth.
 | 25  | `opf`                  | Open Products Facts                | Puppeteer Scrape     | https://world.openproductsfacts.org/                             |
 | 26  | `refed`                | ReFED Food Waste Solutions         | API Fetch            | https://insights.refed.org/solution-database                     |
 | 27  | `rema`                 | Remanufacturing EU                 | Mixed (Scrape + PDF) | https://www.remanufacturing.eu                                   |
-| 28  | `sei`                  | SEI Construction                   | PDF Extract          | https://www.wbcsd.org/                                           |
+| 28  | `sei`                  | SEI Construction Cases             | PDF Extract          | https://www.wbcsd.org/                                           |
 | 29  | `unep`                 | UNEP Material Flows & Waste        | CSV Extract          | https://www.unep.org/                                            |
 | 30  | `wbcsd`                | WBCSD Business Cases               | PDF Extract          | https://www.wbcsd.org/                                           |
 | 31  | `wbp`                  | World Bank Projects                | API + CSV Extract    | https://search.worldbank.org/api/v2/projects                     |
@@ -167,9 +412,9 @@ listed below. The registry is the authoritative source of truth.
 
 ### Summary Statistics
 
-- **Total Datasets:** 32
+- **Total Datasets:** 34 registered datasets
 - **Scraper-based (Puppeteer):** 13 datasets
-  - c2c, circle_knowledge_hub, ecesp, emf, fashion_innovation, kalundborg, obf, off, opf, refed, rema (partial), wrap (partial), metabolic (partial)
+  - c2c, circle_knowledge_hub, ecesp, emf, fashion_innovation, kalundborg, metabolic, obf, off, opf, refed, rema (partial), wrap (partial)
 - **PDF-based Extraction:** 8 datasets
   - cgr, eippcb, eulac, gewm, metabolic (partial), sei, wbcsd, wrap (partial)
 - **CSV-based Extraction:** 9 datasets
@@ -178,6 +423,8 @@ listed below. The registry is the authoritative source of truth.
   - refed, wbp
 - **Mixed/Multi-format:** 5 datasets
   - dataeu, fashion_transparency, gtg, metabolic, wrap
+
+> **New in Registry:** Expanded dataset support includes `metabolic` (with both scraping and PDF extraction), and improved documentation for all extraction scripts.
 
 > **Note:** To add a new dataset, add an entry to the `DATASETS` array in
 > `backend/utils/datasetsUtils.js` and create a corresponding extraction script.
@@ -495,7 +742,7 @@ Create either a **scraper script** (for web data) or **extraction script** (for 
 import {
   STRINGIFY_OPTIONS,
   formatId,
-  getDatasetOutputPath,
+  getDatasetProcessedCsvPath,
   ensureDir,
 } from '#utils/datasetsUtils.js';
 import fs from 'fs';
@@ -515,7 +762,7 @@ const finalRows = data.map((r, idx) => ({
   metadata_json: JSON.stringify(r.metadata || {}),
 }));
 
-const OUTPUT_FILE = getDatasetOutputPath(DATASET_KEY);
+const OUTPUT_FILE = getDatasetProcessedCsvPath(DATASET_KEY);
 await ensureDir(path.dirname(OUTPUT_FILE));
 
 // make sure the file exists empty on first write and unlock if previously read-only
@@ -533,7 +780,7 @@ await fs.promises.chmod(OUTPUT_FILE, 0o444); // Read-only
 **For extraction (CSV/PDF/API):**
 
 - Use `getDatasetRawDir(DATASET_KEY)` to find raw files
-- Use `getDatasetOutputPath(DATASET_KEY)` for output CSV path
+- Use `getDatasetProcessedCsvPath(DATASET_KEY)` for output CSV path
 - Always use `STRINGIFY_OPTIONS` for consistent formatting
 - Always make output read-only with `chmod(file, 0o444)`
 
