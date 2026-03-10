@@ -307,14 +307,8 @@ async function main() {
     });
   }
 
-  // Assign IDs with proper formatting
-  const finalRows = rows.map((row, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
-    ...row,
-  }));
-
-  await writeCsv(OUTPUT_PATH, finalRows);
-  console.log(`✅ Saved ${finalRows.length} rows to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, rows);
+  console.log(`✅ Saved ${rows.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

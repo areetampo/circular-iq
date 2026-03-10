@@ -194,15 +194,9 @@ async function main() {
     };
   });
 
-  // 7. Add IDs
-  const finalRows = processed.map((row, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
-    ...row,
-  }));
-
   // 8. Write output
-  await writeCsv(OUTPUT_PATH, finalRows);
-  console.log(`✅ Successfully wrote ${finalRows.length} records to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
+  console.log(`✅ Successfully wrote ${processed.length} records to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

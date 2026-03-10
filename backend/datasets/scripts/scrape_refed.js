@@ -251,7 +251,7 @@ async function rebuildFromBackup() {
     ...row,
   }));
 
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup.`);
 }
 

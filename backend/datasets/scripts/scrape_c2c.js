@@ -168,7 +168,6 @@ async function rebuildFromBackup() {
         raw_extracted: rawExtracted,
       };
       return {
-        ID: formatId(DATASET_KEY, index + 1),
         problem: cleanText(`Circular economy solutions - ${product.title}`),
         solution: cleanText(
           `${product.title} - Cradle-to-Cradle certified. Category: ${product.category}`,
@@ -184,7 +183,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} C2C products from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
@@ -517,7 +516,6 @@ async function scrape_c2c() {
           raw_extracted: { ...product },
         };
         return {
-          ID: formatId(DATASET_KEY, index + 1),
           problem: cleanText(`Circular economy solutions - ${product.title}`),
           solution: cleanText(
             `${product.title} - Cradle-to-Cradle certified. Category: ${product.category}`,
@@ -533,7 +531,7 @@ async function scrape_c2c() {
         };
       });
 
-      await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+      await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
       await backup.flush();
 
       console.log(`\n✅ Scraped ${finalRows.length} unique C2C products.`);

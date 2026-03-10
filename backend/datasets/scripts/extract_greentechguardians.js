@@ -180,8 +180,7 @@ async function main() {
   }
 
   // Write CSV using writeCsv (handles quoting, directory, locking)
-  const finalMapped = finalRows.map((r, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
+  const finalMapped = finalRows.map((r) => ({
     problem: r.problem || '',
     solution: r.solution || '',
     materials: r.materials || '',
@@ -192,7 +191,7 @@ async function main() {
     metadata_json: typeof r.metadata_json === 'string' ? r.metadata_json : JSON.stringify(r),
   }));
 
-  await writeCsv(OUTPUT_PATH, finalMapped);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalMapped);
   console.log(`✅ Written ${finalMapped.length} rows to ${OUTPUT_PATH}`);
 }
 

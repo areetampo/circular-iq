@@ -664,13 +664,10 @@ async function main() {
 
   console.log(`\n🎯 Total extracted rows: ${scored.length}`);
 
-  // Remove temporary fields and add ID
-  const final = scored.map(({ _scoreValue, score, ...rest }, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...rest,
-  }));
+  // Remove temporary fields
+  const final = scored.map(({ _scoreValue, score, ...rest }) => rest);
 
-  await writeCsv(OUTPUT_PATH, final);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
   console.log(`✅ Success! Wrote ${final.length} records to ${OUTPUT_PATH}`);
 }
 

@@ -563,12 +563,9 @@ async function main() {
   const topRows = rows.slice(0, MAX_OUTPUT_ROWS);
   console.log(`🎯 Selected top ${topRows.length} rows (max ${MAX_OUTPUT_ROWS}) by quality score.`);
 
-  const finalRows = topRows.map(({ _scoreValue, ...rest }, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...rest,
-  }));
+  const finalRows = topRows.map(({ _scoreValue, ...rest }) => rest);
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(`✅ Success! Wrote ${finalRows.length} records to ${OUTPUT_PATH}`);
 }
 

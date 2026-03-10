@@ -391,13 +391,10 @@ async function main() {
   rows.sort((a, b) => b.score - a.score);
 
   const limitedRows = rows.slice(0, MAX_ROWS);
-  limitedRows.forEach((row, idx) => {
-    row.ID = formatId(DATASET_KEY, idx + 1);
-  });
 
   console.log(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
-  await writeCsv(outputPath, limitedRows);
-  console.log(`✅ Written to ${outputPath}`);
+  await writeCsv(DATASET_KEY, outputPath, limitedRows);
+  console.log(`✅ Written ${limitedRows.length} rows to ${outputPath}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

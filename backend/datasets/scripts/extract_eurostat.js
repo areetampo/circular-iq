@@ -330,13 +330,8 @@ async function main() {
     }
   }
 
-  const finalRows = allRows.map((row, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
-    ...row,
-  }));
-
-  await writeCsv(OUTPUT_PATH, finalRows);
-  console.log(`✅ Written ${finalRows.length} curated rows to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, allRows);
+  console.log(`✅ Written ${allRows.length} curated rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

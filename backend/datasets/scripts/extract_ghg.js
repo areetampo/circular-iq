@@ -230,13 +230,8 @@ async function main() {
   const finalRows = allRows.slice(0, MAX_ROWS);
   console.log(`Selected ${finalRows.length} rows.`);
 
-  const rowsWithIds = finalRows.map((row, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
-    ...row,
-  }));
-
-  await writeCsv(OUTPUT_PATH, rowsWithIds);
-  console.log(`✅ Written to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(`✅ Written ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

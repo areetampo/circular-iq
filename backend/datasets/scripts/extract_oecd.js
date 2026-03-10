@@ -343,8 +343,7 @@ async function writeCombined(rows) {
 
   console.log(`Selected ${topRows.length} rows.`);
 
-  const finalRows = topRows.map((row, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
+  const finalRows = topRows.map((row) => ({
     problem: row.problem || '',
     solution: row.solution || '',
     materials: row.materials || '',
@@ -355,7 +354,7 @@ async function writeCombined(rows) {
     metadata_json: row.metadata_json || '',
   }));
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(`\n✅ Combined output written to ${OUTPUT_PATH} (${finalRows.length} total rows)`);
 }
 

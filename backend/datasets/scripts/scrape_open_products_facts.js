@@ -512,8 +512,7 @@ async function main() {
   console.log(`✨ Kept ${highQuality.length} high‑quality rows.`);
   await appendLogs(DATASET_KEY, `After filtering: kept ${highQuality.length} rows.`);
 
-  const finalRows = highQuality.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
+  const finalRows = highQuality.map((row) => ({
     problem: row.problem || '',
     solution: row.solution || '',
     materials: row.materials || '',
@@ -524,7 +523,7 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}.`;
   console.log(summary);

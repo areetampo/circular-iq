@@ -333,15 +333,9 @@ async function main() {
 
   console.log(`After deduplication: ${unique.length} rows.`);
 
-  // Assign IDs
-  const finalRows = unique.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...row,
-  }));
-
   // Write CSV using the helper (handles unquoted header, quoted data)
-  await writeCsv(OUTPUT_PATH, finalRows);
-  console.log(`✅ Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, unique);
+  console.log(`✅ Wrote ${unique.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -464,8 +464,7 @@ async function rebuildFromBackup() {
     return;
   }
 
-  const finalRows = topItems.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
+  const finalRows = topItems.map((row) => ({
     problem: row.problem,
     solution: row.solution,
     materials: row.materials,
@@ -476,7 +475,7 @@ async function rebuildFromBackup() {
     metadata_json: JSON.stringify(row.metadata),
   }));
 
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
   await appendLogs(
     DATASET_KEY,
@@ -696,13 +695,10 @@ async function scrape() {
         _location,
         ...cleanItem
       } = item;
-      return {
-        ID: formatId(DATASET_KEY, idx + 1),
-        ...cleanItem,
-      };
+      return cleanItem;
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Final rows kept: ${finalRows.length}`);

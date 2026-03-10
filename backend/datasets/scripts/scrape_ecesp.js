@@ -411,8 +411,7 @@ async function rebuildFromBackup() {
     }
 
     // Build final output rows
-    const finalRows = bestItems.map((item, index) => ({
-      ID: formatId(DATASET_KEY, index + 1),
+    const finalRows = bestItems.map((item) => ({
       problem: cleanText(item.problem || ''),
       solution: cleanText(item.solution || ''),
       materials: cleanText(item.materials || ''),
@@ -423,7 +422,7 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} ECESP items from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
@@ -805,8 +804,7 @@ async function scrape_ecesp() {
     await appendLogs(DATASET_KEY, `After filtering and scoring: ${bestItems.length} items kept.`);
 
     // Write final CSV
-    const finalRows = bestItems.map((item, index) => ({
-      ID: formatId(DATASET_KEY, index + 1),
+    const finalRows = bestItems.map((item) => ({
       problem: item.problem,
       solution: item.solution,
       materials: item.materials,
@@ -817,7 +815,7 @@ async function scrape_ecesp() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✅ Scraped ${finalRows.length} ECESP items.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 

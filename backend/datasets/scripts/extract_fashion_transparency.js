@@ -410,15 +410,9 @@ async function main() {
   const finalRows = allOutputRows.slice(0, MAX_ROWS);
   console.log(`Selected ${finalRows.length} rows for output (limit: ${MAX_ROWS}).`);
 
-  // Assign sequential IDs with prefix
-  const rowsWithIds = finalRows.map((row, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
-    ...row,
-  }));
-
   // ---- 6. Write CSV ----
-  await writeCsv(OUTPUT_PATH, rowsWithIds);
-  console.log(`✅ Written to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(`✅ ${finalRows.length} rows Written to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

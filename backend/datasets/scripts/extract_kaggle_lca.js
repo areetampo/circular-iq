@@ -13,7 +13,7 @@
  *   • Flexible column name matching across multiple datasets
  *   • LCA impact category identification (energy, water, emissions, etc.)
  *   • Problem/solution generation based on product life cycle stages
- *   • Row-level sampling for large LCA datasets
+ *   • **Quality scoring based on original data completeness** (replaces random sampling)
  *   • Automatic ID generation with dataset key prefix
  *   • Centralized CSV writing with directory creation and file locking
  *
@@ -22,7 +22,7 @@
  *
  * Input: LCA CSV files from Kaggle (various formats with flexible delimiter)
  * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Sampling: Adjustable target row count (TARGET_ROWS)
+ * Target rows: TARGET_ROWS (default 300) highest‑quality rows
  * Scope: Covers product-level LCA data with environmental impact metrics
  */
 
@@ -30,7 +30,6 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -54,7 +53,37 @@ const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
 verifyPathsExist(inputFiles);
 
 // Target total rows
-const TARGET_ROWS = 450;
+const TARGET_ROWS = 300;
+
+// ---------- Helper: compute quality score based on original data ----------
+/**
+ * Computes a quality score for a row by counting non‑empty, non‑null fields
+ * in the original metadata (stored in metadata_json).
+ * @param {Object} row - The transformed row object containing metadata_json.
+ * @returns {number} - Number of meaningful fields in the original data.
+ */
+function computeQualityScoreFromMetadata(row) {
+  try {
+    const original = JSON.parse(row.metadata_json);
+    let count = 0;
+    for (const [key, value] of Object.entries(original)) {
+      if (
+        value &&
+        typeof value === 'string' &&
+        value.trim() !== '' &&
+        !/^(n\/?a|na|-)$/i.test(value.trim())
+      ) {
+        count++;
+      } else if (value && typeof value === 'number' && !isNaN(value)) {
+        count++;
+      }
+    }
+    return count;
+  } catch {
+    // If JSON parsing fails, return 0 (should not happen)
+    return 0;
+  }
+}
 
 async function detectDelimiter(filePath) {
   const sample = await fs.promises.readFile(filePath, 'utf8').then((text) => text.split('\n')[0]);
@@ -71,24 +100,6 @@ function parseCSV(filePath, delimiter = ',') {
   });
 }
 
-// ---------- Efficient random sampler (partial shuffle) ----------
-function randomSample(arr, maxSize) {
-  if (arr.length <= maxSize) return arr;
-  const result = [];
-  const n = arr.length;
-  // Reservoir sampling: take first maxSize, then randomly replace
-  for (let i = 0; i < maxSize; i++) {
-    result.push(arr[i]);
-  }
-  for (let i = maxSize; i < n; i++) {
-    const j = Math.floor(Math.random() * (i + 1));
-    if (j < maxSize) {
-      result[j] = arr[i];
-    }
-  }
-  return result;
-}
-
 // ---------- Handlers ----------
 async function handleCarbonCatalogueProduct(filePath) {
   const delimiter = await detectDelimiter(filePath);
@@ -100,28 +111,46 @@ async function handleCarbonCatalogueProduct(filePath) {
         row["Product's carbon footprint (PCF, kg CO2e)"] &&
         parseFloat(row["Product's carbon footprint (PCF, kg CO2e)"]) > 0,
     )
-    .map((row) => ({
-      problem: cleanText(
-        `High carbon footprint of ${row["Company's sector"] || 'product'} ${row['Product name (and functional unit)'] || ''}`.trim(),
-      ),
-      solution: cleanText(
-        row['Product detail'] ||
-          row['Product name (and functional unit)'] ||
-          'Carbon footprint data.',
-      ),
-      materials: cleanText(row['Product weight (kg)'] ? `${row['Product weight (kg)']} kg` : ''),
-      circular_strategy:
-        row['*EndOfLife CO2e (fraction of total PCF)'] &&
-        parseFloat(row['*EndOfLife CO2e (fraction of total PCF)']) > 0
-          ? 'End‑of‑life recycling potential'
-          : 'Carbon footprint reduction',
-      category: cleanText(
-        row["Company's sector"] || row["Company's GICS Industry Group"] || 'General',
-      ),
-      impact: cleanText(`${row["Product's carbon footprint (PCF, kg CO2e)"]} kg CO₂e`),
-      source_url: 'https://www.kaggle.com/datasets/unsdsn/global-carbon-catalogue',
-      metadata_json: JSON.stringify(row),
-    }));
+    .map((row) => {
+      const pcf = row["Product's carbon footprint (PCF, kg CO2e)"];
+      const reason = row['Company-reported reason for change'];
+      // Build a meaningful solution
+      let solution = '';
+      if (reason && reason.trim() !== '' && reason !== 'N/a') {
+        solution = cleanText(reason);
+      } else {
+        // Generic but contextual solution based on circular strategy
+        const strategy =
+          row['*EndOfLife CO2e (fraction of total PCF)'] &&
+          parseFloat(row['*EndOfLife CO2e (fraction of total PCF)']) > 0
+            ? 'End‑of‑life recycling potential'
+            : 'Carbon footprint reduction';
+        if (strategy === 'End‑of‑life recycling potential') {
+          solution = `Design for recyclability and establish take‑back programs for this product. The product has a reported carbon footprint of ${pcf} kg CO₂e, with significant end‑of‑life emissions.`;
+        } else {
+          solution = `Implement measures to reduce the carbon footprint, such as energy efficiency improvements, material substitution, or supply chain optimisation. Current carbon footprint is ${pcf} kg CO₂e.`;
+        }
+      }
+
+      return {
+        problem: cleanText(
+          `High carbon footprint of ${row["Company's sector"] || 'product'} ${row['Product name (and functional unit)'] || ''}`.trim(),
+        ),
+        solution: solution,
+        materials: cleanText(row['Product weight (kg)'] ? `${row['Product weight (kg)']} kg` : ''),
+        circular_strategy:
+          row['*EndOfLife CO2e (fraction of total PCF)'] &&
+          parseFloat(row['*EndOfLife CO2e (fraction of total PCF)']) > 0
+            ? 'End‑of‑life recycling potential'
+            : 'Carbon footprint reduction',
+        category: cleanText(
+          row["Company's sector"] || row["Company's GICS Industry Group"] || 'General',
+        ),
+        impact: cleanText(`${pcf} kg CO₂e`),
+        source_url: 'https://www.kaggle.com/datasets/unsdsn/global-carbon-catalogue',
+        metadata_json: JSON.stringify(row),
+      };
+    });
 }
 
 async function handleGLEAM(filePath) {
@@ -129,26 +158,31 @@ async function handleGLEAM(filePath) {
   const rows = parseCSV(filePath, delimiter);
   return rows
     .filter((row) => row.Region && row['Animal species'])
-    .map((row) => ({
-      problem: cleanText(
-        `Livestock emissions in ${row.Region} (${row['Animal species']}, ${row.Production_system || 'aggregated'})`,
-      ),
-      solution: cleanText(
-        `Commodity: ${row.Commodity || 'mixed'} – emission intensity ${row['Emission Intensity (kg CO2e per kg protein)'] || 'N/A'} kg CO₂e/kg protein`,
-      ),
-      materials: cleanText(row['Animal species']),
-      circular_strategy:
-        row['Manure management, N2O (kg CO2e)'] &&
-        parseFloat(row['Manure management, N2O (kg CO2e)']) > 0
-          ? 'Manure management'
-          : 'Feed efficiency',
-      category: 'Livestock Emissions',
-      impact: cleanText(
-        `${parseFloat(row['Total GHG emissions (kg CO2e)'] || 0).toFixed(0)} kg CO₂e total`,
-      ),
-      source_url: 'https://www.fao.org/gleam/en/',
-      metadata_json: JSON.stringify(row),
-    }));
+    .map((row) => {
+      const intensity = row['Emission Intensity (kg CO2e per kg protein)'] || 'N/A';
+      const species = row['Animal species'];
+      const region = row.Region;
+      const solution = `Adopt sustainable livestock management practices, including improved manure management, feed efficiency, and pasture management, to reduce emissions from ${species} in ${region}. Current emission intensity is ${intensity} kg CO₂e/kg protein.`;
+
+      return {
+        problem: cleanText(
+          `Livestock emissions in ${region} (${species}, ${row.Production_system || 'aggregated'})`,
+        ),
+        solution: cleanText(solution),
+        materials: cleanText(species),
+        circular_strategy:
+          row['Manure management, N2O (kg CO2e)'] &&
+          parseFloat(row['Manure management, N2O (kg CO2e)']) > 0
+            ? 'Manure management'
+            : 'Feed efficiency',
+        category: 'Livestock Emissions',
+        impact: cleanText(
+          `${parseFloat(row['Total GHG emissions (kg CO2e)'] || 0).toFixed(0)} kg CO₂e total`,
+        ),
+        source_url: 'https://www.fao.org/gleam/en/',
+        metadata_json: JSON.stringify(row),
+      };
+    });
 }
 
 async function handleGreenSupplyChain(filePath) {
@@ -160,23 +194,34 @@ async function handleGreenSupplyChain(filePath) {
       const co2 = parseFloat(row.CO2_Emissions_kg);
       return !isNaN(score) && (score > 70 || score < 30) && co2 > 0;
     })
-    .map((row) => ({
-      problem: cleanText(
-        parseFloat(row.Sustainability_Score) > 70
-          ? `Sustainable product: ${row.Product_Type}`
-          : `Unsustainable product: ${row.Product_Type}`,
-      ),
-      solution: cleanText(
-        `Sustainability score ${row.Sustainability_Score} – CO₂: ${row.CO2_Emissions_kg} kg, Waste: ${row.Waste_Generated_kg} kg`,
-      ),
-      materials: cleanText(`${row.Raw_Material_Usage_kg} kg raw materials`),
-      circular_strategy:
-        parseFloat(row['Renewable_Energy_%']) > 50 ? 'Renewable energy use' : 'Efficiency measures',
-      category: cleanText(row.Product_Type),
-      impact: cleanText(`${row.CO2_Emissions_kg} kg CO₂, ${row.Waste_Generated_kg} kg waste`),
-      source_url: 'https://www.kaggle.com/datasets/shrutibhatia99/green-supply-chain-dataset',
-      metadata_json: JSON.stringify(row),
-    }));
+    .map((row) => {
+      const score = parseFloat(row.Sustainability_Score);
+      const co2 = row.CO2_Emissions_kg;
+      const waste = row.Waste_Generated_kg;
+      const renewable = row['Renewable_Energy_%'] || 0;
+      const productType = row.Product_Type;
+
+      const problem =
+        score > 70
+          ? `Sustainable product: ${productType}`
+          : `Unsustainable product: ${productType}`;
+
+      const solution = `Improve sustainability performance by reducing CO₂ emissions (currently ${co2} kg), minimising waste (${waste} kg), and increasing renewable energy use (${renewable}%). Consider material efficiency and circular design principles.`;
+
+      return {
+        problem: cleanText(problem),
+        solution: cleanText(solution),
+        materials: cleanText(`${row.Raw_Material_Usage_kg} kg raw materials`),
+        circular_strategy:
+          parseFloat(row['Renewable_Energy_%']) > 50
+            ? 'Renewable energy use'
+            : 'Efficiency measures',
+        category: cleanText(productType),
+        impact: cleanText(`${co2} kg CO₂, ${waste} kg waste`),
+        source_url: 'https://www.kaggle.com/datasets/shrutibhatia99/green-supply-chain-dataset',
+        metadata_json: JSON.stringify(row),
+      };
+    });
 }
 
 // ---------- Main ----------
@@ -186,7 +231,7 @@ async function main() {
   const requiredKeys = ['product_lca', 'livestock', 'supply_chain'];
   for (const key of requiredKeys) {
     if (!dataset.raw_folder_contents?.[key]) {
-      console.warn(`⚠️️️  Missing raw_folder_contents.${key} – check dataset definition.`);
+      console.warn(`⚠️  Missing raw_folder_contents.${key} – check dataset definition.`);
     }
   }
 
@@ -202,47 +247,50 @@ async function main() {
 
   for (const file of files) {
     if (!file.name) {
-      console.warn(`⚠️️️  Skipping undefined file.`);
+      console.warn(`⚠️  Skipping undefined file.`);
       continue;
     }
     const filePath = path.join(rawDir, file.name);
     if (!fs.existsSync(filePath)) {
-      console.warn(`⚠️️️  File not found: ${filePath} – skipping.`);
+      console.warn(`⚠️  File not found: ${filePath} – skipping.`);
       continue;
     }
     console.log(`📄 Processing ${file.name} ...`);
     try {
       const rows = await file.handler(filePath);
-      allRows.push(...rows);
+      // Compute quality score for each row and add to collection
+      for (const row of rows) {
+        row._qualityScore = computeQualityScoreFromMetadata(row);
+        allRows.push(row);
+      }
       console.log(`   → ${rows.length} high‑quality rows.`);
     } catch (err) {
       console.error(`❌ Error processing ${file.name}:`, err);
     }
   }
 
-  console.log(`\n📊 Total high‑quality rows collected: ${allRows.length}`);
+  console.log(`\n📊 Total rows collected: ${allRows.length}`);
 
   if (allRows.length === 0) {
     console.log('❌ No data processed. Exiting.');
     return;
   }
 
-  const finalRows = randomSample(allRows, TARGET_ROWS);
-  console.log(`🎯 Selected ${finalRows.length} rows (target: ${TARGET_ROWS}).`);
+  // Sort by quality score (descending) and select top TARGET_ROWS
+  const finalRows = allRows.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, TARGET_ROWS);
 
-  // Assign sequential IDs
-  const rowsWithIds = finalRows.map((row, idx) => ({
-    ...row,
-    ID: formatId(DATASET_KEY, idx + 1),
-  }));
+  console.log(`🎯 Selected ${finalRows.length} highest‑quality rows (target: ${TARGET_ROWS}).`);
+  console.log(
+    `   Quality score range: ${Math.min(...finalRows.map((r) => r._qualityScore))} – ${Math.max(...finalRows.map((r) => r._qualityScore))}`,
+  );
 
-  await writeCsv(OUTPUT_PATH, rowsWithIds);
-  console.log(`✅ Successfully wrote ${rowsWithIds.length} rows to ${OUTPUT_PATH}`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(`✅ Successfully wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Error in main execution:', err.message);
+    console.error('\n❌ Error in main execution:', err.message, err.stack);
     process.exit(1);
   });
 }

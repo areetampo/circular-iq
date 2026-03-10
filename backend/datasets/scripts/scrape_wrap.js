@@ -437,7 +437,9 @@ async function processResource(browser, url, category) {
           await sleep(2000);
         }
       }
-    } catch {}
+    } catch (e) {
+      // Ignore cookie banner errors
+    }
 
     if (category.name === 'case-studies') {
       const row = await extractCaseStudy(page);
@@ -704,8 +706,7 @@ async function scrape_wrap() {
         );
       }
 
-      const finalRows = validRows.map((row, idx) => ({
-        ID: formatId(DATASET_KEY, idx + 1),
+      const finalRows = validRows.map((row) => ({
         problem: cleanText(row.problem),
         solution: cleanText(row.solution),
         materials: cleanText(row.materials),
@@ -716,7 +717,7 @@ async function scrape_wrap() {
         metadata_json: row.metadata_json,
       }));
 
-      await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+      await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
       console.log(`\n✅ Scraped ${finalRows.length} valid case study rows.`);
       console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 

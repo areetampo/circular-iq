@@ -276,8 +276,7 @@ async function rebuildFromBackup() {
       transformed = transformed.slice(0, TARGET_ROWS);
     }
 
-    const finalRows = transformed.map((row, idx) => ({
-      ID: formatId(DATASET_KEY, idx + 1),
+    const finalRows = transformed.map((row) => ({
       problem: row.problem || '',
       solution: row.solution || '',
       materials: row.materials || '',
@@ -289,7 +288,7 @@ async function rebuildFromBackup() {
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row),
     }));
 
-    await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} products from backup`);
     console.log(`📁 Saved to: ${outputFile}`);
     await appendLogs(DATASET_KEY, `✅ Recovery complete. Wrote ${finalRows.length} rows.`);
@@ -380,8 +379,7 @@ async function main() {
   await appendLogs(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
 
   // Assign final IDs
-  const finalRows = transformed.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
+  const finalRows = transformed.map((row) => ({
     problem: row.problem,
     solution: row.solution,
     materials: row.materials,
@@ -392,7 +390,7 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
   await backup.flush(); // ensure any remaining buffer is written
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages scraped: ${pagesScraped.join(', ')}.`;

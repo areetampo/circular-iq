@@ -412,8 +412,7 @@ async function rebuildFromBackup() {
       return;
     }
 
-    const finalRows = items.map((item, idx) => ({
-      ID: formatId(DATASET_KEY, idx + 1),
+    const finalRows = items.map((item) => ({
       problem: cleanText(item.problem || ''),
       solution: cleanText(item.solution || ''),
       materials: cleanText(item.materials || ''),
@@ -424,7 +423,7 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✨ Successfully rebuilt ${finalRows.length} EMF case studies from backup`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
@@ -599,8 +598,7 @@ async function scrape_emf() {
     }
 
     // --- STEP 2: Save to CSV ---
-    const finalRows = collected.map((item, idx) => ({
-      ID: formatId(DATASET_KEY, idx + 1),
+    const finalRows = collected.map((item) => ({
       problem: item.problem,
       solution: item.solution,
       materials: item.materials,
@@ -611,7 +609,7 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✅ Scraped ${finalRows.length} EMF case studies.`);
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 

@@ -432,13 +432,10 @@ async function rebuildFromBackup() {
       location, // already handled separately
       ...cleanRow
     } = row;
-    return {
-      ID: formatId(DATASET_KEY, idx + 1),
-      ...cleanRow,
-    };
+    return cleanRow;
   });
 
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
   await appendLogs(
     DATASET_KEY,
@@ -607,7 +604,7 @@ async function scrape() {
     }
 
     // Prepare final rows with IDs (strip temporary fields)
-    const finalRows = topRows.map((row, idx) => {
+    const finalRows = topRows.map((row) => {
       const {
         _qualityScore,
         _materialCount,
@@ -619,13 +616,10 @@ async function scrape() {
         location, // already handled separately
         ...cleanRow
       } = row;
-      return {
-        ID: formatId(DATASET_KEY, idx + 1),
-        ...cleanRow,
-      };
+      return cleanRow;
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Final rows kept: ${finalRows.length}`);

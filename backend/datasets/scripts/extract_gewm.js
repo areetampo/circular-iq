@@ -268,13 +268,8 @@ async function cleanData() {
     };
   });
 
-  const finalMapped = mapped.map((r, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...r,
-  }));
-
-  await writeCsv(OUTPUT_PATH, finalMapped); // now allowed inside async function
-  console.log(`✅ Final cleaned CSV written to ${OUTPUT_PATH} with ${finalMapped.length} rows.`);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, mapped); // now allowed inside async function
+  console.log(`✅ Final cleaned CSV written to ${OUTPUT_PATH} with ${mapped.length} rows.`);
 }
 
 // ----------------------------------------------------------------------

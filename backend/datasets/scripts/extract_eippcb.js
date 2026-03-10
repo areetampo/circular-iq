@@ -190,15 +190,12 @@ async function main() {
   const finalRows = allScoredRows
     .sort((a, b) => b._score - a._score)
     .slice(0, LIMIT_ROWS)
-    .map((row, idx) => {
+    .map((row) => {
       const { _score, ...cleanRow } = row;
-      return {
-        ID: formatId(DATASET_KEY, idx + 1),
-        ...cleanRow,
-      };
+      return cleanRow;
     });
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
     `✅ Extraction Complete. Processed ${allScoredRows.length} total, saved top ${finalRows.length} high-quality rows.`,
   );

@@ -289,14 +289,11 @@ async function main() {
 
   console.log(`\n🎯 Selected top ${topRows.length} rows by quality score.`);
 
-  // Remove temporary fields and add ID
-  const final = topRows.map(({ _scoreValue, score, ...rest }, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...rest,
-  }));
+  // Remove temporary fields
+  const final = topRows.map(({ _scoreValue, score, ...rest }) => rest);
 
   // writeCsv handles directory creation, clearing and read-only locking
-  await writeCsv(OUTPUT_PATH, final);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
   console.log(`✅ Success! Wrote ${final.length} records to ${OUTPUT_PATH}`);
 }
 

@@ -570,8 +570,7 @@ async function main() {
     return;
   }
 
-  const finalRows = allRows.map((r, index) => ({
-    ID: formatId(DATASET_KEY, index + 1),
+  const finalRows = allRows.map((r) => ({
     problem: r.problem,
     solution: r.solution,
     materials: r.materials,
@@ -579,10 +578,10 @@ async function main() {
     category: r.category,
     impact: r.impact,
     source_url: r.source_url,
-    metadata_json: r.metadata_json, // already a string
+    metadata_json: r.metadata_json,
   }));
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(`\n✅ Successfully wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 

@@ -549,15 +549,12 @@ async function main() {
   const sorted = allRows.sort((a, b) => b._score - a._score);
   const topRows = sorted.slice(0, FINAL_ROW_LIMIT);
 
-  const finalRows = topRows.map((row, idx) => {
+  const finalRows = topRows.map((row) => {
     const { _score, ...rest } = row;
-    return {
-      ID: formatId(DATASET_KEY, idx + 1),
-      ...rest,
-    };
+    return rest;
   });
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(`✅ Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
 }
 

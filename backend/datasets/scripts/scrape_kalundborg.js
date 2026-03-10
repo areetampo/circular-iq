@@ -338,13 +338,10 @@ async function rebuildFromBackup() {
   // Add IDs and write final CSV (strip temporary fields)
   const finalRows = topCases.map((row, idx) => {
     const { _qualityScore, _materialCount, _hasQuantifiedImpact, ...cleanRow } = row;
-    return {
-      ID: formatId(DATASET_KEY, idx + 1),
-      ...cleanRow,
-    };
+    return cleanRow;
   });
 
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
   await appendLogs(
     DATASET_KEY,
@@ -430,15 +427,12 @@ async function scrape() {
     await appendLogs(DATASET_KEY, `Valid rows: ${validRows.length}, keeping top ${topRows.length}`);
 
     // Prepare final rows (strip temporary fields)
-    const finalRows = topRows.map((row, idx) => {
+    const finalRows = topRows.map((row) => {
       const { _qualityScore, _materialCount, _hasQuantifiedImpact, ...cleanRow } = row;
-      return {
-        ID: formatId(DATASET_KEY, idx + 1),
-        ...cleanRow,
-      };
+      return cleanRow;
     });
 
-    await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);

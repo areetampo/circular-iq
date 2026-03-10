@@ -45,7 +45,6 @@ const rawDir = getDatasetRawDir(DATASET_KEY);
 verifyPathsExist(rawDir);
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-
 const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
   path.join(rawDir, file),
 );
@@ -460,8 +459,7 @@ async function main() {
     }
   }
 
-  const finalRows = unique.map((r, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
+  const finalRows = unique.map((r) => ({
     problem: r.problem || '',
     solution: r.solution || '',
     materials: r.materials || '',
@@ -472,7 +470,7 @@ async function main() {
     metadata_json: typeof r.metadata_json === 'string' ? r.metadata_json : JSON.stringify(r),
   }));
 
-  await writeCsv(OUTPUT_PATH, finalRows);
+  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(`\n✨ Successfully unified files into ${finalRows.length} high‑quality rows.`);
   console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 }

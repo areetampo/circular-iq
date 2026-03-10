@@ -374,11 +374,10 @@ async function rebuildFromBackup() {
       `Selected ${uniqueRows.length} rows after filtering and deduplication.`,
     );
 
-    const finalRows = uniqueRows.map((row, idx) => {
+    const finalRows = uniqueRows.map((row) => {
       const metadataJson =
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row);
       return {
-        ID: formatId(DATASET_KEY, idx + 1),
         problem: row.problem || '',
         solution: row.solution || '',
         materials: row.materials || '',
@@ -390,7 +389,7 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
+    await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
     console.log(
       `\n✨ Successfully rebuilt ${finalRows.length} Open Beauty Facts products from backup`,
     );
@@ -475,7 +474,7 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
+  await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
   await backup.flush();
 
   const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;

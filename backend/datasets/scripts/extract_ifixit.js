@@ -276,16 +276,11 @@ async function main() {
   allRows.sort((a, b) => b.score - a.score);
   const topRows = allRows.slice(0, MAX_ROWS).map((item) => item.row);
 
-  // Reassign sequential IDs based on final order
-  topRows.forEach((row, idx) => {
-    row.ID = formatId(DATASET_KEY, idx + 1);
-  });
-
   console.log(
     `Keeping top ${topRows.length} rows (score range: ${allRows[0].score.toFixed(2)} – ${allRows[MAX_ROWS - 1]?.score.toFixed(2)})`,
   );
 
-  await writeCsv(outputPath, topRows);
+  await writeCsv(DATASET_KEY, outputPath, topRows);
   console.log(`✅ Written ${topRows.length} rows to ${outputPath}`);
 }
 

@@ -1129,141 +1129,181 @@ export function hasAppendBackupFlag() {
 }
 
 /**
- * Generate a content key for deduplication (excludes ID and metadata_json).
- * @param {Object} row - Row object with standard columns.
- * @returns {string} - A string key for comparison.
- */
-function getContentKey(row) {
-  const fields = [
-    'problem',
-    'solution',
-    'materials',
-    'circular_strategy',
-    'category',
-    'impact',
-    'source_url',
-  ];
-  return fields
-    .map((f) => row[f] || '')
-    .join('|')
-    .trim();
-}
-
-/**
  * Write rows to a CSV file, with optional append and deduplication.
- * @param {string} filePath - Path to the CSV file.
- * @param {Array} rows - Array of row objects.
- * @param {boolean} append - If true, append rows instead of overwriting.
+ *
+ * @param {string} datasetKey - Dataset key (e.g. 'c2c') used for ID prefix.
+ * @param {string} filePath - Full path to the CSV file.
+ * @param {Array<Object>} rows - Array of row objects (each must contain the CSV_COLUMNS keys).
+ * @param {Object} [options] - Configuration options.
+ * @param {boolean} [options.append=false] - If true, append rows; otherwise overwrite.
+ * @param {string[]} [options.dedupFields] - Fields used to build a content key for deduplication.
+ *   Defaults to ['problem','solution','materials','circular_strategy','category','impact','source_url'].
+ * @param {boolean} [options.strict=false] - If true, throw an error when the existing file cannot be read/parsed.
+ * @param {boolean} [options.skipDedupe=false] - If true, skip deduplication entirely (faster, assumes unique rows).
+ * @param {boolean} [options.validateColumns=false] - If true, check that the existing file contains all CSV_COLUMNS.
+ * @param {boolean} [options.lock=true] - If true, set the file to read‑only (chmod 444) after writing.
+ *
+ * @returns {Promise<{writtenCount: number, duplicateCount: number, lastId: string|null}>}
+ *   Metadata about the operation.
  */
-export async function writeCsv(DATASET_KEY, filePath, rows, append = false) {
-  // Helper to prepare write (ensure dir, unlock if exists)
-  const prepareWrite = async (path) => {
-    const dir = path.dirname(filePath);
-    await fs.promises.mkdir(dir, { recursive: true });
-    let existed = false;
-    try {
-      // unlock if exists
-      await fs.promises.access(filePath);
-      await fs.promises.chmod(filePath, 0o666);
-      existed = true;
-    } catch {
-      // file doesn't exist, ignore
-    }
-    return existed;
-  };
+export async function writeCsv(datasetKey, filePath, rows, options = {}) {
+  const {
+    append = false,
+    dedupFields = [
+      'problem',
+      'solution',
+      'materials',
+      'circular_strategy',
+      'category',
+      'impact',
+      'source_url',
+      'metadata_json',
+    ],
+    strict = false,
+    skipDedupe = false,
+    validateColumns = false,
+    lock = true,
+  } = options;
 
-  if (append) {
-    // ensure directory exists / unlock file but do not clear it
-    const hadBefore = await prepareWrite(filePath);
-
-    let existingRows = [];
-    let lastSuffix = 0;
-    const contentKeySet = new Set();
-
-    if (hadBefore) {
+  // -------------------------------------------------------------------------
+  // 1. Non‑append mode (simple overwrite)
+  // -------------------------------------------------------------------------
+  if (!append) {
+    await prepareWrite(filePath, { clear: true });
+    const rowsWithIds = rows.map((row, idx) => ({
+      ID: formatId(datasetKey, idx + 1),
+      ...row,
+    }));
+    const csv = stringify(rowsWithIds, STRINGIFY_OPTIONS);
+    await fs.promises.writeFile(filePath, csv);
+    if (lock) {
       try {
-        const content = await fs.promises.readFile(filePath, 'utf8');
-        // Parse using csv-parse/sync
-        const records = parse(content, { columns: true, skip_empty_lines: true });
-        existingRows = records;
-
-        // Build content key set from existing rows
-        existingRows.forEach((row) => {
-          const key = getContentKey(row);
-          contentKeySet.add(key);
-        });
-
-        // Determine highest numeric suffix from IDs
-        existingRows.forEach((row) => {
-          const val = row.id != null ? row.id : row.ID;
-          if (val) {
-            const m = String(val).match(/_(\d+)$/);
-            if (m) {
-              const num = parseInt(m[1], 10);
-              if (!isNaN(num) && num > lastSuffix) {
-                lastSuffix = num;
-              }
-            }
-          }
-        });
-      } catch (err) {
-        console.warn(`Could not read existing file for append: ${err.message}`);
-        // proceed without deduplication or suffix bump
+        await fs.promises.chmod(filePath, 0o444);
+      } catch (e) {
+        // ignore errors on platforms that don't support chmod
       }
     }
-
-    // Deduplicate new rows against existing content
-    const uniqueNewRows = [];
-    for (const row of rows) {
-      const key = getContentKey(row);
-      if (!contentKeySet.has(key)) {
-        uniqueNewRows.push(row);
-        contentKeySet.add(key); // prevent duplicates within the new batch
-      }
-    }
-
-    // Add IDs to new rows
-    if (uniqueNewRows.length > 0) {
-      uniqueNewRows.forEach((row, idx) => {
-        row.ID = formatId(DATASET_KEY, lastSuffix + idx + 1);
-      });
-    }
-
-    // Stringify new rows (without header if appending to existing file)
-    const options = hadBefore ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
-    const csv = stringify(uniqueNewRows, options);
-
-    if (hadBefore) {
-      await fs.promises.appendFile(filePath, csv);
-    } else {
-      await fs.promises.writeFile(filePath, csv);
-    }
-
-    // Lock file to read-only
-    try {
-      await fs.promises.chmod(filePath, 0o444);
-    } catch {
-      // ignore
-    }
-    return;
+    return {
+      writtenCount: rowsWithIds.length,
+      duplicateCount: 0,
+      lastId: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
+    };
   }
 
-  // default non-append behaviour (overwrite)
-  await prepareWrite(filePath);
-  
-  // Add IDs to all rows
-  const rowsWithIds = rows.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
+  // -------------------------------------------------------------------------
+  // 2. Append mode
+  // -------------------------------------------------------------------------
+  await prepareWrite(filePath); // ensure directory exists and file is writable
+
+  let existingRows = [];
+  let lastSuffix = 0;
+  const contentKeySet = new Set();
+
+  // 2a. Try to read existing file
+  try {
+    const content = await fs.promises.readFile(filePath, 'utf8').catch(() => null);
+    if (content && content.trim()) {
+      const records = parse(content, { columns: true, skip_empty_lines: true });
+      existingRows = records;
+
+      // Optional column validation
+      if (validateColumns && records.length > 0) {
+        const headers = Object.keys(records[0]);
+        const missing = CSV_COLUMNS.filter((col) => !headers.includes(col));
+        if (missing.length) {
+          throw new Error(`Existing CSV missing required columns: ${missing.join(', ')}`);
+        }
+      }
+
+      // Build deduplication set from existing rows
+      if (!skipDedupe) {
+        existingRows.forEach((row) => {
+          const key = dedupFields
+            .map((f) => row[f] || '')
+            .join('|')
+            .trim();
+          contentKeySet.add(key);
+        });
+      }
+
+      // Find the highest numeric suffix from existing IDs
+      existingRows.forEach((row) => {
+        const id = row.ID;
+        // ID must start with datasetKey + '_'
+        if (id && id.startsWith(datasetKey + '_')) {
+          const suffixPart = id.substring(datasetKey.length + 1); // after "key_"
+          const match = suffixPart.match(/\d+$/); // trailing digits
+          if (match) {
+            const num = parseInt(match[0], 10);
+            if (!isNaN(num) && num > lastSuffix) {
+              lastSuffix = num;
+            }
+          }
+        }
+      });
+    }
+  } catch (err) {
+    if (strict) {
+      throw new Error(`Failed to read existing file for append: ${err.message}`);
+    }
+    console.warn(
+      `Could not read existing file for append, proceeding without deduplication: ${err.message}`,
+    );
+    // Continue with empty state
+  }
+
+  // 2b. Deduplicate new rows (if not skipped)
+  let newRows = rows;
+  if (!skipDedupe) {
+    const uniqueNewRows = [];
+    for (const row of rows) {
+      const key = dedupFields
+        .map((f) => row[f] || '')
+        .join('|')
+        .trim();
+      if (!contentKeySet.has(key)) {
+        uniqueNewRows.push(row);
+        contentKeySet.add(key); // also prevent duplicates within the batch
+      }
+    }
+    newRows = uniqueNewRows;
+  }
+
+  const duplicateCount = rows.length - newRows.length;
+
+  // 2c. Assign sequential IDs
+  const rowsWithIds = newRows.map((row, idx) => ({
+    ID: formatId(datasetKey, lastSuffix + idx + 1),
     ...row,
   }));
 
-  const csv = stringify(rowsWithIds, STRINGIFY_OPTIONS);
-  await fs.promises.writeFile(filePath, csv);
-  try {
-    await fs.promises.chmod(filePath, 0o444);
-  } catch {
-    // ignore
+  if (rowsWithIds.length === 0) {
+    return { writtenCount: 0, duplicateCount, lastId: null };
   }
+
+  // 2d. Stringify (omit header if file already existed)
+  const stringifyOptions = { ...STRINGIFY_OPTIONS, header: existingRows.length === 0 };
+  const csv = stringify(rowsWithIds, stringifyOptions);
+
+  if (existingRows.length > 0) {
+    await fs.promises.appendFile(filePath, csv);
+  } else {
+    await fs.promises.writeFile(filePath, csv);
+  }
+
+  if (lock) {
+    try {
+      await fs.promises.chmod(filePath, 0o444);
+    } catch (e) {
+      // ignore errors on platforms that don't support chmod
+    }
+  }
+
+  return {
+    writtenCount: rowsWithIds.length,
+    duplicateCount,
+    lastId: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
+  };
 }
 
 /**
