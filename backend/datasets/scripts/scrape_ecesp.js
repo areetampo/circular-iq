@@ -1,5 +1,3 @@
-/* global process */
-
 /**
  * scrape_ecesp.js - European Commission Circular Economy and Sustainability Practices extraction
  *
@@ -9,6 +7,7 @@
  * Features:
  *   • Pagination handling with dynamic load-more button clicking
  *   • Per-item detail extraction (organization, description, impact metrics)
+ *   • Improved extraction: problem, solution, and impact using keyword-based heuristics
  *   • Quality scoring based on content completeness and measurable impact indicators
  *   • Backup system: incremental batch-level backup and recovery mode
  *   • Detailed logging to dataset-specific log file
@@ -55,21 +54,179 @@ const BASE_URL = dataset.urls.target;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const START_PAGE = 0; // pagination is 0‑based index
 const END_PAGE = 63; // 0-based index for the last page
-const MAX_PAGES_TO_FETCH = 64;
-const BEST_LIMIT = 450; // Max items to keep
+const MAX_PAGES_TO_FETCH = 64; // Total pages to fetch
+const BEST_LIMIT = 300; // Max items to keep
 const BACKUP_INTERVAL = 3; // pages per backup flush
-const CLEAR_BACKUP_ON_START = true;
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-  MAX_PAGES_TO_FETCH,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, MAX_PAGES_TO_FETCH);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// ============================================================================
+// Improved extraction helpers
+// ============================================================================
+
+/**
+ * Extract a problem statement from the description text.
+ * Looks for sentences containing problem-related keywords.
+ * @param {string} description - Full description text.
+ * @returns {string} Extracted problem statement.
+ */
+function extractProblem(description) {
+  if (!description) return '';
+  const sentences = description.match(/[^.!?]+[.!?]+/g) || [description];
+
+  // Broader set of problem indicators
+  const problemIndicators = [
+    'problem',
+    'challenge',
+    'issue',
+    'lack',
+    'shortage',
+    'scarcity',
+    'waste',
+    'emission',
+    'pollution',
+    'depletion',
+    'inefficient',
+    'unsustainable',
+    'negative impact',
+    'difficulty',
+    'obstacle',
+    'barrier',
+    'footprint',
+    'environmental impact',
+    'resource consumption',
+  ];
+
+  for (const sentence of sentences) {
+    const lower = sentence.toLowerCase();
+    if (problemIndicators.some((kw) => lower.includes(kw))) {
+      return sentence.trim();
+    }
+  }
+
+  // Fallback: use the sentence containing 'aims to reduce' or similar (often introduces the problem)
+  for (const sentence of sentences) {
+    const lower = sentence.toLowerCase();
+    if (lower.includes('aims to reduce') || lower.includes('goal is to')) {
+      return sentence.trim();
+    }
+  }
+
+  // If nothing found, return the first substantive sentence (≥30 chars)
+  if (sentences.length > 0 && sentences[0].length > 30) return sentences[0].trim();
+
+  return 'Circular economy challenge requiring intervention.';
+}
+
+/**
+ * Extract a solution statement from the description text.
+ * After the problem, the solution is often described.
+ * @param {string} description - Full description text.
+ * @param {string} problem - The extracted problem (to avoid duplication).
+ * @returns {string} Extracted solution.
+ */
+function extractSolution(description, problem) {
+  if (!description) return '';
+
+  // Try to locate a "solution" section explicitly
+  const solutionSectionPattern =
+    /(?:solution|approach|method|implemented|developed|initiative|action)[:\s]+([^]*?)(?=(?:problem|outcome|impact|result|benefit|$))/i;
+  const match = description.match(solutionSectionPattern);
+  if (match && match[1].trim().length > 20) {
+    return match[1].trim();
+  }
+
+  // If problem is found, take the next 2-3 sentences after it
+  if (problem && description.includes(problem)) {
+    const afterProblem = description.split(problem)[1];
+    if (afterProblem && afterProblem.trim().length > 20) {
+      const sentences = afterProblem.match(/[^.!?]+[.!?]+/g) || [];
+      return sentences.slice(0, 3).join(' ').trim();
+    }
+  }
+
+  // Fallback: use the full description but limit to 500 chars
+  return description.substring(0, 500) + (description.length > 500 ? '...' : '');
+}
+
+/**
+ * Extract impact from results field and/or description.
+ * Prefers quantified metrics.
+ * @param {string} results - Main results field.
+ * @param {string} description - Full description.
+ * @returns {string} Impact statement.
+ */
+function extractImpact(results, description) {
+  const combined = (results + ' ' + description).trim();
+
+  // Look for quantified sentences (contain numbers and units)
+  const sentences = combined.match(/[^.!?]+[.!?]+/g) || [];
+  const quantified = sentences.filter((s) => {
+    const lower = s.toLowerCase();
+    return (
+      /\d+/.test(s) && // contains a number
+      (/%|tonne|ton|kg|co2|ghg|euro|\$|million|billion|saved|reduced|diverted/i.test(lower) ||
+        /reduction|decrease|increase/i.test(lower))
+    );
+  });
+
+  if (quantified.length > 0) {
+    // Use the most comprehensive quantified sentence (longest)
+    quantified.sort((a, b) => b.length - a.length);
+    return quantified[0].trim();
+  }
+
+  // Fallback: use results if available and not empty
+  if (results && results.length > 20) {
+    return results.trim();
+  }
+
+  // Last resort: use description snippet containing numbers
+  const anyQuant = sentences.find((s) => /\d+/.test(s));
+  if (anyQuant) return anyQuant.trim();
+
+  return 'No specific impact data available.';
+}
+
+/**
+ * Infer circular strategy based on text.
+ * @param {string} text - Combined text to search.
+ * @returns {string} Inferred strategy.
+ */
+function inferStrategy(text) {
+  const lower = text.toLowerCase();
+  const strategyMap = {
+    refurbish: ['refurbish', 'renovate', 'retrofit'],
+    reuse: ['reuse', 'second-hand', 'repurpose'],
+    remanufacture: ['remanufactur'],
+    repair: ['repair', 'maintenance', 'fix'],
+    recycle: ['recycle', 'recovery'],
+    'product-as-a-service': ['service', 'leasing', 'rental', 'product as a service', 'pay per use'],
+    'industrial symbiosis': ['symbiosis', 'by-product', 'waste exchange', 'shared resource'],
+    'eco-design': ['design', 'ecodesign', 'design for', 'life cycle', 'lca'],
+    reduce: ['reduce', 'prevention', 'refuse', 'less', 'minimise', 'minimize'],
+  };
+  // Check in order of specificity
+  const order = [
+    'refurbish',
+    'reuse',
+    'remanufacture',
+    'repair',
+    'recycle',
+    'product-as-a-service',
+    'industrial symbiosis',
+    'eco-design',
+    'reduce',
+  ];
+  for (const strat of order) {
+    if (strategyMap[strat].some((kw) => lower.includes(kw))) return strat;
+  }
+  return 'general';
+}
 
 /**
  * Score an item based on description and results.
@@ -81,11 +238,20 @@ function scoreItem(description, results) {
   const text = (description + ' ' + results).toLowerCase();
   let score = 0;
 
-  // +3 for measurable impact (numbers, units)
-  if (/\d+%|\d+\s?tonnes|\d+\s?million|€|\$|\d+\s?co2/i.test(text)) score += 3;
+  // Baseline: at least some content
+  if (description.trim().length > 0 || results.trim().length > 0) score += 1;
 
-  // +2 for long description (more detailed)
-  if (description.length > 800) score += 2;
+  // +4 for measurable impact (numbers + units or clear reduction terms)
+  if (
+    /\d+%|\d+\s?ton(ne)?s?|\d+\s?kg|\d+\s?co2|€|\$|\d+\s?million|reduction of \d+|saved \d+/i.test(
+      text,
+    )
+  ) {
+    score += 4;
+  }
+
+  // +2 for longer description (more detailed)
+  if (description.length > 500) score += 2;
 
   // +2 for circular economy keywords
   const circularKeywords = [
@@ -95,10 +261,11 @@ function scoreItem(description, results) {
     'circular',
     'closed loop',
     'recovery',
+    'refurbish',
   ];
   if (circularKeywords.some((kw) => text.includes(kw))) score += 2;
 
-  // +1 for material/industry keywords
+  // +1 for material/industry keywords (using a compact material list)
   const materialKeywords = [
     'steel',
     'plastic',
@@ -122,20 +289,54 @@ function scoreItem(description, results) {
     'cardboard',
     'concrete',
     'timber',
+    'cotton',
+    'polyester',
+    'nylon',
+    'leather',
+    'ceramic',
+    'stone',
+    'gravel',
+    'sand',
+    'cement',
+    'asphalt',
+    'brick',
+    'tile',
+    'fabric',
+    'yarn',
+    'fibre',
+    'cellulose',
+    'polymer',
+    'resin',
+    'solvent',
+    'chemical',
+    'paint',
+    'dye',
+    'ink',
+    'adhesive',
+    'glue',
+    'sealant',
+    'insulation',
+    'foam',
+    'sponge',
+    'battery',
+    'lithium',
+    'cobalt',
+    'nickel',
+    'manganese',
+    'graphite',
   ];
   if (materialKeywords.some((kw) => text.includes(kw))) score += 1;
 
-  // -2 for policy/report narrative (likely not a concrete practice)
+  // -1 for policy/report narrative (likely not a concrete practice)
   if (text.includes('report') || text.includes('framework') || text.includes('strategy document'))
-    score -= 2;
+    // score -= 1; // Commenting out negative scoring for policy language, as some practices may still contain these terms but be valid
 
-  return score;
+    return score;
 }
 
-/**
- * Rebuild final CSV from backup content.
- * Used when --use-backup flag is passed to script.
- */
+// ============================================================================
+// Backup recovery (unchanged except for using new extraction in rebuild)
+// ============================================================================
 async function rebuildFromBackup() {
   console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
@@ -184,18 +385,14 @@ async function rebuildFromBackup() {
     // Sort by score descending
     items.sort((a, b) => b.score - a.score);
 
-    // Deduplicate by title (using metadata.title) and source_url
-    const seenUrls = new Set();
-    const seenTitles = new Set();
+    // Deduplicate by problem+solution combination
+    const seenPairs = new Set();
     const uniqueItems = [];
 
     for (const item of items) {
-      if (seenUrls.has(item.source_url)) continue;
-      seenUrls.add(item.source_url);
-
-      const title = item.metadata.title || '';
-      if (seenTitles.has(title)) continue;
-      seenTitles.add(title);
+      const pairKey = `${item.problem || ''}|||${item.solution || ''}`;
+      if (seenPairs.has(pairKey)) continue;
+      seenPairs.add(pairKey);
 
       uniqueItems.push(item);
     }
@@ -242,6 +439,9 @@ async function rebuildFromBackup() {
   }
 }
 
+// ============================================================================
+// Main scrape function (modified extraction)
+// ============================================================================
 async function scrape_ecesp() {
   await clearLogs(DATASET_KEY);
 
@@ -258,7 +458,7 @@ async function scrape_ecesp() {
     const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
     await appendLogs(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${BASE_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${BASE_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
     );
 
     browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
@@ -402,7 +602,12 @@ async function scrape_ecesp() {
             const cleanedResults = cleanText(data.results);
             const cleanedSectors = data.sectors.map((s) => cleanText(s));
 
-            // Extract materials from description
+            // --- Improved extraction steps ---
+            const problem = extractProblem(cleanedDescription);
+            const solution = extractSolution(cleanedDescription, problem);
+            const impact = extractImpact(cleanedResults, cleanedDescription);
+
+            // Extract materials from description and results (only actual materials)
             const materialKeywords = [
               'steel',
               'plastic',
@@ -426,59 +631,60 @@ async function scrape_ecesp() {
               'cardboard',
               'concrete',
               'timber',
+              'cotton',
+              'polyester',
+              'nylon',
+              'leather',
+              'ceramic',
+              'stone',
+              'gravel',
+              'sand',
+              'cement',
+              'asphalt',
+              'brick',
+              'tile',
+              'fabric',
+              'yarn',
+              'fibre',
+              'cellulose',
+              'polymer',
+              'resin',
+              'solvent',
+              'chemical',
+              'paint',
+              'dye',
+              'ink',
+              'adhesive',
+              'glue',
+              'sealant',
+              'insulation',
+              'foam',
+              'sponge',
+              'battery',
+              'lithium',
+              'cobalt',
+              'nickel',
+              'manganese',
+              'graphite',
             ];
+            const combinedText = (cleanedDescription + ' ' + cleanedResults).toLowerCase();
             const materialsFound = [];
-            const lowerDesc = cleanedDescription.toLowerCase();
             for (const kw of materialKeywords) {
-              if (lowerDesc.includes(kw)) materialsFound.push(kw);
+              if (combinedText.includes(kw)) materialsFound.push(kw);
             }
-
-            // Problem: first sentence of description (or fallback)
-            let problem = '';
-            if (cleanedDescription) {
-              const firstSentence = cleanedDescription.split(/[.!?]+/)[0];
-              problem = firstSentence;
-            }
-            if (!problem || problem.length < 20) {
-              problem = `Circular economy practice in ${cleanedCountry || 'unknown'}.`;
-            }
-
-            const solution = cleanedDescription || 'No description available.';
+            const materials = [...new Set(materialsFound)].join(', ');
 
             // Category: key area or first sector
             let category = cleanedKeyArea;
             if (!category && cleanedSectors.length) {
               category = cleanedSectors[0];
             }
+            if (!category) category = 'general';
 
             // Infer circular strategy
-            let strategy = '';
-            const strategyMap = {
-              reduce: ['reduce', 'prevention', 'refuse', 'less'],
-              reuse: ['reuse', 'second-hand'],
-              recycle: ['recycle', 'recovery'],
-              repair: ['repair', 'maintenance'],
-              refurbish: ['refurbish', 'renovate'],
-              remanufacture: ['remanufactur'],
-              'product-as-a-service': ['service', 'leasing', 'rental', 'product as a service'],
-              'industrial symbiosis': ['symbiosis', 'by-product', 'waste exchange'],
-              'eco-design': ['design', 'ecodesign', 'design for'],
-            };
-            const combinedText = (
-              cleanedDescription +
-              ' ' +
-              cleanedSectors.join(' ')
-            ).toLowerCase();
-            for (const [strat, keywords] of Object.entries(strategyMap)) {
-              if (keywords.some((kw) => combinedText.includes(kw))) {
-                strategy = strat;
-                break;
-              }
-            }
+            const strategy = inferStrategy(combinedText);
 
-            const impact = cleanedResults || 'No specific impact data available.';
-
-            // Build the item with full metadata
+            // Build metadata
             const metadata = {
               title: cleanedTitle,
               organisation: cleanedOrganisation,
@@ -492,9 +698,9 @@ async function scrape_ecesp() {
             const item = {
               problem: cleanText(problem),
               solution: cleanText(solution),
-              materials: materialsFound.join(', '),
-              circular_strategy: strategy || 'general',
-              category: category || 'general',
+              materials,
+              circular_strategy: strategy,
+              category,
               impact: cleanText(impact),
               source_url: link,
               metadata,
@@ -534,7 +740,7 @@ async function scrape_ecesp() {
         await sleep(1000 + Math.floor(Math.random() * 1000));
       }
 
-      // Add page rows to backup helper (increments counter)
+      // Add page rows to backup helper
       if (pageRows.length > 0) {
         try {
           await backup.add(pageRows);
@@ -581,18 +787,14 @@ async function scrape_ecesp() {
     // Sort by score descending
     scoredItems.sort((a, b) => b.score - a.score);
 
-    // Deduplicate by title and URL
-    const seenUrls = new Set();
-    const seenTitles = new Set();
+    // Deduplicate by problem+solution combination
+    const seenPairs = new Set();
     const uniqueItems = [];
 
     for (const item of scoredItems) {
-      if (seenUrls.has(item.source_url)) continue;
-      seenUrls.add(item.source_url);
-
-      const title = item.metadata.title || '';
-      if (seenTitles.has(title)) continue;
-      seenTitles.add(title);
+      const pairKey = `${item.problem || ''}|||${item.solution || ''}`;
+      if (seenPairs.has(pairKey)) continue;
+      seenPairs.add(pairKey);
 
       uniqueItems.push(item);
     }

@@ -19,7 +19,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
+import { Buffer } from 'buffer';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -29,6 +30,8 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
   DATASET_KEYS,
+  DATASET_LOOKUP,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const require = createRequire(import.meta.url);
@@ -36,16 +39,13 @@ const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
 pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 
 const DATASET_KEY = DATASET_KEYS.metabolic;
+const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_DIR);
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+
+const inputFiles = Object.keys(dataset.raw_folder_contents).map((file) => path.join(RAW_DIR, file));
+verifyPathsExist(inputFiles);
 
 // Improved extraction parameters
 const MAX_ROWS_PER_PDF = 30;
@@ -538,7 +538,7 @@ async function main() {
         _score: score,
       });
 
-      if (allRows.length % 100 === 0) console.log(`  Collected ${allRows.length} rows so far...`);
+      if (allRows.length % 100 === 0) console.log(`  Collected ${allRows.length}+ rows so far...`);
     }
   }
 

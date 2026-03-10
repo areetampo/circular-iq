@@ -1,15 +1,11 @@
-/* global process */
-
 /**
- * scrape_circle_knowledge_hub.js - Case studies scraping from Circle Economy Knowledge Hub
+ * scrape_circle_knowledge_hub.js - Improved Case Studies Scraper for Circle Economy Knowledge Hub
  *
  * Features:
  *   • Pagination using _start=0,10,20... (10 cases per page)
- *   • Sorted by most popular (_sort=3) to prioritize quality
- *   • Extracts Problem, Solution, Outcome sections where available
- *   • Falls back to full text for unstructured cases
- *   • Filters out "TBC" and empty cases
- *   • Quality scoring based on content richness and quantified impact
+ *   • Sorted by most popular (_sort=3) to prioritise quality
+ *   • Extracts Problem, Solution, Outcome sections using regex on full_text
+ *   • Corrects field swapping and filters out low‑quality entries
  *   • Backup every 5 pages (BACKUP_INTERVAL)
  *   • Recovery mode with `--use-backup`
  *   • Clear logs with `--clear-logs`
@@ -54,49 +50,102 @@ puppeteerExtra.use(StealthPlugin());
 const DATASET_KEY = DATASET_KEYS.circle_knowledge_hub;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const BACKUP_INTERVAL = 3;
-const CLEAR_BACKUP_ON_START = true;
-const LISTINGS_URL = dataset.urls.listings;
 const BASE_URL = dataset.urls.base;
+const LISTINGS_URL = dataset.urls.listings;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 // 5274 cases / 10 per page ≈ 528 pages
 const START_PAGE = 1;
 const END_PAGE = 528; // Based on total cases and 10 per page, but we will also check for end of pages dynamically
-const MAX_PAGES_TO_FETCH = 1;
-const MAX_ROWS = 500; // Keep top MAX_ROWS highest-scoring cases
+const MAX_PAGES_TO_FETCH = 528;
+const MAX_ROWS = 600; // Keep top MAX_ROWS highest-scoring cases
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-  MAX_PAGES_TO_FETCH,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, MAX_PAGES_TO_FETCH);
+
+// ============================================================================
+// Helper functions for text parsing and quality scoring (improved)
+// ============================================================================
+
+/**
+ * Extract a section from text using a heading pattern.
+ * @param {string} text - Full text to search.
+ * @param {RegExp} headingPattern - Pattern to match the heading (e.g., /PROBLEM/i).
+ * @returns {string|null} Extracted section text, or null if not found.
+ */
+function extractSection(text, headingPattern) {
+  const lines = text.split('\n');
+  let inSection = false;
+  let sectionLines = [];
+  for (let line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Check for heading
+    if (headingPattern.test(trimmed) && !inSection) {
+      inSection = true;
+      continue;
+    }
+    if (inSection) {
+      // Stop at next heading (all caps line or line ending with colon)
+      if (/^[A-Z\s]{4,}$/.test(trimmed) || trimmed.endsWith(':')) {
+        break;
+      }
+      sectionLines.push(trimmed);
+    }
+  }
+  if (sectionLines.length === 0) return null;
+  return sectionLines.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Determine if a text is likely a company description (rather than a problem).
+ */
+function isCompanyDescription(text) {
+  const companyKeywords = [
+    'was founded',
+    'is a',
+    'company',
+    'startup',
+    'enterprise',
+    'headquartered',
+    'operates in',
+    'mission',
+    'vision',
+    'since 20',
+    'established in',
+  ];
+  const lower = text.toLowerCase();
+  return companyKeywords.some((kw) => lower.includes(kw));
+}
 
 /**
  * Calculate a quality score for a case study.
- * @param {Object} data - The extracted case data
- * @returns {number} Score from 0 to 100
+ * @param {Object} data - The extracted case data (includes problem, solution, impact, etc.)
+ * @returns {number} Score from 0 to 100.
  */
 function scoreCaseQuality(data) {
   let score = 0;
 
-  // Content length (indicates substance)
+  // Problem quality
   if (data.problem && data.problem.length > 200) score += 15;
   else if (data.problem && data.problem.length > 100) score += 10;
   else if (data.problem && data.problem.length > 50) score += 5;
 
+  // Solution quality
   if (data.solution && data.solution.length > 300) score += 20;
   else if (data.solution && data.solution.length > 150) score += 15;
   else if (data.solution && data.solution.length > 50) score += 5;
 
-  if (data.impact && data.impact.length > 100) score += 15;
-  else if (data.impact && data.impact.length > 50) score += 10;
+  // Impact quality (quantified is best)
+  if (data.impact) {
+    if (data.impact.length > 100) score += 15;
+    else if (data.impact.length > 50) score += 10;
+    if (/\d+/.test(data.impact)) score += 30; // contains numbers
+    if (/(%|tons|tonnes|kg|CO2|saved|reduced|diverted|investment)/i.test(data.impact)) score += 10;
+  }
 
-  // Quantified impact (numbers indicate measurable outcomes)
-  if (data.impact && /\d+/.test(data.impact)) score += 30;
-
-  // Has proper sections (Problem/Solution/Outcome)
+  // Has structured sections
   if (data._hasProblem) score += 10;
   if (data._hasSolution) score += 10;
   if (data._hasOutcome) score += 10;
@@ -107,7 +156,11 @@ function scoreCaseQuality(data) {
     score += Math.min(materialCount * 5, 20);
   }
 
-  // Penalize "TBC" or very short content
+  // Penalise if problem is actually a company description
+  if (isCompanyDescription(data.problem || '')) score -= 30;
+  if (isCompanyDescription(data.solution || '')) score -= 20;
+
+  // Penalise "TBC" or very short content
   if (
     data.problem?.includes('TBC') ||
     data.solution?.includes('TBC') ||
@@ -123,7 +176,7 @@ function scoreCaseQuality(data) {
 }
 
 /**
- * Extract data from a single case detail page.
+ * Extract data from a single case detail page (improved version).
  */
 async function extractCaseData(page, url, title, type) {
   try {
@@ -131,126 +184,79 @@ async function extractCaseData(page, url, title, type) {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 2000)); // Allow dynamic content to load
 
-    // Check if page has minimal content (TBC)
-    const bodyText = await page.$eval('body', (el) => el.innerText).catch(() => '');
-    if (bodyText.trim() === 'TBC' || bodyText.trim().length < 50) {
+    // Get full page text (including any error banners)
+    const fullText = await page.$eval('body', (el) => el.innerText).catch(() => '');
+    if (fullText.trim() === 'TBC' || fullText.trim().length < 50) {
       console.log('    ⚠️ Page has minimal content (TBC or empty)');
       return null;
     }
 
-    // If the page contains the technical error banner, log a warning but continue.
-    if (bodyText.includes('We are experiencing technical issues')) {
-      console.log('    ⚠️ Page has technical error banner – content may still be present');
-    }
-
-    // Extract structured sections if they exist
-    const data = await page.evaluate(() => {
-      // Try to find Problem/Solution/Outcome sections
-      const sections = {};
-
-      // Look for headings that might indicate sections
-      const headings = Array.from(
-        document.querySelectorAll('h1, h2, h3, h4, h5, h6, .textStyles__Header6'),
-      );
-
-      for (let i = 0; i < headings.length; i++) {
-        const heading = headings[i];
-        const headingText = heading.innerText.trim().toLowerCase();
-
-        // Find content after heading until next heading
-        let content = [];
-        let next = heading.nextElementSibling;
-        while (next && !next.matches('h1, h2, h3, h4, h5, h6, .textStyles__Header6')) {
-          if (next.innerText) content.push(next.innerText.trim());
-          next = next.nextElementSibling;
-        }
-        const sectionText = content.join(' ').trim();
-
-        if (headingText.includes('problem')) {
-          sections.problem = sectionText;
-        } else if (headingText.includes('solution')) {
-          sections.solution = sectionText;
-        } else if (
-          headingText.includes('outcome') ||
-          headingText.includes('impact') ||
-          headingText.includes('result')
-        ) {
-          sections.outcome = sectionText;
-        } else if (headingText.includes('summary') && !sections.problem) {
-          sections.summary = sectionText;
-        }
-      }
-
-      // If no structured sections found, get all text
-      if (Object.keys(sections).length === 0) {
-        const article =
-          document.querySelector('article') || document.querySelector('main') || document.body;
-        sections.fullText = article.innerText;
-      }
-
-      // Get type/tags
-      const typeEl =
-        document.querySelector('[class*="Contenttype"]') ||
-        document.querySelector('.textStyles__Header6:first-child');
-      const caseType = typeEl ? typeEl.innerText.trim() : '';
-
-      // Get location if available
-      const locationEl = Array.from(document.querySelectorAll('*')).find(
-        (el) => el.innerText?.includes('Location') || el.innerText?.includes('Country'),
-      );
-      let location = '';
-      if (locationEl) {
-        const match = locationEl.innerText.match(/(?:Location|Country)[:\s]+([^\n]+)/i);
-        location = match ? match[1].trim() : '';
-      }
-
-      return {
-        problem: sections.problem || sections.summary || sections.fullText?.split('\n')[0] || '',
-        solution: sections.solution || sections.fullText?.split('\n').slice(1, 4).join(' ') || '',
-        outcome: sections.outcome || '',
-        fullText: sections.fullText || '',
-        type: caseType,
-        location,
-        hasProblem: !!sections.problem,
-        hasSolution: !!sections.solution,
-        hasOutcome: !!sections.outcome,
-      };
-    });
-
-    // If we got nothing meaningful, return null
-    if (!data.problem && !data.solution && !data.outcome && !data.fullText) {
-      return null;
-    }
-
-    // --- CLEAN FULLTEXT FROM ERROR BANNER ---
-    if (data.fullText && data.fullText.includes('We are experiencing technical issues')) {
-      const lines = data.fullText.split('\n');
-
-      // Find the first line that looks like real content (contains a section heading)
-
-      const contentStartIndex = lines.findIndex(
+    // If there's a technical error banner, remove everything before the first meaningful heading
+    let cleanFullText = fullText;
+    if (fullText.includes('We are experiencing technical issues')) {
+      const lines = fullText.split('\n');
+      const contentStart = lines.findIndex(
         (line) =>
           line.includes('PROBLEM') ||
           line.includes('SOLUTION') ||
           line.includes('OUTCOME') ||
-          line.match(/^[A-Z\s]{4,}$/), // all-caps line that might be a heading
+          /^[A-Z\s]{4,}$/.test(line), // all‑caps line likely a heading
       );
-
-      if (contentStartIndex !== -1) {
-        data.fullText = lines.slice(contentStartIndex).join('\n');
-
-        // Also reset problem/solution/outcome if they were based on the dirty fullText
-
-        if (!data.hasProblem) data.problem = '';
-
-        if (!data.hasSolution) data.solution = '';
-
-        if (!data.hasOutcome) data.outcome = '';
+      if (contentStart !== -1) {
+        cleanFullText = lines.slice(contentStart).join('\n');
       }
     }
 
-    // Determine materials from text (simple keyword matching)
-    const materials = [];
+    // Extract sections using regex patterns
+    let problem = extractSection(cleanFullText, /PROBLEM/i);
+    let solution = extractSection(cleanFullText, /SOLUTION/i);
+    let outcome = extractSection(cleanFullText, /OUTCOME|IMPACT|RESULT/i);
+
+    const hasProblem = !!problem;
+    const hasSolution = !!solution;
+    const hasOutcome = !!outcome;
+
+    // If sections missing, fall back to first paragraphs
+    if (!problem && !solution && !outcome) {
+      const paragraphs = cleanFullText
+        .split('\n')
+        .map((p) => p.trim())
+        .filter((p) => p && !p.match(/^(BUSINESS|POLICY) CASE$/i) && !p.match(/^\d+\s+0$/));
+      if (paragraphs.length > 0) {
+        // First paragraph often describes the company – assign to problem? Better to leave empty.
+        problem = paragraphs[0] || '';
+        solution = paragraphs.slice(1, 3).join(' ') || '';
+      }
+    }
+
+    // Ensure we have at least a problem from the title if nothing else
+    if (!problem && title) problem = title;
+
+    // --- Try to correct field swapping ---
+    // If problem looks like a solution (contains action verbs) and solution looks like a problem, swap them.
+    const actionVerbs = /(use|implement|adopt|create|design|develop|reduce|reuse|recycle|recover)/i;
+    const challengeWords = /(waste|loss|emission|shortage|scarcity|pollution|impact)/i;
+    if (problem && solution) {
+      const problemIsAction = actionVerbs.test(problem) && !challengeWords.test(problem);
+      const solutionIsChallenge = challengeWords.test(solution) && !actionVerbs.test(solution);
+      if (problemIsAction && solutionIsChallenge) {
+        [problem, solution] = [solution, problem];
+        console.log('      ↻ Swapped problem/solution based on keyword analysis');
+      }
+    }
+
+    // --- Extract impact from outcome, or find a quantified sentence in fullText ---
+    let impact = outcome || '';
+    if (!impact) {
+      // Look for a sentence containing numbers and circular‑related units
+      const sentences = cleanFullText.split(/[.!?]+/);
+      const quantSentence = sentences.find(
+        (s) => /\d+/.test(s) && /(%|tons|tonnes|kg|CO2|saved|reduced|diverted|investment)/i.test(s),
+      );
+      if (quantSentence) impact = quantSentence.trim();
+    }
+
+    // --- Determine materials (simple keyword matching) ---
     const materialKeywords = [
       'plastic',
       'pet',
@@ -283,23 +289,19 @@ async function extractCaseData(page, url, title, type) {
       'concrete',
       'cement',
     ];
-
     const textToSearch = (
-      data.problem +
+      problem +
       ' ' +
-      data.solution +
+      solution +
       ' ' +
-      data.outcome +
+      impact +
       ' ' +
-      data.fullText
+      cleanFullText
     ).toLowerCase();
-    for (const keyword of materialKeywords) {
-      if (textToSearch.includes(keyword)) {
-        materials.push(keyword);
-      }
-    }
+    const materialsFound = materialKeywords.filter((kw) => textToSearch.includes(kw));
+    const materials = [...new Set(materialsFound)].join(', ');
 
-    // Determine circular strategy based on content
+    // --- Determine circular strategy based on content ---
     let strategy = 'General Circular Economy';
     if (textToSearch.includes('recycl')) strategy = 'Recycling';
     else if (textToSearch.includes('reuse')) strategy = 'Reuse';
@@ -311,8 +313,8 @@ async function extractCaseData(page, url, title, type) {
       strategy = 'Energy Recovery';
     else if (textToSearch.includes('design')) strategy = 'Eco-design';
 
-    // Determine category from type or content
-    let category = data.type || 'General';
+    // --- Determine category from type or content ---
+    let category = type || 'General';
     if (!category || category === '') {
       if (textToSearch.includes('policy') || textToSearch.includes('regulation'))
         category = 'Policy';
@@ -324,48 +326,44 @@ async function extractCaseData(page, url, title, type) {
       else category = 'Case Study';
     }
 
-    // Clean up the texts – use cleaned fullText for fallbacks
-    const problem = data.problem || data.fullText?.substring(0, 300) || title;
-    const solution = data.solution || data.fullText?.substring(300, 800) || '';
-    const outcome = data.outcome || '';
+    // --- Extract location if present ---
+    let location = '';
+    const locationMatch = cleanFullText.match(/(?:Location|Country)[:\s]+([^\n]+)/i);
+    if (locationMatch) location = locationMatch[1].trim();
 
-    // Combine outcome into impact field
-    const impact =
-      outcome ||
-      (data.fullText?.match(/\d+%|\d+ tons|\d+ tonnes|\d+ kg|\d+ CO2/i)
-        ? data.fullText
-            ?.split(/[.!?]+/)
-            .find((s) => /\d+%|\d+ tons|\d+ tonnes|\d+ kg|\d+ CO2/i.test(s)) || outcome
-        : outcome);
+    // Clean up texts
+    const cleanProblem = cleanText(problem || '');
+    const cleanSolution = cleanText(solution || '');
+    const cleanImpact = cleanText(impact || '');
+    const cleanFullTextSnippet = cleanFullText.substring(0, 5000); // limit metadata size
 
+    // Build row data (temporary fields for scoring)
     const rowData = {
       title,
       url,
-      problem: cleanText(problem),
-      solution: cleanText(solution),
-      outcome: cleanText(outcome),
-      impact: cleanText(impact),
-      materials: materials.length > 0 ? [...new Set(materials)].join(', ') : '',
+      problem: cleanProblem,
+      solution: cleanSolution,
+      impact: cleanImpact,
+      materials,
       circular_strategy: strategy,
       category: cleanText(category),
-      location: cleanText(data.location),
-      type: cleanText(data.type),
+      location: cleanText(location),
       source_url: url,
       metadata_json: JSON.stringify({
-        full_text: data.fullText?.substring(0, 5000),
-        has_problem: data.hasProblem,
-        has_solution: data.hasSolution,
-        has_outcome: data.hasOutcome,
-        type: data.type,
-        location: data.location,
+        full_text: cleanFullTextSnippet,
+        has_problem: hasProblem,
+        has_solution: hasSolution,
+        has_outcome: hasOutcome,
+        type,
+        location,
         extracted_at: new Date().toISOString(),
       }),
-      // Temporary fields for scoring/filtering
+      // Temporary scoring fields
       _qualityScore: 0,
-      _materialCount: materials.length,
-      _hasProblem: data.hasProblem,
-      _hasSolution: data.hasSolution,
-      _hasOutcome: data.hasOutcome,
+      _materialCount: materialsFound.length,
+      _hasProblem: hasProblem,
+      _hasSolution: hasSolution,
+      _hasOutcome: hasOutcome,
     };
 
     rowData._qualityScore = scoreCaseQuality(rowData);
@@ -394,11 +392,10 @@ async function rebuildFromBackup() {
   console.log(`Found ${backupRows.length} rows in backup`);
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
-  // Parse metadata and restore quality scores
+  // Parse metadata and restore quality scores (or recompute)
   const cases = backupRows
     .map((row) => {
       try {
-        // Use stored quality score or recompute
         let qualityScore = row._qualityScore ? parseFloat(row._qualityScore) : 0;
         if (qualityScore === 0) {
           qualityScore = scoreCaseQuality(row);
@@ -413,7 +410,7 @@ async function rebuildFromBackup() {
   // Sort by quality and take top MAX_ROWS
   const topCases = cases.sort((a, b) => b.qualityScore - a.qualityScore).slice(0, MAX_ROWS);
 
-  console.log(`Selected ${topCases.length} high-quality cases after scoring/filtering`);
+  console.log(`Selected ${topCases.length} high‑quality cases after scoring/filtering`);
   await appendLogs(DATASET_KEY, `Selected ${topCases.length} cases after scoring/filtering.`);
 
   if (topCases.length === 0) {
@@ -430,9 +427,9 @@ async function rebuildFromBackup() {
       _hasProblem,
       _hasSolution,
       _hasOutcome,
-      outcome,
-      type,
-      location,
+      outcome, // remove if present
+      type, // remove if present
+      location, // already handled separately
       ...cleanRow
     } = row;
     return {
@@ -450,7 +447,7 @@ async function rebuildFromBackup() {
 }
 
 /**
- * Main scrape function
+ * Main scrape function (unchanged except for the use of improved extractCaseData)
  */
 async function scrape() {
   await clearLogs(DATASET_KEY);
@@ -473,7 +470,7 @@ async function scrape() {
 
     for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
       const currentStart = (pageNum - 1) * 10;
-      const pageUrl = `${LISTINGS_URL}&_start=${currentStart}`;
+      const pageUrl = `${LISTINGS_URL}${currentStart}`;
       console.log(`\n📄 Page ${pageNum} (start=${currentStart}) – ${pageUrl}`);
       await appendLogs(DATASET_KEY, `Loading ${pageUrl}...`);
 
@@ -489,41 +486,23 @@ async function scrape() {
           // Wait for case links to appear
           await page.waitForSelector('a[href*="/article/"]', { timeout: 10000 });
 
-          // Extract all case links, titles, and types from the listing page
+          // Extract all case links, titles, and types
           caseLinks = await page.evaluate((baseUrl) => {
             const links = Array.from(document.querySelectorAll('a[href*="/article/"]'));
-            return links
-              .map((link) => {
-                const article = link.closest('.styles__Wrapper-sc-13f21bx-0') || link;
-                const typeEl = article.querySelector(
-                  '[class*="Contenttype"], .styles__TagText-sc-13f21bx-4',
-                );
-                const titleEl = article.querySelector('.styles__Title-sc-13f21bx-5');
+            return links.map((link) => {
+              const article = link.closest('.styles__Wrapper-sc-13f21bx-0') || link;
+              const typeEl = article.querySelector(
+                '[class*="Contenttype"], .styles__TagText-sc-13f21bx-4',
+              );
+              const titleEl = article.querySelector('.styles__Title-sc-13f21bx-5');
 
-                return {
-                  url: link.href.startsWith('http') ? link.href : `${baseUrl}${link.href}`,
-                  title: titleEl ? titleEl.innerText.trim() : link.innerText.trim(),
-                  type: typeEl ? typeEl.innerText.trim() : '',
-                };
-              })
-              .filter((c) => c.url && c.title);
+              return {
+                url: link.href.startsWith('http') ? link.href : `${baseUrl}${link.href}`,
+                title: titleEl ? titleEl.innerText.trim() : link.innerText.trim(),
+                type: typeEl ? typeEl.innerText.trim() : '',
+              };
+            });
           }, BASE_URL);
-
-          caseLinks = caseLinks.filter(
-            (link, index, self) =>
-              // 1. Keep only the first occurrence of each URL (Deduplicate)
-              index === self.findIndex((l) => l.url === link.url) &&
-              // 2. Exclude the specific "new" article URL
-              link.url !== `${BASE_URL}/article/new`,
-          );
-
-          if (caseLinks.length === 0) {
-            await appendLogs(DATASET_KEY, `  ✓ No more cases found on page ${pageNum}.`);
-            break;
-          }
-
-          console.log(`  Found ${caseLinks.length} case links`);
-          await appendLogs(DATASET_KEY, `  Found ${caseLinks.length} cases on page`);
 
           success = true;
         } catch (err) {
@@ -543,7 +522,20 @@ async function scrape() {
         }
       }
 
-      if (!caseLinks || caseLinks.length === 0) break;
+      // Deduplicate and filter out the "new" article
+      caseLinks = caseLinks.filter(
+        (link, index, self) =>
+          index === self.findIndex((l) => l.url === link.url) &&
+          link.url !== `${BASE_URL}/article/new`,
+      );
+
+      if (caseLinks.length === 0) {
+        await appendLogs(DATASET_KEY, `  ✓ No more cases found on page ${pageNum}.`);
+        continue;
+      }
+
+      console.log(`  Found ${caseLinks.length} case links`);
+      await appendLogs(DATASET_KEY, `  Found ${caseLinks.length} cases on page ${pageNum}.`);
 
       const pageRows = [];
 
@@ -604,7 +596,8 @@ async function scrape() {
 
     await appendLogs(
       DATASET_KEY,
-      `After scoring: ${validRows.length} valid, keeping top ${MAX_ROWS} (score range: ${topRows[0]?._qualityScore || 0} - ${topRows[topRows.length - 1]?._qualityScore || 0})`,
+      `After scoring: ${validRows.length} valid, keeping top ${MAX_ROWS} ` +
+        `(score range: ${topRows[0]?._qualityScore || 0} - ${topRows[topRows.length - 1]?._qualityScore || 0})`,
     );
 
     if (topRows.length === 0) {
@@ -621,9 +614,9 @@ async function scrape() {
         _hasProblem,
         _hasSolution,
         _hasOutcome,
-        outcome,
-        type,
-        location,
+        outcome, // remove if present
+        type, // remove if present
+        location, // already handled separately
         ...cleanRow
       } = row;
       return {
@@ -643,7 +636,8 @@ async function scrape() {
 
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Pages: ${pagesScraped.length}, total: ${allRows.length}, valid: ${validRows.length}, kept: ${finalRows.length}`,
+      `✅ Scrape complete. Pages: ${pagesScraped.length}, total: ${allRows.length}, ` +
+        `valid: ${validRows.length}, kept: ${finalRows.length}`,
     );
     await appendLogs(
       DATASET_KEY,

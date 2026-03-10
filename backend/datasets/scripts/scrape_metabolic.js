@@ -51,10 +51,13 @@ const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 
 async function rebuildFromBackup() {
-  const msg =
-    'Rebuild from backup not implemented for this scraper since we are not extracting new URLs during the scrape, only PDFs are downloaded based on dataset.raw_folder_contents.';
-  console.log(msg);
-  await appendLogs(DATASET_KEY, `⚠️  ${msg}`);
+  console.log(
+    '♻️ BACKUP RECOVERY MODE: This scraper downloads PDFs. Please run extract_metabolic.js to process the downloaded files.',
+  );
+  await appendLogs(
+    DATASET_KEY,
+    '♻️ RECOVERY MODE: Run extract_metabolic.js to process downloaded PDFs.',
+  );
 }
 
 async function scrape() {

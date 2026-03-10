@@ -142,36 +142,60 @@ async function mergeCsvFiles() {
 
   console.log(`\nTotal records collected: ${totalRecords}`);
 
-  // dedupe rows to prevent duplicates from multiple sources
-  // First, dedupe based on ID (first field) to handle potential ID conflicts
-  const idToRowMap = new Map();
-  let duplicateIds = 0;
+  // Remove duplicates based on row content (excluding ID) and renumber IDs within each dataset prefix
+  const groupedByPrefix = new Map();
   for (const row of mergedRows) {
-    const id = row.split(',')[0]; // assume ID is first field, no commas in ID
-    if (!idToRowMap.has(id)) {
-      idToRowMap.set(id, row);
-    } else {
-      duplicateIds++;
+    const parts = row.split(',');
+    const id = parts[0].replace(/"/g, ''); // Remove quotes from ID
+    const content = parts.slice(1).join(','); // Everything after ID
+
+    // Extract prefix (e.g., "c2c_", "circle_knowledge_hub_")
+    const idParts = id.split('_');
+    const prefix = idParts.slice(0, -1).join('_') + '_';
+    const number = parseInt(idParts[idParts.length - 1]);
+
+    if (!groupedByPrefix.has(prefix)) {
+      groupedByPrefix.set(prefix, []);
     }
+    groupedByPrefix.get(prefix).push({ id, content, number, originalRow: row });
   }
-  const dedupedById = Array.from(idToRowMap.values());
-  if (duplicateIds > 0) {
+
+  const dedupedRows = [];
+  let totalDuplicatesRemoved = 0;
+
+  for (const [prefix, rows] of groupedByPrefix) {
+    // Sort by original number to maintain order
+    rows.sort((a, b) => a.number - b.number);
+
+    // Remove duplicates based on content
+    const contentSet = new Set();
+    const uniqueRows = [];
+    for (const row of rows) {
+      if (!contentSet.has(row.content)) {
+        contentSet.add(row.content);
+        uniqueRows.push(row);
+      } else {
+        totalDuplicatesRemoved++;
+      }
+    }
+
+    // Renumber IDs sequentially
+    uniqueRows.forEach((row, index) => {
+      const newNumber = (index + 1).toString().padStart(5, '0');
+      const newId = prefix + newNumber;
+      const newRow = `"${newId}",${row.content}`;
+      dedupedRows.push(newRow);
+    });
+  }
+
+  if (totalDuplicatesRemoved > 0) {
     console.log(
-      `✓ Removed ${duplicateIds} duplicate row${duplicateIds === 1 ? '' : 's'} based on ID during merge`,
+      `✓ Removed ${totalDuplicatesRemoved} duplicate row${totalDuplicatesRemoved === 1 ? '' : 's'} based on content (excluding ID) and renumbered IDs within each dataset prefix`,
     );
   }
 
-  // Then, dedupe exact rows as additional safety
-  const uniqueRowsSet = new Set(dedupedById);
-  if (uniqueRowsSet.size !== dedupedById.length) {
-    const removed = dedupedById.length - uniqueRowsSet.size;
-    console.log(
-      `✓ Removed ${removed} additional duplicate row${removed === 1 ? '' : 's'} during merge`,
-    );
-  }
-  const deduped = Array.from(uniqueRowsSet);
   mergedRows.length = 0;
-  mergedRows.push(...deduped);
+  mergedRows.push(...dedupedRows);
   totalRecords = mergedRows.length;
 
   // Write output

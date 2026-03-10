@@ -14,7 +14,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -25,6 +25,7 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
   DATASET_KEYS,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const require = createRequire(import.meta.url);
@@ -35,14 +36,13 @@ const DATASET_KEY = DATASET_KEYS.eippcb;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_DIR);
+
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(RAW_DIR, file),
+);
+verifyPathsExist(inputFiles);
+
 const LIMIT_ROWS = 300; // Filter to top 300
 
 /**

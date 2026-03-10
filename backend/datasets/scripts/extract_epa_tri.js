@@ -27,6 +27,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
   formatId,
@@ -35,23 +36,19 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.epa;
 const rawDir = getDatasetRawDir(DATASET_KEY);
-if (!rawDir) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(rawDir)) {
-  console.error(`❌ Raw directory does not exist: ${rawDir}`);
-  process.exit(1);
-}
+verifyPathsExist(rawDir);
+
 const inputFile = path.join(rawDir, '2024_us.csv');
+verifyPathsExist([inputFile]);
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Target number of rows to output
-const TARGET_ROWS = 300;
+const TARGET_ROWS = 200;
 
 // Weights for each dimension (must sum to 1)
 const WEIGHTS = {

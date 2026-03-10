@@ -37,23 +37,18 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.unep;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+// verifyPathsExist will log and exit if the folder is missing or undefined
+verifyPathsExist(RAW_DIR);
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-const TARGET_ROWS = 400;
+const TARGET_ROWS = 300;
 
 // ----------------------------------------------------------------------
 // Helper: process a CSV file with stream + events, collecting results
@@ -93,7 +88,8 @@ async function processMaterialFlows(filePath) {
     const flowName = row['Flow name'] || 'Extraction';
     const unit = row['Flow unit'] || 'tonnes';
 
-    const problem = `${flowName} of ${category.toLowerCase()} in ${country} is at linear capacity.`;
+    // Improved problem statement: includes the actual 2024 value
+    const problem = `${flowName} of ${category.toLowerCase()} in ${country} reached ${value.toLocaleString()} ${unit} in 2024, indicating linear capacity.`;
     const solution = `Implement circular ${category.toLowerCase()} strategies in ${country}.`;
     const impact = `Total 2024 flow: ${value.toLocaleString()} ${unit}.`;
 

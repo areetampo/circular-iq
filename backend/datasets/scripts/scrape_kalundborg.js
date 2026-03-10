@@ -53,7 +53,6 @@ const BACKUP_INTERVAL = 1;
 const LISTING_URL = 'https://www.symbiosis.dk/en/category/case/';
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-const CLEAR_BACKUP_ON_START = true;
 //has 1 page only, no pagination needed, but keeping the structure for consistency with other scrapers and future-proofing if more cases are added
 const START_PAGE = 1;
 const END_PAGE = 1;
@@ -62,11 +61,7 @@ const MAX_ROWS = 170;
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP);
 
 /**
  * Calculate a quality score for a case based on its content.
@@ -144,7 +139,7 @@ async function extractCaseData(page, url, title) {
 
     // Find quantified impact
     const impactMatch = content.match(
-      /(\d+[.,]?\d*)\s*(tons?|t\s|tonnes?|kg|CO2|CO₂|\%|percent|reduction|saving)/i,
+      /(\d+(?:[.,]\d+)?)\s*(tons?|tonnes?|t\b|kg\b|CO2\b|CO₂\b|%|percent|reduction|saving)\b/i,
     );
     let impact = '';
     if (impactMatch) {

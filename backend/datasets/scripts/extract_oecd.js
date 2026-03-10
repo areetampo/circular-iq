@@ -4,17 +4,18 @@
  * extract_oecd.js - OECD Environmental Data Extraction
  *
  * Samples and processes OECD environmental data CSVs (municipal waste, material use, etc.)
- * to generate a condensed dataset of high-value rows for analysis. Applies 4% random
- * sampling to approximate around 500 records.
+ * to generate a condensed dataset of high-value rows for analysis. Applies keyword filtering,
+ * year filtering, and selects the top MAX_ROWS based on a quality score.
  *
  * Features:
  *   • CSV parsing via csv-parse/sync
  *   • Statistical data extraction and sampling
  *   • Multi-dataset consolidation with consistent formatting
  *   • Automatic ID generation with dataset key prefix
+ *   • Quality scoring to keep only the best rows
  *
  * Usage:
- *   node extract_oecd.js
+ *   node extract_oecd.js [datasetKey|all]
  *
  * Input: CSV files in datasets/raw/oecd/
  * Output: CSV with standardized columns in datasets/processed/
@@ -22,6 +23,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
   formatId,
@@ -31,24 +33,28 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.oecd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-if (!rawDir) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(rawDir)) {
-  console.error(`❌ Raw directory does not exist: ${rawDir}`);
-  process.exit(1);
-}
+
+verifyPathsExist(rawDir);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-// --- Adjust sampling to target ~500 total rows ---
-const SAMPLE_FRACTION = 0.04; // 4% sampling to target ~500 rows total across all datasets
-const TARGET_COUNTRIES = []; // empty = all countries; or use OECD list if desired
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(rawDir, file),
+);
+verifyPathsExist(inputFiles);
+
+// --- NEW: Maximum number of rows to keep in final output (adjust as needed) ---
+const MAX_ROWS = 300;
+
+// --- Sampling fraction still reduces processing load; set to 1.0 if you want to consider all rows ---
+const SAMPLE_FRACTION = 0.04; // 4% sampling to reduce processing time; keep as is or set to 1.0
+const TARGET_COUNTRIES = []; // empty = all countries
 
 // --- Configuration for each dataset ---
 const datasets = {
@@ -102,6 +108,10 @@ const datasets = {
         impact: cleanText(impact),
         source_url: dataset.source_url,
         metadata_json: JSON.stringify(originalRow),
+        // Add year and country for scoring later
+        _year: parseInt(year, 10),
+        _country: country,
+        _variable: variable,
       };
     },
   },
@@ -144,6 +154,9 @@ const datasets = {
         impact: cleanText(impact),
         source_url: dataset.source_url,
         metadata_json: JSON.stringify(originalRow),
+        _year: parseInt(year, 10),
+        _country: country,
+        _variable: measure,
       };
     },
   },
@@ -174,6 +187,9 @@ const datasets = {
         impact: cleanText(impact),
         source_url: dataset.source_url,
         metadata_json: JSON.stringify(originalRow),
+        _year: parseInt(year, 10),
+        _country: country,
+        _variable: policyName,
       };
     },
   },
@@ -187,7 +203,43 @@ function getField(row, possibleNames) {
   return null;
 }
 
-// --- Process dataset ---
+// --- NEW: Quality scoring function ---
+// Customize this to reflect what you consider "high quality".
+// Higher score = better row.
+function scoreRow(row) {
+  let score = 0;
+
+  // 1. Recent year is better (up to 100 points, linear scale from minYear to 2025)
+  const currentYear = new Date().getFullYear();
+  const minYear = 2015; // we already filtered rows >= minYear
+  const yearRange = currentYear - minYear;
+  if (row._year) {
+    const yearScore = ((row._year - minYear) / yearRange) * 100;
+    score += Math.min(100, Math.max(0, yearScore));
+  }
+
+  // 2. Keyword relevance: if the problem/variable contains specific high‑priority words, add bonus
+  const text = (row.problem + ' ' + row._variable).toLowerCase();
+  const priorityKeywords = ['recycl', 'circular', 'recovery', 'compost', 'plastic'];
+  for (const kw of priorityKeywords) {
+    if (text.includes(kw)) score += 20;
+  }
+
+  // 3. Optional: prefer certain countries (e.g., larger economies) - here just a small bonus for EU/US
+  const highPriorityCountries = [
+    'United States',
+    'Germany',
+    'France',
+    'United Kingdom',
+    'Japan',
+    'China',
+  ];
+  if (highPriorityCountries.includes(row._country)) score += 10;
+
+  return score;
+}
+
+// --- Process dataset (unchanged) ---
 function processDataset(datasetKey) {
   const cfg = datasets[datasetKey];
   if (!cfg) return [];
@@ -255,7 +307,7 @@ function processDataset(datasetKey) {
       }
     }
 
-    // Sampling
+    // Sampling (still applied to reduce processing load)
     if (SAMPLE_FRACTION < 1.0 && Math.random() > SAMPLE_FRACTION) {
       skipped.push({ row, reason: 'Random sampling skipped' });
       continue;
@@ -278,7 +330,20 @@ async function writeCombined(rows) {
     return;
   }
 
-  const finalRows = rows.map((row, index) => ({
+  // --- NEW: Sort by quality score and keep top MAX_ROWS ---
+  console.log(`Total rows after processing: ${rows.length}`);
+  console.log(`Selecting top ${MAX_ROWS} rows based on quality score...`);
+
+  // Compute scores
+  const withScores = rows.map((row) => ({ row, score: scoreRow(row) }));
+  // Sort descending by score
+  withScores.sort((a, b) => b.score - a.score);
+  // Take top MAX_ROWS
+  const topRows = withScores.slice(0, MAX_ROWS).map((item) => item.row);
+
+  console.log(`Selected ${topRows.length} rows.`);
+
+  const finalRows = topRows.map((row, index) => ({
     ID: formatId(DATASET_KEY, index + 1),
     problem: row.problem || '',
     solution: row.solution || '',
@@ -322,7 +387,6 @@ async function main() {
   await writeCombined(allRows);
 }
 
-// --- Execute main if run directly ---
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
     console.error('\n❌ Fatal error:', err.message);

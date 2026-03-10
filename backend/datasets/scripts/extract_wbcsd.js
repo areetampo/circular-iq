@@ -6,29 +6,23 @@
  * documents with structured extraction of company initiatives, sustainability commitments,
  * and circular economy strategy implementations.
  *
- * Features:
- *   • PDF text extraction using pdfjs-dist with proper worker configuration
- *   • Multi-document processing with metadata preservation per source
- *   • Business case identification and impact assessment extraction
- *   • Company commitment and circular strategy categorization
- *   • Sustainability metric and ROI calculation extraction
- *   • Smart problem/solution generation from business case narratives
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
+ * Improvements:
+ *   • Full results sections for CTI case studies (no truncation)
+ *   • Enhanced sentence‑aware truncation that avoids mid‑word cutoffs
+ *   • Full section content stored in metadata_json for traceability
  *
  * Usage:
  *   node extract_wbcsd.js
  *
  * Input: WBCSD PDF reports in datasets/raw/wbcsd/
  * Output: CSV file with standardized columns in datasets/processed/
- * Scope: Corporate circular economy strategies, supply chain improvements, business models
  */
 
 /* global process */
 
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -39,6 +33,7 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const require = createRequire(import.meta.url);
@@ -50,15 +45,29 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 const DATASET_KEY = DATASET_KEYS.wbcsd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_DIR);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+
+// ----------------------------------------------------------------------
+// Helper: truncate text at a sentence boundary within maxLength
+//         If no sentence boundary found, truncate at last space.
+// ----------------------------------------------------------------------
+function truncateToSentence(text, maxLength) {
+  if (text.length <= maxLength) return text;
+  const truncated = text.substring(0, maxLength);
+  const lastPeriod = truncated.lastIndexOf('. ');
+  // If we found a period in the last 20% of the allowed length, use it
+  if (lastPeriod > maxLength * 0.8) {
+    return truncated.substring(0, lastPeriod + 1);
+  }
+  // Otherwise, try to cut at the last space to avoid mid-word break
+  const lastSpace = truncated.lastIndexOf(' ');
+  if (lastSpace > maxLength * 0.5) {
+    return truncated.substring(0, lastSpace);
+  }
+  return truncated; // fallback – cut at maxLength
+}
 
 // ----------------------------------------------------------------------
 // Helper: extract and clean text from a PDF using Uint8Array
@@ -175,6 +184,7 @@ function extractCTICase(text, fileName) {
   const problem =
     challengesSection || whySection || 'Need to measure and improve circularity performance.';
   const solution = solutionsSection || 'Apply Circular Transition Indicators to track progress.';
+  // Use full results section without truncation to preserve complete information
   const impact = resultsSection || 'Circular economy implementation.';
   const strategy = 'Circular Transition Indicators';
 
@@ -202,7 +212,7 @@ function extractCTICase(text, fileName) {
     materials: cleanText(industry || 'General'),
     circular_strategy: cleanText(strategy),
     category: 'CTI Case Study',
-    impact: cleanText(impact.substring(0, 500)),
+    impact: cleanText(impact),
     source_url: dataset.source_url || '',
     metadata_json: JSON.stringify(metadata),
     _scoreValue: score,
@@ -213,7 +223,6 @@ function extractCTICase(text, fileName) {
 
 // ----------------------------------------------------------------------
 // Extraction for Forest KPI Results (FSG-KPI-Results_2025.pdf)
-// Improved to capture every KPI line by scanning all lines
 // ----------------------------------------------------------------------
 function extractForestKPI(text, fileName) {
   const rows = [];
@@ -367,7 +376,6 @@ function extractBusinessCases(text, fileName) {
 
 // ----------------------------------------------------------------------
 // Extraction for Technical Frameworks (e.g., Circular Buildings, Plastics Protocol, CDX)
-// Now split into sections based on headings (e.g., "1. Introduction", "2. Circular principles")
 // ----------------------------------------------------------------------
 function extractTechnicalFramework(text, fileName) {
   const rows = [];
@@ -392,17 +400,17 @@ function extractTechnicalFramework(text, fileName) {
   if (sections.length === 0) {
     // Split by double newlines into paragraphs
     const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 100);
-    for (let i = 0; i < paragraphs.length; i++) {
+    for (let i = 0; i < paragraphs.length && i < 20; i++) {
       const para = paragraphs[i].trim();
       const title = `Section ${i + 1}`;
       const problem = 'Knowledge gaps exist in circular economy implementation.';
       const solution = `Apply findings from "${fileName.replace(/\.pdf$/i, '')}" – ${title}.`;
-      const impact = para.substring(0, 400);
+      const impact = truncateToSentence(para, 500);
 
       const metadata = {
         fileName,
         section: title,
-        preview: para.substring(0, 500),
+        preview: para.substring(0, 1000),
       };
 
       rows.push({
@@ -418,16 +426,16 @@ function extractTechnicalFramework(text, fileName) {
       });
     }
   } else {
-    // Create a row per section
+    // Create a row per section with concise solution and content in impact
     for (const sec of sections) {
       const problem = 'Knowledge gaps exist in circular economy implementation.';
-      const solution = `Apply findings from "${sec.title}".`;
-      const impact = sec.content.substring(0, 400);
+      const solution = `Apply findings from "${sec.title}" in "${fileName.replace(/\.pdf$/i, '')}".`;
+      const impact = truncateToSentence(sec.content, 500);
 
       const metadata = {
         fileName,
         section: sec.title,
-        content: sec.content.substring(0, 1000),
+        content: sec.content.substring(0, 2000), // store full section for later use
       };
 
       rows.push({
@@ -449,7 +457,6 @@ function extractTechnicalFramework(text, fileName) {
 
 // ----------------------------------------------------------------------
 // Extraction for Strategic Guides (CEO Guide, Factor10)
-// Split into sections if possible, otherwise treat as single
 // ----------------------------------------------------------------------
 function extractStrategicGuide(text, fileName) {
   const rows = [];
@@ -485,7 +492,7 @@ function extractStrategicGuide(text, fileName) {
       materials: 'General',
       circular_strategy: 'Circular Leadership',
       category: 'Strategic Guide',
-      impact: cleanText(summary),
+      impact: cleanText(truncateToSentence(summary, 400)),
       source_url: dataset.source_url || '',
       metadata_json: JSON.stringify({ title, fileName, preview: text.slice(0, 1000) }),
       _scoreValue: 80,
@@ -493,13 +500,13 @@ function extractStrategicGuide(text, fileName) {
   } else {
     for (const sec of sections) {
       const problem = `Business leaders need guidance on ${sec.title}.`;
-      const solution = `Follow the advice in this section.`;
-      const impact = sec.content.substring(0, 400);
+      const solution = `Follow the advice in this section of "${fileName.replace(/\.pdf$/i, '')}".`;
+      const impact = truncateToSentence(sec.content, 400);
 
       const metadata = {
         fileName,
         section: sec.title,
-        content: sec.content.substring(0, 1000),
+        content: sec.content.substring(0, 2000),
       };
 
       rows.push({
@@ -528,17 +535,16 @@ function extractGeneral(text, fileName) {
   // Split by double newlines into paragraphs
   const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 100);
   for (let i = 0; i < paragraphs.length && i < 20; i++) {
-    // limit to 20 to avoid explosion
     const para = paragraphs[i].trim();
     const title = `Paragraph ${i + 1}`;
     const problem = 'Knowledge gaps exist in circular economy implementation.';
     const solution = `Apply findings from "${fileName.replace(/\.pdf$/i, '')}" – ${title}.`;
-    const impact = para.substring(0, 400);
+    const impact = truncateToSentence(para, 400);
 
     const metadata = {
       fileName,
       section: title,
-      preview: para.substring(0, 500),
+      preview: para.substring(0, 1000),
     };
 
     rows.push({
@@ -569,7 +575,7 @@ function extractGeneral(text, fileName) {
       materials: 'General',
       circular_strategy: 'Knowledge Sharing',
       category: 'White Paper',
-      impact: cleanText(summary),
+      impact: cleanText(truncateToSentence(summary, 400)),
       source_url: dataset.source_url || '',
       metadata_json: JSON.stringify({ title, fileName, preview: text.slice(0, 1000) }),
       _scoreValue: 70,

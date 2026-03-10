@@ -42,6 +42,7 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const execPromise = promisify(exec);
@@ -49,7 +50,14 @@ const execPromise = promisify(exec);
 const DATASET_KEY = DATASET_KEYS.gewm;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+verifyPathsExist(RAW_DIR);
+
 const RAW_CSV = path.join(RAW_DIR, dataset.raw_folder_contents.data);
+const REPORT_PDF = path.join(RAW_DIR, dataset.raw_folder_contents.report);
+
+// Verify input PDF exists
+verifyPathsExist([RAW_CSV, REPORT_PDF]);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Known region names to identify data rows (as they appear in the PDF)
@@ -260,10 +268,6 @@ async function cleanData() {
     };
   });
 
-  // Write final CSV
-  const outputDir = path.dirname(OUTPUT_PATH);
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-
   const finalMapped = mapped.map((r, idx) => ({
     ID: formatId(DATASET_KEY, idx + 1),
     ...r,
@@ -284,10 +288,7 @@ async function main() {
   await runPythonExtraction();
 
   // Step 2: Clean the data (now awaited)
-  if (!fs.existsSync(RAW_CSV)) {
-    console.error(`❌ Raw CSV not found at ${RAW_CSV}. Python extraction may have failed.`);
-    process.exit(1);
-  }
+  verifyPathsExist(RAW_CSV);
   await cleanData();
 }
 

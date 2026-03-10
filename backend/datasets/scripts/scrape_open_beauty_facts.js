@@ -26,8 +26,11 @@
  * For detailed logs, see the path printed at the start of the run.
  * Note: Requires active internet connection to access Open Beauty Facts API
  */
+
+import { fileURLToPath } from 'url';
 import {
   formatId,
+  cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetProcessedCsvPath,
@@ -51,7 +54,6 @@ const BASE_URL = dataset.urls.search;
 const PRODUCT_URL_BASE = dataset.urls.product;
 const TARGET_ROWS = 250; // Desired final rows
 const BACKUP_INTERVAL = 3; // Flush backup every 3 pages
-const CLEAR_BACKUP_ON_START = true;
 
 // each entry can override the paging parameters that were previously
 // global constants. this mirrors the pattern used in scrape_c2c.js and
@@ -84,12 +86,7 @@ const KEYWORDS = [
 const TOTAL_MAX_PAGES = KEYWORDS.reduce((sum, kw) => sum + kw.MAX_PAGES_TO_FETCH, 0);
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-  TOTAL_MAX_PAGES,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, TOTAL_MAX_PAGES);
 
 /**
  * Fetch a single page of products from Open Beauty Facts API.
@@ -123,6 +120,10 @@ async function fetchPage(searchTerms, page, pageSize = 200) {
   }
 }
 
+/**
+ * Transform a raw product into a standardized row for the CSV.
+ * Always returns non‑empty problem and solution, enriched with detected circular attributes.
+ */
 function transformProduct(product) {
   const categories = product.categories || product.categories_en || '';
   const ingredients = product.ingredients_text || '';
@@ -130,62 +131,154 @@ function transformProduct(product) {
   const ecoscoreGrade = product.ecoscore_grade || '';
   const ecoscoreScore = product.ecoscore_score;
   const code = product.code;
+  const productName = product.product_name || '';
+  const labels = product.labels || '';
+  const brands = product.brands || '';
 
-  const combinedText = (packaging + ' ' + ingredients + ' ' + (product.labels || '')).toLowerCase();
+  const combinedText = (
+    packaging +
+    ' ' +
+    ingredients +
+    ' ' +
+    labels +
+    ' ' +
+    productName
+  ).toLowerCase();
 
-  let problem = 'Packaging-related environmental impact';
-  let strategy = 'General';
-  let solution = '';
+  // Detect circular economy attributes
+  const attributes = {
+    refillable: /refill|refillable/.test(combinedText),
+    recycled: /recycled/.test(combinedText),
+    recyclable: /recyclable/.test(combinedText),
+    biodegradable: /biodegradable/.test(combinedText),
+    compostable: /compostable/.test(combinedText),
+    microplasticFree: /microplastic-free|microplastics? free/.test(combinedText),
+    ecoFriendly: /eco-?friendly|sustainable/.test(combinedText),
+    plasticFree: /plastic-free/.test(combinedText),
+    zeroWaste: /zero waste/.test(combinedText),
+    glass: /glass/.test(packaging.toLowerCase()) || combinedText.includes('glass'),
+    aluminum: /aluminum|aluminium/.test(combinedText),
+    paper: /paper/.test(combinedText),
+  };
 
-  if (combinedText.includes('microplastic') || combinedText.includes('microplastic-free')) {
-    problem = 'Microplastics or microbead contamination in formulations';
-    if (combinedText.includes('microplastic-free')) {
-      strategy = 'Safe Chemistry';
-      solution = 'Formulated without microplastics to prevent environmental harm';
+  const categoryFirst = categories.split(',')[0]?.trim() || 'Beauty product';
+  const productDesc = productName ? `"${productName}"` : categoryFirst;
+
+  // Build problem – specific to the product and its attributes
+  let problem;
+  if (attributes.microplasticFree) {
+    problem = `Microplastics in beauty products contribute to environmental contamination.`;
+  } else if (attributes.refillable) {
+    problem = `Single-use packaging waste from ${categoryFirst} products.`;
+  } else if (attributes.recycled || attributes.recyclable) {
+    problem = `Use of virgin materials in ${categoryFirst} packaging leads to resource depletion.`;
+  } else if (attributes.biodegradable || attributes.compostable) {
+    problem = `Non-biodegradable packaging for ${categoryFirst} contributes to landfill waste.`;
+  } else if (attributes.plasticFree) {
+    problem = `Plastic pollution from ${categoryFirst} packaging.`;
+  } else if (attributes.glass) {
+    problem = `Heavy glass packaging for ${categoryFirst} increases transport emissions.`;
+  } else if (attributes.aluminum) {
+    problem = `Energy-intensive production of aluminum packaging for ${categoryFirst}.`;
+  } else if (attributes.paper) {
+    problem = `Deforestation risk from paper packaging for ${categoryFirst}.`;
+  } else {
+    // Generic problem based on packaging material if available
+    if (packaging.toLowerCase().includes('plastic')) {
+      problem = `The ${categoryFirst} product ${productDesc} uses plastic packaging that may cause waste.`;
+    } else if (packaging.toLowerCase().includes('glass')) {
+      problem = `The ${categoryFirst} product ${productDesc} uses glass packaging with high transport footprint.`;
+    } else {
+      problem = `The ${categoryFirst} product ${productDesc} may have environmental impacts from its packaging.`;
     }
-  } else if (combinedText.includes('glass bottle')) {
-    problem = 'Single-use plastic packaging';
-    strategy = 'Refillable Model';
-    solution = 'Glass bottle reduces plastic use and supports reuse/refill';
-  } else if (combinedText.includes('refillable') || combinedText.includes('refill')) {
-    problem = 'Single-use packaging waste';
-    strategy = 'Refillable Model';
-    solution = 'Refillable packaging or refill program reduces single-use waste';
-  } else if (combinedText.includes('recycled')) {
-    strategy = 'Recycled Materials';
-    solution = 'Contains recycled content to reduce virgin material use';
-  } else if (combinedText.includes('biodegradable') || combinedText.includes('compostable')) {
-    strategy = 'Biodegradable / Compostable';
-    solution = 'Materials designed to break down naturally';
-  } else if (combinedText.includes('eco-friendly')) {
-    strategy = 'Eco-friendly design';
-    solution = 'Product designed with environmental considerations';
   }
 
-  if (strategy === 'General') {
-    if (packaging.toLowerCase().includes('glass')) {
-      strategy = 'Glass packaging';
-      solution = 'Glass is infinitely recyclable';
-    } else if (packaging.toLowerCase().includes('plastic')) {
-      strategy = 'Plastic packaging – needs improvement';
-      solution = 'Consider alternative materials or recycled content';
+  // Determine circular strategy and solution based on attributes
+  let strategy, solution;
+  if (attributes.refillable) {
+    strategy = 'Reuse / Refill';
+    solution =
+      'Implement refillable packaging systems or offer refill programs to reduce single-use waste.';
+  } else if (attributes.recycled) {
+    strategy = 'Recycled Content';
+    solution = 'Use recycled materials (e.g., recycled PET, HDPE) to reduce virgin plastic demand.';
+  } else if (attributes.recyclable) {
+    strategy = 'Design for Recycling';
+    solution = 'Design packaging to be fully recyclable and provide clear recycling instructions.';
+  } else if (attributes.biodegradable || attributes.compostable) {
+    strategy = 'Biodegradable / Compostable Materials';
+    solution =
+      'Switch to certified biodegradable or compostable packaging that breaks down safely.';
+  } else if (attributes.microplasticFree) {
+    strategy = 'Safe Chemistry';
+    solution = 'Reformulate products to eliminate microplastics and use natural alternatives.';
+  } else if (attributes.ecoFriendly) {
+    strategy = 'Eco-friendly Design';
+    solution =
+      'Adopt eco-design principles, such as reducing material use and optimizing for recyclability.';
+  } else if (attributes.plasticFree) {
+    strategy = 'Plastic-Free Packaging';
+    solution = 'Replace plastic with alternative materials like glass, aluminum, or paper.';
+  } else if (attributes.zeroWaste) {
+    strategy = 'Zero Waste';
+    solution = 'Adopt zero-waste packaging and encourage product reuse.';
+  } else if (attributes.glass) {
+    strategy = 'Glass Packaging';
+    solution = 'Glass is infinitely recyclable; ensure collection and recycling infrastructure.';
+  } else if (attributes.aluminum) {
+    strategy = 'Aluminum Packaging';
+    solution = 'Aluminum is highly recyclable; use recycled content to further reduce impact.';
+  } else if (attributes.paper) {
+    strategy = 'Paper Packaging';
+    solution = 'Use sustainably sourced paper and design for recyclability.';
+  } else {
+    // No specific attribute – fallback based on packaging material
+    if (packaging.toLowerCase().includes('plastic')) {
+      strategy = 'Plastic Reduction';
+      solution =
+        'Consider switching to recycled plastic, alternative materials, or refillable systems.';
+    } else if (packaging.toLowerCase().includes('glass')) {
+      strategy = 'Glass Packaging';
+      solution = 'Glass is recyclable; use recycled glass and lightweight designs.';
+    } else {
+      strategy = 'General Circular Economy';
+      solution = 'Explore opportunities to reduce, reuse, and recycle packaging materials.';
     }
   }
 
-  const impactParts = [];
-  if (ecoscoreGrade) impactParts.push(`Ecoscore grade: ${ecoscoreGrade}`);
-  if (ecoscoreScore) impactParts.push(`Ecoscore score: ${ecoscoreScore}`);
-  const impact = impactParts.join(' · ') || 'No impact data';
+  // Guarantee solution is never empty
+  if (!solution) {
+    solution =
+      'Adopt circular economy principles: reduce material use, increase recycled content, and design for recyclability.';
+  }
+
+  // Build impact string from ecoscore
+  let impact = 'No impact data';
+  if (ecoscoreGrade) {
+    const gradeMap = {
+      a: 'low environmental impact',
+      b: 'moderate environmental impact',
+      c: 'average environmental impact',
+      d: 'high environmental impact',
+      e: 'very high environmental impact',
+      unknown: 'unknown environmental impact',
+    };
+    const gradeDesc = gradeMap[ecoscoreGrade.toLowerCase()] || `grade ${ecoscoreGrade}`;
+    impact = `Ecoscore: ${ecoscoreGrade.toUpperCase()} (${gradeDesc})`;
+    if (ecoscoreScore) {
+      impact += ` · Score: ${ecoscoreScore}`;
+    }
+  }
 
   const sourceUrl = `${PRODUCT_URL_BASE}/${code}`;
 
   return {
-    problem,
-    solution,
-    materials: packaging,
-    circular_strategy: strategy,
-    category: categories.split(',')[0]?.trim() || 'Beauty product',
-    impact,
+    problem: cleanText(problem),
+    solution: cleanText(solution),
+    materials: cleanText(packaging),
+    circular_strategy: cleanText(strategy),
+    category: cleanText(categoryFirst),
+    impact: cleanText(impact),
     source_url: sourceUrl,
     metadata_json: JSON.stringify(product),
   };
@@ -328,7 +421,7 @@ async function main() {
 
   await appendLogs(
     DATASET_KEY,
-    `🚀 Scrape started. BASE_URL: ${BASE_URL}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+    `🚀 Scrape started. BASE_URL: ${BASE_URL}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
   );
 
   let allProducts = [];

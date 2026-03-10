@@ -27,7 +27,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { parse } from 'csv-parse/sync'; // <-- now used
+import { fileURLToPath } from 'url';
+import { parse } from 'csv-parse/sync';
 import {
   formatId,
   cleanText,
@@ -37,23 +38,23 @@ import {
   getDatasetProcessedCsvPath,
   ensureDir,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.eurostat;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-if (!rawDir) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(rawDir)) {
-  console.error(`❌ Raw directory does not exist: ${rawDir}`);
-  process.exit(1);
-}
+verifyPathsExist(rawDir);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(rawDir, file),
+);
+verifyPathsExist(inputFiles);
+
 const MIN_YEAR = 2019;
-const MAX_ROWS_PER_DATASET = 120;
+const MAX_ROWS_PER_DATASET = 100;
 
 if (!dataset.raw_folder_contents) {
   console.error('❌ dataset.raw_folder_contents is missing – check your dataset definition.');

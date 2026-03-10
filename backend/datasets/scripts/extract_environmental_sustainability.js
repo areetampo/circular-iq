@@ -26,6 +26,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
   formatId,
@@ -33,12 +34,16 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.env;
 const rawDir = getDatasetRawDir(DATASET_KEY);
 const INPUT_FILE = path.join(rawDir, 'environmental_sustainability.csv');
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+
+verifyPathsExist([INPUT_FILE]);
+const MAX_RECORDS = 100;
 
 const aggregateNames = new Set([
   'Arab States',
@@ -79,7 +84,7 @@ async function main() {
       return { data: r, score: nonEmptyFields };
     })
     .sort((a, b) => b.score - a.score)
-    .slice(0, 50);
+    .slice(0, MAX_RECORDS);
 
   console.log(`🏆 Selected top ${scoredRows.length} rows (by completeness).`);
 

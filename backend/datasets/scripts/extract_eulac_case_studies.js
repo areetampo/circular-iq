@@ -28,30 +28,22 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
   formatId,
   cleanText,
-  DATASET_LOOKUP,
   DATASET_KEYS,
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.eulac;
-const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_PDF = path.join(getDatasetRawDir(DATASET_KEY), 'eulac_case_studies.pdf');
-if (!fs.existsSync(path.dirname(RAW_PDF))) {
-  console.error(
-    `❌ Raw directory missing for dataset key "${DATASET_KEY}": ${path.dirname(RAW_PDF)}`,
-  );
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_PDF)) {
-  console.error(`❌ Required input PDF not found: ${RAW_PDF}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_PDF);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Known field headers (used as stop markers)

@@ -24,7 +24,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { Buffer } from 'buffer';
@@ -35,6 +35,7 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
   DATASET_KEYS,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const require = createRequire(import.meta.url);
@@ -43,14 +44,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 
 const DATASET_KEY = DATASET_KEYS.rema; // 'rema'
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_DIR);
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // Adjusted extraction parameters

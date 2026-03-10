@@ -30,6 +30,7 @@
 import path from 'path';
 import fs from 'fs';
 import { stringify } from 'csv-stringify/sync';
+import { parse } from 'csv-parse/sync';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -114,6 +115,9 @@ export const DATASETS = [
     source_url: null,
     urls: {
       homepage: 'https://c2ccertified.org/certified-products',
+      // note: doesnt use url parameters for pagination, going to https://c2ccertified.org/certified-products?certified_products_by_date_asc%5Bpage%5D=2,3,.. simply chnages the url to page 1
+      listings:
+        'https://c2ccertified.org/certified-products?certified_products_by_date_asc%5Bpage%5D=', //0,1,...
     },
     raw_folder_contents: null,
     scrape_backup_folder: 'c2c_scrape_backup',
@@ -124,7 +128,7 @@ export const DATASETS = [
     raw_folder: 'circularity_gap_report',
     processed_csv: 'cgr_2025_processed.csv',
     scrape_script: null,
-    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_cgr_2025.js'),
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_cgr.js'),
     source_url: 'https://www.circularity-gap.world/2025',
     urls: {
       homepage: 'https://www.circularity-gap.world/2025',
@@ -143,7 +147,7 @@ export const DATASETS = [
     extract_script: null,
     source_url: 'https://knowledge-hub.circle-economy.com/cases',
     urls: {
-      listings: 'https://knowledge-hub.circle-economy.com/cases?_sort=3',
+      listings: 'https://knowledge-hub.circle-economy.com/cases?_sort=3&_start=', //0,10,20,...
       base: 'https://knowledge-hub.circle-economy.com',
     },
     raw_folder_contents: null,
@@ -664,10 +668,14 @@ export const DATASETS = [
     processed_csv: 'open_products_facts_processed.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_open_products_facts.js'),
     extract_script: null,
-    source_url: null,
+    source_url: 'https://world.openproductsfacts.org',
     urls: {
+      // The web search interface
       search: 'https://world.openproductsfacts.org/cgi/search.pl',
-      product: 'https://world.openproductsfacts.org/product',
+      // The v2 Search API endpoint
+      apiBase: 'https://world.openproductsfacts.org/api/v2/search',
+      // The base URL for individual product pages
+      productUrlBase: 'https://world.openproductsfacts.org/product',
     },
     raw_folder_contents: null,
     scrape_backup_folder: 'opf_scrape_backup',
@@ -681,8 +689,13 @@ export const DATASETS = [
     extract_script: null,
     source_url: 'https://insights.refed.org/solution-database', // Main website
     urls: {
-      api: 'https://api.refed.org/v2/solution_database/solutions', // Direct API endpoint
-      website: 'https://insights.refed.org/',
+      site: 'https://insights.refed.org/',
+      apiBase: 'https://api.refed.org/v2', // Direct API endpoint
+      solutions: 'https://api.refed.org/v2/solution_database/solutions', // Direct API endpoint
+      groups: 'https://api.refed.org/v2/solution_database/groups', // Direct API endpoint
+      categories: 'https://api.refed.org/v2/solution_database/categories', // Direct API endpoint
+      sectors: 'https://api.refed.org/v2/sectors', // Direct API endpoint
+      foodTypes: 'https://api.refed.org/v2/solution_database/food_types', // Direct API endpoint
     },
     raw_folder_contents: null, // No raw files
     // Optional: if you want to explicitly document the backup location
@@ -804,9 +817,9 @@ export const DATASETS = [
     key: 'wbp',
     name: 'World Bank Projects',
     raw_folder: 'world_bank_projects',
-    processed_csv: 'world_bank_projects_processed.csv',
+    processed_csv: 'wbp_processed.csv',
     scrape_script: null,
-    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_world_bank_projects.js'),
+    extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_wbp.js'),
     source_url: 'https://search.worldbank.org/api/v2/projects',
     urls: {
       basic: 'https://search.worldbank.org/api/v2/projects?format=json&rows=500',
@@ -829,18 +842,19 @@ export const DATASETS = [
     key: 'wrap',
     name: 'WRAP Case Studies + Reports/Guides PDF links (scrape) + Reports/Guides PDF (extract)',
     raw_folder: 'wrap_resources',
-    processed_csv: 'wrap_processed.csv',
+    processed_csv_scraped: 'wrap_scraped.csv',
+    processed_csv_extracted: 'wrap_extracted.csv', // separate CSV for extracted PDF data
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_wrap.js'),
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_wrap.js'),
     source_url: 'https://www.wrap.ngo',
     urls: {
       homepage: 'https://www.wrap.ngo/resources',
       case_studies:
-        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All',
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1500&sectors=All&page=', // 21 pages total (0..20)
       guides:
-        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All',
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1499&sectors=All&page=', // 21 pages total (0..20)
       reports:
-        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All',
+        'https://www.wrap.ngo/resources?field_initiatives_target_id=All&type=1498&sectors=All&page=', // 29 pages total (0..28)
     },
     raw_folder_contents: {
       guides_folder: 'guides',
@@ -982,6 +996,38 @@ export function assertDirExists(dirPath, description) {
 }
 
 /**
+ * Verify that one or more filesystem paths (files or directories) actually exist.
+ *
+ * - Accepts a string or an array of strings.
+ * - If any entry is missing (or falsy) the function prints an error for each
+ *   missing path and then terminates the process with code 1.
+ *
+ * This is intended for dataset scripts that need to ensure their input files
+ * are present before doing expensive work. It mirrors the behaviour of the
+ * old ad‑hoc `if (!fs.existsSync(path))` checks but centralises the logic and
+ * provides a consistent error message.
+ *
+ * Example:
+ *   const rawDir = getDatasetRawDir(key);
+ *   verifyPathsExist(rawDir);
+ *   later: verifyPathsExist([rawCsv, rawPdf]);
+ *
+ * @param {string|string[]} paths
+ */
+export function verifyPathsExist(paths) {
+  if (!Array.isArray(paths)) {
+    paths = [paths];
+  }
+  const missing = paths.filter((p) => !p || !fs.existsSync(p));
+  if (missing.length > 0) {
+    console.error(
+      `❌ Error: The following required folder(s) & file(s) are missing:\n${missing.map((p) => `  - ${p}`).join('\n')}`,
+    );
+    process.exit(1);
+  }
+}
+
+/**
  * Ensure that a filesystem path exists as a file.
  *
  * - Creates parent directory (using ensureDir) if it doesn't exist.
@@ -1082,70 +1128,110 @@ export function hasAppendBackupFlag() {
   return process.argv.includes('--append-backup');
 }
 
-export async function writeCsv(filePath, rows, append = false) {
-  // when appending, a few special behaviors are required:
-  //   * if the target file already exists, we must preserve its header
-  //     and push new rows onto the end of the file rather than overwriting.
-  //   * if the rows being written contain an "id" field and the existing
-  //     file contains an "id" column, bump the numeric suffix on each new
-  //     id so that it continues after the last row in the existing CSV.
+/**
+ * Generate a content key for deduplication (excludes ID and metadata_json).
+ * @param {Object} row - Row object with standard columns.
+ * @returns {string} - A string key for comparison.
+ */
+function getContentKey(row) {
+  const fields = [
+    'problem',
+    'solution',
+    'materials',
+    'circular_strategy',
+    'category',
+    'impact',
+    'source_url',
+  ];
+  return fields
+    .map((f) => row[f] || '')
+    .join('|')
+    .trim();
+}
+
+/**
+ * Write rows to a CSV file, with optional append and deduplication.
+ * @param {string} filePath - Path to the CSV file.
+ * @param {Array} rows - Array of row objects.
+ * @param {boolean} append - If true, append rows instead of overwriting.
+ */
+export async function writeCsv(DATASET_KEY, filePath, rows, append = false) {
+  // Helper to prepare write (ensure dir, unlock if exists)
+  const prepareWrite = async (path) => {
+    const dir = path.dirname(filePath);
+    await fs.promises.mkdir(dir, { recursive: true });
+    let existed = false;
+    try {
+      // unlock if exists
+      await fs.promises.access(filePath);
+      await fs.promises.chmod(filePath, 0o666);
+      existed = true;
+    } catch {
+      // file doesn't exist, ignore
+    }
+    return existed;
+  };
+
   if (append) {
     // ensure directory exists / unlock file but do not clear it
     const hadBefore = await prepareWrite(filePath);
 
-    // determine id suffix offset if possible
+    let existingRows = [];
     let lastSuffix = 0;
-    let hasIdColumn = false;
+    const contentKeySet = new Set();
+
     if (hadBefore) {
       try {
         const content = await fs.promises.readFile(filePath, 'utf8');
-        const lines = content.trim().split('\n');
-        if (lines.length > 1) {
-          const headers = lines[0].split(',');
-          // case-insensitive header search for "id"
-          const idIdx = headers.findIndex((h) => h.toLowerCase() === 'id');
-          if (idIdx !== -1) {
-            hasIdColumn = true;
-            for (let i = 1; i < lines.length; i++) {
-              const cols = lines[i].split(',');
-              const val = cols[idIdx] || '';
-              const m = val.match(/_(\d+)$/);
-              if (m) {
-                const num = parseInt(m[1], 10);
-                if (!isNaN(num) && num > lastSuffix) {
-                  lastSuffix = num;
-                }
+        // Parse using csv-parse/sync
+        const records = parse(content, { columns: true, skip_empty_lines: true });
+        existingRows = records;
+
+        // Build content key set from existing rows
+        existingRows.forEach((row) => {
+          const key = getContentKey(row);
+          contentKeySet.add(key);
+        });
+
+        // Determine highest numeric suffix from IDs
+        existingRows.forEach((row) => {
+          const val = row.id != null ? row.id : row.ID;
+          if (val) {
+            const m = String(val).match(/_(\d+)$/);
+            if (m) {
+              const num = parseInt(m[1], 10);
+              if (!isNaN(num) && num > lastSuffix) {
+                lastSuffix = num;
               }
             }
           }
-        }
-      } catch {
-        // if the file can't be read for some reason, just proceed without
-        // attempting to bump ids.
+        });
+      } catch (err) {
+        console.warn(`Could not read existing file for append: ${err.message}`);
+        // proceed without deduplication or suffix bump
       }
     }
 
-    // adjust ids of new rows if necessary
-    if (hasIdColumn && rows && rows.length > 0) {
-      rows = rows.map((row, idx) => {
-        // support both lowercase and uppercase property
-        const currentId = row.id != null ? row.id : row.ID;
-        if (currentId == null) return row;
-        const m = String(currentId).match(/^(.*?)(?:_(\d+))?$/);
-        const base = m ? m[1] : String(currentId);
-        const newId = `${base}_${lastSuffix + idx + 1}`;
-        if (row.id != null) {
-          return { ...row, id: newId };
-        }
-        if (row.ID != null) {
-          return { ...row, ID: newId };
-        }
-        return row;
+    // Deduplicate new rows against existing content
+    const uniqueNewRows = [];
+    for (const row of rows) {
+      const key = getContentKey(row);
+      if (!contentKeySet.has(key)) {
+        uniqueNewRows.push(row);
+        contentKeySet.add(key); // prevent duplicates within the new batch
+      }
+    }
+
+    // Add IDs to new rows
+    if (uniqueNewRows.length > 0) {
+      uniqueNewRows.forEach((row, idx) => {
+        row.ID = formatId(DATASET_KEY, lastSuffix + idx + 1);
       });
     }
 
+    // Stringify new rows (without header if appending to existing file)
     const options = hadBefore ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
-    const csv = stringify(rows, options);
+    const csv = stringify(uniqueNewRows, options);
 
     if (hadBefore) {
       await fs.promises.appendFile(filePath, csv);
@@ -1153,8 +1239,9 @@ export async function writeCsv(filePath, rows, append = false) {
       await fs.promises.writeFile(filePath, csv);
     }
 
+    // Lock file to read-only
     try {
-      fs.chmodSync(filePath, 0o444);
+      await fs.promises.chmod(filePath, 0o444);
     } catch {
       // ignore
     }
@@ -1163,10 +1250,17 @@ export async function writeCsv(filePath, rows, append = false) {
 
   // default non-append behaviour (overwrite)
   await prepareWrite(filePath);
-  const csv = stringify(rows, STRINGIFY_OPTIONS);
+  
+  // Add IDs to all rows
+  const rowsWithIds = rows.map((row, idx) => ({
+    ID: formatId(DATASET_KEY, idx + 1),
+    ...row,
+  }));
+
+  const csv = stringify(rowsWithIds, STRINGIFY_OPTIONS);
   await fs.promises.writeFile(filePath, csv);
   try {
-    fs.chmodSync(filePath, 0o444);
+    await fs.promises.chmod(filePath, 0o444);
   } catch {
     // ignore
   }
@@ -1423,7 +1517,7 @@ export async function clearLogs(key) {
   await fs.promises.chmod(logPath, 0o444).catch(() => {});
 
   const ds = DATASET_LOOKUP[key];
-  appendLogs(
+  await appendLogs(
     key,
     `🧹 Backup log cleared for ${ds.processed_csv} (${ds.name})\nThis message confirms that the log was successfully cleared.`,
   );

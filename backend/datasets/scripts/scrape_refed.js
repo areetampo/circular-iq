@@ -12,6 +12,7 @@
  *   • Pagination through all available solutions
  *   • Backup every 10 solutions with recovery mode
  *   • Detailed logging to file
+ *   • **Content‑based deduplication** – skips duplicate problem/solution pairs
  *
  * Usage:
  *   node scrape_refed.js                 # normal run
@@ -38,30 +39,27 @@ import {
   appendLogs,
   clearLogs,
   DATASET_KEYS,
+  DATASET_LOOKUP,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.refed;
+const dataset = DATASET_LOOKUP[DATASET_KEY];
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const BACKUP_INTERVAL = 10; // Save backup every 10 solutions
 const MAX_SOLUTIONS = 500; // Safety limit (there are ~40 solutions currently)
 
 // API Base URLs
-const API_BASE = 'https://api.refed.org/v2';
-const SOLUTIONS_URL = `${API_BASE}/solution_database/solutions`;
-const GROUPS_URL = `${API_BASE}/solution_database/groups`;
-const CATEGORIES_URL = `${API_BASE}/solution_database/categories`;
-const SECTORS_URL = `${API_BASE}/sectors`;
-const FOOD_TYPES_URL = `${API_BASE}/solution_database/food_types`;
+const API_BASE = dataset.urls.apiBase;
+const SOLUTIONS_URL = dataset.urls.solutions; // `${API_BASE}/solution_database/solutions`
+const GROUPS_URL = dataset.urls.groups; // `${API_BASE}/solution_database/groups`
+const CATEGORIES_URL = dataset.urls.categories; // `${API_BASE}/solution_database/categories`
+const SECTORS_URL = dataset.urls.sectors; // `${API_BASE}/sectors`
+const FOOD_TYPES_URL = dataset.urls.foodTypes; // `${API_BASE}/solution_database/food_types`
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-// Create backup helper
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  true && !APPEND_BACKUP,
-  MAX_SOLUTIONS,
-);
+
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, MAX_SOLUTIONS);
 
 /**
  * Fetch lookup data (groups, categories, etc.) to enrich solutions.
@@ -102,6 +100,7 @@ async function fetchAllSolutions() {
 
   while (hasMore && allSolutions.length < MAX_SOLUTIONS) {
     console.log(`Fetching solutions page ${page}...`);
+    await appendLogs(DATASET_KEY, `Fetching solutions page ${page}...`);
     // The API might support pagination with ?page= or ?offset=
     // Adjust the params based on actual behavior – if not, this will just fetch the same first page repeatedly
     const response = await axios.get(SOLUTIONS_URL, {
@@ -113,7 +112,7 @@ async function fetchAllSolutions() {
       hasMore = false;
     } else {
       allSolutions = allSolutions.concat(solutions);
-      appendLogs(DATASET_KEY, `Page ${page}: fetched ${solutions.length} solutions`);
+      await appendLogs(DATASET_KEY, `Page ${page}: fetched ${solutions.length} solutions`);
       page++;
       // Small delay to be polite
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -126,7 +125,7 @@ async function fetchAllSolutions() {
 /**
  * Transform a raw API solution into your standardized row object.
  */
-function transformSolution(solution, lookups, index) {
+function transformSolution(solution, lookups) {
   const attrs = solution.attributes || {};
   const relationships = solution.relationships || {};
 
@@ -142,7 +141,7 @@ function transformSolution(solution, lookups, index) {
     ? `${problemBase} ${attrs.definition.split('.')[0]}.`
     : problemBase;
 
-  // Solution description – RENAME THIS VARIABLE
+  // Solution description
   const solutionDesc = attrs.definition ? `${attrs.name}: ${attrs.definition}` : attrs.name;
 
   // Parse impact metrics from the data array
@@ -202,7 +201,6 @@ function transformSolution(solution, lookups, index) {
   };
 
   return {
-    ID: formatId(DATASET_KEY, index + 1),
     problem: cleanText(problem),
     solution: cleanText(solutionDesc),
     materials: cleanText(materials),
@@ -225,8 +223,36 @@ async function rebuildFromBackup() {
     return;
   }
   console.log(`📖 Processing ${backupRows.length} backup rows...`);
-  await writeCsv(OUTPUT_PATH, backupRows, APPEND_PROCESSED);
-  console.log(`✅ Rebuilt ${backupRows.length} rows from backup.`);
+
+  // Optional: deduplicate backup rows by content (in case backup itself has duplicates)
+  const seenKeys = new Set();
+  const uniqueRows = [];
+
+  for (const row of backupRows) {
+    const key = `${row.problem}||${row.solution}`; // Use problem+solution as unique key
+    if (seenKeys.has(key)) {
+      await appendLogs(DATASET_KEY, `Skipping duplicate backup row: ${key.substring(0, 80)}...`);
+      continue;
+    }
+    seenKeys.add(key);
+    uniqueRows.push(row);
+  }
+
+  if (uniqueRows.length !== backupRows.length) {
+    console.log(`Removed ${backupRows.length - uniqueRows.length} duplicate rows from backup.`);
+    await appendLogs(
+      DATASET_KEY,
+      `Removed ${backupRows.length - uniqueRows.length} duplicates from backup.`,
+    );
+  }
+
+  const finalRows = uniqueRows.map((row, idx) => ({
+    ID: formatId(DATASET_KEY, idx + 1),
+    ...row,
+  }));
+
+  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+  console.log(`✅ Rebuilt ${finalRows.length} rows from backup.`);
 }
 
 /**
@@ -235,27 +261,44 @@ async function rebuildFromBackup() {
 async function fetchAndTransform() {
   console.log('Fetching lookup data...');
   const lookups = await fetchLookups();
-  appendLogs(DATASET_KEY, 'Lookup data fetched');
+  await appendLogs(DATASET_KEY, 'Lookup data fetched');
 
   console.log('Fetching solutions...');
   const solutions = await fetchAllSolutions();
   console.log(`Fetched ${solutions.length} total solutions`);
-  appendLogs(DATASET_KEY, `Fetched ${solutions.length} solutions`);
+  await appendLogs(DATASET_KEY, `Fetched ${solutions.length} solutions`);
 
   // Filter to only include solutions that are included in the model
   const validSolutions = solutions.filter((s) => s.attributes?.include_in_model === true);
   console.log(`${validSolutions.length} solutions are included in the model`);
-  appendLogs(DATASET_KEY, `${validSolutions.length} solutions marked include_in_model=true`);
+  await appendLogs(DATASET_KEY, `${validSolutions.length} solutions marked include_in_model=true`);
 
-  // Transform each solution to a row (without ID yet)
+  // Transform and deduplicate by content
+  const seenKeys = new Set();
   const rowsWithoutIds = [];
-  for (let i = 0; i < validSolutions.length; i++) {
-    const solution = validSolutions[i];
-    const row = transformSolution(solution, lookups, i);
+
+  for (const solution of validSolutions) {
+    const row = transformSolution(solution, lookups);
+    const key = `${row.problem}||${row.solution}`; // Use problem+solution as unique key
+
+    if (seenKeys.has(key)) {
+      await appendLogs(DATASET_KEY, `Skipping duplicate content: ${key.substring(0, 80)}...`);
+      continue;
+    }
+    seenKeys.add(key);
     rowsWithoutIds.push(row);
 
     // Add to backup (auto-flushes every BACKUP_INTERVAL)
     await backup.add([row]);
+  }
+
+  const duplicatesSkipped = validSolutions.length - rowsWithoutIds.length;
+  if (duplicatesSkipped > 0) {
+    console.log(`Skipped ${duplicatesSkipped} duplicate solutions based on content.`);
+    await appendLogs(
+      DATASET_KEY,
+      `Skipped ${duplicatesSkipped} duplicate solutions based on content.`,
+    );
   }
 
   // Final flush of any remaining rows in backup buffer
@@ -269,7 +312,7 @@ async function fetchAndTransform() {
 
   // Write final CSV (writeCsv handles locking and read-only)
   await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-  console.log(`✅ Successfully transformed ${finalRows.length} solutions.`);
+  console.log(`✅ Successfully transformed ${finalRows.length} unique solutions.`);
 
   const firstRow = finalRows[0];
   const lastRow = finalRows[finalRows.length - 1];
@@ -283,14 +326,8 @@ async function fetchAndTransform() {
 }
 
 // --- Entry point ---
-if (isBackupRecoveryMode()) {
-  rebuildFromBackup().catch(console.error);
-} else {
-  fetchAndTransform().catch(console.error);
-}
-
 async function main() {
-  clearLogs(DATASET_KEY);
+  await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
     console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
@@ -298,7 +335,7 @@ async function main() {
     return;
   }
 
-  fetchAndTransform();
+  await fetchAndTransform();
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

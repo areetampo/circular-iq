@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_sei_construction.js - Circular economy case studies and best practices extraction
  *
@@ -24,8 +26,6 @@
  * Scope: Covers circular design, material reuse, waste management in construction sector
  */
 
-/* global process */
-
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
@@ -39,6 +39,7 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
@@ -51,14 +52,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 const DATASET_KEY = DATASET_KEYS.sei;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_DIR);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 // ----------------------------------------------------------------------
@@ -66,7 +61,7 @@ const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 // ----------------------------------------------------------------------
 async function extractTextFromPDF(filePath) {
   const dataBuffer = await fs.promises.readFile(filePath);
-  const uint8Array = new Uint8Array(dataBuffer); // Convert to Uint8Array for pdfjs
+  const uint8Array = new Uint8Array(dataBuffer);
   const loadingTask = pdfjsLib.getDocument({ data: uint8Array, useSystemFonts: true });
   const pdfDocument = await loadingTask.promise;
   let fullText = '';
@@ -79,14 +74,14 @@ async function extractTextFromPDF(filePath) {
 
     // Clean boilerplate: remove page numbers, footers, common patterns
     pageText = pageText.replace(/\bPage \d+ of \d+\b/gi, '');
-    pageText = pageText.replace(/\b\d+\s*\|/g, ''); // "123 |"
-    pageText = pageText.replace(/\|\s*\d+/g, ''); // "| 123"
-    pageText = pageText.replace(/©\s*\d{4}.*?(?=\n|$)/gi, ''); // copyright lines
-    pageText = pageText.replace(/www\.\S+/gi, ''); // URLs
-    pageText = pageText.replace(/\b(?:WBCSD|World Business Council).{0,30}(?=\n|$)/gi, ''); // org name
+    pageText = pageText.replace(/\b\d+\s*\|/g, '');
+    pageText = pageText.replace(/\|\s*\d+/g, '');
+    pageText = pageText.replace(/©\s*\d{4}.*?(?=\n|$)/gi, '');
+    pageText = pageText.replace(/www\.\S+/gi, '');
+    pageText = pageText.replace(/\b(?:WBCSD|World Business Council).{0,30}(?=\n|$)/gi, '');
     pageText = pageText.replace(/\b(?:Confidential|Draft|Preliminary)\b/gi, '');
-    pageText = pageText.replace(/\n{3,}/g, '\n\n'); // collapse multiple newlines
-    pageText = pageText.replace(/\s+/g, ' '); // normalize spaces
+    pageText = pageText.replace(/\n{3,}/g, '\n\n');
+    pageText = pageText.replace(/\s+/g, ' ');
 
     fullText += pageText + '\n';
   }
@@ -95,7 +90,173 @@ async function extractTextFromPDF(filePath) {
 }
 
 // ----------------------------------------------------------------------
-// Classification helpers based on filename
+// Helper to extract a section between two headings (case‑insensitive, flexible)
+// ----------------------------------------------------------------------
+function extractSection(text, startHeading, endHeading = null) {
+  const startIdx = text.search(new RegExp(startHeading, 'i'));
+  if (startIdx === -1) return '';
+  const contentStart =
+    startIdx + text.slice(startIdx).match(new RegExp(startHeading, 'i'))[0].length;
+  let endIdx = text.length;
+  if (endHeading) {
+    const endMatch = text.slice(contentStart).search(new RegExp(endHeading, 'i'));
+    if (endMatch !== -1) endIdx = contentStart + endMatch;
+  }
+  return text.slice(contentStart, endIdx).trim();
+}
+
+// ----------------------------------------------------------------------
+// Helper to extract metadata fields from the top block (YEAR, LOCATION, etc.)
+// ----------------------------------------------------------------------
+function extractMetadata(text) {
+  const metadata = {};
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l);
+  let inMetadata = true;
+  for (const line of lines) {
+    if (!inMetadata) break;
+    if (line.match(/^SUMMARY|SUSTAINABILITY GOALS|CIRCULAR ECONOMY STRATEGIES/i)) {
+      inMetadata = false;
+      break;
+    }
+    const match = line.match(/^([A-Z\s]+)\s+(.+)$/);
+    if (match) {
+      const key = match[1].trim().toLowerCase().replace(/\s+/g, '_');
+      const value = match[2].trim();
+      metadata[key] = value;
+    }
+  }
+  return metadata;
+}
+
+// ----------------------------------------------------------------------
+// Classifier for the SEI case study PDFs (based on filename pattern)
+// ----------------------------------------------------------------------
+function isSEICaseStudy(fileName) {
+  return fileName.includes('SEI-CE-WG-Circular-Economy-Case-Studies');
+}
+
+// ----------------------------------------------------------------------
+// Extraction for SEI Circular Economy Case Studies
+// ----------------------------------------------------------------------
+function extractSEICaseStudy(text, fileName) {
+  const rows = [];
+
+  // Extract metadata (year, location, use, etc.)
+  const metadata = extractMetadata(text);
+
+  // Extract sections
+  const summary = extractSection(
+    text,
+    'SUMMARY',
+    'SUSTAINABILITY GOALS|CIRCULAR ECONOMY STRATEGIES|KEY FINDINGS|AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
+  );
+  const goals = extractSection(
+    text,
+    'SUSTAINABILITY GOALS',
+    'CIRCULAR ECONOMY STRATEGIES|KEY FINDINGS|AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
+  );
+  const strategies = extractSection(
+    text,
+    'CIRCULAR ECONOMY STRATEGIES',
+    'KEY FINDINGS|AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
+  );
+  const findings = extractSection(
+    text,
+    'KEY FINDINGS[,\s]*(?:RECOMMENDATIONS,? AND LESSONS LEARNT)?',
+    'AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
+  );
+  const quantitative = extractSection(
+    text,
+    'AVAILABLE QUANTITATIVE DATA',
+    'FURTHER INFORMATION|ABOUT THE DATABASE',
+  );
+
+  // Build problem statement: use goals or summary, focusing on challenges
+  let problem = '';
+  if (goals && goals.length > 20) {
+    problem = goals;
+  } else if (summary) {
+    problem = summary;
+  } else {
+    problem = 'Need to implement circular economy principles in construction.';
+  }
+
+  // Solution: use the strategies section
+  let solution =
+    strategies ||
+    'Apply circular economy strategies such as design for disassembly and material reuse.';
+
+  // Materials: extract from strategies or quantitative data
+  let materials = 'mixed';
+  const materialKeywords = [
+    'wood',
+    'steel',
+    'concrete',
+    'asphalt',
+    'brick',
+    'glass',
+    'plastic',
+    'timber',
+    'aggregate',
+  ];
+  const combinedText = (strategies + ' ' + quantitative).toLowerCase();
+  const foundMaterials = materialKeywords.filter((m) => combinedText.includes(m));
+  if (foundMaterials.length > 0) {
+    materials = foundMaterials.join(', ');
+  }
+
+  // Circular strategy: from the case, we can detect if it's DfD, reuse, etc.
+  let circular_strategy = 'Circular Construction';
+  if (strategies.toLowerCase().includes('design for disassembly'))
+    circular_strategy = 'Design for Disassembly';
+  else if (strategies.toLowerCase().includes('reuse')) circular_strategy = 'Material Reuse';
+  else if (strategies.toLowerCase().includes('deconstruction'))
+    circular_strategy = 'Deconstruction';
+
+  // Category: use the USE field if available
+  let category = metadata.use || 'Construction';
+
+  // Impact: combine quantitative data and key findings
+  let impact = '';
+  if (quantitative) {
+    impact = quantitative;
+  } else if (findings) {
+    impact = findings;
+  } else {
+    impact = summary || 'Circular economy implementation in construction.';
+  }
+
+  // Build metadata JSON
+  const fullMetadata = {
+    ...metadata,
+    summary: summary.substring(0, 500),
+    goals: goals.substring(0, 500),
+    strategies: strategies.substring(0, 500),
+    findings: findings.substring(0, 500),
+    quantitative: quantitative.substring(0, 500),
+    fileName,
+  };
+
+  rows.push({
+    problem: cleanText(problem.substring(0, 1000)),
+    solution: cleanText(solution.substring(0, 1000)),
+    materials: cleanText(materials),
+    circular_strategy: cleanText(circular_strategy),
+    category: cleanText(category),
+    impact: cleanText(impact.substring(0, 1000)),
+    source_url: dataset.source_url,
+    metadata_json: JSON.stringify(fullMetadata),
+    _scoreValue: 95, // High quality for case studies
+  });
+
+  return rows;
+}
+
+// ----------------------------------------------------------------------
+// Existing classifiers and extractors (unchanged, but included fully)
 // ----------------------------------------------------------------------
 function isCTICaseStudy(fileName) {
   const lower = fileName.toLowerCase();
@@ -125,31 +286,6 @@ function isCTICaseStudy(fileName) {
   );
 }
 
-function isForestKPI(fileName) {
-  return fileName.toLowerCase().includes('fsg-kpi') || fileName.toLowerCase().includes('forest');
-}
-
-function isBusinessCases(fileName) {
-  return fileName.toLowerCase().includes('8-business-cases');
-}
-
-function isTechnicalFramework(fileName) {
-  const lower = fileName.toLowerCase();
-  return (
-    lower.includes('measuring-circular-buildings') ||
-    lower.includes('plastics-protocol') ||
-    lower.includes('cdx_scoping')
-  );
-}
-
-function isStrategicGuide(fileName) {
-  const lower = fileName.toLowerCase();
-  return lower.includes('ceo_guide') || lower.includes('factor10');
-}
-
-// ----------------------------------------------------------------------
-// Extraction for CTI Case Studies (one-page format like Whirlpool)
-// ----------------------------------------------------------------------
 function extractCTICase(text, fileName) {
   const rows = [];
 
@@ -212,10 +348,10 @@ function extractCTICase(text, fileName) {
   return rows;
 }
 
-// ----------------------------------------------------------------------
-// Extraction for Forest KPI Results (FSG-KPI-Results_2025.pdf)
-// Improved to capture multiple indicator rows
-// ----------------------------------------------------------------------
+function isForestKPI(fileName) {
+  return fileName.toLowerCase().includes('fsg-kpi') || fileName.toLowerCase().includes('forest');
+}
+
 function extractForestKPI(text, fileName) {
   const rows = [];
   const lines = text
@@ -297,9 +433,10 @@ function extractForestKPI(text, fileName) {
   return rows;
 }
 
-// ----------------------------------------------------------------------
-// Extraction for 8 Business Cases (multi-case document)
-// ----------------------------------------------------------------------
+function isBusinessCases(fileName) {
+  return fileName.toLowerCase().includes('8-business-cases');
+}
+
 function extractBusinessCases(text, fileName) {
   const rows = [];
   // Split by case headings (Gener8, Innov8, Moder8, Captiv8, Differenti8, Integr8, Acclim8, Insul8)
@@ -339,9 +476,15 @@ function extractBusinessCases(text, fileName) {
   return rows;
 }
 
-// ----------------------------------------------------------------------
-// Extraction for Technical Frameworks (e.g., Circular Buildings, Plastics Protocol, CDX)
-// ----------------------------------------------------------------------
+function isTechnicalFramework(fileName) {
+  const lower = fileName.toLowerCase();
+  return (
+    lower.includes('measuring-circular-buildings') ||
+    lower.includes('plastics-protocol') ||
+    lower.includes('cdx_scoping')
+  );
+}
+
 function extractTechnicalFramework(text, fileName) {
   // Extract title (first non-empty line that is not a page number)
   const lines = text
@@ -382,9 +525,11 @@ function extractTechnicalFramework(text, fileName) {
   ];
 }
 
-// ----------------------------------------------------------------------
-// Extraction for Strategic Guides (CEO Guide, Factor10)
-// ----------------------------------------------------------------------
+function isStrategicGuide(fileName) {
+  const lower = fileName.toLowerCase();
+  return lower.includes('ceo_guide') || lower.includes('factor10');
+}
+
 function extractStrategicGuide(text, fileName) {
   const lines = text
     .split('\n')
@@ -408,9 +553,6 @@ function extractStrategicGuide(text, fileName) {
   ];
 }
 
-// ----------------------------------------------------------------------
-// Fallback for any other PDF (treat as white paper)
-// ----------------------------------------------------------------------
 function extractGeneral(text, fileName) {
   const lines = text
     .split('\n')
@@ -432,18 +574,6 @@ function extractGeneral(text, fileName) {
       _scoreValue: 70,
     },
   ];
-}
-
-// ----------------------------------------------------------------------
-// Helper to extract text between two headings
-// ----------------------------------------------------------------------
-function extractSection(text, startHeading, endHeading) {
-  const startIdx = text.indexOf(startHeading);
-  if (startIdx === -1) return '';
-  const contentStart = startIdx + startHeading.length;
-  let endIdx = endHeading ? text.indexOf(endHeading, contentStart) : text.length;
-  if (endIdx === -1) endIdx = text.length;
-  return text.substring(contentStart, endIdx).trim();
 }
 
 // ----------------------------------------------------------------------
@@ -474,9 +604,11 @@ async function main() {
     try {
       const text = await extractTextFromPDF(filePath);
 
-      // Classify and extract
+      // Classify and extract – SEI case studies first
       let rows = [];
-      if (isCTICaseStudy(file)) {
+      if (isSEICaseStudy(file)) {
+        rows = extractSEICaseStudy(text, file);
+      } else if (isCTICaseStudy(file)) {
         rows = extractCTICase(text, file);
       } else if (isForestKPI(file)) {
         rows = extractForestKPI(text, file);
@@ -502,13 +634,11 @@ async function main() {
     return;
   }
 
-  // Score and keep ALL rows (no TARGET_ROWS limit)
+  // Score rows (optional)
   const scored = allRows.map((r) => ({
     ...r,
-    score: r._scoreValue + (r.impact ? r.impact.length / 100 : 0), // boost for longer impact
+    score: r._scoreValue + (r.impact ? r.impact.length / 100 : 0),
   }));
-
-  // Sort by score descending (optional, but nice to have high-quality rows first)
   scored.sort((a, b) => b.score - a.score);
 
   console.log(`\n🎯 Total extracted rows: ${scored.length}`);

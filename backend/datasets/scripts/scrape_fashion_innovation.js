@@ -1,31 +1,35 @@
 /**
- * scrape_fashion_innovation.js - Fashion for Good Innovation Programme scraping
+ * scrape_fashion_innovation.js – Fashion for Good Innovation Programme scraping
  *
  * Scrapes from https://www.fashionforgood.com/innovation-platform-2/innovators/
  *
  * Features:
+ *   • Flexible selectors to handle potential site changes
+ *   • Debug output (screenshot + HTML) when tiles are not found
+ *   • Cookie banner dismissal
  *   • Pagination via clicking page numbers (JavaScript-based)
- *   • Per-innovator detail extraction (description, focus area, founded year, etc.)
- *   • Quality scoring based on description length, material mentions, quantified impact
+ *   • Per-innovator detail extraction
+ *   • Quality scoring and top‑k filtering
  *   • Backup every 3 pages (BACKUP_INTERVAL)
  *   • Recovery mode with `--use-backup`
  *   • Clear logs with `--clear-logs`
  *   • Show browser with `--show`
+ *   • Append modes with `--append-processed` and `--append-backup`
  *
  * Usage:
  *   node scrape_fashion_innovation.js                 # normal run
  *   node scrape_fashion_innovation.js --use-backup    # rebuild from backup
  *   node scrape_fashion_innovation.js --clear-logs    # clear log file
  *   node scrape_fashion_innovation.js --show          # open browser window
- *   node scrape_fashion_innovation.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_fashion_innovation.js --append-backup     # append to backup instead of clearing on start
+ *   node scrape_fashion_innovation.js --append-processed  # append to processed CSV
+ *   node scrape_fashion_innovation.js --append-backup     # append to backup instead of clearing
  */
-
-/* global process */
 
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import path from 'path';
 import {
   formatId,
   cleanText,
@@ -35,7 +39,6 @@ import {
   getUserAgentOptions,
   getExtraHttpHeaders,
   writeCsv,
-  hasAppendFlag,
   hasAppendProcessedFlag,
   hasAppendBackupFlag,
   createBackupHelper,
@@ -53,27 +56,20 @@ puppeteerExtra.use(StealthPlugin());
 const DATASET_KEY = DATASET_KEYS.fashion_innovation;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const BACKUP_INTERVAL = 3;
-const CLEAR_BACKUP_ON_START = true;
 const LISTING_URL = dataset.urls.listing;
 const BASE_URL = dataset.urls.base;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
-// Pagination: we don't know total pages, but we set a safety maximum
+// there is no pagination via url parameters, we have to click through pages until we reach the end or MAX_PAGES_TO_FETCH
 const START_PAGE = 1;
-const END_PAGE = 20; // As of March 2026, there are approximately 20 pages total (1..20)
-const MAX_PAGES_TO_FETCH = 20; // 20
+const END_PAGE = 15; // as of March 2026
+const MAX_PAGES_TO_FETCH = 15;
 const MAX_ROWS = 200; // keep top 200 highest‑scoring innovators
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-  MAX_PAGES_TO_FETCH,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, MAX_PAGES_TO_FETCH);
 
-// Helper delay
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
@@ -96,12 +92,12 @@ function scoreInnovatorQuality(data) {
   // Quantified impact (numbers, %, CO2, etc.)
   if (data.impact && /\d+/.test(data.impact)) score += 30;
 
-  // Has additional fields (founded, stage, location) – indicates structured data
+  // Has additional fields (founded, stage, location)
   if (data.founded) score += 5;
   if (data.stage) score += 5;
   if (data.location) score += 5;
 
-  // Bonus for being in "End of Use" or "Processing" – these are more circular
+  // Bonus for being in "End of Use" or "Processing"
   if (
     data.focusArea &&
     (data.focusArea.includes('End of Use') || data.focusArea.includes('Processing'))
@@ -109,6 +105,64 @@ function scoreInnovatorQuality(data) {
     score += 10;
 
   return Math.min(score, 100);
+}
+
+/**
+ * Attempt to dismiss common cookie / overlay dialogs.
+ * @param {Page} page - Puppeteer page
+ */
+async function dismissDialogs(page) {
+  const selectors = [
+    'button[aria-label*="cookie" i]',
+    'button[id*="cookie" i]',
+    '.cookie-accept',
+    '.cc-btn',
+    'button:has-text("Accept")',
+    'button:has-text("Got it")',
+  ];
+  for (const sel of selectors) {
+    try {
+      const btn = await page.$(sel);
+      if (btn) {
+        await btn.click();
+        await sleep(1000);
+        break;
+      }
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/**
+ * Extract innovator detail links from the current page using multiple strategies.
+ * @param {Page} page - Puppeteer page
+ * @returns {Promise<string[]>} Array of absolute URLs
+ */
+async function extractDetailLinks(page) {
+  // Try primary selector: a.tile__image (from original site)
+  let links = await page.evaluate((base) => {
+    const anchors = Array.from(document.querySelectorAll('a.tile__image'));
+    return anchors.map((a) => (a.href.startsWith('http') ? a.href : base + a.href));
+  }, BASE_URL);
+
+  // If none found, try a more generic approach: any link whose URL contains "/innovators/"
+  if (!links.length) {
+    links = await page.evaluate((base) => {
+      const allLinks = Array.from(document.querySelectorAll('a[href*="/innovators/"]'));
+      return allLinks
+        .map((a) => (a.href.startsWith('http') ? a.href : base + a.href))
+        .filter((href, idx, self) => self.indexOf(href) === idx); // deduplicate
+    }, BASE_URL);
+  }
+
+  // If still none, log warning and return empty
+  if (!links.length) {
+    console.warn('  ⚠️ No innovator links found on this page');
+    await appendLogs(DATASET_KEY, '  ⚠️ No innovator links found on page');
+  }
+
+  return [...new Set(links)]; // ensure unique
 }
 
 /**
@@ -129,7 +183,6 @@ async function extractInnovatorData(page, url) {
       const description = document.querySelector('.wysiwyg--xl p')?.innerText.trim() || '';
 
       // --- "Why Fashion for Good is working with..." section (problem) ---
-      // Find any section whose id starts with "why-"
       const whySection =
         document.querySelector('section[id^="why-"] .wysiwyg p')?.innerText.trim() ||
         document.querySelector('section[id*="why"] .wysiwyg p')?.innerText.trim() ||
@@ -169,9 +222,8 @@ async function extractInnovatorData(page, url) {
     // --- Determine Problem ---
     let problem = '';
     if (data.why && data.why.length > 20) {
-      problem = data.why; // Use the dedicated "why" section
+      problem = data.why;
     } else {
-      // Fallback: look for sentences containing problem keywords
       const sentences = data.description
         .split(/[.!?]+/)
         .map((s) => s.trim())
@@ -194,7 +246,6 @@ async function extractInnovatorData(page, url) {
           break;
         }
       }
-      // If still no problem, take the first sentence
       if (!problem && sentences.length > 0) {
         problem = sentences[0];
       }
@@ -202,13 +253,11 @@ async function extractInnovatorData(page, url) {
 
     // --- Determine Solution ---
     let solution = data.description;
-    // If problem was taken from the description, remove that part from solution to avoid duplication
     if (!data.why && problem && solution.includes(problem)) {
       solution = solution.replace(problem, '').trim();
-      // Remove leading punctuation (.,!?) and extra spaces
       solution = solution.replace(/^[.,!?\s]+/, '').trim();
     }
-    if (!solution) solution = data.description; // fallback
+    if (!solution) solution = data.description;
 
     // --- Extract materials ---
     const materialKeywords = [
@@ -244,7 +293,7 @@ async function extractInnovatorData(page, url) {
     const textToSearch = (data.description + ' ' + data.why).toLowerCase();
     const foundMaterials = materialKeywords.filter((kw) => textToSearch.includes(kw));
 
-    // --- Circular strategy (same as before) ---
+    // --- Circular strategy ---
     let strategy = 'General';
     const lowerDesc = textToSearch;
     if (lowerDesc.includes('recycl')) strategy = 'Recycling';
@@ -261,7 +310,7 @@ async function extractInnovatorData(page, url) {
     else if (focusLower.includes('raw materials')) strategy = 'Raw Material Innovation';
     else if (focusLower.includes('manufacturing')) strategy = 'Manufacturing Innovation';
 
-    // --- Impact (look for numbers, and ensure it's not the same as problem) ---
+    // --- Impact ---
     let impact = '';
     const allText = data.description + ' ' + data.why;
     const sentences = allText
@@ -277,7 +326,6 @@ async function extractInnovatorData(page, url) {
           s.includes('carbon') ||
           s.includes('reduce'))
       ) {
-        // If this sentence is very similar to problem, skip it
         if (
           problem &&
           s.length > 20 &&
@@ -290,7 +338,6 @@ async function extractInnovatorData(page, url) {
       }
     }
     if (!impact) {
-      // fallback: first sentence that is not the problem
       for (const s of sentences) {
         if (problem && s !== problem && s.length > 20) {
           impact = s;
@@ -299,7 +346,7 @@ async function extractInnovatorData(page, url) {
       }
     }
     if (!impact && sentences.length > 0) {
-      impact = sentences[0]; // last resort
+      impact = sentences[0];
     }
 
     // --- Clean everything ---
@@ -381,12 +428,10 @@ async function rebuildFromBackup() {
   console.log(`Found ${backupRows.length} rows in backup`);
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
-  // Reconstruct items from metadata_json and re‑score
   const items = backupRows
     .map((row) => {
       try {
         const metadata = JSON.parse(row.metadata_json || '{}');
-        // Build a temporary object for scoring
         const tempItem = {
           description: metadata.description || '',
           materials: row.materials || '',
@@ -402,13 +447,12 @@ async function rebuildFromBackup() {
           _qualityScore: score,
           metadata,
         };
-      } catch (e) {
+      } catch {
         return null;
       }
     })
     .filter((item) => item && item._qualityScore > 20 && item.problem && item.problem.length > 20);
 
-  // Sort and take top MAX_ROWS
   const topItems = items.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, MAX_ROWS);
 
   console.log(`Selected ${topItems.length} high‑quality innovators after scoring/filtering`);
@@ -420,7 +464,6 @@ async function rebuildFromBackup() {
     return;
   }
 
-  // Add IDs and write final CSV
   const finalRows = topItems.map((row, idx) => ({
     ID: formatId(DATASET_KEY, idx + 1),
     problem: row.problem,
@@ -460,6 +503,32 @@ async function scrape() {
   try {
     await page.goto(LISTING_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
+    // Dismiss any cookie dialogs
+    await dismissDialogs(page);
+
+    // Wait for tiles to appear using flexible selectors
+    try {
+      await page.waitForSelector(
+        'a.tile__image, .tile--innovator, .innovator-card, .innovator-item',
+        {
+          timeout: 30000,
+        },
+      );
+    } catch (err) {
+      // Debug: save screenshot and HTML
+      const debugDir = path.join(process.cwd(), 'datasets', 'archives', 'scrape_backup');
+      if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
+      const screenshotPath = path.join(debugDir, `${DATASET_KEY}_error.png`);
+      const htmlPath = path.join(debugDir, `${DATASET_KEY}_debug.html`);
+      await page.screenshot({ path: screenshotPath });
+      const html = await page.content();
+      fs.writeFileSync(htmlPath, html);
+      console.error(`❌ Tile selector not found. Screenshot saved to ${screenshotPath}`);
+      console.error(`   HTML saved to ${htmlPath}`);
+      await appendLogs(DATASET_KEY, `❌ Fatal: Tile selector not found. Debug files saved.`);
+      throw new Error(`Tile selector not found after timeout. Check debug files.`);
+    }
+
     const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
     await appendLogs(
       DATASET_KEY,
@@ -475,33 +544,22 @@ async function scrape() {
       console.log(`\n📄 Page ${currentPage} (fetch ${pagesScraped}/${MAX_PAGES_TO_FETCH})`);
       await appendLogs(DATASET_KEY, `Fetching page ${currentPage}...`);
 
-      // Wait for tiles to appear
-      await page.waitForSelector('.tile--innovator', { timeout: 10000 });
-
-      // Get all detail links on current page
-      const links = await page.evaluate((base) => {
-        const tiles = Array.from(document.querySelectorAll('.tile--innovator a.tile__image'));
-        return tiles.map((a) => {
-          const href = a.href;
-          return href.startsWith('http') ? href : base + href;
-        });
-      }, BASE_URL);
-
-      const uniqueLinks = [...new Set(links)];
-      console.log(`  Found ${uniqueLinks.length} innovator links`);
-      await appendLogs(DATASET_KEY, `  Found ${uniqueLinks.length} links`);
+      // Get all detail links on current page using flexible method
+      const links = await extractDetailLinks(page);
+      console.log(`  Found ${links.length} innovator links`);
+      await appendLogs(DATASET_KEY, `  Found ${links.length} links`);
 
       // Process each link
       const pageRows = [];
-      for (let i = 0; i < uniqueLinks.length; i++) {
-        const link = uniqueLinks[i];
-        console.log(`    [${i + 1}/${uniqueLinks.length}] Visiting: ${link}`);
+      for (let i = 0; i < links.length; i++) {
+        const link = links[i];
+        console.log(`    [${i + 1}/${links.length}] Visiting: ${link}`);
         await appendLogs(DATASET_KEY, `    Visiting: ${link}`);
 
         const detailPage = await browser.newPage();
         try {
           await detailPage.goto(link, { waitUntil: 'domcontentloaded', timeout: 30000 });
-          await sleep(2000); // allow lazy content
+          await sleep(2000);
 
           const result = await extractInnovatorData(detailPage, link);
           if (result) {
@@ -518,7 +576,6 @@ async function scrape() {
           await detailPage.close();
         }
 
-        // Polite delay between details
         await sleep(1000 + Math.random() * 1000);
       }
 
@@ -532,19 +589,16 @@ async function scrape() {
       }
 
       // --- Try to go to next page ---
-      // Get the current page number (for logging only)
       const currentPageNum = await page.evaluate(() => {
         const active = document.querySelector('.pagination li.active a');
         return active ? parseInt(active.getAttribute('data-page')) : null;
       });
 
-      // Determine the next page element
       let nextLink = null;
       if (currentPageNum) {
         nextLink = await page.$(`.pagination a[data-page="${currentPageNum + 1}"]`);
       }
       if (!nextLink) {
-        // fallback to arrow if it's not disabled
         nextLink = await page.$('#arrow-right:not(.disabled)');
       }
 
@@ -555,30 +609,31 @@ async function scrape() {
         break;
       }
 
-      // Before clicking, record the current tile links to detect change
+      // Record old tile hrefs to detect page change
       const oldTileHrefs = await page.evaluate(() =>
-        Array.from(document.querySelectorAll('.tile--innovator a.tile__image')).map((a) => a.href),
+        Array.from(document.querySelectorAll('a.tile__image, a[href*="/innovators/"]')).map(
+          (a) => a.href,
+        ),
       );
 
       console.log(`  Clicking to go to page ${currentPageNum ? currentPageNum + 1 : 'next'}`);
       await nextLink.click();
 
-      // Wait for loader to appear and disappear (if loader exists)
+      // Wait for loader if present
       try {
         await page.waitForSelector('.loader', { visible: true, timeout: 2000 });
         await page.waitForSelector('.loader', { hidden: true, timeout: 10000 });
       } catch {
-        // loader might not exist; proceed to tile change detection
+        // loader may not exist
       }
 
-      // Wait for the tiles to change (i.e., at least one new href appears)
+      // Wait for tiles to change
       try {
         await page.waitForFunction(
           (oldHrefs) => {
             const currentHrefs = Array.from(
-              document.querySelectorAll('.tile--innovator a.tile__image'),
+              document.querySelectorAll('a.tile__image, a[href*="/innovators/"]'),
             ).map((a) => a.href);
-            // Check if there's at least one href that wasn't in oldHrefs
             return currentHrefs.some((href) => !oldHrefs.includes(href));
           },
           { timeout: 15000 },
@@ -587,10 +642,9 @@ async function scrape() {
         console.log('  New tiles loaded successfully');
       } catch (err) {
         console.warn('  ⚠️ Timed out waiting for new tiles, but continuing...');
-        // Still continue; maybe the page is the last one and no new tiles appear
       }
 
-      await sleep(2000); // extra safety delay
+      await sleep(2000);
       currentPage++;
     }
 

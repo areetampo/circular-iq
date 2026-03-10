@@ -1,3 +1,4 @@
+/* global process */
 /**
  * scrape_remanufacturing_eu.js - Remanufacturing EU case study tool extraction
  *
@@ -49,7 +50,7 @@ const DATASET_KEY = DATASET_KEYS.rema;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 const BACKUP_INTERVAL = 5; // Backup every 5 cases
-const MAX_CASES = 100; // Safety limit (actual count ~50)
+const MAX_CASES = 1000; // Safety limit (actual count ~50)
 const TOTAL_PDF_COLLECTED_LIMIT = 100; // 100
 
 const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true, MAX_CASES);
@@ -58,13 +59,13 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true, MAX_CASES)
  * Rebuild from backup (only logs content, no download)
  */
 async function rebuildFromBackup() {
-  const backupRows = await readBackupCsv(DATASET_KEY);
-  if (!backupRows.length) {
-    console.log('No backup found.');
-    return;
-  }
-  console.log(`Backup contains ${backupRows.length} case studies.`);
-  await appendLogs(DATASET_KEY, `Backup rebuild: ${backupRows.length} entries.`);
+  console.log(
+    '♻️ BACKUP RECOVERY MODE: This scraper downloads PDFs. Please run extract_remanufacturing_eu.js to process the downloaded files.',
+  );
+  await appendLogs(
+    DATASET_KEY,
+    '♻️ RECOVERY MODE: Run extract_remanufacturing_eu.js to process downloaded PDFs.',
+  );
 }
 
 /**

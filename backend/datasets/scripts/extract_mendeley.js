@@ -38,25 +38,31 @@ import {
   getDatasetProcessedCsvPath,
   ensureDir,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.mnd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const MENDELEY_DIR = getDatasetRawDir(DATASET_KEY);
-if (!MENDELEY_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(MENDELEY_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${MENDELEY_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(MENDELEY_DIR);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+
+const inputFiles = [
+  path.join(MENDELEY_DIR, dataset.raw_folder_contents.mask_lca),
+  path.join(MENDELEY_DIR, dataset.raw_folder_contents.sme_practices),
+  path.join(MENDELEY_DIR, dataset.raw_folder_contents.bwm_scores),
+  path.join(MENDELEY_DIR, dataset.raw_folder_contents.network_scores),
+  path.join(MENDELEY_DIR, dataset.raw_folder_contents.business_model),
+];
+verifyPathsExist(inputFiles);
 
 // Sample sizes (same as original)
 const SME_SAMPLE_SIZE = 300;
 const SBM_SAMPLE_SIZE = 150;
+
+const MAX_ROWS = 300; // Maximum number of rows
 
 // -------------------- Helpers --------------------
 // Reservoir sampling for efficient random selection from large arrays
@@ -73,6 +79,58 @@ function randomSample(arr, sampleSize) {
     }
   }
   return result;
+}
+
+// Score a row based on its content (higher is better)
+function scoreRow(row) {
+  let score = 0;
+
+  // --- Textual content quality ---
+  if (row.materials && /\d/.test(row.materials)) score += 3;
+  else if (row.materials && row.materials.length > 3) score += 1;
+
+  if (row.problem && row.problem.length > 60) score += 2;
+  else if (row.problem && row.problem.length > 30) score += 1;
+
+  if (row.solution && row.solution.length > 60) score += 2;
+  else if (row.solution && row.solution.length > 30) score += 1;
+
+  if (row.impact && !/data not specified|not specified/i.test(row.impact)) score += 2;
+
+  // --- Metadata‑specific bonuses ---
+  if (row.metadata_json) {
+    try {
+      const meta = JSON.parse(row.metadata_json);
+
+      // Mask LCA: contains material + amount + unit
+      if (meta.material && meta.amount && meta.unit) score += 2;
+
+      // SME Survey: business name (not a placeholder) and score 5
+      if (meta.business !== undefined) {
+        const bizStr = String(meta.business);
+        if (!bizStr.startsWith('SME_') && bizStr.length > 1) score += 1;
+      }
+      if (meta.score === 5) score += 1;
+
+      // SWARA (rare, high‑value)
+      if (meta.challenge_code) score += 3;
+
+      // Network Centrality
+      if (meta.node && meta.centrality && meta.centrality.length > 10) score += 2;
+
+      // Sustainable Business Model
+      if (meta.company && !meta.company.startsWith('Company_')) score += 1;
+      if (meta.sector && meta.sector !== 'Various') score += 1;
+    } catch (e) {
+      // ignore parsing errors – metadata stays as is
+    }
+  }
+
+  // Optional: boost by category
+  if (row.category === 'Industrial') score += 1; // SWARA / Network
+  if (row.category === 'Personal Protective Equipment') score += 1; // Mask LCA
+
+  return score;
 }
 
 // -------------------- Processors --------------------
@@ -202,8 +260,9 @@ function processSMESurvey() {
           problem: cleanText(
             `Improving ${categoryMatch.toLowerCase()} practices in SME supply chains`,
           ),
+          // Include the full question in the solution for better searchability
           solution: cleanText(
-            `${business} - Successful ${categoryMatch} strategy (Score: ${score}/5)`,
+            `${business} - Successful ${categoryMatch} strategy (Score: ${score}/5): ${colName}`,
           ),
           materials: cleanText(row['Products'] || row['Services'] || row['Business Type'] || ''),
           circular_strategy:
@@ -454,7 +513,7 @@ async function main() {
   const networkRows = processNetworkCentrality();
   const sbmRows = processSustainableBusinessModel();
 
-  const allRows = [...maskRows, ...smeRows, ...swaraRows, ...networkRows, ...sbmRows];
+  let allRows = [...maskRows, ...smeRows, ...swaraRows, ...networkRows, ...sbmRows];
 
   console.log(`\n📊 Summary:`);
   console.log(`  - Mask LCA rows: ${maskRows.length}`);
@@ -463,6 +522,48 @@ async function main() {
   console.log(`  - Network Centrality rows: ${networkRows.length}`);
   console.log(`  - Sustainable Business Model rows: ${sbmRows.length}`);
   console.log(`  - Total: ${allRows.length}`);
+
+  // --- Intelligent selection ---
+
+  if (allRows.length > MAX_ROWS) {
+    console.log(`\n🔍 Applying intelligent filtering to keep the ${MAX_ROWS} best rows...`);
+
+    // 1. Identify rows from small, high‑value sources (keep all of them)
+    //    We detect them by metadata fields rather than category, because category can be ambiguous.
+    const isHighValue = (row) => {
+      if (!row.metadata_json) return false;
+      try {
+        const meta = JSON.parse(row.metadata_json);
+        return meta.challenge_code || meta.node; // SWARA or Network Centrality
+      } catch {
+        return false;
+      }
+    };
+
+    const highValueRows = allRows.filter(isHighValue);
+    const remainingRows = allRows.filter((r) => !isHighValue(r));
+
+    // 2. Score the remaining rows
+    const scoredRemaining = remainingRows.map((r) => ({ row: r, score: scoreRow(r) }));
+
+    // 3. Sort descending by score
+    scoredRemaining.sort((a, b) => b.score - a.score);
+
+    // 4. Calculate available slots
+    const slotsLeft = Math.max(0, MAX_ROWS - highValueRows.length);
+
+    // 5. Take the top `slotsLeft` from the remaining
+    const bestRemaining = scoredRemaining.slice(0, slotsLeft).map((item) => item.row);
+
+    // 6. Final set
+    allRows = [...highValueRows, ...bestRemaining];
+
+    console.log(
+      `   - Kept all ${highValueRows.length} high‑value rows (SWARA + Network Centrality)`,
+    );
+    console.log(`   - Selected ${bestRemaining.length} top rows from other sources`);
+    console.log(`   → Final row count: ${allRows.length}`);
+  }
 
   if (allRows.length === 0) {
     console.warn('\n⚠️️️  No rows extracted. Check Excel file paths and structure.');
@@ -491,11 +592,3 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(1);
   });
 }
-
-export {
-  processMaskLCA,
-  processSMESurvey,
-  processSWARA,
-  processNetworkCentrality,
-  processSustainableBusinessModel,
-};

@@ -37,23 +37,24 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.kaggle;
+const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-if (!rawDir) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(rawDir)) {
-  console.error(`❌ Raw directory does not exist: ${rawDir}`);
-  process.exit(1);
-}
+verifyPathsExist(rawDir);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(rawDir, file),
+);
+verifyPathsExist(inputFiles);
+
 // Target total rows
-const TARGET_ROWS = 500;
+const TARGET_ROWS = 450;
 
 async function detectDelimiter(filePath) {
   const sample = await fs.promises.readFile(filePath, 'utf8').then((text) => text.split('\n')[0]);
@@ -106,7 +107,7 @@ async function handleCarbonCatalogueProduct(filePath) {
       solution: cleanText(
         row['Product detail'] ||
           row['Product name (and functional unit)'] ||
-          'Carbon footprint data',
+          'Carbon footprint data.',
       ),
       materials: cleanText(row['Product weight (kg)'] ? `${row['Product weight (kg)']} kg` : ''),
       circular_strategy:

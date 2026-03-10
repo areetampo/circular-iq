@@ -3,14 +3,17 @@
 /**
  * extract_wrap.js - Problem/solution pair extraction from WRAP PDF reports and case studies
  *
+ * IMPORTANT: Run `scrape_wrap.js` before executing this script; PDFs must be downloaded first.
+ *
  * Processes all PDFs in datasets/raw/wrap_resources/ and its subfolders (reports/, guides/).
  * Uses pdfjs-dist with worker configuration.
  *
  * Features:
  *   • Recursive PDF scanning (root + subfolders)
- *   • Sentence-level problem/solution extraction
+ *   • Sentence-level problem/solution extraction with improved pairing logic
+ *   • Minimum keyword scores to ensure relevance
  *   • Category guessed from filename or folder
- *   • Outputs standardized CSV
+ *   • Outputs standardized CSV, limited to top MAX_ROWS by paragraph score
  *
  * Usage:
  *   node datasets/scripts/extract_wrap.js
@@ -25,9 +28,11 @@ import {
   formatId,
   cleanText,
   getDatasetRawDir,
-  getDatasetProcessedCsvPath,
+  DATASET_LOOKUP,
+  DATASETS_PROCESSED_DIR,
   writeCsv,
   DATASET_KEYS,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const require = createRequire(import.meta.url);
@@ -35,8 +40,18 @@ const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
 pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
 
 const DATASET_KEY = DATASET_KEYS.wrap;
+const dataset = DATASET_LOOKUP[DATASET_KEY];
+const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+verifyPathsExist(RAW_DIR);
+const outputPath = path.join(DATASETS_PROCESSED_DIR, dataset.processed_csv_extracted);
 
-// Problem/solution keywords
+const MAX_ROWS = 500; // Keep only the top highest‑scoring rows
+
+// Minimum keyword scores required for a sentence to be considered a problem or solution
+const MIN_PROBLEM_SCORE = 1; // must contain at least one problem keyword
+const MIN_SOLUTION_SCORE = 1; // must contain at least one solution keyword
+
+// Problem/solution keywords (unchanged)
 const PROBLEM_KEYWORDS = [
   'challenge',
   'problem',
@@ -100,10 +115,7 @@ const IMPACT_KEYWORDS = [
   'avoid',
 ];
 
-const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) throw new Error(`Raw folder not defined for dataset key: ${DATASET_KEY}`);
-
-// Helper: split sentences
+// Helper: split sentences (unchanged)
 function splitSentences(text) {
   return text.match(/[^.!?]+[.!?]+/g) || [text];
 }
@@ -113,47 +125,79 @@ function scoreSentence(sentence, keywords) {
   return keywords.reduce((acc, kw) => acc + (lower.includes(kw) ? 1 : 0), 0);
 }
 
+// ========== IMPROVED EXTRACTION ==========
+// Enforces problem‑then‑solution order and falls back only when necessary.
 function extractProblemSolution(paragraph) {
   const sentences = splitSentences(paragraph);
-  if (sentences.length === 0) return { problem: paragraph, solution: paragraph };
+  if (sentences.length < 2) return { problem: paragraph, solution: paragraph };
 
-  let bestProblem = { sentence: sentences[0], score: 0 };
-  let bestSolution = { sentence: sentences[sentences.length - 1], score: 0 };
+  // Score each sentence for problem and solution keywords
+  const scored = sentences.map((sent, idx) => ({
+    sent,
+    probScore: scoreSentence(sent, PROBLEM_KEYWORDS),
+    solScore: scoreSentence(sent, SOLUTION_KEYWORDS),
+    idx,
+  }));
 
-  for (const sent of sentences) {
-    const probScore = scoreSentence(sent, PROBLEM_KEYWORDS);
-    const solScore = scoreSentence(sent, SOLUTION_KEYWORDS);
+  // 1. Best problem sentence (highest problem score)
+  const bestProb = scored.reduce(
+    (best, curr) => (curr.probScore > best.probScore ? curr : best),
+    scored[0],
+  );
 
-    if (probScore > bestProblem.score) {
-      bestProblem = { sentence: sent, score: probScore };
-    }
-    if (solScore > bestSolution.score) {
-      bestSolution = { sentence: sent, score: solScore };
-    }
+  // 2. Among sentences AFTER bestProb, pick the one with highest solution score
+  const afterCandidates = scored.filter((s) => s.idx > bestProb.idx);
+  let bestSol =
+    afterCandidates.length > 0
+      ? afterCandidates.reduce(
+          (best, curr) => (curr.solScore > best.solScore ? curr : best),
+          afterCandidates[0],
+        )
+      : null;
+
+  // 3. Fallback if no sentence after, or bestSol has zero score
+  if (!bestSol || bestSol.solScore === 0) {
+    // best overall solution (but avoid picking the same sentence as problem)
+    const sortedBySol = [...scored].sort((a, b) => b.solScore - a.solScore);
+    bestSol =
+      sortedBySol[0].idx === bestProb.idx
+        ? sortedBySol[1] || sortedBySol[0] // pick next best if available
+        : sortedBySol[0];
   }
 
-  if (bestProblem.score === 0) bestProblem.sentence = sentences[0];
-  if (bestSolution.score === 0) bestSolution.sentence = sentences[sentences.length - 1];
-
   return {
-    problem: bestProblem.sentence,
-    solution: bestSolution.sentence,
+    problem: bestProb.sent,
+    solution: bestSol.sent,
   };
 }
 
+// ========== ENHANCED PARAGRAPH SCORING ==========
+// Adds a bonus if the paragraph contains both problem and solution keywords.
 function scoreParagraph(text) {
   let score = 0;
   const lower = text.toLowerCase();
 
+  let hasProblem = false;
+  let hasSolution = false;
+
   PROBLEM_KEYWORDS.forEach((kw) => {
-    if (lower.includes(kw)) score += 2;
+    if (lower.includes(kw)) {
+      score += 2;
+      hasProblem = true;
+    }
   });
   SOLUTION_KEYWORDS.forEach((kw) => {
-    if (lower.includes(kw)) score += 3;
+    if (lower.includes(kw)) {
+      score += 3;
+      hasSolution = true;
+    }
   });
   IMPACT_KEYWORDS.forEach((kw) => {
     if (lower.includes(kw)) score += 5;
   });
+
+  // Bonus if paragraph contains both problem and solution keywords
+  if (hasProblem && hasSolution) score += 10;
 
   const words = text.split(/\s+/).length;
   if (words > 30 && words < 500) score += Math.min(words / 10, 20);
@@ -163,6 +207,7 @@ function scoreParagraph(text) {
   return score;
 }
 
+// ========== REMAINING FUNCTIONS (UNCHANGED) ==========
 function extractMaterials(text) {
   const lower = text.toLowerCase();
   const materials = [];
@@ -250,11 +295,10 @@ async function extractPdfText(filePath) {
   return fullText;
 }
 
-// Guess category from relative path (subfolder)
 function guessCategoryFromPath(relativePath) {
   if (relativePath.includes('reports')) return 'Report';
   if (relativePath.includes('guides')) return 'Guide';
-  if (relativePath.includes('case-studies')) return 'Case Study'; // unlikely, but just in case
+  if (relativePath.includes('case-studies')) return 'Case Study';
   return 'Cross-sector';
 }
 
@@ -296,13 +340,18 @@ async function main() {
         const score = scoreParagraph(para);
         if (score > 10) {
           const { problem, solution } = extractProblemSolution(para);
-          allCandidates.push({
-            text: para,
-            problem,
-            solution,
-            score,
-            source_file: relPath,
-          });
+          // ===== NEW: Minimum keyword score filter =====
+          const probScore = scoreSentence(problem, PROBLEM_KEYWORDS);
+          const solScore = scoreSentence(solution, SOLUTION_KEYWORDS);
+          if (probScore >= MIN_PROBLEM_SCORE && solScore >= MIN_SOLUTION_SCORE) {
+            allCandidates.push({
+              text: para,
+              problem,
+              solution,
+              score,
+              source_file: relPath,
+            });
+          }
         }
       });
     } catch (err) {
@@ -340,13 +389,14 @@ async function main() {
   });
 
   rows.sort((a, b) => b.score - a.score);
-  rows.forEach((row, idx) => {
+
+  const limitedRows = rows.slice(0, MAX_ROWS);
+  limitedRows.forEach((row, idx) => {
     row.ID = formatId(DATASET_KEY, idx + 1);
   });
 
-  console.log(`Generated ${rows.length} rows.`);
-  const outputPath = getDatasetProcessedCsvPath(DATASET_KEY);
-  await writeCsv(outputPath, rows);
+  console.log(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
+  await writeCsv(outputPath, limitedRows);
   console.log(`✅ Written to ${outputPath}`);
 }
 

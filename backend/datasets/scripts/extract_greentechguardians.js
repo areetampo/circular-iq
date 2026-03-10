@@ -38,6 +38,7 @@ import {
   getDatasetProcessedCsvPath,
   ensureDir,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
@@ -45,15 +46,14 @@ import { fileURLToPath } from 'url';
 const DATASET_KEY = DATASET_KEYS.gtg;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(RAW_DIR)) {
-  console.error(`❌ Raw directory does not exist: ${RAW_DIR}`);
-  process.exit(1);
-}
+verifyPathsExist(RAW_DIR);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(RAW_DIR, file),
+);
+verifyPathsExist(inputFiles);
 
 // Priority for JSONL files (higher number = more fields)
 const PRIORITY = {

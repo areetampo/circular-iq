@@ -26,6 +26,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
   formatId,
@@ -34,11 +35,24 @@ import {
   getDatasetProcessedCsvPath,
   writeCsv,
   DATASET_KEYS,
+  verifyPathsExist,
+  DATASET_LOOKUP,
 } from '#utils/datasetsUtils.js';
 
 // ===== CONFIGURATION =====
 const DATASET_KEY = DATASET_KEYS.ifixit;
+const dataset = DATASET_LOOKUP[DATASET_KEY];
+const RAW_DIR = getDatasetRawDir(DATASET_KEY);
+const outputPath = getDatasetProcessedCsvPath(DATASET_KEY);
+verifyPathsExist(RAW_DIR);
+
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(RAW_DIR, file),
+);
+verifyPathsExist(inputFiles);
+
 const MAX_ROWS = 300; // Number of highest‑quality rows to keep
+
 const KEYWORDS = [
   'battery',
   'screen',
@@ -57,9 +71,6 @@ const BULLET_WEIGHTS = {
   neutral: 5, // less informative
 };
 // ==========================
-
-const RAW_DIR = getDatasetRawDir(DATASET_KEY);
-if (!RAW_DIR) throw new Error(`Raw folder not defined for dataset key: ${DATASET_KEY}`);
 
 // Helper to generate a generic problem from a positive bullet
 function generateProblemFromBullet(bullet) {
@@ -274,7 +285,6 @@ async function main() {
     `Keeping top ${topRows.length} rows (score range: ${allRows[0].score.toFixed(2)} – ${allRows[MAX_ROWS - 1]?.score.toFixed(2)})`,
   );
 
-  const outputPath = getDatasetProcessedCsvPath(DATASET_KEY);
   await writeCsv(outputPath, topRows);
   console.log(`✅ Written ${topRows.length} rows to ${outputPath}`);
 }

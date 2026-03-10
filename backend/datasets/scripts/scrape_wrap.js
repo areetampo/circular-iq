@@ -1,10 +1,15 @@
 /* global process */
 
 /**
- * scrape_wrap.js - WRAP Resources and Case Studies
+ * scrape_wrap.js - WRAP Resources and Case Studies (IMPROVED EXTRACTION)
  *
  * Scrapes WRAP resources (case studies, guides, reports) from paginated listing pages.
  * Extracts problem/solution/impact directly from HTML content.
+ *
+ * Improvements:
+ *   • Robust fallback extraction that finds sections by heading text.
+ *   • Filters out garbage rows using heuristics.
+ *   • Logs skipped rows with reason.
  *
  * Features:
  *   • Three independent scrapes in one file: case studies, guides, reports
@@ -34,19 +39,17 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
 import { Readable } from 'stream';
-import { finished } from 'stream/promises';
+import { pipeline } from 'stream/promises';
 import fs from 'fs';
 import path from 'path';
 import {
   formatId,
   cleanText,
-  getDatasetProcessedCsvPath,
   getBrowserLaunchOptions,
   getViewportOptions,
   getUserAgentOptions,
   getExtraHttpHeaders,
   writeCsv,
-  hasAppendFlag,
   hasAppendProcessedFlag,
   hasAppendBackupFlag,
   createBackupHelper,
@@ -59,6 +62,8 @@ import {
   ensureDir,
   getDatasetRawDir,
   DATASET_KEYS,
+  verifyPathsExist,
+  DATASETS_PROCESSED_DIR,
 } from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
@@ -67,36 +72,34 @@ puppeteerExtra.use(StealthPlugin());
 const DATASET_KEY = DATASET_KEYS.wrap;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
+verifyPathsExist(rawDir);
+
 const BACKUP_INTERVAL = 3;
-const CLEAR_BACKUP_ON_START = true;
 const BASE_URL = dataset.source_url;
 const REPORTS_DIR = await ensureDir(path.join(rawDir, dataset.raw_folder_contents.reports_folder));
 const GUIDES_DIR = await ensureDir(path.join(rawDir, dataset.raw_folder_contents.guides_folder));
 
-// Category definitions: each has its own START_PAGE, END_PAGE and MAX_PAGES_TO_FETCH
+// Category definitions
 const ALL_CATEGORIES = [
   {
     name: 'case-studies',
-    listUrl: `${dataset.urls.case_studies}` + '&page=',
-    // 20 pages total (0..19)
+    listUrl: dataset.urls.case_studies,
     START_PAGE: 0,
-    END_PAGE: 19,
-    MAX_PAGES_TO_FETCH: 20,
-    outputDir: null, // no PDFs for case studies
+    END_PAGE: 20,
+    MAX_PAGES_TO_FETCH: 21,
+    outputDir: null,
   },
   {
     name: 'guides',
-    listUrl: `${dataset.urls.guides}` + '&page=',
-    // 21 pages total (0..20)
+    listUrl: dataset.urls.guides,
     START_PAGE: 0,
     END_PAGE: 20,
-    MAX_PAGES_TO_FETCH: 1,
+    MAX_PAGES_TO_FETCH: 21,
     outputDir: GUIDES_DIR,
   },
   {
     name: 'reports',
-    listUrl: `${dataset.urls.reports}` + '&page=',
-    // 29 pages total (0..28)
+    listUrl: dataset.urls.reports,
     START_PAGE: 0,
     END_PAGE: 28,
     MAX_PAGES_TO_FETCH: 29,
@@ -104,7 +107,7 @@ const ALL_CATEGORIES = [
   },
 ];
 
-// Determine which categories to run based on command‑line flags
+// Determine which categories to run
 const runFlags = {
   caseStudies: process.argv.includes('--case-studies'),
   guides: process.argv.includes('--guides'),
@@ -121,138 +124,301 @@ const ACTIVE_CATEGORIES = hasAnyFlag
     )
   : ALL_CATEGORIES;
 
-const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+const OUTPUT_PATH = path.join(DATASETS_PROCESSED_DIR, dataset.processed_csv_scraped);
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
 
 const TOTAL_MAX_PAGES = ACTIVE_CATEGORIES.reduce((sum, cat) => sum + cat.MAX_PAGES_TO_FETCH, 0);
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-  TOTAL_MAX_PAGES,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, TOTAL_MAX_PAGES);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// ---------- Garbage detection for case studies ----------
+const GARBAGE_PATTERNS = [
+  /download case study/i,
+  /contents/i,
+  />>/,
+  /the challenge >>/i,
+  /the results >>/i,
+  /introduction >>/i,
+  /find out more/i,
+  /tags/i,
+  /initiatives/i,
+  /sectors/i,
+  /related pages/i,
+  /explore more/i,
+  /download files/i,
+  /^[A-Z][a-z]+ [A-Z][a-z]+(?: [A-Z][a-z]+)*$/, // Single line of proper nouns (company names)
+];
+
+function isValidCaseStudy(problem, solution) {
+  // Must have meaningful length
+  if (!problem || problem.length < 20) return false;
+  if (!solution || solution.length < 20) return false;
+
+  // Check for garbage patterns in problem (if it's short and matches a pattern, reject)
+  const isGarbageProblem =
+    GARBAGE_PATTERNS.some((pattern) => pattern.test(problem)) && problem.length < 100;
+  if (isGarbageProblem) return false;
+
+  // Similar for solution (optional, but helps)
+  const isGarbageSolution =
+    GARBAGE_PATTERNS.some((pattern) => pattern.test(solution)) && solution.length < 100;
+  if (isGarbageSolution) return false;
+
+  // Reject if problem contains excessive quotes (multiple quoted sections) – indicates testimonials
+  const quoteMatches = (problem.match(/['"](.*?)['"]/g) || []).length;
+  if (quoteMatches > 6 && problem.length < 300) return false; // relaxed threshold
+
+  // Reject if problem contains ">>" or "Download" or "CONTENTS" near the beginning
+  const first100 = problem.substring(0, 100).toLowerCase();
+  if (first100.includes('>>') || first100.includes('download') || first100.includes('contents')) {
+    return false;
+  }
+
+  // Reject if problem looks like a list of company names (multiple capitalized words followed by quotes)
+  if (/^[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+['"][^'"]+['"]/.test(problem)) return false;
+
+  // Reject if solution contains "DOWNLOAD FILES" or "TAGS" (common in non-case-study pages)
+  const solutionLower = solution.toLowerCase();
+  if (
+    solutionLower.includes('download files') ||
+    solutionLower.includes('tags') ||
+    solutionLower.includes('initiatives')
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 // ---------- Download helper ----------
-async function downloadFile(url, destPath) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
-  const body = Readable.fromWeb(response.body);
-  const dest = fs.createWriteStream(destPath);
-  await finished(body.pipe(dest));
+async function downloadFile(url, destPath, retries = 5) {
+  for (let i = 0; i < retries; i++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(destPath));
+      console.log(`-- Successfully downloaded: ${destPath}`);
+      return;
+    } catch (err) {
+      clearTimeout(timeout);
+      if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
+      console.warn(`Download attempt ${i + 1} failed for ${url}: ${err.message}`);
+      if (i === retries - 1)
+        throw new Error(`Failed to download after ${retries} attempts: ${err.message}`);
+      const delay = 2000 * Math.pow(2, i) + Math.random() * 1000;
+      await sleep(delay);
+    }
+  }
 }
 
 // ========== EXTRACTION HELPERS ==========
 
-// ---------- Case study extraction ----------
-async function extractCaseStudy(page) {
-  await page.waitForSelector('.case-study-summary-wrapper', { timeout: 10000 }).catch(() => {});
-
+// Primary extraction using specific CSS classes
+async function extractCaseStudyWithSelectors(page) {
   let problem = await page
     .$eval('.case-study-summary-problem p', (el) => el.textContent.trim())
     .catch(() => '');
-  if (!problem) {
+  if (!problem)
     problem = await page
       .$eval('.case-study-summary-problem', (el) => el.textContent.trim())
       .catch(() => '');
-  }
 
   let solution = await page
     .$eval('.case-study-summary-solution p', (el) => el.textContent.trim())
     .catch(() => '');
-  if (!solution) {
+  if (!solution)
     solution = await page
       .$eval('.case-study-summary-solution', (el) => el.textContent.trim())
       .catch(() => '');
-  }
 
   let impact = '';
   const impactItems = await page
     .$$eval('.case-study-summary-impact li', (items) => items.map((i) => i.textContent.trim()))
     .catch(() => []);
-  if (impactItems.length) {
-    impact = impactItems.join('; ');
-  } else {
+  if (impactItems.length) impact = impactItems.join('; ');
+  else
     impact = await page
       .$eval('.case-study-summary-impact', (el) => el.textContent.trim())
       .catch(() => '');
-  }
 
   const sectors = await page
     .$$eval('.tag:last-child .tag--details a', (els) => els.map((a) => a.textContent.trim()))
     .catch(() => []);
   const category = sectors.length ? sectors[0] : 'Cross-sector';
 
+  return { problem, solution, impact, category };
+}
+
+// Improved fallback extraction: find headings and collect following content
+async function extractCaseStudyFallback(page) {
+  const result = { problem: '', solution: '', impact: '' };
+
+  // Define heading texts to look for
+  const problemHeadings = ['Problem', 'Challenge', 'The problem', 'The challenge'];
+  const solutionHeadings = ['Solution', 'Approach', 'Action', 'The solution', 'Our approach'];
+  const impactHeadings = ['Impact', 'Results', 'Outcome', 'The results'];
+
+  // Helper to collect text after a heading until the next heading of similar level
+  const collectTextAfterHeading = async (headingElement) => {
+    let text = '';
+    let current = await headingElement.evaluateHandle((el) => el.nextElementSibling);
+    while (current) {
+      const tagName = await current.evaluate((el) => el.tagName).catch(() => null);
+      // Stop if we hit another heading (h1-h6)
+      if (tagName && /^H[1-6]$/.test(tagName)) break;
+      const content = await current.evaluate((el) => el.innerText).catch(() => '');
+      if (content) text += (text ? ' ' : '') + content.trim();
+      current = await current.evaluateHandle((el) => el.nextElementSibling).catch(() => null);
+    }
+    return text;
+  };
+
+  // Find all headings
+  const headings = await page.$$('h1, h2, h3, h4, h5, h6');
+
+  for (const heading of headings) {
+    const headingText = await heading.evaluate((el) => el.textContent.trim()).catch(() => '');
+
+    // Check if heading matches any problem indicator
+    if (
+      !result.problem &&
+      problemHeadings.some((ph) => headingText.toLowerCase().includes(ph.toLowerCase()))
+    ) {
+      result.problem = await collectTextAfterHeading(heading);
+    }
+    // Check if heading matches any solution indicator
+    else if (
+      !result.solution &&
+      solutionHeadings.some((sh) => headingText.toLowerCase().includes(sh.toLowerCase()))
+    ) {
+      result.solution = await collectTextAfterHeading(heading);
+    }
+    // Check if heading matches any impact indicator
+    else if (
+      !result.impact &&
+      impactHeadings.some((ih) => headingText.toLowerCase().includes(ih.toLowerCase()))
+    ) {
+      result.impact = await collectTextAfterHeading(heading);
+    }
+
+    // Stop if we have all three
+    if (result.problem && result.solution && result.impact) break;
+  }
+
+  // Also try to get category from tags
+  let category = 'Cross-sector';
+  const sectors = await page
+    .$$eval('.tag:last-child .tag--details a', (els) => els.map((a) => a.textContent.trim()))
+    .catch(() => []);
+  if (sectors.length) category = sectors[0];
+
+  return {
+    problem: result.problem || '',
+    solution: result.solution || '',
+    impact: result.impact || '',
+    category,
+  };
+}
+
+// Main extraction function – tries selectors first, then fallback
+async function extractCaseStudy(page) {
+  // Try primary selectors
+  let extracted = await extractCaseStudyWithSelectors(page);
+  let problem = extracted.problem;
+  let solution = extracted.solution;
+  let impact = extracted.impact;
+  let category = extracted.category;
+
+  // If primary selectors failed (problem or solution empty), use fallback
+  if (!problem || !solution) {
+    console.log('      ⚠️ Primary selectors failed, attempting fallback extraction...');
+    const fallback = await extractCaseStudyFallback(page);
+    if (fallback.problem) problem = fallback.problem;
+    if (fallback.solution) solution = fallback.solution;
+    if (fallback.impact && !impact) impact = fallback.impact;
+    if (fallback.category) category = fallback.category;
+  }
+
+  // Clean common prefixes
+  const cleanPrefix = (text, prefixes) => {
+    if (!text) return text;
+    for (const prefix of prefixes) {
+      const regex = new RegExp(`^${prefix}[:\\s-]*`, 'i');
+      text = text.replace(regex, '');
+    }
+    return text.trim();
+  };
+  problem = cleanPrefix(problem, ['Problem', 'Challenge', 'Issue', 'The problem', 'The challenge']);
+  solution = cleanPrefix(solution, [
+    'Solution',
+    'Approach',
+    'Action',
+    'The solution',
+    'Our approach',
+  ]);
+  impact = cleanPrefix(impact, ['Impact', 'Results', 'Outcome', 'The results']);
+
   return {
     problem: problem || '',
     solution: solution || '',
     impact: impact || '',
-    category,
+    category: category || 'Cross-sector',
     materials: '',
     circular_strategy: 'Circular economy initiative',
   };
 }
 
-// ---------- Report/Guide: download PDF ----------
 async function downloadReportOrGuide(page, url, outputDir) {
-  // Wait for the download section to appear (in case it's lazy-loaded)
   try {
     await page.waitForSelector('section#download-file', { timeout: 5000 });
-  } catch (e) {
-    console.log(`      No download section found for ${url}`);
+  } catch {
     return null;
   }
 
-  // Find PDF download link inside that section
   const pdfLinkElem = await page.$('section#download-file li.download.primary.file.pdf a');
-  if (!pdfLinkElem) {
-    console.log(`      No PDF link found for ${url}`);
-    return null;
-  }
+  if (!pdfLinkElem) return null;
 
   let pdfUrl = await page.evaluate((el) => el.href, pdfLinkElem);
   if (pdfUrl.startsWith('/')) pdfUrl = BASE_URL + pdfUrl;
 
-  // Generate filename
   const urlParts = pdfUrl.split('/');
   let filename = urlParts[urlParts.length - 1];
   if (!filename || !filename.endsWith('.pdf')) {
-    // Fallback: use page title
     const title = await page.$eval('h1', (el) => el.textContent.trim()).catch(() => 'untitled');
     filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.pdf';
   }
 
   const destPath = path.join(outputDir, filename);
-  let success = false;
   if (fs.existsSync(destPath)) {
     console.log(`      PDF already exists: ${filename}`);
-    success = true;
-  } else {
-    console.log(`      Downloading PDF: ${filename}`);
-    try {
-      await downloadFile(pdfUrl, destPath);
-      success = true;
-    } catch (err) {
-      console.error(`      Failed to download PDF: ${err.message}`);
-      return null;
-    }
+    return { pdfUrl, localPath: destPath };
   }
 
-  if (success) {
-    appendLogs(
+  console.log(`   -- Downloading PDF: ${filename}`);
+  try {
+    await downloadFile(pdfUrl, destPath);
+    await appendLogs(
       DATASET_KEY,
-      `Downloaded PDF: ${filename} from ${pdfUrl} (category: ${
-        outputDir.includes('reports') ? 'report' : 'guide'
-      }, source page: ${url})`,
+      `Downloaded PDF: ${filename} from ${pdfUrl} (category: ${outputDir.includes('reports') ? 'report' : 'guide'}, source page: ${url})`,
     );
+    return { pdfUrl, localPath: destPath };
+  } catch (err) {
+    console.error(`      Failed to download PDF: ${err.message}`);
+    return null;
   }
-  return { pdfUrl, localPath: destPath };
 }
 
-// ---------- Resource dispatcher ----------
 async function processResource(browser, url, category) {
   const page = await browser.newPage();
   try {
@@ -271,21 +437,29 @@ async function processResource(browser, url, category) {
           await sleep(2000);
         }
       }
-    } catch (e) {
-      /* ignore */
-    }
+    } catch {}
 
     if (category.name === 'case-studies') {
       const row = await extractCaseStudy(page);
+
+      // Validate: must be a meaningful case study
+      if (!isValidCaseStudy(row.problem, row.solution)) {
+        console.log(`      ⚠️ Skipping case study (invalid content): ${url}`);
+        await appendLogs(
+          DATASET_KEY,
+          `Skipped case study (invalid): ${url} — problem: "${row.problem.substring(0, 50)}..."`,
+        );
+        return { type: 'row', data: null, skip: true };
+      }
+
       return { type: 'row', data: row };
     } else {
-      // reports/guides: download PDF
       const result = await downloadReportOrGuide(page, url, category.outputDir);
-      appendLogs(
+      await appendLogs(
         DATASET_KEY,
         result
           ? `Successfully processed resource: ${url}`
-          : `Failed to process resource (no PDF found or download failed): ${url}`,
+          : `Failed to process resource (no PDF found): ${url}`,
       );
       return { type: 'pdf', data: result };
     }
@@ -297,27 +471,57 @@ async function processResource(browser, url, category) {
 // ========== BACKUP RECOVERY ==========
 
 async function rebuildFromBackup() {
-  // Recovery only for case studies (since only they have backup)
   console.log(`♻️ BACKUP RECOVERY MODE: Rebuilding case studies from backup...`);
+  await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding case studies from backup.`);
+
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (backupRows.length === 0) {
-    console.warn('No backup found.');
+    console.warn('⚠️ No backup content found. Cannot rebuild output.');
+    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
     return;
   }
-  const finalRows = backupRows.map((row, idx) => ({
+
+  console.log(`📖 Processing ${backupRows.length} backup rows...`);
+  await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows from case studies.`);
+
+  // Apply same validation during recovery
+  const validRows = backupRows.filter((row) =>
+    isValidCaseStudy(row.problem || '', row.solution || ''),
+  );
+  const skippedCount = backupRows.length - validRows.length;
+
+  if (skippedCount > 0) {
+    console.log(`   Filtered out ${skippedCount} invalid rows during recovery.`);
+    await appendLogs(DATASET_KEY, `Filtered out ${skippedCount} invalid rows during recovery.`);
+  }
+
+  const finalRows = validRows.map((row, idx) => ({
     ID: formatId(DATASET_KEY, idx + 1),
     problem: cleanText(row.problem || ''),
     solution: cleanText(row.solution || ''),
     materials: cleanText(row.materials || ''),
-    circular_strategy: cleanText(row.circular_strategy || 'Circular economy initiative'),
-    category: cleanText(row.category || 'Cross-sector'),
+    circular_strategy: cleanText(row.circular_strategy || ''),
+    category: cleanText(row.category || ''),
     impact: cleanText(row.impact || ''),
     source_url: row.source_url || '',
     metadata_json: row.metadata_json || '{}',
   }));
+
   await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-  console.log(`✅ Rebuilt ${finalRows.length} case study rows.`);
-  return;
+  console.log(`\n✨ Successfully rebuilt ${finalRows.length} case study rows from backup`);
+  console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+  await appendLogs(
+    DATASET_KEY,
+    `✅ Case studies recovered. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+  );
+
+  console.log(`\n📝 NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js`);
+  await appendLogs(
+    DATASET_KEY,
+    `📝 For PDF extraction from guides/reports, run: node extract_wrap.js`,
+  );
+  await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
 }
 
 // ========== CATEGORY SCRAPING ==========
@@ -325,16 +529,14 @@ async function rebuildFromBackup() {
 async function scrapeCategory(browser, category) {
   const { name, listUrl, START_PAGE, END_PAGE, MAX_PAGES_TO_FETCH, outputDir } = category;
   const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
-  console.log(
-    `\n=== Scraping category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE} (max ${MAX_PAGES_TO_FETCH} pages) ===`,
-  );
+  console.log(`\n=== Scraping category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE} ===`);
   await appendLogs(
     DATASET_KEY,
-    `Starting category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, max pages: ${MAX_PAGES_TO_FETCH}`,
+    `Starting category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}`,
   );
 
   const allRows = [];
-  let pdfCount = 0; // for reports/guides
+  let pdfCount = 0;
 
   for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
     const pageUrl = listUrl + pageNum;
@@ -350,12 +552,11 @@ async function scrapeCategory(browser, category) {
       try {
         await listPage.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 30000 });
         await listPage.waitForSelector('h2.field-content a', { timeout: 10000 }).catch(() => null);
-
         links = await listPage.$$eval('h2.field-content a', (anchors) =>
           anchors.map((a) => a.href),
         );
         if (links.length === 0) {
-          console.log('    No more resources found. Stopping pagination for this category.');
+          console.log('    No more resources found. Stopping pagination.');
           await appendLogs(DATASET_KEY, `  No resources found on page ${pageNum}.`);
           break;
         }
@@ -363,13 +564,11 @@ async function scrapeCategory(browser, category) {
         success = true;
       } catch (err) {
         retries--;
-        const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
-        console.warn(msg);
-        await appendLogs(DATASET_KEY, msg);
+        console.warn(`  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`);
+        await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${err.message}`);
         if (retries === 0) {
-          const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
-          console.warn(skipMsg);
-          await appendLogs(DATASET_KEY, skipMsg);
+          console.warn(`  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`);
+          await appendLogs(DATASET_KEY, `Skipping page ${pageNum} after 3 failed attempts.`);
         } else {
           await sleep(5000 * (3 - retries));
         }
@@ -380,7 +579,7 @@ async function scrapeCategory(browser, category) {
 
     if (links.length === 0) break;
 
-    const pageRows = []; // only used for case studies
+    const pageRows = [];
 
     for (const link of links) {
       console.log(`    Fetching: ${link}`);
@@ -391,6 +590,10 @@ async function scrapeCategory(browser, category) {
         try {
           const result = await processResource(browser, link, category);
           if (result.type === 'row') {
+            if (result.skip) {
+              resourceSuccess = true;
+              continue;
+            }
             const fullRow = {
               problem: result.data.problem,
               solution: result.data.solution,
@@ -407,19 +610,18 @@ async function scrapeCategory(browser, category) {
             pageRows.push(fullRow);
             allRows.push(fullRow);
           } else {
-            // PDF downloaded
             if (result.data) pdfCount++;
           }
           resourceSuccess = true;
         } catch (err) {
           resourceRetries--;
-          const errMsg = `      ⚠️ Resource error (retries left: ${resourceRetries}): ${err.message}`;
-          console.warn(errMsg);
-          await appendLogs(DATASET_KEY, errMsg);
+          console.warn(
+            `      ⚠️ Resource error (retries left: ${resourceRetries}): ${err.message}`,
+          );
+          await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
           if (resourceRetries === 0) {
-            const skipMsg = `      ⚠️ Skipping resource after 2 failed attempts.`;
-            console.warn(skipMsg);
-            await appendLogs(DATASET_KEY, skipMsg);
+            console.warn(`      ⚠️ Skipping resource after 2 failed attempts.`);
+            await appendLogs(DATASET_KEY, `Skipping resource ${link} after 2 failed attempts.`);
           } else {
             await sleep(3000);
           }
@@ -428,11 +630,13 @@ async function scrapeCategory(browser, category) {
       await sleep(1000 + Math.floor(Math.random() * 1000));
     }
 
-    // Backup only for case studies
     if (name === 'case-studies' && pageRows.length > 0) {
       try {
         await backup.add(pageRows);
-        await appendLogs(DATASET_KEY, `Page ${pageNum}: added ${pageRows.length} rows to backup.`);
+        await appendLogs(
+          DATASET_KEY,
+          `Page ${pageNum}: backed up ${pageRows.length} case study rows.`,
+        );
       } catch (e) {
         console.warn(`  ⚠️ Backup add failed: ${e.message}`);
         await appendLogs(DATASET_KEY, `  ⚠️ Backup add failed: ${e.message}`);
@@ -466,7 +670,7 @@ async function scrape_wrap() {
   console.log(`Scraping WRAP resources. Detailed logs: ${logFilePath}`);
   await appendLogs(
     DATASET_KEY,
-    `🚀 Scrape started. Categories: ${ACTIVE_CATEGORIES.map((c) => c.name).join(', ')}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
+    `🚀 Scrape started. Categories: ${ACTIVE_CATEGORIES.map((c) => c.name).join(', ')}`,
   );
 
   let browser;
@@ -488,9 +692,19 @@ async function scrape_wrap() {
 
     await backup.flush();
 
-    // Write case study rows if any
     if (allRows.length > 0) {
-      const finalRows = allRows.map((row, idx) => ({
+      // Apply final validation (redundant but safe)
+      const validRows = allRows.filter((row) => isValidCaseStudy(row.problem, row.solution));
+      const skipped = allRows.length - validRows.length;
+      if (skipped > 0) {
+        console.log(`\n⚠️ Filtered out ${skipped} invalid rows during final assembly.`);
+        await appendLogs(
+          DATASET_KEY,
+          `Filtered out ${skipped} invalid rows during final assembly.`,
+        );
+      }
+
+      const finalRows = validRows.map((row, idx) => ({
         ID: formatId(DATASET_KEY, idx + 1),
         problem: cleanText(row.problem),
         solution: cleanText(row.solution),
@@ -501,21 +715,21 @@ async function scrape_wrap() {
         source_url: row.source_url,
         metadata_json: row.metadata_json,
       }));
+
       await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-      console.log(`\n✅ Scraped ${finalRows.length} case study rows.`);
+      console.log(`\n✅ Scraped ${finalRows.length} valid case study rows.`);
       console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 
-      const firstRow = finalRows[0];
-      const lastRow = finalRows[finalRows.length - 1];
-
-      await appendLogs(
-        DATASET_KEY,
-        `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
-      );
-      await appendLogs(
-        DATASET_KEY,
-        `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
-      );
+      if (finalRows.length > 0) {
+        await appendLogs(
+          DATASET_KEY,
+          `   First: ${finalRows[0].ID} | ${finalRows[0].problem.substring(0, 50)}...`,
+        );
+        await appendLogs(
+          DATASET_KEY,
+          `   Last:  ${finalRows[finalRows.length - 1].ID} | ${finalRows[finalRows.length - 1].problem.substring(0, 50)}...`,
+        );
+      }
     } else {
       console.log(`\nℹ️ No case study rows scraped.`);
     }
@@ -528,7 +742,7 @@ async function scrape_wrap() {
 
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Rows: ${allRows.length}, PDFs: ${totalPdfs}`,
+      `✅ Scrape complete. Valid rows: ${allRows.filter((r) => isValidCaseStudy(r.problem, r.solution)).length}, PDFs: ${totalPdfs}`,
     );
   } catch (err) {
     console.error('❌ Fatal error:', err);
@@ -540,7 +754,6 @@ async function scrape_wrap() {
   }
 }
 
-// Main entry point: handles both normal and recovery modes
 async function main() {
   if (isBackupRecoveryMode()) {
     await rebuildFromBackup();

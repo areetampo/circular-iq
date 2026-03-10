@@ -28,6 +28,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -38,20 +39,20 @@ import {
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
   writeCsv,
+  verifyPathsExist,
 } from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.fashion_transparency;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const rawDir = getDatasetRawDir(DATASET_KEY);
-if (!rawDir) {
-  console.error(`❌ Raw folder not defined for dataset key "${DATASET_KEY}"`);
-  process.exit(1);
-}
-if (!fs.existsSync(rawDir)) {
-  console.error(`❌ Raw directory does not exist: ${rawDir}`);
-  process.exit(1);
-}
+verifyPathsExist(rawDir);
+
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
+
+const inputFiles = Object.values(dataset.raw_folder_contents).map((file) =>
+  path.join(rawDir, file),
+);
+verifyPathsExist(inputFiles);
 
 const MAX_ROWS = 500;
 const YEAR = 2025;

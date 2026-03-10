@@ -1,14 +1,14 @@
 /**
- * scrape_c2c.js
+ * scrape_c2c.js – Cradle-to-Cradle (C2C) certified products scraper
  *
- * Scrapes Cradle-to-Cradle (C2C) certified products from the official registry.
- * Uses Puppeteer with stealth plugin to avoid detection.
+ * Scrapes from https://c2ccertified.org/certified-products
  * Features:
- *   - Pagination handling with retry logic
+ *   - Pagination handling with retry logic and fallback selectors
  *   - Per-product detail extraction (company, title, certifications, category)
  *   - Quality scoring based on certification levels (Gold/Silver/Bronze)
  *   - Backup system: incremental page‑level backup, final flush, and recovery mode
  *   - Detailed logging to dataset‑specific log file
+ *   - Stealth plugin to avoid detection
  *
  * Usage:
  *   node scrape_c2c.js                 # normal run
@@ -22,6 +22,7 @@
 
 /* global process */
 import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
 import {
   formatId,
@@ -44,26 +45,26 @@ import {
   getDatasetScrapeLogsPath,
 } from '#utils/datasetsUtils.js';
 
+puppeteerExtra.use(StealthPlugin());
+
 const DATASET_KEY = DATASET_KEYS.c2c;
 const BACKUP_INTERVAL = 3;
-const CLEAR_BACKUP_ON_START = true;
 
 const dataset = DATASET_LOOKUP[DATASET_KEY];
-const TARGET_URL = dataset.urls.homepage;
+if (!dataset || !dataset.urls || !dataset.urls.listing) {
+  throw new Error(`Dataset '${DATASET_KEY}' missing required 'urls.listing' in registry.`);
+}
+
+const TARGET_URL = dataset.urls.listing; // e.g., https://c2ccertified.org/certified-products
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const START_PAGE = 1;
 const END_PAGE = 56; // As of Feb 2026, there are 56 pages total (1..56)
-const MAX_PAGES_TO_FETCH = 56; // 56
-const MAX_ROWS = 450;
+const MAX_PAGES_TO_FETCH = 56;
+const MAX_ROWS = 400;
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(
-  DATASET_KEY,
-  BACKUP_INTERVAL,
-  CLEAR_BACKUP_ON_START && !APPEND_BACKUP,
-  MAX_PAGES_TO_FETCH,
-);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, MAX_PAGES_TO_FETCH);
 
 /**
  * Calculate a quality score for a product based on its certification levels.
@@ -78,7 +79,7 @@ function scoreProductQuality(certifications) {
     else if (levelStr.includes('silver')) score += 20;
     else if (levelStr.includes('bronze')) score += 5;
   });
-  if (certifications['Circularity']) score += 20;
+  if (certifications['Circularity']) score += 20; // bonus for circularity certification
   return Math.min(score, 100);
 }
 
@@ -103,7 +104,17 @@ async function rebuildFromBackup() {
     console.log(`📖 Processing ${backupRows.length} backup rows...`);
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
-    const productDetails = backupRows
+    // Deduplicate backup rows by source_url
+    const uniqueMap = new Map();
+    for (const row of backupRows) {
+      if (!uniqueMap.has(row.source_url)) {
+        uniqueMap.set(row.source_url, row);
+      }
+    }
+    const uniqueBackupRows = Array.from(uniqueMap.values());
+    console.log(`   → ${uniqueBackupRows.length} unique rows after deduplication.`);
+
+    const productDetails = uniqueBackupRows
       .map((row) => {
         try {
           const metadata = JSON.parse(row.metadata_json || '{}');
@@ -206,10 +217,10 @@ async function scrape_c2c() {
 
   let browser;
   try {
-    const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
+    const FINAL_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
     await appendLogs(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${TARGET_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${TARGET_URL}, PAGES: 1-${FINAL_PAGE}, MAX_ROWS: ${MAX_ROWS}`,
     );
 
     browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
@@ -218,62 +229,57 @@ async function scrape_c2c() {
     await page.setUserAgent(getUserAgentOptions());
     await page.setExtraHTTPHeaders(getExtraHttpHeaders());
 
-    const productDetails = [];
+    // 1. Load the initial page
+    await appendLogs(DATASET_KEY, `Loading initial page: ${TARGET_URL}`);
+    await page.goto(TARGET_URL, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    // 2. Handle cookie consent (if present)
+    try {
+      await page.waitForSelector('button:has-text("Accept"), button:has-text("Agree")', {
+        timeout: 5000,
+      });
+      await page.click('button:has-text("Accept")');
+      await appendLogs(DATASET_KEY, '✅ Accepted cookies.');
+      await new Promise((r) => setTimeout(r, 1000));
+    } catch {
+      await appendLogs(DATASET_KEY, 'ℹ️ No cookie consent overlay found.');
+    }
+
+    // 3. Wait for the first product links to appear
+    await page.waitForSelector('a[href*="/certified-products/"]', { timeout: 10000 });
+
+    // 4. Prepare collections
+    const productMap = new Map(); // unique products by URL
     const pagesScraped = [];
 
-    for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
-      let retries = 3;
-      let success = false;
-      let pageLinks = [];
+    // 5. Loop through pages by clicking "Next"
+    for (let pageNum = 1; pageNum <= FINAL_PAGE; pageNum++) {
+      await appendLogs(DATASET_KEY, `\n--- Processing page ${pageNum} ---`);
 
-      while (retries > 0 && !success) {
-        try {
-          const pageUrl =
-            pageNum === 1
-              ? TARGET_URL
-              : `${TARGET_URL}?certified_products_by_date_asc[page]=${pageNum}`;
+      // Extract product links from the current page
+      let pageLinks = await page.$$eval('a[href*="/certified-products/"]', (links) =>
+        links
+          .map((a) => a.href)
+          .filter((href) => href && href.includes('/certified-products/'))
+          .map((href) => href.split('?')[0]),
+      );
+      pageLinks = [...new Set(pageLinks)];
 
-          await appendLogs(DATASET_KEY, `Loading page ${pageNum}...`);
-          await page.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 20000 });
-          await new Promise((r) => setTimeout(r, 2500));
-          await page.waitForSelector('a[href*="/certified-products/"]', { timeout: 5000 });
+      await appendLogs(DATASET_KEY, `Found ${pageLinks.length} products on page ${pageNum}`);
 
-          pageLinks = await page.$$eval('a[href*="/certified-products/"]', (links) =>
-            links
-              .map((a) => a.href)
-              .filter((href) => href && href.includes('/certified-products/'))
-              .map((href) => href.split('?')[0]),
-          );
-          pageLinks = [...new Set(pageLinks)];
-
-          if (pageLinks.length === 0) {
-            await appendLogs(DATASET_KEY, `  ✓ No more products found on page ${pageNum}.`);
-            break;
-          }
-
-          await appendLogs(
-            DATASET_KEY,
-            `  ✓ Found ${pageLinks.length} products on page ${pageNum}`,
-          );
-          success = true;
-        } catch (err) {
-          retries--;
-          const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
-          await appendLogs(DATASET_KEY, msg);
-          if (retries === 0) {
-            const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
-            await appendLogs(DATASET_KEY, skipMsg);
-            break;
-          } else {
-            await new Promise((r) => setTimeout(r, 5000));
-          }
-        }
+      if (pageLinks.length === 0) {
+        await appendLogs(DATASET_KEY, `⚠️ No products found on page ${pageNum} – stopping.`);
+        break;
       }
 
-      if (!pageLinks || pageLinks.length === 0) break;
-
+      // Process each product link
       const pageRows = [];
       for (const link of pageLinks) {
+        if (productMap.has(link)) {
+          await appendLogs(DATASET_KEY, `  ⏩ Skipping duplicate: ${link}`);
+          continue;
+        }
+
         let detailPage;
         let detailRetries = 2;
         let detailSuccess = false;
@@ -284,42 +290,65 @@ async function scrape_c2c() {
             await detailPage.goto(link, { waitUntil: 'domcontentloaded', timeout: 12000 });
             await new Promise((r) => setTimeout(r, 1500));
 
+            // Improved certification extraction – target specific containers
             const data = await detailPage.evaluate(() => {
               const company =
                 document
-                  .querySelector('[class*="supplier"], [class*="company"]')
+                  .querySelector('[class*="supplier"], [class*="company"], .product-company')
                   ?.innerText?.trim() || '';
               const title = document.querySelector('h1')?.innerText?.trim() || '';
 
               const certifications = {};
-              document.querySelectorAll('*').forEach((el) => {
-                const text = (
-                  el.innerText ||
-                  el.textContent ||
-                  el.getAttribute('aria-label') ||
-                  ''
-                ).trim();
-                const className = el.className || '';
-                const lookIn = String(text ?? className).toLowerCase();
-                if (lookIn.includes('full') && lookIn.includes('scope')) {
-                  if (lookIn.includes('gold')) certifications['Full Scope'] = 'Gold';
-                  else if (lookIn.includes('silver')) certifications['Full Scope'] = 'Silver';
-                  else if (lookIn.includes('bronze')) certifications['Full Scope'] = 'Bronze';
-                  else certifications['Full Scope'] = 'Certified';
-                }
-                if (lookIn.includes('material') && lookIn.includes('health')) {
-                  if (lookIn.includes('gold')) certifications['Material Health'] = 'Gold';
-                  else if (lookIn.includes('silver')) certifications['Material Health'] = 'Silver';
-                  else if (lookIn.includes('bronze')) certifications['Material Health'] = 'Bronze';
-                  else certifications['Material Health'] = 'Certified';
-                }
-                if (lookIn.includes('circularity')) {
-                  if (lookIn.includes('gold')) certifications['Circularity'] = 'Gold';
-                  else if (lookIn.includes('silver')) certifications['Circularity'] = 'Silver';
-                  else if (lookIn.includes('bronze')) certifications['Circularity'] = 'Bronze';
-                  else certifications['Circularity'] = 'Certified';
-                }
+
+              // Look inside elements that are likely to hold certification badges
+              const badgeContainers = document.querySelectorAll(
+                '.badge, .certification-level, [class*="certification"], .product-certifications li',
+              );
+              badgeContainers.forEach((el) => {
+                const text = el.innerText || el.textContent || '';
+                const lower = text.toLowerCase();
+                // Determine certification type from context or nearby heading
+                const parentText = el.closest('div, section, li')?.innerText?.toLowerCase() || '';
+                let type = 'General';
+                if (parentText.includes('full scope') || text.includes('Full Scope'))
+                  type = 'Full Scope';
+                else if (parentText.includes('material health') || text.includes('Material Health'))
+                  type = 'Material Health';
+                else if (parentText.includes('circularity') || text.includes('Circularity'))
+                  type = 'Circularity';
+
+                if (lower.includes('gold')) certifications[type] = 'Gold';
+                else if (lower.includes('silver')) certifications[type] = 'Silver';
+                else if (lower.includes('bronze')) certifications[type] = 'Bronze';
+                else certifications[type] = 'Certified';
               });
+
+              // Fallback: scan the whole page for certification patterns
+              if (Object.keys(certifications).length === 0) {
+                const bodyText = document.body.innerText;
+                const lines = bodyText.split('\n');
+                for (const line of lines) {
+                  const lower = line.toLowerCase();
+                  if (lower.includes('full scope') && lower.includes('gold'))
+                    certifications['Full Scope'] = 'Gold';
+                  else if (lower.includes('full scope') && lower.includes('silver'))
+                    certifications['Full Scope'] = 'Silver';
+                  else if (lower.includes('full scope') && lower.includes('bronze'))
+                    certifications['Full Scope'] = 'Bronze';
+                  else if (lower.includes('material health') && lower.includes('gold'))
+                    certifications['Material Health'] = 'Gold';
+                  else if (lower.includes('material health') && lower.includes('silver'))
+                    certifications['Material Health'] = 'Silver';
+                  else if (lower.includes('material health') && lower.includes('bronze'))
+                    certifications['Material Health'] = 'Bronze';
+                  else if (lower.includes('circularity') && lower.includes('gold'))
+                    certifications['Circularity'] = 'Gold';
+                  else if (lower.includes('circularity') && lower.includes('silver'))
+                    certifications['Circularity'] = 'Silver';
+                  else if (lower.includes('circularity') && lower.includes('bronze'))
+                    certifications['Circularity'] = 'Bronze';
+                }
+              }
 
               const category =
                 document
@@ -349,8 +378,8 @@ async function scrape_c2c() {
               qualityScore: scoreProductQuality(data.certifications),
               certCount: Object.keys(data.certifications).length,
             };
-            productDetails.push(detail);
 
+            productMap.set(link, detail);
             const metadata = {
               company: cleanedCompany,
               title: cleanedTitle,
@@ -389,11 +418,12 @@ async function scrape_c2c() {
         await new Promise((r) => setTimeout(r, 300));
       }
 
+      // Backup current page's rows
       try {
         await backup.add(pageRows);
         await appendLogs(
           DATASET_KEY,
-          `Page ${pageNum}: found ${pageLinks.length} links, processed ${pageRows.length} products.`,
+          `Page ${pageNum}: processed ${pageRows.length} new products (total unique: ${productMap.size}).`,
         );
       } catch (e) {
         const backupErr = `⚠️ Backup add failed for page ${pageNum}: ${e.message}`;
@@ -403,17 +433,69 @@ async function scrape_c2c() {
 
       pagesScraped.push(pageNum);
 
-      if (pageNum === FINAL_FETCH_PAGE) {
-        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
-        console.warn(limitMsg);
-        await appendLogs(DATASET_KEY, limitMsg);
+      // If this is the last page, stop
+      if (pageNum === FINAL_PAGE) {
+        await appendLogs(DATASET_KEY, `✅ Reached final page ${FINAL_PAGE}.`);
         break;
+      }
+
+      // --- Click the "Next" button with fallback selectors ---
+      const nextButtonSelectors = [
+        '.certified-products__pagination-btn:last-child', // primary
+        'a[rel="next"]', // fallback
+        '.pagination-next a',
+      ];
+      let clicked = false;
+      for (const selector of nextButtonSelectors) {
+        try {
+          const btn = await page.$(selector);
+          if (btn) {
+            await btn.click();
+            clicked = true;
+            await appendLogs(DATASET_KEY, `➡️ Clicked next button using selector: ${selector}`);
+            break;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (!clicked) {
+        const errMsg = `❌ No next button found with any selector.`;
+        console.error(errMsg);
+        await appendLogs(DATASET_KEY, errMsg);
+        break;
+      }
+
+      // Wait for the active page number to become pageNum+1 (if pagination shows numbers)
+      try {
+        await page.waitForFunction(
+          (expectedPage) => {
+            const activePage = document.querySelector(
+              '.certified-products__pagination-page.active, .pagination .active',
+            );
+            return activePage && activePage.innerText.trim() === String(expectedPage);
+          },
+          { timeout: 10000 },
+          pageNum + 1,
+        );
+      } catch {
+        // If page number indicator is missing, fall back to waiting for new product links
+        await page.waitForFunction(
+          (oldCount) => {
+            const links = document.querySelectorAll('a[href*="/certified-products/"]');
+            return links.length > 0 && links.length !== oldCount;
+          },
+          { timeout: 10000 },
+          pageLinks.length,
+        );
       }
 
       await new Promise((r) => setTimeout(r, 1000));
     }
 
-    await appendLogs(DATASET_KEY, `Total raw products collected: ${productDetails.length}`);
+    // --- Process all collected products ---
+    const productDetails = Array.from(productMap.values());
+    await appendLogs(DATASET_KEY, `\nTotal unique products collected: ${productDetails.length}`);
 
     const sortedProducts = productDetails
       .filter((p) => p.qualityScore > 0)
@@ -454,7 +536,7 @@ async function scrape_c2c() {
       await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
       await backup.flush();
 
-      console.log(`\n✅ Scraped ${finalRows.length} C2C products.`);
+      console.log(`\n✅ Scraped ${finalRows.length} unique C2C products.`);
       console.log(`📁 Saved to: ${OUTPUT_PATH}`);
 
       const firstRow = finalRows[0];
@@ -487,7 +569,7 @@ async function scrape_c2c() {
   }
 }
 
-// Main entry point: handles both normal and recovery modes
+// Main entry point
 async function main() {
   if (isBackupRecoveryMode()) {
     await rebuildFromBackup();
@@ -496,7 +578,6 @@ async function main() {
   }
 }
 
-// Self‑execution when run directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
     console.error('\n❌ Fatal error:', err.message);
