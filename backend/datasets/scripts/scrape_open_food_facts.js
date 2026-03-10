@@ -23,7 +23,6 @@
 
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
@@ -288,10 +287,17 @@ async function rebuildFromBackup() {
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row),
     }));
 
-    await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
-    console.log(`\n✨ Successfully rebuilt ${finalRows.length} products from backup`);
-    console.log(`📁 Saved to: ${outputFile}`);
-    await appendLogs(DATASET_KEY, `✅ Recovery complete. Wrote ${finalRows.length} rows.`);
+    console.log(`\n✨ Rebuilt ${finalRows.length} products from backup`);
+    const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
+      append: APPEND_PROCESSED,
+    });
+    console.log(
+      `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    );
+    await appendLogs(
+      DATASET_KEY,
+      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows (duplicate rows removed: ${writeResult.duplicateCount}).`,
+    );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
     console.error('❌ Error rebuilding from backup:', error.message);
@@ -390,10 +396,12 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
+  const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
+    append: APPEND_PROCESSED,
+  });
   await backup.flush(); // ensure any remaining buffer is written
 
-  const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages scraped: ${pagesScraped.join(', ')}.`;
+  const summary = `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`;
   console.log(summary);
 
   if (finalRows.length > 0) {

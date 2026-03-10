@@ -26,7 +26,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -354,8 +353,10 @@ async function writeCombined(rows) {
     metadata_json: row.metadata_json || '',
   }));
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`\n✅ Combined output written to ${OUTPUT_PATH} (${finalRows.length} total rows)`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `\n✅ Combined output written to ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 // --- Main function ---

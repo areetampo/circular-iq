@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_gewm.js
  *
@@ -26,8 +28,6 @@
  * Regions: Asia, Europe, Africa, Americas, Oceania
  */
 
-/* global process */
-
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
@@ -35,7 +35,6 @@ import { parse } from 'csv-parse/sync';
 import { promisify } from 'util';
 import { Buffer } from 'buffer';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -124,7 +123,7 @@ async function runPythonExtraction() {
       await execPromise('py -m pip install camelot-py[cv]');
     } catch (pipError) {
       throw new Error(
-        'Failed to install camelot. Please install it manually: pip install camelot-py[cv]',
+        `Failed to install camelot. Please install it manually: pip install camelot-py[cv], Error: ${pipError.message}`,
       );
     }
   }
@@ -268,8 +267,10 @@ async function cleanData() {
     };
   });
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, mapped); // now allowed inside async function
-  console.log(`✅ Final cleaned CSV written to ${OUTPUT_PATH} with ${mapped.length} rows.`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, mapped); // now allowed inside async function
+  console.log(
+    `✅ Final cleaned CSV written to ${OUTPUT_PATH} with ${writeResult.writtenCount} rows (${writeResult.duplicateCount} duplicate rows removed).`,
+  );
 }
 
 // ----------------------------------------------------------------------

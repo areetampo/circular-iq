@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * scrape_kalundborg.js - Case studies scraping from Kalundborg Symbiosis
  *
@@ -21,13 +23,10 @@
  *   node scrape_kalundborg.js --append-backup     # append to backup instead of clearing on start
  */
 
-/* global process */
-
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   getDatasetProcessedCsvPath,
   getBrowserLaunchOptions,
@@ -120,6 +119,7 @@ async function extractCaseData(page, url, title) {
           break;
         }
       } catch (err) {
+        console.error(`Error occurred while waiting for selector ${selector}: ${err.message}`);
         // selector not found or empty, try next
       }
     }
@@ -318,6 +318,7 @@ async function rebuildFromBackup() {
           qualityScore,
         };
       } catch (e) {
+        console.error(`Error parsing backup row: ${e.message}`);
         return null;
       }
     })
@@ -341,11 +342,13 @@ async function rebuildFromBackup() {
     return cleanRow;
   });
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+    append: APPEND_PROCESSED,
+  });
   await appendLogs(
     DATASET_KEY,
-    `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+    `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
@@ -432,18 +435,22 @@ async function scrape() {
       return cleanRow;
     });
 
-    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+      append: APPEND_PROCESSED,
+    });
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);
-    console.log(`   Output: ${OUTPUT_PATH}`);
+    console.log(
+      `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    );
 
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];
 
     await appendLogs(
       DATASET_KEY,
-      `Scrape complete: ${cases.length} cases, ${allRows.length} extracted, ${validRows.length} valid, kept ${finalRows.length}`,
+      `Scrape complete: ${cases.length} cases, ${allRows.length} extracted, ${validRows.length} valid, kept ${finalRows.length}, written ${writeResult.writtenCount} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
       DATASET_KEY,

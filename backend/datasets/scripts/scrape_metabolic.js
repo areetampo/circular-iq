@@ -123,7 +123,9 @@ async function scrape() {
             console.log('  Clicked cookie accept button');
             await randomDelay(2000, 3000);
           }
-        } catch (e) {}
+        } catch {
+          // Ignore cookie handling errors
+        }
 
         // Wait for iframe
         let iframeFound = false;
@@ -133,7 +135,9 @@ async function scrape() {
             iframeFound = true;
             break;
           } catch (e) {
-            console.log(`  Iframe not found, attempt ${attempt + 1}/5`);
+            console.log(
+              `  Iframe not found, attempt (error: ${e.message}). Retrying ${attempt + 1}/5 ...`,
+            );
             await randomDelay(3000, 5000);
           }
         }

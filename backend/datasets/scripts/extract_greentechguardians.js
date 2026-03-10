@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_greentechguardians.js
  *
@@ -24,13 +26,10 @@
  * Configuration: PRIORITY object defines merge order and field preference
  */
 
-/* global process */
-
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -191,8 +190,10 @@ async function main() {
     metadata_json: typeof r.metadata_json === 'string' ? r.metadata_json : JSON.stringify(r),
   }));
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalMapped);
-  console.log(`✅ Written ${finalMapped.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalMapped);
+  console.log(
+    `✅ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -25,7 +25,6 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   getDatasetRawDir,
   DATASET_LOOKUP,
@@ -375,7 +374,6 @@ async function main() {
     };
 
     return {
-      ID: formatId(DATASET_KEY, 0), // placeholder
       problem: cleanText(cand.problem),
       solution: cleanText(cand.solution),
       materials,
@@ -393,8 +391,10 @@ async function main() {
   const limitedRows = rows.slice(0, MAX_ROWS);
 
   console.log(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
-  await writeCsv(DATASET_KEY, outputPath, limitedRows);
-  console.log(`✅ Written ${limitedRows.length} rows to ${outputPath}`);
+  const writeResult = await writeCsv(DATASET_KEY, outputPath, limitedRows);
+  console.log(
+    `✅ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

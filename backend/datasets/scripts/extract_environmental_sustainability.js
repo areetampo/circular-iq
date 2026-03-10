@@ -29,7 +29,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   DATASET_KEYS,
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
@@ -108,8 +107,10 @@ async function main() {
   });
 
   // 6. Write output (helper creates directory, handles locking)
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
-  console.log(`✅ Successfully wrote ${processed.length} records to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
+  console.log(
+    `✅ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

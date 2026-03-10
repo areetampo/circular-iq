@@ -32,7 +32,6 @@ import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -411,8 +410,10 @@ async function main() {
   console.log(`Selected ${finalRows.length} rows for output (limit: ${MAX_ROWS}).`);
 
   // ---- 6. Write CSV ----
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`✅ ${finalRows.length} rows Written to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `✅ ${writeResult.writtenCount} rows Written to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * scrape_circle_knowledge_hub.js - Improved Case Studies Scraper for Circle Economy Knowledge Hub
  *
@@ -24,7 +26,6 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   getDatasetProcessedCsvPath,
   getBrowserLaunchOptions,
@@ -401,7 +402,7 @@ async function rebuildFromBackup() {
           qualityScore = scoreCaseQuality(row);
         }
         return { ...row, qualityScore };
-      } catch (e) {
+      } catch {
         return null;
       }
     })
@@ -435,11 +436,13 @@ async function rebuildFromBackup() {
     return cleanRow;
   });
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+    append: APPEND_PROCESSED,
+  });
   await appendLogs(
     DATASET_KEY,
-    `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+    `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
@@ -619,11 +622,13 @@ async function scrape() {
       return cleanRow;
     });
 
-    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+      append: APPEND_PROCESSED,
+    });
 
     console.log('\n✅ Scraping complete!');
-    console.log(`   Final rows kept: ${finalRows.length}`);
-    console.log(`   Output: ${OUTPUT_PATH}`);
+    console.log(`   Final rows kept: ${writeResult.writtenCount}`);
+    console.log(`   Output: ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`);
 
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];
@@ -631,7 +636,7 @@ async function scrape() {
     await appendLogs(
       DATASET_KEY,
       `✅ Scrape complete. Pages: ${pagesScraped.length}, total: ${allRows.length}, ` +
-        `valid: ${validRows.length}, kept: ${finalRows.length}`,
+        `valid: ${validRows.length}, kept: ${writeResult.writtenCount} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
       DATASET_KEY,

@@ -30,7 +30,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -330,8 +329,10 @@ async function main() {
     }
   }
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, allRows);
-  console.log(`✅ Written ${allRows.length} curated rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, allRows);
+  console.log(
+    `✅ Written ${writeResult.writtenCount} curated rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

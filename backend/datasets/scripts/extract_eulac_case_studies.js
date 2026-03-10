@@ -31,7 +31,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   DATASET_KEYS,
   getDatasetRawDir,
@@ -307,8 +306,10 @@ async function main() {
     });
   }
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, rows);
-  console.log(`✅ Saved ${rows.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rows);
+  console.log(
+    `✅ Saved ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

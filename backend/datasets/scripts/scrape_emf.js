@@ -1,5 +1,7 @@
 /* global process */
+
 import '#server/bootstrap.js';
+
 /**
  * scrape_emf.js - Ellen MacArthur Foundation Case Studies
  *
@@ -26,7 +28,6 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   getBrowserLaunchOptions,
   getViewportOptions,
@@ -357,7 +358,7 @@ async function extractMultipleFromOverview(text) {
     } else {
       return [];
     }
-  } catch (e) {
+  } catch {
     return [];
   }
 }
@@ -423,12 +424,16 @@ async function rebuildFromBackup() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-    console.log(`\n✨ Successfully rebuilt ${finalRows.length} EMF case studies from backup`);
+    const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+      append: APPEND_PROCESSED,
+    });
+    console.log(
+      `\n✨ Successfully rebuilt ${writeResult.writtenCount} EMF case studies from backup (${writeResult.duplicateCount} duplicate rows removed)`,
+    );
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
@@ -609,16 +614,20 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
     console.log(`\n✅ Scraped ${finalRows.length} EMF case studies.`);
-    console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+    const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+      append: APPEND_PROCESSED,
+    });
+    console.log(
+      `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    );
 
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];
 
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}. Clicks with data: ${pagesCollected.join(', ')}.`,
+      `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount}). Clicks with data: ${pagesCollected.join(', ')}.`,
     );
     await appendLogs(
       DATASET_KEY,

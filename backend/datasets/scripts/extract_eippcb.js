@@ -18,7 +18,6 @@ import { pathToFileURL, fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   getDatasetRawDir,
@@ -195,9 +194,12 @@ async function main() {
       return cleanRow;
     });
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
     `✅ Extraction Complete. Processed ${allScoredRows.length} total, saved top ${finalRows.length} high-quality rows.`,
+  );
+  console.log(
+    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 

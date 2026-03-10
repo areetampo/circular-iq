@@ -29,7 +29,6 @@
 
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -389,14 +388,16 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
+    console.log(`\n✨ Rebuilt ${finalRows.length} Open Beauty Facts products from backup`);
+    const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
+      append: APPEND_PROCESSED,
+    });
     console.log(
-      `\n✨ Successfully rebuilt ${finalRows.length} Open Beauty Facts products from backup`,
+      `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
-    console.log(`📁 Saved to: ${outputFile}`);
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${finalRows.length} rows to ${outputFile}`,
+      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount})`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
@@ -463,7 +464,6 @@ async function main() {
   await appendLogs(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
 
   const finalRows = transformed.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
     problem: row.problem || '',
     solution: row.solution || '',
     materials: row.materials || '',
@@ -474,10 +474,12 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
+  const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
+    append: APPEND_PROCESSED,
+  });
   await backup.flush();
 
-  const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}. Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
+  const summary = `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
   console.log(summary);
 
   const firstRow = finalRows[0];

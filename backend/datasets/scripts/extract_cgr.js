@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_cgr_2025.js – Final improved version
  *
@@ -20,7 +22,6 @@ import path from 'path';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -37,10 +38,11 @@ const DATASET_KEY = DATASET_KEYS.cgr;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
 const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 verifyPathsExist(RAW_DIR);
-const inputFile = path.join(RAW_DIR, dataset.raw_folder_contents.input_file);
-const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
+const inputFile = path.join(RAW_DIR, dataset.raw_folder_contents.input_file);
 verifyPathsExist([inputFile]);
+
+const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 
 const MIN_SENTENCE_LENGTH = 60;
 const MAX_SENTENCE_LENGTH = 600;
@@ -334,8 +336,10 @@ async function main() {
   console.log(`After deduplication: ${unique.length} rows.`);
 
   // Write CSV using the helper (handles unquoted header, quoted data)
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, unique);
-  console.log(`✅ Wrote ${unique.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, unique);
+  console.log(
+    `✅ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

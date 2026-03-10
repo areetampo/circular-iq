@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_world_bank_projects.js – Final version
  *
@@ -24,7 +26,6 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -565,8 +566,10 @@ async function main() {
 
   const finalRows = topRows.map(({ _scoreValue, ...rest }) => rest);
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`✅ Success! Wrote ${finalRows.length} records to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

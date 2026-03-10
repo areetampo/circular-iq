@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_ghg.js
  *
@@ -24,13 +26,10 @@
  * Scope: Covers CO2, CH4 (methane), N2O (nitrous oxide), and F-gases with proper weighting
  */
 
-/* global process */
-
 import fs from 'fs/promises';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -230,8 +229,10 @@ async function main() {
   const finalRows = allRows.slice(0, MAX_ROWS);
   console.log(`Selected ${finalRows.length} rows.`);
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`✅ Written ${finalRows.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `✅ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

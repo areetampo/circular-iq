@@ -29,7 +29,6 @@ import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { Buffer } from 'buffer';
 import {
-  formatId,
   cleanText,
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
@@ -64,7 +63,7 @@ function isValidPdf(filePath) {
     fs.readSync(fd, buffer, 0, 5, 0);
     fs.closeSync(fd);
     return buffer.toString() === '%PDF-';
-  } catch (err) {
+  } catch {
     return false;
   }
 }
@@ -554,8 +553,10 @@ async function main() {
     return rest;
   });
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`✅ Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `✅ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

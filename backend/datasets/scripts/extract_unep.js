@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_unep.js - Environmental impact and waste management data extraction
  *
@@ -24,13 +26,10 @@
  * Configuration: Target row count (TARGET_ROWS), regional filters, environmental indicators
  */
 
-/* global process */
-
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -293,8 +292,10 @@ async function main() {
   const final = topRows.map(({ _scoreValue, score, ...rest }) => rest);
 
   // writeCsv handles directory creation, clearing and read-only locking
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
-  console.log(`✅ Success! Wrote ${final.length} records to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
+  console.log(
+    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

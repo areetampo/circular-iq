@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * scrape_c2c.js – Cradle-to-Cradle (C2C) certified products scraper
  *
@@ -20,12 +22,10 @@
  * For detailed logs, see the path printed at the start of the run.
  */
 
-/* global process */
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   getDatasetProcessedCsvPath,
   getBrowserLaunchOptions,
@@ -183,12 +183,16 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-    console.log(`\n✨ Successfully rebuilt ${finalRows.length} C2C products from backup`);
-    console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+    console.log(`\n✨ Rebuilt ${finalRows.length} C2C products from backup`);
+    const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+      append: APPEND_PROCESSED,
+    });
+    console.log(
+      `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    );
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
@@ -531,17 +535,21 @@ async function scrape_c2c() {
         };
       });
 
-      await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+      console.log(`\n✅ Scraped ${finalRows.length} unique C2C products.`);
+      const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+        append: APPEND_PROCESSED,
+      });
       await backup.flush();
 
-      console.log(`\n✅ Scraped ${finalRows.length} unique C2C products.`);
-      console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+      console.log(
+        `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      );
 
       const firstRow = finalRows[0];
       const lastRow = finalRows[finalRows.length - 1];
       await appendLogs(
         DATASET_KEY,
-        `✅ Scrape complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}. Pages scraped: ${pagesScraped.join(', ')}.`,
+        `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`,
       );
       await appendLogs(
         DATASET_KEY,

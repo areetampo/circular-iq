@@ -27,7 +27,6 @@
 import axios from 'axios';
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   cleanText,
   getDatasetProcessedCsvPath,
   writeCsv,
@@ -246,13 +245,13 @@ async function rebuildFromBackup() {
     );
   }
 
-  const finalRows = uniqueRows.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...row,
-  }));
-
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-  console.log(`✅ Rebuilt ${finalRows.length} rows from backup.`);
+  console.log(`✅ Rebuilt ${uniqueRows.length} rows from backup.`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, uniqueRows, {
+    append: APPEND_PROCESSED,
+  });
+  console.log(
+    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 /**
@@ -304,25 +303,21 @@ async function fetchAndTransform() {
   // Final flush of any remaining rows in backup buffer
   await backup.flush();
 
-  // Now assign sequential IDs based on final order
-  const finalRows = rowsWithoutIds.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
-    ...row,
-  }));
-
   // Write final CSV (writeCsv handles locking and read-only)
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-  console.log(`✅ Successfully transformed ${finalRows.length} unique solutions.`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rowsWithoutIds, {
+    append: APPEND_PROCESSED,
+  });
+  console.log(`✅ Successfully transformed ${rowsWithoutIds.length} unique solutions.`);
+  console.log(
+    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 
-  const firstRow = finalRows[0];
-  const lastRow = finalRows[finalRows.length - 1];
-
-  await appendLogs(DATASET_KEY, `Completed: ${finalRows.length} rows written to ${OUTPUT_PATH}`);
   await appendLogs(
     DATASET_KEY,
-    `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
+    `Completed: ${writeResult.writtenCount} rows written to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
-  await appendLogs(DATASET_KEY, `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`);
+  await appendLogs(DATASET_KEY, `   First: ${writeResult.firstID}`);
+  await appendLogs(DATASET_KEY, `   Last:  ${writeResult.lastID}`);
 }
 
 // --- Entry point ---

@@ -32,7 +32,6 @@ import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -147,27 +146,34 @@ function extractSEICaseStudy(text, fileName) {
   // Extract metadata (year, location, use, etc.)
   const metadata = extractMetadata(text);
 
-  // Extract sections
+  // Improved Regex for the 'Findings' section
+  const findingsRegex =
+    'KEY FINDINGS(?:[\\s,]+(?:RECOMMENDATIONS(?:,\\s*AND)?\\s*LESSONS\\s*LEARNT))?';
+
   const summary = extractSection(
     text,
     'SUMMARY',
     'SUSTAINABILITY GOALS|CIRCULAR ECONOMY STRATEGIES|KEY FINDINGS|AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
   );
+
   const goals = extractSection(
     text,
     'SUSTAINABILITY GOALS',
     'CIRCULAR ECONOMY STRATEGIES|KEY FINDINGS|AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
   );
+
   const strategies = extractSection(
     text,
     'CIRCULAR ECONOMY STRATEGIES',
     'KEY FINDINGS|AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
   );
+
   const findings = extractSection(
     text,
-    'KEY FINDINGS[,\s]*(?:RECOMMENDATIONS,? AND LESSONS LEARNT)?',
+    findingsRegex, // Used the optimized variable here
     'AVAILABLE QUANTITATIVE DATA|FURTHER INFORMATION',
   );
+
   const quantitative = extractSection(
     text,
     'AVAILABLE QUANTITATIVE DATA',
@@ -646,8 +652,10 @@ async function main() {
   // Remove temporary fields
   const final = scored.map(({ _scoreValue, score, ...rest }) => rest);
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
-  console.log(`✅ Success! Wrote ${final.length} records to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
+  console.log(
+    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -1143,7 +1143,7 @@ export function hasAppendBackupFlag() {
  * @param {boolean} [options.validateColumns=false] - If true, check that the existing file contains all CSV_COLUMNS.
  * @param {boolean} [options.lock=true] - If true, set the file to read‑only (chmod 444) after writing.
  *
- * @returns {Promise<{writtenCount: number, duplicateCount: number, lastId: string|null}>}
+ * @returns {Promise<{writtenCount: number, duplicateCount: number, firstID: string|null, lastID: string|null}>}
  *   Metadata about the operation.
  */
 export async function writeCsv(datasetKey, filePath, rows, options = {}) {
@@ -1179,14 +1179,15 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
     if (lock) {
       try {
         await fs.promises.chmod(filePath, 0o444);
-      } catch (e) {
+      } catch {
         // ignore errors on platforms that don't support chmod
       }
     }
     return {
       writtenCount: rowsWithIds.length,
       duplicateCount: 0,
-      lastId: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
+      firstID: rowsWithIds[0]?.ID || null,
+      lastID: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
     };
   }
 
@@ -1278,7 +1279,7 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   }));
 
   if (rowsWithIds.length === 0) {
-    return { writtenCount: 0, duplicateCount, lastId: null };
+    return { writtenCount: 0, duplicateCount, firstID: null, lastID: null };
   }
 
   // 2d. Stringify (omit header if file already existed)
@@ -1294,7 +1295,7 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   if (lock) {
     try {
       await fs.promises.chmod(filePath, 0o444);
-    } catch (e) {
+    } catch {
       // ignore errors on platforms that don't support chmod
     }
   }
@@ -1302,7 +1303,8 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   return {
     writtenCount: rowsWithIds.length,
     duplicateCount,
-    lastId: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
+    firstID: rowsWithIds[0]?.ID || null,
+    lastID: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
   };
 }
 

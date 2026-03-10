@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_wbcsd.js — WBCSD Circular Economy Case Studies Extraction
  *
@@ -18,15 +20,12 @@
  * Output: CSV file with standardized columns in datasets/processed/
  */
 
-/* global process */
-
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -667,8 +666,10 @@ async function main() {
   // Remove temporary fields
   const final = scored.map(({ _scoreValue, score, ...rest }) => rest);
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
-  console.log(`✅ Success! Wrote ${final.length} records to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
+  console.log(
+    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

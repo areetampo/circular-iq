@@ -30,7 +30,6 @@ import { parse } from 'csv-parse/sync';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import translate from 'google-translate-api-x';
 import {
-  formatId,
   DATASET_KEYS,
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
@@ -470,9 +469,11 @@ async function main() {
     metadata_json: typeof r.metadata_json === 'string' ? r.metadata_json : JSON.stringify(r),
   }));
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(`\n✨ Successfully unified files into ${finalRows.length} high‑quality rows.`);
-  console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+  console.log(
+    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -284,8 +284,10 @@ async function main() {
     `   Quality score range: ${Math.min(...finalRows.map((r) => r._qualityScore))} – ${Math.max(...finalRows.map((r) => r._qualityScore))}`,
   );
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`✅ Successfully wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `✅ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_ifixit.js - Extracts problem/solution pairs from iFixit repairability scores
  *
@@ -22,14 +24,11 @@
  *   - #utils/datasetsUtils.js for path helpers, writeCsv, formatId, cleanText
  */
 
-/* global process */
-
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
-  formatId,
   cleanText,
   getDatasetRawDir,
   getDatasetProcessedCsvPath,
@@ -252,7 +251,6 @@ async function main() {
         };
 
         const row = {
-          ID: formatId(DATASET_KEY, 0), // placeholder, will reassign after filtering
           problem: cleanText(problem),
           solution: cleanText(solution),
           materials,
@@ -280,8 +278,10 @@ async function main() {
     `Keeping top ${topRows.length} rows (score range: ${allRows[0].score.toFixed(2)} – ${allRows[MAX_ROWS - 1]?.score.toFixed(2)})`,
   );
 
-  await writeCsv(DATASET_KEY, outputPath, topRows);
-  console.log(`✅ Written ${topRows.length} rows to ${outputPath}`);
+  const writeResult = await writeCsv(DATASET_KEY, outputPath, topRows);
+  console.log(
+    `✅ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

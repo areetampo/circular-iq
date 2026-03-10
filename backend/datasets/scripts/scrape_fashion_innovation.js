@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * scrape_fashion_innovation.js – Fashion for Good Innovation Programme scraping
  *
@@ -31,7 +33,6 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import path from 'path';
 import {
-  formatId,
   cleanText,
   getDatasetProcessedCsvPath,
   getBrowserLaunchOptions,
@@ -49,6 +50,7 @@ import {
   getDatasetScrapeLogsPath,
   DATASET_LOOKUP,
   DATASET_KEYS,
+  getDatasetBackupFolderPath,
 } from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
@@ -475,11 +477,13 @@ async function rebuildFromBackup() {
     metadata_json: JSON.stringify(row.metadata),
   }));
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
   console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+    append: APPEND_PROCESSED,
+  });
   await appendLogs(
     DATASET_KEY,
-    `✅ Recovery complete. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+    `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
@@ -515,13 +519,13 @@ async function scrape() {
       );
     } catch (err) {
       // Debug: save screenshot and HTML
-      const debugDir = path.join(process.cwd(), 'datasets', 'archives', 'scrape_backup');
-      if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
+      const debugDir = getDatasetBackupFolderPath(DATASET_KEY);
       const screenshotPath = path.join(debugDir, `${DATASET_KEY}_error.png`);
       const htmlPath = path.join(debugDir, `${DATASET_KEY}_debug.html`);
       await page.screenshot({ path: screenshotPath });
       const html = await page.content();
       fs.writeFileSync(htmlPath, html);
+      console.error(`❌ Error: ${err.message}`);
       console.error(`❌ Tile selector not found. Screenshot saved to ${screenshotPath}`);
       console.error(`   HTML saved to ${htmlPath}`);
       await appendLogs(DATASET_KEY, `❌ Fatal: Tile selector not found. Debug files saved.`);
@@ -531,7 +535,7 @@ async function scrape() {
     const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
     await appendLogs(
       DATASET_KEY,
-      `🚀 Scrape started. Target: ${LISTING_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}, CLEAR_BACKUP_ON_START: ${CLEAR_BACKUP_ON_START}`,
+      `🚀 Scrape started. Target: ${LISTING_URL}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}, MAX_PAGES_TO_FETCH: ${MAX_PAGES_TO_FETCH}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
     );
 
     let allItems = [];
@@ -640,7 +644,9 @@ async function scrape() {
         );
         console.log('  New tiles loaded successfully');
       } catch (err) {
-        console.warn('  ⚠️ Timed out waiting for new tiles, but continuing...');
+        console.warn(
+          `  ⚠️ Timed out waiting for new tiles, but continuing..., Error: ${err.message}`,
+        );
       }
 
       await sleep(2000);
@@ -698,17 +704,21 @@ async function scrape() {
       return cleanItem;
     });
 
-    await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
+    const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+      append: APPEND_PROCESSED,
+    });
 
     console.log('\n✅ Scraping complete!');
     console.log(`   Final rows kept: ${finalRows.length}`);
-    console.log(`   Output: ${OUTPUT_PATH}`);
+    console.log(
+      `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    );
 
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Pages: ${currentPage - 1}, total: ${allItems.length}, valid: ${valid.length}, kept: ${finalRows.length}`,
+      `✅ Scrape complete. Pages: ${currentPage - 1}, total: ${allItems.length}, valid: ${valid.length}, kept: ${finalRows.length}, written: ${writeResult.writtenCount} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
       DATASET_KEY,

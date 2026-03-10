@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * scrape_open_products_facts.js – Expanded version
  *
@@ -21,7 +23,6 @@
 
 import { fileURLToPath } from 'url';
 import {
-  formatId,
   DATASET_LOOKUP,
   DATASET_KEYS,
   writeCsv,
@@ -424,7 +425,6 @@ async function rebuildFromBackup() {
       const metadataJson =
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row);
       return {
-        ID: formatId(DATASET_KEY, idx + 1),
         problem: row.problem || '',
         solution: row.solution || '',
         materials: row.materials || '',
@@ -436,14 +436,16 @@ async function rebuildFromBackup() {
       };
     });
 
-    await writeCsv(outputFile, finalRows, APPEND_PROCESSED);
+    console.log(`\n✨ Rebuilt ${finalRows.length} Open Products Facts products from backup`);
+    const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
+      append: APPEND_PROCESSED,
+    });
     console.log(
-      `\n✨ Successfully rebuilt ${finalRows.length} Open Products Facts products from backup`,
+      `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
-    console.log(`📁 Saved to: ${outputFile}`);
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${finalRows.length} rows to ${outputFile}`,
+      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount})`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
@@ -523,9 +525,11 @@ async function main() {
     metadata_json: row.metadata_json,
   }));
 
-  await writeCsv(DATASET_KEY, outputFile, finalRows, APPEND_PROCESSED);
+  const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
+    append: APPEND_PROCESSED,
+  });
 
-  const summary = `✅ Scrape complete. Wrote ${finalRows.length} rows to ${outputFile}.`;
+  const summary = `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}).`;
   console.log(summary);
 
   const firstRow = finalRows[0];

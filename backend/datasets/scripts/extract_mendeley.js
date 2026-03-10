@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * extract_mendeley.js
  *
@@ -24,13 +26,10 @@
  * Sampling: Configurable sample sizes per research category (SME_SAMPLE_SIZE, SBM_SAMPLE_SIZE)
  */
 
-/* global process */
-
 import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 import {
-  formatId,
   cleanText,
   DATASET_LOOKUP,
   DATASET_KEYS,
@@ -121,7 +120,7 @@ function scoreRow(row) {
       // Sustainable Business Model
       if (meta.company && !meta.company.startsWith('Company_')) score += 1;
       if (meta.sector && meta.sector !== 'Various') score += 1;
-    } catch (e) {
+    } catch {
       // ignore parsing errors – metadata stays as is
     }
   }
@@ -581,8 +580,10 @@ async function main() {
     metadata_json: r.metadata_json,
   }));
 
-  await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`\n✅ Successfully wrote ${finalRows.length} rows to ${OUTPUT_PATH}`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
+  console.log(
+    `\n✅ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+  );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

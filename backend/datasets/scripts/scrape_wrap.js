@@ -43,7 +43,6 @@ import { pipeline } from 'stream/promises';
 import fs from 'fs';
 import path from 'path';
 import {
-  formatId,
   cleanText,
   getBrowserLaunchOptions,
   getViewportOptions,
@@ -437,7 +436,7 @@ async function processResource(browser, url, category) {
           await sleep(2000);
         }
       }
-    } catch (e) {
+    } catch {
       // Ignore cookie banner errors
     }
 
@@ -499,7 +498,6 @@ async function rebuildFromBackup() {
   }
 
   const finalRows = validRows.map((row, idx) => ({
-    ID: formatId(DATASET_KEY, idx + 1),
     problem: cleanText(row.problem || ''),
     solution: cleanText(row.solution || ''),
     materials: cleanText(row.materials || ''),
@@ -510,12 +508,16 @@ async function rebuildFromBackup() {
     metadata_json: row.metadata_json || '{}',
   }));
 
-  await writeCsv(OUTPUT_PATH, finalRows, APPEND_PROCESSED);
-  console.log(`\n✨ Successfully rebuilt ${finalRows.length} case study rows from backup`);
-  console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+  console.log(`\n✨ Rebuilt ${finalRows.length} case study rows from backup`);
+  const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+    append: APPEND_PROCESSED,
+  });
+  console.log(
+    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+  );
   await appendLogs(
     DATASET_KEY,
-    `✅ Case studies recovered. Wrote ${finalRows.length} rows to ${OUTPUT_PATH}`,
+    `✅ Case studies recovered. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 
   console.log(`\n📝 NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js`);
@@ -717,9 +719,13 @@ async function scrape_wrap() {
         metadata_json: row.metadata_json,
       }));
 
-      await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, APPEND_PROCESSED);
       console.log(`\n✅ Scraped ${finalRows.length} valid case study rows.`);
-      console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+      const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
+        append: APPEND_PROCESSED,
+      });
+      console.log(
+        `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      );
 
       if (finalRows.length > 0) {
         await appendLogs(
@@ -739,12 +745,11 @@ async function scrape_wrap() {
       console.log(`✅ Downloaded ${totalPdfs} PDFs into:`);
       console.log(`   - Reports: ${REPORTS_DIR}`);
       console.log(`   - Guides: ${GUIDES_DIR}`);
+      await appendLogs(
+        DATASET_KEY,
+        `✅ Downloaded ${totalPdfs} PDFs into: Reports: ${REPORTS_DIR}, Guides: ${GUIDES_DIR}`,
+      );
     }
-
-    await appendLogs(
-      DATASET_KEY,
-      `✅ Scrape complete. Valid rows: ${allRows.filter((r) => isValidCaseStudy(r.problem, r.solution)).length}, PDFs: ${totalPdfs}`,
-    );
   } catch (err) {
     console.error('❌ Fatal error:', err);
     await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
