@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * Semantic Chunking Script for Circular Economy datasets
  *
@@ -31,18 +33,215 @@ import {
   ARCHIVES_CHUNKS_JSON,
   writeJson,
   assertFileExists,
+  ensureDir,
 } from '#utils/datasetsUtils.js';
 
+// ===== Constants =====
 const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
+const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
 
 // ensure input exists before doing any work
-assertFileExists(COMBINED_INPUT_CSV, 'combined_input.csv');
+assertFileExists(COMBINED_INPUT_CSV, 'combined input csv');
 
 // allow writing to archives folder instead of normal output
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 
 const TOKENS_PER_WORD = 1.3; // Rough estimate for token counting
 const WORDS_PER_CHUNK = Math.floor(CHUNK_SIZE_TOKENS / TOKENS_PER_WORD);
+
+// ===== Dataset‑specific metadata extractors =====
+// Each dataset key (prefix from ID) maps to an array of field names (or paths) to extract.
+// For nested objects, use dot notation. If the value is an array, it will be joined.
+const DATASET_METADATA_FIELDS = {
+  c2c: ['company', 'certifications', 'description', 'materials', 'score', 'certCount'],
+  cgr: ['extracted_stats', 'original_snippet'],
+  circle: ['type', 'location', 'has_problem', 'has_solution', 'has_outcome'],
+  dataeu: ['Ville', 'Structure', 'Partenaires', "Domaine d'action", 'Localisation action'],
+  ecesp: ['organisation', 'country', 'keyArea', 'sectors', 'results'],
+  eippcb: ['source', 'bat_index', 'type'],
+  emf: ['title', 'orgLine', 'locationLine', 'strategyLine', 'ai_extracted'],
+  env: [
+    'Location',
+    'Primary energy supply Fossil fuels (% of total) 2012',
+    'Carbon dioxide emissions per capita (tonnes) 2011',
+  ],
+  epa: [
+    'facility',
+    'state',
+    'naics',
+    'total_release_lbs',
+    'recycled_lbs',
+    'energy_recovery_lbs',
+    'treated_lbs',
+    'disposed_lbs',
+    'combined_score',
+  ],
+  eulac: [
+    'company',
+    'economic_activity',
+    'circular_strategy',
+    'materials_detected',
+    'metrics_detected',
+    'source_type',
+  ],
+  eurostat: ['country', 'year', 'value', 'unit', 'dataset', 'source'],
+  fashion: [], // no metadata in sample
+  ghg: ['country', 'sector', 'gas', 'year', 'emissions_Gg', 'unit', 'source_file', 'citation'],
+  gewm: [
+    'country',
+    'region',
+    'ewaste_generated_million_kg',
+    'ewaste_kg_per_capita',
+    'collected_million_kg',
+    'legislation',
+    'epr',
+    'collection_target',
+    'recycling_target',
+  ],
+  gtg: ['id', 'product', 'summary', 'embedded_value', 'categories'],
+  ifixit: [
+    'oem',
+    'device',
+    'release_date',
+    'repairability_score',
+    'category',
+    'source_file',
+    'bullet_type',
+    'original_bullet',
+  ],
+  kaggle: [
+    'Product name (and functional unit)',
+    'Company',
+    "Product's carbon footprint (PCF, kg CO2e)",
+    'Year of reporting',
+  ],
+  kalundborg: ['paragraphs', 'extracted_at'], // full_content is too long, skip
+  mnd: ['challenge_code', 'geometric_mean'],
+  metabolic: ['original_filename', 'chunk_preview', 'score'],
+  oecd: ['REF_AREA', 'MEASURE', 'MATERIAL', 'TIME_PERIOD', 'OBS_VALUE'],
+  obf: ['brands', 'categories', 'packaging_materials_tags', 'labels', 'product_name'],
+  off: ['brands', 'categories', 'packaging_materials_tags', 'labels', 'product_name'],
+  opf: ['categories', 'code', 'labels', 'packaging', 'product_name'],
+  refed: ['original.attributes.name', 'original.attributes.definition', 'original.attributes.data'],
+  rema: ['title', 'description', 'industry', 'score'],
+  sei: ['summary', 'goals', 'strategies', 'findings', 'quantitative', 'fileName'],
+  unep: ['Country', 'Category', 'Flow name', '2024'], // last year value
+  wbcsd: [
+    'company',
+    'industry',
+    'quote',
+    'sections.why',
+    'sections.challenges',
+    'sections.solutions',
+    'sections.results',
+  ],
+  wbp: ['id', 'country', 'region', 'lending_instrument', 'approval_date', 'status'],
+  wrap: ['source_file', 'score', 'full_paragraph', 'category'],
+};
+
+// ===== Helper functions =====
+
+/**
+ * Safely get a nested value from an object using dot notation.
+ * @param {Object} obj - The object to traverse.
+ * @param {string} path - Dot‑separated path.
+ * @returns {any} The value, or undefined if not found.
+ */
+function getNestedValue(obj, path) {
+  return path
+    .split('.')
+    .reduce(
+      (current, key) => (current && current[key] !== undefined ? current[key] : undefined),
+      obj,
+    );
+}
+
+/**
+ * Format a value for inclusion in metadata summary.
+ * - Strings are truncated if too long.
+ * - Arrays are joined with commas.
+ * - Objects are stringified (shallow) if small.
+ * @param {any} value - The value to format.
+ * @returns {string} Formatted string.
+ */
+function formatMetadataValue(value) {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') {
+    if (value.length > MAX_METADATA_FIELD_LENGTH) {
+      return value.substring(0, MAX_METADATA_FIELD_LENGTH) + '…';
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    const joined = value
+      .map((v) => String(v).trim())
+      .filter(Boolean)
+      .join(', ');
+    if (joined.length > MAX_METADATA_FIELD_LENGTH) {
+      return joined.substring(0, MAX_METADATA_FIELD_LENGTH) + '…';
+    }
+    return joined;
+  }
+  if (typeof value === 'object') {
+    // For simple objects, convert to string, but limit length
+    const str = JSON.stringify(value);
+    if (str.length > MAX_METADATA_FIELD_LENGTH) {
+      return str.substring(0, MAX_METADATA_FIELD_LENGTH) + '…';
+    }
+    return str;
+  }
+  return String(value);
+}
+
+/**
+ * Extract and format useful information from metadata_json, dataset‑aware.
+ * @param {string} metadataJson - The JSON string from the CSV.
+ * @param {string} datasetKey - Dataset prefix (e.g., 'c2c', 'cgr').
+ * @returns {string} Formatted metadata string, or empty if none.
+ */
+function formatMetadataFromJson(metadataJson, datasetKey) {
+  if (!metadataJson) return '';
+  try {
+    const meta = JSON.parse(metadataJson);
+    const parts = [];
+
+    // Use dataset‑specific field list if available
+    const fieldsToExtract = DATASET_METADATA_FIELDS[datasetKey];
+    if (fieldsToExtract && fieldsToExtract.length > 0) {
+      for (const field of fieldsToExtract) {
+        const value = getNestedValue(meta, field);
+        if (value !== undefined && value !== null && value !== '') {
+          const formatted = formatMetadataValue(value);
+          // Use the last part of the field path as a label (or the whole path)
+          const label = field.split('.').pop();
+          parts.push(`${label}: ${formatted}`);
+        }
+      }
+    }
+
+    // Fallback: extract common fields (for datasets not explicitly listed)
+    if (parts.length === 0) {
+      if (meta.company) parts.push(`Company: ${formatMetadataValue(meta.company)}`);
+      if (meta.certifications && typeof meta.certifications === 'object') {
+        const certs = Object.entries(meta.certifications)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(', ');
+        if (certs) parts.push(`Certifications: ${certs}`);
+      }
+      if (meta.description) parts.push(`Description: ${formatMetadataValue(meta.description)}`);
+      if (meta.materials && meta.materials !== 'Cradle‑to‑Cradle Certified Materials') {
+        parts.push(`Materials: ${formatMetadataValue(meta.materials)}`);
+      }
+      if (meta.score !== undefined) parts.push(`Score: ${meta.score}`);
+      if (meta.certCount !== undefined) parts.push(`Number of certifications: ${meta.certCount}`);
+    }
+
+    return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
+  } catch (e) {
+    console.warn(`⚠️ Could not parse metadata_json: ${e.message}`);
+    return '';
+  }
+}
 
 /**
  * Load and parse a generic CSV dataset
@@ -80,6 +279,10 @@ export function createChunks(records) {
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
 
+    // Extract dataset key from ID (first part before underscore)
+    const id = record['ID'] || '';
+    const datasetKey = id.split('_')[0] || 'unknown';
+
     // Extract key fields - adjust column names based on actual CSV structure
     const problemText = sanitizeText(
       record['problem'] || record['Problem'] || record['Business Problem'] || '',
@@ -111,7 +314,7 @@ export function createChunks(records) {
     }
 
     // Enforce minimum length to filter out truncated/malformed records
-    const MIN_PROBLEM_LENGTH = 20; // default lower for small samples
+    const MIN_PROBLEM_LENGTH = 20;
     const MIN_SOLUTION_LENGTH = 20;
 
     if (problemText.length < MIN_PROBLEM_LENGTH) {
@@ -136,17 +339,27 @@ export function createChunks(records) {
     }
 
     // Extract metadata for classification
-    const metadata = extractMetadata(problemText, solutionText, materials, category);
+    const metadata = extractMetadata(
+      problemText,
+      solutionText,
+      materials,
+      category,
+      circularStrategy,
+    );
 
-    // Create primary chunk: Problem + Solution (always together)
-    const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
-    // Build fields object and include any additional CSV columns so adapters can provide extra params
+    // Parse metadata_json and get a formatted summary
+    const metadataJson = record['metadata_json'] || '';
+    const metadataSummary = formatMetadataFromJson(metadataJson, datasetKey);
+
+    // Build a complete fields object (same for primary and secondary)
     const fieldsObj = {
       problem: problemText,
       solution: solutionText,
       materials: materials,
       circular_strategy: circularStrategy,
       impact: impact,
+      source_url: record['source_url'] || record['Source URL'] || null,
+      metadata_json: metadataJson,
     };
 
     // Copy any extra columns from the original record into fieldsObj (avoid overwriting existing keys)
@@ -176,10 +389,12 @@ export function createChunks(records) {
           'Impact',
           'outcomes',
           'Outcomes',
+          'source_url',
+          'Source URL',
+          'metadata_json',
           'ID',
         ].includes(key)
       ) {
-        // skip known columns as we've already normalized them
         continue;
       }
       try {
@@ -187,11 +402,13 @@ export function createChunks(records) {
         if (normalized && !(key in fieldsObj)) {
           fieldsObj[key] = normalized;
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
 
+    // Create primary chunk: Problem + Solution (always together)
+    const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
     const primaryChunk = {
       id: `chunk_${chunkIndex++}`,
       source_row: i,
@@ -218,14 +435,15 @@ export function createChunks(records) {
     };
     chunks.push(primaryChunk);
 
-    // Create secondary chunks if additional context exists and is substantial
+    // Create secondary chunks if additional context exists
     const secondaryParts = [];
     if (materials) secondaryParts.push(`Materials: ${materials}`);
     if (circularStrategy) secondaryParts.push(`Circular Strategy: ${circularStrategy}`);
     if (impact) secondaryParts.push(`Impact: ${impact}`);
+    if (metadataSummary) secondaryParts.push(metadataSummary);
 
     if (secondaryParts.length > 0) {
-      // Include full problem+solution pair + supplementary context for complete understanding
+      // Include full problem+solution pair + supplementary context
       const secondaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}\n\n${secondaryParts.join('\n\n')}`;
       const wordCount = countWords(secondaryContent);
 
@@ -248,13 +466,7 @@ export function createChunks(records) {
               r_strategy: metadata.r_strategy,
               primary_material: metadata.primary_material,
               geographic_focus: metadata.geographic_focus,
-              fields: {
-                problem: problemText,
-                solution: solutionText,
-                materials: materials,
-                circular_strategy: circularStrategy,
-                impact: impact,
-              },
+              fields: fieldsObj, // Use full fieldsObj
             },
             word_count: countWords(subContent),
           });
@@ -275,13 +487,7 @@ export function createChunks(records) {
             r_strategy: metadata.r_strategy,
             primary_material: metadata.primary_material,
             geographic_focus: metadata.geographic_focus,
-            fields: {
-              problem: problemText,
-              solution: solutionText,
-              materials: materials,
-              circular_strategy: circularStrategy,
-              impact: impact,
-            },
+            fields: fieldsObj, // Use full fieldsObj
           },
           word_count: countWords(secondaryContent),
         });
@@ -294,105 +500,78 @@ export function createChunks(records) {
 }
 
 /**
- * Extract metadata from problem/solution text
- * Classifies industry, scale, strategy, and material focus
+ * Extract metadata for classification – using reliable columns.
  * @private
  */
-function extractMetadata(problemText, solutionText, materials, category) {
-  const combinedText = `${problemText} ${solutionText} ${materials}`.toLowerCase();
-
-  // Industry classification
+function extractMetadata(problemText, solutionText, materials, category, circularStrategy) {
+  // Industry: from category (simple mapping)
   let industry = 'general';
-  const industries = {
-    agriculture: ['agriculture', 'farming', 'crop', 'pesticide', 'fertilizer', 'harvest', 'soil'],
-    textiles: ['textile', 'fabric', 'clothing', 'apparel', 'fashion', 'yarn', 'dye', 'garment'],
-    packaging: ['packaging', 'container', 'plastic bag', 'wrap', 'carton', 'box', 'foam'],
-    electronics: ['electronics', 'e-waste', 'circuit', 'semiconductor', 'device', 'battery'],
-    construction: ['construction', 'building', 'concrete', 'cement', 'demolition', 'brick'],
-    energy: ['energy', 'renewable', 'solar', 'wind', 'power', 'grid', 'efficiency'],
-    water: ['water', 'wastewater', 'sewage', 'treatment', 'desalination', 'pollution'],
-  };
+  const catLower = category.toLowerCase();
+  if (catLower.includes('textile')) industry = 'textiles';
+  else if (catLower.includes('packaging')) industry = 'packaging';
+  else if (catLower.includes('construction')) industry = 'construction';
+  else if (catLower.includes('electronics')) industry = 'electronics';
+  else if (catLower.includes('health')) industry = 'health';
+  else if (catLower.includes('automotive')) industry = 'automotive';
 
-  for (const [ind, keywords] of Object.entries(industries)) {
-    if (keywords.some((kw) => combinedText.includes(kw))) {
-      industry = ind;
-      break;
-    }
-  }
-
-  // Scale classification
-  let scale = 'medium';
-  const scaleKeywords = {
-    micro: ['micro', 'small', 'startup', 'individual', 'artisan', 'local'],
-    small: ['small', 'sme', 'craft', 'shop', 'limited'],
-    medium: ['medium', 'mid-size', 'regional'],
-    large: ['large', 'enterprise', 'corporate', 'multinational', 'global'],
-  };
-
-  for (const [scaleLevel, keywords] of Object.entries(scaleKeywords)) {
-    if (keywords.some((kw) => combinedText.includes(kw))) {
-      scale = scaleLevel;
-      break;
-    }
-  }
-
-  // Circular strategy classification
-  let r_strategy = 'reduction';
-  const strategies = {
-    reduction: ['reduce', 'minimize', 'less', 'efficient', 'optimize'],
-    reuse: ['reuse', 'refurbish', 'recondition', 'second-hand', 'resale'],
-    recycling: ['recycle', 'recycling', 'recover', 'material recovery'],
-    regeneration: ['regenerate', 'restore', 'regenerative', 'natural'],
-  };
-
-  for (const [strat, keywords] of Object.entries(strategies)) {
-    if (keywords.some((kw) => combinedText.includes(kw))) {
-      r_strategy = strat;
-      break;
-    }
-  }
-
-  // Primary material focus
+  // Primary material – from materials column if specific, else fallback to keywords
   let primary_material = 'mixed';
-  const materialMap = {
-    plastic: ['plastic', 'polymer', 'pvc', 'polyethylene'],
-    metal: ['metal', 'aluminum', 'steel', 'copper', 'iron'],
-    textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool'],
-    organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
-    paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
-    glass: ['glass', 'ceramic', 'silica'],
-  };
-
-  for (const [material, keywords] of Object.entries(materialMap)) {
-    if (keywords.some((kw) => combinedText.includes(kw))) {
-      primary_material = material;
-      break;
+  if (materials && materials !== 'Cradle‑to‑Cradle Certified Materials') {
+    const matLower = materials.toLowerCase();
+    const materialMap = {
+      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
+      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
+      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
+      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
+      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
+      glass: ['glass', 'ceramic', 'silica'],
+    };
+    for (const [material, keywords] of Object.entries(materialMap)) {
+      if (keywords.some((kw) => matLower.includes(kw))) {
+        primary_material = material;
+        break;
+      }
+    }
+  } else {
+    // fallback to keyword detection in combined text
+    const combined = `${problemText} ${solutionText}`.toLowerCase();
+    const materialMap = {
+      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
+      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
+      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
+      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
+      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
+      glass: ['glass', 'ceramic', 'silica'],
+    };
+    for (const [material, keywords] of Object.entries(materialMap)) {
+      if (keywords.some((kw) => combined.includes(kw))) {
+        primary_material = material;
+        break;
+      }
     }
   }
 
-  // Geographic focus
-  let geographic_focus = 'global';
-  const geoKeywords = {
-    asia: ['asia', 'india', 'china', 'southeast asia', 'vietnam', 'philippines'],
-    africa: ['africa', 'kenya', 'south africa', 'uganda'],
-    europe: ['europe', 'uk', 'germany', 'france', 'eu'],
-    americas: ['america', 'usa', 'canada', 'latin america', 'brazil'],
-  };
-
-  for (const [geo, keywords] of Object.entries(geoKeywords)) {
-    if (keywords.some((kw) => combinedText.includes(kw))) {
-      geographic_focus = geo;
-      break;
-    }
+  // Circular strategy – use circularStrategy column if present, else keyword
+  let r_strategy = 'reduction';
+  if (circularStrategy) {
+    const stratLower = circularStrategy.toLowerCase();
+    if (stratLower.includes('reuse')) r_strategy = 'reuse';
+    else if (stratLower.includes('recycl')) r_strategy = 'recycling';
+    else if (stratLower.includes('regenerat')) r_strategy = 'regeneration';
+    else if (stratLower.includes('reduce')) r_strategy = 'reduction';
+  } else {
+    const combined = `${problemText} ${solutionText}`.toLowerCase();
+    if (combined.includes('reuse')) r_strategy = 'reuse';
+    else if (combined.includes('recycl')) r_strategy = 'recycling';
+    else if (combined.includes('regenerat')) r_strategy = 'regeneration';
+    else if (combined.includes('reduce')) r_strategy = 'reduction';
   }
 
-  return {
-    industry,
-    scale,
-    r_strategy,
-    primary_material,
-    geographic_focus,
-  };
+  // Scale and geographic focus – not reliably extractable; set to null
+  const scale = null;
+  const geographic_focus = null;
+
+  return { industry, scale, r_strategy, primary_material, geographic_focus };
 }
 
 /**
@@ -401,7 +580,11 @@ function extractMetadata(problemText, solutionText, materials, category) {
  */
 function sanitizeText(text) {
   if (!text) return '';
-  return String(text).trim().replace(/\s+/g, ' ').replace(/"/g, '"').replace(/'/g, "'");
+  return String(text)
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'");
 }
 
 /**

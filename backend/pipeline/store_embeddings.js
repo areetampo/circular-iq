@@ -42,12 +42,6 @@ import { fileURLToPath } from 'url';
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.supabase.serviceKey;
 
-// make sure the chunks file we intend to read actually exists before proceeding
-assertFileExists(
-  useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON,
-  'embedded chunks file',
-);
-
 // Build database config based on archive flag (at module scope for use in multiple functions)
 const dbConfig = {
   tables: {

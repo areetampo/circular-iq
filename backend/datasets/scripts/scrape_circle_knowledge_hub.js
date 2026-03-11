@@ -55,14 +55,14 @@ const BASE_URL = dataset.urls.base;
 const LISTINGS_URL = dataset.urls.listings;
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 // 5274 cases / 10 per page ≈ 528 pages
-const START_PAGE = 1;
+const START_PAGE = 382;
 const END_PAGE = 528; // Based on total cases and 10 per page, but we will also check for end of pages dynamically
-const MAX_PAGES_TO_FETCH = 528;
-const MAX_ROWS = 600; // Keep top MAX_ROWS highest-scoring cases
+const MAX_PAGES_TO_FETCH = END_PAGE - START_PAGE + 1;
+const MAX_ROWS = 750; // Keep top MAX_ROWS highest-scoring cases
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
-const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, MAX_PAGES_TO_FETCH);
+const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, APPEND_BACKUP, MAX_PAGES_TO_FETCH);
 
 // ============================================================================
 // Helper functions for text parsing and quality scoring (improved)
@@ -393,16 +393,33 @@ async function rebuildFromBackup() {
   console.log(`Found ${backupRows.length} rows in backup`);
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
-  // Parse metadata and restore quality scores (or recompute)
+  // Reconstruct each row with its flags from metadata_json, then compute quality score
   const cases = backupRows
     .map((row) => {
       try {
-        let qualityScore = row._qualityScore ? parseFloat(row._qualityScore) : 0;
-        if (qualityScore === 0) {
-          qualityScore = scoreCaseQuality(row);
+        // Parse metadata to retrieve flags stored during scraping
+        let meta = {};
+        try {
+          meta = JSON.parse(row.metadata_json || '{}');
+        } catch {
+          // malformed JSON – ignore, flags remain false
         }
+
+        // Enhance the row with the flags so scoreCaseQuality can use them
+        const enhancedRow = {
+          ...row,
+          _hasProblem: meta.has_problem || false,
+          _hasSolution: meta.has_solution || false,
+          _hasOutcome: meta.has_outcome || false,
+        };
+
+        // Compute quality score using the enhanced row
+        const qualityScore = scoreCaseQuality(enhancedRow);
+
+        // Return the original row (without the temporary flags) plus the computed score
         return { ...row, qualityScore };
-      } catch {
+      } catch (err) {
+        console.warn('Skipping invalid row:', err.message);
         return null;
       }
     })
@@ -420,7 +437,7 @@ async function rebuildFromBackup() {
     return;
   }
 
-  // Add IDs and write final CSV (strip temporary fields)
+  // Add IDs and write final CSV (strip any remaining temporary fields)
   const finalRows = topCases.map((row, idx) => {
     const {
       _qualityScore,
@@ -428,9 +445,9 @@ async function rebuildFromBackup() {
       _hasProblem,
       _hasSolution,
       _hasOutcome,
-      outcome, // remove if present
-      type, // remove if present
-      location, // already handled separately
+      outcome,
+      type,
+      location,
       ...cleanRow
     } = row;
     return cleanRow;
@@ -472,7 +489,7 @@ async function scrape() {
       const currentStart = (pageNum - 1) * 10;
       const pageUrl = `${LISTINGS_URL}${currentStart}`;
       console.log(`\n📄 Page ${pageNum} (start=${currentStart}) – ${pageUrl}`);
-      await appendLogs(DATASET_KEY, `Loading ${pageUrl}...`);
+      await appendLogs(DATASET_KEY, `Loading ${pageNum}: ${pageUrl}...`);
 
       let retries = 3;
       let success = false;

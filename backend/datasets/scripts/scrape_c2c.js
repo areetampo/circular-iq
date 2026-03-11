@@ -6,7 +6,7 @@
  * Scrapes from https://c2ccertified.org/certified-products
  * Features:
  *   - Pagination handling with retry logic and fallback selectors
- *   - Per-product detail extraction (company, title, certifications, category)
+ *   - Per-product detail extraction (company, title, certifications, category, description)
  *   - Quality scoring based on certification levels (Gold/Silver/Bronze)
  *   - Backup system: incremental page‑level backup, final flush, and recovery mode
  *   - Detailed logging to dataset‑specific log file
@@ -48,19 +48,19 @@ import {
 puppeteerExtra.use(StealthPlugin());
 
 const DATASET_KEY = DATASET_KEYS.c2c;
-const BACKUP_INTERVAL = 3;
-
 const dataset = DATASET_LOOKUP[DATASET_KEY];
-if (!dataset || !dataset.urls || !dataset.urls.listing) {
-  throw new Error(`Dataset '${DATASET_KEY}' missing required 'urls.listing' in registry.`);
+
+const TARGET_URL = dataset.urls.homepage;
+if (!TARGET_URL) {
+  throw new Error(`Target URL not defined for dataset key: ${DATASET_KEY}`);
 }
 
-const TARGET_URL = dataset.urls.listing; // e.g., https://c2ccertified.org/certified-products
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const START_PAGE = 1;
 const END_PAGE = 56; // As of Feb 2026, there are 56 pages total (1..56)
 const MAX_PAGES_TO_FETCH = 56;
-const MAX_ROWS = 400;
+const BACKUP_INTERVAL = 3;
+const MAX_ROWS = 350;
 
 const APPEND_PROCESSED = hasAppendProcessedFlag();
 const APPEND_BACKUP = hasAppendBackupFlag();
@@ -79,7 +79,7 @@ function scoreProductQuality(certifications) {
     else if (levelStr.includes('silver')) score += 20;
     else if (levelStr.includes('bronze')) score += 5;
   });
-  if (certifications['Circularity']) score += 20; // bonus for circularity certification
+  if (certifications['Product Circularity']) score += 20; // bonus for circularity certification
   return Math.min(score, 100);
 }
 
@@ -119,14 +119,25 @@ async function rebuildFromBackup() {
         try {
           const metadata = JSON.parse(row.metadata_json || '{}');
           const certifications = metadata.certifications || {};
+          const company = metadata.company || 'Unknown';
+          const title = metadata.title || '';
+          const description = metadata.description || '';
+          const materials = metadata.materials || 'Cradle‑to‑Cradle Certified Materials';
+          const category = row.category;
+          const qualityScore =
+            metadata.raw_extracted?.qualityScore || scoreProductQuality(certifications);
+          const certCount = Object.keys(certifications).length;
+
           return {
             link: row.source_url,
-            title: metadata.title || '',
-            company: metadata.company || 'C2C Certified',
-            category: row.category,
+            company,
+            title,
+            description,
+            materials,
             certifications,
-            qualityScore: scoreProductQuality(certifications),
-            certCount: Object.keys(certifications).length,
+            category,
+            qualityScore,
+            certCount,
           };
         } catch (e) {
           console.warn(`⚠️ Skipping invalid backup row: ${e.message}`);
@@ -150,34 +161,49 @@ async function rebuildFromBackup() {
       return;
     }
 
-    const finalRows = productDetails.map((product, index) => {
-      const rawExtracted = {
-        link: product.link,
-        company: product.company,
-        title: product.title,
-        certifications: product.certifications,
-        category: product.category,
-        qualityScore: product.qualityScore,
-        certCount: product.certCount,
-      };
+    // Build final rows with same enriched format
+    const finalRows = productDetails.map((product, idx) => {
+      const problem = product.description
+        ? `Need for sustainable products: ${product.title} addresses circular economy challenges.`
+        : `Need for environmentally sustainable products in the ${product.category} industry.`;
+
+      const solution = product.description
+        ? `${product.description} This product, ${product.title} by ${product.company}, is Cradle‑to‑Cradle certified with ${Object.entries(
+            product.certifications,
+          )
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(', ')}.`
+        : `${product.title} by ${product.company} is Cradle‑to‑Cradle certified with ${Object.entries(
+            product.certifications,
+          )
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(', ')}. Category: ${product.category}`;
+
+      const circular_strategy = `Cradle‑to‑Cradle Certified (${Object.entries(
+        product.certifications,
+      )
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ')})`;
+
+      const impact = `Score: ${product.qualityScore}/100 | ${product.certCount} certifications`;
+
       const metadata = {
         company: product.company,
         title: product.title,
         certifications: product.certifications,
         certCount: product.certCount,
-        raw_extracted: rawExtracted,
+        description: product.description,
+        materials: product.materials,
+        raw_extracted: { ...product },
       };
+
       return {
-        problem: cleanText(`Circular economy solutions - ${product.title}`),
-        solution: cleanText(
-          `${product.title} - Cradle-to-Cradle certified. Category: ${product.category}`,
-        ),
-        materials: cleanText('Cradle-to-Cradle Certified Materials'),
-        circular_strategy: cleanText(
-          `C2C ${Object.keys(product.certifications).join(' + ')} (${Object.values(product.certifications).join(', ')})`,
-        ),
+        problem,
+        solution,
+        materials: product.materials,
+        circular_strategy,
         category: product.category,
-        impact: cleanText(`Score: ${product.qualityScore}/100 | ${product.certCount} cert types`),
+        impact,
         source_url: product.link,
         metadata_json: JSON.stringify(metadata),
       };
@@ -249,18 +275,19 @@ async function scrape_c2c() {
     }
 
     // 3. Wait for the first product links to appear
-    await page.waitForSelector('a[href*="/certified-products/"]', { timeout: 10000 });
+    const productLinkSelector = 'a.listinline[href^="/certified-products/"]';
+    await page.waitForSelector(productLinkSelector, { timeout: 10000 });
 
     // 4. Prepare collections
     const productMap = new Map(); // unique products by URL
     const pagesScraped = [];
 
     // 5. Loop through pages by clicking "Next"
-    for (let pageNum = 1; pageNum <= FINAL_PAGE; pageNum++) {
+    for (let pageNum = START_PAGE; pageNum <= FINAL_PAGE; pageNum++) {
       await appendLogs(DATASET_KEY, `\n--- Processing page ${pageNum} ---`);
 
       // Extract product links from the current page
-      let pageLinks = await page.$$eval('a[href*="/certified-products/"]', (links) =>
+      let pageLinks = await page.$$eval(productLinkSelector, (links) =>
         links
           .map((a) => a.href)
           .filter((href) => href && href.includes('/certified-products/'))
@@ -293,77 +320,73 @@ async function scrape_c2c() {
             await detailPage.goto(link, { waitUntil: 'domcontentloaded', timeout: 12000 });
             await new Promise((r) => setTimeout(r, 1500));
 
-            // Improved certification extraction – target specific containers
+            // Extract all data in one evaluate to avoid cross-context issues
             const data = await detailPage.evaluate(() => {
-              const company =
-                document
-                  .querySelector('[class*="supplier"], [class*="company"], .product-company')
-                  ?.innerText?.trim() || '';
-              const title = document.querySelector('h1')?.innerText?.trim() || '';
+              // --- Company ---
+              const companyEl = document.querySelector('.product-hero__subtitle');
+              const company = companyEl ? companyEl.innerText.trim() : 'Unknown';
 
-              const certifications = {};
+              // --- Title ---
+              const titleEl = document.querySelector('h1.product-hero__title');
+              const title = titleEl ? titleEl.innerText.trim() : 'Unknown Product';
 
-              // Look inside elements that are likely to hold certification badges
-              const badgeContainers = document.querySelectorAll(
-                '.badge, .certification-level, [class*="certification"], .product-certifications li',
-              );
-              badgeContainers.forEach((el) => {
-                const text = el.innerText || el.textContent || '';
-                const lower = text.toLowerCase();
-                // Determine certification type from context or nearby heading
-                const parentText = el.closest('div, section, li')?.innerText?.toLowerCase() || '';
-                let type = 'General';
-                if (parentText.includes('full scope') || text.includes('Full Scope'))
-                  type = 'Full Scope';
-                else if (parentText.includes('material health') || text.includes('Material Health'))
-                  type = 'Material Health';
-                else if (parentText.includes('circularity') || text.includes('Circularity'))
-                  type = 'Circularity';
-
-                if (lower.includes('gold')) certifications[type] = 'Gold';
-                else if (lower.includes('silver')) certifications[type] = 'Silver';
-                else if (lower.includes('bronze')) certifications[type] = 'Bronze';
-                else certifications[type] = 'Certified';
-              });
-
-              // Fallback: scan the whole page for certification patterns
-              if (Object.keys(certifications).length === 0) {
-                const bodyText = document.body.innerText;
-                const lines = bodyText.split('\n');
-                for (const line of lines) {
-                  const lower = line.toLowerCase();
-                  if (lower.includes('full scope') && lower.includes('gold'))
-                    certifications['Full Scope'] = 'Gold';
-                  else if (lower.includes('full scope') && lower.includes('silver'))
-                    certifications['Full Scope'] = 'Silver';
-                  else if (lower.includes('full scope') && lower.includes('bronze'))
-                    certifications['Full Scope'] = 'Bronze';
-                  else if (lower.includes('material health') && lower.includes('gold'))
-                    certifications['Material Health'] = 'Gold';
-                  else if (lower.includes('material health') && lower.includes('silver'))
-                    certifications['Material Health'] = 'Silver';
-                  else if (lower.includes('material health') && lower.includes('bronze'))
-                    certifications['Material Health'] = 'Bronze';
-                  else if (lower.includes('circularity') && lower.includes('gold'))
-                    certifications['Circularity'] = 'Gold';
-                  else if (lower.includes('circularity') && lower.includes('silver'))
-                    certifications['Circularity'] = 'Silver';
-                  else if (lower.includes('circularity') && lower.includes('bronze'))
-                    certifications['Circularity'] = 'Bronze';
-                }
+              // --- Description ---
+              let description = '';
+              const descEl = document.querySelector('.product-details__description p');
+              if (descEl) {
+                description = descEl.innerText.trim();
+              }
+              // Fallback: meta description
+              if (!description) {
+                const metaDesc = document
+                  .querySelector('meta[name="description"]')
+                  ?.getAttribute('content');
+                if (metaDesc) description = metaDesc;
               }
 
-              const category =
-                document
-                  .querySelector('.breadcrumb li:last-child, [class*="category"]')
-                  ?.innerText?.trim() || 'General';
+              // --- Materials (if any) ---
+              let materials = '';
+              // There is no obvious materials list in the provided HTML; we'll keep it generic.
+
+              // --- Certifications ---
+              const certifications = {};
+              const certItems = document.querySelectorAll('.score-cards__item');
+              certItems.forEach((item) => {
+                const titleEl = item.querySelector('.score-cards__item-title');
+                const levelEl = item.querySelector('.score-cards__item-level');
+                if (titleEl && levelEl) {
+                  const certType = titleEl.innerText.trim();
+                  const certLevel = levelEl.innerText.trim();
+                  // Normalize type (e.g., "Material Health" -> "Material Health")
+                  certifications[certType] = certLevel;
+                }
+              });
+              // Fallback if no score cards found
+              if (Object.keys(certifications).length === 0) {
+                certifications['C2C Certified'] = 'General';
+              }
+
+              // --- Category ---
+              let category = 'General';
+              const categoryTags = document.querySelectorAll(
+                '.product-details__tag .product-details__tag-title',
+              );
+              if (categoryTags.length) {
+                category = Array.from(categoryTags)
+                  .map((el) => el.innerText.trim())
+                  .join(' > ');
+              } else {
+                // Fallback: breadcrumb
+                const breadcrumbLast = document.querySelector('.breadcrumb li:last-child');
+                if (breadcrumbLast) category = breadcrumbLast.innerText.trim();
+              }
+
               return {
-                company: company || 'Unknown',
-                title: title || 'Unknown Product',
-                certifications:
-                  Object.keys(certifications).length > 0
-                    ? certifications
-                    : { 'C2C Certified': 'General' },
+                company,
+                title,
+                description,
+                materials,
+                certifications,
                 category,
               };
             });
@@ -371,6 +394,9 @@ async function scrape_c2c() {
             const cleanedCompany = cleanText(data.company);
             const cleanedTitle = cleanText(data.title);
             const cleanedCategory = cleanText(data.category);
+            const cleanedDescription = cleanText(data.description);
+            const cleanedMaterials =
+              cleanText(data.materials) || 'Cradle‑to‑Cradle Certified Materials';
 
             const detail = {
               link,
@@ -378,25 +404,56 @@ async function scrape_c2c() {
               title: cleanedTitle,
               certifications: data.certifications,
               category: cleanedCategory,
+              description: cleanedDescription,
+              materials: cleanedMaterials,
               qualityScore: scoreProductQuality(data.certifications),
               certCount: Object.keys(data.certifications).length,
             };
 
             productMap.set(link, detail);
+
+            // Generate enriched problem & solution
+            const problem = cleanedDescription
+              ? `Need for sustainable products: ${cleanedTitle} addresses circular economy challenges.`
+              : `Need for environmentally sustainable products in the ${cleanedCategory} industry.`;
+
+            const solution = cleanedDescription
+              ? `${cleanedDescription} This product, ${cleanedTitle} by ${cleanedCompany}, is Cradle‑to‑Cradle certified with ${Object.entries(
+                  data.certifications,
+                )
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(', ')}.`
+              : `${cleanedTitle} by ${cleanedCompany} is Cradle‑to‑Cradle certified with ${Object.entries(
+                  data.certifications,
+                )
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(', ')}. Category: ${cleanedCategory}`;
+
+            const circular_strategy = `Cradle‑to‑Cradle Certified (${Object.entries(
+              data.certifications,
+            )
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(', ')})`;
+
+            const impact = `Score: ${detail.qualityScore}/100 | ${detail.certCount} certifications`;
+
             const metadata = {
               company: cleanedCompany,
               title: cleanedTitle,
               certifications: data.certifications,
               certCount: detail.certCount,
+              description: cleanedDescription,
+              materials: cleanedMaterials,
+              raw_extracted: { ...detail },
             };
 
             pageRows.push({
-              problem: `Circular economy solutions - ${cleanedTitle}`,
-              solution: `${cleanedTitle} - Cradle-to-Cradle certified. Category: ${cleanedCategory}`,
-              materials: 'Cradle-to-Cradle Certified Materials',
-              circular_strategy: `C2C ${Object.keys(data.certifications).join(' + ')} (${Object.values(data.certifications).join(', ')})`,
+              problem,
+              solution,
+              materials: cleanedMaterials,
+              circular_strategy,
               category: cleanedCategory,
-              impact: `Score: ${detail.qualityScore}/100 | ${detail.certCount} cert types`,
+              impact,
               source_url: detail.link,
               metadata_json: JSON.stringify(metadata),
             });
@@ -443,33 +500,55 @@ async function scrape_c2c() {
       }
 
       // --- Click the "Next" button with fallback selectors ---
-      const nextButtonSelectors = [
-        '.certified-products__pagination-btn:last-child', // primary
-        'a[rel="next"]', // fallback
-        '.pagination-next a',
-      ];
+      const nextButtonSelector = '.certified-products__pagination-btn:last-child';
       let clicked = false;
-      for (const selector of nextButtonSelectors) {
-        try {
-          const btn = await page.$(selector);
-          if (btn) {
-            await btn.click();
+
+      try {
+        const nextBtn = await page.$(nextButtonSelector);
+        if (nextBtn) {
+          const isDisabled = await page.evaluate(
+            (btn) => btn.disabled || btn.classList.contains('disabled'),
+            nextBtn,
+          );
+          if (!isDisabled) {
+            await nextBtn.click();
             clicked = true;
-            await appendLogs(DATASET_KEY, `➡️ Clicked next button using selector: ${selector}`);
+            await appendLogs(DATASET_KEY, `➡️ Clicked next button.`);
+          } else {
+            await appendLogs(DATASET_KEY, `ℹ️ Next button is disabled – stopping pagination.`);
             break;
           }
-        } catch {
-          // ignore
+        }
+      } catch (err) {
+        await appendLogs(DATASET_KEY, `⚠️ Error clicking next button: ${err.message}`);
+      }
+
+      if (!clicked) {
+        // Fallback selectors (without disabled check)
+        const fallbackSelectors = ['a[rel="next"]', '.pagination-next a'];
+        for (const selector of fallbackSelectors) {
+          try {
+            const btn = await page.$(selector);
+            if (btn) {
+              await btn.click();
+              clicked = true;
+              await appendLogs(DATASET_KEY, `➡️ Clicked next using fallback: ${selector}`);
+              break;
+            }
+          } catch {
+            // ignore
+          }
         }
       }
+
       if (!clicked) {
-        const errMsg = `❌ No next button found with any selector.`;
+        const errMsg = `❌ No enabled next button found.`;
         console.error(errMsg);
         await appendLogs(DATASET_KEY, errMsg);
         break;
       }
 
-      // Wait for the active page number to become pageNum+1 (if pagination shows numbers)
+      // Wait for the active page number to become pageNum+1, or for new product links
       try {
         await page.waitForFunction(
           (expectedPage) => {
@@ -482,14 +561,15 @@ async function scrape_c2c() {
           pageNum + 1,
         );
       } catch {
-        // If page number indicator is missing, fall back to waiting for new product links
+        // Fallback: wait for the number of product links to change
         await page.waitForFunction(
-          (oldCount) => {
-            const links = document.querySelectorAll('a[href*="/certified-products/"]');
+          (oldCount, selector) => {
+            const links = document.querySelectorAll(selector);
             return links.length > 0 && links.length !== oldCount;
           },
           { timeout: 10000 },
           pageLinks.length,
+          productLinkSelector,
         );
       }
 
@@ -511,25 +591,49 @@ async function scrape_c2c() {
     );
 
     if (sortedProducts.length > 0) {
-      const finalRows = sortedProducts.map((product, index) => {
+      // Build final rows using the enriched format
+      const finalRows = sortedProducts.map((product) => {
+        const problem = product.description
+          ? `Need for sustainable products: ${product.title} addresses circular economy challenges.`
+          : `Need for environmentally sustainable products in the ${product.category} industry.`;
+
+        const solution = product.description
+          ? `${product.description} This product, ${product.title} by ${product.company}, is Cradle‑to‑Cradle certified with ${Object.entries(
+              product.certifications,
+            )
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(', ')}.`
+          : `${product.title} by ${product.company} is Cradle‑to‑Cradle certified with ${Object.entries(
+              product.certifications,
+            )
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(', ')}. Category: ${product.category}`;
+
+        const circular_strategy = `Cradle‑to‑Cradle Certified (${Object.entries(
+          product.certifications,
+        )
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(', ')})`;
+
+        const impact = `Score: ${product.qualityScore}/100 | ${product.certCount} certifications`;
+
         const metadata = {
           company: product.company,
           title: product.title,
           certifications: product.certifications,
           certCount: product.certCount,
+          description: product.description,
+          materials: product.materials,
           raw_extracted: { ...product },
         };
+
         return {
-          problem: cleanText(`Circular economy solutions - ${product.title}`),
-          solution: cleanText(
-            `${product.title} - Cradle-to-Cradle certified. Category: ${product.category}`,
-          ),
-          materials: cleanText('Cradle-to-Cradle Certified Materials'),
-          circular_strategy: cleanText(
-            `C2C ${Object.keys(product.certifications).join(' + ')} (${Object.values(product.certifications).join(', ')})`,
-          ),
+          problem,
+          solution,
+          materials: product.materials,
+          circular_strategy,
           category: product.category,
-          impact: cleanText(`Score: ${product.qualityScore}/100 | ${product.certCount} cert types`),
+          impact,
           source_url: product.link,
           metadata_json: JSON.stringify(metadata),
         };

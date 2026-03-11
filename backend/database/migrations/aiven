@@ -1,0 +1,1 @@
+& "C:\Program Files\PostgreSQL\18\bin\psql.exe" "postgresql://avnadmin:YOUR_PASSWORD@project-name.aivencloud.com:12345/defaultdb?sslmode=require" -f backend\database\sql\01_vector_infrastructure.sql

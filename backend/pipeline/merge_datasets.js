@@ -245,7 +245,7 @@ async function mergeCsvFiles() {
   console.log('\n' + '='.repeat(30));
   console.log('MERGE COMPLETE');
   console.log('='.repeat(30));
-  console.log(`Output file: ${path.basename(OUTPUT_FILE)}`);
+  console.log(`Output file: ${OUTPUT_FILE}`);
   console.log(`Total records: ${totalRecords}`);
   console.log('\nNext steps:');
   console.log('  1. Review combined_input.csv for quality');

@@ -71,6 +71,10 @@ export const ARCHIVES_EMBEDDED_CHUNKS_JSON = path.join(
 export const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
 
 export const COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
+export const COMBINED_INPUT_SAMPLE_CSV = path.join(
+  DATASETS_OUTPUT_DIR,
+  'combined_input_sample.csv',
+);
 export const CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
 export const EMBEDDED_CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.json');
 export const STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
@@ -1170,10 +1174,12 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   // -------------------------------------------------------------------------
   if (!append) {
     await prepareWrite(filePath, { clear: true });
+
     const rowsWithIds = rows.map((row, idx) => ({
-      ID: formatId(datasetKey, idx + 1),
       ...row,
+      ID: formatId(datasetKey, idx + 1),
     }));
+
     const csv = stringify(rowsWithIds, STRINGIFY_OPTIONS);
     await fs.promises.writeFile(filePath, csv);
     if (lock) {
@@ -1186,8 +1192,8 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
     return {
       writtenCount: rowsWithIds.length,
       duplicateCount: 0,
-      firstID: rowsWithIds[0]?.ID || null,
-      lastID: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
+      firstID: rowsWithIds[0]?.ID || 'null',
+      lastID: rowsWithIds[rowsWithIds.length - 1]?.ID || 'null',
     };
   }
 
@@ -1274,12 +1280,12 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
 
   // 2c. Assign sequential IDs
   const rowsWithIds = newRows.map((row, idx) => ({
-    ID: formatId(datasetKey, lastSuffix + idx + 1),
     ...row,
+    ID: formatId(datasetKey, lastSuffix + idx + 1),
   }));
 
   if (rowsWithIds.length === 0) {
-    return { writtenCount: 0, duplicateCount, firstID: null, lastID: null };
+    return { writtenCount: 0, duplicateCount, firstID: 'null', lastID: 'null' };
   }
 
   // 2d. Stringify (omit header if file already existed)
@@ -1303,8 +1309,8 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   return {
     writtenCount: rowsWithIds.length,
     duplicateCount,
-    firstID: rowsWithIds[0]?.ID || null,
-    lastID: rowsWithIds[rowsWithIds.length - 1]?.ID || null,
+    firstID: rowsWithIds[0]?.ID || 'null',
+    lastID: rowsWithIds[rowsWithIds.length - 1]?.ID || 'null',
   };
 }
 

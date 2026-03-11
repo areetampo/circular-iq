@@ -136,6 +136,31 @@ export function isValidTextForEmbedding(text) {
   );
 }
 
+/**
+ * Pricing table for embedding models (USD per million tokens)
+ * Source: OpenAI pricing as of 2024-06
+ * Adjust as needed when using different models or if prices change
+ * @type {Object<string, number>}
+ */
+const PRICING_TABLE = {
+  'text-embedding-3-small': 0.02,
+  'text-embedding-3-large': 0.13,
+  'text-embedding-ada-002': 0.1,
+};
+
+/**
+ * Cost per million tokens for the selected embedding model
+ * @type {number}
+ */
+export const ratePerMillion = PRICING_TABLE[EMBEDDING_MODEL] || 0.1;
+
+/**
+ * Estimate the cost of embedding a given number of tokens
+ * @param {number} totalTokens - Total number of tokens to embed
+ * @returns {number} Estimated cost in USD
+ */
+export const estimatedCost = (totalTokens) => (totalTokens / 1_000_000) * ratePerMillion;
+
 export default {
   EMBEDDING_MODEL,
   EMBEDDING_DIMENSION,
@@ -153,4 +178,6 @@ export default {
   getVectorColumnType,
   isValidEmbedding,
   isValidTextForEmbedding,
+  ratePerMillion,
+  estimatedCost,
 };

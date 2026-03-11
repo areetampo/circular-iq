@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * Embedding Generation Script
  *
@@ -5,8 +7,17 @@
  * Reads pre-generated chunks from generate_chunks.js output.
  * Stores embeddedChunks in backend/datasets/out/ for later storage in Supabase.
  *
- * Usage: node generate_embeddings.js [chunks_path] [output_path]
- * Defaults: datasets/out/chunks.json → datasets/out/embedded_chunks.json
+ * Usage: node generate_embeddings.js [options]
+ * Options:
+ *   --archives           Use archives paths
+ *   --dry-run            Generate fake embeddings locally
+ *   --skip-fields        Only embed chunk content, not individual fields
+ *   --resume             Resume from existing progress file
+ *
+ * Important: If using --archives or --skip-fields, use the same flags when resuming.
+ * Do not delete or modify the output file between runs – it’s your checkpoint.
+ *
+ * Defaults: datasets/out~archives/chunks.json → datasets/out~archives/embedded_chunks.json
  *
  * Uses centralized embedding configuration from backend/src/config/embedding.js
  */
@@ -35,22 +46,50 @@ import {
   EMBEDDING_RETRY_DELAY_MS,
   isValidTextForEmbedding,
   isValidEmbedding,
+  ratePerMillion,
+  estimatedCost,
 } from '#config/embedding.js';
 import { fileURLToPath } from 'url';
 
-// switch to archives mode if --archives or --archive flag is provided
+// ================= CONFIGURATION =================
+// determine whether to operate on archives paths
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 
-// make sure input chunks file exists before doing any heavy work
+// ensure the source chunks file exists early to fail fast
 assertFileExists(CHUNKS_JSON, 'chunks.json');
+
+// dry‑run mode if no API key or explicitly requested
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;
 
+// optionally skip field‑level embeddings (default is to include them)
+const SKIP_FIELDS = process.argv.includes('--skip-fields');
+
+// resume mode
+const RESUME = process.argv.includes('--resume');
+
+// prepare OpenAI client (skipped in dry run)
 let openai = null;
 if (!DRY_RUN) {
   openai = new OpenAI({
     apiKey: BACKEND_CONFIG.openai.apiKey,
     timeout: EMBEDDING_REQUEST_TIMEOUT_MS,
   });
+}
+
+// rough token estimation (same as in chunking)
+const TOKENS_PER_WORD = 1.3;
+
+// safe limit – OpenAI's text-embedding-ada-002 has max 8191 tokens; we'll warn at 8000
+const MAX_SAFE_TOKENS = 8000;
+
+// ================= HELPERS =================
+
+/**
+ * Estimate token count for a string.
+ * @private
+ */
+function estimateTokens(text) {
+  return Math.ceil(text.trim().split(/\s+/).length * TOKENS_PER_WORD);
 }
 
 /**
@@ -91,6 +130,8 @@ async function retryWithBackoff(fn, maxRetries = EMBEDDING_MAX_RETRIES) {
   throw lastError;
 }
 
+// ----- I/O helpers -----
+
 /**
  * Load pre-generated chunks from generate_chunks.js output
  * @param {string} chunksFilePath - Path to chunks.json
@@ -117,6 +158,8 @@ export function loadChunks(chunksFilePath) {
   }
 }
 
+// ================= CORE LOGIC =================
+
 /**
  * Generate embeddings for chunks using OpenAI with retry logic
  * @param {Array} chunks - Array of chunk objects
@@ -124,56 +167,114 @@ export function loadChunks(chunksFilePath) {
  * @throws {Error} If embedding generation fails after retries
  */
 export async function generateEmbeddings(chunks, opts = {}) {
-  const { progressPath = null } = opts;
+  const { progressPath = null, resume = false } = opts;
 
   console.log(`\nGenerating embeddings for ${chunks.length} chunks...`);
   console.log(`  Model: ${EMBEDDING_MODEL}`);
   console.log(`  Dimension: ${EMBEDDING_DIMENSION}`);
+  if (SKIP_FIELDS) console.log('  Field‑level embeddings: disabled');
+  console.log('');
 
-  // when a progress file path is provided we will write the current state of
-  // the embeddings array after each batch; this allows long runs to be
-  // inspected mid-flight and also ensures the file is created/cleared on first
-  // use.
-  if (progressPath) {
-    // prepare the file (clears existing contents)
+  // Prepare progress file: clear if not resuming, otherwise keep
+  if (progressPath && !resume) {
     await prepareWrite(progressPath, { clear: true });
+  }
+
+  // Set of already processed items (if resuming)
+  const processedItems = new Set();
+  if (resume && progressPath && fs.existsSync(progressPath)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(progressPath, 'utf-8'));
+      existing.forEach((chunk) => {
+        const chunkId = chunk.id;
+        if (chunk.embeddings?.doc) processedItems.add(`${chunkId}:doc`);
+        if (chunk.embeddings?.fields) {
+          Object.keys(chunk.embeddings.fields).forEach((field) => {
+            processedItems.add(`${chunkId}:${field}`);
+          });
+        }
+      });
+      console.log(`  Resuming: found ${processedItems.size} already embedded items.`);
+    } catch (e) {
+      console.warn(`  ⚠️️ Failed to read progress file for resuming: ${e.message}`);
+    }
   }
 
   const embeddedChunks = [];
 
   // Flatten chunks into items to batch-embed
   const items = [];
+  const tokenEstimates = [];
+
   for (let c = 0; c < chunks.length; c++) {
     const chunk = chunks[c];
+    const chunkId = chunk.id;
 
     // Validate and add doc-level text
     if (isValidTextForEmbedding(chunk.content)) {
-      items.push({ chunkIdx: c, fieldName: 'doc', text: chunk.content });
+      const tokens = estimateTokens(chunk.content);
+      if (tokens > MAX_SAFE_TOKENS) {
+        console.warn(
+          `  ⚠️ Chunk ${c} (${chunk.id}) has ~${tokens} tokens, which may exceed the model limit. Consider shortening.`,
+        );
+      }
+      if (!processedItems.has(`${chunkId}:doc`)) {
+        items.push({ chunkIdx: c, fieldName: 'doc', text: chunk.content });
+        tokenEstimates.push(tokens);
+      }
     }
 
-    // Add field-level texts
-    const fields = (chunk.metadata && chunk.metadata.fields) || {};
-    for (const [fname, ftext] of Object.entries(fields)) {
-      if (isValidTextForEmbedding(ftext)) {
-        items.push({ chunkIdx: c, fieldName: fname, text: String(ftext).trim() });
+    // Add field-level texts (skip if --skip-fields)
+    if (!SKIP_FIELDS) {
+      const fields = (chunk.metadata && chunk.metadata.fields) || {};
+      for (const [fname, ftext] of Object.entries(fields)) {
+        // Skip the full metadata_json field – it's already parsed and included in the summary
+        if (fname === 'metadata_json') continue;
+        if (isValidTextForEmbedding(ftext)) {
+          const text = String(ftext).trim();
+          const tokens = estimateTokens(text);
+          if (!processedItems.has(`${chunkId}:${fname}`)) {
+            items.push({ chunkIdx: c, fieldName: fname, text });
+            tokenEstimates.push(tokens);
+          }
+        }
       }
     }
   }
 
   if (items.length === 0) {
-    console.warn('⚠️️ No valid text items to embed (all below minimum length)');
+    console.warn('⚠️️ No new text items to embed (all were already done or below minimum length)');
     return chunks;
   }
 
-  console.log(`  Prepared ${items.length} embedding requests across ${chunks.length} chunks\n`);
+  const totalTokens = tokenEstimates.reduce((a, b) => a + b, 0);
+  console.log(`  Prepared ${items.length} embedding requests across ${chunks.length} chunks`);
+  console.log(`  Estimated total tokens: ~${totalTokens.toLocaleString()}`);
+  console.log(
+    `  Approximate cost (${EMBEDDING_MODEL} @ $${ratePerMillion}/1M tokens): $${estimatedCost(totalTokens).toFixed(4)}`,
+  );
 
   // Process in batches
+  let totalProcessedTokens = 0;
+  const startTime = Date.now();
+
   for (let i = 0; i < items.length; i += EMBEDDING_BATCH_SIZE) {
     const batchItems = items.slice(i, Math.min(i + EMBEDDING_BATCH_SIZE, items.length));
     const batchNum = Math.floor(i / EMBEDDING_BATCH_SIZE) + 1;
     const totalBatches = Math.ceil(items.length / EMBEDDING_BATCH_SIZE);
+    const batchTokens = tokenEstimates.slice(i, i + batchItems.length).reduce((a, b) => a + b, 0);
 
-    console.log(`  Processing batch ${batchNum}/${totalBatches}...`);
+    console.log(
+      `  Processing batch ${batchNum}/${totalBatches} (${batchItems.length} items, ~${batchTokens} tokens)...`,
+    );
+
+    // Estimate time remaining after first batch
+    if (batchNum === 1 && totalBatches > 1) {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const etaSeconds = (elapsed / batchItems.length) * (items.length - i - batchItems.length);
+      const etaMinutes = Math.ceil(etaSeconds / 60);
+      console.log(`    Estimated time remaining: ~${etaMinutes} minutes`);
+    }
 
     if (DRY_RUN) {
       // Generate fake embeddings locally
@@ -189,7 +290,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
           chunks[chunkIdx]._embeddings.fields[fieldName] = vec;
         }
       });
-
+      totalProcessedTokens += batchTokens;
       console.log(`    ✓ Generated ${batchItems.length} fake embeddings`);
     } else {
       try {
@@ -240,6 +341,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
           validCount++;
         }
 
+        totalProcessedTokens += batchTokens;
         console.log(`    ✓ Generated and validated ${validCount} embeddings`);
 
         // Rate limiting delay between batches
@@ -284,19 +386,14 @@ export async function generateEmbeddings(chunks, opts = {}) {
     if (chunks[c]._embeddings) delete chunks[c]._embeddings;
   }
 
-  // if we were flushing on every batch we should also make sure final copy is
-  // written (probably redundant but harmless)
-  if (progressPath) {
-    try {
-      await writeJson(progressPath, embeddedChunks);
-    } catch {
-      /* ignore */
-    }
-  }
+  // Do NOT write final embeddedChunks to progressPath here – that will be done by saveEmbeddedChunks in main
 
-  console.log(`\n✓ Successfully generated embeddings for ${embeddedChunks.length} chunks\n`);
+  console.log(`\n✓ Successfully generated embeddings for ${embeddedChunks.length} chunks`);
+  console.log(`  Estimated total tokens processed: ~${totalProcessedTokens.toLocaleString()}\n`);
   return embeddedChunks;
 }
+
+// ================= SAVE THE EMBEDDED CHUNKS =================
 
 /**
  * Save embedded chunks to JSON file
@@ -312,6 +409,8 @@ export async function saveEmbeddedChunks(embeddedChunks, outputPath) {
 
   console.log(`✓ Saved ${embeddedChunks.length} embedded chunks to ${outputPath}`);
 }
+
+// ================= MAIN EXECUTION PIPELINE =================
 
 /**
  * Main execution pipeline
@@ -331,14 +430,18 @@ export async function main() {
       `║  Dimension: ${EMBEDDING_DIMENSION}                                              ║`,
     );
     console.log('╚════════════════════════════════════════════════════════════════════╝\n');
-    console.log(chunksPath);
+    console.log(`Input: ${chunksPath}`);
+
     // Step 1: Load chunks
     const chunks = loadChunks(chunksPath);
 
     // Step 2: Generate embeddings with full error handling
     // provide the desired output path so the routine will flush progress
     // to disk after each batch (useful for large datasets and dry runs)
-    const embeddedChunks = await generateEmbeddings(chunks, { progressPath: outputPath });
+    const embeddedChunks = await generateEmbeddings(chunks, {
+      progressPath: outputPath,
+      resume: RESUME,
+    });
 
     // Step 3: Save embedded chunks
     await saveEmbeddedChunks(embeddedChunks, outputPath);

@@ -389,6 +389,13 @@ async function rebuildFromBackup() {
       .map((row) => {
         try {
           const metadata = JSON.parse(row.metadata_json || '{}');
+          // restore or recompute quality score
+          let qualityScore = 0;
+          if (row._qualityScore != null) {
+            qualityScore = parseFloat(row._qualityScore);
+          } else {
+            qualityScore = computeQualityScore(row.problem, row.solution, row.impact);
+          }
           return {
             problem: row.problem,
             solution: row.solution,
@@ -398,6 +405,7 @@ async function rebuildFromBackup() {
             impact: row.impact,
             source_url: row.source_url,
             metadata,
+            qualityScore,
           };
         } catch (e) {
           console.warn(`⚠️ Skipping invalid backup row: ${e.message}`);
@@ -413,16 +421,19 @@ async function rebuildFromBackup() {
       return;
     }
 
-    const finalRows = items.map((item) => ({
-      problem: cleanText(item.problem || ''),
-      solution: cleanText(item.solution || ''),
-      materials: cleanText(item.materials || ''),
-      circular_strategy: cleanText(item.circular_strategy || ''),
-      category: cleanText(item.category || ''),
-      impact: cleanText(item.impact || ''),
-      source_url: item.source_url || '',
-      metadata_json: JSON.stringify(item.metadata),
-    }));
+    const finalRows = items.map((item) => {
+      const { qualityScore, _qualityScore, ...cleanRow } = item;
+      return {
+        problem: cleanText(cleanRow.problem || ''),
+        solution: cleanText(cleanRow.solution || ''),
+        materials: cleanText(cleanRow.materials || ''),
+        circular_strategy: cleanText(cleanRow.circular_strategy || ''),
+        category: cleanText(cleanRow.category || ''),
+        impact: cleanText(cleanRow.impact || ''),
+        source_url: cleanRow.source_url || '',
+        metadata_json: JSON.stringify(cleanRow.metadata),
+      };
+    });
 
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
@@ -723,6 +734,9 @@ async function fetchDetail(browser, link) {
           },
         };
 
+        // Compute final quality score using the cleaned values (after any AI extraction)
+        const qualityScore = computeQualityScore(cleanedProblem, cleanedSolution, impact);
+
         const backupRow = {
           problem: item.problem,
           solution: item.solution,
@@ -732,6 +746,7 @@ async function fetchDetail(browser, link) {
           impact: item.impact,
           source_url: item.source_url,
           metadata_json: JSON.stringify(item.metadata),
+          _qualityScore: qualityScore, // store score so rebuild can match original ranking
         };
 
         results.push({ item, backupRow });
@@ -1017,6 +1032,9 @@ async function fetchDetail(browser, link) {
         },
       };
 
+      // compute final quality score after potential AI refinement above
+      const qualityScore = computeQualityScore(cleanedProblem, cleanedSolution, cleanedImpact);
+
       const backupRow = {
         problem: item.problem,
         solution: item.solution,
@@ -1026,6 +1044,7 @@ async function fetchDetail(browser, link) {
         impact: item.impact,
         source_url: item.source_url,
         metadata_json: JSON.stringify(item.metadata),
+        _qualityScore: qualityScore,
       };
 
       return [{ item, backupRow }];
