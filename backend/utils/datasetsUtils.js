@@ -58,9 +58,9 @@ export const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scra
 
 export const ARCHIVES_COMBINED_INPUT_CSV = path.join(DATASETS_ARCHIVES_DIR, 'combined_input.csv');
 export const ARCHIVES_CHUNKS_JSON = path.join(DATASETS_ARCHIVES_DIR, 'chunks.json');
-export const ARCHIVES_EMBEDDED_CHUNKS_JSON = path.join(
+export const ARCHIVES_EMBEDDED_CHUNKS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
-  'embedded_chunks.json',
+  'embedded_chunks.jsonl',
 );
 
 // NOTE: only scrape_backup is a directory within archives/; other dataset
@@ -76,7 +76,7 @@ export const COMBINED_INPUT_SAMPLE_CSV = path.join(
   'combined_input_sample.csv',
 );
 export const CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
-export const EMBEDDED_CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.json');
+export const EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.jsonl');
 export const STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
 
 // archived stored documents (for dry-run in archive mode)
@@ -1132,6 +1132,11 @@ export function hasAppendBackupFlag() {
   return process.argv.includes('--append-backup');
 }
 
+// generic helper used by new tests and scripts that accept `--append`
+export function hasAppendFlag() {
+  return process.argv.includes('--append');
+}
+
 /**
  * Write rows to a CSV file, with optional append and deduplication.
  *
@@ -1151,6 +1156,10 @@ export function hasAppendBackupFlag() {
  *   Metadata about the operation.
  */
 export async function writeCsv(datasetKey, filePath, rows, options = {}) {
+  // convenience: support legacy signature where last argument was boolean append
+  if (typeof options === 'boolean') {
+    options = { append: options };
+  }
   const {
     append = false,
     dedupFields = [
@@ -1175,10 +1184,13 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   if (!append) {
     await prepareWrite(filePath, { clear: true });
 
-    const rowsWithIds = rows.map((row, idx) => ({
-      ...row,
-      ID: formatId(datasetKey, idx + 1),
-    }));
+    const rowsWithIds = rows.map((row, idx) => {
+      // Preserve existing ID/ id field if provided, otherwise generate one
+      if (row.ID || row.id) {
+        return { ...row, ID: row.ID || row.id };
+      }
+      return { ...row, ID: formatId(datasetKey, idx + 1) };
+    });
 
     const csv = stringify(rowsWithIds, STRINGIFY_OPTIONS);
     await fs.promises.writeFile(filePath, csv);

@@ -23,9 +23,10 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 import { createSupabaseClient } from '#database/supabase.client.js';
+import { getPgPool } from '#database/client.js';
 import {
-  ARCHIVES_EMBEDDED_CHUNKS_JSON,
-  EMBEDDED_CHUNKS_JSON,
+  ARCHIVES_EMBEDDED_CHUNKS_JSONL,
+  EMBEDDED_CHUNKS_JSONL,
   STORED_DOCUMENTS_JSONL,
   ARCHIVES_STORED_DOCUMENTS_JSONL,
   prepareWrite,
@@ -37,24 +38,21 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { isValidTextForEmbedding, isValidEmbedding } from '#config/embedding.js';
 import { fileURLToPath } from 'url';
 
-// Determine whether we should target the archive dataset.
-// CLI flags take precedence but falling back to environment via BACKEND_CONFIG
+// The `--archives` flag is now interpreted as "use Supabase for storage".
+// When absent we default to using Aiven PostgreSQL for the documents table.
+// CLI flags take precedence; environment variables are no longer consulted.
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.supabase.serviceKey;
 
-// Build database config based on archive flag (at module scope for use in multiple functions)
-const dbConfig = {
-  tables: {
-    documents: useArchive ? 'documents_archives' : 'documents',
-  },
-  functions: {
-    truncate: useArchive ? 'truncate_documents_archives' : 'truncate_documents',
-  },
-};
-
+// connection clients
 let supabase = null;
+let pgPool = null;
 if (!DRY_RUN) {
-  supabase = createSupabaseClient();
+  if (useArchive) {
+    supabase = createSupabaseClient();
+  } else {
+    pgPool = getPgPool();
+  }
 }
 
 /**
@@ -89,64 +87,208 @@ export function loadEmbeddedChunks(embeddedChunksPath) {
  * @returns {Promise<number>} Number of documents successfully stored
  * @throws {Error} If storage fails after retries
  */
-export async function storeInSupabase(embeddedChunks) {
+export async function storeDocuments(embeddedChunks) {
   console.log(
-    `\nStoring ${embeddedChunks.length} documents${DRY_RUN ? ' (dry-run -> local JSONL)' : ' in Supabase'}...`,
+    `\nStoring ${embeddedChunks.length} documents${DRY_RUN ? ' (dry-run -> local JSONL)' : useArchive ? ' in Supabase' : ' in Aiven PostgreSQL'}...`,
   );
 
-  if (!DRY_RUN) {
-    const testUrl = `${BACKEND_CONFIG.supabase.url}/rest/v1/documents?select=count`;
-    console.log(`📡 Testing raw connection to: ${testUrl}`);
+  // Determine output path for dry-run mode
+  const dryRunOutputPath = useArchive ? ARCHIVES_STORED_DOCUMENTS_JSONL : STORED_DOCUMENTS_JSONL;
 
-    try {
-      const response = await fetch(testUrl, {
-        headers: {
-          apikey: BACKEND_CONFIG.supabase.serviceKey,
-          Authorization: `Bearer ${BACKEND_CONFIG.supabase.serviceKey}`,
-        },
-      });
-      console.log(`✅ Status: ${response.status} ${response.statusText}`);
-    } catch (err) {
-      console.error('❌ RAW FETCH FAILED');
-      console.error('Check: Is there a VPN/Firewall/Proxy active?');
-      console.log('Error Cause:', err.cause); // This will tell us if it's ECONNREFUSED or ENOTFOUND
-    }
+  // if we're in dry-run mode we want to start with a clean file each time
+  if (DRY_RUN) {
+    await prepareWrite(dryRunOutputPath, { clear: true });
   }
 
-  // Determine target table and function names based on archive flag
-  const targetTable = dbConfig.tables.documents;
-
+  // Clear target storage when not dry-run
   if (!DRY_RUN) {
-    console.log('  Using SUPABASE_SERVICE_ROLE_KEY (required for RLS bypass)\n');
-    console.log(`Truncating existing ${targetTable} table (clear previous run data)...`);
-
-    try {
-      if (targetTable === 'documents') {
-        const { error: truncateError } = await supabase.rpc(dbConfig.functions.truncate);
+    if (useArchive) {
+      console.log('  Using SUPABASE_SERVICE_ROLE_KEY (required for RLS bypass)\n');
+      console.log(`Truncating existing documents table in Supabase...`);
+      try {
+        const { error: truncateError } = await supabase.rpc('truncate_documents');
         if (truncateError) {
           throw new Error(`Truncate failed: ${truncateError.message}`);
         }
-      } else if (targetTable === 'documents_archives') {
-        // Try RPC first (if available), otherwise delete all rows via service role
-        const { error: truncateError } = await supabase.rpc(dbConfig.functions.truncate);
-        if (truncateError) {
-          console.log('  RPC truncate not available; using direct delete for ' + targetTable);
-          const { error: delErr } = await supabase.from(targetTable).delete().neq('id', '');
-          if (delErr) {
-            throw new Error(`Failed to clear ${targetTable}: ${delErr.message}`);
-          }
-        }
+        console.log('✓ documents table cleared.\n');
+      } catch (error) {
+        console.error('✗ Table clear failed:', error.message);
+        throw error;
       }
-
-      console.log(`✓ ${targetTable} cleared.\n`);
-    } catch (error) {
-      console.error('✗ Table clear failed:', error.message);
-      throw error;
+    } else {
+      console.log('  Clearing documents table in Aiven PostgreSQL...');
+      try {
+        await pgPool.query('TRUNCATE TABLE documents');
+        console.log('✓ documents table truncated.\n');
+      } catch (err) {
+        console.error('✗ Failed to clear Aiven documents table:', err.message);
+        throw err;
+      }
     }
   } else {
-    console.log('Dry-run mode: skipping table truncate/clear.\n');
+    console.log('Dry-run mode: skipping storage clear.\n');
   }
 
+  const SUPABASE_BATCH_SIZE = 10;
+  let totalStored = 0;
+  let batchNum = 0;
+
+  const totalBatches = Math.ceil(embeddedChunks.length / SUPABASE_BATCH_SIZE);
+  console.log(`Total batches to process: ${totalBatches} (batch size: ${SUPABASE_BATCH_SIZE})\n`);
+
+  for (let i = 0; i < embeddedChunks.length; i += SUPABASE_BATCH_SIZE) {
+    batchNum++;
+    const batch = embeddedChunks.slice(i, Math.min(i + SUPABASE_BATCH_SIZE, embeddedChunks.length));
+    const documentsToInsert = [];
+
+    // Prepare documents for insertion
+    for (const chunk of batch) {
+      // Extract structured columns (no defaults - assume upstream normalization)
+      const industryVal = chunk.metadata?.industry ?? null;
+      const categoryVal = chunk.metadata?.category ?? null;
+      const sourceVal = chunk.metadata?.source ?? null;
+
+      // Build metadata object for JSONB
+      const baseMeta = {
+        chunk_id: chunk.id,
+        source_row: chunk.source_row,
+        chunk_index: chunk.chunk_index,
+        chunk_type: (chunk.metadata && chunk.metadata.chunk_type) || 'primary',
+        source_id: (chunk.metadata && chunk.metadata.source_id) || null,
+        fields: (chunk.metadata && chunk.metadata.fields) || {},
+        word_count: chunk.word_count,
+        scale: (chunk.metadata && chunk.metadata.scale) || null,
+        r_strategy: (chunk.metadata && chunk.metadata.r_strategy) || null,
+        primary_material: (chunk.metadata && chunk.metadata.primary_material) || null,
+        geographic_focus: (chunk.metadata && chunk.metadata.geographic_focus) || null,
+      };
+
+      // Doc-level document
+      if (chunk.embeddings && chunk.embeddings.doc && isValidEmbedding(chunk.embeddings.doc)) {
+        documentsToInsert.push({
+          content: chunk.content,
+          embedding: chunk.embeddings.doc,
+          industry: industryVal,
+          category: categoryVal,
+          source: sourceVal,
+          metadata: { ...baseMeta, field_name: 'doc' },
+        });
+      }
+
+      // Field-level documents
+      const fieldEmb = (chunk.embeddings && chunk.embeddings.fields) || {};
+      for (const [fname, vec] of Object.entries(fieldEmb)) {
+        if (!vec || !isValidEmbedding(vec)) continue;
+
+        const fieldText =
+          (chunk.metadata && chunk.metadata.fields && chunk.metadata.fields[fname]) || '';
+        if (!isValidTextForEmbedding(fieldText)) continue;
+
+        documentsToInsert.push({
+          content: fieldText,
+          embedding: vec,
+          industry: industryVal,
+          category: categoryVal,
+          source: sourceVal,
+          metadata: { ...baseMeta, field_name: fname },
+        });
+      }
+    }
+
+    if (documentsToInsert.length === 0) {
+      console.log(`  Batch ${batchNum}: No valid documents (all embeddings invalid)`);
+      continue;
+    }
+
+    // Insert batch with error handling
+    if (DRY_RUN) {
+      // Ensure output directory exists; file itself has already been prepared
+      await ensureDir(path.dirname(dryRunOutputPath));
+      try {
+        await writeJsonl(dryRunOutputPath, documentsToInsert, {
+          append: true,
+          // no need to clear here because we cleared before the loop
+        });
+        totalStored += documentsToInsert.length;
+        console.log(
+          `  ✔ Batch ${batchNum}/${totalBatches}: Wrote ${documentsToInsert.length} documents (total: ${totalStored}) to ${dryRunOutputPath}`,
+        );
+      } catch (error) {
+        console.error(
+          `  ✗ Batch ${batchNum}/${totalBatches}: Failed to write JSONL:`,
+          error.message,
+        );
+        throw error;
+      }
+    } else if (useArchive) {
+      try {
+        const { data, error } = await supabase.from('documents').insert(documentsToInsert).select();
+
+        if (error) {
+          throw new Error(`Insert failed: ${error.message}`);
+        }
+
+        if (!Array.isArray(data)) {
+          throw new Error('Unexpected response: data is not an array');
+        }
+
+        totalStored += data.length;
+        console.log(
+          `  ✔ Batch ${batchNum}/${totalBatches}: Inserted ${data.length} documents (total: ${totalStored}) into Supabase documents (sample ID: ${data[0]?.id || 'N/A'})`,
+        );
+      } catch (error) {
+        console.error(`  ✗ Batch ${batchNum}/${totalBatches} failed:`, error.message);
+        throw error;
+      }
+    } else {
+      // insert into Aiven via pg pool
+      try {
+        // build parameterized query for multiple rows
+        // we unroll each document to ($1,$2,$3,$4,$5) etc and then execute
+        const vals = [];
+        const placeholders = [];
+        documentsToInsert.forEach((doc, idx) => {
+          const base = idx * 5;
+          placeholders.push(`($${base + 1},$${base + 2},$${base + 3},$${base + 4},$${base + 5})`);
+          vals.push(doc.content, doc.embedding, doc.industry, doc.category, doc.source);
+          // metadata will be added separately via jsonb
+          vals.push(doc.metadata);
+        });
+        // Note: we added metadata but didn't update placeholders accordingly -- fix below
+        // simpler: perform individual inserts in a transaction for clarity
+        const client = await pgPool.connect();
+        try {
+          await client.query('BEGIN');
+          for (const doc of documentsToInsert) {
+            const insertSql =
+              'INSERT INTO documents(content, embedding, industry, category, source, metadata) VALUES($1,$2,$3,$4,$5,$6)';
+            await client.query(insertSql, [
+              doc.content,
+              doc.embedding,
+              doc.industry,
+              doc.category,
+              doc.source,
+              doc.metadata,
+            ]);
+          }
+          await client.query('COMMIT');
+          totalStored += documentsToInsert.length;
+          console.log(
+            `  ✔ Batch ${batchNum}/${totalBatches}: Inserted ${documentsToInsert.length} documents (total: ${totalStored}) into Aiven`,
+          );
+        } finally {
+          client.release();
+        }
+      } catch (error) {
+        console.error(`  ✗ Batch ${batchNum}/${totalBatches} failed (Aiven):`, error.message);
+        throw error;
+      }
+    }
+  }
+
+  console.log(`\n✓ Successfully stored ${totalStored} documents ${DRY_RUN ? '' : useArchive ? 'in Supabase' : 'in Aiven' }\n`);
+  return totalStored;
+}
   // Determine output path for dry-run mode
   const dryRunOutputPath = useArchive ? ARCHIVES_STORED_DOCUMENTS_JSONL : STORED_DOCUMENTS_JSONL;
 
@@ -281,29 +423,54 @@ async function validateStorage() {
   console.log('\nValidating stored embeddings...');
 
   try {
-    // Count total documents in the target table (dynamic based on archive flag)
-    try {
-      const { count, error: countErr } = await supabase
-        .from(dbConfig.tables.documents)
-        .select('id', { head: true, count: 'exact' });
-      if (!countErr) {
-        console.log(`  ✓ Total documents in ${dbConfig.tables.documents}: ${count}`);
+    if (useArchive) {
+      // Supabase path
+      try {
+        const { count, error: countErr } = await supabase
+          .from('documents')
+          .select('id', { head: true, count: 'exact' });
+        if (!countErr) {
+          console.log(`  ✓ Total documents in Supabase documents: ${count}`);
+        }
+      } catch (e) {
+        console.warn('  ⚠️️ Could not retrieve documents count:', e.message);
       }
-    } catch (e) {
-      console.warn('  ⚠️️ Could not retrieve documents count:', e.message);
-    }
 
-    // Test vector search with a dummy embedding
-    const testEmbedding = Array(1536).fill(0.1);
-    const searchResult = await supabase.rpc(dbConfig.functions.match_documents, {
-      query_embedding: testEmbedding,
-      match_count: 1,
-    });
+      // Test vector search with a dummy embedding
+      const testEmbedding = Array(1536).fill(0.1);
+      const searchResult = await supabase.rpc('match_documents', {
+        query_embedding: testEmbedding,
+        match_count: 1,
+      });
 
-    if (!searchResult.error) {
-      console.log(`  ✓ Vector search function operational`);
-      if (searchResult.data && searchResult.data.length > 0) {
-        console.log(`  ✓ Search returned ${searchResult.data.length} result(s)`);
+      if (!searchResult.error) {
+        console.log(`  ✓ Vector search function operational`);
+        if (searchResult.data && searchResult.data.length > 0) {
+          console.log(`  ✓ Search returned ${searchResult.data.length} result(s)`);
+        }
+      }
+    } else {
+      // Aiven path: run a simple query
+      try {
+        const { rows } = await pgPool.query('SELECT COUNT(*) AS cnt FROM documents');
+        console.log(`  ✓ Total documents in Aiven documents: ${rows[0]?.cnt}`);
+      } catch (e) {
+        console.warn('  ⚠️️ Could not count documents in Aiven:', e.message);
+      }
+
+      try {
+        const testEmbedding = Array(1536).fill(0.1);
+        // Assuming the match_documents function exists in Postgres
+        const { rows } = await pgPool.query(
+          'SELECT * FROM match_documents($1,$2)',
+          [testEmbedding, 1],
+        );
+        console.log('  ✓ Vector search function operational (Aiven)');
+        if (rows.length > 0) {
+          console.log(`  ✓ Search returned ${rows.length} result(s)`);
+        }
+      } catch (e) {
+        console.warn('  ⚠️️ Aiven vector search validation failed:', e.message);
       }
     }
   } catch (error) {
@@ -316,7 +483,7 @@ async function validateStorage() {
  * @async
  */
 export async function main() {
-  const embeddedChunksPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSON : EMBEDDED_CHUNKS_JSON;
+  const embeddedChunksPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSONL : EMBEDDED_CHUNKS_JSONL;
 
   try {
     console.log('╔════════════════════════════════════════════════════════════════════╗');
@@ -327,8 +494,8 @@ export async function main() {
     // Step 1: Load embedded chunks
     const embeddedChunks = loadEmbeddedChunks(embeddedChunksPath);
 
-    // Step 2: Store in Supabase
-    const storedCount = await storeInSupabase(embeddedChunks);
+    // Step 2: Store in the chosen destination
+    const storedCount = await storeDocuments(embeddedChunks);
 
     // Step 3: Validate storage (production only)
     if (!DRY_RUN) {

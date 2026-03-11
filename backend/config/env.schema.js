@@ -32,7 +32,14 @@ export const envSchema = z
     SUPABASE_ANON_KEY: z.string().trim().min(1, 'SUPABASE_ANON_KEY is required'),
     SUPABASE_SERVICE_ROLE_KEY: z.string().trim().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
 
-    USE_DOCUMENTS_ARCHIVES_TABLE: booleanSchema.default(true),
+    USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
+
+    AIVEN_HOST: z.string().trim().min(1, 'AIVEN_HOST is required'),
+    AIVEN_PORT: z.coerce.number().int().positive().default(5432),
+    AIVEN_DATABASE: z.string().trim().min(1, 'AIVEN_DATABASE is required'),
+    AIVEN_USER: z.string().trim().min(1, 'AIVEN_USER is required'),
+    AIVEN_PASSWORD: z.string().trim().min(1, 'AIVEN_PASSWORD is required'),
+    AIVEN_SSL_MODE: z.enum(['disable', 'require', 'verify-ca', 'verify-full']).default('require'),
 
     FRONTEND_URL: z.string().trim().url('A valid FRONTEND_URL is required for CORS and Auth'),
     ALLOWED_ORIGINS: commaSeparatedStringArraySchema,

@@ -79,7 +79,12 @@ export function startServer() {
         'Service Service Key',
         BACKEND_CONFIG.supabase.serviceKey ? theme.success('SET') : theme.danger('NOT SET'),
       ),
-      renderRow('Docs Table', theme.accent(BACKEND_CONFIG.db.tables.documents)),
+      renderRow(
+        'Docs Backend',
+        BACKEND_CONFIG.useSupabaseDocuments
+          ? theme.accent('Supabase documents')
+          : theme.accent('Aiven PostgreSQL documents'),
+      ),
       renderRow(
         'Log Level',
         BACKEND_CONFIG.app.logLevel === 'error'

@@ -3,6 +3,7 @@ import process from 'process';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { filterSchema } from '#middleware/validation.middleware.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
+import { documentsRepository } from '#database/index.js';
 
 // -- helper utilities copied from former route file --------------------------------
 
@@ -587,18 +588,22 @@ export function getFeaturedSolutions(supabase) {
           similarity_threshold: 0.0,
         };
 
-        // RPC filters handle industry/category/source; no client-side filtering required
-        const { data: rpcResults, error: rpcErr } = await supabase.rpc(
-          BACKEND_CONFIG.db.functions.search_documents_hybrid,
-          rpcParams,
+        // use repository abstraction to hide the underlying database
+        const rpcResults = await documentsRepository.searchHybrid(
+          queryEmbedding,
+          q,
+          industryFilter || null,
+          categoryFilter || null,
+          sourceFilter || null,
+          Math.max(limit * 5, 10),
+          VECTOR_SEARCH_VECTOR_WEIGHT,
+          0.0,
         );
-        if (rpcErr) throw rpcErr;
 
         const solutions = [];
         const seen = new Set();
 
-        // RPC already filtered by industry/category/source
-        // Trust the backend results - no client-side re-filtering
+        // repository results already filtered by industry/category/source
         for (const r of rpcResults || []) {
           if (!r || !r.metadata) continue;
           const sourceId = r.metadata.source_id || r.metadata.source_row || r.id;
@@ -756,13 +761,10 @@ export function postEmbeddingsReindex() {
   };
 }
 
-export function getDocumentsStats(supabase) {
+export function getDocumentsStats(/*supabase*/) {
   return async (req, res) => {
     try {
-      const { data, error } = await supabase.rpc(
-        BACKEND_CONFIG.db.functions.get_document_statistics,
-      );
-      if (error) throw error;
+      const data = await documentsRepository.getStatistics();
       res.json({ stats: data });
     } catch (err) {
       res.status(500).json(buildErrorResponse(err, 'Failed to fetch document stats'));

@@ -7,14 +7,21 @@ import process from 'process';
 /* ------------------------------ */
 // Provide robust defaults to keep tests from failing on CI/local without secrets
 if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
+  // Load .env.backend for tests to access real environment variables
+  import('dotenv').then(({ config }) => {
+    config({ path: '../env/.env.backend' });
+  }).catch(() => {
+    // If dotenv fails, continue with fallback defaults
+  });
+
   // override to known-good values regardless of what tests may have set
-  process.env.OPENAI_API_KEY = 'test-openai';
-  process.env.SUPABASE_URL = 'http://localhost';
-  process.env.SUPABASE_ANON_KEY = 'anon-key-0000000000';
-  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
-  process.env.FRONTEND_URL = 'http://localhost:5173';
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai';
+  process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost';
+  process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'anon-key-0000000000';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-key';
+  process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
   // ensure auth is off unless specifically tested
-  process.env.API_AUTH_ENABLED = 'false';
+  process.env.API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'false';
   // provide a dummy API key in test environment to satisfy schema refinements
   process.env.API_KEY = process.env.API_KEY || 'test-api-key';
 }
@@ -94,19 +101,23 @@ const parseAllowedOrigins = () => {
       ? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
       : [];
 
-  // env.ALLOWED_ORIGINS is already an array thanks to Zod!
-  // env.FRONTEND_URL is required and will be included as well
+  // env.ALLOWED_ORIGINS may be undefined if validation failed; fall back to empty array
+  const origins = Array.isArray(env.ALLOWED_ORIGINS) ? env.ALLOWED_ORIGINS : [];
 
-  return [...new Set([...defaults, ...env.ALLOWED_ORIGINS, env.FRONTEND_URL])];
+  // env.FRONTEND_URL may also be undefined
+  const frontend = env.FRONTEND_URL ? [env.FRONTEND_URL] : [];
+
+  return [...new Set([...defaults, ...origins, ...frontend])];
 };
 
 const parsePublicRoutes = () => {
   // /health is ALWAYS included as a public route
   const defaults = ['/health'];
 
-  // env.PUBLIC_ROUTES is already an array!
+  // env.PUBLIC_ROUTES may be undefined if validation failed; treat as empty
+  const routes = Array.isArray(env.PUBLIC_ROUTES) ? env.PUBLIC_ROUTES : [];
 
-  return [...new Set([...defaults, ...env.PUBLIC_ROUTES])];
+  return [...new Set([...defaults, ...routes])];
 };
 
 // Factory function to create route matchers for dynamic routes
@@ -122,35 +133,33 @@ const createRouteMatchers = (publicRoutes) => {
   });
 };
 
-const publicRoutes = parsePublicRoutes();
+// convert to a Set so that callers can use `.has()` for fast lookup
+const publicRoutes = new Set(parsePublicRoutes());
 
 /**
  * Builds database configuration based on environment flag
- * Dynamically maps tables and functions between 'documents' and 'documents_archives'
+ * Note: we no longer support a separate archives table; both Supabase and Aiven
+ * will target the single `documents` table. Function names are static and
+ * correspond to the RPC helpers deployed in each database.
  * @private
  */
-const buildDatabaseConfig = (useArchive) => {
-  const tableName = useArchive ? 'documents_archives' : 'documents';
+const buildDatabaseConfig = () => {
+  const tableName = 'documents';
 
-  // helper that appends _archives suffix to both "documents" and "document"
-  // Uses regex with callback to handle both singular and plural forms
-  const archiveize = (fnName) =>
-    fnName.replace(/documents|document/g, (m) => `${m}${useArchive ? '_archives' : ''}`);
-
-  const baseFunctions = [
-    'match_documents',
-    'search_documents_by_industry',
-    'search_documents_by_category',
-    'search_documents_hybrid',
-    'search_documents_hybrid_filtered',
-    'truncate_documents',
-    'get_document_statistics',
-    'count_documents_by_category',
-  ];
+  const functions = {
+    match_documents: 'match_documents',
+    search_documents_by_industry: 'search_documents_by_industry',
+    search_documents_by_category: 'search_documents_by_category',
+    search_documents_hybrid: 'search_documents_hybrid',
+    search_documents_hybrid_filtered: 'search_documents_hybrid_filtered',
+    truncate_documents: 'truncate_documents',
+    get_document_statistics: 'get_document_statistics',
+    count_documents_by_category: 'count_documents_by_category',
+  };
 
   return {
     tables: { documents: tableName },
-    functions: Object.fromEntries(baseFunctions.map((fn) => [fn, archiveize(fn)])),
+    functions,
   };
 };
 
@@ -169,7 +178,20 @@ export const BACKEND_CONFIG = deepFreeze({
     serviceKey: env.SUPABASE_SERVICE_ROLE_KEY,
   },
 
-  db: buildDatabaseConfig(env.USE_DOCUMENTS_ARCHIVES_TABLE),
+  db: buildDatabaseConfig(),
+
+  // computed flag - true means we query Supabase for documents, false => Aiven
+  useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
+
+  aiven: {
+    host: env.AIVEN_HOST,
+    port: env.AIVEN_PORT,
+    database: env.AIVEN_DATABASE,
+    user: env.AIVEN_USER,
+    password: env.AIVEN_PASSWORD,
+    ssl: env.AIVEN_SSL_MODE !== 'disable',
+    sslMode: env.AIVEN_SSL_MODE,
+  },
 
   app: {
     frontendUrl: env.FRONTEND_URL,

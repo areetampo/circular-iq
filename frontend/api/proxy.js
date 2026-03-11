@@ -4,7 +4,7 @@
  * This function acts as a secure intermediary between the frontend and the backend API.
  * It hides the backend API key from the browser by injecting it server-side.
  *
- * Environment Variables (set in Vercel dashboard, NOT in .env.local):
+ * Environment Variables (set in Vercel dashboard, NOT in .env.frontend):
  * - INTERNAL_BACKEND_API_KEY: The actual API key for backend authentication
  * - VITE_API_URL: The Railway backend URL (can be public, used as destination)
  *

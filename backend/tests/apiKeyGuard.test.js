@@ -2,12 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
 import request from 'supertest';
-import { apiKeyGuard } from '#server/app.js';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 
-// Ensure deterministic test environment
-BACKEND_CONFIG.app.apiAuthEnabled = true;
-BACKEND_CONFIG.app.apiKey = 'MASTER_TEST_KEY';
+// Ensure deterministic test environment by setting environment variables
+process.env.API_AUTH_ENABLED = 'true';
+process.env.API_KEY = 'MASTER_TEST_KEY';
+
+// Import after configuring env to pick up values
+const { apiKeyGuard } = await import('#server/app.js');
+const { BACKEND_CONFIG } = await import('#config/backend.config.js');
 
 function makeApp() {
   const app = express();

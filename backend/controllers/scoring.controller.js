@@ -19,6 +19,7 @@ import {
   extractMetadata,
   calculateGapAnalysis,
 } from '#services/scoring.service.js';
+import { documentsRepository } from '#database/index.js';
 import {
   getIdentifierFromRequest,
   MAX_FREE_TRIES,
@@ -397,25 +398,38 @@ export async function performScoring(req, openai, supabase) {
 
       const [searchResults, industryResults] = await Promise.allSettled([
         Promise.all([
-          supabase.rpc(BACKEND_CONFIG.db.functions.search_documents_hybrid, rpcParamsProblem),
-          supabase.rpc(BACKEND_CONFIG.db.functions.search_documents_hybrid, rpcParamsSolution),
+          documentsRepository.searchHybrid(
+            problemVector,
+            keywordForProblem,
+            metadata?.industry ?? null,
+            metadata?.category ?? null,
+            metadata?.source ?? null,
+            matchCount,
+            VECTOR_SEARCH_VECTOR_WEIGHT,
+            0.0,
+          ),
+          documentsRepository.searchHybrid(
+            solutionVector,
+            keywordForSolution,
+            metadata?.industry ?? null,
+            metadata?.category ?? null,
+            metadata?.source ?? null,
+            matchCount,
+            VECTOR_SEARCH_VECTOR_WEIGHT,
+            0.0,
+          ),
         ]),
         metadata?.industry
-          ? supabase.rpc(BACKEND_CONFIG.db.functions.search_documents_by_industry, {
-              query_embedding: problemVector,
-              industry_filter: metadata.industry,
-              match_count: 5,
-              similarity_threshold: 0.0,
-            })
-          : Promise.resolve({ data: [] }),
+          ? documentsRepository.searchByIndustry(problemVector, metadata.industry, 5, 0.0)
+          : Promise.resolve([]),
       ]);
 
       const problemRows =
-        searchResults.status === 'fulfilled' ? searchResults.value[0]?.data || [] : [];
+        searchResults.status === 'fulfilled' ? searchResults.value[0] || [] : [];
       const solutionRows =
-        searchResults.status === 'fulfilled' ? searchResults.value[1]?.data || [] : [];
+        searchResults.status === 'fulfilled' ? searchResults.value[1] || [] : [];
       const industryRows =
-        industryResults.status === 'fulfilled' ? industryResults.value?.data || [] : [];
+        industryResults.status === 'fulfilled' ? industryResults.value || [] : [];
 
       if (searchResults.status === 'rejected') {
         console.error(`[${requestId}] Hybrid search failed:`, searchResults.reason);

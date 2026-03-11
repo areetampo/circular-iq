@@ -71,14 +71,14 @@ test('writeCsv append mode bumps id suffix and preserves existing file', async (
     { id: 'foo_1', value: 'one' },
     { id: 'foo_2', value: 'two' },
   ];
-  await writeCsv(file, initial);
+  await writeCsv('foo', file, initial);
 
   // append new rows; ids should be rewritten to foo_3, foo_4
   const toAdd = [
     { id: 'foo_1', value: 'three' },
     { id: 'foo_2', value: 'four' },
   ];
-  await writeCsv(file, toAdd, true);
+  await writeCsv('foo', file, toAdd, true);
 
   let content = await fs.promises.readFile(file, 'utf8');
   let lines = content.trim().split('\n');
@@ -95,10 +95,10 @@ test('writeCsv append with no id column does simple append', async () => {
   await fs.promises.rm(file, { force: true });
 
   const initial = [{ foo: 'a' }];
-  await writeCsv(file, initial);
+  await writeCsv('foo', file, initial);
 
   const toAdd = [{ foo: 'b' }];
-  await writeCsv(file, toAdd, true);
+  await writeCsv('foo', file, toAdd, true);
 
   const content = await fs.promises.readFile(file, 'utf8');
   const lines = content.trim().split('\n');
@@ -116,10 +116,10 @@ test('writeCsv append rewrites uppercase ID column', async () => {
     { ID: 'bar_5', value: 'five' },
     { ID: 'bar_6', value: 'six' },
   ];
-  await writeCsv(file, initial);
+  await writeCsv('bar', file, initial);
 
   const toAdd = [{ ID: 'bar_1', value: 'seven' }];
-  await writeCsv(file, toAdd, true);
+  await writeCsv('bar', file, toAdd, true);
 
   const content = await fs.promises.readFile(file, 'utf8');
   const lines = content.trim().split('\n');

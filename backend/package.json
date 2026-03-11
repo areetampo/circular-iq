@@ -52,6 +52,7 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^6.0.1",
     "openai": "^4.28.4",
+    "pg": "^8.20.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

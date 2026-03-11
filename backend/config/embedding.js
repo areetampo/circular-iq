@@ -137,6 +137,20 @@ export function isValidTextForEmbedding(text) {
 }
 
 /**
+ * Average tokens per word for estimation (OpenAI's text-embedding-3-small is ~1.3)
+ * Used for cost estimation and chunking heuristics
+ * @type {number}
+ */
+export const TOKENS_PER_WORD = 1.3;
+
+/**
+ * Maximum safe tokens for embedding input
+ * OpenAI's text-embedding-3-small has a max of 8191 tokens; we set a lower threshold to be safe
+ * @type {number}
+ */
+export const MAX_SAFE_TOKENS = 8000;
+
+/**
  * Pricing table for embedding models (USD per million tokens)
  * Source: OpenAI pricing as of 2024-06
  * Adjust as needed when using different models or if prices change
@@ -178,6 +192,8 @@ export default {
   getVectorColumnType,
   isValidEmbedding,
   isValidTextForEmbedding,
+  TOKENS_PER_WORD,
+  MAX_SAFE_TOKENS,
   ratePerMillion,
   estimatedCost,
 };

@@ -5,6 +5,7 @@ import request from 'supertest';
 import createScoringRouter, { setOpenAIClient } from '#routes/scoring.routes.js';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { setDatabaseClientOverride } from '#database/client.js';
 
 // Minimal mock supabase for scoring that returns controlled RPC data
 function makeMockSupabase(searchResults = [], industryResults = []) {
@@ -50,6 +51,8 @@ test('POST /api/score returns similar_cases with structured fields', async () =>
   };
 
   const supabase = makeMockSupabase([exampleDoc], []);
+  // ensure repository uses our mock instead of real supabase client
+  setDatabaseClientOverride(supabase, 'supabase');
   const app = makeApp(supabase);
 
   const payload = {

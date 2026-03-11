@@ -4,6 +4,7 @@ import express from 'express';
 import request from 'supertest';
 import createAnalyticsRouter, { setOpenAIClient } from '#routes/analytics.routes.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { setDatabaseClientOverride } from '#database/client.js';
 
 // Mock Supabase chains used in the featured-solutions endpoint
 // It optionally asserts that `.eq` filters are applied at the query builder level.
@@ -52,6 +53,7 @@ test('GET /api/analytics/featured-solutions (fallback) returns documents', async
     category: null,
     source: null,
   });
+  setDatabaseClientOverride(mockSupabase, 'supabase');
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
 
