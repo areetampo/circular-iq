@@ -8,17 +8,20 @@ import process from 'process';
 // Provide robust defaults to keep tests from failing on CI/local without secrets
 if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   // Load .env.backend for tests to access real environment variables
-  import('dotenv').then(({ config }) => {
-    config({ path: '../env/.env.backend' });
-  }).catch(() => {
-    // If dotenv fails, continue with fallback defaults
-  });
+  import('dotenv')
+    .then(({ config }) => {
+      config({ path: '../env/.env.backend' });
+    })
+    .catch(() => {
+      // If dotenv fails, continue with fallback defaults
+    });
 
   // override to known-good values regardless of what tests may have set
   process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai';
   process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost';
   process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'anon-key-0000000000';
-  process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-key';
+  process.env.SUPABASE_SERVICE_ROLE_KEY =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-key';
   process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
   // ensure auth is off unless specifically tested
   process.env.API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'false';

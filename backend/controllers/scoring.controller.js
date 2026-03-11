@@ -424,10 +424,8 @@ export async function performScoring(req, openai, supabase) {
           : Promise.resolve([]),
       ]);
 
-      const problemRows =
-        searchResults.status === 'fulfilled' ? searchResults.value[0] || [] : [];
-      const solutionRows =
-        searchResults.status === 'fulfilled' ? searchResults.value[1] || [] : [];
+      const problemRows = searchResults.status === 'fulfilled' ? searchResults.value[0] || [] : [];
+      const solutionRows = searchResults.status === 'fulfilled' ? searchResults.value[1] || [] : [];
       const industryRows =
         industryResults.status === 'fulfilled' ? industryResults.value || [] : [];
 

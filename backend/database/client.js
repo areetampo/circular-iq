@@ -42,9 +42,7 @@ export function getPgPool() {
       database: cfg.database,
       user: cfg.user,
       password: cfg.password,
-      ssl: cfg.ssl
-        ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' }
-        : false,
+      ssl: cfg.ssl ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' } : false,
       max: 20,
       idleTimeoutMillis: 30000,
     });

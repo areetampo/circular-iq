@@ -9,13 +9,10 @@ export class DocumentsRepository {
 
   async matchDocuments(queryEmbedding, matchCount) {
     if (this.dbType === 'supabase') {
-      const { data, error } = await this.client.rpc(
-        BACKEND_CONFIG.db.functions.match_documents,
-        {
-          query_embedding: queryEmbedding,
-          match_count: matchCount,
-        },
-      );
+      const { data, error } = await this.client.rpc(BACKEND_CONFIG.db.functions.match_documents, {
+        query_embedding: queryEmbedding,
+        match_count: matchCount,
+      });
       if (error) throw error;
       return data || [];
     }
@@ -81,7 +78,9 @@ export class DocumentsRepository {
       if (error) throw error;
       return data || [];
     }
-    const { rows } = await this.client.query(`SELECT * FROM ${BACKEND_CONFIG.db.functions.get_document_statistics}()`);
+    const { rows } = await this.client.query(
+      `SELECT * FROM ${BACKEND_CONFIG.db.functions.get_document_statistics}()`,
+    );
     return rows;
   }
 
@@ -101,7 +100,12 @@ export class DocumentsRepository {
     return rows[0]?.count || 0;
   }
 
-  async searchByIndustry(queryEmbedding, industryFilter, matchCount = 10, similarityThreshold = 0.7) {
+  async searchByIndustry(
+    queryEmbedding,
+    industryFilter,
+    matchCount = 10,
+    similarityThreshold = 0.7,
+  ) {
     if (this.dbType === 'supabase') {
       const { data, error } = await this.client.rpc(
         BACKEND_CONFIG.db.functions.search_documents_by_industry,
@@ -123,7 +127,12 @@ export class DocumentsRepository {
     return rows;
   }
 
-  async searchByCategory(queryEmbedding, categoryFilter, matchCount = 10, similarityThreshold = 0.7) {
+  async searchByCategory(
+    queryEmbedding,
+    categoryFilter,
+    matchCount = 10,
+    similarityThreshold = 0.7,
+  ) {
     if (this.dbType === 'supabase') {
       const { data, error } = await this.client.rpc(
         BACKEND_CONFIG.db.functions.search_documents_by_category,
@@ -147,9 +156,7 @@ export class DocumentsRepository {
 
   async truncate() {
     if (this.dbType === 'supabase') {
-      const { data, error } = await this.client.rpc(
-        BACKEND_CONFIG.db.functions.truncate_documents,
-      );
+      const { data, error } = await this.client.rpc(BACKEND_CONFIG.db.functions.truncate_documents);
       if (error) throw error;
       return data;
     }
