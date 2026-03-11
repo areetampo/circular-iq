@@ -63,7 +63,7 @@ Complete guide for executing the document processing pipeline that transforms CS
 > **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
 > **Stage 2: Chunk** - Split into semantic units → chunks.json
 > **Stage 3: Generate** - Generate embeddings → embedded_chunks.json
-> **Stage 4: Store** - Store embeddings in Supabase documents table
+> **Stage 4: Store** - Store embeddings (Supabase or Aiven) in documents table
 
 ## Quick Start
 
@@ -75,34 +75,37 @@ npm run populate
 npm run merge         # Merge CSVs → combined_input.csv
 npm run chunk         # Create chunks → chunks.json
 npm run embed         # Generate embeddings → embedded_chunks.json
-npm run store         # Store in Supabase → documents table
+npm run store         # Store embeddings: by default uses Aiven PostgreSQL
 
-# To target the archive dataset instead of live:
-$env:USE_DOCUMENTS_ARCHIVES_TABLE = 'true'; npm run store   # store into documents_archives
-# or equivalently:
+# To force storage into Supabase instead (archive mode):
 npm run store -- --archives
+# or set environment variable:
+# USE_SUPABASE_DOCUMENTS_TABLE=true npm run store
 ```
 
 ## Data Sources
 
-### Switching Data Source (live vs archive)
+### Choosing a Storage Backend
 
-The backend can operate against either the **primary `documents` table** or an
-alternative **`documents_archives` table** containing archived vectors. This is
-controlled by the `USE_DOCUMENTS_ARCHIVES_TABLE` environment variable (boolean) or the
-`--archives` / `--archive` flag used by CLI scripts. When active, all database
-calls (table names and RPC function names) automatically switch to the archive
-variants (e.g. `search_documents_hybrid` → `search_documents_archives_hybrid`).
+The `documents` table is now shared across two backends. By default, the pipeline
+and API will use the **Aiven PostgreSQL** instance for vector storage. Passing
+`--archives` to the `store` command (or setting
+`USE_SUPABASE_DOCUMENTS_TABLE=true`) forces the pipeline to target Supabase
+instead. The flag name is historical – think of it as "archive mode uses
+Supabase".
 
-Set in `.env.local`:
+No separate `documents_archives` table exists any more; the schema is unified
+and the switch simply determines which database client is used.
+
+Set in `.env.backend`:
 
 ```env
-USE_DOCUMENTS_ARCHIVES_TABLE=true   # default false
+# true → Supabase; false → Aiven (default)
+USE_SUPABASE_DOCUMENTS_TABLE=false
 ```
 
-Alternatively, many pipeline scripts accept `--archives` on the command line
-which takes precedence over the environment variable. See individual stage
-commands below for examples.
+Pipeline scripts still accept `--archives` on the command line; this overrides
+whatever is in the environment. See individual stage commands below for examples.
 
 ### Processed Datasets
 
@@ -198,7 +201,7 @@ npm run chunk        # produces chunks in out/ (add -- --archives for archives o
 }
 ```
 
-### Configuration (in .env.local)
+### Configuration (in .env.backend)
 
 ```env
 MIN_PROBLEM_LENGTH=20
@@ -211,7 +214,7 @@ The chunking logic is implemented in `services/chunking.service.js`.
 
 ### Prerequisites
 
-Set environment variables in `.env.local`:
+Set environment variables in `.env.backend`:
 
 ```env
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
@@ -286,7 +289,7 @@ npm run embed -- --dry-run
 
 ### Prerequisites
 
-Set environment variables in `.env.local`:
+Set environment variables in `.env.backend`:
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
@@ -296,19 +299,20 @@ SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 ### Command
 
 ```pwsh
-# Normal: read from out/ and store in Supabase's `documents` table
+# Store embeddings to whichever backend is active (default=Aiven)
 npm run store
 
-# Archive mode: add `-- --archives` (or set USE_DOCUMENTS_ARCHIVES_TABLE=true)
-#             reads from archives/ and stores into `documents_archives`
-npm run store -- --archives
+# Force Supabase instead of Aiven:
+npm run store -- --archives            # historical flag name
+# or via env var:
+# USE_SUPABASE_DOCUMENTS_TABLE=true npm run store
 ```
 
-# Dry-run: write to local JSONL file without touching Supabase
+# Dry-run (no DB changes)
 
 npm run store -- --dry-run
 
-# Dry-run archive mode: add the flag too
+# Dry-run with Supabase backend
 
 npm run store -- --archives --dry-run
 
@@ -316,26 +320,29 @@ npm run store -- --archives --dry-run
 
 ### What It Does
 
-1. **Normal Mode** (`npm run store`):
-   - Reads `datasets/out/embedded_chunks.json`
-   - Clears the `documents` table (truncate)
-   - Batches inserts (10 documents per batch) into `documents`
-   - Validates stored embeddings with test query
+1. **Backend selection** – the script determines which database to use
+   based on the presence of the `--archives` CLI flag or the
+   `USE_SUPABASE_DOCUMENTS_TABLE` environment variable. The flag takes
+   precedence.
+   - `true` → Supabase client
+   - `false` (default) → Aiven PostgreSQL via pg pool
 
-2. **Archive Mode** (pass `-- --archives` or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`):
-   - Reads `datasets/archives/embedded_chunks.json`
-   - Clears the `documents_archives` table
-   - Batches inserts into `documents_archives`
+2. **Prepare storage** – when not in dry-run:
+   - Supabase: call `truncate_documents` RPC to clear the documents table
+   - Aiven : execute `TRUNCATE TABLE documents` on the pool
 
-3. **Dry-run Mode** (`npm run store -- --dry-run`):
-   - Reads embeddings (from `out/` or `archives/`)
-   - **Skips** Supabase truncate operations
-   - Writes documents to a local JSONL file:
-     - `datasets/out/stored_documents.jsonl` (normal mode)
-     - `datasets/archives/stored_documents.jsonl` (with `--archives`)
-   - Maintains output file as read-only for durability
-   - Useful for testing or offline inspection
+3. **Batch insertion** – the script reads from either
+   `datasets/out/embedded_chunks.json` or
+   `datasets/archives/embedded_chunks.json` (based on flags) and uploads
+   documents in batches of 10, logging progress and any errors.
 
+4. **Dry-run mode** – no database is touched; documents are appended to a
+   local JSONL file (`out/` or `archives/` as above) and the file is kept
+   read-only. Useful for verifying pipeline output without side‑effects.
+
+5. **Validation** – after insertion (unless dry-run), a test query and
+   document count may be executed to ensure data integrity and log
+   statistics.
 ### Troubleshooting
 
 **"401 Unauthorized" from Supabase:**

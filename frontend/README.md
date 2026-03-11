@@ -257,10 +257,10 @@ cd frontend
 npm install
 
 # 3. Create environment file (see Configuration section)
-Copy-Item .env.example .env.local
+Copy-Item .env.example .env.frontend
 
 # 4. Configure environment variables
-# Edit .env.local with your values (see Configuration section below)
+# Edit .env.frontend with your values (see Configuration section below)
 
 # 5. Start development server
 npm run dev
@@ -286,7 +286,7 @@ npm run build
 
 ### Environment Variables
 
-Create a `.env.local` file (or copy from `.env.example`) with the following variables:
+Create a `.env.frontend` file (or copy from `.env.example`) with the following variables:
 
 ```env
 # Backend API URL - points to your Express backend
@@ -870,7 +870,7 @@ if (score > 75) {
 
 1. Prefix all client-side vars with `VITE_`
 2. Only `VITE_*` variables are exposed to client
-3. Restart dev server after changing `.env.local`
+3. Restart dev server after changing `.env.frontend`
 
 #### "TypeScript errors (if using TS)"
 
@@ -937,7 +937,7 @@ useQuery({
 
 ❌ **Avoid**:
 
-- Storing API keys in `.env.local` that gets committed
+- Storing API keys in `.env.frontend` that gets committed
 - Exposing keys in browser DevTools
 - Hardcoding secrets in source code
 

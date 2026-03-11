@@ -44,8 +44,7 @@ The backend is a Node.js/Express server that powers a document processing pipeli
 │  └─ run_datasets_scripts.js - Automate dataset processing │
 │                                                             │
 │  Database Layer (Supabase PostgreSQL + pgvector)         │
-│  ├─ documents - Primary vector-searchable document store  │
-│  ├─ documents_archives - Optional archived dataset mirror │
+│  ├─ documents - Primary vector-searchable document store (Supabase or Aiven)
 │  ├─ user_assessments - Evaluation result persistence     │
 │  ├─ user_profiles - Anonymous usage tracking             │
 │  └─ RPC Functions - Hybrid search logic (embeddings + BM25) │
@@ -71,7 +70,7 @@ backend/
 │   ├── backend.config.js         # Main config object (includes test defaults)
 │   ├── env.schema.js             # Zod schema for environment validation
 │   ├── embedding.js              # OpenAI embedding model constants
-│   └── loadEnv.js                # Environment variable loader (.env.local)
+│   └── loadEnv.js                # Environment variable loader (.env.backend)
 │
 ├── routes/                       # API route definitions (thin Express wrappers)
 │   ├── analytics.routes.js       # GET /analytics/... endpoints
@@ -96,8 +95,7 @@ backend/
 │
 ├── database/                     # Database layer
 │   ├── supabase.client.js        # Supabase client initialization
-│   ├── migrations/               # SQL migration tracking files
-│   │   └── documents_archives.sql
+│   ├── migrations/               # SQL migration tracking files (legacy archives migration removed)
 │   └── sql/                      # Database schema (DDL)
 │       ├── 01_vector_infrastructure.sql  # pgvector setup
 │       ├── 02_user_assessments.sql       # Assessment tables
@@ -172,7 +170,7 @@ backend/
 │   └── services/                 # Service unit tests
 │
 ├── package.json                  # Dependencies & npm scripts
-├── .env.local                    # Environment secrets (gitignored)
+├── .env.backend                  # Environment secrets (gitignored)
 ├── eslint.config.js             # ESLint rules
 ├── DATASETS_REFERENCE.md        # Complete dataset inventory (34 datasets)
 ├── PIPELINE_ADDING_DATASETS.md  # Guide: Adding new datasets
@@ -497,14 +495,14 @@ All datasets follow a standardized flow from raw source to production queries:
    ├─ Saves cost & timing metrics
    └─ Output: 100,000+ chunks with vectors + metadata
 
-7️⃣ DATABASE STORAGE (Supabase PostgreSQL + pgvector)
+7️⃣ DATABASE STORAGE (Supabase / Aiven dual-backend)
    ↓
-   npm run store (or npm run store -- --archives for archived table)
-   ├─ Reads datasets/out/embedded_chunks.json
-   ├─ Inserts into documents table (or documents_archives)
-   ├─ Creates pgvector indexes for similarity search
-   ├─ Enables RPC-based hybrid search (vector + BM25)
-   └─ Production queries ready!
+   npm run store (pass -- --archives to force Supabase)
+   ├─ Reads datasets/out/embedded_chunks.json (or archives/ when flag used)
+   ├─ Inserts into `documents` table via Supabase or Aiven PostgreSQL
+   ├─ Creates/maintains pgvector index for similarity search
+   ├─ Enables RPC-based hybrid search (vector + BM25) via repository
+   └─ Documents available for production queries!
 
 8️⃣ QUERY & SCORING (Live API)
    ↓
@@ -530,7 +528,7 @@ All datasets follow a standardized flow from raw source to production queries:
 
 ```
 
-**Command:** `npm run merge` → outputs to `datasets/out/combined_input.csv` by default. Append `-- --archives` (or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`) to produce the merged CSV in `datasets/archives/` instead.
+**Command:** `npm run merge` → outputs to `datasets/out/combined_input.csv` by default. Append `-- --archives` (or set `USE_SUPABASE_DOCUMENTS_TABLE=true` if you want to use the Supabase backend for storage) to produce the merged CSV in `datasets/archives/` instead.
 
 ### 2. Chunking Pipeline
 
@@ -737,12 +735,16 @@ Hybrid search combining vector similarity + keyword matching.
 
 ## Environment Configuration
 
-### Required Variables (.env.local)
+### Required Variables (.env.backend)
 
-The new boolean variable `USE_DOCUMENTS_ARCHIVES_TABLE` toggles the database
-source between the default `documents` table and the archival
-`documents_archives` table. It defaults to `false` and can also be
-controlled per-run via CLI flags (`--archives`) in the pipeline scripts.
+The boolean flag `USE_SUPABASE_DOCUMENTS_TABLE` controls which
+backing store will hold the `documents` table used for vector searches.
+
+- `true` _(default)_ → queries and pipeline operations target Supabase.
+- `false` → operations use the external Aiven PostgreSQL instance.
+
+(The legacy `documents_archives` table is removed; there is now a single
+`documents` table shared by both backends.)
 
 ```env
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
@@ -751,7 +753,7 @@ SUPABASE_ANON_KEY=eyxxxxxxxxxxxxx
 SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 PORT=8000
 NODE_ENV=development
-USE_DOCUMENTS_ARCHIVES_TABLE=false   # when true, API/rpc calls target documents_archives table
+USE_SUPABASE_DOCUMENTS_TABLE=true   # set to false to switch to Aiven
 ```
 
 ### Configuration Files
@@ -759,7 +761,7 @@ USE_DOCUMENTS_ARCHIVES_TABLE=false   # when true, API/rpc calls target documents
 1. **config/backend.config.js** - Centralized config object with test defaults
 2. **config/embedding.js** - Embedding constants
 3. **utils/datasetsUtils.js** - Dataset filesystem paths
-4. **.env.local** - Environment secrets
+4. **.env.backend** - Environment secrets
 
 ## Running the Backend
 
@@ -784,7 +786,7 @@ npm run populate      # Complete pipeline: merge → chunk → embed → store
 npm run merge         # Just merge CSVs (processed/ + manual_entries/) → out/ (use -- --archives for archives)
 npm run chunk         # Just create chunks (CSV → chunks.json) → out/ (use -- --archives for archives)
 npm run embed         # Generate embeddings (chunks → embedded_chunks.json) → out/ (use -- --archives for archives)
-npm run store         # Store embeddings in Supabase (datasets/out/embedded_chunks.json → documents); add -- --archives or set USE_DOCUMENTS_ARCHIVES_TABLE=true to operate on archives
+npm run store         # Store embeddings in configured backend (`documents` table). Use -- --archives or set USE_SUPABASE_DOCUMENTS_TABLE=true to force Supabase (default=Aiven)
 npm run embed -- --dry-run  # Test embedding generation locally
 npm run store -- --dry-run     # Test storage locally (writes JSONL)
 ```
@@ -830,30 +832,29 @@ node datasets/scripts/scrape_c2c.js --use-backup
 
 See **DATASETS_REFERENCE.md** for complete scraper documentation and **PIPELINE_ADDING_DATASETS.md** for adding new scrapers with backup support.
 
-### Archive Mode
+### Archive Mode (Supabase Backend)
 
-Any pipeline command can be executed in archive mode by appending
-`-- --archives` to the npm script or by setting the environment variable
-`USE_DOCUMENTS_ARCHIVES_TABLE=true`. Archive mode behaves identically to the
-normal pipeline except that:
+The historical `-- --archives` flag is now repurposed to **force the
+Supabase backend** instead of the default Aiven PostgreSQL storage. The CLI
+flag overrides the `USE_SUPABASE_DOCUMENTS_TABLE` environment variable if
+both are present.
 
-- Outputs are written to `datasets/archives/` instead of `datasets/out/`.
-- Storage operations target the `documents_archives` table instead of
-  `documents`.
+- Outputs still go to `datasets/archives/` when `-- --archives` is passed; the
+  pipeline behaviour mirrors normal mode.
+- Storage always writes to the single `documents` table, but the underlying
+  client will be Supabase when the flag/variable is truthy or Aiven otherwise.
 
 Example usage:
 
 ```pwsh
-npm run merge -- --archives
-npm run chunk -- --archives
-npm run embed -- --archives
-npm run store -- --archives
+npm run merge -- --archives    # write merged CSV into archives folder
+npm run chunk -- --archives    # create chunks in archives folder
+npm run embed -- --archives    # generate embeddings in archives folder
+npm run store -- --archives    # store into Supabase (not Aiven)
 ```
 
-> **Note:** Archive mode is controlled via the `-- --archives` flag or the
-> `USE_DOCUMENTS_ARCHIVES_TABLE` environment variable. Both the `-- --archives`
-> flag and the env variable approach are supported. The flag takes precedence
-> if both are present.
+> **Note:** You can also set the environment variable directly:
+> `USE_SUPABASE_DOCUMENTS_TABLE=true`.
 
 All generated files (whether in `out/` or `archives/`) are marked read-only
 by the scripts to prevent accidental modification.

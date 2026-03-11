@@ -33,4 +33,4 @@ For existing deployments, apply migrations in sequence to ensure proper initiali
 - **Authenticated** (logged-in users): Use client-side for user-specific data
 - **Anonymous** (public access): Limited for usage tracking (RLS protected)
 
-For configuration details, see backend/.env.local and frontend environment variables.
+For configuration details, see backend/.env.backend and frontend environment variables.
