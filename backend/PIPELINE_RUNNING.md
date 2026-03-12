@@ -82,6 +82,9 @@ npm run store         # Default: EMBEDDED_CHUNKS_JSONL → Aiven PostgreSQL
 npm run store -- --archives     # Archives: ARCHIVES_EMBEDDED_CHUNKS_JSONL → Supabase documents table
 npm run store -- --dry-run      # Dry-run: EMBEDDED_CHUNKS_JSONL → STORED_DOCUMENTS_JSONL
 npm run store -- --archives --dry-run  # Dry-run archives: ARCHIVES_EMBEDDED_CHUNKS_JSONL → ARCHIVES_STORED_DOCUMENTS_JSONL
+npm run store -- --resume      # Resume interrupted Aiven storage (skip already inserted)
+npm run store -- --archives --resume   # Resume interrupted Supabase storage (skip already inserted)
+npm run store -- --dry-run --resume    # Resume dry-run (append to JSONL)
 ```
 
 ## Data Sources
@@ -307,17 +310,18 @@ npm run store
 npm run store -- --archives            # historical flag name
 # or via env var:
 # USE_SUPABASE_DOCUMENTS_TABLE=true npm run store
-```
 
 # Dry-run (no DB changes)
-
 npm run store -- --dry-run
 
 # Dry-run with Supabase backend
-
 npm run store -- --archives --dry-run
 
-````
+# Resume interrupted storage (skip already inserted documents)
+npm run store -- --resume              # Resume Aiven storage
+npm run store -- --archives --resume   # Resume Supabase storage
+npm run store -- --dry-run --resume    # Resume dry-run mode (append to JSONL)
+```
 
 ### What It Does
 
@@ -328,20 +332,29 @@ npm run store -- --archives --dry-run
    - `true` → Supabase client
    - `false` (default) → Aiven PostgreSQL via pg pool
 
-2. **Prepare storage** – when not in dry-run:
+2. **Prepare storage** – when not in resume mode:
    - Supabase: call `truncate_documents` RPC to clear the documents table
-   - Aiven : execute `TRUNCATE TABLE documents` on the pool
+   - Aiven: execute `TRUNCATE TABLE documents` on the pool
+   - When `--resume` is set, tables are NOT truncated; instead, existing document identifiers are read from the database or JSONL file
 
-3. **Batch insertion** – the script reads from either
+3. **Resume mode** – when `--resume` flag is present:
+   - Builds a set of already-stored document identifiers (format: `chunk_id:field_name`)
+   - Queries the target database (or reads the JSONL file) for existing metadata
+   - Only inserts documents whose identifiers are NOT in the existing set
+   - Useful when a previous storage run was interrupted or needs to be re-run without duplicates
+
+4. **Batch insertion** – the script reads from either
    `datasets/out/embedded_chunks.json` or
    `datasets/archives/embedded_chunks.json` (based on flags) and uploads
    documents in batches of 10, logging progress and any errors.
+   - In resume mode, documents already present in storage are skipped
 
-4. **Dry-run mode** – no database is touched; documents are appended to a
+5. **Dry-run mode** – no database is touched; documents are appended to a
    local JSONL file (`out/` or `archives/` as above) and the file is kept
    read-only. Useful for verifying pipeline output without side‑effects.
+   - When combined with `--resume`, appends to existing JSONL file instead of clearing it
 
-5. **Validation** – after insertion (unless dry-run), a test query and
+6. **Validation** – after insertion (unless dry-run), a test query and
    document count may be executed to ensure data integrity and log
    statistics.
 ### Troubleshooting
@@ -350,6 +363,51 @@ npm run store -- --archives --dry-run
 
 - Ensure using SERVICE_ROLE key (not anon key)
 - Should start with: `sk_service_`
+
+### Resume Mode (Interrupted Storage Recovery)
+
+If the storage process is interrupted (network error, process crash, etc.), use the `--resume` flag
+to continue where it left off without re-inserting already-stored documents.
+
+#### How Resume Works
+
+1. **Checks existing documents** – queries the database (or reads the JSONL file in dry-run mode)
+   to build a set of identifiers for documents already in storage
+2. **Skips duplicates** – constructs the documents-to-insert list but skips any whose
+   identifier is already present in the set
+3. **Appends/continues** – inserts only the missing documents, updating the batch counter
+
+#### Resume Examples
+
+```pwsh
+# If embeddings were partially stored in Aiven and process crashed:
+npm run store -- --resume
+  # Queries documents table for existing chunk_id:field_name pairs
+  # Only inserts new documents
+
+# If embeddings were partially stored in Supabase:
+npm run store -- --archives --resume
+  # Queries Supabase documents table
+  # Only inserts new documents
+
+# If dry-run was interrupted and you want to append remaining documents:
+npm run store -- --dry-run --resume
+  # Reads existing JSONL file
+  # Appends missing documents instead of clearing file
+```
+
+#### Resume Flags
+
+| Flag | Effect |
+|------|--------|
+| No flag (normal) | Truncates/clears storage; inserts all documents |
+| `--resume` | Skips truncate; only inserts missing documents |
+| `--dry-run` | Clears JSONL file; writes all documents |
+| `--dry-run --resume` | Keeps JSONL file; appends missing documents |
+| `--archives` | Targets Supabase instead of Aiven (works with resume) |
+
+**Note:** Resume mode is independent of other flags and can be combined with `--archives` and/or `--dry-run`
+as needed.
 
 ## Full Pipeline Execution
 

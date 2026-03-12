@@ -497,11 +497,12 @@ All datasets follow a standardized flow from raw source to production queries:
 
 7️⃣ DATABASE STORAGE (Supabase / Aiven dual-backend)
    ↓
-   npm run store (pass -- --archives to force Supabase)
+   npm run store (pass -- --archives to force Supabase, or -- --resume to skip already-stored docs)
    ├─ Reads datasets/out/embedded_chunks.json (or archives/ when flag used)
    ├─ Inserts into `documents` table via Supabase or Aiven PostgreSQL
    ├─ Creates/maintains pgvector index for similarity search
    ├─ Enables RPC-based hybrid search (vector + BM25) via repository
+   ├─ Resume mode: When `--resume` is used, skips already-inserted documents (identified by chunk_id:field_name)
    └─ Documents available for production queries!
 
 8️⃣ QUERY & SCORING (Live API)

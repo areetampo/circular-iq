@@ -6,10 +6,13 @@
  * or from backend/datasets/archives/embedded_chunks.jsonl when run with `--archives`.
  *
  * Usage:
- *   node store_embeddings.js                # Normal mode: read EMBEDDED_CHUNKS_JSONL, store in Aiven PostgreSQL documents table
- *   node store_embeddings.js --dry-run      # Dry-run: read EMBEDDED_CHUNKS_JSONL, write to STORED_DOCUMENTS_JSONL
- *   node store_embeddings.js --archives     # Archive mode: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, store in Supabase documents table
- *   node store_embeddings.js --archives --dry-run  # Dry-run with archives: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, write to ARCHIVES_STORED_DOCUMENTS_JSONL
+ *   node store_embeddings.js                                # Normal mode: read EMBEDDED_CHUNKS_JSONL, store in Aiven PostgreSQL documents table
+ *   node store_embeddings.js --dry-run                      # Dry-run: read EMBEDDED_CHUNKS_JSONL, write to STORED_DOCUMENTS_JSONL
+ *   node store_embeddings.js --archives                     # Archive mode: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, store in Supabase documents table
+ *   node store_embeddings.js --archives --dry-run           # Dry-run with archives: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, write to ARCHIVES_STORED_DOCUMENTS_JSONL
+ *   node store_embeddings.js --resume                       # Resume interrupted Aiven storage
+ *   node store_embeddings.js --archives --resume            # Resume interrupted Supabase storage
+ *   node store_embeddings.js --dry-run --resume             # Resume dry-run (append to JSONL)
  *
  * In dry-run mode, documents are written to a local JSONL file instead of the database.
  * The output file is maintained as read-only for durability, but is temporarily unlocked
@@ -43,6 +46,7 @@ import { fileURLToPath } from 'url';
 // CLI flags take precedence; environment variables are no longer consulted.
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.supabase.serviceKey;
+const RESUME = process.argv.includes('--resume');
 
 // connection clients
 let supabase = null;
@@ -109,13 +113,8 @@ export async function storeDocuments(embeddedChunks) {
   // Determine output path for dry-run mode
   const dryRunOutputPath = useArchive ? ARCHIVES_STORED_DOCUMENTS_JSONL : STORED_DOCUMENTS_JSONL;
 
-  // if we're in dry-run mode we want to start with a clean file each time
-  if (DRY_RUN) {
-    await prepareWrite(dryRunOutputPath, { clear: true });
-  }
-
-  // Clear target storage when not dry-run
-  if (!DRY_RUN) {
+  // Clear target storage only when not in resume mode
+  if (!DRY_RUN && !RESUME) {
     if (useArchive) {
       console.log('  Using SUPABASE_SERVICE_ROLE_KEY (required for RLS bypass)\n');
       console.log(`Truncating existing documents table in Supabase...`);
@@ -139,8 +138,60 @@ export async function storeDocuments(embeddedChunks) {
         throw err;
       }
     }
+  } else if (DRY_RUN && !RESUME) {
+    // dry-run, not resume: start with clean file
+    await prepareWrite(dryRunOutputPath, { clear: true });
   } else {
-    console.log('Dry-run mode: skipping storage clear.\n');
+    console.log(`Resume mode: skipping table truncation and file clear.\n`);
+  }
+
+  // ========== RESUME: gather already stored document identifiers ==========
+  let existingIdentifiers = new Set();
+  if (RESUME) {
+    console.log('Resume mode: checking already stored documents...');
+    if (DRY_RUN) {
+      // Read existing JSONL file
+      if (fs.existsSync(dryRunOutputPath)) {
+        const fileStream = fs.createReadStream(dryRunOutputPath, { encoding: 'utf8' });
+        const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+        for await (const line of rl) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const doc = JSON.parse(trimmed);
+            const chunkId = doc.metadata?.chunk_id;
+            const fieldName = doc.metadata?.field_name;
+            if (chunkId && fieldName) {
+              existingIdentifiers.add(`${chunkId}:${fieldName}`);
+            }
+          } catch (e) {
+            // ignore malformed lines
+          }
+        }
+      }
+    } else if (useArchive) {
+      // Supabase: fetch all metadata
+      const { data, error } = await supabase.from('documents').select('metadata');
+      if (error) throw error;
+      for (const row of data) {
+        const chunkId = row.metadata?.chunk_id;
+        const fieldName = row.metadata?.field_name;
+        if (chunkId && fieldName) {
+          existingIdentifiers.add(`${chunkId}:${fieldName}`);
+        }
+      }
+    } else {
+      // Aiven: fetch all metadata (use JSON extraction)
+      const { rows } = await pgPool.query(
+        "SELECT metadata->>'chunk_id' AS chunk_id, metadata->>'field_name' AS field_name FROM documents",
+      );
+      for (const row of rows) {
+        if (row.chunk_id && row.field_name) {
+          existingIdentifiers.add(`${row.chunk_id}:${row.field_name}`);
+        }
+      }
+    }
+    console.log(`  Found ${existingIdentifiers.size} already stored documents.`);
   }
 
   const SUPABASE_BATCH_SIZE = 10;
@@ -179,14 +230,17 @@ export async function storeDocuments(embeddedChunks) {
 
       // Doc-level document
       if (chunk.embeddings && chunk.embeddings.doc && isValidEmbedding(chunk.embeddings.doc)) {
-        documentsToInsert.push({
-          content: chunk.content,
-          embedding: chunk.embeddings.doc,
-          industry: industryVal,
-          category: categoryVal,
-          source: sourceVal,
-          metadata: { ...baseMeta, field_name: 'doc' },
-        });
+        const identifier = `${chunk.id}:doc`;
+        if (!RESUME || !existingIdentifiers.has(identifier)) {
+          documentsToInsert.push({
+            content: chunk.content,
+            embedding: chunk.embeddings.doc,
+            industry: industryVal,
+            category: categoryVal,
+            source: sourceVal,
+            metadata: { ...baseMeta, field_name: 'doc' },
+          });
+        }
       }
 
       // Field-level documents
@@ -197,15 +251,17 @@ export async function storeDocuments(embeddedChunks) {
         const fieldText =
           (chunk.metadata && chunk.metadata.fields && chunk.metadata.fields[fname]) || '';
         if (!isValidTextForEmbedding(fieldText)) continue;
-
-        documentsToInsert.push({
-          content: fieldText,
-          embedding: vec,
-          industry: industryVal,
-          category: categoryVal,
-          source: sourceVal,
-          metadata: { ...baseMeta, field_name: fname },
-        });
+        const identifier = `${chunk.id}:${fname}`;
+        if (!RESUME || !existingIdentifiers.has(identifier)) {
+          documentsToInsert.push({
+            content: fieldText,
+            embedding: vec,
+            industry: industryVal,
+            category: categoryVal,
+            source: sourceVal,
+            metadata: { ...baseMeta, field_name: fname },
+          });
+        }
       }
     }
 
