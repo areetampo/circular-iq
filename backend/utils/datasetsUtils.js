@@ -62,6 +62,11 @@ export const ARCHIVES_EMBEDDED_CHUNKS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'embedded_chunks.jsonl',
 );
+// archived stored documents (for dry-run in archive mode)
+export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
+  DATASETS_ARCHIVES_DIR,
+  'stored_documents.jsonl',
+);
 
 // NOTE: only scrape_backup is a directory within archives/; other dataset
 // components live in the normal dataset directories. Only the root CSV files are
@@ -78,12 +83,6 @@ export const COMBINED_INPUT_SAMPLE_CSV = path.join(
 export const CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
 export const EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.jsonl');
 export const STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
-
-// archived stored documents (for dry-run in archive mode)
-export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
-  DATASETS_ARCHIVES_DIR,
-  'stored_documents.jsonl',
-);
 
 // =============================================================================
 // DATASET REGISTRY
@@ -415,10 +414,10 @@ export const DATASETS = [
     processed_csv: 'greentechguardians_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_greentechguardians.js'),
-    source_url: null,
+    source_url: 'https://github.com/techandy42/GreenTechGuardians',
     urls: null,
     raw_folder_contents: {
-      ai_dataset: 'AI_EarthHack_Dataset.csv',
+      ai_earthhack_dataset: 'AI_EarthHack_Dataset.csv',
       combined_sample: 'combined_data_first_200_rows.jsonl',
       extracted_sample: 'extracted_data_first_200_rows.jsonl',
       training: 'extracted_data_training_dataset.jsonl',

@@ -44,6 +44,7 @@ import {
   prepareWrite,
   ensureDir,
   writeJsonl,
+  assertFileExists,
 } from '#utils/datasetsUtils.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { isValidTextForEmbedding, isValidEmbedding } from '#config/embedding.js';
@@ -74,10 +75,6 @@ if (!DRY_RUN) {
  * @throws {Error} If file not found or invalid JSONL
  */
 export async function loadEmbeddedChunks(embeddedChunksPath) {
-  if (!fs.existsSync(embeddedChunksPath)) {
-    throw new Error(`Embedded chunks file not found at ${embeddedChunksPath}`);
-  }
-
   const chunks = [];
   const fileStream = fs.createReadStream(embeddedChunksPath, { encoding: 'utf8' });
   const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
@@ -133,17 +130,22 @@ export async function storeDocuments(embeddedChunks) {
         }
         console.log('✓ documents table cleared.\n');
       } catch (error) {
-        console.error('✗ Table clear failed:', error.message);
+        console.error('✗ documents table clear failed:', error.message);
         throw error;
       }
     } else {
       console.log('  Clearing documents table in Aiven PostgreSQL...');
+      // Ensure we are in write mode before truncating
+      const client = await pgPool.connect();
       try {
-        await pgPool.query('TRUNCATE TABLE documents');
+        await client.query('SET transaction_read_only = off');
+        await client.query('TRUNCATE TABLE documents');
         console.log('✓ documents table truncated.\n');
       } catch (err) {
         console.error('✗ Failed to clear Aiven documents table:', err.message);
         throw err;
+      } finally {
+        client.release();
       }
     }
   } else if (DRY_RUN && !RESUME) {
@@ -172,7 +174,7 @@ export async function storeDocuments(embeddedChunks) {
             if (chunkId && fieldName) {
               existingIdentifiers.add(`${chunkId}:${fieldName}`);
             }
-          } catch (e) {
+          } catch {
             // ignore malformed lines
           }
         }
@@ -202,16 +204,17 @@ export async function storeDocuments(embeddedChunks) {
     console.log(`  Found ${existingIdentifiers.size} already stored documents.`);
   }
 
-  const SUPABASE_BATCH_SIZE = 10;
+  const BATCH_SIZE = 10;
   let totalStored = 0;
   let batchNum = 0;
 
-  const totalBatches = Math.ceil(embeddedChunks.length / SUPABASE_BATCH_SIZE);
-  console.log(`Total batches to process: ${totalBatches} (batch size: ${SUPABASE_BATCH_SIZE})\n`);
+  const totalBatches = Math.ceil(embeddedChunks.length / BATCH_SIZE);
 
-  for (let i = 0; i < embeddedChunks.length; i += SUPABASE_BATCH_SIZE) {
+  console.log(`Total batches to process: ${totalBatches} (batch size: ${BATCH_SIZE})\n`);
+
+  for (let i = 0; i < embeddedChunks.length; i += BATCH_SIZE) {
     batchNum++;
-    const batch = embeddedChunks.slice(i, Math.min(i + SUPABASE_BATCH_SIZE, embeddedChunks.length));
+    const batch = embeddedChunks.slice(i, Math.min(i + BATCH_SIZE, embeddedChunks.length));
     const documentsToInsert = [];
 
     // Prepare documents for insertion
@@ -274,7 +277,9 @@ export async function storeDocuments(embeddedChunks) {
     }
 
     if (documentsToInsert.length === 0) {
-      console.log(`  Batch ${batchNum}: No valid documents (all embeddings invalid)`);
+      console.log(
+        `  Batch ${batchNum}: ${RESUME ? 'All documents already exist (skipping)' : 'No valid documents (all embeddings invalid)'}`,
+      );
       continue;
     }
 
@@ -319,49 +324,55 @@ export async function storeDocuments(embeddedChunks) {
         throw error;
       }
     } else {
-      // insert into Aiven via pg pool
+      // Optimized Bulk Insert for Aiven/PostgreSQL via pgPool and parameterized queries
+      const client = await pgPool.connect();
       try {
-        // build parameterized query for multiple rows
-        // we unroll each document to ($1,$2,$3,$4,$5) etc and then execute
-        const vals = [];
+        // This explicitly starts a writable transaction, overriding the session default
+        await client.query('BEGIN READ WRITE');
+
+        // Build a single multi-row insert query
+        // Query structure: INSERT INTO table (cols) VALUES ($1,$2...), ($6,$7...)
+        const columns = ['content', 'embedding', 'industry', 'category', 'source', 'metadata'];
+        const values = [];
         const placeholders = [];
-        documentsToInsert.forEach((doc, idx) => {
-          const base = idx * 5;
-          placeholders.push(`($${base + 1},$${base + 2},$${base + 3},$${base + 4},$${base + 5})`);
-          vals.push(doc.content, doc.embedding, doc.industry, doc.category, doc.source);
-          // metadata will be added separately via jsonb
-          vals.push(doc.metadata);
-        });
-        // Note: we added metadata but didn't update placeholders accordingly -- fix below
-        // simpler: perform individual inserts in a transaction for clarity
-        const client = await pgPool.connect();
-        try {
-          await client.query('BEGIN');
-          for (const doc of documentsToInsert) {
-            // Convert embedding array to a PostgreSQL vector string literal
-            const embeddingStr = '[' + doc.embedding.join(',') + ']';
-            const insertSql =
-              'INSERT INTO documents(content, embedding, industry, category, source, metadata) VALUES($1, $2::extensions.vector, $3, $4, $5, $6)';
-            await client.query(insertSql, [
-              doc.content,
-              embeddingStr,
-              doc.industry,
-              doc.category,
-              doc.source,
-              doc.metadata,
-            ]);
-          }
-          await client.query('COMMIT');
-          totalStored += documentsToInsert.length;
-          console.log(
-            `  ✔ Batch ${batchNum}/${totalBatches}: Inserted ${documentsToInsert.length} documents (total: ${totalStored}) into Aiven`,
+
+        documentsToInsert.forEach((doc, docIdx) => {
+          const offset = docIdx * columns.length;
+          const rowPlaceholders = columns.map((_, colIdx) => {
+            const position = offset + colIdx + 1;
+            // Special casting for the vector column
+            if (columns[colIdx] === 'embedding') {
+              return `$${position}::extensions.vector`;
+            }
+            return `$${position}`;
+          });
+          placeholders.push(`(${rowPlaceholders.join(',')})`);
+
+          values.push(
+            doc.content,
+            `[${doc.embedding.join(',')}]`, // Format array as Postgres vector string
+            doc.industry,
+            doc.category,
+            doc.source,
+            JSON.stringify(doc.metadata),
           );
-        } finally {
-          client.release();
-        }
+        });
+
+        const sql = `INSERT INTO documents (${columns.join(',')}) VALUES ${placeholders.join(',')}`;
+
+        await client.query(sql, values);
+        await client.query('COMMIT');
+
+        totalStored += documentsToInsert.length;
+        console.log(
+          `  ✔ Batch ${batchNum}/${totalBatches}: Inserted ${documentsToInsert.length} documents (total: ${totalStored}) into Aiven`,
+        );
       } catch (error) {
-        console.error(`  ✗ Batch ${batchNum}/${totalBatches} failed (Aiven):`, error.message);
+        await client.query('ROLLBACK');
+        console.error(`  ✗ Batch ${batchNum}/${totalBatches} failed (Aiven Bulk):`, error.message);
         throw error;
+      } finally {
+        client.release();
       }
     }
   }
@@ -377,56 +388,53 @@ export async function storeDocuments(embeddedChunks) {
  * @private
  */
 async function validateStorage() {
-  console.log('\nValidating stored embeddings...');
+  console.log('\n========= Validating and optimizing storage =========');
 
   try {
+    // 1. Count Check (and VACUUM for Aiven)
     if (useArchive) {
-      // Supabase path
+      const { count, error: countError } = await supabase
+        .from('documents')
+        .select('id', { head: true, count: 'exact' });
+      if (countError) throw countError;
+      console.log(`  ✓ Total documents in Supabase: ${count}`);
+    } else {
+      // Aiven: optional VACUUM ANALYZE (non‑critical if it fails)
       try {
-        const { count, error: countErr } = await supabase
-          .from('documents')
-          .select('id', { head: true, count: 'exact' });
-        if (!countErr) {
-          console.log(`  ✓ Total documents in Supabase documents: ${count}`);
-        }
-      } catch (e) {
-        console.warn('  ⚠️ Could not retrieve documents count:', e.message);
+        console.log('  Running VACUUM ANALYZE...');
+        await pgPool.query('VACUUM ANALYZE documents');
+      } catch (vacErr) {
+        console.warn('  ⚠️ VACUUM ANALYZE failed (non‑critical):', vacErr.message);
       }
 
-      // Test vector search with a dummy embedding
-      const testEmbedding = Array(1536).fill(0.1);
-      const searchResult = await supabase.rpc('match_documents', {
+      const { rows } = await pgPool.query('SELECT COUNT(*) AS cnt FROM documents');
+      console.log(`  ✓ Total documents in Aiven: ${rows[0]?.cnt}`);
+    }
+
+    // 2. Test vector search function with a dummy embedding
+    const testEmbedding = Array(1536).fill(0.1);
+
+    if (useArchive) {
+      // Supabase: use RPC
+      const { data, error } = await supabase.rpc('match_documents', {
         query_embedding: testEmbedding,
         match_count: 1,
       });
-
-      if (!searchResult.error) {
-        console.log(`  ✓ Vector search function operational`);
-        if (searchResult.data && searchResult.data.length > 0) {
-          console.log(`  ✓ Search returned ${searchResult.data.length} result(s)`);
-        }
+      if (error) throw error;
+      console.log('  ✓ Vector search function operational (Supabase)');
+      if (data?.length) {
+        console.log(`  ✓ Search returned ${data.length} result(s)`);
       }
     } else {
-      // Aiven path
-      try {
-        const { rows } = await pgPool.query('SELECT COUNT(*) AS cnt FROM documents');
-        console.log(`  ✓ Total documents in Aiven documents: ${rows[0]?.cnt}`);
-      } catch (e) {
-        console.warn('  ⚠️ Could not count documents in Aiven:', e.message);
-      }
-
-      try {
-        const testEmbedding = Array(1536).fill(0.1);
-        const { rows } = await pgPool.query('SELECT * FROM match_documents($1, $2)', [
-          testEmbedding,
-          1,
-        ]);
-        console.log('  ✓ Vector search function operational (Aiven)');
-        if (rows.length > 0) {
-          console.log(`  ✓ Search returned ${rows.length} result(s)`);
-        }
-      } catch (e) {
-        console.warn('  ⚠️ Aiven vector search validation failed:', e.message);
+      // Aiven: use properly formatted vector string
+      const embeddingStr = '[' + testEmbedding.join(',') + ']';
+      const { rows } = await pgPool.query(
+        'SELECT * FROM match_documents($1::extensions.vector, $2)',
+        [embeddingStr, 1],
+      );
+      console.log('  ✓ Vector search function operational (Aiven)');
+      if (rows.length) {
+        console.log(`  ✓ Search returned ${rows.length} result(s)`);
       }
     }
   } catch (error) {
@@ -440,12 +448,14 @@ async function validateStorage() {
  */
 export async function main() {
   const embeddedChunksPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSONL : EMBEDDED_CHUNKS_JSONL;
+  assertFileExists(embeddedChunksPath, 'embedded_chunks.jsonl');
+  const dryRunOutputPath = useArchive ? ARCHIVES_STORED_DOCUMENTS_JSONL : STORED_DOCUMENTS_JSONL;
 
   try {
-    console.log('╔════════════════════════════════════════════════════════════════════╗');
-    console.log('║  Embedding Storage Pipeline                                        ║');
-    console.log('║  Circular Economy Business Auditor                                 ║');
-    console.log('╚════════════════════════════════════════════════════════════════════╝\n');
+    console.log('=============== Embedding Storage Pipeline ===============');
+    if (DRY_RUN) {
+      console.log(`=== Dry-run mode: output will be written to ${dryRunOutputPath} ===`);
+    }
 
     // Step 1: Load embedded chunks
     const embeddedChunks = await loadEmbeddedChunks(embeddedChunksPath);
@@ -457,17 +467,21 @@ export async function main() {
     if (!DRY_RUN) {
       await validateStorage();
     } else {
-      console.log('Dry-run mode: skipped Supabase validation.\n');
+      console.log(`Dry-run mode: skipped ${useArchive ? 'Supabase' : 'Aiven'} validation.\n`);
     }
 
     // Success summary
-    console.log('╔════════════════════════════════════════════════════════════════════╗');
-    console.log('║  ✓ STORAGE COMPLETE                                               ║');
+    console.log('=============== Storage Complete ===============');
+    console.log(`${embeddedChunks.length} embedded chunks → ${storedCount} stored documents`);
     console.log(
-      `║  Processed: ${embeddedChunks.length} embedded chunks → ${storedCount} stored  ║`,
+      `Storage destination: ${
+        DRY_RUN
+          ? `Local JSONL file (${dryRunOutputPath})`
+          : (useArchive
+              ? `Supabase (${BACKEND_CONFIG.supabase.projectId})`
+              : `Aiven PostgreSQL (${BACKEND_CONFIG.aiven.host})`) + ' documents table'
+      }\n`,
     );
-    console.log('║  Ready for semantic search and RAG retrieval.                      ║');
-    console.log('╚════════════════════════════════════════════════════════════════════╝\n');
   } catch (error) {
     console.error('\n✗ STORAGE FAILED');
     console.error(`✗ ${error.message}\n`);

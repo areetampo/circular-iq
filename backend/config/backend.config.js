@@ -181,11 +181,6 @@ export const BACKEND_CONFIG = deepFreeze({
     serviceKey: env.SUPABASE_SERVICE_ROLE_KEY,
   },
 
-  db: buildDatabaseConfig(),
-
-  // computed flag - true means we query Supabase for documents, false => Aiven
-  useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
-
   aiven: {
     host: env.AIVEN_HOST,
     port: env.AIVEN_PORT,
@@ -195,6 +190,11 @@ export const BACKEND_CONFIG = deepFreeze({
     ssl: env.AIVEN_SSL_MODE !== 'disable',
     sslMode: env.AIVEN_SSL_MODE,
   },
+
+  db: buildDatabaseConfig(),
+
+  // computed flag - true means we query Supabase for documents, false => Aiven
+  useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
 
   app: {
     frontendUrl: env.FRONTEND_URL,

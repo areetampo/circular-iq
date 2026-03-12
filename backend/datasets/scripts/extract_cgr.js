@@ -40,7 +40,7 @@ const RAW_DIR = getDatasetRawDir(DATASET_KEY);
 verifyPathsExist(RAW_DIR);
 
 const inputFile = path.join(RAW_DIR, dataset.raw_folder_contents.input_file);
-verifyPathsExist([inputFile]);
+verifyPathsExist(inputFile);
 
 const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 

@@ -40,9 +40,6 @@ import {
 const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
 const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
 
-// ensure input exists before doing any work
-assertFileExists(COMBINED_INPUT_CSV, 'combined input csv');
-
 // allow writing to archives folder instead of normal output
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 
@@ -657,7 +654,7 @@ export async function saveChunksToFile(chunks, outputPath) {
   console.log(`  Avg words/chunk: ${stats.avg_words_per_chunk}`);
   console.log(`  Primary chunks: ${stats.primary_chunks}`);
   console.log(`  Secondary chunks: ${stats.secondary_chunks}`);
-  console.log(`  Categories: ${stats.categories.join(', ')}`);
+  // console.log(`  Categories: ${stats.categories.join(', ')}`);
 }
 
 /**
@@ -666,11 +663,14 @@ export async function saveChunksToFile(chunks, outputPath) {
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const datasetPath = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV;
+  assertFileExists(datasetPath, 'combined input csv');
   const outputPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
-  if (useArchive) console.log('⚠️️️  running in archives mode; writing output to archives folder');
+
   // ensure output folder is ready (writeJson will also handle this later)
   const outDir = path.dirname(outputPath);
   await ensureDir(outDir);
+
+  if (useArchive) console.log('⚠️️️  running in archives mode; writing output to archives folder');
 
   (async () => {
     try {

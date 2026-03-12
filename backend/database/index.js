@@ -1,5 +1,4 @@
 import { DocumentsRepository } from '#database/repositories/documents.repository.js';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getSupabaseClient, getPgPool } from '#database/client.js';
 
 // create a single repository instance and reuse it; it will determine

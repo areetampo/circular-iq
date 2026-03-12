@@ -56,9 +56,6 @@ import readline from 'readline';
 // determine whether to operate on archives paths
 const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
 
-// ensure the source chunks file exists early to fail fast
-assertFileExists(CHUNKS_JSON, 'chunks.json');
-
 // dry‑run mode if no API key or explicitly requested
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;
 
@@ -164,7 +161,7 @@ export function loadChunks(chunksFilePath) {
 export async function generateEmbeddings(chunks, opts = {}) {
   const { progressPath = null, resume = false } = opts;
 
-  console.log(`\nGenerating embeddings for ${chunks.length} chunks...`);
+  console.log(`\n========= Generating embeddings for ${chunks.length} chunks... =========`);
   console.log(`  Model: ${EMBEDDING_MODEL}`);
   console.log(`  Dimension: ${EMBEDDING_DIMENSION}`);
   if (SKIP_FIELDS) console.log('  Field‑level embeddings: disabled');
@@ -419,19 +416,15 @@ export async function generateEmbeddings(chunks, opts = {}) {
  */
 export async function main() {
   const chunksPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
+  assertFileExists(chunksPath, 'chunks.json');
   const outputPath = useArchive ? ARCHIVES_EMBEDDED_CHUNKS_JSONL : EMBEDDED_CHUNKS_JSONL;
   if (useArchive) console.log('⚠️️️  running in archives mode; using archives folder paths');
 
   try {
-    console.log('╔════════════════════════════════════════════════════════════════════╗');
-    console.log('║  Embedding Generation Pipeline                                     ║');
-    console.log('║  Circular Economy Business Auditor                                 ║');
-    console.log(`║  Model: ${EMBEDDING_MODEL}                                    ║`);
-    console.log(
-      `║  Dimension: ${EMBEDDING_DIMENSION}                                              ║`,
-    );
-    console.log('╚════════════════════════════════════════════════════════════════════╝\n');
-    console.log(`Input: ${chunksPath}`);
+    console.log('=============== Embedding Generation Pipeline ===============');
+    console.log(`  Model: ${EMBEDDING_MODEL}`);
+    console.log(`  Dimension: ${EMBEDDING_DIMENSION}`);
+    console.log(`  Input: ${chunksPath}`);
 
     // Step 1: Load chunks
     const chunks = loadChunks(chunksPath);
@@ -443,11 +436,11 @@ export async function main() {
     });
 
     // Success summary
-    console.log('╔════════════════════════════════════════════════════════════════════╗');
-    console.log('║  ✓ EMBEDDING GENERATION COMPLETE                                   ║');
-    console.log(`║  Output: ${path.relative(process.cwd(), outputPath)}               ║`);
-    console.log('║  Next: npm run store to save embeddings to Supabase                ║');
-    console.log('╚════════════════════════════════════════════════════════════════════╝\n');
+    console.log('========= ✓ EMBEDDING GENERATION COMPLETE =========');
+    console.log(`  Output: ${path.relative(process.cwd(), outputPath)}`);
+    console.log(
+      '  Next: Check out pipeline/store_embeddings.js for methods to store these embeddings',
+    );
   } catch (error) {
     console.error('\n✗ EMBEDDING GENERATION FAILED');
     console.error(`✗ ${error.message}\n`);
