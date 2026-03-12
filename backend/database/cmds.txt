@@ -1,8 +1,0 @@
-pwsh:
-
-ipconfig /flushdns
-
-$env:PGCLIENTENCODING = "UTF8"
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" "postgres://avnadmin:AIVEN_PASSWORD@ce-docs-circular-economy.f.aivencloud.com:22335/defaultdb?sslmode=require" -f backend\database\sql\01_vector_infrastructure.sql
-
-& "C:\Program Files\PostgreSQL\18\bin\psql.exe" "postgresql://postgres:SUPABASE_PASSWORD@db.tzeplaycfykarpwzohko.supabase.co:5432/postgres" -f backend\database\sql\01_vector_infrastructure.sql
