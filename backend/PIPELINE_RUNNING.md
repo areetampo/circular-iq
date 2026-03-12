@@ -357,6 +357,7 @@ npm run store -- --dry-run --resume    # Resume dry-run mode (append to JSONL)
 6. **Validation** – after insertion (unless dry-run), a test query and
    document count may be executed to ensure data integrity and log
    statistics.
+
 ### Troubleshooting
 
 **"401 Unauthorized" from Supabase:**
@@ -398,13 +399,13 @@ npm run store -- --dry-run --resume
 
 #### Resume Flags
 
-| Flag | Effect |
-|------|--------|
-| No flag (normal) | Truncates/clears storage; inserts all documents |
-| `--resume` | Skips truncate; only inserts missing documents |
-| `--dry-run` | Clears JSONL file; writes all documents |
-| `--dry-run --resume` | Keeps JSONL file; appends missing documents |
-| `--archives` | Targets Supabase instead of Aiven (works with resume) |
+| Flag                 | Effect                                                |
+| -------------------- | ----------------------------------------------------- |
+| No flag (normal)     | Truncates/clears storage; inserts all documents       |
+| `--resume`           | Skips truncate; only inserts missing documents        |
+| `--dry-run`          | Clears JSONL file; writes all documents               |
+| `--dry-run --resume` | Keeps JSONL file; appends missing documents           |
+| `--archives`         | Targets Supabase instead of Aiven (works with resume) |
 
 **Note:** Resume mode is independent of other flags and can be combined with `--archives` and/or `--dry-run`
 as needed.
@@ -415,7 +416,7 @@ as needed.
 
 ```pwsh
 npm run populate
-````
+```
 
 Runs all stages in sequence: merge → chunk → embed → store
 Outputs saved to: `datasets/out/`

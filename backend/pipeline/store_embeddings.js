@@ -6,13 +6,21 @@
  * or from backend/datasets/archives/embedded_chunks.jsonl when run with `--archives`.
  *
  * Usage:
- *   node store_embeddings.js                                # Normal mode: read EMBEDDED_CHUNKS_JSONL, store in Aiven PostgreSQL documents table
- *   node store_embeddings.js --dry-run                      # Dry-run: read EMBEDDED_CHUNKS_JSONL, write to STORED_DOCUMENTS_JSONL
- *   node store_embeddings.js --archives                     # Archive mode: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, store in Supabase documents table
- *   node store_embeddings.js --archives --dry-run           # Dry-run with archives: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, write to ARCHIVES_STORED_DOCUMENTS_JSONL
- *   node store_embeddings.js --resume                       # Resume interrupted Aiven storage
- *   node store_embeddings.js --archives --resume            # Resume interrupted Supabase storage
- *   node store_embeddings.js --dry-run --resume             # Resume dry-run (append to JSONL)
+ * node store_embeddings.js                                # Normal mode: read EMBEDDED_CHUNKS_JSONL, store in Aiven PostgreSQL documents table
+ *
+ * node store_embeddings.js --dry-run                      # Dry-run: read EMBEDDED_CHUNKS_JSONL, write to STORED_DOCUMENTS_JSONL
+ *
+ * node store_embeddings.js --archives                     # Archive mode: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, store in Supabase documents table
+ *
+ * node store_embeddings.js --archives --dry-run           # Dry-run with archives: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, write to ARCHIVES_STORED_DOCUMENTS_JSONL
+ *
+ * node store_embeddings.js --resume                       # Resume interrupted Aiven storage
+ *
+ * node store_embeddings.js --archives --resume            # Resume interrupted Supabase storage
+ *
+ * node store_embeddings.js --dry-run --resume             # Resume dry-run (append to JSONL)
+ *
+ * node store_embeddings.js --archives --dry-run --resume  # Resume dry-run with archives (append to JSONL)
  *
  * In dry-run mode, documents are written to a local JSONL file instead of the database.
  * The output file is maintained as read-only for durability, but is temporarily unlocked
