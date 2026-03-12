@@ -36,16 +36,24 @@ export function getSupabaseClient() {
 export function getPgPool() {
   if (!_pgPool) {
     const cfg = BACKEND_CONFIG.aiven;
-    _pgPool = new Pool({
-      host: cfg.host,
-      port: cfg.port,
-      database: cfg.database,
-      user: cfg.user,
-      password: cfg.password,
+    const poolOptions = {
       ssl: cfg.ssl ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' } : false,
-      max: 20,
+      max: cfg.connectionLimit,
       idleTimeoutMillis: 30000,
-    });
+    };
+
+    // If a full connection string is provided, prefer it over individual fields
+    if (cfg.connectionString) {
+      poolOptions.connectionString = cfg.connectionString;
+    } else {
+      poolOptions.host = cfg.host;
+      poolOptions.port = cfg.port;
+      poolOptions.database = cfg.database;
+      poolOptions.user = cfg.user;
+      poolOptions.password = cfg.password;
+    }
+
+    _pgPool = new Pool(poolOptions);
   }
   return _pgPool;
 }

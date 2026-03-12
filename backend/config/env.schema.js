@@ -32,6 +32,14 @@ export const envSchema = z
     SUPABASE_ANON_KEY: z.string().trim().min(1, 'SUPABASE_ANON_KEY is required'),
     SUPABASE_SERVICE_ROLE_KEY: z.string().trim().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
 
+    // optional raw database connection details (used only in special cases)
+    SUPABASE_HOST: z.string().trim().optional(),
+    SUPABASE_PORT: z.coerce.number().int().positive().optional(),
+    SUPABASE_DATABASE: z.string().trim().optional(),
+    SUPABASE_USER: z.string().trim().optional(),
+    SUPABASE_PASSWORD: z.string().trim().optional(),
+    SUPABASE_CONNECTION_STRING: z.string().trim().optional(),
+
     USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
 
     AIVEN_HOST: z.string().trim().min(1, 'AIVEN_HOST is required'),
@@ -40,6 +48,14 @@ export const envSchema = z
     AIVEN_USER: z.string().trim().min(1, 'AIVEN_USER is required'),
     AIVEN_PASSWORD: z.string().trim().min(1, 'AIVEN_PASSWORD is required'),
     AIVEN_SSL_MODE: z.enum(['disable', 'require', 'verify-ca', 'verify-full']).default('require'),
+    // connection pool limit for Aiven; required (default 20)
+    AIVEN_CONNECTION_LIMIT: z.coerce
+      .number()
+      .int()
+      .positive('AIVEN_CONNECTION_LIMIT must be a positive integer')
+      .default(20),
+    // optional shorthand connection string that can override host/port/user/password
+    AIVEN_CONNECTION_STRING: z.string().trim().optional(),
 
     FRONTEND_URL: z.string().trim().url('A valid FRONTEND_URL is required for CORS and Auth'),
     ALLOWED_ORIGINS: commaSeparatedStringArraySchema,

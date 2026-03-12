@@ -755,6 +755,24 @@ SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 PORT=8000
 NODE_ENV=development
 USE_SUPABASE_DOCUMENTS_TABLE=true   # set to false to switch to Aiven
+
+# optional low-level connection settings (used by tests or special tooling):
+SUPABASE_HOST=
+SUPABASE_PORT=
+SUPABASE_DATABASE=
+SUPABASE_USER=
+SUPABASE_PASSWORD=
+SUPABASE_CONNECTION_STRING=
+
+# Aiven settings (required when USE_SUPABASE_DOCUMENTS_TABLE=false):
+AIVEN_HOST=
+AIVEN_PORT=22335
+AIVEN_DATABASE=defaultdb
+AIVEN_USER=avnadmin
+AIVEN_PASSWORD=
+AIVEN_SSL_MODE=require
+AIVEN_CONNECTION_LIMIT=20          # pg pool size for Aiven
+AIVEN_CONNECTION_STRING=          # optional full postgres URL
 ```
 
 ### Configuration Files

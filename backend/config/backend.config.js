@@ -22,11 +22,14 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'anon-key-0000000000';
   process.env.SUPABASE_SERVICE_ROLE_KEY =
     process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-key';
-  process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-  // ensure auth is off unless specifically tested
-  process.env.API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'false';
-  // provide a dummy API key in test environment to satisfy schema refinements
-  process.env.API_KEY = process.env.API_KEY || 'test-api-key';
+  // additional supabase db defaults for tests (not usually used)
+  process.env.SUPABASE_HOST = process.env.SUPABASE_HOST || 'localhost';
+  process.env.SUPABASE_PORT = process.env.SUPABASE_PORT || '5432';
+  process.env.SUPABASE_DATABASE = process.env.SUPABASE_DATABASE || 'postgres';
+  process.env.SUPABASE_USER = process.env.SUPABASE_USER || 'postgres';
+  process.env.SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD || 'password';
+  process.env.SUPABASE_CONNECTION_STRING = process.env.SUPABASE_CONNECTION_STRING || '';
+  process.env.AIVEN_CONNECTION_LIMIT = process.env.AIVEN_CONNECTION_LIMIT || '20';
 }
 
 /* ------------------------------ */
@@ -179,6 +182,13 @@ export const BACKEND_CONFIG = deepFreeze({
     url: env.SUPABASE_URL,
     anonKey: env.SUPABASE_ANON_KEY,
     serviceKey: env.SUPABASE_SERVICE_ROLE_KEY,
+    // optional low-level postgres connection info
+    host: env.SUPABASE_HOST,
+    port: env.SUPABASE_PORT,
+    database: env.SUPABASE_DATABASE,
+    user: env.SUPABASE_USER,
+    password: env.SUPABASE_PASSWORD,
+    connectionString: env.SUPABASE_CONNECTION_STRING,
   },
 
   aiven: {
@@ -189,6 +199,8 @@ export const BACKEND_CONFIG = deepFreeze({
     password: env.AIVEN_PASSWORD,
     ssl: env.AIVEN_SSL_MODE !== 'disable',
     sslMode: env.AIVEN_SSL_MODE,
+    connectionLimit: env.AIVEN_CONNECTION_LIMIT,
+    connectionString: env.AIVEN_CONNECTION_STRING,
   },
 
   db: buildDatabaseConfig(),
