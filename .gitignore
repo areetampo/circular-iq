@@ -21,6 +21,7 @@ env/.env.backend
 dist/
 build/
 out/
+!backend/datasets/out/
 .next/
 .vite/
 
