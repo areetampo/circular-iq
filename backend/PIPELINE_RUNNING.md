@@ -75,12 +75,13 @@ npm run populate
 npm run merge         # Merge CSVs → combined_input.csv
 npm run chunk         # Create chunks → chunks.json
 npm run embed         # Generate embeddings → embedded_chunks.json
-npm run store         # Store embeddings: by default uses Aiven PostgreSQL
+npm run store         # Store embeddings: read EMBEDDED_CHUNKS_JSONL, store in Aiven PostgreSQL documents table
 
-# To force storage into Supabase instead (archive mode):
-npm run store -- --archives
-# or set environment variable:
-# USE_SUPABASE_DOCUMENTS_TABLE=true npm run store
+# Storage options:
+npm run store         # Default: EMBEDDED_CHUNKS_JSONL → Aiven PostgreSQL
+npm run store -- --archives     # Archives: ARCHIVES_EMBEDDED_CHUNKS_JSONL → Supabase documents table
+npm run store -- --dry-run      # Dry-run: EMBEDDED_CHUNKS_JSONL → STORED_DOCUMENTS_JSONL
+npm run store -- --archives --dry-run  # Dry-run archives: ARCHIVES_EMBEDDED_CHUNKS_JSONL → ARCHIVES_STORED_DOCUMENTS_JSONL
 ```
 
 ## Data Sources

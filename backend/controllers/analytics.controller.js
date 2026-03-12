@@ -639,26 +639,11 @@ export function getFeaturedSolutions(supabase) {
       }
 
       // No query provided — fall back to sampling recent documents with structured column filters
-      let docsQuery = supabase
-        .from(BACKEND_CONFIG.db.tables.documents)
-        .select('id, content, metadata, industry, category, source')
-        .limit(limit * 8) // Fetch extra to ensure diversity
-        .order('created_at', { ascending: false });
-
-      // Apply structured column filters at DB level (not client-side)
-      if (industryFilter && industryFilter !== 'all') {
-        docsQuery = docsQuery.eq('industry', industryFilter);
-      }
-      if (categoryFilter && categoryFilter !== 'all') {
-        docsQuery = docsQuery.eq('category', categoryFilter);
-      }
-      if (sourceFilter && sourceFilter !== 'all') {
-        docsQuery = docsQuery.eq('source', sourceFilter);
-      }
-
-      const { data: documents, error } = await docsQuery;
-
-      if (error) throw error;
+      const documents = await documentsRepository.findRecent(limit * 8, {
+        industry: industryFilter && industryFilter !== 'all' ? industryFilter : undefined,
+        category: categoryFilter && categoryFilter !== 'all' ? categoryFilter : undefined,
+        source: sourceFilter && sourceFilter !== 'all' ? sourceFilter : undefined,
+      });
 
       // Extract unique problem-solution pairs from metadata
       const solutions = [];
