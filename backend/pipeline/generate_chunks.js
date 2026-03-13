@@ -19,10 +19,13 @@
  *       Embedding generation happens in generate_embeddings.js
  *       Supabase storage happens in store_embeddings.js using SUPABASE_SERVICE_ROLE_KEY
  *       (Service role is required because RLS policies protect the documents table)
+ *
+ * --archives flag -> takes input from archives/combined_input.csv and writes output to archives/chunks.json folder instead of normal out/ folder
+ *
+ * --final flag -> takes combined_input_final.csv as input instead of combined_input.csv
+ *
+ * --enrich-scores flag -> calls OpenAI to enrich each record with estimated scores for the 8 factors (this will be slow and consume tokens, use with caution)
  */
-
-// --final flag -> takes combined_input_final.csv as input instead of combined_input.csv
-// --enrich-scores flag -> calls OpenAI to enrich each record with estimated scores for the 8 factors (this will be slow and consume tokens, use with caution)
 
 import '#server/bootstrap.js';
 import fs from 'fs';
