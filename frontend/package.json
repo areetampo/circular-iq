@@ -29,7 +29,7 @@
     "@heroui/table": "^2.2.30",
     "@hookform/resolvers": "^5.2.2",
     "@mui/material": "^7.3.7",
-    "@mui/x-charts": "^8.27.0",
+    "@mui/x-charts": "^8.27.5",
     "@supabase/supabase-js": "^2.90.1",
     "@tanstack/react-query": "^5.90.16",
     "@untitledui/icons": "^0.0.21",

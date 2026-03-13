@@ -56,6 +56,7 @@ export const envSchema = z
       .default(20),
     // optional shorthand connection string that can override host/port/user/password
     AIVEN_CONNECTION_STRING: z.string().trim().optional(),
+    AIVEN_CA_CERT: z.string().trim().optional(),
 
     FRONTEND_URL: z.string().trim().url('A valid FRONTEND_URL is required for CORS and Auth'),
     ALLOWED_ORIGINS: commaSeparatedStringArraySchema,

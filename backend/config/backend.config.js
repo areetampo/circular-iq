@@ -30,6 +30,7 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   process.env.SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD || 'password';
   process.env.SUPABASE_CONNECTION_STRING = process.env.SUPABASE_CONNECTION_STRING || '';
   process.env.AIVEN_CONNECTION_LIMIT = process.env.AIVEN_CONNECTION_LIMIT || '20';
+  process.env.AIVEN_CA_CERT = process.env.AIVEN_CA_CERT || '';
 }
 
 /* ------------------------------ */
@@ -201,6 +202,7 @@ export const BACKEND_CONFIG = deepFreeze({
     sslMode: env.AIVEN_SSL_MODE,
     connectionLimit: env.AIVEN_CONNECTION_LIMIT,
     connectionString: env.AIVEN_CONNECTION_STRING,
+    sslCA: env.AIVEN_CA_CERT,
   },
 
   db: buildDatabaseConfig(),

@@ -76,10 +76,7 @@ export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
 export const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
 
 export const COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
-export const COMBINED_INPUT_SAMPLE_CSV = path.join(
-  DATASETS_OUTPUT_DIR,
-  'combined_input_sample.csv',
-);
+export const COMBINED_INPUT_FINAL_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input_final.csv');
 export const CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
 export const EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.jsonl');
 export const STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');

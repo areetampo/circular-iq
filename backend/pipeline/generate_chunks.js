@@ -21,27 +21,42 @@
  *       (Service role is required because RLS policies protect the documents table)
  */
 
+// --final flag -> takes combined_input_final.csv as input instead of combined_input.csv
+// --enrich-scores flag -> calls OpenAI to enrich each record with estimated scores for the 8 factors (this will be slow and consume tokens, use with caution)
+
 import '#server/bootstrap.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import {
-  COMBINED_INPUT_CSV,
-  CHUNKS_JSON,
   ARCHIVES_COMBINED_INPUT_CSV,
   ARCHIVES_CHUNKS_JSON,
+  COMBINED_INPUT_CSV,
+  COMBINED_INPUT_FINAL_CSV,
+  CHUNKS_JSON,
   writeJson,
   assertFileExists,
   ensureDir,
 } from '#utils/datasetsUtils.js';
+import OpenAI from 'openai';
+import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 // ===== Constants =====
 const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
 const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
 
 // allow writing to archives folder instead of normal output
-const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
+const useArchive = process.argv.includes('--archives');
+const usingCombinedInputFinal = process.argv.includes('--final');
+const ENRICH_SCORES = process.argv.includes('--enrich-scores');
+if (ENRICH_SCORES) {
+  console.log(
+    '====== Enriching records with AI‑generated scores (this will call OpenAI for each record)',
+  );
+}
+
+const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
 const TOKENS_PER_WORD = 1.3; // Rough estimate for token counting
 const WORDS_PER_CHUNK = Math.floor(CHUNK_SIZE_TOKENS / TOKENS_PER_WORD);
@@ -241,14 +256,82 @@ function formatMetadataFromJson(metadataJson, datasetKey) {
 }
 
 /**
+ * Extract concise, dataset‑specific highlights from metadata_json.
+ * @param {string} metadataJson - The JSON string from the CSV.
+ * @param {string} datasetKey - Dataset prefix (e.g., 'c2c', 'cgr').
+ * @returns {string} A short summary string (empty if none).
+ */
+function getMetadataHighlights(metadataJson, datasetKey) {
+  if (!metadataJson) return '';
+  try {
+    const meta = JSON.parse(metadataJson);
+    const parts = [];
+
+    // Use dataset‑specific fields if available (up to 4)
+    const fieldsToExtract = DATASET_METADATA_FIELDS[datasetKey];
+    if (fieldsToExtract && fieldsToExtract.length > 0) {
+      // Pick a few fields that are likely to be informative (first 4)
+      const selectedFields = fieldsToExtract.slice(0, 4);
+      for (const field of selectedFields) {
+        const value = getNestedValue(meta, field);
+        if (value !== undefined && value !== null && value !== '') {
+          const formatted = formatMetadataValue(value);
+          // Use the last part of the field path as a label
+          const label = field.split('.').pop();
+          parts.push(`${label}: ${formatted}`);
+        }
+      }
+    }
+
+    // Always include key numeric indicators if present
+    const numericKeys = [
+      'certCount',
+      'qualityScore',
+      'score',
+      'recycled_content',
+      'carbon_footprint',
+      'repairability_score',
+    ];
+    for (const key of numericKeys) {
+      if (meta[key] !== undefined) {
+        parts.push(`${key}: ${meta[key]}`);
+      }
+    }
+
+    // Include certifications if not already covered and if present
+    if (!parts.some((p) => p.includes('certifications') || p.includes('Certifications'))) {
+      if (meta.certifications) {
+        if (typeof meta.certifications === 'object') {
+          const certStr = Object.entries(meta.certifications)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(', ');
+          // Truncate if too long
+          const truncated = certStr.length > 100 ? certStr.substring(0, 100) + '…' : certStr;
+          parts.push(`Certifications: ${truncated}`);
+        } else if (typeof meta.certifications === 'string') {
+          const truncated =
+            meta.certifications.length > 100
+              ? meta.certifications.substring(0, 100) + '…'
+              : meta.certifications;
+          parts.push(`Certifications: ${truncated}`);
+        }
+      }
+    }
+
+    return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
+  } catch {
+    // Silently fail – no highlights
+    return '';
+  }
+}
+
+/**
  * Load and parse a generic CSV dataset
  * @param {string} csvFilePath - Path to an input CSV file (e.g. datasets/combined_input.csv)
  * @returns {Array} Array of parsed records
  */
 export function loadDataset(csvFilePath) {
-  if (!fs.existsSync(csvFilePath)) {
-    throw new Error(`Dataset not found at ${csvFilePath}`);
-  }
+  // already checked if csvFilePath exists in main function using assertFileExists
 
   const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
   const records = parse(fileContent, {
@@ -264,12 +347,210 @@ export function loadDataset(csvFilePath) {
 }
 
 /**
+ * Extract metadata for classification – using reliable columns.
+ * @private
+ */
+function extractMetadata(problemText, solutionText, materials, category, circularStrategy) {
+  // Industry: from category (simple mapping)
+  let industry = 'general';
+  const catLower = category.toLowerCase();
+  if (catLower.includes('textile')) industry = 'textiles';
+  else if (catLower.includes('packaging')) industry = 'packaging';
+  else if (catLower.includes('construction')) industry = 'construction';
+  else if (catLower.includes('electronics')) industry = 'electronics';
+  else if (catLower.includes('health')) industry = 'health';
+  else if (catLower.includes('automotive')) industry = 'automotive';
+
+  // Primary material – from materials column if specific, else fallback to keywords
+  let primary_material = 'mixed';
+  if (materials && materials !== 'Cradle‑to‑Cradle Certified Materials') {
+    const matLower = materials.toLowerCase();
+    const materialMap = {
+      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
+      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
+      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
+      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
+      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
+      glass: ['glass', 'ceramic', 'silica'],
+    };
+    for (const [material, keywords] of Object.entries(materialMap)) {
+      if (keywords.some((kw) => matLower.includes(kw))) {
+        primary_material = material;
+        break;
+      }
+    }
+  } else {
+    // fallback to keyword detection in combined text
+    const combined = `${problemText} ${solutionText}`.toLowerCase();
+    const materialMap = {
+      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
+      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
+      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
+      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
+      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
+      glass: ['glass', 'ceramic', 'silica'],
+    };
+    for (const [material, keywords] of Object.entries(materialMap)) {
+      if (keywords.some((kw) => combined.includes(kw))) {
+        primary_material = material;
+        break;
+      }
+    }
+  }
+
+  // Circular strategy – use circularStrategy column if present, else keyword
+  let r_strategy = 'reduction';
+  if (circularStrategy) {
+    const stratLower = circularStrategy.toLowerCase();
+    if (stratLower.includes('reuse')) r_strategy = 'reuse';
+    else if (stratLower.includes('recycl')) r_strategy = 'recycling';
+    else if (stratLower.includes('regenerat')) r_strategy = 'regeneration';
+    else if (stratLower.includes('reduce')) r_strategy = 'reduction';
+  } else {
+    const combined = `${problemText} ${solutionText}`.toLowerCase();
+    if (combined.includes('reuse')) r_strategy = 'reuse';
+    else if (combined.includes('recycl')) r_strategy = 'recycling';
+    else if (combined.includes('regenerat')) r_strategy = 'regeneration';
+    else if (combined.includes('reduce')) r_strategy = 'reduction';
+  }
+
+  // Scale and geographic focus – not reliably extractable; set to null
+  const scale = null;
+  const geographic_focus = null;
+
+  return { industry, scale, r_strategy, primary_material, geographic_focus };
+}
+
+/**
+ * Call OpenAI to estimate the 8 factor scores for a given record.
+ * @param {string} problemText
+ * @param {string} solutionText
+ * @param {Object} additionalFields -  Optional fields from the record (materials, category, circular_strategy, impact, etc.)
+ * @returns {Promise<Object|null>} Scores object or null on failure
+ */
+async function enrichScores(problemText, solutionText, additionalFields = {}) {
+  // Build context string from any additional fields that exist
+  const contextParts = [];
+  if (additionalFields.materials) contextParts.push(`Materials: ${additionalFields.materials}`);
+  if (additionalFields.category) contextParts.push(`Category: ${additionalFields.category}`);
+  if (additionalFields.circular_strategy)
+    contextParts.push(`Circular strategy: ${additionalFields.circular_strategy}`);
+  if (additionalFields.impact) contextParts.push(`Impact: ${additionalFields.impact}`);
+  if (additionalFields.metadataHighlights) contextParts.push(additionalFields.metadataHighlights);
+  const context = contextParts.length ? `\nAdditional context:\n${contextParts.join('\n')}` : '';
+
+  const prompt = `
+You are a circular economy expert. Based on the following business problem and solution, estimate realistic scores (0‑100) for the eight factors used in our evaluation framework:
+
+- public_participation: How easily can stakeholders engage with the system? (0 = very difficult, 100 = universal access)
+- infrastructure: Existing infrastructure availability and geographic reach (0 = none, 100 = excellent)
+- market_price: Economic value of recovered materials and market demand (0 = needs subsidy, 100 = strong market)
+- maintenance: Ease and cost of upkeep, system durability (0 = high maintenance, 100 = very easy)
+- uniqueness: Innovation level and competitive advantage (0 = conventional, 100 = highly innovative)
+- size_efficiency: Physical footprint and transportation efficiency (0 = very inefficient, 100 = highly efficient)
+- chemical_safety: Environmental hazards and health risks (inverse scale: 0 = significant hazards, 100 = minimal risks)
+- tech_readiness: Technology maturity and implementation complexity (0 = emerging, 100 = proven, ready)
+
+Business Problem:
+${problemText}
+
+Business Solution:
+${solutionText}
+${context}
+
+Return ONLY a JSON object with keys exactly as above and values between 0 and 100.
+`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0,
+      response_format: { type: 'json_object' },
+    });
+
+    const scores = JSON.parse(response.choices[0].message.content);
+    // Validate that all expected keys exist and are numbers
+    const expected = [
+      'public_participation',
+      'infrastructure',
+      'market_price',
+      'maintenance',
+      'uniqueness',
+      'size_efficiency',
+      'chemical_safety',
+      'tech_readiness',
+    ];
+    for (const key of expected) {
+      if (typeof scores[key] !== 'number' || scores[key] < 0 || scores[key] > 100) {
+        throw new Error(`Invalid or missing score for ${key}`);
+      }
+    }
+    return scores;
+  } catch (error) {
+    console.warn(`⚠️  Failed to enrich scores: ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Sanitize and normalize text
+ * @private
+ */
+function sanitizeText(text) {
+  if (!text) return '';
+  return String(text)
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'");
+}
+
+/**
+ * Estimate word count for a string
+ * @private
+ */
+function countWords(text) {
+  return text.trim().split(/\s+/).length;
+}
+
+/**
+ * Split long text into chunks of roughly equal word count
+ * @private
+ */
+function splitLongText(text, targetWords) {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const chunks = [];
+  let currentChunk = '';
+  let currentWordCount = 0;
+
+  for (const sentence of sentences) {
+    const sentenceWords = countWords(sentence);
+
+    if (currentWordCount + sentenceWords > targetWords && currentChunk) {
+      chunks.push(currentChunk.trim());
+      currentChunk = sentence;
+      currentWordCount = sentenceWords;
+    } else {
+      currentChunk += ' ' + sentence;
+      currentWordCount += sentenceWords;
+    }
+  }
+
+  if (currentChunk.trim()) {
+    chunks.push(currentChunk.trim());
+  }
+
+  return chunks;
+}
+
+/**
  * Process dataset into semantic chunks
  * Preserves problem/solution pairs as foundational units
  * @param {Array} records - Parsed CSV records
- * @returns {Array} Array of chunk objects with metadata
+ * @returns {Promise<Array>} Array of chunk objects with metadata
  */
-export function createChunks(records) {
+export async function createChunks(records) {
   const chunks = [];
   let chunkIndex = 0;
 
@@ -333,6 +614,24 @@ export function createChunks(records) {
     if (allCaps / problemText.length > 0.8) {
       console.warn(`Skipping record ${i}: Problem appears to be mostly uppercase`);
       continue;
+    }
+
+    let scores = null;
+    if (ENRICH_SCORES) {
+      const metadataHighlights = getMetadataHighlights(record['metadata_json'] || '', datasetKey);
+      scores = await enrichScores(problemText, solutionText, {
+        materials,
+        category,
+        circular_strategy: circularStrategy, // pass the camelCase variable
+        impact,
+        metadataHighlights,
+      });
+      // Small delay to avoid OpenAI rate limits
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Progress indicator every few records
+      if (i > 0 && i % 10 === 0)
+        console.log(`  Processed ${i}/${records.length} records for enrichment...`);
     }
 
     // Extract metadata for classification
@@ -427,6 +726,7 @@ export function createChunks(records) {
         primary_material: metadata.primary_material,
         geographic_focus: metadata.geographic_focus,
         fields: fieldsObj,
+        scores: scores, // may be null if enrichment failed
       },
       word_count: countWords(primaryContent),
     };
@@ -463,7 +763,8 @@ export function createChunks(records) {
               r_strategy: metadata.r_strategy,
               primary_material: metadata.primary_material,
               geographic_focus: metadata.geographic_focus,
-              fields: fieldsObj, // Use full fieldsObj
+              fields: fieldsObj,
+              scores: scores, // may be null if enrichment failed
             },
             word_count: countWords(subContent),
           });
@@ -484,7 +785,8 @@ export function createChunks(records) {
             r_strategy: metadata.r_strategy,
             primary_material: metadata.primary_material,
             geographic_focus: metadata.geographic_focus,
-            fields: fieldsObj, // Use full fieldsObj
+            fields: fieldsObj,
+            scores: scores, // may be null if enrichment failed
           },
           word_count: countWords(secondaryContent),
         });
@@ -493,132 +795,6 @@ export function createChunks(records) {
   }
 
   console.log(`✓ Created ${chunks.length} semantic chunks from ${records.length} records`);
-  return chunks;
-}
-
-/**
- * Extract metadata for classification – using reliable columns.
- * @private
- */
-function extractMetadata(problemText, solutionText, materials, category, circularStrategy) {
-  // Industry: from category (simple mapping)
-  let industry = 'general';
-  const catLower = category.toLowerCase();
-  if (catLower.includes('textile')) industry = 'textiles';
-  else if (catLower.includes('packaging')) industry = 'packaging';
-  else if (catLower.includes('construction')) industry = 'construction';
-  else if (catLower.includes('electronics')) industry = 'electronics';
-  else if (catLower.includes('health')) industry = 'health';
-  else if (catLower.includes('automotive')) industry = 'automotive';
-
-  // Primary material – from materials column if specific, else fallback to keywords
-  let primary_material = 'mixed';
-  if (materials && materials !== 'Cradle‑to‑Cradle Certified Materials') {
-    const matLower = materials.toLowerCase();
-    const materialMap = {
-      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
-      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
-      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
-      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
-      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
-      glass: ['glass', 'ceramic', 'silica'],
-    };
-    for (const [material, keywords] of Object.entries(materialMap)) {
-      if (keywords.some((kw) => matLower.includes(kw))) {
-        primary_material = material;
-        break;
-      }
-    }
-  } else {
-    // fallback to keyword detection in combined text
-    const combined = `${problemText} ${solutionText}`.toLowerCase();
-    const materialMap = {
-      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
-      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
-      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
-      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
-      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
-      glass: ['glass', 'ceramic', 'silica'],
-    };
-    for (const [material, keywords] of Object.entries(materialMap)) {
-      if (keywords.some((kw) => combined.includes(kw))) {
-        primary_material = material;
-        break;
-      }
-    }
-  }
-
-  // Circular strategy – use circularStrategy column if present, else keyword
-  let r_strategy = 'reduction';
-  if (circularStrategy) {
-    const stratLower = circularStrategy.toLowerCase();
-    if (stratLower.includes('reuse')) r_strategy = 'reuse';
-    else if (stratLower.includes('recycl')) r_strategy = 'recycling';
-    else if (stratLower.includes('regenerat')) r_strategy = 'regeneration';
-    else if (stratLower.includes('reduce')) r_strategy = 'reduction';
-  } else {
-    const combined = `${problemText} ${solutionText}`.toLowerCase();
-    if (combined.includes('reuse')) r_strategy = 'reuse';
-    else if (combined.includes('recycl')) r_strategy = 'recycling';
-    else if (combined.includes('regenerat')) r_strategy = 'regeneration';
-    else if (combined.includes('reduce')) r_strategy = 'reduction';
-  }
-
-  // Scale and geographic focus – not reliably extractable; set to null
-  const scale = null;
-  const geographic_focus = null;
-
-  return { industry, scale, r_strategy, primary_material, geographic_focus };
-}
-
-/**
- * Sanitize and normalize text
- * @private
- */
-function sanitizeText(text) {
-  if (!text) return '';
-  return String(text)
-    .trim()
-    .replace(/\s+/g, ' ')
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u2018\u2019]/g, "'");
-}
-
-/**
- * Estimate word count for a string
- * @private
- */
-function countWords(text) {
-  return text.trim().split(/\s+/).length;
-}
-
-/**
- * Split long text into chunks of roughly equal word count
- * @private
- */
-function splitLongText(text, targetWords) {
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-  const chunks = [];
-  let currentChunk = '';
-  let currentWordCount = 0;
-
-  for (const sentence of sentences) {
-    const sentenceWords = countWords(sentence);
-
-    if (currentWordCount + sentenceWords > targetWords && currentChunk) {
-      chunks.push(currentChunk.trim());
-      currentChunk = sentence;
-      currentWordCount = sentenceWords;
-    } else {
-      currentChunk += ' ' + sentence;
-      currentWordCount += sentenceWords;
-    }
-  }
-
-  if (currentChunk.trim()) {
-    chunks.push(currentChunk.trim());
-  }
-
   return chunks;
 }
 
@@ -662,20 +838,29 @@ export async function saveChunksToFile(chunks, outputPath) {
  * Loads dataset, creates chunks, and saves to file
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const datasetPath = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV;
-  assertFileExists(datasetPath, 'combined input csv');
+  const datasetPath = useArchive
+    ? ARCHIVES_COMBINED_INPUT_CSV
+    : usingCombinedInputFinal
+      ? COMBINED_INPUT_FINAL_CSV
+      : COMBINED_INPUT_CSV;
+  assertFileExists(
+    datasetPath,
+    `${usingCombinedInputFinal ? 'combined_input_final.csv' : 'combined_input.csv'}`,
+  );
   const outputPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
 
   // ensure output folder is ready (writeJson will also handle this later)
   const outDir = path.dirname(outputPath);
   await ensureDir(outDir);
 
-  if (useArchive) console.log('⚠️️️  running in archives mode; writing output to archives folder');
+  if (useArchive) console.log('====== running in archives mode; writing output to archives folder');
+  if (usingCombinedInputFinal)
+    console.log('====== using combined_input_final.csv as input instead of combined_input.csv');
 
   (async () => {
     try {
       const records = loadDataset(datasetPath);
-      const chunks = createChunks(records);
+      const chunks = await createChunks(records);
       await saveChunksToFile(chunks, outputPath);
       console.log('\n✓ Chunking complete!');
       process.exit(0);

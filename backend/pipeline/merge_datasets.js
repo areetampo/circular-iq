@@ -1,3 +1,5 @@
+/* global process */
+
 /**
  * CSV Dataset Merger
  *
@@ -12,10 +14,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
-  COMBINED_INPUT_CSV,
   DATASETS_PROCESSED_DIR,
   DATASETS_MANUAL_ENTRIES_DIR,
   ARCHIVES_COMBINED_INPUT_CSV,
+  COMBINED_INPUT_CSV,
   prepareWrite,
   assertDirExists,
 } from '#utils/datasetsUtils.js';
@@ -211,7 +213,7 @@ async function mergeCsvFiles() {
     await fs.promises.writeFile(OUTPUT_FILE, output, 'utf8');
     try {
       await fs.promises.chmod(OUTPUT_FILE, 0o444);
-    } catch (_chmodErr) {
+    } catch {
       // ignore chmod errors on some platforms
     }
     console.log(`\n✓ Merged file created: ${path.relative(process.cwd(), OUTPUT_FILE)}`);
