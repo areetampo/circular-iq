@@ -57,6 +57,10 @@ export const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scra
 // each containing a CSV file and a logs.txt file.
 
 export const ARCHIVES_COMBINED_INPUT_CSV = path.join(DATASETS_ARCHIVES_DIR, 'combined_input.csv');
+export const ARCHIVES_COMBINED_INPUT_FINAL_CSV = path.join(
+  DATASETS_ARCHIVES_DIR,
+  'combined_input_final.csv',
+);
 export const ARCHIVES_CHUNKS_JSON = path.join(DATASETS_ARCHIVES_DIR, 'chunks.json');
 export const ARCHIVES_EMBEDDED_CHUNKS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
@@ -68,6 +72,27 @@ export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
   'stored_documents.jsonl',
 );
 
+// archives test files
+export const ARCHIVES_TEST_DIR = path.join(DATASETS_ARCHIVES_DIR, 'test_files');
+export const ARCHIVES_TEST_COMBINED_INPUT_CSV = path.join(
+  ARCHIVES_TEST_DIR,
+  'combined_input_test.csv',
+);
+export const ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV = path.join(
+  ARCHIVES_TEST_DIR,
+  'combined_input_final_test.csv',
+);
+
+export const ARCHIVES_TEST_CHUNKS_JSON = path.join(ARCHIVES_TEST_DIR, 'chunks_test.json');
+export const ARCHIVES_TEST_EMBEDDED_CHUNKS_JSONL = path.join(
+  ARCHIVES_TEST_DIR,
+  'embedded_chunks_test.jsonl',
+);
+export const ARCHIVES_TEST_STORED_DOCUMENTS_JSONL = path.join(
+  ARCHIVES_TEST_DIR,
+  'stored_documents_test.jsonl',
+);
+
 // NOTE: only scrape_backup is a directory within archives/; other dataset
 // components live in the normal dataset directories. Only the root CSV files are
 // placed directly inside archives/.
@@ -75,11 +100,28 @@ export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
 // output directory holds generated artifacts that are safe to regenerate
 export const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
 
-export const COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
-export const COMBINED_INPUT_FINAL_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input_final.csv');
-export const CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
-export const EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.jsonl');
-export const STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
+export const OUT_COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
+export const OUT_COMBINED_INPUT_FINAL_CSV = path.join(
+  DATASETS_OUTPUT_DIR,
+  'combined_input_final.csv',
+);
+export const OUT_CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
+export const OUT_EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.jsonl');
+export const OUT_STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
+
+// out test files
+export const OUT_TEST_DIR = path.join(DATASETS_OUTPUT_DIR, 'test_files');
+export const OUT_TEST_COMBINED_INPUT_CSV = path.join(OUT_TEST_DIR, 'combined_input_test.csv');
+export const OUT_TEST_COMBINED_INPUT_FINAL_CSV = path.join(
+  OUT_TEST_DIR,
+  'combined_input_final_test.csv',
+);
+export const OUT_TEST_CHUNKS_JSON = path.join(OUT_TEST_DIR, 'chunks_test.json');
+export const OUT_TEST_EMBEDDED_CHUNKS_JSONL = path.join(OUT_TEST_DIR, 'embedded_chunks_test.jsonl');
+export const OUT_TEST_STORED_DOCUMENTS_JSONL = path.join(
+  OUT_TEST_DIR,
+  'stored_documents_test.jsonl',
+);
 
 // =============================================================================
 // DATASET REGISTRY

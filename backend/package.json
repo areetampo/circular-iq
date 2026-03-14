@@ -66,6 +66,7 @@
     "got": "^14.6.6",
     "nodemon": "^3.1.11",
     "pdfjs-dist": "^5.4.624",
+    "pg-copy-streams": "^7.0.0",
     "puppeteer": "^24.37.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

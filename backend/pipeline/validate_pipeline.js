@@ -6,7 +6,7 @@
 import '#server/bootstrap.js';
 import fs from 'fs';
 import { createSupabaseClient } from '#database/supabase.client.js';
-import { COMBINED_INPUT_CSV, CHUNKS_JSON, assertFileExists } from '#utils/datasetsUtils.js';
+import { OUT_COMBINED_INPUT_CSV, OUT_CHUNKS_JSON, assertFileExists } from '#utils/datasetsUtils.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 let supabase = null;
@@ -23,24 +23,24 @@ async function testPipeline() {
     // Test 1: Check combined_input.csv exists
     console.log('1️⃣  Checking datasets merged...');
     try {
-      assertFileExists(COMBINED_INPUT_CSV, 'combined_input.csv');
+      assertFileExists(OUT_COMBINED_INPUT_CSV, 'combined_input.csv');
     } catch (err) {
       console.error('❌ ' + err.message);
       process.exit(1);
     }
-    const csvContent = fs.readFileSync(COMBINED_INPUT_CSV, 'utf8');
+    const csvContent = fs.readFileSync(OUT_COMBINED_INPUT_CSV, 'utf8');
     const csvLines = csvContent.split('\n').filter((l) => l.trim());
     console.log(`✓ Found combined_input.csv with ${csvLines.length} rows`);
 
     // Test 2: Check chunks.json exists
     console.log('\n2️⃣  Checking chunks generated...');
     try {
-      assertFileExists(CHUNKS_JSON, 'chunks.json');
+      assertFileExists(OUT_CHUNKS_JSON, 'chunks.json');
     } catch (err) {
       console.error('❌ ' + err.message);
       process.exit(1);
     }
-    const chunks = JSON.parse(fs.readFileSync(CHUNKS_JSON, 'utf8'));
+    const chunks = JSON.parse(fs.readFileSync(OUT_CHUNKS_JSON, 'utf8'));
     console.log(`✓ Found chunks.json with ${chunks.length} chunks`);
 
     // Test 3: Check embeddings in Supabase

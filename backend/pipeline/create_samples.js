@@ -1,5 +1,7 @@
+/* global process */
+
 /**
- * Extract Samples Script
+ * Create Samples Script
  *
  * Extracts a specific number of rows from the combined input CSV file
  * based on a per-dataset configuration.
@@ -14,14 +16,35 @@ import { stringify } from 'csv-stringify/sync';
 import {
   CSV_COLUMNS,
   STRINGIFY_OPTIONS,
-  COMBINED_INPUT_CSV,
-  COMBINED_INPUT_FINAL_CSV,
   DATASET_KEYS,
+  ARCHIVES_COMBINED_INPUT_CSV,
+  ARCHIVES_TEST_COMBINED_INPUT_CSV,
+  ARCHIVES_COMBINED_INPUT_FINAL_CSV,
+  ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV,
+  OUT_COMBINED_INPUT_CSV,
+  OUT_TEST_COMBINED_INPUT_CSV,
+  OUT_COMBINED_INPUT_FINAL_CSV,
+  OUT_TEST_COMBINED_INPUT_FINAL_CSV,
 } from '#utils/datasetsUtils.js';
 
 // ===== Configuration =====
-const INPUT_FILE = COMBINED_INPUT_CSV;
-const OUTPUT_FILE = COMBINED_INPUT_FINAL_CSV;
+const archives = process.argv.includes('--archives');
+const test = process.argv.includes('--test');
+
+const INPUT_FILE = archives
+  ? test
+    ? ARCHIVES_TEST_COMBINED_INPUT_CSV
+    : ARCHIVES_COMBINED_INPUT_CSV
+  : test
+    ? OUT_TEST_COMBINED_INPUT_CSV
+    : OUT_COMBINED_INPUT_CSV;
+const OUTPUT_FILE = archives
+  ? test
+    ? ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV
+    : ARCHIVES_COMBINED_INPUT_FINAL_CSV
+  : test
+    ? OUT_TEST_COMBINED_INPUT_FINAL_CSV
+    : OUT_COMBINED_INPUT_FINAL_CSV;
 
 /**
  * Define how many top rows to keep for each dataset.
@@ -43,7 +66,7 @@ const DATASET_LIMITS = {
   [DATASET_KEYS.fashion_transparency]: 5,
   [DATASET_KEYS.ghg]: 5,
   [DATASET_KEYS.gewm]: 5,
-  [DATASET_KEYS.gtg]: 5,
+  [DATASET_KEYS.gtg]: 100,
   [DATASET_KEYS.ifixit]: 5,
   [DATASET_KEYS.kaggle]: 5,
   [DATASET_KEYS.kalundborg]: 5,
@@ -62,6 +85,13 @@ const DATASET_LIMITS = {
   [DATASET_KEYS.wrap]: 5,
 };
 
+/**
+ * Global Switch:
+ * If true, ignore limits and take every row from every dataset.
+ * If false, apply the limits defined in DATASET_LIMITS.
+ */
+const TAKE_ALL = process.argv.includes('--all');
+
 const DEFAULT_ROWS = 0; // Set to 0 to skip any dataset not explicitly listed
 // ==========================
 
@@ -76,21 +106,21 @@ function sampleRecordsByDataset(records) {
 
   for (const record of records) {
     const id = record.ID;
-    if (!id) continue;
 
     // Extract prefix (e.g., 'c2c' from 'c2c_00001')
-    const prefix = id.split('_')[0];
-
-    // Determine the limit for this specific dataset
-    const limit = DATASET_LIMITS[prefix] !== undefined ? DATASET_LIMITS[prefix] : DEFAULT_ROWS;
+    // or, 'abc_xyz' from 'abc_xyz_00001'
+    const prefix = id.split('_').slice(0, -1).join('_');
 
     // Initialize counter for new prefixes
     if (!datasetCounters[prefix]) {
       datasetCounters[prefix] = 0;
     }
 
-    // Add record only if we haven't reached the specific limit for this prefix
-    if (datasetCounters[prefix] < limit) {
+    // Logic: If TAKE_ALL is true, bypass limit check.
+    // Otherwise, check if current count is under the specific limit.
+    const limit = DATASET_LIMITS[prefix] !== undefined ? DATASET_LIMITS[prefix] : DEFAULT_ROWS;
+
+    if (TAKE_ALL || datasetCounters[prefix] < limit) {
       sampledRecords.push(record);
       datasetCounters[prefix]++;
     }
@@ -101,6 +131,11 @@ function sampleRecordsByDataset(records) {
 
 (async () => {
   try {
+    if (TAKE_ALL)
+      console.log(
+        '⚠️ TAKE_ALL is enabled. Ignoring limits and extracting all rows from all datasets...',
+      );
+
     console.log(`Reading ${INPUT_FILE}...`);
     const fileContent = fs.readFileSync(INPUT_FILE, 'utf-8');
 

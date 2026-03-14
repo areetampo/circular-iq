@@ -24,6 +24,8 @@
  *
  * --final flag -> takes combined_input_final.csv as input instead of combined_input.csv
  *
+ * NOTE: combined_input_final.csv only present in out/ and if --archives flag is there it simply takes combined_input.csv from archives/ hence, no both flags cannot be used together
+ *
  * --enrich-scores flag -> calls OpenAI to enrich each record with estimated scores for the 8 factors (this will be slow and consume tokens, use with caution)
  */
 
@@ -35,9 +37,16 @@ import { parse } from 'csv-parse/sync';
 import {
   ARCHIVES_COMBINED_INPUT_CSV,
   ARCHIVES_CHUNKS_JSON,
-  COMBINED_INPUT_CSV,
-  COMBINED_INPUT_FINAL_CSV,
-  CHUNKS_JSON,
+  OUT_COMBINED_INPUT_CSV,
+  OUT_COMBINED_INPUT_FINAL_CSV,
+  OUT_CHUNKS_JSON,
+  ARCHIVES_TEST_COMBINED_INPUT_CSV,
+  OUT_TEST_COMBINED_INPUT_CSV,
+  OUT_TEST_COMBINED_INPUT_FINAL_CSV,
+  ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV,
+  ARCHIVES_COMBINED_INPUT_FINAL_CSV,
+  ARCHIVES_TEST_CHUNKS_JSON,
+  OUT_TEST_CHUNKS_JSON,
   writeJson,
   assertFileExists,
   ensureDir,
@@ -45,24 +54,61 @@ import {
 import OpenAI from 'openai';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
-// ===== Constants =====
-const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
-const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
-
-// allow writing to archives folder instead of normal output
-const useArchive = process.argv.includes('--archives');
-const usingCombinedInputFinal = process.argv.includes('--final');
 const ENRICH_SCORES = process.argv.includes('--enrich-scores');
-if (ENRICH_SCORES) {
-  console.log(
-    '====== Enriching records with AI‑generated scores (this will call OpenAI for each record)',
-  );
-}
+const useArchive = process.argv.includes('--archives');
+const final = process.argv.includes('--final');
+const test = process.argv.includes('--test');
+
+const datasetPath = useArchive
+  ? test
+    ? final
+      ? ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV
+      : ARCHIVES_TEST_COMBINED_INPUT_CSV
+    : final
+      ? ARCHIVES_COMBINED_INPUT_FINAL_CSV
+      : ARCHIVES_COMBINED_INPUT_CSV
+  : test
+    ? final
+      ? OUT_TEST_COMBINED_INPUT_FINAL_CSV
+      : OUT_TEST_COMBINED_INPUT_CSV
+    : final
+      ? OUT_COMBINED_INPUT_FINAL_CSV
+      : OUT_COMBINED_INPUT_CSV;
+assertFileExists(
+  datasetPath,
+  `${
+    test
+      ? final
+        ? 'combined_input_final_test.csv'
+        : 'combined_input_test.csv'
+      : final
+        ? 'combined_input_final.csv'
+        : 'combined_input.csv'
+  }`,
+);
+const outputPath = useArchive
+  ? test
+    ? ARCHIVES_TEST_CHUNKS_JSON
+    : ARCHIVES_CHUNKS_JSON
+  : test
+    ? OUT_TEST_CHUNKS_JSON
+    : OUT_CHUNKS_JSON;
+
+// ensure output folder is ready (writeJson will also handle this later)
+const outDir = path.dirname(outputPath);
+await ensureDir(outDir);
 
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
+// ===== Constants =====
+const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
+const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
 const TOKENS_PER_WORD = 1.3; // Rough estimate for token counting
 const WORDS_PER_CHUNK = Math.floor(CHUNK_SIZE_TOKENS / TOKENS_PER_WORD);
+
+// Max concurrent OpenAI calls when --enrich-scores is active.
+// Fires this many gpt-4o-mini requests in parallel — stays well within RPM limits.
+const ENRICH_CONCURRENCY = 5;
 
 // ===== Dataset‑specific metadata extractors =====
 // Each dataset key (prefix from ID) maps to an array of field names (or paths) to extract.
@@ -349,6 +395,16 @@ export function loadDataset(csvFilePath) {
   return records;
 }
 
+// Module-level material keyword map (was duplicated inside extractMetadata previously)
+const MATERIAL_MAP = {
+  plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
+  metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
+  textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
+  organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
+  paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
+  glass: ['glass', 'ceramic', 'silica'],
+};
+
 /**
  * Extract metadata for classification – using reliable columns.
  * @private
@@ -366,38 +422,14 @@ function extractMetadata(problemText, solutionText, materials, category, circula
 
   // Primary material – from materials column if specific, else fallback to keywords
   let primary_material = 'mixed';
-  if (materials && materials !== 'Cradle‑to‑Cradle Certified Materials') {
-    const matLower = materials.toLowerCase();
-    const materialMap = {
-      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
-      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
-      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
-      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
-      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
-      glass: ['glass', 'ceramic', 'silica'],
-    };
-    for (const [material, keywords] of Object.entries(materialMap)) {
-      if (keywords.some((kw) => matLower.includes(kw))) {
-        primary_material = material;
-        break;
-      }
-    }
-  } else {
-    // fallback to keyword detection in combined text
-    const combined = `${problemText} ${solutionText}`.toLowerCase();
-    const materialMap = {
-      plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
-      metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
-      textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
-      organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
-      paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
-      glass: ['glass', 'ceramic', 'silica'],
-    };
-    for (const [material, keywords] of Object.entries(materialMap)) {
-      if (keywords.some((kw) => combined.includes(kw))) {
-        primary_material = material;
-        break;
-      }
+  const matSearchText =
+    materials && materials !== 'Cradle‑to‑Cradle Certified Materials'
+      ? materials.toLowerCase()
+      : `${problemText} ${solutionText}`.toLowerCase();
+  for (const [material, keywords] of Object.entries(MATERIAL_MAP)) {
+    if (keywords.some((kw) => matSearchText.includes(kw))) {
+      primary_material = material;
+      break;
     }
   }
 
@@ -555,7 +587,53 @@ function splitLongText(text, targetWords) {
  */
 export async function createChunks(records) {
   const chunks = [];
-  let chunkIndex = 0;
+  // Dedup guard: tracks content hashes for secondary chunks to prevent identical
+  // chunks (e.g. from near-duplicate CSV rows) from causing unique constraint violations
+  const seenSecondaryHashes = new Set();
+
+  // Pre-enrich scores concurrently in batches of ENRICH_CONCURRENCY.
+  // In normal mode this is skipped entirely (ENRICH_SCORES=false).
+  const precomputedScores = new Array(records.length).fill(null);
+  if (ENRICH_SCORES) {
+    console.log(
+      `  Pre-enriching scores for ${records.length} records with concurrency=${ENRICH_CONCURRENCY}...`,
+    );
+    for (let b = 0; b < records.length; b += ENRICH_CONCURRENCY) {
+      const batchSlice = records.slice(b, Math.min(b + ENRICH_CONCURRENCY, records.length));
+      const batchScores = await Promise.all(
+        batchSlice.map((rec, off) => {
+          const pText = sanitizeText(
+            rec['problem'] || rec['Problem'] || rec['Business Problem'] || '',
+          );
+          const sText = sanitizeText(
+            rec['solution'] || rec['Solution'] || rec['Business Solution'] || '',
+          );
+          const idx = b + off;
+          const dKey = (rec['ID'] || '').split('_')[0] || 'unknown';
+          const highlights = getMetadataHighlights(rec['metadata_json'] || '', dKey);
+          return enrichScores(pText, sText, {
+            materials: sanitizeText(rec['materials'] || rec['Materials'] || rec['Material'] || ''),
+            category: sanitizeText(
+              rec['category'] || rec['Category'] || rec['type'] || rec['Type'] || 'General',
+            ),
+            circular_strategy: sanitizeText(
+              rec['circular_strategy'] || rec['Circular Strategy'] || '',
+            ),
+            impact: sanitizeText(rec['impact'] || rec['Impact'] || ''),
+            metadataHighlights: highlights,
+          }).then((s) => {
+            precomputedScores[idx] = s;
+          });
+        }),
+      );
+      if ((b + ENRICH_CONCURRENCY) % 50 < ENRICH_CONCURRENCY) {
+        console.log(
+          `  Enriched ${Math.min(b + ENRICH_CONCURRENCY, records.length)}/${records.length} records...`,
+        );
+      }
+    }
+    console.log(`  ✓ Score enrichment complete.`);
+  }
 
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
@@ -619,23 +697,13 @@ export async function createChunks(records) {
       continue;
     }
 
-    let scores = null;
-    if (ENRICH_SCORES) {
-      const metadataHighlights = getMetadataHighlights(record['metadata_json'] || '', datasetKey);
-      scores = await enrichScores(problemText, solutionText, {
-        materials,
-        category,
-        circular_strategy: circularStrategy, // pass the camelCase variable
-        impact,
-        metadataHighlights,
-      });
-      // Small delay to avoid OpenAI rate limits
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      // Progress indicator every few records
-      if (i > 0 && i % 10 === 0)
-        console.log(`  Processed ${i}/${records.length} records for enrichment...`);
+    // Progress for large non-enrich datasets (enrich has its own counter)
+    if (!ENRICH_SCORES && records.length > 500 && (i + 1) % 500 === 0) {
+      console.log(`  Chunking record ${i + 1}/${records.length}...`);
     }
+
+    // Use pre-enriched scores from the concurrent batch above (null if not enriching)
+    const scores = precomputedScores[i];
 
     // Extract metadata for classification
     const metadata = extractMetadata(
@@ -709,7 +777,7 @@ export async function createChunks(records) {
     // Create primary chunk: Problem + Solution (always together)
     const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
     const primaryChunk = {
-      id: `chunk_${chunkIndex++}`,
+      id: `row_${i}_chunk_0`,
       source_row: i,
       chunk_index: 0,
       content: primaryContent,
@@ -747,15 +815,47 @@ export async function createChunks(records) {
       const secondaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}\n\n${secondaryParts.join('\n\n')}`;
       const wordCount = countWords(secondaryContent);
 
-      // Split secondary content if it's too long
-      if (wordCount > WORDS_PER_CHUNK * 1.5) {
-        const subChunks = splitLongText(secondaryContent, WORDS_PER_CHUNK);
-        subChunks.forEach((subContent, subIdx) => {
+      // Skip secondary chunk if identical content already exists from a previous row.
+      // This prevents duplicate key violations on idx_unique_chunk_field when near-duplicate
+      // CSV rows produce secondary chunks with the same content (same solution/materials/impact).
+      if (seenSecondaryHashes.has(secondaryContent)) {
+        console.warn(
+          `Skipping duplicate secondary chunk for row_${i} (identical content already seen)`,
+        );
+      } else {
+        seenSecondaryHashes.add(secondaryContent);
+
+        // Split secondary content if it's too long
+        if (wordCount > WORDS_PER_CHUNK * 1.5) {
+          const subChunks = splitLongText(secondaryContent, WORDS_PER_CHUNK);
+          subChunks.forEach((subContent, subIdx) => {
+            chunks.push({
+              id: `row_${i}_chunk_${subIdx + 1}`,
+              source_row: i,
+              chunk_index: subIdx + 1,
+              content: subContent,
+              metadata: {
+                category: category,
+                chunk_type: 'secondary',
+                source_id: record['ID'] || `row_${i}`,
+                parent_chunk: primaryChunk.id,
+                industry: metadata.industry,
+                scale: metadata.scale,
+                r_strategy: metadata.r_strategy,
+                primary_material: metadata.primary_material,
+                geographic_focus: metadata.geographic_focus,
+                fields: fieldsObj,
+                scores: scores, // may be null if enrichment failed
+              },
+              word_count: countWords(subContent),
+            });
+          });
+        } else {
           chunks.push({
-            id: `chunk_${chunkIndex++}`,
+            id: `row_${i}_chunk_1`,
             source_row: i,
-            chunk_index: subIdx + 1,
-            content: subContent,
+            chunk_index: 1,
+            content: secondaryContent,
             metadata: {
               category: category,
               chunk_type: 'secondary',
@@ -769,30 +869,9 @@ export async function createChunks(records) {
               fields: fieldsObj,
               scores: scores, // may be null if enrichment failed
             },
-            word_count: countWords(subContent),
+            word_count: countWords(secondaryContent),
           });
-        });
-      } else {
-        chunks.push({
-          id: `chunk_${chunkIndex++}`,
-          source_row: i,
-          chunk_index: 1,
-          content: secondaryContent,
-          metadata: {
-            category: category,
-            chunk_type: 'secondary',
-            source_id: record['ID'] || `row_${i}`,
-            parent_chunk: primaryChunk.id,
-            industry: metadata.industry,
-            scale: metadata.scale,
-            r_strategy: metadata.r_strategy,
-            primary_material: metadata.primary_material,
-            geographic_focus: metadata.geographic_focus,
-            fields: fieldsObj,
-            scores: scores, // may be null if enrichment failed
-          },
-          word_count: countWords(secondaryContent),
-        });
+        }
       }
     }
   }
@@ -841,24 +920,13 @@ export async function saveChunksToFile(chunks, outputPath) {
  * Loads dataset, creates chunks, and saves to file
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const datasetPath = useArchive
-    ? ARCHIVES_COMBINED_INPUT_CSV
-    : usingCombinedInputFinal
-      ? COMBINED_INPUT_FINAL_CSV
-      : COMBINED_INPUT_CSV;
-  assertFileExists(
-    datasetPath,
-    `${usingCombinedInputFinal ? 'combined_input_final.csv' : 'combined_input.csv'}`,
-  );
-  const outputPath = useArchive ? ARCHIVES_CHUNKS_JSON : CHUNKS_JSON;
-
-  // ensure output folder is ready (writeJson will also handle this later)
-  const outDir = path.dirname(outputPath);
-  await ensureDir(outDir);
-
-  if (useArchive) console.log('====== running in archives mode; writing output to archives folder');
-  if (usingCombinedInputFinal)
-    console.log('====== using combined_input_final.csv as input instead of combined_input.csv');
+  console.log('Starting chunk generation with the following options:');
+  console.log(`  Enrich scores with OpenAI: ${ENRICH_SCORES}`);
+  console.log(`  Use archives folder: ${useArchive}`);
+  console.log(`  Use final dataset: ${final}`);
+  console.log(`  Use test dataset: ${test}`);
+  console.log(`  Input dataset: ${datasetPath}`);
+  console.log(`  Output chunks file: ${outputPath}`);
 
   (async () => {
     try {

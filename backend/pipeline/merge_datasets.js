@@ -16,15 +16,15 @@ import { fileURLToPath } from 'url';
 import {
   DATASETS_PROCESSED_DIR,
   DATASETS_MANUAL_ENTRIES_DIR,
-  ARCHIVES_COMBINED_INPUT_CSV,
-  COMBINED_INPUT_CSV,
+  OUT_COMBINED_INPUT_CSV,
+  OUT_TEST_COMBINED_INPUT_CSV,
   prepareWrite,
   assertDirExists,
 } from '#utils/datasetsUtils.js';
 
-// allow writing to archives instead of normal output for a "run archives" variant
-const useArchive = process.argv.includes('--archives') || process.argv.includes('--archive');
-const OUTPUT_FILE = useArchive ? ARCHIVES_COMBINED_INPUT_CSV : COMBINED_INPUT_CSV; // central constant (datasets/out/combined_input.csv)
+// merge datasets already has a combined_input.csv so --archives flag isnt present for merge_datasets.js
+const test = process.argv.includes('--test');
+const OUTPUT_FILE = test ? OUT_TEST_COMBINED_INPUT_CSV : OUT_COMBINED_INPUT_CSV;
 
 // inputs always come from the standard dataset directories; the archives flag
 // only affects where the output is written (see ARCHIVES_COMBINED_INPUT_CSV).
@@ -57,10 +57,9 @@ function readCsvFile(filePath) {
  * Main merge function
  */
 async function mergeCsvFiles() {
-  console.log('\n' + '='.repeat(70));
-  console.log('Circular Economy Dataset Merger');
+  console.log('\n' + '='.repeat(20));
   console.log('Merging CSV files from processed/ and manual_entries/ folders');
-  console.log('='.repeat(70));
+  console.log('='.repeat(20));
 
   // Verify directories exist
   try {

@@ -74,14 +74,19 @@ CREATE EXTENSION IF NOT EXISTS btree_gin
   SCHEMA extensions
   CASCADE;
 
+-- Enable pgcrypto for gen_random_uuid() function
+CREATE EXTENSION IF NOT EXISTS pgcrypto
+  SCHEMA extensions;
+
 COMMENT ON EXTENSION vector IS 'pgvector: vector similarity search for embeddings';
 COMMENT ON EXTENSION btree_gin IS 'GIN index support for btree-indexable data types';
+COMMENT ON EXTENSION pgcrypto IS 'Provides gen_random_uuid() for UUID generation';
 
 -- Grant permissions on extensions schema
 GRANT USAGE ON SCHEMA extensions TO authenticated, anon, service_role;
 
 -- ============================================
--- 3. Create Documents Table with UUID
+-- 3. Create Documents Table
 -- ============================================
 --
 -- DIMENSION REFERENCE: Embedding dimension MUST match EMBEDDING_DIMENSION
@@ -98,7 +103,7 @@ CREATE TABLE IF NOT EXISTS documents (
 
   -- Vector embedding (1536-dimensional for text-embedding-3-small)
   -- KEEP IN SYNC with EMBEDDING_DIMENSION in backend/config/embedding.js
-  embedding extensions.vector(1536) NOT NULL,
+  embedding extensions.halfvec(1536) NOT NULL,
 
   -- Structured metadata columns for efficient filtering (indexed)
   industry TEXT,
@@ -107,6 +112,10 @@ CREATE TABLE IF NOT EXISTS documents (
 
   -- Flexible JSONB for additional metadata fields
   metadata JSONB DEFAULT '{}'::jsonb,
+
+  -- Generated columns exposing metadata fields (required for Supabase upsert conflict handling)
+  chunk_id TEXT GENERATED ALWAYS AS (metadata->>'chunk_id') STORED,
+  field_name TEXT GENERATED ALWAYS AS (metadata->>'field_name') STORED,
 
   -- Timestamps with timezone
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -121,6 +130,8 @@ COMMENT ON COLUMN documents.industry IS 'Primary industry classification for fil
 COMMENT ON COLUMN documents.category IS 'Primary category classification for filtering';
 COMMENT ON COLUMN documents.source IS 'Source identifier or dataset name';
 COMMENT ON COLUMN documents.metadata IS 'Flexible JSONB for additional metadata (legacy/flexible fields)';
+COMMENT ON COLUMN documents.chunk_id IS 'Grouping column used to retrieve all rows belonging to the same chunk during RAG context expansion';
+COMMENT ON COLUMN documents.field_name IS 'Generated column from metadata->>field_name used for uniqueness and resume-safe upserts';
 COMMENT ON COLUMN documents.created_at IS 'Creation timestamp (automatically set)';
 COMMENT ON COLUMN documents.updated_at IS 'Last update timestamp (automatically set)';
 
@@ -128,28 +139,30 @@ COMMENT ON COLUMN documents.updated_at IS 'Last update timestamp (automatically 
 -- 4. Create Optimized Indexes (PERFORMANCE)
 -- ============================================
 
+-- ⚡ THE RESUME FIX: Unique Functional Index
+-- This prevents duplicates based on the chunk_id and field_name inside the JSONB metadata.
+-- This is critical for the --resume flag to work reliably.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_chunk_field
+ON documents (chunk_id, field_name);
+
+COMMENT ON INDEX idx_unique_chunk_field IS
+'Ensures unique (chunk_id, field_name) combinations using generated columns extracted from metadata. Required for Supabase upsert conflict handling and resume-safe ingestion.';
+
+-- ⚡ RAG PERFORMANCE: Index on chunk_id for fast retrieval of all rows in the same chunk
+CREATE INDEX IF NOT EXISTS idx_documents_chunk_id
+ON documents(chunk_id);
+
+COMMENT ON INDEX idx_documents_chunk_id IS
+'Index used to quickly expand retrieval results to full chunk context in RAG pipelines';
+
 -- HNSW index for fast vector similarity search (better than IVFFlat for most cases)
 -- This provides 5-50x faster queries compared to no index
 CREATE INDEX IF NOT EXISTS idx_documents_embedding_hnsw
 ON documents
-USING hnsw (embedding extensions.vector_cosine_ops)
-WITH (m = 16, ef_construction = 64);
+USING hnsw (embedding extensions.halfvec_cosine_ops)
+WITH (m = 16, ef_construction = 128);
 
 COMMENT ON INDEX idx_documents_embedding_hnsw IS 'HNSW index for fast approximate nearest neighbor search on embeddings';
-
--- GIN index for metadata queries (industry filter)
-CREATE INDEX IF NOT EXISTS idx_documents_metadata_industry
-ON documents
-USING gin ((metadata->'industry'));
-
-COMMENT ON INDEX idx_documents_metadata_industry IS 'Fast lookups by industry in metadata';
-
--- GIN index for metadata queries (category filter)
-CREATE INDEX IF NOT EXISTS idx_documents_metadata_category
-ON documents
-USING gin ((metadata->'category'));
-
-COMMENT ON INDEX idx_documents_metadata_category IS 'Fast lookups by category in metadata';
 
 -- Full-text search index
 CREATE INDEX IF NOT EXISTS idx_documents_content_fts
@@ -209,7 +222,7 @@ COMMENT ON POLICY documents_access_policy ON documents IS 'All users can access 
 
 -- Basic vector similarity search
 CREATE OR REPLACE FUNCTION match_documents(
-  query_embedding extensions.vector(1536),
+  query_embedding extensions.halfvec(1536),
   match_count INT DEFAULT 5
 )
 RETURNS TABLE (
@@ -220,15 +233,24 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
+  WITH ranked_chunks AS (
+    SELECT
+      chunk_id,
+      MIN(embedding <=> query_embedding) AS best_distance
+    FROM documents
+    WHERE embedding IS NOT NULL
+    GROUP BY chunk_id
+    ORDER BY best_distance
+    LIMIT match_count
+  )
   SELECT
-    documents.id,
-    documents.content,
-    documents.metadata,
-    1 - (documents.embedding <=> query_embedding) AS similarity
-  FROM documents
-  WHERE documents.embedding IS NOT NULL
-  ORDER BY documents.embedding <=> query_embedding
-  LIMIT match_count;
+    d.id,
+    d.content,
+    d.metadata,
+    1 - (d.embedding <=> query_embedding) AS similarity
+  FROM documents d
+  JOIN ranked_chunks rc
+  ON d.chunk_id = rc.chunk_id;
 END;
 $$ LANGUAGE plpgsql
 SET search_path = public, extensions
@@ -238,7 +260,7 @@ COMMENT ON FUNCTION match_documents IS 'Find similar documents using cosine simi
 
 -- Search by industry with similarity threshold
 CREATE OR REPLACE FUNCTION search_documents_by_industry(
-  query_embedding extensions.vector(1536),
+  query_embedding extensions.halfvec(1536),
   industry_filter TEXT,
   match_count INT DEFAULT 10,
   similarity_threshold FLOAT DEFAULT 0.7
@@ -259,7 +281,7 @@ BEGIN
   FROM documents d
   WHERE
     d.embedding IS NOT NULL
-    AND d.metadata->>'industry' = industry_filter
+    AND d.industry = industry_filter
     AND 1 - (d.embedding <=> query_embedding) >= similarity_threshold
   ORDER BY d.embedding <=> query_embedding
   LIMIT match_count;
@@ -272,7 +294,7 @@ COMMENT ON FUNCTION search_documents_by_industry IS 'Search documents filtered b
 
 -- Search by category with similarity threshold
 CREATE OR REPLACE FUNCTION search_documents_by_category(
-  query_embedding extensions.vector(1536),
+  query_embedding extensions.halfvec(1536),
   category_filter TEXT,
   match_count INT DEFAULT 10,
   similarity_threshold FLOAT DEFAULT 0.7
@@ -293,7 +315,7 @@ BEGIN
   FROM documents d
   WHERE
     d.embedding IS NOT NULL
-    AND d.metadata->>'category' = category_filter
+    AND d.category = category_filter
     AND 1 - (d.embedding <=> query_embedding) >= similarity_threshold
   ORDER BY d.embedding <=> query_embedding
   LIMIT match_count;
@@ -307,7 +329,7 @@ COMMENT ON FUNCTION search_documents_by_category IS 'Search documents filtered b
 -- Hybrid search combining vector similarity and full-text search
 -- UPDATED: Added structured filters (industry, category, source) and extended output columns
 CREATE OR REPLACE FUNCTION search_documents_hybrid(
-  query_embedding extensions.vector(1536),
+  query_embedding extensions.halfvec(1536),
   keyword_filter TEXT DEFAULT '',
   industry_filter TEXT DEFAULT NULL,
   category_filter TEXT DEFAULT NULL,
@@ -368,7 +390,7 @@ COMMENT ON FUNCTION search_documents_hybrid IS 'Hybrid search combining vector s
 
 -- Hybrid search with industry filtering
 CREATE OR REPLACE FUNCTION search_documents_hybrid_filtered(
-  query_embedding extensions.vector(1536),
+  query_embedding extensions.halfvec(1536),
   keyword_filter TEXT DEFAULT '',
   industry_filter TEXT DEFAULT NULL,
   match_count INT DEFAULT 10,
@@ -397,7 +419,7 @@ BEGIN
     )
     AND (
       industry_filter IS NULL
-      OR d.metadata->>'industry' = industry_filter
+      OR d.industry = industry_filter
     )
   ORDER BY similarity DESC
   LIMIT match_count;
@@ -406,7 +428,46 @@ $$ LANGUAGE plpgsql
 SET search_path = public, extensions
 STABLE;
 
-COMMENT ON FUNCTION search_documents_hybrid_filtered IS 'Hybrid search with optional industry filtering';
+COMMENT ON FUNCTION search_documents_hybrid_filtered IS 'Hybrid search with optional industry filtering using the dedicated industry column';
+
+-- Search for most recent documents with optional filtering
+CREATE OR REPLACE FUNCTION find_recent_documents(
+  limit_count INT,
+  industry_filter TEXT DEFAULT NULL,
+  category_filter TEXT DEFAULT NULL,
+  source_filter TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  content TEXT,
+  metadata JSONB,
+  industry TEXT,
+  category TEXT,
+  source TEXT,
+  created_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    d.id,
+    d.content,
+    d.metadata,
+    d.industry,
+    d.category,
+    d.source,
+    d.created_at
+  FROM documents d
+  WHERE (industry_filter IS NULL OR d.industry = industry_filter)
+    AND (category_filter IS NULL OR d.category = category_filter)
+    AND (source_filter IS NULL OR d.source = source_filter)
+  ORDER BY d.created_at DESC
+  LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql
+SET search_path = public, extensions
+STABLE;
+
+COMMENT ON FUNCTION find_recent_documents IS 'Retrieve latest documents with optional structured metadata filters';
 
 -- ============================================
 -- 7. Analytics Functions (SECURITY FIX)
@@ -537,13 +598,14 @@ GRANT ALL ON documents TO service_role;
 
 -- Allow service role to execute truncate function
 GRANT EXECUTE ON FUNCTION truncate_documents() TO service_role;
-GRANT EXECUTE ON FUNCTION match_documents(extensions.vector, INT) TO authenticated, anon, service_role;
-GRANT EXECUTE ON FUNCTION search_documents_by_industry(extensions.vector, TEXT, INT, FLOAT) TO authenticated, anon, service_role;
-GRANT EXECUTE ON FUNCTION search_documents_by_category(extensions.vector, TEXT, INT, FLOAT) TO authenticated, anon, service_role;
-GRANT EXECUTE ON FUNCTION search_documents_hybrid(extensions.vector, TEXT, TEXT, TEXT, TEXT, INT, FLOAT, FLOAT) TO authenticated, anon, service_role;
-GRANT EXECUTE ON FUNCTION search_documents_hybrid_filtered(extensions.vector, TEXT, TEXT, INT, FLOAT) TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION match_documents(extensions.halfvec, INT) TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION search_documents_by_industry(extensions.halfvec, TEXT, INT, FLOAT) TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION search_documents_by_category(extensions.halfvec, TEXT, INT, FLOAT) TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION search_documents_hybrid(extensions.halfvec, TEXT, TEXT, TEXT, TEXT, INT, FLOAT, FLOAT) TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION search_documents_hybrid_filtered(extensions.halfvec, TEXT, TEXT, INT, FLOAT) TO authenticated, anon, service_role;
 GRANT EXECUTE ON FUNCTION get_document_statistics() TO authenticated, anon, service_role;
 GRANT EXECUTE ON FUNCTION count_documents_by_category(TEXT) TO authenticated, anon, service_role;
+GRANT EXECUTE ON FUNCTION find_recent_documents(INT, TEXT, TEXT, TEXT) TO authenticated, anon, service_role;
 
 -- ============================================
 -- 10. Verification Queries (Optional)

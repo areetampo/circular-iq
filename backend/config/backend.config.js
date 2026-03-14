@@ -29,6 +29,7 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   process.env.SUPABASE_USER = process.env.SUPABASE_USER || 'postgres';
   process.env.SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD || 'password';
   process.env.SUPABASE_CONNECTION_STRING = process.env.SUPABASE_CONNECTION_STRING || '';
+  process.env.SUPABASE_CONNECTION_LIMIT = process.env.SUPABASE_CONNECTION_LIMIT || '20';
   process.env.AIVEN_CONNECTION_LIMIT = process.env.AIVEN_CONNECTION_LIMIT || '20';
   process.env.AIVEN_CA_CERT = process.env.AIVEN_CA_CERT || '';
 }
@@ -162,6 +163,7 @@ const buildDatabaseConfig = () => {
     truncate_documents: 'truncate_documents',
     get_document_statistics: 'get_document_statistics',
     count_documents_by_category: 'count_documents_by_category',
+    find_recent_documents: 'find_recent_documents',
   };
 
   return {
@@ -183,12 +185,12 @@ export const BACKEND_CONFIG = deepFreeze({
     url: env.SUPABASE_URL,
     anonKey: env.SUPABASE_ANON_KEY,
     serviceKey: env.SUPABASE_SERVICE_ROLE_KEY,
-    // optional low-level postgres connection info
     host: env.SUPABASE_HOST,
     port: env.SUPABASE_PORT,
     database: env.SUPABASE_DATABASE,
     user: env.SUPABASE_USER,
     password: env.SUPABASE_PASSWORD,
+    connectionLimit: env.SUPABASE_CONNECTION_LIMIT,
     connectionString: env.SUPABASE_CONNECTION_STRING,
   },
 

@@ -3,7 +3,8 @@ import { createSupabaseClient } from '#database/supabase.client.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 let _supabaseClient = null;
-let _pgPool = null;
+let _supabasePgPool = null;
+let _aivenPgPool = null;
 
 // override for testing / special cases
 let _overrideClient = null;
@@ -33,8 +34,8 @@ export function getSupabaseClient() {
  * Create or return an existing Postgres pool pointed at the Aiven instance.
  * The pool is lazily instantiated and reused.
  */
-export function getPgPool() {
-  if (!_pgPool) {
+export function getAivenPgPool() {
+  if (!_aivenPgPool) {
     const cfg = BACKEND_CONFIG.aiven;
     const poolOptions = {
       ssl: cfg.ssl ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' } : false,
@@ -53,9 +54,27 @@ export function getPgPool() {
       poolOptions.password = cfg.password;
     }
 
-    _pgPool = new Pool(poolOptions);
+    _aivenPgPool = new Pool(poolOptions);
   }
-  return _pgPool;
+  return _aivenPgPool;
+}
+
+/**
+ *
+ */
+export function getSupabasePgPool() {
+  if (!_supabasePgPool) {
+    const cfg = BACKEND_CONFIG.supabase;
+
+    _supabasePgPool = new Pool({
+      connectionString: cfg.connectionString,
+      ssl: { rejectUnauthorized: false },
+      max: cfg.connectionLimit,
+      idleTimeoutMillis: 30000,
+    });
+  }
+
+  return _supabasePgPool;
 }
 
 /**
@@ -71,7 +90,7 @@ export function getDatabaseClient() {
     return getSupabaseClient();
   }
   // For Postgres we return the pool itself; callers will use pool.query
-  return getPgPool();
+  return getAivenPgPool();
 }
 
 /**
