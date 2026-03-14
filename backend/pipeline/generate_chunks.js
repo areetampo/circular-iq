@@ -34,6 +34,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
+import { createHash } from 'crypto';
 import {
   ARCHIVES_COMBINED_INPUT_CSV,
   ARCHIVES_CHUNKS_JSON,
@@ -53,6 +54,16 @@ import {
 } from '#utils/datasetsUtils.js';
 import OpenAI from 'openai';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import {
+  WORDS_PER_CHUNK,
+  ENRICH_CONCURRENCY,
+  formatMetadataFromJson,
+  getMetadataHighlights,
+  extractMetadata,
+  sanitizeText,
+  countWords,
+  splitLongText,
+} from '#config/chunk.js';
 
 const ENRICH_SCORES = process.argv.includes('--enrich-scores');
 const useArchive = process.argv.includes('--archives');
@@ -100,279 +111,7 @@ await ensureDir(outDir);
 
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
-// ===== Constants =====
-const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
-const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
-const TOKENS_PER_WORD = 1.3; // Rough estimate for token counting
-const WORDS_PER_CHUNK = Math.floor(CHUNK_SIZE_TOKENS / TOKENS_PER_WORD);
-
-// Max concurrent OpenAI calls when --enrich-scores is active.
-// Fires this many gpt-4o-mini requests in parallel — stays well within RPM limits.
-const ENRICH_CONCURRENCY = 5;
-
-// ===== Dataset‑specific metadata extractors =====
-// Each dataset key (prefix from ID) maps to an array of field names (or paths) to extract.
-// For nested objects, use dot notation. If the value is an array, it will be joined.
-const DATASET_METADATA_FIELDS = {
-  c2c: ['company', 'certifications', 'description', 'materials', 'score', 'certCount'],
-  cgr: ['extracted_stats', 'original_snippet'],
-  circle: ['type', 'location', 'has_problem', 'has_solution', 'has_outcome'],
-  dataeu: ['Ville', 'Structure', 'Partenaires', "Domaine d'action", 'Localisation action'],
-  ecesp: ['organisation', 'country', 'keyArea', 'sectors', 'results'],
-  eippcb: ['source', 'bat_index', 'type'],
-  emf: ['title', 'orgLine', 'locationLine', 'strategyLine', 'ai_extracted'],
-  env: [
-    'Location',
-    'Primary energy supply Fossil fuels (% of total) 2012',
-    'Carbon dioxide emissions per capita (tonnes) 2011',
-  ],
-  epa: [
-    'facility',
-    'state',
-    'naics',
-    'total_release_lbs',
-    'recycled_lbs',
-    'energy_recovery_lbs',
-    'treated_lbs',
-    'disposed_lbs',
-    'combined_score',
-  ],
-  eulac: [
-    'company',
-    'economic_activity',
-    'circular_strategy',
-    'materials_detected',
-    'metrics_detected',
-    'source_type',
-  ],
-  eurostat: ['country', 'year', 'value', 'unit', 'dataset', 'source'],
-  fashion: [], // no metadata in sample
-  ghg: ['country', 'sector', 'gas', 'year', 'emissions_Gg', 'unit', 'source_file', 'citation'],
-  gewm: [
-    'country',
-    'region',
-    'ewaste_generated_million_kg',
-    'ewaste_kg_per_capita',
-    'collected_million_kg',
-    'legislation',
-    'epr',
-    'collection_target',
-    'recycling_target',
-  ],
-  gtg: ['id', 'product', 'summary', 'embedded_value', 'categories'],
-  ifixit: [
-    'oem',
-    'device',
-    'release_date',
-    'repairability_score',
-    'category',
-    'source_file',
-    'bullet_type',
-    'original_bullet',
-  ],
-  kaggle: [
-    'Product name (and functional unit)',
-    'Company',
-    "Product's carbon footprint (PCF, kg CO2e)",
-    'Year of reporting',
-  ],
-  kalundborg: ['paragraphs', 'extracted_at'], // full_content is too long, skip
-  mnd: ['challenge_code', 'geometric_mean'],
-  metabolic: ['original_filename', 'chunk_preview', 'score'],
-  oecd: ['REF_AREA', 'MEASURE', 'MATERIAL', 'TIME_PERIOD', 'OBS_VALUE'],
-  obf: ['brands', 'categories', 'packaging_materials_tags', 'labels', 'product_name'],
-  off: ['brands', 'categories', 'packaging_materials_tags', 'labels', 'product_name'],
-  opf: ['categories', 'code', 'labels', 'packaging', 'product_name'],
-  refed: ['original.attributes.name', 'original.attributes.definition', 'original.attributes.data'],
-  rema: ['title', 'description', 'industry', 'score'],
-  sei: ['summary', 'goals', 'strategies', 'findings', 'quantitative', 'fileName'],
-  unep: ['Country', 'Category', 'Flow name', '2024'], // last year value
-  wbcsd: [
-    'company',
-    'industry',
-    'quote',
-    'sections.why',
-    'sections.challenges',
-    'sections.solutions',
-    'sections.results',
-  ],
-  wbp: ['id', 'country', 'region', 'lending_instrument', 'approval_date', 'status'],
-  wrap: ['source_file', 'score', 'full_paragraph', 'category'],
-};
-
 // ===== Helper functions =====
-
-/**
- * Safely get a nested value from an object using dot notation.
- * @param {Object} obj - The object to traverse.
- * @param {string} path - Dot‑separated path.
- * @returns {any} The value, or undefined if not found.
- */
-function getNestedValue(obj, path) {
-  return path
-    .split('.')
-    .reduce(
-      (current, key) => (current && current[key] !== undefined ? current[key] : undefined),
-      obj,
-    );
-}
-
-/**
- * Format a value for inclusion in metadata summary.
- * - Strings are truncated if too long.
- * - Arrays are joined with commas.
- * - Objects are stringified (shallow) if small.
- * @param {any} value - The value to format.
- * @returns {string} Formatted string.
- */
-function formatMetadataValue(value) {
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'string') {
-    if (value.length > MAX_METADATA_FIELD_LENGTH) {
-      return value.substring(0, MAX_METADATA_FIELD_LENGTH) + '…';
-    }
-    return value;
-  }
-  if (Array.isArray(value)) {
-    const joined = value
-      .map((v) => String(v).trim())
-      .filter(Boolean)
-      .join(', ');
-    if (joined.length > MAX_METADATA_FIELD_LENGTH) {
-      return joined.substring(0, MAX_METADATA_FIELD_LENGTH) + '…';
-    }
-    return joined;
-  }
-  if (typeof value === 'object') {
-    // For simple objects, convert to string, but limit length
-    const str = JSON.stringify(value);
-    if (str.length > MAX_METADATA_FIELD_LENGTH) {
-      return str.substring(0, MAX_METADATA_FIELD_LENGTH) + '…';
-    }
-    return str;
-  }
-  return String(value);
-}
-
-/**
- * Extract and format useful information from metadata_json, dataset‑aware.
- * @param {string} metadataJson - The JSON string from the CSV.
- * @param {string} datasetKey - Dataset prefix (e.g., 'c2c', 'cgr').
- * @returns {string} Formatted metadata string, or empty if none.
- */
-function formatMetadataFromJson(metadataJson, datasetKey) {
-  if (!metadataJson) return '';
-  try {
-    const meta = JSON.parse(metadataJson);
-    const parts = [];
-
-    // Use dataset‑specific field list if available
-    const fieldsToExtract = DATASET_METADATA_FIELDS[datasetKey];
-    if (fieldsToExtract && fieldsToExtract.length > 0) {
-      for (const field of fieldsToExtract) {
-        const value = getNestedValue(meta, field);
-        if (value !== undefined && value !== null && value !== '') {
-          const formatted = formatMetadataValue(value);
-          // Use the last part of the field path as a label (or the whole path)
-          const label = field.split('.').pop();
-          parts.push(`${label}: ${formatted}`);
-        }
-      }
-    }
-
-    // Fallback: extract common fields (for datasets not explicitly listed)
-    if (parts.length === 0) {
-      if (meta.company) parts.push(`Company: ${formatMetadataValue(meta.company)}`);
-      if (meta.certifications && typeof meta.certifications === 'object') {
-        const certs = Object.entries(meta.certifications)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join(', ');
-        if (certs) parts.push(`Certifications: ${certs}`);
-      }
-      if (meta.description) parts.push(`Description: ${formatMetadataValue(meta.description)}`);
-      if (meta.materials && meta.materials !== 'Cradle‑to‑Cradle Certified Materials') {
-        parts.push(`Materials: ${formatMetadataValue(meta.materials)}`);
-      }
-      if (meta.score !== undefined) parts.push(`Score: ${meta.score}`);
-      if (meta.certCount !== undefined) parts.push(`Number of certifications: ${meta.certCount}`);
-    }
-
-    return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
-  } catch (e) {
-    console.warn(`⚠️ Could not parse metadata_json: ${e.message}`);
-    return '';
-  }
-}
-
-/**
- * Extract concise, dataset‑specific highlights from metadata_json.
- * @param {string} metadataJson - The JSON string from the CSV.
- * @param {string} datasetKey - Dataset prefix (e.g., 'c2c', 'cgr').
- * @returns {string} A short summary string (empty if none).
- */
-function getMetadataHighlights(metadataJson, datasetKey) {
-  if (!metadataJson) return '';
-  try {
-    const meta = JSON.parse(metadataJson);
-    const parts = [];
-
-    // Use dataset‑specific fields if available (up to 4)
-    const fieldsToExtract = DATASET_METADATA_FIELDS[datasetKey];
-    if (fieldsToExtract && fieldsToExtract.length > 0) {
-      // Pick a few fields that are likely to be informative (first 4)
-      const selectedFields = fieldsToExtract.slice(0, 4);
-      for (const field of selectedFields) {
-        const value = getNestedValue(meta, field);
-        if (value !== undefined && value !== null && value !== '') {
-          const formatted = formatMetadataValue(value);
-          // Use the last part of the field path as a label
-          const label = field.split('.').pop();
-          parts.push(`${label}: ${formatted}`);
-        }
-      }
-    }
-
-    // Always include key numeric indicators if present
-    const numericKeys = [
-      'certCount',
-      'qualityScore',
-      'score',
-      'recycled_content',
-      'carbon_footprint',
-      'repairability_score',
-    ];
-    for (const key of numericKeys) {
-      if (meta[key] !== undefined) {
-        parts.push(`${key}: ${meta[key]}`);
-      }
-    }
-
-    // Include certifications if not already covered and if present
-    if (!parts.some((p) => p.includes('certifications') || p.includes('Certifications'))) {
-      if (meta.certifications) {
-        if (typeof meta.certifications === 'object') {
-          const certStr = Object.entries(meta.certifications)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(', ');
-          // Truncate if too long
-          const truncated = certStr.length > 100 ? certStr.substring(0, 100) + '…' : certStr;
-          parts.push(`Certifications: ${truncated}`);
-        } else if (typeof meta.certifications === 'string') {
-          const truncated =
-            meta.certifications.length > 100
-              ? meta.certifications.substring(0, 100) + '…'
-              : meta.certifications;
-          parts.push(`Certifications: ${truncated}`);
-        }
-      }
-    }
-
-    return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
-  } catch {
-    // Silently fail – no highlights
-    return '';
-  }
-}
 
 /**
  * Load and parse a generic CSV dataset
@@ -393,67 +132,6 @@ export function loadDataset(csvFilePath) {
 
   console.log(`✓ Loaded ${records.length} records from dataset`);
   return records;
-}
-
-// Module-level material keyword map (was duplicated inside extractMetadata previously)
-const MATERIAL_MAP = {
-  plastic: ['plastic', 'polymer', 'pvc', 'polyethylene', 'pp', 'pet'],
-  metal: ['metal', 'aluminum', 'steel', 'copper', 'iron', 'brass'],
-  textile: ['textile', 'fabric', 'cotton', 'polyester', 'wool', 'nylon'],
-  organic: ['organic', 'compost', 'biodegradable', 'plant', 'food', 'waste'],
-  paper: ['paper', 'cardboard', 'pulp', 'cellulose'],
-  glass: ['glass', 'ceramic', 'silica'],
-};
-
-/**
- * Extract metadata for classification – using reliable columns.
- * @private
- */
-function extractMetadata(problemText, solutionText, materials, category, circularStrategy) {
-  // Industry: from category (simple mapping)
-  let industry = 'general';
-  const catLower = category.toLowerCase();
-  if (catLower.includes('textile')) industry = 'textiles';
-  else if (catLower.includes('packaging')) industry = 'packaging';
-  else if (catLower.includes('construction')) industry = 'construction';
-  else if (catLower.includes('electronics')) industry = 'electronics';
-  else if (catLower.includes('health')) industry = 'health';
-  else if (catLower.includes('automotive')) industry = 'automotive';
-
-  // Primary material – from materials column if specific, else fallback to keywords
-  let primary_material = 'mixed';
-  const matSearchText =
-    materials && materials !== 'Cradle‑to‑Cradle Certified Materials'
-      ? materials.toLowerCase()
-      : `${problemText} ${solutionText}`.toLowerCase();
-  for (const [material, keywords] of Object.entries(MATERIAL_MAP)) {
-    if (keywords.some((kw) => matSearchText.includes(kw))) {
-      primary_material = material;
-      break;
-    }
-  }
-
-  // Circular strategy – use circularStrategy column if present, else keyword
-  let r_strategy = 'reduction';
-  if (circularStrategy) {
-    const stratLower = circularStrategy.toLowerCase();
-    if (stratLower.includes('reuse')) r_strategy = 'reuse';
-    else if (stratLower.includes('recycl')) r_strategy = 'recycling';
-    else if (stratLower.includes('regenerat')) r_strategy = 'regeneration';
-    else if (stratLower.includes('reduce')) r_strategy = 'reduction';
-  } else {
-    const combined = `${problemText} ${solutionText}`.toLowerCase();
-    if (combined.includes('reuse')) r_strategy = 'reuse';
-    else if (combined.includes('recycl')) r_strategy = 'recycling';
-    else if (combined.includes('regenerat')) r_strategy = 'regeneration';
-    else if (combined.includes('reduce')) r_strategy = 'reduction';
-  }
-
-  // Scale and geographic focus – not reliably extractable; set to null
-  const scale = null;
-  const geographic_focus = null;
-
-  return { industry, scale, r_strategy, primary_material, geographic_focus };
 }
 
 /**
@@ -529,57 +207,6 @@ Return ONLY a JSON object with keys exactly as above and values between 0 and 10
 }
 
 /**
- * Sanitize and normalize text
- * @private
- */
-function sanitizeText(text) {
-  if (!text) return '';
-  return String(text)
-    .trim()
-    .replace(/\s+/g, ' ')
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u2018\u2019]/g, "'");
-}
-
-/**
- * Estimate word count for a string
- * @private
- */
-function countWords(text) {
-  return text.trim().split(/\s+/).length;
-}
-
-/**
- * Split long text into chunks of roughly equal word count
- * @private
- */
-function splitLongText(text, targetWords) {
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-  const chunks = [];
-  let currentChunk = '';
-  let currentWordCount = 0;
-
-  for (const sentence of sentences) {
-    const sentenceWords = countWords(sentence);
-
-    if (currentWordCount + sentenceWords > targetWords && currentChunk) {
-      chunks.push(currentChunk.trim());
-      currentChunk = sentence;
-      currentWordCount = sentenceWords;
-    } else {
-      currentChunk += ' ' + sentence;
-      currentWordCount += sentenceWords;
-    }
-  }
-
-  if (currentChunk.trim()) {
-    chunks.push(currentChunk.trim());
-  }
-
-  return chunks;
-}
-
-/**
  * Process dataset into semantic chunks
  * Preserves problem/solution pairs as foundational units
  * @param {Array} records - Parsed CSV records
@@ -589,7 +216,8 @@ export async function createChunks(records) {
   const chunks = [];
   // Dedup guard: tracks content hashes for secondary chunks to prevent identical
   // chunks (e.g. from near-duplicate CSV rows) from causing unique constraint violations
-  const seenSecondaryHashes = new Set();
+  const seenPrimaryHashes = new Map(); // contentHash → primaryChunkId
+  const seenSecondaryHashes = new Set(); // content → (for dedup)
 
   // Pre-enrich scores concurrently in batches of ENRICH_CONCURRENCY.
   // In normal mode this is skipped entirely (ENRICH_SCORES=false).
@@ -598,9 +226,11 @@ export async function createChunks(records) {
     console.log(
       `  Pre-enriching scores for ${records.length} records with concurrency=${ENRICH_CONCURRENCY}...`,
     );
+
+    let enrichedCount = 0;
     for (let b = 0; b < records.length; b += ENRICH_CONCURRENCY) {
       const batchSlice = records.slice(b, Math.min(b + ENRICH_CONCURRENCY, records.length));
-      const batchScores = await Promise.all(
+      await Promise.all(
         batchSlice.map((rec, off) => {
           const pText = sanitizeText(
             rec['problem'] || rec['Problem'] || rec['Business Problem'] || '',
@@ -626,10 +256,11 @@ export async function createChunks(records) {
           });
         }),
       );
-      if ((b + ENRICH_CONCURRENCY) % 50 < ENRICH_CONCURRENCY) {
-        console.log(
-          `  Enriched ${Math.min(b + ENRICH_CONCURRENCY, records.length)}/${records.length} records...`,
-        );
+      enrichedCount += batchSlice.length;
+
+      // Log progress every few batches or at the end
+      if (enrichedCount % (ENRICH_CONCURRENCY * 10) === 0 || enrichedCount === records.length) {
+        console.log(`  Enriched ${enrichedCount}/${records.length} records...`);
       }
     }
     console.log(`  ✓ Score enrichment complete.`);
@@ -733,37 +364,34 @@ export async function createChunks(records) {
     for (const [k, v] of Object.entries(record)) {
       const key = String(k).trim();
       if (!key) continue;
-      if (
-        [
-          'problem',
-          'Problem',
-          'Business Problem',
-          'solution',
-          'Solution',
-          'Business Solution',
-          'materials',
-          'Materials',
-          'Material',
-          'circular_strategy',
-          'Circular Strategy',
-          'circularity',
-          'Circularity',
-          'category',
-          'Category',
-          'type',
-          'Type',
-          'impact',
-          'Impact',
-          'outcomes',
-          'Outcomes',
-          'source_url',
-          'Source URL',
-          'metadata_json',
-          'ID',
-        ].includes(key)
-      ) {
-        continue;
-      }
+      const excluded = [
+        'problem',
+        'Problem',
+        'Business Problem',
+        'solution',
+        'Solution',
+        'Business Solution',
+        'materials',
+        'Materials',
+        'Material',
+        'circular_strategy',
+        'Circular Strategy',
+        'circularity',
+        'Circularity',
+        'category',
+        'Category',
+        'type',
+        'Type',
+        'impact',
+        'Impact',
+        'outcomes',
+        'Outcomes',
+        'source_url',
+        'Source URL',
+        'metadata_json',
+        'ID',
+      ];
+      if (excluded.includes(key)) continue;
       try {
         const normalized = sanitizeText(record[k]);
         if (normalized && !(key in fieldsObj)) {
@@ -776,32 +404,43 @@ export async function createChunks(records) {
 
     // Create primary chunk: Problem + Solution (always together)
     const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
-    const primaryChunk = {
-      id: `row_${i}_chunk_0`,
-      source_row: i,
-      chunk_index: 0,
-      content: primaryContent,
-      metadata: {
-        category: category,
-        source:
-          record['source'] ||
-          record['Source'] ||
-          record['source_url'] ||
-          record['Source URL'] ||
-          null,
-        chunk_type: 'primary',
-        source_id: record['ID'] || `row_${i}`,
-        industry: metadata.industry,
-        scale: metadata.scale,
-        r_strategy: metadata.r_strategy,
-        primary_material: metadata.primary_material,
-        geographic_focus: metadata.geographic_focus,
-        fields: fieldsObj,
-        scores: scores, // may be null if enrichment failed
-      },
-      word_count: countWords(primaryContent),
-    };
-    chunks.push(primaryChunk);
+    const primaryContentHash = createHash('sha1').update(primaryContent).digest('hex');
+    let primaryChunkId;
+
+    if (seenPrimaryHashes.has(primaryContentHash)) {
+      // Duplicate primary chunk – reuse existing ID
+      primaryChunkId = seenPrimaryHashes.get(primaryContentHash);
+    } else {
+      // Create new primary chunk
+      const primaryChunk = {
+        id: `row_${i}_chunk_0`,
+        source_row: i,
+        chunk_index: 0,
+        content: primaryContent,
+        metadata: {
+          category,
+          source:
+            record['source'] ||
+            record['Source'] ||
+            record['source_url'] ||
+            record['Source URL'] ||
+            null,
+          chunk_type: 'primary',
+          source_id: record['ID'] || `row_${i}`,
+          industry: metadata.industry,
+          scale: metadata.scale,
+          r_strategy: metadata.r_strategy,
+          primary_material: metadata.primary_material,
+          geographic_focus: metadata.geographic_focus,
+          fields: fieldsObj,
+          scores,
+        },
+        word_count: countWords(primaryContent),
+      };
+      chunks.push(primaryChunk);
+      primaryChunkId = primaryChunk.id;
+      seenPrimaryHashes.set(primaryContentHash, primaryChunkId);
+    }
 
     // Create secondary chunks if additional context exists
     const secondaryParts = [];
@@ -811,13 +450,9 @@ export async function createChunks(records) {
     if (metadataSummary) secondaryParts.push(metadataSummary);
 
     if (secondaryParts.length > 0) {
-      // Include full problem+solution pair + supplementary context
       const secondaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}\n\n${secondaryParts.join('\n\n')}`;
       const wordCount = countWords(secondaryContent);
 
-      // Skip secondary chunk if identical content already exists from a previous row.
-      // This prevents duplicate key violations on idx_unique_chunk_field when near-duplicate
-      // CSV rows produce secondary chunks with the same content (same solution/materials/impact).
       if (seenSecondaryHashes.has(secondaryContent)) {
         console.warn(
           `Skipping duplicate secondary chunk for row_${i} (identical content already seen)`,
@@ -825,7 +460,6 @@ export async function createChunks(records) {
       } else {
         seenSecondaryHashes.add(secondaryContent);
 
-        // Split secondary content if it's too long
         if (wordCount > WORDS_PER_CHUNK * 1.5) {
           const subChunks = splitLongText(secondaryContent, WORDS_PER_CHUNK);
           subChunks.forEach((subContent, subIdx) => {
@@ -835,17 +469,17 @@ export async function createChunks(records) {
               chunk_index: subIdx + 1,
               content: subContent,
               metadata: {
-                category: category,
+                category,
                 chunk_type: 'secondary',
                 source_id: record['ID'] || `row_${i}`,
-                parent_chunk: primaryChunk.id,
+                parent_chunk: primaryChunkId,
                 industry: metadata.industry,
                 scale: metadata.scale,
                 r_strategy: metadata.r_strategy,
                 primary_material: metadata.primary_material,
                 geographic_focus: metadata.geographic_focus,
                 fields: fieldsObj,
-                scores: scores, // may be null if enrichment failed
+                scores,
               },
               word_count: countWords(subContent),
             });
@@ -857,17 +491,17 @@ export async function createChunks(records) {
             chunk_index: 1,
             content: secondaryContent,
             metadata: {
-              category: category,
+              category,
               chunk_type: 'secondary',
               source_id: record['ID'] || `row_${i}`,
-              parent_chunk: primaryChunk.id,
+              parent_chunk: primaryChunkId,
               industry: metadata.industry,
               scale: metadata.scale,
               r_strategy: metadata.r_strategy,
               primary_material: metadata.primary_material,
               geographic_focus: metadata.geographic_focus,
               fields: fieldsObj,
-              scores: scores, // may be null if enrichment failed
+              scores,
             },
             word_count: countWords(secondaryContent),
           });

@@ -175,6 +175,58 @@ export const ratePerMillion = PRICING_TABLE[EMBEDDING_MODEL] || 0.1;
  */
 export const estimatedCost = (totalTokens) => (totalTokens / 1_000_000) * ratePerMillion;
 
+/**
+ * Estimate token count for a string.
+ * @param {string} text - Text to estimate tokens for
+ * @param {Object} tokenEncoder - Optional token encoder (from tiktoken)
+ * @returns {number} Estimated token count
+ */
+export function estimateTokens(text, tokenEncoder = null) {
+  if (!tokenEncoder) return Math.ceil(text.trim().split(/\s+/).length * TOKENS_PER_WORD);
+  return tokenEncoder.encode(text).length;
+}
+
+/**
+ * Generate deterministic pseudo-embedding for testing
+ * @param {string} text - Text to generate fake embedding for
+ * @returns {Array<number>} Fake embedding vector
+ */
+export function fakeEmbedding(text) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  const vec = new Array(EMBEDDING_DIMENSION);
+  for (let i = 0; i < EMBEDDING_DIMENSION; i++) {
+    vec[i] = ((h + i * 2654435761) % 1000) / 1000;
+  }
+  return vec;
+}
+
+/**
+ * Retry logic with exponential backoff
+ * @param {Function} fn - Async function to retry
+ * @param {number} maxRetries - Maximum number of retries
+ * @returns {Promise} Result of the function
+ */
+export async function retryWithBackoff(fn, maxRetries = EMBEDDING_MAX_RETRIES) {
+  let lastError;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxRetries - 1) {
+        const delay = EMBEDDING_RETRY_DELAY_MS * Math.pow(2, attempt);
+        console.warn(`  ⚠️️ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export default {
   EMBEDDING_MODEL,
   EMBEDDING_DIMENSION,
@@ -192,6 +244,9 @@ export default {
   getVectorColumnType,
   isValidEmbedding,
   isValidTextForEmbedding,
+  estimateTokens,
+  fakeEmbedding,
+  retryWithBackoff,
   TOKENS_PER_WORD,
   MAX_SAFE_TOKENS,
   ratePerMillion,

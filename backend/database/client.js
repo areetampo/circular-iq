@@ -38,13 +38,23 @@ export function getAivenPgPool() {
   if (!_aivenPgPool) {
     const cfg = BACKEND_CONFIG.aiven;
     const poolOptions = {
-      ssl: cfg.ssl ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' } : false,
       max: cfg.connectionLimit,
       idleTimeoutMillis: 30000,
     };
 
-    // If a full connection string is provided, prefer it over individual fields
-    if (cfg.connectionString) {
+    if (cfg.sslCA) {
+      // Use individual parameters and SSL with CA
+      poolOptions.host = cfg.host;
+      poolOptions.port = cfg.port;
+      poolOptions.database = cfg.database;
+      poolOptions.user = cfg.user;
+      poolOptions.password = cfg.password;
+      poolOptions.ssl = {
+        ca: cfg.sslCA, // the PEM certificate
+        rejectUnauthorized: true,
+        servername: cfg.host, // critical for SNI and hostname verification
+      };
+    } else if (cfg.connectionString) {
       poolOptions.connectionString = cfg.connectionString;
     } else {
       poolOptions.host = cfg.host;

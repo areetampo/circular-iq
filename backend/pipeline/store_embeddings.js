@@ -270,6 +270,8 @@ export async function* streamEmbeddedChunks(filePath) {
  * @throws {Error} If dimension mismatch or query fails
  */
 async function verifyEmbeddingDimension(pgPool, expectedDim) {
+  console.log('Verifying embedding dimension in database...');
+
   const { rows } = await pgPool.query(`
     SELECT
       a.atttypmod
@@ -381,16 +383,19 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
     return 0;
   }
 
-  // Log the identifiers we are about to insert in this batch
-  const idsToInsert = documentsToInsert.map(
+  // --- Log initial identifiers (including potential duplicates) before any intra‑batch deduplication ---
+  const initialIdentifiers = documentsToInsert.map(
     (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
   );
+  // console.log(
+  //   `Batch ${batchNum} initial identifiers (including possible duplicates):`,
+  //   JSON.stringify(initialIdentifiers),
+  // );
 
-  console.log(`Batch ${batchNum} full identifiers:`, JSON.stringify(idsToInsert));
-
-  // After building documentsToInsert, check for duplicates within this batch.
-  // Rather than throwing, deduplicate and warn so COPY never sees a conflicting pair.
-  const duplicateIds = idsToInsert.filter((id, index) => idsToInsert.indexOf(id) !== index);
+  // --- Intra‑batch (for this batch only) duplicate removal ---
+  const duplicateIds = initialIdentifiers.filter(
+    (id, index) => initialIdentifiers.indexOf(id) !== index,
+  );
   if (duplicateIds.length > 0) {
     console.warn(
       `Deduplicating ${duplicateIds.length} duplicate identifier(s) in batch ${batchNum}:`,
@@ -398,7 +403,6 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
     );
     const seen = new Set();
     const before = documentsToInsert.length;
-    // filter in-place equivalent: rebuild array keeping only first occurrence
     documentsToInsert.splice(
       0,
       documentsToInsert.length,
@@ -409,13 +413,30 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
         return true;
       }),
     );
-    console.warn(
-      `  Removed ${before - documentsToInsert.length} duplicate(s) from batch ${batchNum} before COPY`,
-    );
+    const removedCount = before - documentsToInsert.length;
+    console.warn(`  Removed ${removedCount} duplicate document(s) from batch ${batchNum}`);
   }
 
-  console.log(`Batch ${batchNum} inserting identifiers:`, idsToInsert);
+  // --- Final identifiers after deduplication ---
+  const finalIdentifiers = documentsToInsert.map(
+    (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
+  );
+  // console.log(
+  //   `Batch ${batchNum} final identifiers (after dedup):`,
+  //   JSON.stringify(finalIdentifiers),
+  // );
 
+  // --- Explicitly show which identifiers were removed (if any) ---
+  if (duplicateIds.length > 0) {
+    console.log(`Batch ${batchNum} removed identifiers:`, JSON.stringify(duplicateIds));
+  }
+
+  if (documentsToInsert.length === 0) {
+    console.log(`Batch ${batchNum}: all documents were duplicates, nothing to insert`);
+    return 0;
+  }
+
+  // --- Proceed to insert ---
   try {
     const inserted = await insertDocuments(documentsToInsert);
     console.log(`✔ Batch ${batchNum}: inserted ${inserted}/${documentsToInsert.length} documents`);
@@ -429,7 +450,7 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
         content_preview: d.content.substring(0, 50),
       })),
     );
-    throw error; // re-throw to stop the pipeline
+    throw error; // rethrow to be caught by main error handler
   }
 }
 
@@ -441,7 +462,7 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
  * @throws {Error} If storage fails after retries
  */
 export async function storeDocuments(chunkStream) {
-  console.log(`\nStoring documents in ${storageDest} with resume=${RESUME}`);
+  console.log(`\nStoring documents with resume=${RESUME} in ${storageDest}`);
 
   // Clear target storage only when not in resume mode
   if (!DRY_RUN && !RESUME) {
@@ -594,7 +615,10 @@ async function validateStorage() {
 
   // 3. Test vector search function with a dummy embedding
   try {
-    const testEmbedding = Array(EMBEDDING_DIMENSION).fill(0.1); // Dummy embedding vector
+    // Ensure the search path includes the extensions schema
+    await pgPool.query('SET search_path TO public, extensions');
+
+    const testEmbedding = Array(EMBEDDING_DIMENSION).fill(0.1); // Dummy embedding
     const searchSql = `
       SELECT id, content, embedding <=> $1::extensions.halfvec AS distance
       FROM documents
@@ -607,8 +631,16 @@ async function validateStorage() {
       throw new Error('Unexpected response: search result rows not an array');
     }
 
-    console.log('  ✓ Test vector search executed successfully. Sample results:');
-    console.log(rows);
+    console.log('  ✓ Test vector search executed successfully. Top 3 results:');
+    console.table(
+      rows.map((row, i) => ({
+        '#': i + 1,
+        'ID (short)': row.id.substring(0, 8) + '…',
+        'Content Preview':
+          row.content.length > 80 ? row.content.substring(0, 80) + '…' : row.content,
+        Distance: row.distance.toFixed(4),
+      })),
+    );
   } catch (searchErr) {
     console.error('  ✗ Failed to test vector search:', searchErr.message);
   }
@@ -637,17 +669,16 @@ export async function main() {
     // Store documents
     const storedCount = await storeDocuments(streamEmbeddedChunks(embeddedChunksPath));
 
-    // Success summary — printed immediately after insertion, before slow VACUUM
-    console.log('=============== Storage Complete ===============');
-    console.log(`Streaming embedded chunks → ${storedCount} stored documents in ${storageDest}`);
-
     // Validate storage (skip in dry-run)
-    // Note: VACUUM ANALYZE can be slow on Supabase — runs after the summary log intentionally
     if (!DRY_RUN) {
       await validateStorage();
     } else {
       console.log(`Dry-run mode: skipped ${useArchive ? 'Supabase' : 'Aiven'} validation.\n`);
     }
+
+    // Success summary
+    console.log('=============== Storage Complete ===============');
+    console.log(`Streaming embedded chunks → ${storedCount} stored documents in ${storageDest}`);
   } catch (error) {
     console.error('\n✗ STORAGE FAILED');
     console.error(`✗ ${error.message}\n`);

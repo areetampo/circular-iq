@@ -44,17 +44,18 @@ import {
   EMBEDDING_BATCH_SIZE,
   EMBEDDING_BATCH_DELAY_MS,
   EMBEDDING_REQUEST_TIMEOUT_MS,
-  EMBEDDING_MAX_RETRIES,
-  EMBEDDING_RETRY_DELAY_MS,
   isValidTextForEmbedding,
   isValidEmbedding,
-  TOKENS_PER_WORD,
   MAX_SAFE_TOKENS,
   ratePerMillion,
   estimatedCost,
+  estimateTokens,
+  fakeEmbedding,
+  retryWithBackoff,
 } from '#config/embedding.js';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
+import { encoding_for_model } from 'tiktoken';
 
 // ================= CONFIGURATION =================
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;
@@ -62,6 +63,14 @@ const SKIP_FIELDS = process.argv.includes('--skip-fields');
 const useArchive = process.argv.includes('--archives');
 const test = process.argv.includes('--test');
 const RESUME = process.argv.includes('--resume');
+let tokenEncoder = null;
+try {
+  tokenEncoder = encoding_for_model(EMBEDDING_MODEL);
+} catch {
+  console.warn(`⚠️  No exact tokeniser for model ${EMBEDDING_MODEL}, falling back to cl100k_base`);
+  // fallback: use the base encoder for OpenAI models
+  tokenEncoder = encoding_for_model('gpt-4');
+}
 
 const chunksPath = useArchive
   ? test
@@ -89,52 +98,6 @@ if (!DRY_RUN) {
 }
 
 // ================= HELPERS =================
-
-/**
- * Estimate token count for a string.
- * @private
- */
-function estimateTokens(text) {
-  return Math.ceil(text.trim().split(/\s+/).length * TOKENS_PER_WORD);
-}
-
-/**
- * Generate deterministic pseudo-embedding for testing
- * @private
- */
-function fakeEmbedding(text) {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619) >>> 0;
-  }
-  const vec = new Array(EMBEDDING_DIMENSION);
-  for (let i = 0; i < EMBEDDING_DIMENSION; i++) {
-    vec[i] = ((h + i * 2654435761) % 1000) / 1000;
-  }
-  return vec;
-}
-
-/**
- * Retry logic with exponential backoff
- * @private
- */
-async function retryWithBackoff(fn, maxRetries = EMBEDDING_MAX_RETRIES) {
-  let lastError;
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      if (attempt < maxRetries - 1) {
-        const delay = EMBEDDING_RETRY_DELAY_MS * Math.pow(2, attempt);
-        console.warn(`  ⚠️️ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-  throw lastError;
-}
 
 // ----- I/O helpers -----
 
@@ -191,11 +154,13 @@ export async function generateEmbeddings(chunks, opts = {}) {
   chunks.forEach((chunk, idx) => idToIdx.set(chunk.id, idx));
 
   // If resuming, read existing file line by line to build processed set and mark written chunks
-  const processedItems = new Set();
   const written = new Array(chunks.length).fill(false);
 
+  // Map to store existing embeddings from the progress file
+  const existingEmbeddings = new Map(); // chunkId → { doc?: vector, fields: { [fieldName]: vector } }
+
   if (resume && progressPath && fs.existsSync(progressPath)) {
-    console.log('  Reading existing progress file to determine already embedded chunks...');
+    console.log('  Reading existing progress file to load previously generated embeddings...');
     const rl = readline.createInterface({
       input: fs.createReadStream(progressPath),
       crlfDelay: Infinity,
@@ -207,35 +172,23 @@ export async function generateEmbeddings(chunks, opts = {}) {
       try {
         const chunkObj = JSON.parse(line);
         const chunkId = chunkObj.id;
-        const idx = idToIdx.get(chunkId);
-        if (idx !== undefined) {
-          // 1. Track exactly which parts are already done
-          if (chunkObj.embeddings?.doc) processedItems.add(`${chunkId}:doc`);
+        const embeddings = chunkObj.embeddings;
+        if (!embeddings) continue;
 
-          if (chunkObj.embeddings?.fields) {
-            Object.keys(chunkObj.embeddings.fields).forEach((field) => {
-              processedItems.add(`${chunkId}:${field}`);
-            });
-          }
-
-          // 2. CRITICAL: Only mark the chunk as 'written' if it is 100% complete.
-          // If it's incomplete, we don't mark it written so the script
-          // can try to finish the remaining fields.
-          const fieldsInFile = Object.keys(chunkObj.embeddings?.fields || {}).length;
-          const expectedFields = Object.keys(chunks[idx].metadata?.fields || {}).filter(
-            (f) => f !== 'metadata_json',
-          ).length;
-
-          if (chunkObj.embeddings?.doc && (SKIP_FIELDS || fieldsInFile >= expectedFields)) {
-            written[idx] = true;
+        const existing = { fields: {} };
+        if (embeddings.doc) existing.doc = embeddings.doc;
+        if (embeddings.fields) {
+          for (const [f, vec] of Object.entries(embeddings.fields)) {
+            existing.fields[f] = vec;
           }
         }
+        existingEmbeddings.set(chunkId, existing);
       } catch (e) {
         console.warn(`  ⚠️ Skipping malformed line ${lineCount}: ${e.message}`);
       }
     }
     console.log(
-      `  Resuming: found ${processedItems.size} already embedded items across ${written.filter(Boolean).length} chunks.`,
+      `  Resume mode: loaded embeddings for ${existingEmbeddings.size} chunks from previous run.`,
     );
   }
 
@@ -247,17 +200,20 @@ export async function generateEmbeddings(chunks, opts = {}) {
   for (let c = 0; c < chunks.length; c++) {
     const chunk = chunks[c];
     const chunkId = chunk.id;
+    const existing = existingEmbeddings.get(chunkId);
+    chunk._embeddings = existing ? { ...existing, fields: { ...existing.fields } } : { fields: {} };
+    const emb = chunk._embeddings;
 
-    // Validate and add doc-level text
-    if (isValidTextForEmbedding(chunk.content) && !processedItems.has(`${chunkId}:doc`)) {
-      const tokens = estimateTokens(chunk.content);
+    // Add doc-level text if missing
+    if (isValidTextForEmbedding(chunk.content) && !emb.doc) {
+      const tokens = estimateTokens(chunk.content, tokenEncoder);
       if (tokens > MAX_SAFE_TOKENS) {
         console.warn(
           `  ⚠️ Chunk ${c} (${chunk.id}) has ~${tokens} tokens, which may exceed the model limit. Consider shortening.`,
         );
       }
       items.push({ chunkIdx: c, fieldName: 'doc', text: chunk.content });
-      tokenEstimates.push(estimateTokens(chunk.content));
+      tokenEstimates.push(estimateTokens(chunk.content, tokenEncoder));
       chunkTotalItems[c]++;
     }
 
@@ -266,10 +222,10 @@ export async function generateEmbeddings(chunks, opts = {}) {
       const fields = (chunk.metadata && chunk.metadata.fields) || {};
       for (const [fname, ftext] of Object.entries(fields)) {
         if (fname === 'metadata_json') continue;
-        if (isValidTextForEmbedding(ftext) && !processedItems.has(`${chunkId}:${fname}`)) {
+        if (isValidTextForEmbedding(ftext) && !emb.fields[fname]) {
           const text = String(ftext).trim();
           items.push({ chunkIdx: c, fieldName: fname, text });
-          tokenEstimates.push(estimateTokens(text));
+          tokenEstimates.push(estimateTokens(text, tokenEncoder));
           chunkTotalItems[c]++;
         }
       }
@@ -299,7 +255,6 @@ export async function generateEmbeddings(chunks, opts = {}) {
   // Track processed counts per chunk
   const processedCounts = new Array(chunks.length).fill(0);
   let totalProcessedTokens = 0;
-  const startTime = Date.now();
 
   for (let i = 0; i < items.length; i += EMBEDDING_BATCH_SIZE) {
     const batchItems = items.slice(i, Math.min(i + EMBEDDING_BATCH_SIZE, items.length));

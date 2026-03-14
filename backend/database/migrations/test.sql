@@ -84,3 +84,18 @@ WHERE l.relkind = 'r'
 
 SET maintenance_work_mem = '128MB';
 SELECT indexname FROM pg_indexes WHERE tablename = 'documents';
+
+---
+
+-- 1. Where is the vector extension installed?
+SELECT extname, nspname FROM pg_extension e JOIN pg_namespace n ON e.extnamespace = n.oid WHERE extname = 'vector';
+
+-- 2. What is the exact type of the embedding column?
+SELECT data_type, udt_schema, udt_name
+FROM information_schema.columns
+WHERE table_name = 'documents' AND column_name = 'embedding';
+
+-- 3. Does the operator exist for halfvec?
+SELECT oprname, oprleft::regtype, oprright::regtype, nspname
+FROM pg_operator o JOIN pg_namespace n ON o.oprnamespace = n.oid
+WHERE oprname = '<=>' AND oprleft::regtype::text LIKE '%halfvec%';

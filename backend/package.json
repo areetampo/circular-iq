@@ -72,6 +72,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "supertest": "^6.3.4",
     "tabula-js": "^1.0.1",
+    "tiktoken": "^1.0.22",
     "xlsx": "^0.18.5"
   },
   "engines": {
