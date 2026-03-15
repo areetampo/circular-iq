@@ -1,4 +1,4 @@
-import { getDatabaseClient, getDatabaseType } from '#database/client.js';
+import { getDatabaseClient, getDatabaseType, getSupabasePgPool } from '#database/client.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const func = BACKEND_CONFIG.db.functions;
@@ -73,6 +73,54 @@ export class DocumentsRepository {
   async getStatistics() {
     const data = await this.callFunction(func.get_document_statistics);
     return data || [];
+  }
+
+  /**
+   * Count documents grouped by a column or metadata expression.
+   * @param {string} columnExpr - A safe column name ('industry', 'category', 'source')
+   *   or a metadata expression (e.g., "metadata->>'r_strategy'").
+   *   For Supabase, only simple column names are supported via RPC; expressions require raw SQL
+   *   via the pg pool. For Aiven postgres, raw SQL is used directly.
+   */
+  async countBy(columnExpr) {
+    const client = getDatabaseClient();
+    const dbType = getDatabaseType();
+
+    // Simple column names can use the structured columns directly
+    const safeColumns = ['industry', 'category', 'source'];
+    const isSimpleColumn = safeColumns.includes(columnExpr);
+
+    if (dbType === 'supabase') {
+      if (isSimpleColumn) {
+        // Use Supabase select with group — no RPC needed for simple columns
+        const { data, error } = await client
+          .from('documents')
+          .select(columnExpr)
+          .neq(columnExpr, null);
+        if (error) throw error;
+
+        // Aggregate in JS since Supabase JS client doesn't support GROUP BY directly
+        const counts = {};
+        for (const row of data || []) {
+          const val = row[columnExpr] || 'unknown';
+          counts[val] = (counts[val] || 0) + 1;
+        }
+        return Object.entries(counts)
+          .map(([value, count]) => ({ value, count }))
+          .sort((a, b) => b.count - a.count);
+      } else {
+        // For metadata expressions, use the pg pool directly (Supabase exposes it)
+        const pool = getSupabasePgPool();
+        const sql = `SELECT ${columnExpr} AS value, COUNT(*)::int AS count FROM documents WHERE ${columnExpr} IS NOT NULL GROUP BY value ORDER BY count DESC`;
+        const { rows } = await pool.query(sql);
+        return rows;
+      }
+    } else {
+      // Aiven postgres — raw SQL always works
+      const sql = `SELECT ${columnExpr} AS value, COUNT(*)::int AS count FROM documents WHERE ${columnExpr} IS NOT NULL GROUP BY value ORDER BY count DESC`;
+      const { rows } = await client.query(sql);
+      return rows;
+    }
   }
 
   async countByCategory(category) {

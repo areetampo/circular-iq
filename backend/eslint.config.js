@@ -1,7 +1,6 @@
-import js from "@eslint/js";
-import globals from "globals";
-import { defineConfig } from "eslint/config";
+import { baseConfig } from '../eslint.config.base.js';
 
-export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
-]);
+export default [
+  baseConfig,
+  // You can add backend-specific overrides here if needed
+];

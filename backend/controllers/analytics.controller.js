@@ -746,6 +746,23 @@ export function postEmbeddingsReindex() {
   };
 }
 
+export function getDocumentsSummary() {
+  return async (req, res) => {
+    try {
+      const [byIndustry, byCategory, byRStrategy, byScale, bySource] = await Promise.all([
+        documentsRepository.countBy('industry'),
+        documentsRepository.countBy('category'),
+        documentsRepository.countBy("metadata->>'r_strategy'"),
+        documentsRepository.countBy("metadata->>'scale'"),
+        documentsRepository.countBy('source'),
+      ]);
+      res.json({ byIndustry, byCategory, byRStrategy, byScale, bySource });
+    } catch (err) {
+      res.status(500).json(buildErrorResponse(err, 'Failed to fetch document summary'));
+    }
+  };
+}
+
 export function getDocumentsStats(/*supabase*/) {
   return async (req, res) => {
     try {

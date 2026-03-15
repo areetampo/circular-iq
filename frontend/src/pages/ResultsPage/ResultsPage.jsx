@@ -37,6 +37,7 @@ import {
 import { Switch } from '@/components/common';
 import { Button } from '@/components/common';
 import CopyButton from '@/components/modern-ui/copy-button';
+import { LinearProgress, Alert } from '@mui/material';
 import {
   BarChart3,
   ClipboardList,
@@ -63,6 +64,8 @@ import {
 } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import ResultsSkeleton from './components/ResultsSkeleton';
+import DocumentCard from '@/components/search/DocumentCard';
+import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
@@ -1478,95 +1481,86 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               </div>
             </Card>
 
-            {/* Gap Analysis & Benchmarks Section */}
-            {actualResult.gap_analysis?.has_benchmarks && (
+            {/* Derived Metrics */}
+            {actualResult.derived_metrics && (
               <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
                 <div className="p-1 sm:p-3">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <BarChart3 className="text-blue-600" size={20} />
-                    Your Performance vs. Similar Projects
+                    <BarChart3 className="text-blue-600" size={20} /> Derived Metrics
                   </h3>
                   <p className="text-sm text-slate-600 mb-4">
-                    Benchmark comparisons from similar projects in the database
+                    Additional consolidated metrics derived from your factor scores.
                   </p>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
-                      <div className="text-xs text-slate-600 mb-1">Your Score</div>
-                      <div className="text-2xl font-bold text-emerald-700">
-                        {actualResult.overall_score}
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
-                      <div className="text-xs text-slate-600 mb-1">Average</div>
-                      <div className="text-2xl font-bold text-blue-700">
-                        {Math.round(actualResult.gap_analysis.overall_benchmarks.average)}
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
-                      <div className="text-xs text-slate-600 mb-1">Top 10%</div>
-                      <div className="text-2xl font-bold text-purple-700">
-                        {actualResult.gap_analysis.overall_benchmarks.top_10_percentile}
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
-                      <div className="text-xs text-slate-600 mb-1">Median</div>
-                      <div className="text-2xl font-bold text-teal-700">
-                        {actualResult.gap_analysis.overall_benchmarks.median}
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {[
+                      { key: 'technical_feasibility', label: 'Technical Feasibility' },
+                      { key: 'economic_viability', label: 'Economic Viability' },
+                      { key: 'circularity_potential', label: 'Circularity Potential' },
+                    ].map(({ key, label }) => {
+                      const value = actualResult.derived_metrics[key];
+                      const numeric = typeof value === 'number' ? value : 0;
+                      const color = numeric >= 70 ? 'success' : numeric >= 40 ? 'warning' : 'error';
+                      return (
+                        <div key={key} className="p-4 bg-white border border-slate-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="text-xs font-bold text-slate-900">{label}</div>
+                            <div className="text-sm font-bold text-slate-900">{numeric}</div>
+                          </div>
+                          <LinearProgress
+                            variant="determinate"
+                            value={Math.min(100, Math.max(0, numeric))}
+                            color={color}
+                            sx={{ height: 8, borderRadius: 4 }}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {Object.keys(actualResult.gap_analysis.sub_score_gaps).length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 mb-3">
-                        Factor-by-Factor Analysis
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {Object.entries(actualResult.gap_analysis.sub_score_gaps).map(
-                          ([factor, gap]) => (
-                            <div
-                              key={factor}
-                              className="p-4 border border-slate-200 rounded-lg bg-white"
-                              style={{
-                                borderLeft: gap.gap > 5 ? '4px solid #f97316' : '4px solid #10b981',
-                              }}
-                            >
-                              <div className="text-xs font-bold text-slate-900 mb-2">
-                                {factor.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                              </div>
-                              <div className="flex justify-between mb-2 gap-2 text-xs">
-                                <div>
-                                  <span className="text-slate-600">Your: </span>
-                                  <span className="font-bold text-emerald-700">
-                                    {gap.user_score}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-slate-600">Avg: </span>
-                                  <span className="font-bold text-blue-700">
-                                    {gap.benchmark_average}
-                                  </span>
-                                </div>
-                              </div>
-                              {gap.gap > 0 ? (
-                                <div className="text-xs text-orange-700 font-semibold flex items-center gap-1">
-                                  <TrendingUp size={12} /> +{gap.gap}
-                                </div>
-                              ) : (
-                                <div className="text-xs text-green-700 font-semibold flex items-center gap-1">
-                                  <Check size={12} /> +{Math.abs(gap.gap)}
-                                </div>
-                              )}
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    </div>
+                  {actualResult.derived_metrics.risk_level && (
+                    <Alert
+                      severity={
+                        actualResult.derived_metrics.risk_level === 'high'
+                          ? 'error'
+                          : actualResult.derived_metrics.risk_level === 'medium'
+                            ? 'warning'
+                            : 'success'
+                      }
+                      className="text-sm"
+                    >
+                      Risk Level: {actualResult.derived_metrics.risk_level.toUpperCase()}
+                    </Alert>
                   )}
                 </div>
               </Card>
             )}
+
+            {/* Gap Analysis & Benchmarks Section */}
+            {actualResult.gap_analysis ? (
+              actualResult.gap_analysis.has_benchmarks ? (
+                <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+                  <div className="p-1 sm:p-3">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
+                      <BarChart3 className="text-blue-600" size={20} /> Gap Analysis
+                    </h3>
+                    <p className="text-sm text-slate-600 mb-4">
+                      {actualResult.gap_analysis.message}
+                    </p>
+
+                    <BenchmarkTable
+                      comparisons={actualResult.gap_analysis.comparisons}
+                      opportunities={actualResult.gap_analysis.opportunities}
+                      strengths={actualResult.gap_analysis.strengths}
+                    />
+                  </div>
+                </Card>
+              ) : (
+                <Alert severity="info" className="mb-6">
+                  {actualResult.gap_analysis.message || 'No benchmark data available.'}
+                </Alert>
+              )
+            ) : null}
 
             {/* Industry & Metadata Section */}
             {actualResult.metadata && (
@@ -1948,122 +1942,49 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                 <div>
                   {actualResult.similar_cases && actualResult.similar_cases.length > 0 ? (
-                    <div>
-                      {actualResult.similar_cases.map((caseItem, index) => {
-                        const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
-                        const { matchPercentage, sourceCaseId, content } = extractCaseInfo(
-                          caseItem,
-                          index,
-                        );
+                    <div className="space-y-4">
+                      {actualResult.similar_cases.length < 4 && (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                          Only {actualResult.similar_cases.length} similar cases found. For best results, ensure at least 4 similar cases are available in the dataset.
+                        </Alert>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {actualResult.similar_cases.map((caseItem, index) => {
+                          const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
+                          const { matchPercentage, sourceCaseId, content } = extractCaseInfo(
+                            caseItem,
+                            index,
+                          );
 
-                        const { problem: problemText, solution: solutionText } =
-                          extractProblemSolution(caseItem);
+                          const { problem: problemText, solution: solutionText } =
+                            extractProblemSolution(caseItem);
 
-                        const getMatchStrength = (percentage) => {
-                          if (percentage >= 80)
-                            return { label: 'Excellent Match', color: '#059669' };
-                          if (percentage >= 65) return { label: 'Strong Match', color: '#34a83a' };
-                          if (percentage >= 50) return { label: 'Decent Match', color: '#65a30d' };
-                          return { label: 'Poor Match', color: '#ca8a04' };
-                        };
+                          // Transform to DocumentCard format
+                          const documentData = {
+                            content: content || problemText,
+                            industry: caseItem.industry || 'Unknown',
+                            category: caseItem.category || 'Unknown',
+                            source: caseItem.source || `Case ${sourceCaseId}`,
+                            similarity: matchPercentage / 100, // Convert to 0-1 scale
+                            metadata: {
+                              fields: {
+                                problem: problemText,
+                                solution: solutionText,
+                              },
+                              r_strategy: caseItem.r_strategy,
+                              title: caseTitle,
+                              source_case_id: sourceCaseId,
+                            },
+                          };
 
-                        const matchStrength = getMatchStrength(matchPercentage);
-
-                        return (
-                          <div key={index}>
-                            {index > 0 && (
-                              <div className="mb-6 h-[1.5px] w-[50%] mx-auto bg-slate-300" />
-                            )}
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <div className="flex items-center justify-center gap-2 text-sm py-1 px-2 mt-0.5 text-gray-700 rounded-sm bg-[#f3f4f6] font-semibold">
-                                <NotebookText size={16} />
-                                <span className="pt-[0.5px]">Source Case {sourceCaseId}</span>
-                              </div>
-                              <span>&middot;</span>
-                              <Chip
-                                size="sm"
-                                variant="secondary"
-                                className="text-xs py-0.5 text-white font-bold"
-                                style={{
-                                  backgroundColor: matchStrength.color,
-                                }}
-                              >
-                                {matchPercentage}%&nbsp;&nbsp;Similarity
-                              </Chip>
-                              <span>&middot;</span>
-                              <div
-                                className="pt-0.5 text-xs font-bold tracking-wide uppercase text-nowrap"
-                                style={{ color: matchStrength.color }}
-                              >
-                                {matchStrength.label}
-                              </div>
-                            </div>
-
-                            <div className="w-full h-1 mb-3 overflow-hidden bg-gray-300 rounded">
-                              <div
-                                className="h-full transition-all duration-300 rounded"
-                                style={{
-                                  width: `${matchPercentage}%`,
-                                  background: matchStrength.color,
-                                }}
-                              ></div>
-                            </div>
-
-                            <h3 className="m-0 mb-4 text-base font-semibold leading-relaxed text-gray-900">
-                              {caseTitle}
-                            </h3>
-
-                            <div className="flex flex-col gap-3">
-                              <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
-                                <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
-                                  <Target className="text-emerald-600" strokeWidth={2} size={16} />
-                                  <strong>Problem Addressed:</strong>
-                                </div>
-                                <p className="m-0 text-xs leading-relaxed text-gray-700">
-                                  {problemText.substring(0, 200)}...
-                                </p>
-                              </div>
-                              <div className="p-3 border-l-4 rounded bg-gray-50 border-emerald-600">
-                                <div className="flex items-center gap-1.5 mb-1.5 text-slate-800 text-xs">
-                                  <Lightbulb
-                                    className="text-emerald-600"
-                                    strokeWidth={2}
-                                    size={16}
-                                  />
-                                  <strong>Solution Approach:</strong>
-                                </div>
-                                <p className="m-0 text-xs leading-relaxed text-gray-700">
-                                  {solutionText.substring(0, 200)}...
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-center">
-                              <button
-                                className="mt-1 mb-6 bg-none border-none text-emerald-600 font-semibold cursor-pointer p-2 px-0 text-sm transition-colors hover:text-emerald-700 hover:underline flex items-center gap-1"
-                                onClick={() =>
-                                  openResultsDatabaseEvidenceDetailsDrawer({
-                                    caseItem,
-                                    content,
-                                    title: caseTitle,
-                                    matchPercentage,
-                                    matchStrengthLabel: matchStrength.label,
-                                    matchColor: matchStrength.color,
-                                    sourceCaseId,
-                                  })
-                                }
-                              >
-                                View Full Details&nbsp;
-                                <ArrowRight
-                                  className="text-emerald-600"
-                                  strokeWidth={2}
-                                  size={16}
-                                />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          return (
+                            <DocumentCard
+                              key={index}
+                              document={documentData}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-4 py-10 text-center text-gray-600">

@@ -93,110 +93,57 @@ Be concise and precise. If uncertain, use "other" or infer from context.`;
  * @returns {Object} Gap analysis with benchmarks and recommendations
  */
 export function calculateGapAnalysis(userScores, similarCases = []) {
-  if (!similarCases || similarCases.length === 0) {
-    return {
-      has_benchmarks: false,
-      message: 'No comparable cases found for benchmarking',
+  if (!similarCases.length) return { has_benchmarks: false };
+
+  const factors = Object.keys(userScores.sub_scores || {});
+
+  // Collect per-factor values from similar cases' metadata.scores
+  const factorValues = {};
+  factors.forEach((factor) => {
+    factorValues[factor] = similarCases
+      .map((doc) => doc.metadata?.scores?.[factor])
+      .filter((v) => typeof v === 'number');
+  });
+
+  // Build percentile benchmarks per factor
+  const benchmarks = {};
+  factors.forEach((factor) => {
+    const vals = [...factorValues[factor]].sort((a, b) => a - b);
+    if (!vals.length) return;
+    benchmarks[factor] = {
+      p25: vals[Math.floor(vals.length * 0.25)] ?? vals[0],
+      p50: vals[Math.floor(vals.length * 0.5)] ?? vals[0],
+      p75: vals[Math.floor(vals.length * 0.75)] ?? vals[vals.length - 1],
+      count: vals.length,
     };
-  }
+  });
 
-  // Extract scores from similar cases if available
-  // First, try to extract from metadata.scores (if populated by our system)
-  const comparableSimilarScores = similarCases
-    .filter((c) => {
-      // Check multiple places where scores might be stored
-      return (
-        c.metadata?.scores?.overall_score || (c.scores && c.scores.overall_score) || c.overall_score
-      );
-    })
-    .map((c) => {
-      return c.metadata?.scores?.overall_score || c.scores?.overall_score || c.overall_score || 0;
-    })
-    .filter((score) => score > 0); // Filter out zeros
+  // Classify each factor and build opportunity/strength lists
+  const comparisons = {};
+  const opportunities = [];
+  const strengths = [];
 
-  // If no scores in metadata, generate synthetic benchmarks based on similarity distribution
-  if (comparableSimilarScores.length === 0) {
-    // Create synthetic benchmarks based on document similarity and quality heuristics
-    // Higher similarity = likely higher quality/performance
-    const syntheticScores = similarCases
-      .map((doc) => {
-        const similarity = doc.similarity || 0;
-        // Map similarity (0-1) to a score distribution (30-90)
-        // Assumes docs with higher semantic similarity are more successful
-        return Math.round(30 + similarity * 60);
-      })
-      .filter((s) => s > 0);
+  factors.forEach((factor) => {
+    if (!benchmarks[factor]) return;
+    const userScore = userScores.sub_scores[factor];
+    const { p25, p75 } = benchmarks[factor];
+    let status;
+    if (userScore < p25) status = 'below_average';
+    else if (userScore > p75) status = 'above_average';
+    else status = 'average';
 
-    if (syntheticScores.length > 0) {
-      comparableSimilarScores.push(...syntheticScores);
-    }
-  }
-
-  if (comparableSimilarScores.length === 0) {
-    return {
-      has_benchmarks: false,
-      message: 'No reliable benchmark data for similar cases',
-    };
-  }
-
-  // Calculate benchmark statistics
-  comparableSimilarScores.sort((a, b) => b - a);
-  const benchmarkData = {
-    top_10_percentile:
-      comparableSimilarScores[Math.floor(comparableSimilarScores.length * 0.1)] || 90,
-    median: comparableSimilarScores[Math.floor(comparableSimilarScores.length * 0.5)] || 60,
-    average: comparableSimilarScores.reduce((a, b) => a + b, 0) / comparableSimilarScores.length,
-    min: Math.min(...comparableSimilarScores),
-    max: Math.max(...comparableSimilarScores),
-  };
-
-  // Identify gaps for each sub-score
-  const subScoreGaps = {};
-  const userSubScores = userScores.sub_scores || {};
-
-  for (const [factor, userScore] of Object.entries(userSubScores)) {
-    // Collect factor scores from similar cases
-    const factorScoresFromSimilar = similarCases
-      .filter((c) => {
-        // Check multiple places where sub-scores might be stored
-        return (
-          c.metadata?.scores?.sub_scores?.[factor] ||
-          c.scores?.sub_scores?.[factor] ||
-          c.sub_scores?.[factor]
-        );
-      })
-      .map((c) => {
-        return (
-          c.metadata?.scores?.sub_scores?.[factor] ||
-          c.scores?.sub_scores?.[factor] ||
-          c.sub_scores?.[factor] ||
-          0
-        );
-      })
-      .filter((s) => s > 0);
-
-    // If we have factor data, calculate benchmark
-    if (factorScoresFromSimilar.length > 0) {
-      const benchmark =
-        factorScoresFromSimilar.reduce((a, b) => a + b, 0) / factorScoresFromSimilar.length;
-      subScoreGaps[factor] = {
-        user_score: Math.round(userScore),
-        benchmark_average: Math.round(benchmark),
-        gap: Math.round(benchmark - userScore),
-        percentile: Math.round(
-          (factorScoresFromSimilar.filter((s) => s <= userScore).length /
-            factorScoresFromSimilar.length) *
-            100,
-        ),
-      };
-    }
-  }
+    comparisons[factor] = { userScore, ...benchmarks[factor], status };
+    if (status === 'below_average') opportunities.push(factor);
+    if (status === 'above_average') strengths.push(factor);
+  });
 
   return {
     has_benchmarks: true,
-    overall_benchmarks: benchmarkData,
-    sub_score_gaps: subScoreGaps,
-    comparison_text: `Your score (${userScores.overall_score}) compares to similar cases: top 10% (${benchmarkData.top_10_percentile}), average (${Math.round(benchmarkData.average)}), median (${benchmarkData.median})`,
+    benchmarks,
+    comparisons,
+    opportunities,
+    strengths,
+    message: `Compared against ${similarCases.length} similar cases from the dataset.`,
   };
 }
 
@@ -227,6 +174,9 @@ export async function generateReasoning(
   // Format the dataset matches into context for the AI
   const contextText = formatDatabaseContext(similarDocs);
 
+  const gapAnalysis = calculateGapAnalysis(scores, similarDocs);
+  const gapContext = buildGapContext(gapAnalysis);
+
   const systemRole = buildSystemPrompt();
   const userPrompt = buildUserPrompt(
     businessProblem,
@@ -234,6 +184,7 @@ export async function generateReasoning(
     scores,
     similarDocs,
     contextText,
+    gapContext,
   );
 
   try {
@@ -290,7 +241,32 @@ Your analysis should feel like a professional audit report - precise, evidence-b
  * Build the user prompt with structured analysis requirements
  * @private
  */
-function buildUserPrompt(businessProblem, businessSolution, scores, similarDocs, contextText) {
+function buildGapContext(gapAnalysis) {
+  if (!gapAnalysis || !gapAnalysis.has_benchmarks) return '';
+
+  const parts = [];
+  if (Array.isArray(gapAnalysis.opportunities) && gapAnalysis.opportunities.length) {
+    parts.push(
+      `Opportunities (areas to improve): ${gapAnalysis.opportunities.join(', ')}`,
+    );
+  }
+  if (Array.isArray(gapAnalysis.strengths) && gapAnalysis.strengths.length) {
+    parts.push(`Strengths (areas of relative advantage): ${gapAnalysis.strengths.join(', ')}`);
+  }
+
+  if (parts.length === 0) return '';
+
+  return `GAP ANALYSIS SUMMARY:\n${parts.join('\n')}\n\n`;
+}
+
+function buildUserPrompt(
+  businessProblem,
+  businessSolution,
+  scores,
+  similarDocs,
+  contextText,
+  gapContext = '',
+) {
   var similarCasesInfo =
     'No direct matches found in database for this specific query. Proceed with general circular economy principles.';
 
@@ -321,7 +297,7 @@ ${similarCasesInfo}
 Full Context:
 ${contextText}
 
-ANALYSIS REQUIRED:
+${gapContext}ANALYSIS REQUIRED:
 Return EXACTLY this JSON structure:
 
 {

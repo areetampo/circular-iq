@@ -4,14 +4,15 @@ import LoaderComponent from '@/components/common/LoaderComponent';
 import BarChart from '@/components/charts/BarChart';
 import ScatterChart from '@/components/charts/ScatterChart';
 import LineChart from '@/components/charts/LineChart';
+import PieChart from '@/components/charts/PieChart';
 import { titleize } from '@/lib/formatting';
 import { getIndustry } from '@/lib/metadata';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
-import { useMarketAnalysis, getEnhancedAnalytics } from '@/features/assessments';
+import { useMarketAnalysis, getEnhancedAnalytics, useDocumentStats } from '@/features/assessments';
 import { useSession } from '@/features/session';
 import { useQuery } from '@tanstack/react-query';
 import { exportAssessmentPDF } from '@/features/export';
-import { Card, Chip, Tooltip } from '@heroui/react';
+import { Card, Chip, Tooltip, Tabs, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/react';
 import { Button } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { Progress } from '@heroui/progress';
@@ -117,6 +118,9 @@ export default function MarketAnalysisPage({
   });
 
   const industryTrend = (trendData && trendData.timeSeries) || [];
+
+  // New document stats hook
+  const { stats: documentStats, loading: statsLoading, error: statsError } = useDocumentStats();
 
   const lines = React.useMemo(() => {
     const base = [{ dataKey: 'averageScore', stroke: '#34a83a', name: 'Avg Score' }];
@@ -429,21 +433,24 @@ export default function MarketAnalysisPage({
         </div>
       ) : (
         <div id="market-analysis-content" className="space-y-6">
-          {/* Header Section */}
-          <div className="p-6 bg-linear-to-r from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
-            <h1 className="flex items-center gap-2 text-3xl font-bold">
-              <BarChart3 className="text-white" strokeWidth={2.5} size={32} /> Market Landscape
-            </h1>
-            <p className="mt-2 text-lg opacity-90">
-              Benchmark your circular economy initiative against the broader market
-            </p>
-          </div>
+          <Tabs aria-label="Market Analysis Tabs" className="w-full">
+            <Tabs.Tab id="assessment-insights" title="Assessment Insights">
+              <div className="space-y-6 mt-6">
+                {/* Header Section */}
+                <div className="p-6 bg-linear-to-r from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
+                  <h1 className="flex items-center gap-2 text-3xl font-bold">
+                    <BarChart3 className="text-white" strokeWidth={2.5} size={32} /> Market Landscape
+                  </h1>
+                  <p className="mt-2 text-lg opacity-90">
+                    Benchmark your circular economy initiative against the broader market
+                  </p>
+                </div>
 
-          {/* Stats Overview */}
-          {stats && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
-                <div className="flex justify-center mb-2 text-3xl">
+                {/* Stats Overview */}
+                {stats && (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                      <div className="flex justify-center mb-2 text-3xl">
                   <TrendingUp className="text-primary-500" strokeWidth={2} size={36} />
                 </div>
                 <div className="text-sm text-gray-600">Average Score</div>
@@ -1364,6 +1371,106 @@ export default function MarketAnalysisPage({
             Last updated:&nbsp;
             {getCurrentTimestampFormatted()}
           </div>
+              </div>
+            </Tabs.Tab>
+
+            <Tabs.Tab id="dataset-insights" title="Dataset Insights">
+              <div className="space-y-6 mt-6">
+                {/* Dataset Overview Header */}
+                <div className="p-6 bg-linear-to-r from-secondary-500 to-secondary-600 rounded-2xl text-white shadow-lg">
+                  <h1 className="flex items-center gap-2 text-3xl font-bold">
+                    <BarChart3 className="text-white" strokeWidth={2.5} size={32} /> Dataset Insights
+                  </h1>
+                  <p className="mt-2 text-lg opacity-90">
+                    Explore the distribution and composition of the circular economy dataset
+                  </p>
+                </div>
+
+                {statsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <CircularProgress size={40} />
+                  </div>
+                ) : statsError ? (
+                  <Alert severity="error">{statsError}</Alert>
+                ) : documentStats ? (
+                  <>
+                    {/* Charts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Industry Distribution</h3>
+                        <BarChart
+                          data={documentStats.byIndustry || []}
+                          barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#2563eb' }]}
+                          height={300}
+                          xAxisLabel="Industry"
+                          yAxisLabel="Number of Cases"
+                          showLegend={false}
+                        />
+                      </Card>
+                      <Card className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">R-Strategy Distribution</h3>
+                        <PieChart
+                          data={documentStats.byRStrategy || []}
+                          dataKey="count"
+                          nameKey="value"
+                          height={300}
+                          showLegend={true}
+                        />
+                      </Card>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Category Distribution</h3>
+                        <BarChart
+                          data={documentStats.byCategory || []}
+                          barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#059669' }]}
+                          height={300}
+                          xAxisLabel="Category"
+                          yAxisLabel="Number of Cases"
+                          showLegend={false}
+                        />
+                      </Card>
+                      <Card className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Scale Distribution</h3>
+                        <BarChart
+                          data={documentStats.byScale || []}
+                          barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#f97316' }]}
+                          height={300}
+                          xAxisLabel="Scale"
+                          yAxisLabel="Number of Cases"
+                          showLegend={false}
+                        />
+                      </Card>
+                    </div>
+
+                    {/* Top Sources Table */}
+                    <Card className="p-6">
+                      <h3 className="text-lg font-semibold mb-4">Top 10 Sources by Case Count</h3>
+                      <Table aria-label="Top Sources">
+                        <TableHeader>
+                          <TableColumn>Source</TableColumn>
+                          <TableColumn align="right">Count</TableColumn>
+                        </TableHeader>
+                        <TableBody>
+                          {(documentStats.bySource || [])
+                            .slice(0, 10)
+                            .map((source) => (
+                              <TableRow key={source.value}>
+                                <TableCell>{source.value}</TableCell>
+                                <TableCell align="right">{source.count}</TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </Card>
+                  </>
+                ) : (
+                  <Alert severity="info">No dataset statistics available.</Alert>
+                )}
+              </div>
+            </Tabs.Tab>
+          </Tabs>
         </div>
       )}
     </div>

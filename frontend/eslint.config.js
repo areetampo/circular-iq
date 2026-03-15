@@ -1,9 +1,13 @@
-import js from "@eslint/js";
-import globals from "globals";
-import pluginReact from "eslint-plugin-react";
-import { defineConfig } from "eslint/config";
+import pluginReact from 'eslint-plugin-react';
+import { baseConfig } from '../eslint.config.base.js';
 
-export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,jsx}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
+export default [
+  baseConfig,
   pluginReact.configs.flat.recommended,
-]);
+  {
+    // Frontend-specific overrides
+    rules: {
+      'react/prop-types': 'off', // Example: if you don't want prop-types errors
+    },
+  },
+];

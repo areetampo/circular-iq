@@ -22,6 +22,7 @@ import { toTitleCase } from '@/lib/formatting';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { useEnhancedAnalytics } from '@/features/assessments';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
+import { useDocumentStats, useSearch } from '@/features/assessments';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { sortByAverageScoreDesc, sortByAverageScoreAsc } from '@/features/assessments/utils';
 import { cn } from '@/utils/cn';
@@ -31,6 +32,9 @@ import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import IndustryChipFilter from '@/components/filters/IndustryChipFilter';
 import FeaturedSolutionsCard from './FeaturedSolutionsCard';
 import { INDUSTRY_THEMES } from '@/constants/industryThemes';
+import SearchBar from '@/components/search/SearchBar';
+import DocumentCard from '@/components/search/DocumentCard';
+import { Grid, CircularProgress, Alert } from '@mui/material';
 
 // Memoized metric card component for better performance
 const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'primary' }) => {
@@ -238,6 +242,15 @@ export default function DashboardPage() {
     industry: industryFilterParam,
     enabled: !isLoading,
   });
+
+  // New search and document stats hooks
+  const { results: searchResults, loading: searchLoading, error: searchError, search } = useSearch();
+  const { stats: documentStats, loading: statsLoading, error: statsError } = useDocumentStats();
+
+  // Search handler
+  const handleSearch = useCallback((query, filters) => {
+    search(query, filters);
+  }, [search]);
 
   const topKeywords = useMemo(() => {
     const stopWords = new Set([
@@ -866,6 +879,76 @@ export default function DashboardPage() {
 
           {/* Featured Solutions */}
           <FeaturedSolutionsCard industry={industryFilterParam} />
+
+          {/* Search Section */}
+          <ChartSection
+            title="Search Dataset"
+            description="Search through the circular economy dataset for relevant cases and insights"
+            icon={Layers}
+          >
+            <SearchBar onSearch={handleSearch} loading={searchLoading} />
+            {searchLoading && (
+              <div className="flex justify-center py-8">
+                <CircularProgress size={40} />
+              </div>
+            )}
+            {searchError && (
+              <Alert severity="error" className="mt-4">
+                {searchError}
+              </Alert>
+            )}
+            {searchResults.length > 0 && (
+              <>
+                <p className="text-sm text-slate-600 mt-4">{searchResults.length} results found</p>
+                <Grid container spacing={2} className="mt-2">
+                  {searchResults.map((doc) => (
+                    <Grid item xs={12} sm={6} md={4} key={doc.id}>
+                      <DocumentCard document={doc} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </>
+            )}
+          </ChartSection>
+
+          {/* Dataset Distribution Section */}
+          <ChartSection
+            title="Dataset Overview"
+            description="Distribution of cases across industries and strategies"
+            icon={PieChartIcon}
+          >
+            {statsLoading ? (
+              <div className="flex justify-center py-8">
+                <CircularProgress size={40} />
+              </div>
+            ) : statsError ? (
+              <Alert severity="error">{statsError}</Alert>
+            ) : documentStats ? (
+              <Grid container spacing={4}>
+                <Grid item xs={12} md={6}>
+                  <BarChart
+                    data={documentStats.byIndustry || []}
+                    barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#2563eb' }]}
+                    height={300}
+                    xAxisLabel="Industry"
+                    yAxisLabel="Number of Cases"
+                    showLegend={false}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <PieChart
+                    data={documentStats.byRStrategy || []}
+                    dataKey="count"
+                    nameKey="value"
+                    height={300}
+                    showLegend={true}
+                  />
+                </Grid>
+              </Grid>
+            ) : (
+              <EmptyChartState message="No dataset statistics available" />
+            )}
+          </ChartSection>
         </div>
       )}
 

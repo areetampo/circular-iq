@@ -14,6 +14,8 @@
     "dev": "concurrently -n BACKEND,FRONTEND -c \"yellow,cyan\" \"npm run backend\" \"npm run frontend\"",
     "backend": "npm run dev -w backend",
     "frontend": "npm run dev -w frontend",
+    "lint": "eslint .",
+    "format": "prettier --write .",
     "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules package-lock.json && npm cache clean --force && npm install"
   },
   "keywords": [

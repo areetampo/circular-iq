@@ -15,6 +15,7 @@ import { createSupabaseAnonClient } from '#database/supabase.client.js';
 import { OpenAI } from 'openai';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
+import createSearchRouter from '#routes/search.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 
@@ -183,6 +184,7 @@ app.get('/health', (req, res) => {
 // mount routers
 app.use('/api/analytics', createAnalyticsRouter(supabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
+app.use('/api/search', createSearchRouter(openai));
 app.use('/api/assessments', createAssessmentsRouter(supabase));
 
 app.get('/api/profile', requireAuth(supabase), async (req, res) => {

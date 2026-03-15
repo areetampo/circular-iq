@@ -493,6 +493,50 @@ export async function performScoring(req, openai, supabase) {
             }));
           }
 
+          // Helper: Ensure we always return at least 4 similar cases when possible
+          async function ensureAtLeastFour(dedupedList, problemVector, solutionVector, metadata) {
+            if (dedupedList.length >= 4) return dedupedList;
+
+            console.log(
+              `[${requestId}] Only ${dedupedList.length} cases above threshold — running fallback search without threshold`,
+            );
+
+            const [fallbackProblem, fallbackSolution] = await Promise.all([
+              documentsRepository.searchHybrid(
+                problemVector,
+                keywordForProblem,
+                metadata?.industry ?? null,
+                null, // drop category filter for broader results
+                null,
+                20,
+                VECTOR_SEARCH_VECTOR_WEIGHT,
+                0.0,
+              ),
+              documentsRepository.searchHybrid(
+                solutionVector,
+                keywordForSolution,
+                metadata?.industry ?? null,
+                null,
+                null,
+                20,
+                VECTOR_SEARCH_VECTOR_WEIGHT,
+                0.0,
+              ),
+            ]);
+
+            // No client-side similarity floor on fallback — use all results
+            const fallbackDeduped = dedupeResultsWeighted([...fallbackProblem, ...fallbackSolution], {
+              wProblem: 0.5,
+              wSolution: 0.4,
+              wDoc: 0.1,
+            });
+
+            return fallbackDeduped.length > 0 ? fallbackDeduped : dedupedList;
+          }
+
+          // Ensure we have at least 4 cases if possible
+          deduped = await ensureAtLeastFour(deduped, problemVector, solutionVector, metadata);
+
           // Sort and limit
           deduped.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
           similarCases = deduped.slice(0, 4);
@@ -567,6 +611,7 @@ export async function performScoring(req, openai, supabase) {
       overall_score: scores.overall_score,
       confidence_level: scores.confidence_level,
       sub_scores: scores.sub_scores,
+      derived_metrics: scores.derived_metrics,
       score_breakdown: scores.score_breakdown,
       audit: auditResult,
       similar_cases: formattedCases,

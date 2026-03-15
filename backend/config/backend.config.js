@@ -119,8 +119,8 @@ const parseAllowedOrigins = () => {
 };
 
 const parsePublicRoutes = () => {
-  // /health is ALWAYS included as a public route
-  const defaults = ['/health'];
+  // /health and search endpoint are ALWAYS included as public routes
+  const defaults = ['/health', '/api/search'];
 
   // env.PUBLIC_ROUTES may be undefined if validation failed; treat as empty
   const routes = Array.isArray(env.PUBLIC_ROUTES) ? env.PUBLIC_ROUTES : [];

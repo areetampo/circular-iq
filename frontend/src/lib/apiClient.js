@@ -71,3 +71,43 @@ export async function apiFetch(path, options = {}) {
   const url = buildApiUrl(path);
   return fetch(url, options);
 }
+
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+};
+
+const apiClient = {
+  async request(path, { method = 'GET', headers = {}, body, ...rest } = {}) {
+    const mergedHeaders = { ...defaultHeaders, ...headers };
+    const res = await apiFetch(path, {
+      method,
+      headers: mergedHeaders,
+      body: body != null ? JSON.stringify(body) : undefined,
+      ...rest,
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+    const data = isJson ? await res.json() : await res.text();
+
+    return { status: res.status, ok: res.ok, data };
+  },
+
+  get(path, options) {
+    return this.request(path, { method: 'GET', ...options });
+  },
+
+  post(path, body, options) {
+    return this.request(path, { method: 'POST', body, ...options });
+  },
+
+  put(path, body, options) {
+    return this.request(path, { method: 'PUT', body, ...options });
+  },
+
+  delete(path, options) {
+    return this.request(path, { method: 'DELETE', ...options });
+  },
+};
+
+export default apiClient;

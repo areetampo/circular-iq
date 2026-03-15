@@ -35,10 +35,49 @@ export function calculateScores(parameters) {
   // Determine confidence level based on score distribution
   const confidence = calculateConfidenceLevel(validatedParams);
 
+  const technical_feasibility = Math.round(
+    validatedParams.tech_readiness * 0.4 +
+      validatedParams.size_efficiency * 0.3 +
+      validatedParams.chemical_safety * 0.3,
+  );
+
+  const economic_viability = Math.round(
+    validatedParams.market_price * 0.5 +
+      validatedParams.maintenance * 0.3 +
+      validatedParams.uniqueness * 0.2,
+  );
+
+  const circularity_potential = Math.round(
+    validatedParams.public_participation * 0.2 +
+      validatedParams.infrastructure * 0.2 +
+      validatedParams.market_price * 0.2 +
+      validatedParams.maintenance * 0.1 +
+      validatedParams.uniqueness * 0.1 +
+      validatedParams.size_efficiency * 0.1 +
+      validatedParams.chemical_safety * 0.05 +
+      validatedParams.tech_readiness * 0.05,
+  );
+
+  const risk_level = (() => {
+    const critical = ['tech_readiness', 'market_price', 'chemical_safety'];
+    const lowCount = critical.filter((k) => validatedParams[k] < 30).length;
+    if (lowCount >= 2) return 'high';
+    if (lowCount === 1 || validatedParams.tech_readiness < 50) return 'medium';
+    return 'low';
+  })();
+
+  const derived_metrics = {
+    technical_feasibility,
+    economic_viability,
+    circularity_potential,
+    risk_level,
+  };
+
   return {
     overall_score: Math.round(overall_score),
     confidence_level: confidence,
     sub_scores: validatedParams,
+    derived_metrics,
     weights: weights,
     score_breakdown: generateScoreBreakdown(validatedParams, weights),
   };
