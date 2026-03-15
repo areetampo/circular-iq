@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_ghg.js

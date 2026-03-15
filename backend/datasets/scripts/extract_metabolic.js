@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_metabolic.js - Quality improved version with enhanced problem/solution filtering

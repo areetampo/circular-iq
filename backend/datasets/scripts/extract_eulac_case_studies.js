@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_eulac_case_studies.js - EU-LAC circular economy case studies extraction

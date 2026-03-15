@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_refed.js - Food waste solution data fetching from the ReFED Insights Engine API v2

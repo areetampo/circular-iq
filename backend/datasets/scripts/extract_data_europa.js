@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_data_europa.js – Final version (includes PDF indicator extraction)

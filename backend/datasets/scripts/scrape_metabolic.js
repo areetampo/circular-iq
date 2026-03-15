@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_metabolic.js - Metabolic publications downloading and management

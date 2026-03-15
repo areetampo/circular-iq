@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_c2c.js – Cradle-to-Cradle (C2C) certified products scraper

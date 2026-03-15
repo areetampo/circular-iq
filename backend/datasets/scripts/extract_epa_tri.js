@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_epa_tri.js - Toxic Release Inventory (TRI) database extraction

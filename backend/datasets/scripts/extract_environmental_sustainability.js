@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_environmental_sustainability.js - Environmental sustainability indicators and country-level extraction

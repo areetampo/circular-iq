@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_remanufacturing_eu.js - Remanufacturing EU case study tool extraction

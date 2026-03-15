@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_open_beauty_facts.js - Beauty and personal care products scraping

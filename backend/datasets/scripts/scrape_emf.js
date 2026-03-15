@@ -1,4 +1,3 @@
-/* global process */
 
 import '#server/bootstrap.js';
 

@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_sei_construction.js - Circular economy case studies and best practices extraction

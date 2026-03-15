@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_open_products_facts.js – Expanded version

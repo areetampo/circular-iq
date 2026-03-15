@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_kalundborg.js - Case studies scraping from Kalundborg Symbiosis

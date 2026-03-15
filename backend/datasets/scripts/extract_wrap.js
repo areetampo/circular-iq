@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_wrap.js - Problem/solution pair extraction from WRAP PDF reports and case studies

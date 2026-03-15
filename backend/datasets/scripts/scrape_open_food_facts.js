@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_open_food_facts.js - Enhanced version generating problem‑solution pairs

@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_circle_knowledge_hub.js - Improved Case Studies Scraper for Circle Economy Knowledge Hub

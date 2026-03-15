@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_eippcb.js - Hybrid extraction for EIPPCB BAT Conclusions and BREFs

@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_world_bank_projects.js – Final version

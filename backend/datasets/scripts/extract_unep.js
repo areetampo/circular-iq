@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_unep.js - Environmental impact and waste management data extraction

@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_ifixit.js - Extracts problem/solution pairs from iFixit repairability scores

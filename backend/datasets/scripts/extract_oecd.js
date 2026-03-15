@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_oecd.js - OECD Environmental Data Extraction

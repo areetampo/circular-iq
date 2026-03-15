@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_wbcsd.js — WBCSD Circular Economy Case Studies Extraction

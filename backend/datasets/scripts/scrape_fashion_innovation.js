@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_fashion_innovation.js – Fashion for Good Innovation Programme scraping

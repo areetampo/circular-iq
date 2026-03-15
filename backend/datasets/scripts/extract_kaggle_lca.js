@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_kaggle_lca.js - Life cycle assessment (LCA) data extraction

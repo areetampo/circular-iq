@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_eurostat.js - European circular economy and waste management statistics extraction

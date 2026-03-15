@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_ecesp.js - European Commission Circular Economy and Sustainability Practices extraction

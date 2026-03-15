@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * scrape_wrap.js - WRAP Resources and Case Studies (IMPROVED EXTRACTION)

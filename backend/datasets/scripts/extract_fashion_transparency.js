@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_fashion_transparency.js - Supply chain transparency and environmental accountability extraction

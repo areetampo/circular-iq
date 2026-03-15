@@ -1,4 +1,3 @@
-/* global process */
 
 /**
  * extract_cgr_2025.js – Final improved version
