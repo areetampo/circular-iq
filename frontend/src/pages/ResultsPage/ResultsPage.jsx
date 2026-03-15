@@ -5,7 +5,12 @@ import { toast } from '@heroui/react';
 import RadarChart from '@/components/charts/RadarChart';
 import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { validKeys, categoryMapping, parameterLabels } from '@/constants/evaluationData';
-import { categorizeIntegrityGaps, extractCaseInfo, extractProblemSolution } from '@/utils/content';
+import {
+  categorizeIntegrityGaps,
+  extractCaseInfo,
+  extractProblemSolution,
+  getMatchStrength,
+} from '@/utils/content';
 import { useExportState } from '@/hooks/useExportState';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,7 +69,6 @@ import {
 } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import ResultsSkeleton from './components/ResultsSkeleton';
-import DocumentCard from '@/components/search/DocumentCard';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -1947,45 +1951,66 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                 <div>
                   {actualResult.similar_cases && actualResult.similar_cases.length > 0 ? (
-                    <div className="space-y-4">
-                      {actualResult.similar_cases.length < 4 && (
-                        <Alert severity="warning" sx={{ mb: 2 }}>
-                          Only {actualResult.similar_cases.length} similar cases found. For best
-                          results, ensure at least 4 similar cases are available in the dataset.
-                        </Alert>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {actualResult.similar_cases.map((caseItem, index) => {
-                          const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
-                          const { matchPercentage, sourceCaseId, content } = extractCaseInfo(
-                            caseItem,
-                            index,
-                          );
+                    <div className="space-y-6">
+                      {actualResult.similar_cases.map((caseItem, index) => {
+                        const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
+                        const { matchPercentage, sourceCaseId, content } = extractCaseInfo(
+                          caseItem,
+                          index,
+                        );
+                        const { problem: problemText, solution: solutionText } =
+                          extractProblemSolution(caseItem);
+                        const { label: matchStrengthLabel, color: matchStrengthColor } =
+                          getMatchStrength(caseItem.similarity || 0);
 
-                          const { problem: problemText, solution: solutionText } =
-                            extractProblemSolution(caseItem);
-
-                          // Transform to DocumentCard format
-                          const documentData = {
-                            content: content || problemText,
-                            industry: caseItem.industry || 'Unknown',
-                            category: caseItem.category || 'Unknown',
-                            source: caseItem.source || `Case ${sourceCaseId}`,
-                            similarity: matchPercentage / 100, // Convert to 0-1 scale
-                            metadata: {
-                              fields: {
-                                problem: problemText,
-                                solution: solutionText,
-                              },
-                              r_strategy: caseItem.r_strategy,
-                              title: caseTitle,
-                              source_case_id: sourceCaseId,
-                            },
-                          };
-
-                          return <DocumentCard key={index} document={documentData} />;
-                        })}
-                      </div>
+                        return (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-lg font-semibold text-gray-900">{caseTitle}</h4>
+                              <div className="flex items-center gap-2">
+                                <Chip size="sm" variant="flat" color="primary">
+                                  Case #{sourceCaseId}
+                                </Chip>
+                                <Chip size="sm" variant="flat" color="secondary">
+                                  {matchPercentage}% similar
+                                </Chip>
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <span className={`text-sm font-medium ${matchStrengthColor}`}>
+                                {matchStrengthLabel}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div className="border border-gray-300 rounded-md p-3">
+                                <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                                  Problem Addressed
+                                </h5>
+                                <p className="text-sm text-gray-600">{problemText}</p>
+                              </div>
+                              <div className="border border-gray-300 rounded-md p-3">
+                                <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                                  Solution Approach
+                                </h5>
+                                <p className="text-sm text-gray-600">{solutionText}</p>
+                              </div>
+                            </div>
+                            <div className="flex justify-end">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onPress={() => openResultsDatabaseEvidenceDetailsDrawer(caseItem)}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                View Full Details →
+                              </Button>
+                            </div>
+                            {index < actualResult.similar_cases.length - 1 && (
+                              <hr className="mt-4 border-gray-300" />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-4 py-10 text-center text-gray-600">

@@ -1,77 +1,73 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Input, Chip, Button } from '@heroui/react';
+import { TextField, InputAdornment, Chip, Box } from '@mui/material';
 import { Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
-const FILTER_KEYS = ['industry', 'category', 'source'];
+// Preset filter options shown as toggleable chips
+const PRESET_FILTERS = [
+  { key: 'industry', value: 'textiles', label: 'Textiles' },
+  { key: 'industry', value: 'packaging', label: 'Packaging' },
+  { key: 'industry', value: 'electronics', label: 'Electronics' },
+  { key: 'industry', value: 'construction', label: 'Construction' },
+  { key: 'industry', value: 'energy', label: 'Energy' },
+];
 
 export default function SearchBar({ onSearch, loading }) {
   const [query, setQuery] = useState('');
-  const [activeFilters, setActiveFilters] = useState({
-    industry: false,
-    category: false,
-    source: false,
-  });
+  const [activeFilter, setActiveFilter] = useState(null); // { key, value } | null
 
   const debouncedQuery = useDebounce(query, 400);
-
-  const filters = useMemo(() => {
-    const out = {};
-    FILTER_KEYS.forEach((key) => {
-      if (activeFilters[key]) {
-        // When a filter is active, pass the query as the filter value.
-        // This allows the backend to narrow results by that category.
-        out[key] = debouncedQuery.trim() || null;
-      }
-    });
-    return out;
-  }, [activeFilters, debouncedQuery]);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       onSearch('', {});
       return;
     }
+    const filters = activeFilter ? { [activeFilter.key]: activeFilter.value } : {};
     onSearch(debouncedQuery, filters);
-  }, [debouncedQuery, filters, onSearch]);
+  }, [debouncedQuery, activeFilter, onSearch]);
 
-  const toggleFilter = (key) => {
-    setActiveFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleFilter = (filter) => {
+    setActiveFilter((prev) =>
+      prev && prev.key === filter.key && prev.value === filter.value ? null : filter,
+    );
   };
 
   return (
-    <div className="w-full">
-      <div className="relative">
-        <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-          size={18}
-        />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for circular economy solutions..."
-          fullWidth
-          disabled={loading}
-          className="pl-10"
-        />
-      </div>
-
-      <div className="flex flex-wrap gap-1 mt-1">
-        {FILTER_KEYS.map((key) => (
-          <Button
-            key={key}
-            variant={activeFilters[key] ? 'solid' : 'bordered'}
-            color={activeFilters[key] ? 'primary' : 'default'}
-            size="sm"
-            onPress={() => toggleFilter(key)}
-            className="text-xs"
-          >
-            {key.replace(/_/g, ' ').toUpperCase()}
-          </Button>
-        ))}
-      </div>
-    </div>
+    <Box sx={{ width: '100%' }}>
+      <TextField
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search for circular economy solutions..."
+        fullWidth
+        variant="outlined"
+        size="small"
+        disabled={loading}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search size={18} />
+            </InputAdornment>
+          ),
+        }}
+      />
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+        {PRESET_FILTERS.map((filter) => {
+          const isActive = activeFilter?.key === filter.key && activeFilter?.value === filter.value;
+          return (
+            <Chip
+              key={`${filter.key}-${filter.value}`}
+              label={filter.label}
+              variant={isActive ? 'filled' : 'outlined'}
+              color={isActive ? 'primary' : 'default'}
+              onClick={() => toggleFilter(filter)}
+              size="small"
+            />
+          );
+        })}
+      </Box>
+    </Box>
   );
 }
 

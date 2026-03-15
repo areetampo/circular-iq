@@ -90,6 +90,17 @@ const apiClient = {
     const isJson = contentType.includes('application/json');
     const data = isJson ? await res.json() : await res.text();
 
+    if (!res.ok) {
+      const message =
+        (typeof data === 'object' && data?.error) ||
+        (typeof data === 'string' && data) ||
+        `Request failed with status ${res.status}`;
+      const err = new Error(message);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+
     return { status: res.status, ok: res.ok, data };
   },
 

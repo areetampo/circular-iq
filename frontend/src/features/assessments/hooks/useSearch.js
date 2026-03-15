@@ -7,7 +7,11 @@ export function useSearch() {
   const [error, setError] = useState(null);
 
   const search = useCallback(async (query, filters = {}) => {
-    if (!query?.trim()) return;
+    if (!query?.trim()) {
+      setResults([]); // clear stale results
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
 

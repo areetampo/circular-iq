@@ -12,7 +12,7 @@ import { useMarketAnalysis, getEnhancedAnalytics, useDocumentStats } from '@/fea
 import { useSession } from '@/features/session';
 import { useQuery } from '@tanstack/react-query';
 import { exportAssessmentPDF } from '@/features/export';
-import { Card, Chip, Tooltip, Tabs, Table } from '@heroui/react';
+import { Card, Chip, Tooltip, Tabs, Tab, Table } from '@heroui/react';
 import { Button } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { ProgressBar } from '@heroui/react';
@@ -434,7 +434,7 @@ export default function MarketAnalysisPage({
       ) : (
         <div id="market-analysis-content" className="space-y-6">
           <Tabs aria-label="Market Analysis Tabs" className="w-full">
-            <Tabs.Tab id="assessment-insights" title="Assessment Insights">
+            <Tab key="assessment-insights" title="Assessment Insights">
               <div className="space-y-6 mt-6">
                 {/* Header Section */}
                 <div className="p-6 bg-linear-to-r from-primary-500 to-primary-600 rounded-2xl text-white shadow-lg">
@@ -1418,9 +1418,9 @@ export default function MarketAnalysisPage({
                   {getCurrentTimestampFormatted()}
                 </div>
               </div>
-            </Tabs.Tab>
+            </Tab>
 
-            <Tabs.Tab id="dataset-insights" title="Dataset Insights">
+            <Tab key="dataset-insights" title="Dataset Insights">
               <div className="space-y-6 mt-6">
                 {/* Dataset Overview Header */}
                 <div className="p-6 bg-linear-to-r from-secondary-500 to-secondary-600 rounded-2xl text-white shadow-lg">
@@ -1518,7 +1518,7 @@ export default function MarketAnalysisPage({
                   <Alert severity="info">No dataset statistics available.</Alert>
                 )}
               </div>
-            </Tabs.Tab>
+            </Tab>
           </Tabs>
         </div>
       )}

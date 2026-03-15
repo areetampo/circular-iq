@@ -63,7 +63,7 @@ export function startServer() {
       renderRow('Allowed Origins', formatList(BACKEND_CONFIG.app.allowedOrigins)),
       renderRow(
         'Public Routes',
-        theme.secondary(BACKEND_CONFIG.app.publicRoutes?.join('  •  ') || 'None'),
+        theme.secondary(Array.from(BACKEND_CONFIG.app.publicRoutes || []).join('  •  ') || 'None'),
       ),
       '',
       renderRow(
