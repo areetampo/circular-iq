@@ -1,0 +1,15 @@
+# Dependencies
+node_modules
+dist
+build
+
+# RAG / AI Datasets (Don't format these!)
+backend/datasets/
+*.csv
+*.jsonl
+*.pdf
+*.sql
+
+# System files
+.DS_Store
+.env
