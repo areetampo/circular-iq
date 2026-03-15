@@ -1,5 +1,3 @@
-/* global process */
-
 /**
  * Embedding Generation Script
  *

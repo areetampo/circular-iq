@@ -1,5 +1,3 @@
-/* global process */
-
 /**
  * CSV Dataset Merger
  *

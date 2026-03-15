@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import { envSchema } from '#config/env.schema.js';
-import process from 'process';
 
 /* ------------------------------ */
 /* Test-friendly defaults */

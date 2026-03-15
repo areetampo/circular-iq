@@ -32,7 +32,6 @@
 import '#server/bootstrap.js';
 import fs from 'fs';
 import readline from 'readline';
-import process from 'process';
 import { Readable } from 'stream';
 import { from as copyFrom } from 'pg-copy-streams';
 import { getAivenPgPool, getSupabasePgPool } from '#database/client.js';
@@ -139,7 +138,7 @@ export async function createInsertAdapter() {
       // Query uses the unique index idx_unique_chunk_field for fast lookups
       const { rows: existingRows } = await client.query(
         `SELECT chunk_id, field_name
-           FROM documents
+          FROM documents
           WHERE (chunk_id, field_name) = ANY(
             SELECT unnest($1::text[]), unnest($2::text[])
           )`,

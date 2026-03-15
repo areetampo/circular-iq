@@ -25,8 +25,6 @@
  *   ✓ Consistency: All CSV processing uses shared columns and stringify options
  */
 
-/* global process */
-
 import path from 'path';
 import fs from 'fs';
 import { stringify } from 'csv-stringify/sync';

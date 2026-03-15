@@ -1,5 +1,3 @@
-/* global process */
-
 /**
  * Semantic Chunking Script for Circular Economy datasets
  *

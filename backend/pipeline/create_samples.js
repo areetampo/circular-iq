@@ -1,5 +1,3 @@
-/* global process */
-
 /**
  * Create Samples Script
  *
