@@ -12,7 +12,7 @@ export const baseConfig = {
   rules: {
     ...js.configs.recommended.rules,
     'no-unused-vars': 'off',
-    'no-console': 'warn',
+    'no-console': 'off',
     semi: ['error', 'always'],
   },
 };
