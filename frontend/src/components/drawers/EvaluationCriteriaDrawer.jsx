@@ -1,14 +1,7 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
 import { Link, CircleDollarSign, Settings, ClipboardMinus, X } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerBody } from '@heroui/react';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 

@@ -2,14 +2,7 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 import PropTypes from 'prop-types';
 import { X as XIcon, PencilLine, Target, Lightbulb, BarChart3 } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer } from '@heroui/react';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 
@@ -20,48 +13,35 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   const direction = useDrawerDirection();
 
   return (
-    <Drawer
-      open={isDrawerOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-      direction={direction}
-    >
-      <DrawerContent direction={direction} aria-label="Sample Test Case Information">
-        <DrawerHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  'p-2 rounded-lg bg-blue-100 shrink-0',
-                  'transition-[transform,box-shadow] duration-300 ease-out',
-                  isDrawerOpen
-                    ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                    : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                )}
-              >
-                <PencilLine className="size-5 text-blue-600" />
-              </div>
-              <div>
-                <DrawerTitle className="text-lg font-semibold">{testCase.title}</DrawerTitle>
-                <DrawerDescription className="text-sm text-gray-600">
-                  Sample test case details and parameters
-                </DrawerDescription>
+    <Drawer.Backdrop isOpen={isDrawerOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Drawer.Content placement={direction === 'right' ? 'right' : 'bottom'}>
+        <Drawer.Dialog>
+          {direction === 'bottom' && <Drawer.Handle />}
+          <Drawer.CloseTrigger />
+          <Drawer.Header>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    'p-2 rounded-lg bg-blue-100 shrink-0',
+                    'transition-[transform,box-shadow] duration-300 ease-out',
+                    isDrawerOpen
+                      ? 'scale-[1.12] -rotate-6 drop-shadow-md'
+                      : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
+                  )}
+                >
+                  <PencilLine className="size-5 text-blue-600" />
+                </div>
+                <div>
+                  <Drawer.Heading className="text-lg font-semibold">{testCase.title}</Drawer.Heading>
+                  <Drawer.Description className="text-sm text-gray-600">
+                    Sample test case details and parameters
+                  </Drawer.Description>
+                </div>
               </div>
             </div>
-
-            {direction === 'right' && (
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <XIcon className="size-4" />
-              </button>
-            )}
-          </div>
-        </DrawerHeader>
-        <DrawerBody className="gap-6">
+          </Drawer.Header>
+          <Drawer.Body className="gap-6">
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -131,9 +111,10 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
               </div>
             </div>
           </div>
-        </DrawerBody>
-      </DrawerContent>
-    </Drawer>
+        </Drawer.Body>
+      </Drawer.Dialog>
+    </Drawer.Content>
+  </Drawer.Backdrop>
   );
 }
 

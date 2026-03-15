@@ -4,14 +4,7 @@ import { cn } from '@/utils/cn';
 import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
 import { GROUP_STYLE_CONFIG, DEFAULT_CONFIG } from '@/constants/groupStyleConfig';
 import { X } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer } from '@heroui/react';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 
@@ -32,47 +25,34 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
   const direction = useDrawerDirection();
 
   return (
-    <Drawer
-      open={isDrawerOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-      direction={direction}
-    >
-      <DrawerContent direction={direction} aria-label="Parameter Information">
-        <DrawerHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Icon
-                className={cn(
-                  'h-6 w-6 shrink-0 transition-[transform,box-shadow] duration-300 ease-out',
-                  cfg.iconColor,
-                  isDrawerOpen
-                    ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                    : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                )}
-                strokeWidth={1.75}
-              />
-              <div>
-                <DrawerTitle className="text-lg font-semibold">Parameter Information</DrawerTitle>
-                <DrawerDescription className="text-sm text-gray-600">
-                  Detailed guidance for evaluation parameters
-                </DrawerDescription>
+    <Drawer.Backdrop isOpen={isDrawerOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Drawer.Content placement={direction === 'right' ? 'right' : 'bottom'}>
+        <Drawer.Dialog>
+          {direction === 'bottom' && <Drawer.Handle />}
+          <Drawer.CloseTrigger />
+          <Drawer.Header>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Icon
+                  className={cn(
+                    'h-6 w-6 shrink-0 transition-[transform,box-shadow] duration-300 ease-out',
+                    cfg.iconColor,
+                    isDrawerOpen
+                      ? 'scale-[1.12] -rotate-6 drop-shadow-md'
+                      : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
+                  )}
+                  strokeWidth={1.75}
+                />
+                <div>
+                  <Drawer.Heading className="text-lg font-semibold">Parameter Information</Drawer.Heading>
+                  <Drawer.Description className="text-sm text-gray-600">
+                    Detailed guidance for evaluation parameters
+                  </Drawer.Description>
+                </div>
               </div>
             </div>
-
-            {direction === 'right' && (
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-        </DrawerHeader>
-        <DrawerBody className="gap-6">
+          </Drawer.Header>
+          <Drawer.Body>
           <div className="space-y-6">
             <div className="px-4">
               <div className="flex flex-col items-start justify-between gap-4 mb-5 xs:flex-row">
@@ -156,9 +136,10 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
               </div>
             )}
           </div>
-        </DrawerBody>
-      </DrawerContent>
-    </Drawer>
+        </Drawer.Body>
+      </Drawer.Dialog>
+    </Drawer.Content>
+  </Drawer.Backdrop>
   );
 }
 

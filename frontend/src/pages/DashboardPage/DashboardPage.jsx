@@ -938,6 +938,7 @@ export default function DashboardPage() {
                     data={documentStats.byIndustry || []}
                     barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#2563eb' }]}
                     height={300}
+                    xAxisKey="value"
                     xAxisLabel="Industry"
                     yAxisLabel="Number of Cases"
                     showLegend={false}

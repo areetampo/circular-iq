@@ -37,15 +37,24 @@ vi.mock('@heroui/react', () => {
   const mockCard = React.forwardRef((props, ref) =>
     React.createElement('div', { ref, ...props }, props.children),
   );
+  mockCard.displayName = 'Card';
   mockCard.Header = ({ children, ...props }) => React.createElement('div', props, children);
+  mockCard.Header.displayName = 'Card.Header';
   mockCard.Title = ({ children, ...props }) => React.createElement('h3', props, children);
+  mockCard.Title.displayName = 'Card.Title';
   mockCard.Description = ({ children, ...props }) => React.createElement('p', props, children);
+  mockCard.Description.displayName = 'Card.Description';
   mockCard.Content = ({ children, ...props }) => React.createElement('div', props, children);
+  mockCard.Content.displayName = 'Card.Content';
 
   return {
     Card: mockCard,
-    Input: ({ ...props }) => React.createElement('input', props),
-    Chip: ({ children, ...props }) => React.createElement('span', props, children),
+    Input: Object.assign(({ ...props }) => React.createElement('input', props), {
+      displayName: 'Input',
+    }),
+    Chip: Object.assign(({ children, ...props }) => React.createElement('span', props, children), {
+      displayName: 'Chip',
+    }),
   };
 });
 

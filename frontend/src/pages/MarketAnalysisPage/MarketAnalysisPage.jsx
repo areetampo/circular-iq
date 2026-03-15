@@ -12,7 +12,8 @@ import { useMarketAnalysis, getEnhancedAnalytics, useDocumentStats } from '@/fea
 import { useSession } from '@/features/session';
 import { useQuery } from '@tanstack/react-query';
 import { exportAssessmentPDF } from '@/features/export';
-import { Card, Chip, Tooltip, Tabs, Tab, Table } from '@heroui/react';
+import { Card, Chip, Tooltip, Tabs, Tab, Table, ProgressCircle } from '@heroui/react';
+import { Alert } from '@mui/material';
 import { Button } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { ProgressBar } from '@heroui/react';
@@ -1435,7 +1436,7 @@ export default function MarketAnalysisPage({
 
                 {statsLoading ? (
                   <div className="flex justify-center py-8">
-                    <CircularProgress size={40} />
+                    <ProgressCircle aria-label="Loading..." />
                   </div>
                 ) : statsError ? (
                   <Alert severity="error">{statsError}</Alert>
@@ -1449,6 +1450,7 @@ export default function MarketAnalysisPage({
                           data={documentStats.byIndustry || []}
                           barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#2563eb' }]}
                           height={300}
+                          xAxisKey="value"
                           xAxisLabel="Industry"
                           yAxisLabel="Number of Cases"
                           showLegend={false}
@@ -1473,6 +1475,7 @@ export default function MarketAnalysisPage({
                           data={documentStats.byCategory || []}
                           barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#059669' }]}
                           height={300}
+                          xAxisKey="value"
                           xAxisLabel="Category"
                           yAxisLabel="Number of Cases"
                           showLegend={false}
@@ -1484,6 +1487,7 @@ export default function MarketAnalysisPage({
                           data={documentStats.byScale || []}
                           barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#f97316' }]}
                           height={300}
+                          xAxisKey="value"
                           xAxisLabel="Scale"
                           yAxisLabel="Number of Cases"
                           showLegend={false}

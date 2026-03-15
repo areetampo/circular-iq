@@ -1,19 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import DRAWERS from '@/components/drawers/drawerTypes';
-import {
-  AssessmentMethodologyDrawer,
-  EvaluationCriteriaDrawer,
-  BusinessProblemInfoDrawer,
-  BusinessSolutionInfoDrawer,
-  EvaluationParametersHeadingInfoDrawer,
-  SpecificEvaluationParameterInfoDrawer,
-  SampleTestCasesHeadingInfoDrawer,
-  SpecificSampleTestCaseViewDetailsDrawer,
-  ResultsDatabaseEvidenceDetailsDrawer,
-  DashboardFeaturedSolutionsDrawer,
-} from '@/components/drawers';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import MODALS from '@/components/modals/modalTypes';
+import AssessmentMethodologyModal from '@/components/modals/AssessmentMethodologyModal';
+import EvaluationCriteriaModal from '@/components/modals/EvaluationCriteriaModal';
+import BusinessProblemInfoModal from '@/components/modals/BusinessProblemInfoModal';
+import BusinessSolutionInfoModal from '@/components/modals/BusinessSolutionInfoModal';
+import EvaluationParametersHeadingInfoModal from '@/components/modals/EvaluationParametersHeadingInfoModal';
+import SpecificEvaluationParameterInfoModal from '@/components/modals/SpecificEvaluationParameterInfoModal';
+import SampleTestCasesHeadingInfoModal from '@/components/modals/SampleTestCasesHeadingInfoModal';
+import SpecificSampleTestCaseViewDetailsModal from '@/components/modals/SpecificSampleTestCaseViewDetailsModal';
+import ResultsDatabaseEvidenceDetailsModal from '@/components/modals/ResultsDatabaseEvidenceDetailsModal';
+import DashboardFeaturedSolutionsModal from '@/components/modals/DashboardFeaturedSolutionsModal';
+import { useGlobalModal } from '@/contexts/ModalContext';
 
 export default function ModalManager() {
   const { modal } = useGlobalModal();

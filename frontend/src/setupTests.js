@@ -20,81 +20,205 @@ import React from 'react';
 
 // Minimal mock for @heroui/react used by Card/Button components.
 vi.mock('@heroui/react', () => {
-  const Card = ({ children, ...props }) => React.createElement('div', props, children);
-  Card.Header = ({ children }) =>
-    React.createElement('div', { className: 'card-header' }, children);
-  Card.Content = ({ children }) =>
-    React.createElement('div', { className: 'card-content' }, children);
-  Card.Title = ({ children }) => React.createElement('div', { className: 'card-title' }, children);
-  Card.Description = ({ children }) =>
-    React.createElement('div', { className: 'card-desc' }, children);
+  const Card = Object.assign(
+    ({ children, ...props }) => React.createElement('div', props, children),
+    { displayName: 'Card' },
+  );
+  Card.Header = Object.assign(
+    ({ children }) => React.createElement('div', { className: 'card-header' }, children),
+    { displayName: 'Card.Header' },
+  );
+  Card.Content = Object.assign(
+    ({ children }) => React.createElement('div', { className: 'card-content' }, children),
+    { displayName: 'Card.Content' },
+  );
+  Card.Title = Object.assign(
+    ({ children }) => React.createElement('div', { className: 'card-title' }, children),
+    { displayName: 'Card.Title' },
+  );
+  Card.Description = Object.assign(
+    ({ children }) => React.createElement('div', { className: 'card-desc' }, children),
+    { displayName: 'Card.Description' },
+  );
 
-  const Button = ({ children, ...props }) => React.createElement('button', props, children);
-  const Label = ({ children, ...props }) => React.createElement('label', props, children);
-  const Chip = ({ children, ...props }) => React.createElement('span', props, children);
+  const Button = Object.assign(
+    ({ children, ...props }) => React.createElement('button', props, children),
+    { displayName: 'Button' },
+  );
+  const Label = Object.assign(
+    ({ children, ...props }) => React.createElement('label', props, children),
+    { displayName: 'Label' },
+  );
+  const Chip = Object.assign(
+    ({ children, ...props }) => React.createElement('span', props, children),
+    { displayName: 'Chip' },
+  );
 
-  const Input = ({ children, ...props }) => React.createElement('input', props, null);
-  const Switch = ({ children, ...props }) => React.createElement('div', props, children);
-  Switch.Control = ({ children }) => React.createElement('div', null, children);
-  Switch.Thumb = ({ children }) => React.createElement('div', null, children);
-  Switch.Icon = ({ children }) => React.createElement('div', null, children);
-  const Skeleton = ({ children }) => React.createElement('div', null, children);
+  const Input = Object.assign(
+    ({ children, ...props }) => React.createElement('input', props, null),
+    { displayName: 'Input' },
+  );
+  const Switch = Object.assign(
+    ({ children, ...props }) => React.createElement('div', props, children),
+    { displayName: 'Switch' },
+  );
+  Switch.Control = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Switch.Control',
+  });
+  Switch.Thumb = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Switch.Thumb',
+  });
+  Switch.Icon = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Switch.Icon',
+  });
+  const Skeleton = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Skeleton',
+  });
 
   // Simple stubs for Tabs and Select/ListBox compound components
-  const Tabs = ({ children }) => React.createElement('div', null, children);
-  Tabs.ListContainer = ({ children }) => React.createElement('div', null, children);
-  Tabs.List = ({ children }) => React.createElement('div', null, children);
-  Tabs.Tab = ({ children }) => React.createElement('div', null, children);
-  Tabs.Indicator = ({ children }) => React.createElement('div', null, children);
+  const Tabs = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tabs',
+  });
+  Tabs.ListContainer = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tabs.ListContainer',
+  });
+  Tabs.List = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tabs.List',
+  });
+  Tabs.Tab = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tabs.Tab',
+  });
+  Tabs.Indicator = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tabs.Indicator',
+  });
 
-  const Select = ({ children }) => React.createElement('div', null, children);
-  Select.Trigger = ({ children }) => React.createElement('div', null, children);
-  Select.Popover = ({ children }) => React.createElement('div', null, children);
-  Select.Value = ({ children }) => React.createElement('div', null, children);
-  Select.Indicator = ({ children }) => React.createElement('div', null, children);
+  const Select = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Select',
+  });
+  Select.Trigger = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Select.Trigger',
+  });
+  Select.Popover = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Select.Popover',
+  });
+  Select.Value = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Select.Value',
+  });
+  Select.Indicator = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Select.Indicator',
+  });
 
-  const ListBox = ({ children }) => React.createElement('div', null, children);
-  ListBox.Item = ({ children }) => React.createElement('div', null, children);
+  const ListBox = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'ListBox',
+  });
+  ListBox.Item = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'ListBox.Item',
+  });
 
-  const Accordion = ({ children }) => React.createElement('div', null, children);
-  Accordion.Item = ({ children }) => React.createElement('div', null, children);
-  Accordion.Heading = ({ children }) => React.createElement('div', null, children);
-  Accordion.Trigger = ({ children }) => React.createElement('button', null, children);
-  Accordion.Panel = ({ children }) => React.createElement('div', null, children);
-  Accordion.Body = ({ children }) => React.createElement('div', null, children);
-  Accordion.Indicator = ({ children }) => React.createElement('div', null, children);
+  const Accordion = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Accordion',
+  });
+  Accordion.Item = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Accordion.Item',
+  });
+  Accordion.Heading = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Accordion.Heading',
+  });
+  Accordion.Trigger = Object.assign(
+    ({ children }) => React.createElement('button', null, children),
+    { displayName: 'Accordion.Trigger' },
+  );
+  Accordion.Panel = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Accordion.Panel',
+  });
+  Accordion.Body = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Accordion.Body',
+  });
+  Accordion.Indicator = Object.assign(
+    ({ children }) => React.createElement('div', null, children),
+    { displayName: 'Accordion.Indicator' },
+  );
 
-  const ScrollShadow = ({ children }) => React.createElement('div', null, children);
-  const TextArea = ({ children, ...props }) => React.createElement('textarea', props, null);
-  const NumberField = ({ children, ...props }) =>
-    React.createElement('input', { type: 'number', ...props }, null);
-  NumberField.Group = ({ children }) => React.createElement('div', null, children);
-  NumberField.DecrementButton = ({ children }) => React.createElement('button', null, children);
-  NumberField.IncrementButton = ({ children }) => React.createElement('button', null, children);
-  NumberField.Input = ({ children, ...props }) => React.createElement('input', { ...props }, null);
+  const ScrollShadow = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'ScrollShadow',
+  });
+  const TextArea = Object.assign(
+    ({ children, ...props }) => React.createElement('textarea', props, null),
+    { displayName: 'TextArea' },
+  );
+  const NumberField = Object.assign(
+    ({ children, ...props }) => React.createElement('input', { type: 'number', ...props }, null),
+    { displayName: 'NumberField' },
+  );
+  NumberField.Group = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'NumberField.Group',
+  });
+  NumberField.DecrementButton = Object.assign(
+    ({ children }) => React.createElement('button', null, children),
+    { displayName: 'NumberField.DecrementButton' },
+  );
+  NumberField.IncrementButton = Object.assign(
+    ({ children }) => React.createElement('button', null, children),
+    { displayName: 'NumberField.IncrementButton' },
+  );
+  NumberField.Input = Object.assign(
+    ({ children, ...props }) => React.createElement('input', { ...props }, null),
+    { displayName: 'NumberField.Input' },
+  );
 
-  const Tooltip = ({ children }) => React.createElement('div', null, children);
-  Tooltip.Trigger = ({ children }) => React.createElement('div', null, children);
-  Tooltip.Content = ({ children }) => React.createElement('div', null, children);
-  Tooltip.Arrow = ({ children }) => React.createElement('div', null, children);
+  const Tooltip = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tooltip',
+  });
+  Tooltip.Trigger = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tooltip.Trigger',
+  });
+  Tooltip.Content = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tooltip.Content',
+  });
+  Tooltip.Arrow = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'Tooltip.Arrow',
+  });
 
   // Minimal AlertDialog mock for dialogs used in tests
-  const AlertDialog = ({ children }) => React.createElement('div', null, children);
-  AlertDialog.Backdrop = ({ children, ...props }) => React.createElement('div', props, children);
-  AlertDialog.Container = ({ children }) => React.createElement('div', null, children);
-  AlertDialog.Dialog = ({ children }) =>
-    React.createElement(
-      'div',
-      null,
-      typeof children === 'function' ? children({ close: () => {} }) : children,
-    );
-  AlertDialog.Header = ({ children }) => React.createElement('div', null, children);
-  AlertDialog.Heading = ({ children }) => React.createElement('div', null, children);
-  AlertDialog.Body = ({ children }) => React.createElement('div', null, children);
-  AlertDialog.Footer = ({ children }) => React.createElement('div', null, children);
+  const AlertDialog = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'AlertDialog',
+  });
+  AlertDialog.Backdrop = Object.assign(
+    ({ children, ...props }) => React.createElement('div', props, children),
+    { displayName: 'AlertDialog.Backdrop' },
+  );
+  AlertDialog.Container = Object.assign(
+    ({ children }) => React.createElement('div', null, children),
+    { displayName: 'AlertDialog.Container' },
+  );
+  AlertDialog.Dialog = Object.assign(
+    ({ children }) =>
+      React.createElement(
+        'div',
+        null,
+        typeof children === 'function' ? children({ close: () => {} }) : children,
+      ),
+    { displayName: 'AlertDialog.Dialog' },
+  );
+  AlertDialog.Header = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'AlertDialog.Header',
+  });
+  AlertDialog.Heading = Object.assign(
+    ({ children }) => React.createElement('div', null, children),
+    { displayName: 'AlertDialog.Heading' },
+  );
+  AlertDialog.Body = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'AlertDialog.Body',
+  });
+  AlertDialog.Footer = Object.assign(({ children }) => React.createElement('div', null, children), {
+    displayName: 'AlertDialog.Footer',
+  });
 
   // Simple Form wrapper used by Login/Signup components
-  const Form = ({ children, ...props }) => React.createElement('form', props, children);
+  const Form = Object.assign(
+    ({ children, ...props }) => React.createElement('form', props, children),
+    { displayName: 'Form' },
+  );
 
   const toast = {
     success: (msg, opts) => {},

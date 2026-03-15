@@ -34,7 +34,7 @@ export default function LineChart({
   return (
     <MuiLineChart
       dataset={data}
-      xAxis={[{ scaleType: 'band', dataKey: xAxisKey }]}
+      xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
       series={series}
       height={height}
       slotProps={{ legend: { hidden: !showLegend } }}

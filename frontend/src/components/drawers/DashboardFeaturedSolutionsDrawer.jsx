@@ -2,14 +2,7 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { cn } from '@/utils/cn';
 import { Star, X } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerBody } from '@heroui/react';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
@@ -63,12 +56,10 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                 <Star className="size-5 text-yellow-500" />
               </div>
               <div>
-                <DrawerTitle className="text-lg font-semibold">
-                  Explore Featured Solutions
-                </DrawerTitle>
-                <DrawerDescription className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold">Explore Featured Solutions</h2>
+                <p className="text-sm text-gray-600">
                   Browse featured solutions matching your query
-                </DrawerDescription>
+                </p>
               </div>
             </div>
 

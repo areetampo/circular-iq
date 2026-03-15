@@ -14,6 +14,7 @@ import {
   Skeleton,
   ProgressBar,
   Table,
+  Button,
 } from '@heroui/react';
 import RadarChart from '@/components/charts/RadarChart';
 import BarChart from '@/components/charts/BarChart';
@@ -512,13 +513,13 @@ export default function AssessmentComparisonPage() {
                         td: 'py-4',
                       }}
                     >
-                      <TableHeader>
-                        <TableColumn className="w-1/2">Assessment 1</TableColumn>
-                        <TableColumn className="w-1/2">Assessment 2</TableColumn>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                          <TableCell className="align-top">
+                      <Table.Header>
+                        <Table.Column className="w-1/2">Assessment 1</Table.Column>
+                        <Table.Column className="w-1/2">Assessment 2</Table.Column>
+                      </Table.Header>
+                      <Table.Body>
+                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                          <Table.Cell className="align-top">
                             <div>
                               <p className="text-sm font-semibold text-slate-900 mb-2">
                                 {assessment1?.title || 'Assessment 1'}
@@ -527,8 +528,8 @@ export default function AssessmentComparisonPage() {
                                 {assessment1?.business_solution || 'N/A'}
                               </p>
                             </div>
-                          </TableCell>
-                          <TableCell className="align-top">
+                          </Table.Cell>
+                          <Table.Cell className="align-top">
                             <div>
                               <p className="text-sm font-semibold text-slate-900 mb-2">
                                 {assessment2?.title || 'Assessment 2'}
@@ -537,9 +538,9 @@ export default function AssessmentComparisonPage() {
                                 {assessment2?.business_solution || 'N/A'}
                               </p>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
+                          </Table.Cell>
+                        </Table.Row>
+                      </Table.Body>
                     </Table>
                   </Card.Content>
                 </Card>
@@ -561,40 +562,40 @@ export default function AssessmentComparisonPage() {
                       td: 'py-3',
                     }}
                   >
-                    <TableHeader>
-                      <TableColumn className="w-2/5">PARAMETER</TableColumn>
-                      <TableColumn className="text-center w-1.5/5">
+                    <Table.Header>
+                      <Table.Column className="w-2/5">PARAMETER</Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
                         {assessment1?.title || 'Assessment 1'}
-                      </TableColumn>
-                      <TableColumn className="text-center w-1.5/5">
+                      </Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
                         {assessment2?.title || 'Assessment 2'}
-                      </TableColumn>
-                    </TableHeader>
-                    <TableBody>
+                      </Table.Column>
+                    </Table.Header>
+                    <Table.Body>
                       {Object.entries(assessment1?.result_json?.input_parameters || {}).map(
                         ([key, value1]) => {
                           const value2 = assessment2?.result_json?.input_parameters?.[key];
                           return (
-                            <TableRow
+                            <Table.Row
                               key={key}
                               className="hover:bg-slate-50/50 transition-colors duration-150"
                             >
-                              <TableCell className="font-medium text-slate-900 capitalize">
+                              <Table.Cell className="font-medium text-slate-900 capitalize">
                                 {key.replace(/_/g, ' ')}
-                              </TableCell>
-                              <TableCell className="text-center text-slate-600">
+                              </Table.Cell>
+                              <Table.Cell className="text-center text-slate-600">
                                 {String(value1).substring(0, 30)}
                                 {String(value1).length > 30 ? '...' : ''}
-                              </TableCell>
-                              <TableCell className="text-center text-slate-600">
+                              </Table.Cell>
+                              <Table.Cell className="text-center text-slate-600">
                                 {String(value2 || '').substring(0, 30)}
                                 {String(value2 || '').length > 30 ? '...' : ''}
-                              </TableCell>
-                            </TableRow>
+                              </Table.Cell>
+                            </Table.Row>
                           );
                         },
                       )}
-                    </TableBody>
+                    </Table.Body>
                   </Table>
                 </Card.Content>
               </Card>
@@ -958,26 +959,26 @@ export default function AssessmentComparisonPage() {
                   td: 'py-4',
                 }}
               >
-                <TableHeader>
-                  <TableColumn className="w-[35%]">FACTOR</TableColumn>
-                  <TableColumn className="text-center">{assessment1.title}</TableColumn>
-                  <TableColumn className="text-center">{assessment2.title}</TableColumn>
-                  <TableColumn className="text-center">CHANGE</TableColumn>
-                </TableHeader>
-                <TableBody>
+                <Table.Header>
+                  <Table.Column className="w-[35%]">FACTOR</Table.Column>
+                  <Table.Column className="text-center">{assessment1.title}</Table.Column>
+                  <Table.Column className="text-center">{assessment2.title}</Table.Column>
+                  <Table.Column className="text-center">CHANGE</Table.Column>
+                </Table.Header>
+                <Table.Body>
                   {Object.entries(assessment1.result_json?.sub_scores || {}).map(
                     ([factor, val1]) => {
                       const val2 = assessment2.result_json?.sub_scores?.[factor] || 0;
                       const diff = val2 - val1;
                       return (
-                        <TableRow
+                        <Table.Row
                           key={factor}
                           className="hover:bg-slate-50/50 transition-colors duration-150"
                         >
-                          <TableCell className="font-semibold text-slate-900">
+                          <Table.Cell className="font-semibold text-slate-900">
                             {titleize(factor)}
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             <Chip
                               color={getScoreColor(val1)}
                               variant="soft"
@@ -986,8 +987,8 @@ export default function AssessmentComparisonPage() {
                             >
                               <Chip.Label className="font-bold">{val1}</Chip.Label>
                             </Chip>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             <Chip
                               color={getScoreColor(val2)}
                               variant="soft"
@@ -996,15 +997,15 @@ export default function AssessmentComparisonPage() {
                             >
                               <Chip.Label className="font-bold">{val2}</Chip.Label>
                             </Chip>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             {renderChangeIndicator(diff)}
-                          </TableCell>
-                        </TableRow>
+                          </Table.Cell>
+                        </Table.Row>
                       );
                     },
                   )}
-                </TableBody>
+                </Table.Body>
               </Table>
             </Card.Content>
           </Card>
@@ -1029,21 +1030,20 @@ export default function AssessmentComparisonPage() {
                   td: 'py-4',
                 }}
               >
-                <TableHeader>
-                  <TableColumn className="w-[35%]">ATTRIBUTE</TableColumn>
-                  <TableColumn className="text-center">{assessment1.title}</TableColumn>
-                  <TableColumn className="text-center">{assessment2.title}</TableColumn>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <TableCell className="font-semibold text-slate-900">Industry</TableCell>
-                    <TableCell className="text-center">
+                <Table.Header>
+                  <Table.Column className="w-[35%]">ATTRIBUTE</Table.Column>
+                  <Table.Column className="text-center">{assessment1.title}</Table.Column>
+                  <Table.Column className="text-center">{assessment2.title}</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Industry</Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(
                             (function () {
                               try {
-                                // eslint-disable-next-line global-require
                                 const { getIndustry } = require('@/lib/metadata');
                                 return getIndustry(assessment1.result_json) || '';
                               } catch (e) {
@@ -1057,14 +1057,13 @@ export default function AssessmentComparisonPage() {
                           )}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(
                             (function () {
                               try {
-                                // eslint-disable-next-line global-require
                                 const { getIndustry } = require('@/lib/metadata');
                                 return getIndustry(assessment2.result_json) || '';
                               } catch (e) {
@@ -1078,60 +1077,60 @@ export default function AssessmentComparisonPage() {
                           )}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <TableCell className="font-semibold text-slate-900">Scale</TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Scale</Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(assessment1.result_json?.metadata?.scale)}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(assessment2.result_json?.metadata?.scale)}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <TableCell className="font-semibold text-slate-900">Strategy</TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Strategy</Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(assessment1.result_json?.metadata?.r_strategy)}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(assessment2.result_json?.metadata?.r_strategy)}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <TableCell className="font-semibold text-slate-900">Material</TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Material</Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(assessment1.result_json?.metadata?.primary_material)}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                    <TableCell className="text-center">
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
                           {titleize(assessment2.result_json?.metadata?.primary_material)}
                         </Chip.Label>
                       </Chip>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
+                    </Table.Cell>
+                  </Table.Row>
+                </Table.Body>
               </Table>
             </Card.Content>
           </Card>
@@ -1159,22 +1158,22 @@ export default function AssessmentComparisonPage() {
                       }}
                       isCompact
                     >
-                      <TableHeader>
-                        <TableColumn className="min-w-30 sm:min-w-auto">BENCHMARK</TableColumn>
-                        <TableColumn className="text-center min-w-20">
+                      <Table.Header>
+                        <Table.Column className="min-w-30 sm:min-w-auto">BENCHMARK</Table.Column>
+                        <Table.Column className="text-center min-w-20">
                           {assessment1.title}
-                        </TableColumn>
-                        <TableColumn className="text-center min-w-20">
+                        </Table.Column>
+                        <Table.Column className="text-center min-w-20">
                           {assessment2.title}
-                        </TableColumn>
-                        <TableColumn className="text-center min-w-16">CHANGE</TableColumn>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                          <TableCell className="font-semibold text-slate-900">
+                        </Table.Column>
+                        <Table.Column className="text-center min-w-16">CHANGE</Table.Column>
+                      </Table.Header>
+                      <Table.Body>
+                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                          <Table.Cell className="font-semibold text-slate-900">
                             vs. Similar Avg
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             <Chip
                               color={getScoreColor(
                                 Math.round(
@@ -1191,8 +1190,8 @@ export default function AssessmentComparisonPage() {
                                 )}
                               </Chip.Label>
                             </Chip>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             <Chip
                               color={getScoreColor(
                                 Math.round(
@@ -1209,8 +1208,8 @@ export default function AssessmentComparisonPage() {
                                 )}
                               </Chip.Label>
                             </Chip>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             {renderChangeIndicator(
                               Math.round(
                                 assessment2.result_json?.gap_analysis.overall_benchmarks.average,
@@ -1219,13 +1218,13 @@ export default function AssessmentComparisonPage() {
                                   assessment1.result_json?.gap_analysis.overall_benchmarks.average,
                                 ),
                             )}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                          <TableCell className="font-semibold text-slate-900">
+                          </Table.Cell>
+                        </Table.Row>
+                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                          <Table.Cell className="font-semibold text-slate-900">
                             vs. Top 10%
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             <Chip
                               color={getScoreColor(
                                 assessment1.result_json?.gap_analysis.overall_benchmarks
@@ -1242,8 +1241,8 @@ export default function AssessmentComparisonPage() {
                                 }
                               </Chip.Label>
                             </Chip>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             <Chip
                               color={getScoreColor(
                                 assessment2.result_json?.gap_analysis.overall_benchmarks
@@ -1260,17 +1259,17 @@ export default function AssessmentComparisonPage() {
                                 }
                               </Chip.Label>
                             </Chip>
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
                             {renderChangeIndicator(
                               assessment2.result_json?.gap_analysis.overall_benchmarks
                                 .top_10_percentile -
                                 assessment1.result_json?.gap_analysis.overall_benchmarks
                                   .top_10_percentile,
                             )}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
+                          </Table.Cell>
+                        </Table.Row>
+                      </Table.Body>
                     </Table>
                   </div>
                 </Card.Content>
@@ -1359,7 +1358,6 @@ export default function AssessmentComparisonPage() {
 
                 {(function () {
                   try {
-                    // eslint-disable-next-line global-require
                     const { getIndustry } = require('@/lib/metadata');
                     const a1 = getIndustry(assessment1.result_json) || '';
                     const a2 = getIndustry(assessment2.result_json) || '';

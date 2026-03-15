@@ -5,6 +5,7 @@ export default function BarChart({
   data = [],
   barConfigs = [],
   height = 300,
+  xAxisKey = 'name', // default 'name' preserves all existing callers
   xAxisLabel,
   yAxisLabel,
   showLegend = true,
@@ -34,7 +35,8 @@ export default function BarChart({
   return (
     <MuiBarChart
       dataset={data}
-      xAxis={[{ scaleType: 'band', dataKey: 'value', label: xAxisLabel }]}
+      xAxis={[{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }]}
+      yAxis={[{ label: yAxisLabel }]}
       series={series}
       height={height}
       slotProps={{ legend: { hidden: !showLegend } }}

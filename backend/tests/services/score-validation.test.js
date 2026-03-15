@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 import { before, test } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';

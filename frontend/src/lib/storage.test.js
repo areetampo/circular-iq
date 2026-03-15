@@ -1,3 +1,5 @@
+/* global afterEach, test, expect */
+
 import { saveEvaluationState, loadEvaluationState, clearEvaluationState } from './storage';
 
 afterEach(() => {

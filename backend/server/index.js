@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 
 import '#server/bootstrap.js';
 import app from '#server/app.js';

@@ -435,7 +435,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const caseId = actualResult?.case_id || currentData?.id || id;
   let caseIndustry = '';
   try {
-    // eslint-disable-next-line global-require
     const { getIndustry } = require('@/lib/metadata');
     caseIndustry = getIndustry(actualResult) || '';
   } catch (e) {
@@ -585,7 +584,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     // lazily import helper to avoid circular imports in some test setups
     let industryVal = null;
     try {
-      // eslint-disable-next-line global-require
       const { getIndustry } = require('@/lib/metadata');
       industryVal = getIndustry(source);
     } catch (e) {
@@ -1977,19 +1975,34 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               </div>
                             </div>
                             <div className="mb-3">
+                              <ProgressBar
+                                value={matchPercentage}
+                                color={
+                                  matchPercentage >= 80
+                                    ? 'success'
+                                    : matchPercentage >= 60
+                                      ? 'primary'
+                                      : matchPercentage >= 40
+                                        ? 'warning'
+                                        : 'danger'
+                                }
+                                className="mb-1"
+                              />
                               <span className={`text-sm font-medium ${matchStrengthColor}`}>
                                 {matchStrengthLabel}
                               </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                              <div className="border border-gray-300 rounded-md p-3">
-                                <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                              <div className="p-3 border-l-4 border-emerald-600 rounded bg-gray-50">
+                                <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                  <Target className="text-emerald-600" size={16} />
                                   Problem Addressed
                                 </h5>
                                 <p className="text-sm text-gray-600">{problemText}</p>
                               </div>
-                              <div className="border border-gray-300 rounded-md p-3">
-                                <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                              <div className="p-3 border-l-4 border-emerald-600 rounded bg-gray-50">
+                                <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                  <Lightbulb className="text-emerald-600" size={16} />
                                   Solution Approach
                                 </h5>
                                 <p className="text-sm text-gray-600">{solutionText}</p>
@@ -1998,11 +2011,21 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             <div className="flex justify-end">
                               <Button
                                 size="sm"
-                                variant="ghost"
-                                onPress={() => openResultsDatabaseEvidenceDetailsDrawer(caseItem)}
-                                className="text-blue-600 hover:text-blue-800"
+                                variant="light"
+                                onPress={() =>
+                                  openResultsDatabaseEvidenceDetailsDrawer({
+                                    caseItem,
+                                    content,
+                                    title: caseTitle,
+                                    matchPercentage,
+                                    matchStrengthLabel,
+                                    matchColor: matchStrengthColor,
+                                    sourceCaseId,
+                                  })
+                                }
+                                className="text-emerald-600"
                               >
-                                View Full Details →
+                                View Full Details <ArrowRight className="ml-1" size={14} />
                               </Button>
                             </div>
                             {index < actualResult.similar_cases.length - 1 && (

@@ -456,7 +456,7 @@ export function validateInput(problem, solution) {
   // Non-letter density check (too many symbols/characters suggests junk)
   function nonLetterDensity(text) {
     const total = text.length || 1;
-    const nonLetter = (text.match(/[^a-z0-9\s\.\,\-\_]/gi) || []).length;
+    const nonLetter = (text.match(/[^a-z0-9\s.,_-]/gi) || []).length;
     return nonLetter / total;
   }
 

@@ -1,3 +1,5 @@
+/* global describe, it, expect */
+
 import { sortByAverageScoreAsc, sortByAverageScoreDesc, getAverageScore } from './utils';
 
 describe('assessment utils sorting', () => {

@@ -2,14 +2,7 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 
 import { ClipboardPenLine, Lightbulb, X } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer } from '@heroui/react';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 
@@ -18,15 +11,12 @@ export default function SampleTestCasesHeadingInfoDrawer() {
   const direction = useDrawerDirection();
 
   return (
-    <Drawer
-      open={isDrawerOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-      direction={direction}
-    >
-      <DrawerContent direction={direction} aria-label="Sample Test Cases">
-        <DrawerHeader>
+    <Drawer.Backdrop isOpen={isDrawerOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Drawer.Content placement={direction === 'right' ? 'right' : 'bottom'}>
+        <Drawer.Dialog>
+          {direction === 'bottom' && <Drawer.Handle />}
+          <Drawer.CloseTrigger />
+          <Drawer.Header>
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <div
@@ -41,25 +31,15 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                 <ClipboardPenLine className="size-5 text-blue-600" />
               </div>
               <div>
-                <DrawerTitle className="text-lg font-semibold">Sample Test Cases</DrawerTitle>
-                <DrawerDescription className="text-sm text-gray-600">
+                <Drawer.Heading className="text-lg font-semibold">Sample Test Cases</Drawer.Heading>
+                <Drawer.Description className="text-sm text-gray-600">
                   Pre-filled business model examples
-                </DrawerDescription>
+                </Drawer.Description>
               </div>
             </div>
-
-            {direction === 'right' && (
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="shrink-0 rounded-lg p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                <X className="size-4" />
-              </button>
-            )}
           </div>
-        </DrawerHeader>
-        <DrawerBody className="gap-6">
+        </Drawer.Header>
+        <Drawer.Body>
           <div className="space-y-6">
             <p className="leading-relaxed text-gray-600">
               <strong>Test Cases</strong> are pre-filled form submissions representing real circular
@@ -123,8 +103,9 @@ export default function SampleTestCasesHeadingInfoDrawer() {
               </p>
             </div>
           </div>
-        </DrawerBody>
-      </DrawerContent>
-    </Drawer>
+        </Drawer.Body>
+      </Drawer.Dialog>
+    </Drawer.Content>
+  </Drawer.Backdrop>
   );
 }

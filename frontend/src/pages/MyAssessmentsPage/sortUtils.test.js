@@ -1,3 +1,5 @@
+/* global describe, it, expect */
+
 import { parseSortBy } from './sortUtils';
 
 describe('parseSortBy', () => {

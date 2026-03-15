@@ -1,5 +1,5 @@
 import path from 'path';
-import process from 'process';
+import { spawn } from 'child_process';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { filterSchema } from '#middleware/validation.middleware.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';

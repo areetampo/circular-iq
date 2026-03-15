@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 // Express application instance separated from start logic for testing and layering
 
 import '#server/bootstrap.js';
