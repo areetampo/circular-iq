@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import MODALS from '@/components/modals/modalTypes';
 import AssessmentMethodologyModal from '@/components/modals/AssessmentMethodologyModal';

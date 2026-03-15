@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
 import { GROUP_STYLE_CONFIG, DEFAULT_CONFIG } from '@/constants/groupStyleConfig';

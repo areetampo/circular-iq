@@ -1,6 +1,5 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Card, Chip } from '@heroui/react';
+import PropTypes from 'prop-types';
 
 export default function DocumentCard({ document }) {
   const { content, industry, category, source, similarity, metadata = {} } = document || {};

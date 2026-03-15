@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { Download, FileText } from 'lucide-react';
 import LoaderIcon from '@/components/common/LoaderIcon';

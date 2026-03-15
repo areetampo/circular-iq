@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import '#server/bootstrap.js';
 import app from '#server/app.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';

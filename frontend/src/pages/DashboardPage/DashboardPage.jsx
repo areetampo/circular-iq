@@ -47,7 +47,7 @@ const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'p
   };
 
   return (
-    <Card className="border-0 shadow-md bg-gradient-to-br from-white to-slate-50 hover:shadow-lg transition-shadow">
+    <Card className="border-0 shadow-md bg-linear-to-br from-white to-slate-50 hover:shadow-lg transition-shadow">
       <Card.Header className="flex flex-row items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
           <Card.Description className="text-md">{title}</Card.Description>
@@ -546,7 +546,7 @@ export default function DashboardPage() {
             .map((_, i) => (
               <Skeleton
                 key={i}
-                className="rounded-lg h-32 bg-gradient-to-br from-slate-100 to-slate-50"
+                className="rounded-lg h-32 bg-linear-to-br from-slate-100 to-slate-50"
                 animationType="pulse"
               />
             ))}

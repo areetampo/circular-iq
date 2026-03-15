@@ -1,10 +1,10 @@
-import React, { Suspense, lazy } from 'react';
-import PropTypes from 'prop-types';
-import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import LoaderComponent from '@/components/common/LoaderComponent';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
-import { useAuth } from '@/hooks/useAuth';
 import AppContainer from '@/components/layout/AppContainer';
+import { useAuth } from '@/hooks/useAuth';
+import PropTypes from 'prop-types';
+import React, { Suspense, lazy } from 'react';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 
 function ResultsToAssessmentsMarketAnalysisRedirect() {
   const { id } = useParams();

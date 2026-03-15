@@ -22,7 +22,6 @@
  * (No props needed - gets dialog state directly from context)
  */
 
-import React from 'react';
 import DIALOGS from '@/components/dialogs/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {

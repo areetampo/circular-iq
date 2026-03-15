@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardPenLine, Lightbulb } from 'lucide-react';
 import { Modal } from '@heroui/react';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
 import SampleTestCasesContainer from './SampleTestCasesContainer';

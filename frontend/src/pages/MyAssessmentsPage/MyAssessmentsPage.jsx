@@ -130,7 +130,7 @@ const AssessmentCard = React.memo(function AssessmentCard({
       onMouseEnter={() => onPrefetch(assessment.id)}
     >
       {/* Subtle gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="relative p-0 xxs:p-3 space-y-5">
         {/* Header Section */}
@@ -868,7 +868,7 @@ export default function MyAssessmentsPage() {
     // SummaryCardSkeleton - Matches the actual Summary Card structure
     function SummaryCardSkeleton() {
       return (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200/60 rounded-2xl px-6 py-5 shadow-sm">
+        <div className="bg-linear-to-br from-slate-50 to-slate-100/50 border border-slate-200/60 rounded-2xl px-6 py-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               {/* Label */}
@@ -978,7 +978,7 @@ export default function MyAssessmentsPage() {
           {stats_totalAssessments > 0 && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Average Score Card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/60 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:border-emerald-300/60 transition-all duration-200">
+              <div className="bg-linear-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/60 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:border-emerald-300/60 transition-all duration-200">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-2">
@@ -1009,7 +1009,7 @@ export default function MyAssessmentsPage() {
                 </div>
               </div>
               {/* Primary Focus Card */}
-              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 border border-indigo-200/60 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:border-indigo-300/60 transition-all duration-200">
+              <div className="bg-linear-to-br from-indigo-50 to-indigo-100/50 border border-indigo-200/60 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:border-indigo-300/60 transition-all duration-200">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wider mb-2">

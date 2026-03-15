@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { Chip } from '@heroui/react';
 import { getIndustryTheme } from '@/constants/industryThemes';

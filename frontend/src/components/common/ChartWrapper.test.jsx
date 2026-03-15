@@ -1,4 +1,3 @@
-import React from 'react';
 import { vi } from 'vitest';
 
 // mock helper to avoid alias resolution issues in test runner

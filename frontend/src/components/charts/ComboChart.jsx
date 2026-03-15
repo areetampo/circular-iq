@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart as MuiBarChart } from '@mui/x-charts/BarChart';
 
 export default function ComboChart({

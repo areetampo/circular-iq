@@ -26,7 +26,7 @@ import {
   extractIPAddress,
 } from '#utils/anonymousTracking.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { EMBEDDING_DIMENSION, VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
+import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 

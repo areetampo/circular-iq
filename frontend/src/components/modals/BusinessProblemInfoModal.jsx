@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';

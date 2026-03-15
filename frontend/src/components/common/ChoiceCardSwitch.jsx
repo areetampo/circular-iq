@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { cn } from '@/utils/cn';
 import { Switch } from '@/components/common';
@@ -28,13 +27,13 @@ export default function ChoiceCardSwitch({
 }) {
   const variants = {
     emerald: {
-      selected: 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-sm',
+      selected: 'bg-linear-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-sm',
       unselected: 'bg-slate-50 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/50',
       iconSelected: 'text-emerald-600',
       iconUnselected: 'text-slate-600 group-hover/toggle:text-emerald-600',
     },
     blue: {
-      selected: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-sm',
+      selected: 'bg-linear-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-sm',
       unselected: 'bg-slate-50 border-slate-200 hover:border-blue-200 hover:bg-blue-50/50',
       iconSelected: 'text-blue-600',
       iconUnselected: 'text-slate-600 group-hover/toggle:text-blue-600',

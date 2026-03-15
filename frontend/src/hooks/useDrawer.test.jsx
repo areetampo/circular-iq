@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import useDrawer from './useDrawer';
 
@@ -29,7 +28,9 @@ describe('useDrawer lifecycle', () => {
 
     // open
     fireEvent.click(screen.getByText('open'));
-    expect(screen.getByTestId('drawer-type').textContent).toMatch(/ASSESSMENT|assessment|Assessment/);
+    expect(screen.getByTestId('drawer-type').textContent).toMatch(
+      /ASSESSMENT|assessment|Assessment/,
+    );
 
     // initiate close — should still show the type immediately after
     fireEvent.click(screen.getByText('close'));

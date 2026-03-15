@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/hooks/useAuth';

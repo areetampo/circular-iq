@@ -1,44 +1,42 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { exportComparisonCSV } from '@/features/export';
+import BarChart from '@/components/charts/BarChart';
+import RadarChart from '@/components/charts/RadarChart';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
-import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
+import { exportComparisonCSV } from '@/features/export';
+import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import {
+  Button,
   Card,
   Chip,
-  Tabs,
-  Select,
   Label,
   ListBox,
-  Skeleton,
   ProgressBar,
+  Select,
+  Skeleton,
   Table,
-  Button,
+  Tabs,
 } from '@heroui/react';
-import RadarChart from '@/components/charts/RadarChart';
-import BarChart from '@/components/charts/BarChart';
 import {
   AlertTriangle,
   ArrowLeft,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Star,
   ArrowRight,
-  Upload,
-  Lightbulb,
-  Target,
-  Dumbbell,
-  BarChart3,
-  Search,
-  Activity,
   Award,
+  BarChart3,
+  Dumbbell,
   FileText,
   GitCompare,
-  TrendingUpDown,
-  Zap,
+  Lightbulb,
+  Minus,
+  Search,
+  Star,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Upload,
+  Zap
 } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 // Skeleton Loader Component
 function ComparisonSkeleton() {
@@ -336,7 +334,7 @@ export default function AssessmentComparisonPage() {
       {/* Assessment Headers */}
       <div className="w-full px-4 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-          <Card className="border-2 border-emerald-200 shadow-md rounded-xl bg-gradient-to-br from-emerald-50/50 to-white hover:shadow-lg transition-all duration-300">
+          <Card className="border-2 border-emerald-200 shadow-md rounded-xl bg-linear-to-br from-emerald-50/50 to-white hover:shadow-lg transition-all duration-300">
             <Card.Content className="gap-3 p-0">
               <h2 className="text-lg font-bold text-slate-900 wrap-break-word">
                 {assessment1.title}
@@ -356,14 +354,14 @@ export default function AssessmentComparisonPage() {
                 color="default"
                 variant="secondary"
                 size="lg"
-                className="text-lg font-bold px-5 py-3 bg-gradient-to-r from-emerald-100 via-teal-100 to-cyan-100 text-slate-900 shadow-md"
+                className="text-lg font-bold px-5 py-3 bg-linear-to-r from-emerald-100 via-teal-100 to-cyan-100 text-slate-900 shadow-md"
               >
                 <Chip.Label>VS</Chip.Label>
               </Chip>
             </div>
           </div>
 
-          <Card className="border-2 border-blue-200 shadow-md rounded-xl bg-gradient-to-br from-blue-50/50 to-white hover:shadow-lg transition-all duration-300">
+          <Card className="border-2 border-blue-200 shadow-md rounded-xl bg-linear-to-br from-blue-50/50 to-white hover:shadow-lg transition-all duration-300">
             <Card.Content className="gap-3 p-0">
               <h2 className="text-lg font-bold text-slate-900 wrap-break-word">
                 {assessment2.title}
@@ -414,19 +412,19 @@ export default function AssessmentComparisonPage() {
         <Tabs.ListContainer className="my-4 hidden md:flex justify-center">
           <Tabs.List
             aria-label="Comparison sections"
-            className="bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-full shadow-sm *:font-semibold"
+            className="bg-linear-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-full shadow-sm *:font-semibold"
           >
             <Tabs.Tab id="overview">
               Overview
-              <Tabs.Indicator className="bg-gradient-to-r from-emerald-200 to-teal-200" />
+              <Tabs.Indicator className="bg-linear-to-r from-emerald-200 to-teal-200" />
             </Tabs.Tab>
             <Tabs.Tab id="analysis">
               Factor Analysis
-              <Tabs.Indicator className="bg-gradient-to-r from-emerald-200 to-teal-200" />
+              <Tabs.Indicator className="bg-linear-to-r from-emerald-200 to-teal-200" />
             </Tabs.Tab>
             <Tabs.Tab id="details">
               Details
-              <Tabs.Indicator className="bg-gradient-to-r from-emerald-200 to-teal-200" />
+              <Tabs.Indicator className="bg-linear-to-r from-emerald-200 to-teal-200" />
             </Tabs.Tab>
           </Tabs.List>
         </Tabs.ListContainer>
@@ -434,9 +432,9 @@ export default function AssessmentComparisonPage() {
         {/* OVERVIEW TAB */}
         <Tabs.Panel id="overview" className="w-full px-0 md:px-4 space-y-8">
           {/* Input Data Comparison */}
-          <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-gradient-to-br from-indigo-50/30 to-white">
+          <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-linear-to-br from-indigo-50/30 to-white">
             <Card.Header className="flex items-center gap-3 pb-4">
-              <div className="p-2.5 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-200">
+              <div className="p-2.5 rounded-lg bg-linear-to-br from-indigo-100 to-indigo-200">
                 <Lightbulb className="text-indigo-700" size={20} />
               </div>
               <Card.Title className="font-bold text-lg text-slate-900">
@@ -460,10 +458,10 @@ export default function AssessmentComparisonPage() {
                           className="min-w-full"
                         >
                           <Table.Header>
-                            <Table.Column className="w-1/2 bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
+                            <Table.Column className="w-1/2 bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
                               Assessment 1
                             </Table.Column>
-                            <Table.Column className="w-1/2 bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
+                            <Table.Column className="w-1/2 bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
                               Assessment 2
                             </Table.Column>
                           </Table.Header>
@@ -509,7 +507,7 @@ export default function AssessmentComparisonPage() {
                       aria-label="Business solution comparison"
                       removeWrapper
                       classNames={{
-                        th: 'bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                        th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
                         td: 'py-4',
                       }}
                     >
@@ -558,7 +556,7 @@ export default function AssessmentComparisonPage() {
                     aria-label="Evaluation parameters comparison"
                     removeWrapper
                     classNames={{
-                      th: 'bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                      th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
                       td: 'py-3',
                     }}
                   >
@@ -604,9 +602,9 @@ export default function AssessmentComparisonPage() {
 
           {/* Key Insights */}
           {insights && insights.length > 0 && (
-            <Card className="border-2 border-teal-200 shadow-md rounded-xl bg-gradient-to-br from-teal-50/30 to-white">
+            <Card className="border-2 border-teal-200 shadow-md rounded-xl bg-linear-to-br from-teal-50/30 to-white">
               <Card.Header className="flex items-center gap-3 pb-4">
-                <div className="p-2.5 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200">
+                <div className="p-2.5 rounded-lg bg-linear-to-br from-teal-100 to-teal-200">
                   <Lightbulb className="text-teal-700" size={20} />
                 </div>
                 <Card.Title className="font-bold text-lg text-slate-900">Key Insights</Card.Title>
@@ -616,10 +614,10 @@ export default function AssessmentComparisonPage() {
                   const IconComponent = insight.icon;
                   const colorClass =
                     insight.type === 'positive'
-                      ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-l-emerald-500 text-emerald-700'
+                      ? 'bg-linear-to-r from-emerald-50 to-green-50 border-l-emerald-500 text-emerald-700'
                       : insight.type === 'negative'
-                        ? 'bg-gradient-to-r from-red-50 to-orange-50 border-l-red-500 text-red-700'
-                        : 'bg-gradient-to-r from-slate-50 to-gray-50 border-l-slate-400 text-slate-700';
+                        ? 'bg-linear-to-r from-red-50 to-orange-50 border-l-red-500 text-red-700'
+                        : 'bg-linear-to-r from-slate-50 to-gray-50 border-l-slate-400 text-slate-700';
 
                   return (
                     <div
@@ -636,9 +634,9 @@ export default function AssessmentComparisonPage() {
           )}
 
           {/* Change Snapshot */}
-          <Card className="border-2 border-orange-200 shadow-md rounded-xl bg-gradient-to-br from-orange-50/30 to-white">
+          <Card className="border-2 border-orange-200 shadow-md rounded-xl bg-linear-to-br from-orange-50/30 to-white">
             <Card.Header className="flex items-center gap-3 pb-4">
-              <div className="p-2.5 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200">
+              <div className="p-2.5 rounded-lg bg-linear-to-br from-orange-100 to-orange-200">
                 <Target className="text-orange-700" size={20} />
               </div>
               <Card.Title className="font-bold text-lg text-slate-900">
@@ -648,7 +646,7 @@ export default function AssessmentComparisonPage() {
             <Card.Content>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Assessment 1 Score */}
-                <div className="p-5 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="p-5 bg-linear-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                   <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide truncate">
                     {assessment1.title}
                   </p>
@@ -692,7 +690,7 @@ export default function AssessmentComparisonPage() {
                 </div>
 
                 {/* Assessment 2 Score */}
-                <div className="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="p-5 bg-linear-to-br from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                   <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide truncate">
                     {assessment2.title}
                   </p>
@@ -736,7 +734,7 @@ export default function AssessmentComparisonPage() {
                 </div>
 
                 {/* Overall Change */}
-                <div className="p-5 bg-gradient-to-br from-slate-50 to-white border-2 border-slate-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="p-5 bg-linear-to-br from-slate-50 to-white border-2 border-slate-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                   <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                     Overall Change
                   </p>
@@ -758,7 +756,7 @@ export default function AssessmentComparisonPage() {
                 </div>
 
                 {biggestGain && (
-                  <div className="p-5 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+                  <div className="p-5 bg-linear-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                     <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                       Biggest Gain
                     </p>
@@ -770,7 +768,7 @@ export default function AssessmentComparisonPage() {
                 )}
 
                 {biggestDrop && (
-                  <div className="p-5 bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+                  <div className="p-5 bg-linear-to-br from-red-50 to-orange-50 border-2 border-red-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                     <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                       Biggest Drop
                     </p>
@@ -781,7 +779,7 @@ export default function AssessmentComparisonPage() {
                   </div>
                 )}
 
-                <div className="p-5 bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="p-5 bg-linear-to-br from-purple-50 to-violet-50 border-2 border-purple-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
                   <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                     Avg Change
                   </p>
@@ -811,9 +809,9 @@ export default function AssessmentComparisonPage() {
           {/* Visual Comparison Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Radar Chart */}
-            <Card className="border-2 border-blue-200 shadow-md rounded-xl bg-gradient-to-br from-blue-50/30 to-white">
+            <Card className="border-2 border-blue-200 shadow-md rounded-xl bg-linear-to-br from-blue-50/30 to-white">
               <Card.Header className="flex items-center gap-3 pb-0">
-                <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200">
+                <div className="p-2.5 rounded-lg bg-linear-to-br from-blue-100 to-blue-200">
                   <GitCompare className="text-blue-700" size={20} />
                 </div>
                 <Card.Title className="font-bold text-lg text-slate-900">
@@ -834,9 +832,9 @@ export default function AssessmentComparisonPage() {
             </Card>
 
             {/* Bar Chart */}
-            <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-gradient-to-br from-purple-50/30 to-white">
+            <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-linear-to-br from-purple-50/30 to-white">
               <Card.Header className="flex items-center gap-3 pb-0">
-                <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200">
+                <div className="p-2.5 rounded-lg bg-linear-to-br from-purple-100 to-purple-200">
                   <BarChart3 className="text-purple-700" size={20} />
                 </div>
                 <Card.Title className="font-bold text-lg text-slate-900">
@@ -859,9 +857,9 @@ export default function AssessmentComparisonPage() {
           </div>
 
           {/* Detailed Factor Progress */}
-          <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-gradient-to-br from-indigo-50/30 to-white">
+          <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-linear-to-br from-indigo-50/30 to-white">
             <Card.Header className="flex items-center gap-3 pb-0">
-              <div className="p-2.5 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-200">
+              <div className="p-2.5 rounded-lg bg-linear-to-br from-indigo-100 to-indigo-200">
                 <Zap className="text-indigo-700" size={20} />
               </div>
               <Card.Title className="font-bold text-lg text-slate-900">
@@ -941,9 +939,9 @@ export default function AssessmentComparisonPage() {
           </Card>
 
           {/* Factor-by-Factor Table */}
-          <Card className="border-2 border-cyan-200 shadow-md rounded-xl bg-gradient-to-br from-cyan-50/30 to-white">
+          <Card className="border-2 border-cyan-200 shadow-md rounded-xl bg-linear-to-br from-cyan-50/30 to-white">
             <Card.Header className="flex gap-3 items-center pb-3">
-              <div className="p-2.5 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200">
+              <div className="p-2.5 rounded-lg bg-linear-to-br from-cyan-100 to-cyan-200">
                 <Search className="text-cyan-700" size={20} />
               </div>
               <Card.Title className="font-bold text-lg text-slate-900">
@@ -955,7 +953,7 @@ export default function AssessmentComparisonPage() {
                 aria-label="Factor comparison table"
                 removeWrapper
                 classNames={{
-                  th: 'bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                  th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
                   td: 'py-4',
                 }}
               >
@@ -1014,9 +1012,9 @@ export default function AssessmentComparisonPage() {
         {/* DETAILS TAB */}
         <Tabs.Panel id="details" className="w-full px-4 sm:px-8 space-y-8">
           {/* Project Details */}
-          <Card className="border-2 border-violet-200 shadow-md rounded-xl bg-gradient-to-br from-violet-50/30 to-white">
+          <Card className="border-2 border-violet-200 shadow-md rounded-xl bg-linear-to-br from-violet-50/30 to-white">
             <Card.Header className="flex items-center gap-3 pb-4">
-              <div className="p-2.5 rounded-lg bg-gradient-to-br from-violet-100 to-violet-200">
+              <div className="p-2.5 rounded-lg bg-linear-to-br from-violet-100 to-violet-200">
                 <FileText className="text-violet-700" size={20} />
               </div>
               <Card.Title className="font-bold text-lg text-slate-900">Project Details</Card.Title>
@@ -1026,7 +1024,7 @@ export default function AssessmentComparisonPage() {
                 aria-label="Project details table"
                 removeWrapper
                 classNames={{
-                  th: 'bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                  th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
                   td: 'py-4',
                 }}
               >
@@ -1138,9 +1136,9 @@ export default function AssessmentComparisonPage() {
           {/* Benchmarking */}
           {assessment1.result_json?.gap_analysis?.overall_benchmarks &&
             assessment2.result_json?.gap_analysis?.overall_benchmarks && (
-              <Card className="border-2 border-amber-200 shadow-md rounded-xl bg-gradient-to-br from-amber-50/30 to-white">
+              <Card className="border-2 border-amber-200 shadow-md rounded-xl bg-linear-to-br from-amber-50/30 to-white">
                 <Card.Header className="flex items-center gap-3 pb-4">
-                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200">
+                  <div className="p-2.5 rounded-lg bg-linear-to-br from-amber-100 to-amber-200">
                     <Award className="text-amber-700" size={20} />
                   </div>
                   <Card.Title className="font-bold text-lg text-slate-900">
@@ -1153,7 +1151,7 @@ export default function AssessmentComparisonPage() {
                       aria-label="Benchmarking table"
                       removeWrapper
                       classNames={{
-                        th: 'bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                        th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
                         td: 'py-4 px-2 sm:px-4',
                       }}
                       isCompact
@@ -1277,9 +1275,9 @@ export default function AssessmentComparisonPage() {
             )}
 
           {/* Auditor's Verdict */}
-          <Card className="border-2 border-green-200 shadow-md rounded-xl bg-gradient-to-br from-green-50/30 to-white">
+          <Card className="border-2 border-green-200 shadow-md rounded-xl bg-linear-to-br from-green-50/30 to-white">
             <Card.Header className="flex gap-3 items-center pb-3">
-              <div className="p-2.5 rounded-lg bg-gradient-to-br from-green-100 to-green-200">
+              <div className="p-2.5 rounded-lg bg-linear-to-br from-green-100 to-green-200">
                 <Lightbulb className="text-green-700" size={20} />
               </div>
               <Card.Title className="font-bold text-lg text-slate-900">
@@ -1288,7 +1286,7 @@ export default function AssessmentComparisonPage() {
             </Card.Header>
             <Card.Content>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 pl-4 border-l-4 border-emerald-500 bg-gradient-to-r from-emerald-50/50 to-white rounded-r-lg hover:shadow-md transition-all duration-200">
+                <div className="p-5 pl-4 border-l-4 border-emerald-500 bg-linear-to-r from-emerald-50/50 to-white rounded-r-lg hover:shadow-md transition-all duration-200">
                   <p className="text-sm font-bold text-emerald-700 uppercase mb-2 tracking-wide">
                     {assessment1.title}
                   </p>
@@ -1297,7 +1295,7 @@ export default function AssessmentComparisonPage() {
                   </p>
                 </div>
 
-                <div className="p-5 pl-4 border-l-4 border-blue-500 bg-gradient-to-r from-blue-50/50 to-white rounded-r-lg hover:shadow-md transition-all duration-200">
+                <div className="p-5 pl-4 border-l-4 border-blue-500 bg-linear-to-r from-blue-50/50 to-white rounded-r-lg hover:shadow-md transition-all duration-200">
                   <p className="text-sm font-bold text-blue-700 uppercase mb-2 tracking-wide">
                     {assessment2.title}
                   </p>
@@ -1310,10 +1308,10 @@ export default function AssessmentComparisonPage() {
           </Card>
 
           {/* Summary */}
-          <Card className="border-2 border-teal-300 bg-gradient-to-br from-teal-50/40 via-emerald-50/30 to-cyan-50/40 shadow-md rounded-xl">
+          <Card className="border-2 border-teal-300 bg-linear-to-br from-teal-50/40 via-emerald-50/30 to-cyan-50/40 shadow-md rounded-xl">
             <Card.Content className="gap-4 p-0">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200">
+                <div className="p-2.5 rounded-lg bg-linear-to-br from-teal-100 to-teal-200">
                   <Lightbulb className="text-teal-700" size={20} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">Summary</h3>

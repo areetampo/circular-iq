@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { factorDefinitions } from '@/constants/evaluationData';
 import { ClipboardMinus } from 'lucide-react';

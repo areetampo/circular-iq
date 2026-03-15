@@ -1,4 +1,3 @@
-import React from 'react';
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart';
 
 export default function PieChart({

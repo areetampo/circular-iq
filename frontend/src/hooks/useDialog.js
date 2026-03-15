@@ -22,7 +22,7 @@
  * onClose();
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { DIALOGS } from '@/components/dialogs/dialogTypes';
 
 // Dialog priority levels (higher = more important)

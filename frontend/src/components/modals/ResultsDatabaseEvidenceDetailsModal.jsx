@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { extractProblemSolution } from '@/utils/content';
 import { NotebookText, Target, Lightbulb } from 'lucide-react';

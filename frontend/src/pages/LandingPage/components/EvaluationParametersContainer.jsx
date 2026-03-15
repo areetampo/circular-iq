@@ -1,12 +1,12 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { useFormContext, Controller } from 'react-hook-form';
+import { parameterGroups, parameterGuidance, parameterLabels } from '@/constants/evaluationData';
+import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
-import { parameterLabels, parameterGroups, parameterGuidance } from '@/constants/evaluationData';
-import { Label, NumberField, Accordion, cn, Separator } from '@heroui/react';
-import { ChevronDown, BadgeInfo } from 'lucide-react';
-import { GROUP_STYLE_CONFIG, DEFAULT_CONFIG } from '@/constants/groupStyleConfig';
+import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
+import { BadgeInfo, ChevronDown } from 'lucide-react';
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Controller, useFormContext } from 'react-hook-form';
 
 const SCALE_COLORS = [
   'text-red-500 bg-red-50',
@@ -205,7 +205,7 @@ export default function EvaluationParametersContainer({
                       cfg.iconColor,
                       'h-5 w-5 shrink-0',
                       'transition-[scale,rotate] duration-300 ease-out',
-                      'group-hover/item:scale-[1.2] group-hover/item:-rotate-[10deg] group-hover/item:drop-shadow-md mr-1.5',
+                      'group-hover/item:scale-[1.2] group-hover/item:-rotate-10 group-hover/item:drop-shadow-md mr-1.5',
                     )}
                     strokeWidth={1.75}
                   />

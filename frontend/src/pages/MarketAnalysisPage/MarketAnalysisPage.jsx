@@ -1,36 +1,34 @@
-import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import LoaderComponent from '@/components/common/LoaderComponent';
 import BarChart from '@/components/charts/BarChart';
-import ScatterChart from '@/components/charts/ScatterChart';
 import LineChart from '@/components/charts/LineChart';
 import PieChart from '@/components/charts/PieChart';
-import { titleize } from '@/lib/formatting';
-import { getIndustry } from '@/lib/metadata';
-import { getCurrentTimestampFormatted } from '@/lib/formatting';
-import { useMarketAnalysis, getEnhancedAnalytics, useDocumentStats } from '@/features/assessments';
-import { useSession } from '@/features/session';
-import { useQuery } from '@tanstack/react-query';
-import { exportAssessmentPDF } from '@/features/export';
-import { Card, Chip, Tooltip, Tabs, Tab, Table, ProgressCircle } from '@heroui/react';
-import { Alert } from '@mui/material';
+import ScatterChart from '@/components/charts/ScatterChart';
 import { Button } from '@/components/common';
+import LoaderComponent from '@/components/common/LoaderComponent';
+import { getEnhancedAnalytics, useDocumentStats, useMarketAnalysis } from '@/features/assessments';
+import { exportAssessmentPDF } from '@/features/export';
+import { useSession } from '@/features/session';
 import { useAuth } from '@/hooks/useAuth';
-import { ProgressBar } from '@heroui/react';
+import { getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
+import { getIndustry } from '@/lib/metadata';
+import { Card, Chip, ProgressBar, ProgressCircle, Tab, Table, Tabs, Tooltip } from '@heroui/react';
+import { Alert } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import {
-  ChevronLeft,
-  Sparkles,
-  BarChart3,
-  TrendingUp,
-  Target,
-  Star,
-  Trophy,
-  Lightbulb,
-  Briefcase,
   ArrowRight,
+  BarChart3,
+  Briefcase,
+  ChevronLeft,
   Download,
   Info,
+  Lightbulb,
+  Sparkles,
+  Star,
+  Target,
+  TrendingUp,
+  Trophy,
 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function MarketAnalysisPage({
   isPublicShare = false,
@@ -496,7 +494,7 @@ export default function MarketAnalysisPage({
                 {/* Performance Comparison Metrics */}
                 {stats && userScore != null && marketData && marketData.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md rounded-xl">
+                    <div className="p-4 bg-linear-to-br from-blue-50 to-blue-100 border-2 border-blue-200 shadow-md rounded-xl">
                       <div className="text-sm text-gray-600 mb-2">Percentile Rank</div>
                       <div className="text-2xl font-bold text-blue-700">{userPercentile}%</div>
                       <div className="text-xs text-gray-500 mt-2">
@@ -509,7 +507,7 @@ export default function MarketAnalysisPage({
                               : 'Emerging - opportunity for growth'}
                       </div>
                     </div>
-                    <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 shadow-md rounded-xl">
+                    <div className="p-4 bg-linear-to-br from-green-50 to-green-100 border-2 border-green-200 shadow-md rounded-xl">
                       <div className="text-sm text-gray-600 mb-2">Performance Advantage</div>
                       <div className="text-2xl font-bold text-green-700">
                         {benchmarkDeltaPercent != null
@@ -524,7 +522,7 @@ export default function MarketAnalysisPage({
                           : 'Calculating advantage...'}
                       </div>
                     </div>
-                    <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md rounded-xl">
+                    <div className="p-4 bg-linear-to-br from-purple-50 to-purple-100 border-2 border-purple-200 shadow-md rounded-xl">
                       <div className="text-sm text-gray-600 mb-2">Market Position</div>
                       <div className="text-2xl font-bold text-purple-700">
                         {userPercentile > 50 ? 'Leader' : 'Challenger'}
@@ -538,7 +536,7 @@ export default function MarketAnalysisPage({
 
                 {/* Market Maturity Index */}
                 {stats && marketData && (
-                  <div className="p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-2 border-slate-200 shadow-md rounded-xl">
+                  <div className="p-6 bg-linear-to-r from-slate-50 to-slate-100 border-2 border-slate-200 shadow-md rounded-xl">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
                         <div className="text-sm text-gray-600 font-semibold mb-1">
@@ -808,7 +806,7 @@ export default function MarketAnalysisPage({
 
                 {/* Market Dynamics & Competitive Landscape */}
                 {marketData && marketData.length > 0 && (
-                  <Card className="border shadow-sm border-slate-200 bg-gradient-to-br from-amber-50/50 to-orange-50/50">
+                  <Card className="border shadow-sm border-slate-200 bg-linear-to-br from-amber-50/50 to-orange-50/50">
                     <Card.Header className="pb-3">
                       <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
                         <TrendingUp className="text-amber-600" size={20} />
@@ -832,7 +830,7 @@ export default function MarketAnalysisPage({
                                       {titleize(sector.industry)}
                                     </p>
                                   </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                  <div className="flex items-center gap-2 shrink-0">
                                     <div className="w-12 h-2 bg-slate-200 rounded-full overflow-hidden">
                                       <div
                                         className="h-full bg-emerald-500 rounded-full"
@@ -868,7 +866,7 @@ export default function MarketAnalysisPage({
                                         {titleize(sector.industry)}
                                       </p>
                                     </div>
-                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                    <div className="flex items-center gap-2 shrink-0">
                                       <div className="w-12 h-2 bg-slate-200 rounded-full overflow-hidden">
                                         <div
                                           className="h-full bg-blue-500 rounded-full"
@@ -1257,7 +1255,7 @@ export default function MarketAnalysisPage({
                 </div>
 
                 {/* Competitive Positioning Analysis */}
-                <Card className="border shadow-sm border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
+                <Card className="border shadow-sm border-slate-200 bg-linear-to-br from-slate-50 to-slate-100">
                   <Card.Header className="pb-3">
                     <Card.Title className="flex items-center gap-2 text-xl font-semibold text-slate-800">
                       <Trophy className="text-amber-500" size={20} />

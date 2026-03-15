@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@heroui/react';
 import { Button } from '@/components/common';

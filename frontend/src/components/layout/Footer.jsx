@@ -1,4 +1,3 @@
-import React from 'react';
 import { Copyright } from 'lucide-react';
 import { SITE_NAME, SiteLogo } from '@/components/common';
 

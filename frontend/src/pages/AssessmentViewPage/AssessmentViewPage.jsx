@@ -1,4 +1,3 @@
-import React from 'react';
 import ResultsPage from '@/pages/ResultsPage/ResultsPage';
 
 export default function AssessmentViewPage() {

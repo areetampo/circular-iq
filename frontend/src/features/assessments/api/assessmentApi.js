@@ -12,10 +12,7 @@ import { supabase } from '@/lib/supabase';
  */
 import {
   validateAssessment,
-  validateAssessmentsList,
-  safeValidateAssessment,
   safeValidateAssessmentsList,
-  AssessmentSchema,
   safeValidateGlobalAnalytics,
 } from '@/features/assessments/api/assessmentSchema';
 import { FRONTEND_CONFIG } from '@/config';

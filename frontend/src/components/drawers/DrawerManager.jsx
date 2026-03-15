@@ -1,4 +1,3 @@
-import React from 'react';
 import DRAWERS from '@/components/drawers/drawerTypes';
 import {
   AssessmentMethodologyDrawer,

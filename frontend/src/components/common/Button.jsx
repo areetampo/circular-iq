@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button as HeroButton } from '@heroui/react';
 import { clsx } from 'clsx';
 import PropTypes from 'prop-types';
