@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { TextField, InputAdornment, Chip, Box } from '@mui/material';
+import { Input, Chip, Button } from '@heroui/react';
 import { Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -41,37 +41,37 @@ export default function SearchBar({ onSearch, loading }) {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <TextField
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search for circular economy solutions..."
-        fullWidth
-        variant="outlined"
-        size="small"
-        disabled={loading}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search size={18} />
-            </InputAdornment>
-          ),
-        }}
-      />
+    <div className="w-full">
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={18}
+        />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search for circular economy solutions..."
+          fullWidth
+          disabled={loading}
+          className="pl-10"
+        />
+      </div>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+      <div className="flex flex-wrap gap-1 mt-1">
         {FILTER_KEYS.map((key) => (
-          <Chip
+          <Button
             key={key}
-            label={key.replace(/_/g, ' ').toUpperCase()}
-            variant={activeFilters[key] ? 'filled' : 'outlined'}
+            variant={activeFilters[key] ? 'solid' : 'bordered'}
             color={activeFilters[key] ? 'primary' : 'default'}
-            onClick={() => toggleFilter(key)}
-            size="small"
-          />
+            size="sm"
+            onPress={() => toggleFilter(key)}
+            className="text-xs"
+          >
+            {key.replace(/_/g, ' ').toUpperCase()}
+          </Button>
         ))}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
 

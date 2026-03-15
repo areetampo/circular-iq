@@ -246,9 +246,7 @@ function buildGapContext(gapAnalysis) {
 
   const parts = [];
   if (Array.isArray(gapAnalysis.opportunities) && gapAnalysis.opportunities.length) {
-    parts.push(
-      `Opportunities (areas to improve): ${gapAnalysis.opportunities.join(', ')}`,
-    );
+    parts.push(`Opportunities (areas to improve): ${gapAnalysis.opportunities.join(', ')}`);
   }
   if (Array.isArray(gapAnalysis.strengths) && gapAnalysis.strengths.length) {
     parts.push(`Strengths (areas of relative advantage): ${gapAnalysis.strengths.join(', ')}`);

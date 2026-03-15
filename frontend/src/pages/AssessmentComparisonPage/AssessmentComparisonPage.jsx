@@ -4,10 +4,17 @@ import { exportComparisonCSV } from '@/features/export';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import { useAssessmentComparison } from '@/features/assessments';
-import { Card, Chip, Tabs, Select, Label, ListBox, Skeleton } from '@heroui/react';
-import { Button } from '@/components/common/Button';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
-import { Progress } from '@heroui/progress';
+import {
+  Card,
+  Chip,
+  Tabs,
+  Select,
+  Label,
+  ListBox,
+  Skeleton,
+  ProgressBar,
+  Table,
+} from '@heroui/react';
 import RadarChart from '@/components/charts/RadarChart';
 import BarChart from '@/components/charts/BarChart';
 import {
@@ -445,42 +452,46 @@ export default function AssessmentComparisonPage() {
                     </Card.Title>
                   </Card.Header>
                   <Card.Content className="p-0">
-                    <Table
-                      aria-label="Business problem comparison"
-                      removeWrapper
-                      classNames={{
-                        th: 'bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-                        td: 'py-4',
-                      }}
-                    >
-                      <TableHeader>
-                        <TableColumn className="w-1/2">Assessment 1</TableColumn>
-                        <TableColumn className="w-1/2">Assessment 2</TableColumn>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow className="hover:bg-slate-50/50 transition-colors duration-150">
-                          <TableCell className="align-top">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900 mb-2">
-                                {assessment1?.title || 'Assessment 1'}
-                              </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
-                                {assessment1?.business_problem || 'N/A'}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900 mb-2">
-                                {assessment2?.title || 'Assessment 2'}
-                              </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
-                                {assessment2?.business_problem || 'N/A'}
-                              </p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
+                    <Table>
+                      <Table.ScrollContainer>
+                        <Table.Content
+                          aria-label="Business problem comparison"
+                          className="min-w-full"
+                        >
+                          <Table.Header>
+                            <Table.Column className="w-1/2 bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
+                              Assessment 1
+                            </Table.Column>
+                            <Table.Column className="w-1/2 bg-gradient-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
+                              Assessment 2
+                            </Table.Column>
+                          </Table.Header>
+                          <Table.Body>
+                            <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                              <Table.Cell className="align-top py-4">
+                                <div>
+                                  <p className="text-sm font-semibold text-slate-900 mb-2">
+                                    {assessment1?.title || 'Assessment 1'}
+                                  </p>
+                                  <p className="text-sm text-slate-700 leading-relaxed">
+                                    {assessment1?.business_problem || 'N/A'}
+                                  </p>
+                                </div>
+                              </Table.Cell>
+                              <Table.Cell className="align-top py-4">
+                                <div>
+                                  <p className="text-sm font-semibold text-slate-900 mb-2">
+                                    {assessment2?.title || 'Assessment 2'}
+                                  </p>
+                                  <p className="text-sm text-slate-700 leading-relaxed">
+                                    {assessment2?.business_problem || 'N/A'}
+                                  </p>
+                                </div>
+                              </Table.Cell>
+                            </Table.Row>
+                          </Table.Body>
+                        </Table.Content>
+                      </Table.ScrollContainer>
                     </Table>
                   </Card.Content>
                 </Card>
@@ -654,9 +665,8 @@ export default function AssessmentComparisonPage() {
                     </span>
                     <span className="text-sm text-slate-500 font-medium">/100</span>
                   </div>
-                  <Progress
+                  <ProgressBar
                     value={assessment1.result_json?.overall_score || 0}
-                    color={getScoreColor(assessment1.result_json?.overall_score || 0)}
                     className={`mt-2 h-2 rounded-full border-2 ${
                       (assessment1.result_json?.overall_score || 0) >= 75
                         ? 'border-emerald-400'
@@ -664,7 +674,20 @@ export default function AssessmentComparisonPage() {
                           ? 'border-amber-400'
                           : 'border-red-400'
                     }`}
-                  />
+                    aria-label="Assessment 1 score"
+                  >
+                    <ProgressBar.Track className="h-2 rounded-full bg-gray-200">
+                      <ProgressBar.Fill
+                        className={`h-2 rounded-full ${
+                          (assessment1.result_json?.overall_score || 0) >= 75
+                            ? 'bg-emerald-500'
+                            : (assessment1.result_json?.overall_score || 0) >= 50
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                        }`}
+                      />
+                    </ProgressBar.Track>
+                  </ProgressBar>
                 </div>
 
                 {/* Assessment 2 Score */}
@@ -686,9 +709,8 @@ export default function AssessmentComparisonPage() {
                     </span>
                     <span className="text-sm text-slate-500 font-medium">/100</span>
                   </div>
-                  <Progress
+                  <ProgressBar
                     value={assessment2.result_json?.overall_score || 0}
-                    color={getScoreColor(assessment2.result_json?.overall_score || 0)}
                     className={`mt-2 h-2 rounded-full border-2 ${
                       (assessment2.result_json?.overall_score || 0) >= 75
                         ? 'border-emerald-400'
@@ -696,7 +718,20 @@ export default function AssessmentComparisonPage() {
                           ? 'border-amber-400'
                           : 'border-red-400'
                     }`}
-                  />
+                    aria-label="Assessment 2 score"
+                  >
+                    <ProgressBar.Track className="h-2 rounded-full bg-gray-200">
+                      <ProgressBar.Fill
+                        className={`h-2 rounded-full ${
+                          (assessment2.result_json?.overall_score || 0) >= 75
+                            ? 'bg-emerald-500'
+                            : (assessment2.result_json?.overall_score || 0) >= 50
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                        }`}
+                      />
+                    </ProgressBar.Track>
+                  </ProgressBar>
                 </div>
 
                 {/* Overall Change */}
@@ -866,12 +901,15 @@ export default function AssessmentComparisonPage() {
                       <div className="text-xs text-emerald-700 font-semibold">
                         {assessment1.title}
                       </div>
-                      <Progress
+                      <ProgressBar
                         value={factor.a1}
-                        color="success"
-                        size="sm"
                         className="h-2.5 rounded-full"
-                      />
+                        aria-label={`${assessment1.title} factor score`}
+                      >
+                        <ProgressBar.Track className="h-2.5 rounded-full bg-gray-200">
+                          <ProgressBar.Fill className="h-2.5 rounded-full bg-emerald-500" />
+                        </ProgressBar.Track>
+                      </ProgressBar>
                     </div>
                     <span className="text-xs text-emerald-700 font-bold w-10 text-right">
                       {factor.a1}%
@@ -882,12 +920,15 @@ export default function AssessmentComparisonPage() {
                       <div className="text-xs text-amber-600 font-semibold">
                         {assessment2.title}
                       </div>
-                      <Progress
+                      <ProgressBar
                         value={factor.a2}
-                        color="warning"
-                        size="sm"
                         className="h-2.5 rounded-full"
-                      />
+                        aria-label={`${assessment2.title} factor score`}
+                      >
+                        <ProgressBar.Track className="h-2.5 rounded-full bg-gray-200">
+                          <ProgressBar.Fill className="h-2.5 rounded-full bg-amber-500" />
+                        </ProgressBar.Track>
+                      </ProgressBar>
                     </div>
                     <span className="text-xs text-amber-600 font-bold w-10 text-right">
                       {factor.a2}%

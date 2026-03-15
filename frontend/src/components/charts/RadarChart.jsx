@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Paper, Typography, useTheme, CircularProgress } from '@mui/material';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
+import { ProgressCircle } from '@heroui/react';
 
 function RadarChartComponent({ data, radarConfigs, height, showLegend, showTooltip, isLoading }) {
   const theme = useTheme();
@@ -77,7 +78,7 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
           border: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <CircularProgress size={48} />
+        <ProgressCircle size="lg" />
       </Paper>
     );
   }

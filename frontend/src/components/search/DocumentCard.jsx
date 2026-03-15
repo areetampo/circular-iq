@@ -1,16 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card, CardContent, Chip, Typography, Box } from '@mui/material';
+import { Card, Chip } from '@heroui/react';
 
 export default function DocumentCard({ document }) {
-  const {
-    content,
-    industry,
-    category,
-    source,
-    similarity,
-    metadata = {},
-  } = document || {};
+  const { content, industry, category, source, similarity, metadata = {} } = document || {};
 
   const snippet = content
     ? String(content).slice(0, 200)
@@ -19,25 +12,25 @@ export default function DocumentCard({ document }) {
   const similarityPct = typeof similarity === 'number' ? Math.round(similarity * 100) : null;
 
   return (
-    <Card variant="outlined" sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ flex: 1, whiteSpace: 'pre-wrap' }}>
+    <Card className="w-full h-full flex flex-col">
+      <Card.Content className="flex-1 flex flex-col gap-1">
+        <p className="text-sm text-default-600 flex-1 whitespace-pre-wrap">
           {snippet}
           {snippet && snippet.length >= 200 ? '…' : ''}
-        </Typography>
+        </p>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-          {industry && <Chip label={industry} size="small" />}
-          {category && <Chip label={category} size="small" />}
-          {source && <Chip label={source} size="small" />}
+        <div className="flex flex-wrap gap-1 mt-1">
+          {industry && <Chip size="sm">{industry}</Chip>}
+          {category && <Chip size="sm">{category}</Chip>}
+          {source && <Chip size="sm">{source}</Chip>}
           {metadata?.r_strategy && (
-            <Chip label={metadata.r_strategy} size="small" color="secondary" />
+            <Chip size="sm" color="secondary">
+              {metadata.r_strategy}
+            </Chip>
           )}
-          {similarityPct != null && (
-            <Chip label={`${similarityPct}% similar`} size="small" />
-          )}
-        </Box>
-      </CardContent>
+          {similarityPct != null && <Chip size="sm">{`${similarityPct}% similar`}</Chip>}
+        </div>
+      </Card.Content>
     </Card>
   );
 }

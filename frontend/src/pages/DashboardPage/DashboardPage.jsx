@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, memo } from 'react';
-import { Card, Label, Chip, Tabs, Select, ListBox, Skeleton, toast } from '@heroui/react';
+import { Card, Label, Chip, Tabs, Select, ListBox, Skeleton, toast, Table } from '@heroui/react';
 import { Button } from '@/components/common';
 import { ChartContainer } from '@/components/common/ChartWrapper';
 import { useSearchParams } from 'react-router-dom';
@@ -17,7 +17,6 @@ import {
   PieChart as PieChartIcon,
   Sparkles,
 } from 'lucide-react';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/table';
 import { toTitleCase } from '@/lib/formatting';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { useEnhancedAnalytics } from '@/features/assessments';
@@ -34,7 +33,8 @@ import FeaturedSolutionsCard from './FeaturedSolutionsCard';
 import { INDUSTRY_THEMES } from '@/constants/industryThemes';
 import SearchBar from '@/components/search/SearchBar';
 import DocumentCard from '@/components/search/DocumentCard';
-import { Grid, CircularProgress, Alert } from '@mui/material';
+import { Grid } from '@mui/material';
+import { ProgressCircle, Alert } from '@heroui/react';
 
 // Memoized metric card component for better performance
 const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'primary' }) => {
@@ -244,13 +244,21 @@ export default function DashboardPage() {
   });
 
   // New search and document stats hooks
-  const { results: searchResults, loading: searchLoading, error: searchError, search } = useSearch();
+  const {
+    results: searchResults,
+    loading: searchLoading,
+    error: searchError,
+    search,
+  } = useSearch();
   const { stats: documentStats, loading: statsLoading, error: statsError } = useDocumentStats();
 
   // Search handler
-  const handleSearch = useCallback((query, filters) => {
-    search(query, filters);
-  }, [search]);
+  const handleSearch = useCallback(
+    (query, filters) => {
+      search(query, filters);
+    },
+    [search],
+  );
 
   const topKeywords = useMemo(() => {
     const stopWords = new Set([
@@ -889,11 +897,11 @@ export default function DashboardPage() {
             <SearchBar onSearch={handleSearch} loading={searchLoading} />
             {searchLoading && (
               <div className="flex justify-center py-8">
-                <CircularProgress size={40} />
+                <ProgressCircle size="lg" />
               </div>
             )}
             {searchError && (
-              <Alert severity="error" className="mt-4">
+              <Alert color="danger" className="mt-4">
                 {searchError}
               </Alert>
             )}
@@ -919,10 +927,10 @@ export default function DashboardPage() {
           >
             {statsLoading ? (
               <div className="flex justify-center py-8">
-                <CircularProgress size={40} />
+                <ProgressCircle size="lg" />
               </div>
             ) : statsError ? (
-              <Alert severity="error">{statsError}</Alert>
+              <Alert color="danger">{statsError}</Alert>
             ) : documentStats ? (
               <Grid container spacing={4}>
                 <Grid item xs={12} md={6}>
@@ -963,55 +971,66 @@ export default function DashboardPage() {
           >
             <div className="overflow-x-auto">
               {industryMetrics.length > 0 ? (
-                <Table
-                  aria-label="Industry Metrics"
-                  classNames={{
-                    th: 'bg-slate-50 border-b text-left font-semibold text-slate-900',
-                  }}
-                >
-                  <TableHeader>
-                    <TableColumn className="text-left">Industry</TableColumn>
-                    <TableColumn className="text-center">Count</TableColumn>
-                    <TableColumn className="text-center">Avg Score</TableColumn>
-                    <TableColumn className="text-center">Viability</TableColumn>
-                    <TableColumn className="text-center">Median</TableColumn>
-                    <TableColumn className="text-center">Range</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {industryMetrics
-                      .slice()
-                      .sort((a, b) => b.count - a.count)
-                      .map((metric) => (
-                        <TableRow key={metric.industry} className="hover:bg-slate-50 border-b">
-                          <TableCell className="font-medium text-slate-900">
-                            {metric.industry
-                              .replace(/_/g, ' ')
-                              .replace(/\b\w/g, (c) => c.toUpperCase())}
-                          </TableCell>
-                          <TableCell className="text-center text-slate-700">
-                            {metric.count}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                              {typeof metric.averageScore === 'number'
-                                ? metric.averageScore.toFixed(1)
-                                : metric.average_score?.toFixed(1) || '—'}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center text-slate-700">
-                            {typeof metric.avgViability === 'number'
-                              ? metric.avgViability.toFixed(1)
-                              : metric.avg_viability?.toFixed(1) || '—'}
-                          </TableCell>
-                          <TableCell className="text-center text-slate-700">
-                            {metric.median || '—'}
-                          </TableCell>
-                          <TableCell className="text-center text-xs text-slate-600">
-                            {metric.min || '—'} - {metric.max || '—'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
+                <Table>
+                  <Table.ScrollContainer>
+                    <Table.Content aria-label="Industry Metrics" className="min-w-full">
+                      <Table.Header>
+                        <Table.Column className="bg-slate-50 border-b text-left font-semibold text-slate-900">
+                          Industry
+                        </Table.Column>
+                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
+                          Count
+                        </Table.Column>
+                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
+                          Avg Score
+                        </Table.Column>
+                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
+                          Viability
+                        </Table.Column>
+                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
+                          Median
+                        </Table.Column>
+                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
+                          Range
+                        </Table.Column>
+                      </Table.Header>
+                      <Table.Body>
+                        {industryMetrics
+                          .slice()
+                          .sort((a, b) => b.count - a.count)
+                          .map((metric) => (
+                            <Table.Row key={metric.industry} className="hover:bg-slate-50 border-b">
+                              <Table.Cell className="font-medium text-slate-900">
+                                {metric.industry
+                                  .replace(/_/g, ' ')
+                                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+                              </Table.Cell>
+                              <Table.Cell className="text-center text-slate-700">
+                                {metric.count}
+                              </Table.Cell>
+                              <Table.Cell className="text-center">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                  {typeof metric.averageScore === 'number'
+                                    ? metric.averageScore.toFixed(1)
+                                    : metric.average_score?.toFixed(1) || '—'}
+                                </span>
+                              </Table.Cell>
+                              <Table.Cell className="text-center text-slate-700">
+                                {typeof metric.avgViability === 'number'
+                                  ? metric.avgViability.toFixed(1)
+                                  : metric.avg_viability?.toFixed(1) || '—'}
+                              </Table.Cell>
+                              <Table.Cell className="text-center text-slate-700">
+                                {metric.median || '—'}
+                              </Table.Cell>
+                              <Table.Cell className="text-center text-xs text-slate-600">
+                                {metric.min || '—'} - {metric.max || '—'}
+                              </Table.Cell>
+                            </Table.Row>
+                          ))}
+                      </Table.Body>
+                    </Table.Content>
+                  </Table.ScrollContainer>
                 </Table>
               ) : (
                 <div className="py-12 text-center text-slate-500">No industry data available</div>

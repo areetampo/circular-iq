@@ -525,11 +525,14 @@ export async function performScoring(req, openai, supabase) {
             ]);
 
             // No client-side similarity floor on fallback — use all results
-            const fallbackDeduped = dedupeResultsWeighted([...fallbackProblem, ...fallbackSolution], {
-              wProblem: 0.5,
-              wSolution: 0.4,
-              wDoc: 0.1,
-            });
+            const fallbackDeduped = dedupeResultsWeighted(
+              [...fallbackProblem, ...fallbackSolution],
+              {
+                wProblem: 0.5,
+                wSolution: 0.4,
+                wDoc: 0.1,
+              },
+            );
 
             return fallbackDeduped.length > 0 ? fallbackDeduped : dedupedList;
           }

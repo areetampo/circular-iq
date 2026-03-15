@@ -3,17 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/common';
-import { Avatar, Separator } from '@heroui/react';
-import {
-  Navbar as HeroNavbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-  NavbarMenu,
-  NavbarMenuItem,
-} from '@heroui/navbar';
-import { Menu, Transition, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
-import { User, Settings, HelpCircle, LogOut, Mail, ChevronDown } from 'lucide-react';
+import { Avatar, Separator, Dropdown } from '@heroui/react';
+import { User, Settings, HelpCircle, LogOut, Mail, ChevronDown, Menu, X } from 'lucide-react';
 import { SiteName, SiteLogo } from '@/components/common';
 
 export default function Navbar() {
@@ -92,33 +83,25 @@ export default function Navbar() {
   const NAVBAR_BG = 'bg-background/70 backdrop-blur-md backdrop-saturate-150';
 
   return (
-    <HeroNavbar
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-      maxWidth="full"
-      height="4rem"
-      isBlurred
-      className="sticky top-0 z-50 border-b border-default-200"
-      classNames={{
-        base: NAVBAR_BG,
-        wrapper: 'px-3 xs:px-6 h-16',
-        menu: cn(NAVBAR_BG, 'pt-0 pb-4 px-4 md:hidden'),
-      }}
+    <nav
+      className={cn(
+        'sticky top-0 z-50 border-b border-default-200',
+        NAVBAR_BG,
+        'h-16 px-3 xs:px-6 flex items-center justify-between',
+      )}
     >
       {/* LEFT: Caret Toggle + SiteLogo + Name + Nav Items */}
-      <NavbarContent className="gap-3" justify="start">
+      <div className="flex items-center gap-3">
         {/* Caret Toggle - Only visible on mobile */}
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="md:hidden cursor-pointer text-foreground"
           aria-label="Toggle navigation menu"
         >
-          <ChevronDown
-            className={cn('w-5 h-5 transition-transform duration-200', isMenuOpen && 'rotate-180')}
-          />
+          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
-        <NavbarBrand className="grow-0">
+        <div className="grow-0">
           <button
             onClick={() => {
               navigate('/');
@@ -130,166 +113,134 @@ export default function Navbar() {
             <SiteLogo />
             <SiteName className="font-bold text-xl text-foreground" />
           </button>
-        </NavbarBrand>
+        </div>
 
         {/* Desktop Nav Items */}
         <div className="hidden md:flex justify-start items-start gap-2 ml-4">
           {navigationItems.map((item) => {
             const isActive = isActivePath(item.path);
             return (
-              <NavbarItem key={item.id} isActive={isActive}>
+              <button
+                key={item.id}
+                onClick={() => handleNavigation(item)}
+                className={cn(
+                  'text-md font-semibold transition-colors cursor-pointer px-2 py-1 rounded-lg',
+                  isActive
+                    ? 'text-black bg-default-100'
+                    : 'text-foreground/50 hover:text-slate-700/90',
+                )}
+              >
+                {item.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div
+          className={cn(
+            'md:hidden absolute top-16 left-0 right-0',
+            NAVBAR_BG,
+            'border-b border-default-200 pt-0 pb-4 px-4',
+          )}
+        >
+          <div className="flex flex-col">
+            {navigationItems.map((item) => {
+              const isActive = isActivePath(item.path);
+              return (
                 <button
+                  key={item.id}
                   onClick={() => handleNavigation(item)}
                   className={cn(
-                    'text-md font-semibold transition-colors cursor-pointer px-2 py-1 rounded-lg',
+                    'w-full px-4 py-3 text-left text-xl font-semibold transition-colors rounded-lg cursor-pointer uppercase',
                     isActive
                       ? 'text-black bg-default-100'
-                      : 'text-foreground/50 hover:text-slate-700/90',
+                      : 'text-foreground/50 hover:text-slate-700/90 hover:bg-default-50',
                   )}
                 >
                   {item.name}
                 </button>
-              </NavbarItem>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </NavbarContent>
-
-      {/* Mobile Menu */}
-      <NavbarMenu className="pt-4 flex justify-start flex-col">
-        {navigationItems.map((item) => {
-          const isActive = isActivePath(item.path);
-          return (
-            <NavbarMenuItem
-              key={item.id}
-              onClick={() => handleNavigation(item)}
-              className={cn(
-                'w-full px-4 py-3 text-left text-xl font-semibold transition-colors rounded-lg cursor-pointer uppercase',
-                isActive
-                  ? 'text-black bg-default-100'
-                  : 'text-foreground/50 hover:text-slate-700/90 hover:bg-default-50',
-              )}
-            >
-              {item.name}
-            </NavbarMenuItem>
-          );
-        })}
-      </NavbarMenu>
+      )}
 
       {/* RIGHT: Profile Dropdown */}
-      <NavbarContent justify="end">
-        <NavbarItem>
-          {isAuthenticated ? (
-            <Menu as="div" className="relative">
-              {({ open }) => (
-                <>
-                  <MenuButton
-                    className={cn(
-                      'flex items-center gap-2.5 bg-transparent border-0 focus:outline-none cursor-pointer transition-all duration-200',
-                    )}
-                  >
-                    <Avatar color="success" size="md" variant="soft">
-                      <Avatar.Image
-                        src={profile?.avatar_url || user?.avatar_url}
-                        alt="User avatar"
-                      />
-                      <Avatar.Fallback className="text-lg font-semibold">
-                        {getUserInitials()}
-                      </Avatar.Fallback>
-                    </Avatar>
-                    <span className="hidden xxs:inline text-lg font-medium text-foreground">
-                      {getUsername()}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        'w-4 h-4 text-default-500 transition-transform duration-200',
-                        open && 'rotate-180',
-                      )}
-                    />
-                  </MenuButton>
-
-                  <Transition
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <MenuItems className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-xl bg-white shadow-lg border border-default-200 focus:outline-none overflow-hidden">
-                      {/* User Info Header */}
-                      <div className="px-4 py-3 border-b border-default-200">
-                        <div className="flex items-center gap-3">
-                          <Avatar color="success" size="md" variant="soft">
-                            <Avatar.Image
-                              src={profile?.avatar_url || user?.avatar_url}
-                              alt="User avatar"
-                            />
-                            <Avatar.Fallback className="text-lg font-semibold">
-                              {getUserInitials()}
-                            </Avatar.Fallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">
-                              {profile?.username || user?.username || 'User'}
-                            </p>
-                            <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
-                              <Mail size={12} className="shrink-0" />
-                              <span className="truncate">{user?.email || 'user@example.com'}</span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Menu Items */}
-                      <div className="py-1">
-                        {userDropdownItems.map((item) => (
-                          <MenuItem key={item.id}>
-                            {() => (
-                              <button
-                                onClick={item.onClick}
-                                className={cn(
-                                  'flex items-center gap-3 w-full px-4 py-2 text-sm cursor-pointer transition-colors hover:bg-slate-100',
-                                )}
-                              >
-                                <item.icon className="text-default-500" size={16} />
-                                <span className="font-medium text-foreground">{item.name}</span>
-                              </button>
-                            )}
-                          </MenuItem>
-                        ))}
-                      </div>
-
-                      <Separator className="my-0" />
-
-                      {/* Sign Out */}
-                      <div className="py-1">
-                        <MenuItem>
-                          {() => (
-                            <button
-                              onClick={handleSignOut}
-                              className={cn(
-                                'flex items-center gap-3 w-full px-4 py-2 text-sm cursor-pointer transition-colors text-danger hover:bg-red-50',
-                              )}
-                            >
-                              <LogOut size={16} />
-                              <span className="font-semibold">Sign Out</span>
-                            </button>
-                          )}
-                        </MenuItem>
-                      </div>
-                    </MenuItems>
-                  </Transition>
-                </>
-              )}
-            </Menu>
-          ) : (
-            <Button onClick={() => navigate('/auth')} variant="success" className="cursor-pointer">
-              Sign In
-            </Button>
-          )}
-        </NavbarItem>
-      </NavbarContent>
-    </HeroNavbar>
+      <div>
+        {isAuthenticated ? (
+          <Dropdown>
+            <Dropdown.Trigger>
+              <button
+                className={cn(
+                  'flex items-center gap-2.5 bg-transparent border-0 focus:outline-none cursor-pointer transition-all duration-200',
+                )}
+              >
+                <Avatar color="success" size="md" variant="soft">
+                  <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
+                  <Avatar.Fallback className="text-lg font-semibold">
+                    {getUserInitials()}
+                  </Avatar.Fallback>
+                </Avatar>
+                <span className="hidden xxs:inline text-lg font-medium text-foreground">
+                  {getUsername()}
+                </span>
+                <ChevronDown className="w-4 h-4 text-default-500" />
+              </button>
+            </Dropdown.Trigger>
+            <Dropdown.Menu aria-label="User menu">
+              {/* User Info Header */}
+              <Dropdown.Item isReadOnly className="h-auto p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar color="success" size="md" variant="soft">
+                    <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
+                    <Avatar.Fallback className="text-lg font-semibold">
+                      {getUserInitials()}
+                    </Avatar.Fallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {profile?.username || user?.username || 'User'}
+                    </p>
+                    <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
+                      <Mail size={12} className="shrink-0" />
+                      <span className="truncate">{user?.email || 'user@example.com'}</span>
+                    </p>
+                  </div>
+                </div>
+              </Dropdown.Item>
+              <Dropdown.Item>
+                <Separator className="my-0" />
+              </Dropdown.Item>
+              {/* Menu Items */}
+              {userDropdownItems.map((item) => (
+                <Dropdown.Item key={item.id} onClick={item.onClick}>
+                  <div className="flex items-center gap-3">
+                    <item.icon className="text-default-500" size={16} />
+                    <span className="font-medium text-foreground">{item.name}</span>
+                  </div>
+                </Dropdown.Item>
+              ))}
+              <Dropdown.Item>
+                <Separator className="my-0" />
+              </Dropdown.Item>
+              {/* Sign Out */}
+              <Dropdown.Item onClick={handleSignOut} className="text-danger">
+                <div className="flex items-center gap-3">
+                  <LogOut size={16} />
+                  <span className="font-semibold">Sign Out</span>
+                </div>
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        ) : (
+          <Button onClick={() => navigate('/auth')} variant="success" className="cursor-pointer">
+            Sign In
+          </Button>
+        )}
+      </div>
+    </nav>
   );
 }

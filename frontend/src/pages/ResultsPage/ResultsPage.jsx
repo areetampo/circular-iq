@@ -37,7 +37,7 @@ import {
 import { Switch } from '@/components/common';
 import { Button } from '@/components/common';
 import CopyButton from '@/components/modern-ui/copy-button';
-import { LinearProgress, Alert } from '@mui/material';
+import { ProgressBar, Alert } from '@heroui/react';
 import {
   BarChart3,
   ClipboardList,
@@ -1507,11 +1507,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             <div className="text-xs font-bold text-slate-900">{label}</div>
                             <div className="text-sm font-bold text-slate-900">{numeric}</div>
                           </div>
-                          <LinearProgress
-                            variant="determinate"
+                          <ProgressBar
                             value={Math.min(100, Math.max(0, numeric))}
-                            color={color}
-                            sx={{ height: 8, borderRadius: 4 }}
+                            color={
+                              color === 'success'
+                                ? 'success'
+                                : color === 'warning'
+                                  ? 'warning'
+                                  : 'danger'
+                            }
+                            className="h-2 rounded"
                           />
                         </div>
                       );
@@ -1945,7 +1950,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     <div className="space-y-4">
                       {actualResult.similar_cases.length < 4 && (
                         <Alert severity="warning" sx={{ mb: 2 }}>
-                          Only {actualResult.similar_cases.length} similar cases found. For best results, ensure at least 4 similar cases are available in the dataset.
+                          Only {actualResult.similar_cases.length} similar cases found. For best
+                          results, ensure at least 4 similar cases are available in the dataset.
                         </Alert>
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1977,12 +1983,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             },
                           };
 
-                          return (
-                            <DocumentCard
-                              key={index}
-                              document={documentData}
-                            />
-                          );
+                          return <DocumentCard key={index} document={documentData} />;
                         })}
                       </div>
                     </div>

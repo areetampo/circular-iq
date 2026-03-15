@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { CircularProgress, Typography, Paper, useTheme, Box } from '@mui/material';
+import { Typography, Paper, useTheme, Box } from '@mui/material';
 import { ScatterChart as MuiScatterChart } from '@mui/x-charts';
+import { ProgressCircle } from '@heroui/react';
 
 function ScatterChartComponent({
   data,
@@ -31,7 +32,7 @@ function ScatterChartComponent({
           border: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <CircularProgress size={48} />
+        <ProgressCircle size="lg" />
       </Paper>
     );
   }

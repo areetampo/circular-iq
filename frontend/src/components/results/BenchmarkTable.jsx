@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from '@mui/material';
+import { Table, Chip } from '@heroui/react';
 
 function formatFactorName(factor) {
   return factor
@@ -35,50 +35,41 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
 
   return (
     <>
-      <TableContainer component={Paper} elevation={0} sx={{ mt: 2 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Factor</TableCell>
-              <TableCell align="right">Your Score</TableCell>
-              <TableCell align="right">25th %ile</TableCell>
-              <TableCell align="right">50th %ile</TableCell>
-              <TableCell align="right">75th %ile</TableCell>
-              <TableCell align="center">Status</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow
-                key={row.factor}
-                sx={{ backgroundColor: row.statusBg || 'transparent' }}
-              >
-                <TableCell component="th" scope="row">
-                  {row.displayName}
-                </TableCell>
-                <TableCell align="right">{row.userScore ?? '—'}</TableCell>
-                <TableCell align="right">{row.p25 ?? '—'}</TableCell>
-                <TableCell align="right">{row.p50 ?? '—'}</TableCell>
-                <TableCell align="right">{row.p75 ?? '—'}</TableCell>
-                <TableCell align="center">
-                  <Chip
-                    label={row.statusLabel}
-                    color={row.statusColor}
-                    size="small"
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-            {rows.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No benchmark comparisons available.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Table className="mt-2">
+        <Table.ScrollContainer>
+          <Table.Content aria-label="Benchmark comparisons">
+            <Table.Header>
+              <Table.Column>Factor</Table.Column>
+              <Table.Column>Your Score</Table.Column>
+              <Table.Column>25th %ile</Table.Column>
+              <Table.Column>50th %ile</Table.Column>
+              <Table.Column>75th %ile</Table.Column>
+              <Table.Column>Status</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {rows.map((row) => (
+                <Table.Row key={row.factor}>
+                  <Table.Cell>{row.displayName}</Table.Cell>
+                  <Table.Cell>{row.userScore ?? '—'}</Table.Cell>
+                  <Table.Cell>{row.p25 ?? '—'}</Table.Cell>
+                  <Table.Cell>{row.p50 ?? '—'}</Table.Cell>
+                  <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
+                  <Table.Cell>
+                    <Chip color={row.statusColor} size="sm">
+                      {row.statusLabel}
+                    </Chip>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+              {rows.length === 0 && (
+                <Table.Row>
+                  <Table.Cell colSpan={6}>No benchmark comparisons available.</Table.Cell>
+                </Table.Row>
+              )}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
+      </Table>
 
       {(opportunities?.length > 0 || strengths?.length > 0) && (
         <div className="mt-4">
@@ -87,7 +78,9 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               <div className="text-sm font-bold text-slate-900 mb-1">Opportunities to Improve</div>
               <div className="flex flex-wrap gap-2">
                 {opportunities.map((text) => (
-                  <Chip key={text} label={text} color="warning" size="small" />
+                  <Chip key={text} color="warning" size="sm">
+                    {text}
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -98,7 +91,9 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               <div className="text-sm font-bold text-slate-900 mb-1">Strengths</div>
               <div className="flex flex-wrap gap-2">
                 {strengths.map((text) => (
-                  <Chip key={text} label={text} color="success" size="small" />
+                  <Chip key={text} color="success" size="sm">
+                    {text}
+                  </Chip>
                 ))}
               </div>
             </div>

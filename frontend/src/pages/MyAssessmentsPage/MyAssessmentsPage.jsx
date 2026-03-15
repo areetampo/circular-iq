@@ -29,10 +29,9 @@ import {
   Button as HeroButton,
   Chip,
   Tooltip,
+  Pagination,
 } from '@heroui/react';
 import { toast } from '@heroui/react';
-import Pagination from '@mui/material/Pagination';
-import PaginationItem from '@mui/material/PaginationItem';
 import { Button, ErrorDisplay } from '@/components/common';
 import CopyButton from '@/components/modern-ui/copy-button';
 import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
@@ -1305,23 +1304,35 @@ export default function MyAssessmentsPage() {
 
                   <div className="flex sm:flex-row flex-col items-center justify-center gap-4 sm:gap-6 mt-1 sm:mt-0">
                     {/* MUI Pagination */}
-                    <Pagination
-                      count={totalPages}
-                      page={page}
-                      onChange={(event, value) => setPage(value)}
-                      color="success"
-                      // variant="outlined"
-                      shape="circular"
-                      showFirstButton
-                      showLastButton
-                      renderItem={(item) => (
-                        <PaginationItem
-                          {...item}
-                          onMouseEnter={() => prefetchAssessmentsPage(item.page)}
-                          onFocus={() => prefetchAssessmentsPage(item.page)}
-                        />
-                      )}
-                    />
+                    <Pagination className="justify-center">
+                      <Pagination.Content>
+                        <Pagination.Item>
+                          <Pagination.Previous
+                            isDisabled={page === 1}
+                            onPress={() => setPage(page - 1)}
+                          >
+                            <Pagination.PreviousIcon />
+                            Previous
+                          </Pagination.Previous>
+                        </Pagination.Item>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                          <Pagination.Item key={p}>
+                            <Pagination.Link isActive={p === page} onPress={() => setPage(p)}>
+                              {p}
+                            </Pagination.Link>
+                          </Pagination.Item>
+                        ))}
+                        <Pagination.Item>
+                          <Pagination.Next
+                            isDisabled={page === totalPages}
+                            onPress={() => setPage(page + 1)}
+                          >
+                            Next
+                            <Pagination.NextIcon />
+                          </Pagination.Next>
+                        </Pagination.Item>
+                      </Pagination.Content>
+                    </Pagination>
 
                     {/* HeroUI v3 Select for page size */}
                     <div className="flex items-center gap-2">
