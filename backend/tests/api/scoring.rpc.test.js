@@ -1,4 +1,5 @@
 process.env.IS_TEST = 'true';
+process.env.API_KEY = 'test-key';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

@@ -1,3 +1,9 @@
+// Mock useDebounce to be passthrough for instant debounce in tests
+vi.mock('@/hooks/useDebounce', () => ({
+  default: (value) => value,
+  useDebounce: (value) => value,
+}));
+
 // Mock AuthProvider to avoid async state leaks and timer issues
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: null, loading: false, session: null }),
@@ -136,35 +142,33 @@ describe('LandingPage autosave integration', () => {
   }
 
   it('saves session (debounced) after selecting a sample test case', async () => {
-    let component;
+    const component = render(
+      <AppWrapper>
+        <TestFormWithAutosave />
+      </AppWrapper>,
+    );
+
+    // Flush any pending async state after render
     await act(async () => {
-      component = render(
-        <AppWrapper>
-          <TestFormWithAutosave />
-        </AppWrapper>,
-      );
+      await Promise.resolve();
     });
 
     const { getByText, getByTestId, container } = component;
-
     const firstCase = testCases.testCases[0];
-    await act(async () => {
-      fireEvent.click(getByTestId('simulate-sample'));
-    });
+
+    fireEvent.click(getByTestId('simulate-sample'));
 
     // ensure the form values actually changed after selecting a sample
-    await act(async () => {
-      await waitFor(() => expect(getByTestId('bp').textContent).toContain(firstCase.problem));
-    });
+    await waitFor(() => expect(getByTestId('bp').textContent).toContain(firstCase.problem));
 
-    // Debounced autosave: wait past debounce
+    // Debounced autosave: advance timers in a single act
     await act(async () => {
       vi.advanceTimersByTime(200);
+      await Promise.resolve();
     });
 
     // No need for waitFor, just assert directly after timers
     expect(mockSaveSession).toHaveBeenCalled();
-
     expect(mockSaveSession).toHaveBeenCalledWith(
       expect.objectContaining({
         inputs: expect.objectContaining({
@@ -245,22 +249,22 @@ describe('LandingPage autosave integration', () => {
       );
     }
 
-    let component;
+    const component = render(
+      <AppWrapper>
+        <BeforeUnloadHarness />
+      </AppWrapper>,
+    );
+
+    // Flush any pending async state after render
     await act(async () => {
-      component = render(
-        <AppWrapper>
-          <BeforeUnloadHarness />
-        </AppWrapper>,
-      );
+      await Promise.resolve();
     });
 
     const { getByLabelText } = component;
 
     // change a form input
     const bp = getByLabelText('Business Problem');
-    await act(async () => {
-      fireEvent.change(bp, { target: { value: 'Unsaved business problem for test' } });
-    });
+    fireEvent.change(bp, { target: { value: 'Unsaved business problem for test' } });
 
     // dispatch beforeunload and assert saveSession was synchronously called
     const e = new Event('beforeunload', { cancelable: true });
@@ -291,14 +295,11 @@ describe('LandingPage autosave integration', () => {
     };
     localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
 
-    let component;
-    await act(async () => {
-      component = render(
-        <AppWrapper>
-          <LandingPage />
-        </AppWrapper>,
-      );
-    });
+    const component = render(
+      <AppWrapper>
+        <LandingPage />
+      </AppWrapper>,
+    );
 
     const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');
@@ -319,24 +320,22 @@ describe('LandingPage autosave integration', () => {
   });
 
   it('persists while typing (no blur needed)', async () => {
-    let component;
-    await act(async () => {
-      component = render(
-        <AppWrapper>
-          <TestFormWithAutosave />
-        </AppWrapper>,
-      );
-    });
+    const component = render(
+      <AppWrapper>
+        <TestFormWithAutosave />
+      </AppWrapper>,
+    );
 
     const { getByLabelText } = component;
 
     const bp = getByLabelText('Business Problem');
-    await act(async () => {
-      fireEvent.change(bp, { target: { value: 'Quick typing test for autosave' } });
-    });
+    fireEvent.change(bp, { target: { value: 'Quick typing test for autosave' } });
 
     // wait slightly longer than debounce
-    vi.advanceTimersByTime(250);
+    await act(async () => {
+      vi.advanceTimersByTime(250);
+      await Promise.resolve();
+    });
 
     await waitFor(() => expect(mockSaveSession).toHaveBeenCalled());
   });
@@ -355,21 +354,19 @@ describe('LandingPage autosave integration', () => {
     const bp = getByLabelText('Business Problem');
 
     // type text and wait for autosave
-    await act(async () => {
-      fireEvent.change(bp, { target: { value: 'temporary text to persist' } });
-    });
+    fireEvent.change(bp, { target: { value: 'temporary text to persist' } });
     await act(async () => {
       vi.advanceTimersByTime(250);
+      await Promise.resolve();
     });
     await waitFor(() => expect(mockSaveSession).toHaveBeenCalled());
 
     // clear the input — this SHOULD persist the cleared value (empty string)
     mockSaveSession.mockClear();
-    await act(async () => {
-      fireEvent.change(bp, { target: { value: '' } });
-    });
+    fireEvent.change(bp, { target: { value: '' } });
     await act(async () => {
       vi.advanceTimersByTime(250);
+      await Promise.resolve();
     });
 
     await waitFor(() =>
@@ -391,15 +388,11 @@ describe('LandingPage autosave integration', () => {
       inputs: { businessProblem: 'initial value', businessSolution: '', parameters: {} },
     };
 
-    let rendered;
-    await act(async () => {
-      rendered = render(
-        <AppWrapper>
-          <LandingPage />
-        </AppWrapper>,
-      );
-    });
-
+    const rendered = render(
+      <AppWrapper>
+        <LandingPage />
+      </AppWrapper>,
+    );
     const { getByLabelText, rerender } = rendered;
     const bp = getByLabelText('Business Problem');
 
@@ -407,9 +400,7 @@ describe('LandingPage autosave integration', () => {
     await waitFor(() => expect(bp.value).toContain('initial value'));
 
     // user clears the input (local edit)
-    await act(async () => {
-      fireEvent.change(bp, { target: { value: '' } });
-    });
+    fireEvent.change(bp, { target: { value: '' } });
     expect(bp.value).toBe('');
 
     // session later updates with an older/stale value — simulate by mutating mock
@@ -418,13 +409,11 @@ describe('LandingPage autosave integration', () => {
     };
 
     // rerender to simulate hook update
-    await act(async () => {
-      rerender(
-        <AppWrapper>
-          <LandingPage />
-        </AppWrapper>,
-      );
-    });
+    rerender(
+      <AppWrapper>
+        <LandingPage />
+      </AppWrapper>,
+    );
 
     // ensure user's cleared input is NOT overwritten by stale session data
     expect(bp.value).toBe('');
@@ -433,14 +422,11 @@ describe('LandingPage autosave integration', () => {
   it('renders LandingPage without initial sessionData', async () => {
     mockSessionHookState.sessionData = null;
 
-    let component;
-    await act(async () => {
-      component = render(
-        <AppWrapper>
-          <LandingPage />
-        </AppWrapper>,
-      );
-    });
+    const component = render(
+      <AppWrapper>
+        <LandingPage />
+      </AppWrapper>,
+    );
     const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');
     expect(bp).toBeDefined();

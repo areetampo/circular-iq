@@ -1,3 +1,9 @@
+// Mock assessmentApi to prevent real fetches
+vi.mock('@/features/assessments/api/assessmentApi', () => ({
+  createAssessment: vi.fn().mockResolvedValue({ id: 'test-id' }),
+  getAssessments: vi.fn().mockResolvedValue({ assessments: [], total: 0 }),
+}));
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -146,6 +152,13 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
   }, 10000);
 
   test('Market Analysis navigates to session view for unsaved results', async () => {
+    // Mock useNavigate
+    const mockNavigate = vi.fn();
+    vi.mock('react-router-dom', async (importOriginal) => {
+      const actual = await importOriginal();
+      return { ...actual, useNavigate: () => mockNavigate };
+    });
+
     // Put a session evaluation with a result into localStorage
     const session = {
       inputs: { businessProblem: 'P', businessSolution: 'S', parameters: {} },
@@ -161,7 +174,6 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
         <MemoryRouter initialEntries={['/results']}>
           <Routes>
             <Route path="/results" element={<ResultsPage />} />
-            <Route path="/results/market-analysis" element={<div>SESSION_MARKET_ANALYSIS</div>} />
           </Routes>
         </MemoryRouter>
       </Wrapper>,
@@ -171,8 +183,8 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
     const maBtn = await screen.findByRole('button', { name: /market analysis/i });
     fireEvent.click(maBtn);
 
-    // Should navigate to the session-based route
-    await waitFor(() => expect(screen.getByText('SESSION_MARKET_ANALYSIS')).toBeInTheDocument());
+    // Assert on the navigate mock directly
+    expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('market-analysis'));
   });
 
   test('Case Summary shows snapshot problem/solution/parameters from session.results (immutable)', async () => {

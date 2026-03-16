@@ -1,3 +1,8 @@
+// Mock assessmentApi to prevent real fetches and ensure all methods resolve
+vi.mock('@/features/assessments/api/assessmentApi', () => ({
+  createAssessment: vi.fn().mockResolvedValue({ id: 'test-id' }),
+  getAssessments: vi.fn().mockResolvedValue({ assessments: [], total: 0 }),
+}));
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';

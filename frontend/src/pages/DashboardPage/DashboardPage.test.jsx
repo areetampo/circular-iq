@@ -1,3 +1,9 @@
+// Mock assessments API used by DashboardPage
+vi.mock('@/features/assessments/api/assessmentApi', () => ({
+  getAssessments: vi.fn().mockResolvedValue({ assessments: [], total: 0, page: 1, pageSize: 20 }),
+  getEnhancedAnalytics: vi.fn().mockResolvedValue({ data: null }),
+  getFeaturedSolutions: vi.fn().mockResolvedValue([]),
+}));
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
