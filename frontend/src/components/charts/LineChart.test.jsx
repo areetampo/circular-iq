@@ -34,6 +34,7 @@ describe('LineChart', () => {
     const lines = [
       { dataKey: 'score', stroke: '#34a83a', name: 'Score' },
       {
+        dataKey: 'ci',
         band: true,
         id: 'ci',
         upperKey: 'upper',

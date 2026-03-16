@@ -28,6 +28,16 @@ export default defineConfig({
       '@/utils': path.resolve(__dirname, './src/utils'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-pdf': ['jspdf'],
+          'vendor-charts': ['recharts', '@mui/x-charts'],
+        },
+      },
+    },
+  },
   // Vitest config for tests run via `pnpm test`
   test: {
     environment: 'jsdom',

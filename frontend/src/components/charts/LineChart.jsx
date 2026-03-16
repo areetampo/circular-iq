@@ -6,6 +6,7 @@ export default function LineChart({
   height = 300,
   xAxisKey = 'label',
   showLegend = true,
+  ariaLabel,
 }) {
   if (!data.length || !lines.length) {
     return (
@@ -24,19 +25,21 @@ export default function LineChart({
   }
 
   const series = lines.map((line) => ({
-    dataKey: line.dataKey,
-    label: line.name || line.dataKey,
+    dataKey: line.dataKey || line.id,
+    label: line.name || line.dataKey || line.id,
     color: line.stroke || line.color,
     showMark: false,
   }));
 
   return (
-    <MuiLineChart
-      dataset={data}
-      xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
-      series={series}
-      height={height}
-      slotProps={{ legend: { hidden: !showLegend } }}
-    />
+    <div role="img" aria-label={ariaLabel}>
+      <MuiLineChart
+        dataset={data}
+        xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
+        series={series}
+        height={height}
+        slotProps={{ legend: { hidden: !showLegend } }}
+      />
+    </div>
   );
 }

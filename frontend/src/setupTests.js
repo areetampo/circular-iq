@@ -232,7 +232,7 @@ vi.mock('@heroui/react', () => {
   };
   const Toast = ({ children }) => React.createElement('div', null, children);
 
-  return {
+  const exports = {
     Card,
     Button,
     Label,
@@ -250,11 +250,17 @@ vi.mock('@heroui/react', () => {
     NumberField,
     Tooltip,
     AlertDialog,
+    Form,
     toast,
     Toast,
     // utility helper used by several components in tests
     cn: (...args) => args.filter(Boolean).join(' '),
   };
+
+  // Provide a default export for consumers importing the module as a default.
+  exports.default = exports;
+
+  return exports;
 });
 
 // Mock Supabase client so `AuthProvider` can be mounted in unit tests without

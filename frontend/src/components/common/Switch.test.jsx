@@ -77,7 +77,7 @@ describe('Switch (wrapper)', () => {
     const wrapper = screen.getByTestId('size-switch');
     console.log('size-switch outerHTML (md):', wrapper.outerHTML);
     console.log('size-switch innerHTML (md):', wrapper.innerHTML);
-    expect(wrapper.outerHTML).toContain('width="14"');
+    expect(wrapper.outerHTML).toContain('width="16"');
     expect(wrapper.outerHTML).toContain('lucide-x');
 
     rerender(

@@ -12,15 +12,6 @@ beforeAll(() => {
   };
 });
 
-beforeAll(() => {
-  global.ResizeObserver = class {
-    constructor() {}
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
-});
-
 // Mock common components
 vi.mock(
   '@/components/common',
@@ -33,7 +24,6 @@ vi.mock(
 
 // Mock HeroUI components
 vi.mock('@heroui/react', () => {
-  const React = require('react');
   const mockCard = React.forwardRef((props, ref) =>
     React.createElement('div', { ref, ...props }, props.children),
   );

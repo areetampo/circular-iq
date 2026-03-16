@@ -1,13 +1,15 @@
 import { frontendSchema } from './env.schema';
 
 const rawEnv = {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
+  VITE_API_URL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:3000',
 
-  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  VITE_SUPABASE_URL:
+    import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'http://localhost:54321',
+  VITE_SUPABASE_ANON_KEY:
+    import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'test-key',
 
-  MODE: import.meta.env.MODE,
-  PROD: import.meta.env.PROD,
+  MODE: import.meta.env.MODE || process.env.MODE || process.env.NODE_ENV || 'development',
+  PROD: import.meta.env.PROD ?? process.env.NODE_ENV === 'production',
 };
 
 const result = frontendSchema.safeParse(rawEnv);

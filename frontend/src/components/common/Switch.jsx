@@ -47,8 +47,9 @@ const VARIANT_THEMES = {
 function computeIconSize(size) {
   // match the logic previously spelled out in ChoiceCardSwitch comments
   if (size === 'sm') return 10;
+  if (size === 'md') return 16;
   if (size === 'lg') return 17;
-  return 14; // md or fallback
+  return 14; // fallback for unexpected sizes
 }
 
 const Switch = React.forwardRef(function Switch(

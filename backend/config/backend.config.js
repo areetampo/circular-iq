@@ -1,3 +1,4 @@
+import '#config/loadEnv.js';
 import crypto from 'crypto';
 
 import { envSchema } from '#config/env.schema.js';
@@ -7,16 +8,10 @@ import { envSchema } from '#config/env.schema.js';
 /* ------------------------------ */
 // Provide robust defaults to keep tests from failing on CI/local without secrets
 if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
-  // Load .env.backend for tests to access real environment variables
-  import('dotenv')
-    .then(({ config }) => {
-      config({ path: '../env/.env.backend' });
-    })
-    .catch(() => {
-      // If dotenv fails, continue with fallback defaults
-    });
+  // Load .env.backend for tests to access real environment variables.
+  // This is handled via #config/loadEnv.js, which runs before this module is evaluated.
 
-  // override to known-good values regardless of what tests may have set
+  // Override to known-good values regardless of what tests may have set
   process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai';
   process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost';
   process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'anon-key-0000000000';

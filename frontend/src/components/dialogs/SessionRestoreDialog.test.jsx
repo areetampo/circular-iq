@@ -28,8 +28,8 @@ describe('SessionRestoreDialog', () => {
       </MemoryRouter>,
     );
 
-    // Saved inputs badge should still be shown as information (match the badge text)
-    expect(getByText(/^📝 Saved inputs$/)).toBeTruthy();
+    // Message about saved inputs should still be shown
+    expect(getByText(/Your inputs are already saved locally/i)).toBeTruthy();
 
     // "Restore Inputs" button should be removed
     expect(queryByText(/Restore Inputs/i)).toBeNull();
@@ -53,7 +53,7 @@ describe('SessionRestoreDialog', () => {
       </MemoryRouter>,
     );
 
-    expect(getByText(/^📝 Saved inputs$/)).toBeTruthy();
+    expect(getByText(/Your inputs are already saved locally/i)).toBeTruthy();
     expect(getByText(/Restore Results/i)).toBeTruthy();
     expect(queryByText(/Restore Inputs/i)).toBeNull();
   });
