@@ -1,5 +1,5 @@
 import { AlertDialog } from '@heroui/react';
-import { FileDown, inf, OctagonX, Orbit, Save, Share } from 'lucide-react';
+import { FileDown, Infinity as inf, OctagonX, Orbit, Save, Share } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 

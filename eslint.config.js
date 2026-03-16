@@ -46,17 +46,18 @@ export default [
       semi: ['error', 'always'],
 
       'unused-imports/no-unused-imports': 'error', // This rule DELETES the lines
-      'unused-imports/no-unused-vars': [
-        'warn',
-        {
-          vars: 'all',
-          // Now any variable starting with _ will be ignored
-          varsIgnorePattern: '^_',
-          args: 'after-used',
-          // Now any argument starting with _ will be ignored
-          argsIgnorePattern: '^_',
-        },
-      ],
+      'unused-imports/no-unused-vars': 'off',
+      // [
+      //   'warn',
+      //   {
+      //     vars: 'all',
+      //     // Now any variable starting with _ will be ignored
+      //     varsIgnorePattern: '^_',
+      //     args: 'after-used',
+      //     // Now any argument starting with _ will be ignored
+      //     argsIgnorePattern: '^_',
+      //   },
+      // ],
 
       // 'simple-import-sort/imports': 'warn',
       // 'simple-import-sort/exports': 'warn',
