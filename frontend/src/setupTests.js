@@ -22,6 +22,7 @@ import { vi } from 'vitest';
 vi.stubEnv('VITE_API_URL', 'http://localhost:3000');
 vi.stubEnv('VITE_SUPABASE_URL', 'http://localhost:54321');
 vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key');
+vi.stubEnv('MODE', 'test');
 
 // Mock window.alert
 global.alert = vi.fn();

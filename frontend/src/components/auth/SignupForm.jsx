@@ -1,12 +1,11 @@
 'use client';
 
-import { Card, FieldError, Form, Input, Label, TextField } from '@heroui/react';
-import { toast } from '@heroui/react';
+import { Card, FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { Button, LoaderIcon, SITE_NAME } from '@/components/common';
@@ -39,6 +38,7 @@ export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   // using HeroUI toast directly
   const location = useLocation();
+  const navigate = useNavigate();
 
   const {
     control,
@@ -97,7 +97,7 @@ export function SignupForm({ onSwitchToLogin }) {
       // default to home ('/'). This ensures signup returns the user to the page
       // they were on (e.g. /results) and prevents unexpected clearing of inputs.
       const returnTo = location.state?.from || '/';
-      window.location.href = returnTo;
+      navigate(returnTo, { replace: true });
     } catch (error) {
       console.error('Sign up error:', error);
       const errorMessage =

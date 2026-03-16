@@ -39,6 +39,7 @@ export default function createScoringRouter(openai, supabase) {
   // - createScoringRouter(openai, supabase)
   // - createScoringRouter(supabase) where OpenAI was previously set via setOpenAIClient()
   const router = express.Router();
+  router.use(express.json());
   const serviceSupabase = createSupabaseClient();
 
   const openaiClient =

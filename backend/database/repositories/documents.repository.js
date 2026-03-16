@@ -199,11 +199,7 @@ export class DocumentsRepository {
     };
 
     // 2. Execute via your centralized helper
-    const data = await this.callFunction(
-      'find_recent_documents', // Ensure this matches your BACKEND_CONFIG if using dynamic names
-      params,
-      rpcParams,
-    );
+    const data = await this.callFunction(func.find_recent_documents, params, rpcParams);
 
     return data || [];
   }

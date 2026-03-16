@@ -5,22 +5,52 @@ import express from 'express';
 import request from 'supertest';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import * as scoringController from '#controllers/scoring.controller.js';
 import { setDatabaseClientOverride } from '#database/client.js';
 import createScoringRouter, { setOpenAIClient } from '#routes/scoring.routes.js';
 
+// Mock the anonymous usage check to always allow
+const originalEnforceAnonymousUsage = scoringController.enforceAnonymousUsage;
+// scoringController.enforceAnonymousUsage = async () => null;
+
 // Minimal mock supabase for scoring that returns controlled RPC data
-function makeMockSupabase(searchResults = [], industryResults = []) {
-  return {
-    rpc: async (name, params) => {
-      if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
-        return { data: searchResults, error: null };
-      }
-      if (name === BACKEND_CONFIG.db.functions.search_documents_by_industry) {
-        return { data: industryResults, error: null };
-      }
+const mockSupabase = {
+  rpc: async (name, params) => {
+    if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
       return { data: [], error: null };
-    },
+    }
+    if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid_filtered) {
+      return { data: [], error: null };
+    }
+    if (name === BACKEND_CONFIG.db.functions.search_documents_by_industry) {
+      return { data: [], error: null };
+    }
+    if (name === 'check_and_increment_anonymous_usage') {
+      // Mock anonymous usage check - always allow for testing
+      return { data: [{ current_count: 1, is_allowed: true }], error: null };
+    }
+    return { data: [], error: null };
+  },
+};
+
+function makeMockSupabase(searchResults = [], industryResults = []) {
+  mockSupabase.rpc = async (name, params) => {
+    if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
+      return { data: searchResults, error: null };
+    }
+    if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid_filtered) {
+      return { data: searchResults, error: null };
+    }
+    if (name === BACKEND_CONFIG.db.functions.search_documents_by_industry) {
+      return { data: industryResults, error: null };
+    }
+    if (name === 'check_and_increment_anonymous_usage') {
+      // Mock anonymous usage check - always allow for testing
+      return { data: [{ current_count: 1, is_allowed: true }], error: null };
+    }
+    return { data: [], error: null };
   };
+  return mockSupabase;
 }
 
 // simple mock OpenAI that returns zero embeddings
@@ -56,17 +86,27 @@ test('POST /api/score returns similar_cases with structured fields', async () =>
   setDatabaseClientOverride(supabase, 'supabase');
   const app = makeApp(supabase);
 
+  // Ensure field names match controller expectations
   const payload = {
-    businessProblem: 'P',
-    businessSolution: 'S',
-    parameters: {},
+    businessProblem: 'P'.repeat(200), // Minimum 200 characters
+    businessSolution: 'S'.repeat(200), // Minimum 200 characters
+    parameters: {
+      public_participation: 50,
+      infrastructure: 50,
+      market_price: 50,
+      maintenance: 50,
+      uniqueness: 50,
+      size_efficiency: 50,
+      chemical_safety: 50,
+      tech_readiness: 50,
+    },
   };
 
   const res = await request(app).post('/api/score').send(payload);
   assert.equal(res.status, 200);
   assert.ok(Array.isArray(res.body.similar_cases));
   const sc = res.body.similar_cases[0];
-  assert.equal(sc.id, 200);
+  assert.equal(sc.id, '200'); // Database returns ids as strings
   assert.equal(sc.industry, 'energy');
   assert.equal(sc.category, 'manufacturing');
   assert.equal(sc.source, 'datasetB');

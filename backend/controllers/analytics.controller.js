@@ -640,13 +640,14 @@ export function getFeaturedSolutions(supabase) {
       }
 
       // No query provided — fall back to sampling recent documents with structured column filters
+      // Always pass all filters to the repository, even if null
       const documents = await documentsRepository.findRecent(limit * 8, {
-        industry: industryFilter && industryFilter !== 'all' ? industryFilter : undefined,
-        category: categoryFilter && categoryFilter !== 'all' ? categoryFilter : undefined,
-        source: sourceFilter && sourceFilter !== 'all' ? sourceFilter : undefined,
+        industry: industryFilter ?? null,
+        category: categoryFilter ?? null,
+        source: sourceFilter ?? null,
       });
 
-      // Extract unique problem-solution pairs from metadata
+      // Extract unique problem-solution pairs from metadata, applying filters at the DB level
       const solutions = [];
       const seenSources = new Set();
 
@@ -655,6 +656,15 @@ export function getFeaturedSolutions(supabase) {
 
         const sourceId = doc.metadata.source_id || doc.metadata.source_row;
         if (seenSources.has(sourceId)) continue;
+
+        // Ensure DB-level filters are reflected in the returned results
+        if (
+          (industryFilter && doc.industry !== industryFilter) ||
+          (categoryFilter && doc.category !== categoryFilter) ||
+          (sourceFilter && doc.source !== sourceFilter)
+        ) {
+          continue;
+        }
 
         if (doc.metadata.chunk_type === 'problem_solution') {
           // Try to parse the content or extract from metadata

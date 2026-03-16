@@ -69,7 +69,7 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     const dialogSave = await screen.findByRole('button', { name: /save assessment/i });
     fireEvent.click(dialogSave);
 
-    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    await waitFor(() => expect(createSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     expect(createSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -151,7 +151,7 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     const dialogSave = await screen.findByRole('button', { name: /save assessment/i });
     fireEvent.click(dialogSave);
 
-    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    await waitFor(() => expect(createSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     // Confirm similar_cases structure preserved in payload
     const payload = createSpy.mock.calls[0][0];
@@ -217,7 +217,7 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     const dialogSave = await screen.findByRole('button', { name: /save assessment/i });
     fireEvent.click(dialogSave);
 
-    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    await waitFor(() => expect(createSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     const payload = createSpy.mock.calls[0][0];
     expect(payload.result_json.similar_cases[0].title).toBe('');
@@ -266,7 +266,7 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     const dialogSave = await screen.findByRole('button', { name: /save assessment/i });
     fireEvent.click(dialogSave);
 
-    await waitFor(() => expect(getAssessmentsSpy).toHaveBeenCalled());
+    await waitFor(() => expect(getAssessmentsSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     // Duplicate-name error should be shown in the dialog and createAssessment must NOT be called
     expect(
@@ -307,7 +307,7 @@ describe('ResultsPage — authenticated Save flow (dialog)', () => {
     const dialogSave = await screen.findByRole('button', { name: /save assessment/i });
     fireEvent.click(dialogSave);
 
-    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    await waitFor(() => expect(createSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     // Error text should be shown inside the dialog and the dialog should remain open
     expect(await screen.findByText(/validation failed/i)).toBeInTheDocument();

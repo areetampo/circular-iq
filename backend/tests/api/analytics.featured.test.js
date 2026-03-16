@@ -29,14 +29,39 @@ function makeMockSupabaseForDocs(docs = [], expected = {}) {
       return chain;
     },
     rpc: async (name, params) => {
+      if (name === 'find_recent_documents') {
+        // Assert that filters are passed correctly for the fallback path
+        if (expected.industry !== undefined && expected.industry !== null) {
+          assert.equal(
+            params.industry_filter,
+            expected.industry,
+            `expected industry_filter to be ${expected.industry}`,
+          );
+        }
+        if (expected.category !== undefined && expected.category !== null) {
+          assert.equal(
+            params.category_filter,
+            expected.category,
+            `expected category_filter to be ${expected.category}`,
+          );
+        }
+        if (expected.source !== undefined && expected.source !== null) {
+          assert.equal(
+            params.source_filter,
+            expected.source,
+            `expected source_filter to be ${expected.source}`,
+          );
+        }
+        return { data: docs, error: null };
+      }
       // default: return no results
-      return [];
+      return { data: [], error: null };
     },
   };
 }
 
-// Test fallback path (no 'q' param): should return documents or hardcoded samples
 test('GET /api/analytics/featured-solutions (fallback) returns documents', async () => {
+  setDatabaseClientOverride(null); // Reset override
   const doc = {
     id: 42,
     content: 'Sample content',
@@ -75,6 +100,7 @@ test('GET /api/analytics/featured-solutions (fallback) returns documents', async
 
 // Test semantic path: mock OpenAI embedding and supabase RPC
 test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async () => {
+  setDatabaseClientOverride(null); // Reset override
   // Mock OpenAI client
   const fakeEmbedding = Array(1536).fill(0.01);
   const mockOpenAI = {
@@ -88,7 +114,7 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
   // Mock Supabase RPC to return expected format
   const mockSupabase = {
     rpc: async (name, params) => {
-      if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
+      if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid_filtered) {
         // ensure our new filter parameters are present (may be null)
         assert.ok('industry_filter' in params);
         assert.ok('category_filter' in params);
@@ -119,6 +145,7 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
     }),
   };
 
+  setDatabaseClientOverride(mockSupabase, 'supabase');
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
 
@@ -127,7 +154,7 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
   assert.ok(Array.isArray(res.body.solutions));
   assert.equal(res.body.count >= 1, true);
   assert.equal(res.body.solutions[0].id, 101);
-  assert.ok(res.body.solutions[0].score >= 0);
+  assert.ok(res.body.solutions[0].similarity >= 0);
   // new structured fields should be preserved in response
   assert.equal(res.body.solutions[0].industry, 'energy');
   assert.equal(res.body.solutions[0].category, 'Construction');
@@ -139,6 +166,7 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
 // Test that DB filtering is applied for fallback path using structured columns
 
 test('GET /api/analytics/featured-solutions (fallback) applies DB-level filters', async () => {
+  setDatabaseClientOverride(null); // Reset override
   const doc = {
     id: 55,
     content: 'X',
@@ -157,6 +185,7 @@ test('GET /api/analytics/featured-solutions (fallback) applies DB-level filters'
     category: null,
     source: null,
   });
+  setDatabaseClientOverride(mockSupabase, 'supabase');
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
 
@@ -168,6 +197,7 @@ test('GET /api/analytics/featured-solutions (fallback) applies DB-level filters'
 // Ensure invalid query values (arrays) are sanitized and not passed to RPC
 
 test('GET /api/analytics/featured-solutions sanitizes array filters', async () => {
+  setDatabaseClientOverride(null); // Reset override
   const mockSupabase = {
     rpc: async (name, params) => {
       // filters should be null when provided as arrays
@@ -181,6 +211,7 @@ test('GET /api/analytics/featured-solutions sanitizes array filters', async () =
     }),
   };
 
+  setDatabaseClientOverride(mockSupabase, 'supabase');
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
 

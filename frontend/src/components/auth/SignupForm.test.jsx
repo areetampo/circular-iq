@@ -11,14 +11,27 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock useNavigate
+const mockNavigate = vi.fn();
+let mockLocationState = {};
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useLocation: () => ({ state: mockLocationState }),
+  };
+});
+
 import { supabase } from '@/lib/supabase';
 import { getSession } from '@/utils/session';
 
 import { SignupForm } from './SignupForm';
 
-function renderWithRouter(initialEntries = ['/auth']) {
+function renderWithRouter(locationState = {}) {
+  mockLocationState = locationState;
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
+    <MemoryRouter initialEntries={['/auth']}>
       <SignupForm onSwitchToLogin={() => {}} />
     </MemoryRouter>,
   );
@@ -47,9 +60,7 @@ describe('SignupForm redirects and preserves session', () => {
     supabase.auth.signUp.mockResolvedValue({ error: null });
     supabase.auth.signInWithPassword.mockResolvedValue({ error: null });
 
-    const { getByPlaceholderText, getByText } = renderWithRouter([
-      { pathname: '/auth', state: { from: '/results' } },
-    ]);
+    const { getByPlaceholderText, getByText } = renderWithRouter({ from: '/results' });
 
     // Fill form
     fireEvent.change(getByPlaceholderText('create your username'), { target: { value: 'tester' } });
@@ -63,7 +74,7 @@ describe('SignupForm redirects and preserves session', () => {
     fireEvent.click(getByText(/Create Account/i));
 
     await waitFor(() => {
-      expect(window.location.href.endsWith('/results')).toBe(true);
+      expect(mockNavigate).toHaveBeenCalledWith('/results', { replace: true });
     });
 
     // persisted session inputs should remain intact in localStorage
@@ -75,7 +86,7 @@ describe('SignupForm redirects and preserves session', () => {
     supabase.auth.signUp.mockResolvedValue({ error: null });
     supabase.auth.signInWithPassword.mockResolvedValue({ error: null });
 
-    const { getByPlaceholderText, getByText } = renderWithRouter(['/auth']);
+    const { getByPlaceholderText, getByText } = renderWithRouter();
 
     fireEvent.change(getByPlaceholderText('create your username'), { target: { value: 'alice' } });
     fireEvent.change(getByPlaceholderText('create your password'), {
@@ -88,7 +99,7 @@ describe('SignupForm redirects and preserves session', () => {
     fireEvent.click(getByText(/Create Account/i));
 
     await waitFor(() => {
-      expect(window.location.href.endsWith('/')).toBe(true);
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
   });
 });

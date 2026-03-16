@@ -10,6 +10,21 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: null, isAuthenticated: false }),
 }));
 
+// Mock assessment API to prevent real API calls
+vi.mock('@/api/assessment', () => ({
+  submitForScoring: vi.fn().mockResolvedValue({}),
+  getAssessment: vi.fn().mockResolvedValue({}),
+}));
+
+// Mock session hook
+vi.mock('@/features/session/hooks/useSession', () => ({
+  useSession: () => ({
+    sessionData: null,
+    saveSession: vi.fn(),
+    clearSession: vi.fn(),
+  }),
+}));
+
 function Wrapper({ children }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
