@@ -30,31 +30,34 @@
  */
 
 import '#server/bootstrap.js';
+
 import fs from 'fs';
 import readline from 'readline';
 import { Readable } from 'stream';
+import { fileURLToPath } from 'url';
+
 import { from as copyFrom } from 'pg-copy-streams';
+
+import { BACKEND_CONFIG } from '#config/backend.config.js';
+import {
+  EMBEDDING_DIMENSION,
+  isValidEmbedding,
+  isValidTextForEmbedding,
+} from '#config/embedding.js';
 import { getAivenPgPool, getSupabasePgPool } from '#database/client.js';
 import {
   ARCHIVES_EMBEDDED_CHUNKS_JSONL,
-  OUT_EMBEDDED_CHUNKS_JSONL,
   ARCHIVES_STORED_DOCUMENTS_JSONL,
-  OUT_STORED_DOCUMENTS_JSONL,
   ARCHIVES_TEST_EMBEDDED_CHUNKS_JSONL,
-  OUT_TEST_EMBEDDED_CHUNKS_JSONL,
   ARCHIVES_TEST_STORED_DOCUMENTS_JSONL,
+  assertFileExists,
+  OUT_EMBEDDED_CHUNKS_JSONL,
+  OUT_STORED_DOCUMENTS_JSONL,
+  OUT_TEST_EMBEDDED_CHUNKS_JSONL,
   OUT_TEST_STORED_DOCUMENTS_JSONL,
   prepareWrite,
   writeJsonl,
-  assertFileExists,
 } from '#utils/datasetsUtils.js';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
-import {
-  isValidTextForEmbedding,
-  isValidEmbedding,
-  EMBEDDING_DIMENSION,
-} from '#config/embedding.js';
-import { fileURLToPath } from 'url';
 
 const useArchive = process.argv.includes('--archives');
 const test = process.argv.includes('--test');

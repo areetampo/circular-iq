@@ -7,11 +7,12 @@
  * Location: src/components/dialogs/ConfirmDialog.jsx
  */
 
-import React, { useRef, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { AlertDialog } from '@heroui/react';
-import { Button } from '@/components/common';
 import { AlertCircle, TriangleAlert } from 'lucide-react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useRef } from 'react';
+
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**

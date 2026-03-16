@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
+import React, { useMemo } from 'react';
+
 import { Button } from '@/components/common';
-import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 
 export default function DashboardFeaturedSolutionsModal({ data = {} }) {
   //if data is {} return null

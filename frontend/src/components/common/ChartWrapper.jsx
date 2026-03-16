@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import { cn } from '../../utils/cn';
 import { Tooltip } from 'recharts';
+
+import { cn } from '../../utils/cn';
 
 /**
  * ChartContainer - Simple wrapper that provides consistent height and prevents overflow.

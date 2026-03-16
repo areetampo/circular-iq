@@ -1,5 +1,5 @@
+import { Chip, Table } from '@heroui/react';
 import PropTypes from 'prop-types';
-import { Table, Chip } from '@heroui/react';
 
 function formatFactorName(factor) {
   return factor

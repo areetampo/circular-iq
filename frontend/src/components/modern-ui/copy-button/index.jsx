@@ -8,9 +8,9 @@
 //
 // This keeps the API stable while avoiding external dependencies.
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Check, Copy } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import React, { useState } from 'react';
 
 export default function CopyButton({ value, disabled = false, className = '', ...props }) {
   const [hasCopied, setHasCopied] = useState(false);

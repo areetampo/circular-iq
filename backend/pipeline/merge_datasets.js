@@ -11,13 +11,14 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import {
-  DATASETS_PROCESSED_DIR,
+  assertDirExists,
   DATASETS_MANUAL_ENTRIES_DIR,
+  DATASETS_PROCESSED_DIR,
   OUT_COMBINED_INPUT_CSV,
   OUT_TEST_COMBINED_INPUT_CSV,
   prepareWrite,
-  assertDirExists,
 } from '#utils/datasetsUtils.js';
 
 // merge datasets already has a combined_input.csv so --archives flag isnt present for merge_datasets.js

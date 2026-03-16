@@ -16,14 +16,15 @@
  * });
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { AlertDialog, Input, Label } from '@heroui/react';
+import { Save } from 'lucide-react';
+import PropTypes from 'prop-types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { Button } from '@/components/common';
-import { cn } from '@/utils/cn';
-import { Globe, Save, Share2 } from 'lucide-react';
 import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { cn } from '@/utils/cn';
 
 /**
  * Content component for save assessment dialog

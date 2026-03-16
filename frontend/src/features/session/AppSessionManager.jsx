@@ -1,10 +1,11 @@
+import { toast } from '@heroui/react';
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getSession } from '@/utils/session';
-import { useGlobalDialog } from '@/contexts/DialogContext';
+
 import DIALOGS from '@/components/dialogs/dialogTypes';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@heroui/react';
+import { getSession } from '@/utils/session';
 
 /**
  * Global session manager that shows restore prompt ONLY on page load/refresh

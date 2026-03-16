@@ -16,11 +16,12 @@
  * });
  */
 
-import React, { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import React, { useCallback, useMemo } from 'react';
+
+import { useGlobalDialog } from '@/contexts/DialogContext';
 
 import { ConfirmDialog } from './ConfirmDialog';
-import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
  * Specialized dialog for confirming assessment deletion

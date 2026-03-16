@@ -1,10 +1,11 @@
-import { useNavigate, useLocation } from 'react-router-dom';
-import { cn } from '@/utils/cn';
-import { useAuth } from '@/hooks/useAuth';
+import { Avatar, Dropdown, Separator } from '@heroui/react';
+import { ChevronDown, HelpCircle, LogOut, Mail, Menu, Settings, User, X } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/common';
-import { Avatar, Separator, Dropdown } from '@heroui/react';
-import { User, Settings, HelpCircle, LogOut, Mail, ChevronDown, Menu, X } from 'lucide-react';
-import { SiteName, SiteLogo } from '@/components/common';
+import { SiteLogo, SiteName } from '@/components/common';
+import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/utils/cn';
 
 export default function Navbar() {
   const navigate = useNavigate();

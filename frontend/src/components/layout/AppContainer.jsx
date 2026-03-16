@@ -1,12 +1,13 @@
+import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { cn } from '@/utils/cn';
-import Navbar from './Navbar';
-import Header from './Header';
-import Footer from './Footer';
 
 import { DialogManager } from '@/components/dialogs';
+import { cn } from '@/utils/cn';
+
+import Footer from './Footer';
+import Header from './Header';
+import Navbar from './Navbar';
 
 /**
  * Route-based container configuration

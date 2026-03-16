@@ -1,15 +1,3 @@
-import BarChart from '@/components/charts/BarChart';
-import LineChart from '@/components/charts/LineChart';
-import PieChart from '@/components/charts/PieChart';
-import ScatterChart from '@/components/charts/ScatterChart';
-import { Button } from '@/components/common';
-import LoaderComponent from '@/components/common/LoaderComponent';
-import { getEnhancedAnalytics, useDocumentStats, useMarketAnalysis } from '@/features/assessments';
-import { exportAssessmentPDF } from '@/features/export';
-import { useSession } from '@/features/session';
-import { useAuth } from '@/hooks/useAuth';
-import { getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
-import { getIndustry } from '@/lib/metadata';
 import { Card, Chip, ProgressBar, ProgressCircle, Tab, Table, Tabs, Tooltip } from '@heroui/react';
 import { Alert } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
@@ -29,6 +17,19 @@ import {
 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+
+import BarChart from '@/components/charts/BarChart';
+import LineChart from '@/components/charts/LineChart';
+import PieChart from '@/components/charts/PieChart';
+import ScatterChart from '@/components/charts/ScatterChart';
+import { Button } from '@/components/common';
+import LoaderComponent from '@/components/common/LoaderComponent';
+import { getEnhancedAnalytics, useDocumentStats, useMarketAnalysis } from '@/features/assessments';
+import { exportAssessmentPDF } from '@/features/export';
+import { useSession } from '@/features/session';
+import { useAuth } from '@/hooks/useAuth';
+import { getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
+import { getIndustry } from '@/lib/metadata';
 
 export default function MarketAnalysisPage({
   isPublicShare = false,

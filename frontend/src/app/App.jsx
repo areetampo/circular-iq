@@ -1,6 +1,7 @@
+import { AppSessionManager } from '@/features/session';
+
 import AppProvider from './AppProvider';
 import AppRoutes from './AppRoutes';
-import { AppSessionManager } from '@/features/session';
 
 /**
  * Clean separation of concerns:

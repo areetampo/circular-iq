@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import PropTypes from 'prop-types';
-import { cn } from '@/utils/cn';
-import { Star } from 'lucide-react';
 import { Drawer } from '@heroui/react';
-import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
+import { Star } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
   // if data is {} return null

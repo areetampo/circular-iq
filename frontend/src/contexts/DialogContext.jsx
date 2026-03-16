@@ -26,8 +26,9 @@
  * }
  */
 
-import React, { createContext, useContext } from 'react';
 import PropTypes from 'prop-types';
+import React, { createContext, useContext } from 'react';
+
 import useDialog from '@/hooks/useDialog';
 
 const DialogContext = createContext();

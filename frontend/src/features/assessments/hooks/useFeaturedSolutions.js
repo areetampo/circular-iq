@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { getFeaturedSolutions } from '../api/assessmentApi';
 
 export function useFeaturedSolutions({ limit = 3, industry, q = undefined, enabled = true } = {}) {

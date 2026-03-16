@@ -1,9 +1,10 @@
-import { cn } from '@/utils/cn';
-import PropTypes from 'prop-types';
-import { X as XIcon, PencilLine, Target, Lightbulb, BarChart3 } from 'lucide-react';
 import { Drawer } from '@heroui/react';
+import { BarChart3, Lightbulb, PencilLine, Target } from 'lucide-react';
+import PropTypes from 'prop-types';
+
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   if (!testCase) return null;

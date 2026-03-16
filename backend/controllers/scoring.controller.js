@@ -8,25 +8,26 @@
  */
 
 import crypto from 'crypto';
-import {
-  calculateScores,
-  identifyIntegrityGaps,
-  dedupeResultsWeighted,
-} from '#services/scoring.logic.js';
-import {
-  generateReasoning,
-  validateInput,
-  extractMetadata,
-  calculateGapAnalysis,
-} from '#services/scoring.service.js';
-import { documentsRepository } from '#database/index.js';
-import {
-  getIdentifierFromRequest,
-  MAX_FREE_TRIES,
-  extractIPAddress,
-} from '#utils/anonymousTracking.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
+import { documentsRepository } from '#database/index.js';
+import {
+  calculateScores,
+  dedupeResultsWeighted,
+  identifyIntegrityGaps,
+} from '#services/scoring.logic.js';
+import {
+  calculateGapAnalysis,
+  extractMetadata,
+  generateReasoning,
+  validateInput,
+} from '#services/scoring.service.js';
+import {
+  extractIPAddress,
+  getIdentifierFromRequest,
+  MAX_FREE_TRIES,
+} from '#utils/anonymousTracking.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 

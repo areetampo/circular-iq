@@ -28,40 +28,43 @@
  */
 
 import '#server/bootstrap.js';
+
+import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import { parse } from 'csv-parse/sync';
-import { createHash } from 'crypto';
-import {
-  ARCHIVES_COMBINED_INPUT_CSV,
-  ARCHIVES_CHUNKS_JSON,
-  OUT_COMBINED_INPUT_CSV,
-  OUT_COMBINED_INPUT_FINAL_CSV,
-  OUT_CHUNKS_JSON,
-  ARCHIVES_TEST_COMBINED_INPUT_CSV,
-  OUT_TEST_COMBINED_INPUT_CSV,
-  OUT_TEST_COMBINED_INPUT_FINAL_CSV,
-  ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV,
-  ARCHIVES_COMBINED_INPUT_FINAL_CSV,
-  ARCHIVES_TEST_CHUNKS_JSON,
-  OUT_TEST_CHUNKS_JSON,
-  writeJson,
-  assertFileExists,
-  ensureDir,
-} from '#utils/datasetsUtils.js';
 import OpenAI from 'openai';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
-  WORDS_PER_CHUNK,
+  countWords,
   ENRICH_CONCURRENCY,
+  extractMetadata,
   formatMetadataFromJson,
   getMetadataHighlights,
-  extractMetadata,
   sanitizeText,
-  countWords,
   splitLongText,
+  WORDS_PER_CHUNK,
 } from '#config/chunk.js';
+import {
+  ARCHIVES_CHUNKS_JSON,
+  ARCHIVES_COMBINED_INPUT_CSV,
+  ARCHIVES_COMBINED_INPUT_FINAL_CSV,
+  ARCHIVES_TEST_CHUNKS_JSON,
+  ARCHIVES_TEST_COMBINED_INPUT_CSV,
+  ARCHIVES_TEST_COMBINED_INPUT_FINAL_CSV,
+  assertFileExists,
+  ensureDir,
+  OUT_CHUNKS_JSON,
+  OUT_COMBINED_INPUT_CSV,
+  OUT_COMBINED_INPUT_FINAL_CSV,
+  OUT_TEST_CHUNKS_JSON,
+  OUT_TEST_COMBINED_INPUT_CSV,
+  OUT_TEST_COMBINED_INPUT_FINAL_CSV,
+  writeJson,
+} from '#utils/datasetsUtils.js';
 
 const ENRICH_SCORES = process.argv.includes('--enrich-scores');
 const useArchive = process.argv.includes('--archives');

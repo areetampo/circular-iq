@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
-import { ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
+import { ClipboardMinus } from 'lucide-react';
+import PropTypes from 'prop-types';
+
 import { Button } from '@/components/common';
 import { useGlobalModal } from '@/contexts/ModalContext';
 

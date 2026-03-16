@@ -6,10 +6,11 @@
  */
 
 import express from 'express';
-import * as assessmentsController from '#controllers/assessments.controller.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { validateAssessment } from '#middleware/validation.middleware.js';
+import * as assessmentsController from '#controllers/assessments.controller.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
+import { validateAssessment } from '#middleware/validation.middleware.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 

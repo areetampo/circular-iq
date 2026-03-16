@@ -6,10 +6,11 @@
  * In development and test environments, it loads variables from .env.backend.
  */
 
-import dotenv from 'dotenv';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
+
+import dotenv from 'dotenv';
 
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 const IS_PROD = NODE_ENV === 'production';

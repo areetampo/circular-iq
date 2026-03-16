@@ -1,59 +1,58 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import {
+  Button as HeroButton,
+  Card,
+  Checkbox,
+  Chip,
+  Input,
+  Label,
+  ListBox,
+  Pagination,
+  Popover,
+  Select,
+  Separator,
+  Skeleton,
+  Tooltip,
+} from '@heroui/react';
+import { toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Award,
+  Building,
+  CheckCircle2,
+  Clock,
+  Edit,
+  Eye,
+  Ghost,
+  GitCompare,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 import PropTypes from 'prop-types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getSessionId } from '@/utils/session';
-import { useDebounce } from '@/hooks/useDebounce';
-import { formatTimestamp, formatTruncatedList } from '@/lib/formatting';
+
+import { Button, ErrorDisplay } from '@/components/common';
+import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
+import CopyButton from '@/components/modern-ui/copy-button';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
 import { getIndustryTheme } from '@/constants/industryThemes';
+import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
   getAssessments,
   useAssessments,
-  usePrefetchAssessment,
   useAssessmentStats,
+  usePrefetchAssessment,
 } from '@/features/assessments';
-import { parseSortBy } from './sortUtils';
 import { updateAssessment } from '@/features/assessments/api/assessmentApi';
+import { useDebounce } from '@/hooks/useDebounce';
+import { formatTimestamp, formatTruncatedList } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
-import {
-  Card,
-  Input,
-  Select,
-  Label,
-  ListBox,
-  Checkbox,
-  Skeleton,
-  Separator,
-  Popover,
-  Button as HeroButton,
-  Chip,
-  Tooltip,
-  Pagination,
-} from '@heroui/react';
-import { toast } from '@heroui/react';
-import { Button, ErrorDisplay } from '@/components/common';
-import CopyButton from '@/components/modern-ui/copy-button';
-import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
-import { useGlobalDialog } from '@/contexts/DialogContext';
-import {
-  ArrowLeft,
-  Search,
-  Eye,
-  GitCompare,
-  Plus,
-  Award,
-  Building,
-  Ghost,
-  Edit,
-  Trash2,
-  Check,
-  CheckCircle2,
-  AlertCircle,
-  Globe,
-  Share2,
-  Clock,
-} from 'lucide-react';
+import { getSessionId } from '@/utils/session';
+
+import { parseSortBy } from './sortUtils';
 
 // Memoized AssessmentCard Component - Beautiful Redesign with VISIBLE Checkbox
 const AssessmentCard = React.memo(function AssessmentCard({

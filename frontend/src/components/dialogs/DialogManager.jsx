@@ -22,17 +22,17 @@
  * (No props needed - gets dialog state directly from context)
  */
 
+import {
+  ConfirmDialog,
+  DeleteAssessmentDialog,
+  LimitReachedDialog,
+  RenameAssessmentDialog,
+  ReplaceInputsDialog,
+  SaveAssessmentDialog,
+  SessionRestoreDialog,
+} from '@/components/dialogs';
 import DIALOGS from '@/components/dialogs/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import {
-  DeleteAssessmentDialog,
-  RenameAssessmentDialog,
-  SaveAssessmentDialog,
-  ReplaceInputsDialog,
-  ConfirmDialog,
-  SessionRestoreDialog,
-  LimitReachedDialog,
-} from '@/components/dialogs';
 
 function DialogManagerContent() {
   // Get dialog state directly from context instead of props

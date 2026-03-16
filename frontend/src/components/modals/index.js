@@ -1,11 +1,11 @@
 export { default as AssessmentMethodologyModal } from './AssessmentMethodologyModal';
-export { default as EvaluationCriteriaModal } from './EvaluationCriteriaModal';
 export { default as BusinessProblemInfoModal } from './BusinessProblemInfoModal';
 export { default as BusinessSolutionInfoModal } from './BusinessSolutionInfoModal';
-export { default as EvaluationParametersHeadingInfoModal } from './EvaluationParametersHeadingInfoModal';
-export { default as SpecificEvaluationParameterInfoModal } from './SpecificEvaluationParameterInfoModal';
-export { default as SampleTestCasesHeadingInfoModal } from './SampleTestCasesHeadingInfoModal';
-export { default as SpecificSampleTestCaseViewDetailsModal } from './SpecificSampleTestCaseViewDetailsModal';
-export { default as ResultsDatabaseEvidenceDetailsModal } from './ResultsDatabaseEvidenceDetailsModal';
 export { default as DashboardFeaturedSolutionsModal } from './DashboardFeaturedSolutionsModal';
+export { default as EvaluationCriteriaModal } from './EvaluationCriteriaModal';
+export { default as EvaluationParametersHeadingInfoModal } from './EvaluationParametersHeadingInfoModal';
 export { default as ModalManager } from './ModalManager';
+export { default as ResultsDatabaseEvidenceDetailsModal } from './ResultsDatabaseEvidenceDetailsModal';
+export { default as SampleTestCasesHeadingInfoModal } from './SampleTestCasesHeadingInfoModal';
+export { default as SpecificEvaluationParameterInfoModal } from './SpecificEvaluationParameterInfoModal';
+export { default as SpecificSampleTestCaseViewDetailsModal } from './SpecificSampleTestCaseViewDetailsModal';

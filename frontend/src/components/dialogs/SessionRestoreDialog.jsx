@@ -1,9 +1,10 @@
+import { AlertDialog } from '@heroui/react';
+import { FileCheck, RefreshCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import { AlertDialog } from '@heroui/react';
+
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { FileCheck, MessageCircleWarning, RefreshCcw, RefreshCw } from 'lucide-react';
 
 /**
  * Session Restore Dialog

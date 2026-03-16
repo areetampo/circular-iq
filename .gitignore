@@ -19,6 +19,7 @@ env/.env.backend
 # Build Outputs
 ################################
 dist/
+.eslintcache
 build/
 out/
 !backend/datasets/out/

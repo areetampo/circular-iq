@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
 
 /**
  * Global Loading Bar Component

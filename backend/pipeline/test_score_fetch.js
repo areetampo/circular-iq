@@ -1,7 +1,9 @@
 import '#server/bootstrap.js';
+
 import OpenAI from 'openai';
-import { createSupabaseClient } from '#database/supabase.client.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { createSupabaseClient } from '#database/supabase.client.js';
 
 const DRY_RUN = !BACKEND_CONFIG.openai.apiKey || !BACKEND_CONFIG.supabase.serviceKey;
 

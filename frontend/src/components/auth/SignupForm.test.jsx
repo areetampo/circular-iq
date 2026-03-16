@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 // Mock supabase methods used by SignupForm
@@ -12,8 +12,9 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 import { supabase } from '@/lib/supabase';
-import { SignupForm } from './SignupForm';
 import { getSession } from '@/utils/session';
+
+import { SignupForm } from './SignupForm';
 
 function renderWithRouter(initialEntries = ['/auth']) {
   return render(

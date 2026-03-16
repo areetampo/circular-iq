@@ -4,10 +4,12 @@
  */
 
 import '#server/bootstrap.js';
+
 import fs from 'fs';
-import { createSupabaseClient } from '#database/supabase.client.js';
-import { OUT_COMBINED_INPUT_CSV, OUT_CHUNKS_JSON, assertFileExists } from '#utils/datasetsUtils.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { createSupabaseClient } from '#database/supabase.client.js';
+import { assertFileExists, OUT_CHUNKS_JSON, OUT_COMBINED_INPUT_CSV } from '#utils/datasetsUtils.js';
 
 let supabase = null;
 if (BACKEND_CONFIG.supabase && BACKEND_CONFIG.supabase.serviceKey) {

@@ -1,4 +1,5 @@
 import { Copyright } from 'lucide-react';
+
 import { SITE_NAME, SiteLogo } from '@/components/common';
 
 export default function Footer() {

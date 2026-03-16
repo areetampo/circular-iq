@@ -5,9 +5,10 @@
 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { createSupabaseClient } from '#database/supabase.client.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as scoringController from '#controllers/scoring.controller.js';
+import { createSupabaseClient } from '#database/supabase.client.js';
 import { extractIPAddress } from '#utils/anonymousTracking.js';
 
 // Module-scoped OpenAI client to support tests that call `setOpenAIClient()`

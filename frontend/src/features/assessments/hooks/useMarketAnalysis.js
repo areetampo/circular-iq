@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
+
 import {
-  getMarketAnalysis,
   getAssessmentById,
+  getMarketAnalysis,
   getMarketAnalysisPublic,
   getPublicAssessment,
 } from '@/features/assessments';

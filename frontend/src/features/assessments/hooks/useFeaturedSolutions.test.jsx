@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 // mock the API module (use relative path to avoid alias resolution issues in tests)
@@ -7,8 +7,8 @@ vi.mock('../api/assessmentApi', () => ({
   getFeaturedSolutions: vi.fn(),
 }));
 
-import { getFeaturedSolutions } from '../api/assessmentApi';
 import { useFeaturedSolutions } from './useFeaturedSolutions';
+import { getFeaturedSolutions } from '../api/assessmentApi';
 
 const createTestQueryClient = () =>
   new QueryClient({

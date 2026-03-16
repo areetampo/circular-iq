@@ -1,5 +1,5 @@
-import { getDatabaseClient, getDatabaseType, getSupabasePgPool } from '#database/client.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { getDatabaseClient, getDatabaseType, getSupabasePgPool } from '#database/client.js';
 
 const func = BACKEND_CONFIG.db.functions;
 

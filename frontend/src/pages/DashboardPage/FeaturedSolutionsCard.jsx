@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { Button } from '@/components/common';
 import { Card, Chip, Input } from '@heroui/react';
-import { useFeaturedSolutions } from '../../features/assessments/hooks/useFeaturedSolutions';
+import PropTypes from 'prop-types';
+import React, { useState } from 'react';
+
+import { Button } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
+
+import { useFeaturedSolutions } from '../../features/assessments/hooks/useFeaturedSolutions';
 
 export default function FeaturedSolutionsCard({ industry }) {
   const [featuredQuery, setFeaturedQuery] = useState('');

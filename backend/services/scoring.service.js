@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const client = new OpenAI({

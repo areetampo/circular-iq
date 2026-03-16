@@ -16,13 +16,14 @@
  * });
  */
 
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { AlertDialog, Input, Label } from '@heroui/react';
-import { Button } from '@/components/common';
 import { Edit } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { cn } from '@/utils/cn';
 
 /**
  * Specialized dialog for renaming assessments

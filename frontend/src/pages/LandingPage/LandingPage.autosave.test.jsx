@@ -1,13 +1,11 @@
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import LandingPage from './LandingPage';
+import { fireEvent, render, waitFor } from '@testing-library/react';
+import { FormProvider, useForm } from 'react-hook-form';
+
 import testCases from '@/data/testCases.json';
-import { DialogProvider } from '@/contexts/DialogContext';
-import { DrawerProvider } from '@/contexts/DrawerContext';
-import SampleTestCasesContainer from './components/SampleTestCasesContainer';
-import { useForm, FormProvider } from 'react-hook-form';
 import { Providers } from '@/test/test-utils';
+
+import SampleTestCasesContainer from './components/SampleTestCasesContainer';
+import LandingPage from './LandingPage';
 
 const mockSaveSession = vi.fn();
 
@@ -196,7 +194,9 @@ describe('LandingPage autosave integration', () => {
           try {
             const values = methods.getValues();
             persistInputs(values);
-          } catch (err) {}
+          } catch {
+            // getValues can throw if called during unmount — ignore and allow unload to proceed
+          }
         };
 
         const inputsEqual = (a = {}, b = {}) => {

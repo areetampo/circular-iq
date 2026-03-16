@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { Switch as HeroSwitch } from '@heroui/react';
+import { Check, Lock, LockOpen, X } from 'lucide-react';
+import PropTypes from 'prop-types';
+import React, { createContext, useContext, useMemo } from 'react';
+
 import { ResponsiveSizeWrapper } from '@/components/common';
-import { Lock, LockOpen, X, Check } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 // our own context allows subcomponents to know which variant and

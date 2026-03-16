@@ -8,10 +8,11 @@
  * Location: src/components/dialogs/ReplaceInputsDialog.jsx
  */
 
-import React, { useRef, useEffect, useMemo, useCallback } from 'react';
 import { AlertDialog } from '@heroui/react';
-import { Button } from '@/components/common';
 import { AlertCircle } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**

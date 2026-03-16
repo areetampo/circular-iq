@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import Switch from './Switch';
 
 // the HeroUI implementation uses the `role="switch"` on the root element

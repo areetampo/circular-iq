@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
-import { createSupabaseClient } from '#database/supabase.client.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { createSupabaseClient } from '#database/supabase.client.js';
 
 let _supabaseClient = null;
 let _supabasePgPool = null;

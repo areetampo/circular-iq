@@ -1,6 +1,6 @@
 /* global describe, it, expect */
 
-import { sortByAverageScoreAsc, sortByAverageScoreDesc, getAverageScore } from './utils';
+import { getAverageScore, sortByAverageScoreAsc, sortByAverageScoreDesc } from './utils';
 
 describe('assessment utils sorting', () => {
   const data = [

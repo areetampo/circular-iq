@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+
 import LoaderIcon from './LoaderIcon';
 
 export default function LoaderComponent({

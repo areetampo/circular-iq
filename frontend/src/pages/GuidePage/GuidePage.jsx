@@ -1,25 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 import {
-  Search,
+  BarChart3,
+  BookCopy,
   Bot,
   ChartColumn,
-  CircleCheck,
-  BookCopy,
-  TriangleAlert,
   ChartSpline,
-  ClipboardMinus,
-  Link,
-  CircleDollarSign,
-  Settings,
-  Target,
-  Lightbulb,
-  PencilLine,
-  BarChart3,
-  ClipboardPenLine,
   ChevronDown,
   ChevronUp,
+  CircleCheck,
+  CircleDollarSign,
+  ClipboardMinus,
+  ClipboardPenLine,
+  Lightbulb,
+  Link,
+  Search,
+  Settings,
+  Target,
+  TriangleAlert,
 } from 'lucide-react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Import parameter guidance data
 const parameterGuidance = {

@@ -1,11 +1,11 @@
-import PropTypes from 'prop-types';
-import { cn } from '@/utils/cn';
-import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
-import { GROUP_STYLE_CONFIG, DEFAULT_CONFIG } from '@/constants/groupStyleConfig';
-import { X } from 'lucide-react';
 import { Drawer } from '@heroui/react';
+import PropTypes from 'prop-types';
+
+import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
+import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
   if (!paramKey) return null;

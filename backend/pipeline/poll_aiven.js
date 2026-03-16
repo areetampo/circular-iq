@@ -1,5 +1,7 @@
 import '#server/bootstrap.js';
+
 import pg from 'pg';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const { Pool } = pg;

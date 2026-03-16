@@ -1,16 +1,17 @@
-import { cn } from '@/utils/cn';
+import { Drawer } from '@heroui/react';
 import {
-  Search,
+  BookCopy,
   Bot,
   ChartColumn,
-  CircleCheck,
-  BookCopy,
-  TriangleAlert,
   ChartSpline,
+  CircleCheck,
+  Search,
+  TriangleAlert,
 } from 'lucide-react';
-import { Drawer } from '@heroui/react';
+
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 const METHODOLOGY_ITEMS = [
   {

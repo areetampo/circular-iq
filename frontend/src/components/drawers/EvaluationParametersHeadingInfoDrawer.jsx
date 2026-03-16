@@ -1,10 +1,10 @@
-import { cn } from '@/utils/cn';
+import { Drawer } from '@heroui/react';
+import { ClipboardMinus } from 'lucide-react';
 
 import { factorDefinitions } from '@/constants/evaluationData';
-import { ClipboardMinus, X } from 'lucide-react';
-import { Drawer } from '@heroui/react';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 export default function EvaluationParametersHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

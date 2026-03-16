@@ -1,8 +1,9 @@
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { DATASETS_SCRIPTS_DIR, assertDirExists } from '#utils/datasetsUtils.js';
+
+import { assertDirExists, DATASETS_SCRIPTS_DIR } from '#utils/datasetsUtils.js';
 
 // run_datasets_scripts.js
 // Orchestrator for dataset scripts with flags to control behavior.

@@ -1,6 +1,7 @@
+import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
 import { SITE_NAME } from '@/components/common';
 
 /**

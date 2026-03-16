@@ -1,6 +1,7 @@
+import { Avatar } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import { Avatar } from '@heroui/react';
+
 import { cn } from '@/utils/cn';
 
 export const SITE_NAME = 'mystic mountains';

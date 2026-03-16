@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import { cn } from '@/utils/cn';
+
 import { Switch } from '@/components/common';
+import { cn } from '@/utils/cn';
 
 /**
  * ChoiceCardSwitch — visual choice card that toggles an embedded HeroUI Switch.

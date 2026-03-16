@@ -1,9 +1,9 @@
-import { cn } from '@/utils/cn';
-
-import { ClipboardPenLine, Lightbulb, X } from 'lucide-react';
 import { Drawer } from '@heroui/react';
+import { ClipboardPenLine, Lightbulb } from 'lucide-react';
+
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 export default function SampleTestCasesHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

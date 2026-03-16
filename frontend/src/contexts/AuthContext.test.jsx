@@ -12,8 +12,9 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { AuthProvider, useAuth } from './AuthContext';
 import { MemoryRouter } from 'react-router-dom';
+
+import { AuthProvider, useAuth } from './AuthContext';
 
 function Consumer() {
   const { authLoading, isAuthenticated, user, profile } = useAuth();

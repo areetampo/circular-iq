@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+
 import useDrawer from './useDrawer';
 
 // Simple harness component to exercise the hook directly

@@ -1,8 +1,10 @@
 import '#server/bootstrap.js';
-import app from '#server/app.js';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
-import chalk from 'chalk';
+
 import boxen from 'boxen';
+import chalk from 'chalk';
+
+import { BACKEND_CONFIG } from '#config/backend.config.js';
+import app from '#server/app.js';
 
 let serverInstance = null;
 

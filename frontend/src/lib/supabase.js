@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+
 import { FRONTEND_CONFIG } from '@/config';
 
 const supabaseUrl = FRONTEND_CONFIG.supabase.url;

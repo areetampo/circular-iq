@@ -8,8 +8,8 @@
  * - Assessment updates and deletion
  */
 
-import { createSupabaseClientWithAuth } from '#database/supabase.client.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { createSupabaseClientWithAuth } from '#database/supabase.client.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 

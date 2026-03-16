@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import PropTypes from 'prop-types';
-import { Card, Input, Label, TextField, FieldError, Form } from '@heroui/react';
-import { Button, SITE_NAME, LoaderIcon } from '@/components/common';
+import { Card, FieldError, Form, Input, Label, TextField } from '@heroui/react';
 import { toast } from '@heroui/react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import PropTypes from 'prop-types';
+import React, { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
+import { z } from 'zod';
+
+import { Button, LoaderIcon, SITE_NAME } from '@/components/common';
 import { supabase } from '@/lib/supabase';
 
 const minUsernameLength = 3;

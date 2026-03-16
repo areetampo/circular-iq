@@ -1,52 +1,39 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@heroui/react';
-import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
-import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
-import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
+import { Accordion, Card, Label, TextArea as Textarea, Tooltip } from '@heroui/react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
+import {
+  AlertTriangle,
+  BadgeInfo,
+  Bot,
+  ChevronDown,
+  CircleCheck,
+  ClipboardList,
+  LayersPlus,
+  NotebookPen,
+  PencilRuler,
+  Pickaxe,
+  SlidersHorizontal,
+} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 // Session restore is handled globally via AppSessionManager + SessionRestoreDialog
-import { useSession } from '@/features/session/hooks/useSession';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useGlobalDialog } from '@/contexts/DialogContext';
-import { getCharacterCount } from '@/lib/validation';
-import { loadEvaluationState } from '@/lib/storage';
-import { useAuth } from '@/hooks/useAuth';
-import { motion, AnimatePresence } from 'framer-motion';
-import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
-import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
-import { Card, Tooltip, Label, TextArea as Textarea, ScrollShadow } from '@heroui/react';
 import { Button } from '@/components/common';
 import LoaderIcon from '@/components/common/LoaderIcon';
+import { useGlobalDialog } from '@/contexts/DialogContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
+import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
+import { useSession } from '@/features/session/hooks/useSession';
+import { useAuth } from '@/hooks/useAuth';
+import { loadEvaluationState } from '@/lib/storage';
+import { getCharacterCount } from '@/lib/validation';
+import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
+import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
+import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 import { cn } from '@/utils/cn';
-import { Accordion } from '@heroui/react';
-import {
-  Cpu,
-  LayoutGrid,
-  CheckCircle2,
-  AlertTriangle,
-  ChevronRight,
-  ChevronDown,
-  Leaf,
-  ClipboardPenLine,
-  BookOpen,
-  ClipboardList,
-  SlidersHorizontal,
-  BadgeInfo,
-  Info,
-  CirclePile,
-  LayersPlus,
-  Bot,
-  Pickaxe,
-  PencilRuler,
-  NotepadText,
-  NotebookPen,
-  LaptopMinimalCheck,
-  FileSliders,
-  FileCheckCorner,
-  CircleCheck,
-} from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();

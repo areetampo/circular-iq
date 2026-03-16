@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
+
 import DRAWERS from '@/components/drawers/drawerTypes';
 
 // Match the CSS transition duration used by Drawer (overlay/content)

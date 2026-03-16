@@ -5,8 +5,8 @@
  * Location: src/lib/exportDashboard.js
  */
 
-import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 /**
  * Formats date for display

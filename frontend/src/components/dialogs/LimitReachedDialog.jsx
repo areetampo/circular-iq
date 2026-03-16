@@ -1,22 +1,10 @@
-import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { AlertDialog } from '@heroui/react';
+import { FileDown, inf, OctagonX, Orbit, Save, Share } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import {
-  Check,
-  TriangleAlert,
-  Infinity,
-  Skull,
-  OctagonX,
-  Share2,
-  Save,
-  Globe,
-  Share,
-  Orbit,
-  FileDown,
-} from 'lucide-react';
-
 export function LimitReachedDialog(props) {
   const { limit: propLimit, message: propMessage, isOpen: propIsOpen } = props || {};
   const { isDialogOpen, dialog, onClose } = useGlobalDialog();
@@ -38,7 +26,7 @@ export function LimitReachedDialog(props) {
   };
 
   const LIMIT_REACHED_DIALOG_POINTS = [
-    { icon: Infinity, text: 'Unlimited evaluations' },
+    { icon: inf, text: 'Unlimited evaluations' },
     { icon: Share, text: 'Share assessments' },
     { icon: Save, text: 'Save and compare results' },
     { icon: Orbit, text: 'Access dashboard analytics' },

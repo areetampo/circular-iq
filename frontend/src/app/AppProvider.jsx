@@ -1,13 +1,14 @@
-import PropTypes from 'prop-types';
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toast, toast } from '@heroui/react';
-import { ErrorBoundary } from '@/components/error-boundaries';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import PropTypes from 'prop-types';
+
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
+import DrawerManager from '@/components/drawers/DrawerManager';
+import { ErrorBoundary } from '@/components/error-boundaries';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { DrawerProvider } from '@/contexts/DrawerContext'; // ← was ModalProvider
 import { DialogProvider } from '@/contexts/DialogContext';
-import DrawerManager from '@/components/drawers/DrawerManager'; // ← add this
+import { DrawerProvider } from '@/contexts/DrawerContext';
 
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({

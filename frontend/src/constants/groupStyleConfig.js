@@ -1,4 +1,4 @@
-import { RadioTower, Coins, Recycle } from 'lucide-react';
+import { Coins, RadioTower, Recycle } from 'lucide-react';
 
 // Shared group style configuration for parameter-themed UI (icons + Tailwind classes)
 export const GROUP_STYLE_CONFIG = {

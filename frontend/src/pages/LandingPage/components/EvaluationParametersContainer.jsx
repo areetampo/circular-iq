@@ -1,12 +1,13 @@
-import { parameterGroups, parameterGuidance, parameterLabels } from '@/constants/evaluationData';
-import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useSession } from '@/features/session/hooks/useSession';
 import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
 import { BadgeInfo, ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
+
+import { parameterGroups, parameterGuidance, parameterLabels } from '@/constants/evaluationData';
+import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import { useSession } from '@/features/session/hooks/useSession';
 
 const SCALE_COLORS = [
   'text-red-500 bg-red-50',

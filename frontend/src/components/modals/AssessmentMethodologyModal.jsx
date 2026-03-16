@@ -1,14 +1,15 @@
-import PropTypes from 'prop-types';
+import { Modal } from '@heroui/react';
 import {
-  Search,
+  BookCopy,
   Bot,
   ChartColumn,
-  CircleCheck,
-  BookCopy,
-  TriangleAlert,
   ChartSpline,
+  CircleCheck,
+  Search,
+  TriangleAlert,
 } from 'lucide-react';
-import { Modal } from '@heroui/react';
+import PropTypes from 'prop-types';
+
 import { Button } from '@/components/common';
 import { useGlobalModal } from '@/contexts/ModalContext';
 

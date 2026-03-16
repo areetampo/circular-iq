@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 vi.mock('../../utils/cn', () => ({ cn: (...args) => args.filter(Boolean).join(' ') }));
 
 import { render } from '@testing-library/react';
+
 import { ChartContainer } from './ChartWrapper';
 
 // JSDOM doesn't implement ResizeObserver which Recharts uses internally

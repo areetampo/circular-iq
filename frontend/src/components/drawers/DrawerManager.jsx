@@ -1,16 +1,16 @@
-import DRAWERS from '@/components/drawers/drawerTypes';
 import {
   AssessmentMethodologyDrawer,
-  EvaluationCriteriaDrawer,
   BusinessProblemInfoDrawer,
   BusinessSolutionInfoDrawer,
-  EvaluationParametersHeadingInfoDrawer,
-  SpecificEvaluationParameterInfoDrawer,
-  SampleTestCasesHeadingInfoDrawer,
-  SpecificSampleTestCaseViewDetailsDrawer,
-  ResultsDatabaseEvidenceDetailsDrawer,
   DashboardFeaturedSolutionsDrawer,
+  EvaluationCriteriaDrawer,
+  EvaluationParametersHeadingInfoDrawer,
+  ResultsDatabaseEvidenceDetailsDrawer,
+  SampleTestCasesHeadingInfoDrawer,
+  SpecificEvaluationParameterInfoDrawer,
+  SpecificSampleTestCaseViewDetailsDrawer,
 } from '@/components/drawers';
+import DRAWERS from '@/components/drawers/drawerTypes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 
 export default function DrawerManager() {

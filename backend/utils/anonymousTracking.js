@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 // Configuration

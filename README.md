@@ -63,28 +63,30 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
 
 ## Tech Stack
 
-| Category         | Technology                     | Purpose                                        |
-| ---------------- | ------------------------------ | ---------------------------------------------- |
-| **Runtime**      | Node.js 18+                    | Modern JavaScript support                      |
-| **Backend**      | Express.js                     | REST API server                                |
-| **Frontend**     | React 18+ + Vite              | UI framework and build tool                    |
-| **UI Library**   | HeroUI v3 (Beta)              | Component library                              |
-| **Charts**       | MUI X Charts                   | Data visualization                             |
-| **Database**     | Supabase PostgreSQL + pgvector | Vector database for embeddings                 |
-| **AI/Embeddings**| OpenAI text-embedding-3-small  | Semantic search and embeddings                 |
-| **AI/Reasoning** | GPT-4o-mini                    | Evidence-based scoring and recommendations     |
-| **State Mgmt**   | React Query + Custom Hooks     | Client-side state and API integration         |
-| **Deployment**   | Vercel                         | Serverless deployment platform                 |
+| Category          | Technology                     | Purpose                                    |
+| ----------------- | ------------------------------ | ------------------------------------------ |
+| **Runtime**       | Node.js 18+                    | Modern JavaScript support                  |
+| **Backend**       | Express.js                     | REST API server                            |
+| **Frontend**      | React 18+ + Vite               | UI framework and build tool                |
+| **UI Library**    | HeroUI v3 (Beta)               | Component library                          |
+| **Charts**        | MUI X Charts                   | Data visualization                         |
+| **Database**      | Supabase PostgreSQL + pgvector | Vector database for embeddings             |
+| **AI/Embeddings** | OpenAI text-embedding-3-small  | Semantic search and embeddings             |
+| **AI/Reasoning**  | GPT-4o-mini                    | Evidence-based scoring and recommendations |
+| **State Mgmt**    | React Query + Custom Hooks     | Client-side state and API integration      |
+| **Deployment**    | Vercel                         | Serverless deployment platform             |
 
 ## Key Features
 
 ### Assessment Engine
+
 - **8-Dimensional Scoring**: Evaluates across Materials, Design, Manufacturing, Distribution, Consumption, End-of-Life, Business Model, and Policy dimensions
 - **AI-Powered Evidence Matching**: Uses semantic search to find relevant real-world examples
 - **GPT-4o-mini Reasoning**: Provides evidence-based scoring with detailed explanations
 - **Gap Analysis**: Identifies strengths and improvement areas with actionable recommendations
 
 ### Data Pipeline
+
 - **34+ Dataset Sources**: Curated collection of circular economy case studies, research, and benchmarks
 - **Automated Processing**: Web scraping, PDF extraction, API ingestion, and data normalization
 - **Semantic Chunking**: Intelligent text splitting with metadata preservation
@@ -92,6 +94,7 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
 - **Hybrid Search**: Combines vector similarity with BM25 keyword matching
 
 ### User Experience
+
 - **Guided Assessment Flow**: Step-by-step questionnaire with contextual help
 - **Interactive Results**: Charts, tables, and detailed case comparisons
 - **Export Options**: PDF reports and CSV data exports
@@ -100,6 +103,7 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
 - **Anonymous Usage**: 5 free assessments for anonymous users
 
 ### Analytics & Insights
+
 - **Dataset Statistics**: Industry distribution, R-strategy analysis, scale metrics
 - **Benchmarking**: Compare against similar projects and market averages
 - **Trend Analysis**: Track improvement over time with assessment history
@@ -181,12 +185,14 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd circular-economy-evaluator
    ```
 
 2. **Install dependencies**
+
    ```bash
    # Install root dependencies
    npm install
@@ -199,6 +205,7 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
    ```
 
 3. **Environment Setup**
+
    ```bash
    # Copy environment templates
    cp env/backend.env.example env/backend.env
@@ -211,6 +218,7 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
    ```
 
 4. **Database Setup**
+
    ```bash
    cd backend
 
@@ -222,6 +230,7 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
    ```
 
 5. **Start Development Servers**
+
    ```bash
    # Terminal 1: Backend server
    npm run dev:backend
@@ -239,18 +248,22 @@ The Circular Economy Evaluator is a comprehensive AI-powered platform that helps
 ### Core Endpoints
 
 #### Assessment & Scoring
+
 - `POST /api/scoring/score` - Score assessment and find similar cases
 - `GET /api/scoring/parameters` - Get evaluation parameters and weights
 
 #### Analytics
+
 - `GET /api/analytics/documents-summary` - Dataset statistics and metrics
 - `GET /api/analytics/filter-options` - Available filter values
 
 #### Search
+
 - `POST /api/search` - Semantic search across documents
 - `GET /api/search/suggestions` - Search suggestions
 
 #### Assessments
+
 - `GET /api/assessments` - List user assessments
 - `POST /api/assessments` - Create new assessment
 - `GET /api/assessments/:id` - Get specific assessment
@@ -419,6 +432,7 @@ The application is optimized for Vercel serverless deployment:
 ### Environment Variables
 
 #### Backend (.env)
+
 ```env
 # Database
 SUPABASE_URL=your-supabase-url
@@ -437,6 +451,7 @@ JWT_SECRET=your-jwt-secret
 ```
 
 #### Frontend (.env)
+
 ```env
 # API Configuration
 VITE_API_BASE_URL=https://your-app.vercel.app/api
@@ -476,16 +491,19 @@ VITE_ANALYTICS_ID=your-analytics-id
 ### Common Issues
 
 #### Backend
+
 - **Database Connection**: Verify Supabase credentials and network access
 - **OpenAI API**: Check API key validity and rate limits
 - **Pipeline Failures**: Check dataset source availability and parsing logic
 
 #### Frontend
+
 - **API Calls Failing**: Verify backend server is running and accessible
 - **Build Errors**: Clear node_modules and reinstall dependencies
 - **Environment Variables**: Ensure all required variables are set
 
 #### Database
+
 - **Migration Issues**: Check migration files for syntax errors
 - **Vector Search**: Ensure pgvector extension is installed
 - **Performance**: Monitor query performance and add indexes as needed

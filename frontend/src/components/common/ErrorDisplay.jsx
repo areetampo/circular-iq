@@ -1,7 +1,8 @@
-import PropTypes from 'prop-types';
 import { Card } from '@heroui/react';
+import { AlertCircle, AlertTriangle, Home, Info, RefreshCcw, XCircle } from 'lucide-react';
+import PropTypes from 'prop-types';
+
 import { Button } from '@/components/common';
-import { AlertTriangle, XCircle, AlertCircle, Info, RefreshCcw, Home } from 'lucide-react';
 
 /**
  * Reusable error display component with beautiful, consistent styling

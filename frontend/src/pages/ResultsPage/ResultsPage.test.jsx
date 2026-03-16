@@ -1,8 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DrawerProvider } from '@/contexts/DrawerContext';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
 import { DialogProvider } from '@/contexts/DialogContext';
+import { DrawerProvider } from '@/contexts/DrawerContext';
 
 // Mock authentication hook to simulate anonymous user
 vi.mock('@/hooks/useAuth', () => ({

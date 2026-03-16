@@ -1,25 +1,3 @@
-import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { cn } from '@/utils/cn';
-import {
-  Spiral,
-  Bouncy,
-  Ring2,
-  BouncyArc,
-  Hourglass,
-  LineWobble,
-  Infinity as InfinityLoader,
-  Helix,
-  Quantum,
-  Trio,
-  DotWave,
-  Leapfrog,
-  NewtonsCradle,
-  DotStream,
-  Metronome,
-  Pinwheel,
-} from 'ldrs/react';
-
 // styles (required)
 import 'ldrs/react/Spiral.css';
 import 'ldrs/react/Bouncy.css';
@@ -37,6 +15,29 @@ import 'ldrs/react/NewtonsCradle.css';
 import 'ldrs/react/DotStream.css';
 import 'ldrs/react/Metronome.css';
 import 'ldrs/react/Pinwheel.css';
+
+import {
+  Bouncy,
+  BouncyArc,
+  DotStream,
+  DotWave,
+  Helix,
+  Hourglass,
+  Infinity as InfinityLoader,
+  Leapfrog,
+  LineWobble,
+  Metronome,
+  NewtonsCradle,
+  Pinwheel,
+  Quantum,
+  Ring2,
+  Spiral,
+  Trio,
+} from 'ldrs/react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+
+import { cn } from '@/utils/cn';
 
 const LOADERS = [
   ({ color = '#10b981' }) => <Spiral size="40" speed="0.9" color={color || '#10b981'} />,

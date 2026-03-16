@@ -1,10 +1,11 @@
-import PropTypes from 'prop-types';
-import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
-import { GROUP_STYLE_CONFIG, DEFAULT_CONFIG } from '@/constants/groupStyleConfig';
-import { cn } from '@/utils/cn';
 import { Modal } from '@heroui/react';
+import PropTypes from 'prop-types';
+
 import { Button } from '@/components/common';
+import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
+import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalModal } from '@/contexts/ModalContext';
+import { cn } from '@/utils/cn';
 
 export default function SpecificEvaluationParameterInfoModal({ paramKey }) {
   if (!paramKey) return null;

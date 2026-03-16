@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 /**

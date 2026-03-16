@@ -1,5 +1,6 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { enforceAnonymousUsage } from '#controllers/scoring.controller.js';
 import { MAX_FREE_TRIES } from '#utils/anonymousTracking.js';
 

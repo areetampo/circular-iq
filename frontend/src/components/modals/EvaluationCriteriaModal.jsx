@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
-import { Link, CircleDollarSign, Settings, ClipboardMinus } from 'lucide-react';
 import { Modal } from '@heroui/react';
+import { CircleDollarSign, ClipboardMinus, Link, Settings } from 'lucide-react';
+import PropTypes from 'prop-types';
+
 import { Button } from '@/components/common';
 import { useGlobalModal } from '@/contexts/ModalContext';
 

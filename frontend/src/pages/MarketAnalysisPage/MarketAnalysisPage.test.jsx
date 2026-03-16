@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
 
 // Mock hooks and dependencies
 vi.mock('@/features/assessments', async () => {
@@ -59,11 +59,12 @@ vi.mock('@/components/charts/LineChart', () => ({
   ),
 }));
 
-import { Providers } from '@/test/test-utils';
-import MarketAnalysisPage from './MarketAnalysisPage';
-import { getEnhancedAnalytics } from '@/features/assessments';
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import { getEnhancedAnalytics } from '@/features/assessments';
+import { Providers } from '@/test/test-utils';
+
+import MarketAnalysisPage from './MarketAnalysisPage';
 
 describe('MarketAnalysisPage', () => {
   const createTestQueryClient = () =>

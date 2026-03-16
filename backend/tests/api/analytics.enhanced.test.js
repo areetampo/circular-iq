@@ -1,7 +1,9 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import express from 'express';
 import request from 'supertest';
+
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
 // Minimal mock supabase that returns a few assessments

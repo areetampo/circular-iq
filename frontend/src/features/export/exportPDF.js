@@ -5,8 +5,8 @@
  * Location: src/features/export/exportPDF.js
  */
 
-import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 /**
  * Formats text for PDF display

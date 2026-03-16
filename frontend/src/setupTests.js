@@ -15,8 +15,8 @@ console.warn = (...args) => {
 };
 
 // Global test setup: mock browser/3rd-party UI libs that cause side effects in JSDOM
-import { vi } from 'vitest';
 import React from 'react';
+import { vi } from 'vitest';
 
 // Minimal mock for @heroui/react used by Card/Button components.
 vi.mock('@heroui/react', () => {

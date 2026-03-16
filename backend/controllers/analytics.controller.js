@@ -1,9 +1,10 @@
-import path from 'path';
 import { spawn } from 'child_process';
+import path from 'path';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { filterSchema } from '#middleware/validation.middleware.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
 import { documentsRepository } from '#database/index.js';
+import { filterSchema } from '#middleware/validation.middleware.js';
 
 // -- helper utilities copied from former route file --------------------------------
 

@@ -1,10 +1,11 @@
+import { Chip, Drawer } from '@heroui/react';
+import { Lightbulb, NotebookText, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { cn } from '@/utils/cn';
-import { extractProblemSolution } from '@/utils/content';
-import { NotebookText, Target, Lightbulb } from 'lucide-react';
-import { Drawer, Chip } from '@heroui/react';
+
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
+import { extractProblemSolution } from '@/utils/content';
 
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
   // if data is {} return null

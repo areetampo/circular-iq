@@ -1,4 +1,5 @@
 import '#server/bootstrap.js';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { validateInput } from '#services/scoring.service.js';
 

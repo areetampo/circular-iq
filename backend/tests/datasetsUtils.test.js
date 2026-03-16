@@ -1,8 +1,9 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
 import fs from 'fs';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 import path from 'path';
-import { prepareWrite, writeJsonl, writeCsv, hasAppendFlag } from '#utils/datasetsUtils.js';
+
+import { hasAppendFlag, prepareWrite, writeCsv, writeJsonl } from '#utils/datasetsUtils.js';
 
 const TMP_DIR = path.join(process.cwd(), 'backend', 'tests', 'tmp');
 

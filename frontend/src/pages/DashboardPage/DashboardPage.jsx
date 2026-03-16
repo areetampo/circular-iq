@@ -1,40 +1,41 @@
-import React, { useEffect, useMemo, useState, useCallback, memo } from 'react';
-import { Card, Label, Chip, Tabs, Select, ListBox, Skeleton, toast, Table } from '@heroui/react';
-import { Button } from '@/components/common';
-import { ChartContainer } from '@/components/common/ChartWrapper';
-import { useSearchParams } from 'react-router-dom';
+import { Card, Label, ListBox, Select, Skeleton, Table, Tabs, toast } from '@heroui/react';
+import { Alert, ProgressCircle } from '@heroui/react';
+import { Grid } from '@mui/material';
 import {
   Activity,
+  BarChart3,
   Building2,
+  Download,
   Gauge,
   Layers,
-  Download,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Target,
-  BarChart3,
   PieChart as PieChartIcon,
   Sparkles,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
-import { toTitleCase } from '@/lib/formatting';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+import { BarChart, ComboChart, LineChart, PieChart } from '@/components/charts';
+import { Button } from '@/components/common';
 import LoaderIcon from '@/components/common/LoaderIcon';
-import { useEnhancedAnalytics } from '@/features/assessments';
-import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
-import { useDocumentStats, useSearch } from '@/features/assessments';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { sortByAverageScoreDesc, sortByAverageScoreAsc } from '@/features/assessments/utils';
-import { cn } from '@/utils/cn';
-import { exportDashboardToPDF } from '@/lib/exportDashboard';
-import { PieChart, LineChart, ComboChart, BarChart } from '@/components/charts';
-import { getCurrentTimestampFormatted } from '@/lib/formatting';
 import IndustryChipFilter from '@/components/filters/IndustryChipFilter';
-import FeaturedSolutionsCard from './FeaturedSolutionsCard';
-import { INDUSTRY_THEMES } from '@/constants/industryThemes';
-import SearchBar from '@/components/search/SearchBar';
 import DocumentCard from '@/components/search/DocumentCard';
-import { Grid } from '@mui/material';
-import { ProgressCircle, Alert } from '@heroui/react';
+import SearchBar from '@/components/search/SearchBar';
+import { INDUSTRY_THEMES } from '@/constants/industryThemes';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import { useEnhancedAnalytics } from '@/features/assessments';
+import { useDocumentStats, useSearch } from '@/features/assessments';
+import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
+import { sortByAverageScoreAsc, sortByAverageScoreDesc } from '@/features/assessments/utils';
+import { exportDashboardToPDF } from '@/lib/exportDashboard';
+import { toTitleCase } from '@/lib/formatting';
+import { getCurrentTimestampFormatted } from '@/lib/formatting';
+import { cn } from '@/utils/cn';
+
+import FeaturedSolutionsCard from './FeaturedSolutionsCard';
 
 // Memoized metric card component for better performance
 const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'primary' }) => {

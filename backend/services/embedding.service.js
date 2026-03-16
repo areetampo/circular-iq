@@ -2,6 +2,7 @@
 // currently used by scoring controller for generating embeddings and performing vector search
 
 import OpenAI from 'openai';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const client = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });

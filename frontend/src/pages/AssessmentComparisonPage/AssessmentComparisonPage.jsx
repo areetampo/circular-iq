@@ -1,9 +1,3 @@
-import BarChart from '@/components/charts/BarChart';
-import RadarChart from '@/components/charts/RadarChart';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
-import { useAssessmentComparison } from '@/features/assessments';
-import { exportComparisonCSV } from '@/features/export';
-import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 import {
   Button,
   Card,
@@ -33,10 +27,17 @@ import {
   TrendingDown,
   TrendingUp,
   Upload,
-  Zap
+  Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import BarChart from '@/components/charts/BarChart';
+import RadarChart from '@/components/charts/RadarChart';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+import { useAssessmentComparison } from '@/features/assessments';
+import { exportComparisonCSV } from '@/features/export';
+import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 
 // Skeleton Loader Component
 function ComparisonSkeleton() {

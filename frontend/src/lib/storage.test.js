@@ -1,6 +1,6 @@
 /* global afterEach, test, expect */
 
-import { saveEvaluationState, loadEvaluationState, clearEvaluationState } from './storage';
+import { clearEvaluationState, loadEvaluationState, saveEvaluationState } from './storage';
 
 afterEach(() => {
   localStorage.clear();

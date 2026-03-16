@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { TextField, InputAdornment, Chip, Box } from '@mui/material';
+import { Box, Chip, InputAdornment, TextField } from '@mui/material';
 import { Search } from 'lucide-react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+
 import { useDebounce } from '@/hooks/useDebounce';
 
 // Preset filter options shown as toggleable chips

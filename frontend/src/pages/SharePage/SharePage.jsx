@@ -1,8 +1,9 @@
+import { Input, Label } from '@heroui/react';
+import { Frown } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input, Label } from '@heroui/react';
+
 import { Button } from '@/components/common';
-import { Frown } from 'lucide-react';
 
 export default function SharePage() {
   const [publicId, setPublicId] = useState('');

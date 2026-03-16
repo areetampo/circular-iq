@@ -1,5 +1,6 @@
-import PropTypes from 'prop-types';
 import { Chip } from '@heroui/react';
+import PropTypes from 'prop-types';
+
 import { getIndustryTheme } from '@/constants/industryThemes';
 import { toTitleCase } from '@/lib/formatting';
 

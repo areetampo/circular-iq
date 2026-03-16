@@ -25,11 +25,12 @@
  *   ✓ Consistency: All CSV processing uses shared columns and stringify options
  */
 
-import path from 'path';
 import fs from 'fs';
-import { stringify } from 'csv-stringify/sync';
-import { parse } from 'csv-parse/sync';
+import path from 'path';
 import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+import { stringify } from 'csv-stringify/sync';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -1,5 +1,3 @@
-import { supabase } from '@/lib/supabase';
-
 /**
  * @typedef {Object} DocumentSearchResult
  * @property {string} id
@@ -10,13 +8,14 @@ import { supabase } from '@/lib/supabase';
  * @property {number} similarity
  * @property {number|null} rrf_score
  */
+import { FRONTEND_CONFIG } from '@/config';
 import {
-  validateAssessment,
   safeValidateAssessmentsList,
   safeValidateGlobalAnalytics,
+  validateAssessment,
 } from '@/features/assessments/api/assessmentSchema';
-import { FRONTEND_CONFIG } from '@/config';
 import { buildApiUrl } from '@/lib/apiClient';
+import { supabase } from '@/lib/supabase';
 
 const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 

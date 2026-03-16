@@ -1,11 +1,12 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import express from 'express';
 import request from 'supertest';
-import createScoringRouter, { setOpenAIClient } from '#routes/scoring.routes.js';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { setDatabaseClientOverride } from '#database/client.js';
+import createScoringRouter, { setOpenAIClient } from '#routes/scoring.routes.js';
 
 // Minimal mock supabase for scoring that returns controlled RPC data
 function makeMockSupabase(searchResults = [], industryResults = []) {

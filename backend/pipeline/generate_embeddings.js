@@ -21,39 +21,42 @@
  */
 
 import '#server/bootstrap.js';
+
 import fs from 'fs';
 import path from 'path';
+import readline from 'readline';
+import { fileURLToPath } from 'url';
+
 import OpenAI from 'openai';
-import {
-  OUT_CHUNKS_JSON,
-  ARCHIVES_CHUNKS_JSON,
-  OUT_EMBEDDED_CHUNKS_JSONL,
-  ARCHIVES_EMBEDDED_CHUNKS_JSONL,
-  assertFileExists,
-  ARCHIVES_TEST_CHUNKS_JSON,
-  OUT_TEST_CHUNKS_JSON,
-  ARCHIVES_TEST_EMBEDDED_CHUNKS_JSONL,
-  OUT_TEST_EMBEDDED_CHUNKS_JSONL,
-} from '#utils/datasetsUtils.js';
+import { encoding_for_model } from 'tiktoken';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
-  EMBEDDING_MODEL,
-  EMBEDDING_DIMENSION,
-  EMBEDDING_BATCH_SIZE,
   EMBEDDING_BATCH_DELAY_MS,
+  EMBEDDING_BATCH_SIZE,
+  EMBEDDING_DIMENSION,
+  EMBEDDING_MODEL,
   EMBEDDING_REQUEST_TIMEOUT_MS,
-  isValidTextForEmbedding,
-  isValidEmbedding,
-  MAX_SAFE_TOKENS,
-  ratePerMillion,
   estimatedCost,
   estimateTokens,
   fakeEmbedding,
+  isValidEmbedding,
+  isValidTextForEmbedding,
+  MAX_SAFE_TOKENS,
+  ratePerMillion,
   retryWithBackoff,
 } from '#config/embedding.js';
-import { fileURLToPath } from 'url';
-import readline from 'readline';
-import { encoding_for_model } from 'tiktoken';
+import {
+  ARCHIVES_CHUNKS_JSON,
+  ARCHIVES_EMBEDDED_CHUNKS_JSONL,
+  ARCHIVES_TEST_CHUNKS_JSON,
+  ARCHIVES_TEST_EMBEDDED_CHUNKS_JSONL,
+  assertFileExists,
+  OUT_CHUNKS_JSON,
+  OUT_EMBEDDED_CHUNKS_JSONL,
+  OUT_TEST_CHUNKS_JSON,
+  OUT_TEST_EMBEDDED_CHUNKS_JSONL,
+} from '#utils/datasetsUtils.js';
 
 // ================= CONFIGURATION =================
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;

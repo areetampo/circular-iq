@@ -1,6 +1,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
-import { cn } from '@/utils/cn';
+
 import { getCharacterCount } from '@/lib/validation';
+import { cn } from '@/utils/cn';
 
 /**
  * LiveCharacterCounter - Isolated character counter component

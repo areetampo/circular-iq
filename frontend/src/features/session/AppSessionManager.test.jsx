@@ -19,9 +19,9 @@ vi.mock('@/contexts/DialogContext', () => ({
   }),
 }));
 
-import AppSessionManager from './AppSessionManager';
-import DIALOGS from '@/components/dialogs/dialogTypes';
 import { toast } from '@heroui/react';
+
+import AppSessionManager from './AppSessionManager';
 
 describe('AppSessionManager (pending-save post-login)', () => {
   beforeEach(() => {

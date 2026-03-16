@@ -5,10 +5,11 @@
  * This prevents each component from re-initializing auth state when calling useAuth().
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { supabase } from '@/lib/supabase';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+
 import { FRONTEND_CONFIG } from '@/config';
+import { supabase } from '@/lib/supabase';
 
 const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 

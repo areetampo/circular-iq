@@ -1,9 +1,11 @@
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
-import SampleTestCasesContainer from './SampleTestCasesContainer';
-import testCases from '@/data/testCases.json';
-import { DrawerProvider } from '@/contexts/DrawerContext';
+
 import { DialogProvider } from '@/contexts/DialogContext';
+import { DrawerProvider } from '@/contexts/DrawerContext';
+import testCases from '@/data/testCases.json';
+
+import SampleTestCasesContainer from './SampleTestCasesContainer';
 
 const mockSaveSession = vi.fn();
 vi.mock('@/features/session/hooks/useSession', () => ({

@@ -1,4 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
+
 import { getAssessmentById } from '@/features/assessments';
 
 export function useAssessmentComparison(id1, id2) {

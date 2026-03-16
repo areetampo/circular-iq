@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import { Card } from '@heroui/react';
+import { ArrowLeft, BarChart3, Compass, Leaf } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/common';
-import { ArrowLeft, BarChart3, Leaf, Compass } from 'lucide-react';
 
 export default function NotFoundPage() {
   const navigate = useNavigate();

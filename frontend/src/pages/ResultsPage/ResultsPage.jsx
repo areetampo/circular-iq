@@ -1,77 +1,62 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import PropTypes from 'prop-types';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@heroui/react';
+import { Accordion, Card, Chip, Input, Label, ListBox, Select, Tabs, Tooltip } from '@heroui/react';
+import { Alert, ProgressBar } from '@heroui/react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  CircleX,
+  ClipboardList,
+  Download,
+  FileText,
+  FolderPen,
+  Frown,
+  Globe,
+  Lightbulb,
+  Link2,
+  Lock,
+  MonitorDown,
+  RefreshCw,
+  Save,
+  Target,
+  TrendingUp,
+} from 'lucide-react';
+import PropTypes from 'prop-types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
 import RadarChart from '@/components/charts/RadarChart';
+import { Button, Switch } from '@/components/common';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+import CopyButton from '@/components/modern-ui/copy-button';
+import BenchmarkTable from '@/components/results/BenchmarkTable';
+import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
+import { useGlobalDialog } from '@/contexts/DialogContext';
+import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import {
+  deleteAssessment,
+  getAssessments,
+  useAssessment,
+  useCreateAssessment,
+  usePublicAssessment,
+} from '@/features/assessments';
+import { updateAssessment } from '@/features/assessments/api/assessmentApi';
 import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
-import { validKeys, categoryMapping, parameterLabels } from '@/constants/evaluationData';
+import { useSession } from '@/features/session/hooks/useSession';
+import { useAuth } from '@/hooks/useAuth';
+import { useExportState } from '@/hooks/useExportState';
+import { titleize } from '@/lib/formatting';
 import {
   categorizeIntegrityGaps,
   extractCaseInfo,
   extractProblemSolution,
   getMatchStrength,
 } from '@/utils/content';
-import { useExportState } from '@/hooks/useExportState';
-import { useSession } from '@/features/session/hooks/useSession';
-import { useAuth } from '@/hooks/useAuth';
-import { saveSession, getSession } from '@/utils/session';
+import { getSession, saveSession } from '@/utils/session';
 
-import { titleize } from '@/lib/formatting';
-import {
-  useAssessment,
-  usePublicAssessment,
-  useCreateAssessment,
-  getAssessments,
-  deleteAssessment,
-} from '@/features/assessments';
-import { updateAssessment } from '@/features/assessments/api/assessmentApi';
-import {
-  Card,
-  Tabs,
-  Input,
-  Label,
-  Accordion,
-  Select,
-  ListBox,
-  Chip,
-  Tooltip,
-  // note: Switch imported from our common wrapper below so that
-  // variant/theming logic is applied consistently across the app.
-} from '@heroui/react';
-
-import { Switch } from '@/components/common';
-import { Button } from '@/components/common';
-import CopyButton from '@/components/modern-ui/copy-button';
-import { ProgressBar, Alert } from '@heroui/react';
-import {
-  BarChart3,
-  ClipboardList,
-  Target,
-  Lightbulb,
-  TrendingUp,
-  Check,
-  ArrowRight,
-  Download,
-  Link2,
-  FileText,
-  AlertCircle,
-  CheckCircle2,
-  ArrowLeft,
-  RefreshCw,
-  Save,
-  Frown,
-  NotebookText,
-  Lock,
-  Globe,
-  CircleX,
-  FolderPen,
-  MonitorDown,
-} from 'lucide-react';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
 import ResultsSkeleton from './components/ResultsSkeleton';
-import BenchmarkTable from '@/components/results/BenchmarkTable';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useGlobalDialog } from '@/contexts/DialogContext';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { id, publicId } = useParams();

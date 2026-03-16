@@ -1,5 +1,5 @@
-import { DocumentsRepository } from '#database/repositories/documents.repository.js';
 import { getSupabaseClient } from '#database/client.js';
+import { DocumentsRepository } from '#database/repositories/documents.repository.js';
 export { getAivenPgPool, getSupabasePgPool } from '#database/client.js';
 
 // create a single repository instance and reuse it; it will determine

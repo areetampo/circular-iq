@@ -1,5 +1,6 @@
-import { before, test } from 'node:test';
 import assert from 'node:assert';
+import { before, test } from 'node:test';
+
 import request from 'supertest';
 
 process.env.NODE_ENV = 'test';

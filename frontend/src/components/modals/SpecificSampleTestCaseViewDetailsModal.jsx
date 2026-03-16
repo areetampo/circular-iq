@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
-import { PencilLine, Target, Lightbulb, BarChart3 } from 'lucide-react';
 import { Modal } from '@heroui/react';
+import { BarChart3, Lightbulb, PencilLine, Target } from 'lucide-react';
+import PropTypes from 'prop-types';
+
 import { Button } from '@/components/common';
 import { useGlobalModal } from '@/contexts/ModalContext';
 

@@ -1,21 +1,23 @@
 // Express application instance separated from start logic for testing and layering
 
 import '#server/bootstrap.js';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import crypto from 'crypto';
-import { Buffer } from 'buffer';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { EMBEDDING_MODEL, EMBEDDING_DIMENSION } from '#config/embedding.js';
 
-import { createSupabaseAnonClient } from '#database/supabase.client.js';
+import { Buffer } from 'buffer';
+import crypto from 'crypto';
+
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
 import { OpenAI } from 'openai';
+
+import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { EMBEDDING_DIMENSION, EMBEDDING_MODEL } from '#config/embedding.js';
+import { createSupabaseAnonClient } from '#database/supabase.client.js';
+import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
+import createAssessmentsRouter from '#routes/assessments.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
-import createAssessmentsRouter from '#routes/assessments.routes.js';
-import { requireAuth } from '#middleware/auth.middleware.js';
 
 const app = express();
 app.set('trust proxy', 1);

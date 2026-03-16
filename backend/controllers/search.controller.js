@@ -1,5 +1,5 @@
-import { documentsRepository } from '#database/index.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
+import { documentsRepository } from '#database/index.js';
 
 export function searchDocuments(openai) {
   return async (req, res) => {
