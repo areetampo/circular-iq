@@ -1,11 +1,12 @@
+import { act, render } from '@testing-library/react';
+import React from 'react';
+import { vi } from 'vitest';
 // Mock assessments API used by DashboardPage
 vi.mock('@/features/assessments/api/assessmentApi', () => ({
   getAssessments: vi.fn().mockResolvedValue({ assessments: [], total: 0, page: 1, pageSize: 20 }),
   getEnhancedAnalytics: vi.fn().mockResolvedValue({ data: null }),
   getFeaturedSolutions: vi.fn().mockResolvedValue([]),
 }));
-import { render } from '@testing-library/react';
-import { vi } from 'vitest';
 
 // Mock utility helpers
 vi.mock('../../utils/cn', () => ({ cn: (...args) => args.filter(Boolean).join(' ') }));
@@ -71,6 +72,12 @@ vi.mock('@heroui/react', () => {
     TableRow: ({ children, ...props }) => React.createElement('tr', props, children),
     TableColumn: ({ children, ...props }) => React.createElement('th', props, children),
     TableCell: ({ children, ...props }) => React.createElement('td', props, children),
+    toast: {
+      success: vi.fn(),
+      danger: vi.fn(),
+      info: vi.fn(),
+      warning: vi.fn(),
+    },
   };
 });
 
@@ -163,18 +170,6 @@ vi.mock('@/components/drawers/DrawerManager', () => ({
 
 // Stub export utility and prevent HeroUI toast side-effects
 vi.mock('@/lib/exportDashboard', () => ({ exportDashboardToPDF: async () => true }));
-vi.mock('@heroui/react', async () => {
-  const actual = await vi.importActual('@heroui/react');
-  return {
-    ...actual,
-    toast: {
-      success: vi.fn(),
-      danger: vi.fn(),
-      info: vi.fn(),
-      warning: vi.fn(),
-    },
-  };
-});
 
 // Stub industry filter component to a simple placeholder
 vi.mock('@/components/filters/IndustryChipFilter', () => ({
@@ -189,6 +184,9 @@ describe('DashboardPage (snapshot)', () => {
     const { default: DashboardPage } = await import('./DashboardPage');
 
     const { asFragment, getByText } = render(<DashboardPage />);
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // quick sanity check the page rendered key elements
     expect(getByText('Global Dashboard')).toBeTruthy();

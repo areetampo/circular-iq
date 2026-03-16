@@ -2,44 +2,40 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // Mock hooks and dependencies
-vi.mock('@/features/assessments', async () => {
-  const actual = await vi.importActual('@/features/assessments');
-  return {
-    ...actual,
-    useMarketAnalysis: () => ({
-      marketData: [
-        {
-          industry: 'energy',
-          avg_score: 70,
-          min_score: 60,
-          max_score: 80,
-          count: 2,
-          scale: 'Medium',
-        },
-      ],
-      stats: { avg_score: 70, median_score: 65, total_count: 100, min_score: 20, max_score: 95 },
-      userScore: 72,
-      userIndustry: 'energy',
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-    }),
-    getEnhancedAnalytics: vi.fn(async () => ({
-      timeSeries: [
-        {
-          label: '2025-01',
-          averageScore: 60,
-          stdDev: 2.2,
-          confidenceUpper: 62.1,
-          confidenceLower: 57.9,
-        },
-      ],
-      overallVolatility: 5.2,
-      industryMarketShare: 12.5,
-    })),
-  };
-});
+vi.mock('@/features/assessments', () => ({
+  useMarketAnalysis: () => ({
+    marketData: [
+      {
+        industry: 'energy',
+        avg_score: 70,
+        min_score: 60,
+        max_score: 80,
+        count: 2,
+        scale: 'Medium',
+      },
+    ],
+    stats: { avg_score: 70, median_score: 65, total_count: 100, min_score: 20, max_score: 95 },
+    userScore: 72,
+    userIndustry: 'energy',
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  getEnhancedAnalytics: vi.fn().mockResolvedValue({
+    timeSeries: [
+      {
+        label: '2025-01',
+        averageScore: 60,
+        stdDev: 2.2,
+        confidenceUpper: 62.1,
+        confidenceLower: 57.9,
+      },
+    ],
+    overallVolatility: 5.2,
+    industryMarketShare: 12.5,
+  }),
+}));
 
 vi.mock('@/components/charts/BarChart', () => ({
   default: (props) => <div data-testid="bar-chart">BarChart</div>,

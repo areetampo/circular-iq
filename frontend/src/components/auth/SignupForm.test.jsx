@@ -6,7 +6,7 @@ vi.mock('@heroui/react', async (importOriginal) => {
     // override only what you need to stub
   };
 });
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 // Mock supabase methods used by SignupForm

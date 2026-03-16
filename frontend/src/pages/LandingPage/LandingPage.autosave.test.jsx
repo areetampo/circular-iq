@@ -148,15 +148,11 @@ describe('LandingPage autosave integration', () => {
       </AppWrapper>,
     );
 
-    // Flush any pending async state after render
-    await act(async () => {
-      await Promise.resolve();
-    });
-
     const { getByText, getByTestId, container } = component;
     const firstCase = testCases.testCases[0];
 
     fireEvent.click(getByTestId('simulate-sample'));
+    await act(async () => {});
 
     // ensure the form values actually changed after selecting a sample
     await waitFor(() => expect(getByTestId('bp').textContent).toContain(firstCase.problem));
@@ -255,16 +251,12 @@ describe('LandingPage autosave integration', () => {
       </AppWrapper>,
     );
 
-    // Flush any pending async state after render
-    await act(async () => {
-      await Promise.resolve();
-    });
-
     const { getByLabelText } = component;
 
     // change a form input
     const bp = getByLabelText('Business Problem');
     fireEvent.change(bp, { target: { value: 'Unsaved business problem for test' } });
+    await act(async () => {});
 
     // dispatch beforeunload and assert saveSession was synchronously called
     const e = new Event('beforeunload', { cancelable: true });
@@ -304,9 +296,8 @@ describe('LandingPage autosave integration', () => {
     const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');
     // user input matches persisted state
-    await act(async () => {
-      fireEvent.change(bp, { target: { value: 'already saved' } });
-    });
+    fireEvent.change(bp, { target: { value: 'already saved' } });
+    await act(async () => {});
     await waitFor(() => expect(bp.value).toBe('already saved'));
 
     const e = new Event('beforeunload', { cancelable: true });
@@ -330,6 +321,7 @@ describe('LandingPage autosave integration', () => {
 
     const bp = getByLabelText('Business Problem');
     fireEvent.change(bp, { target: { value: 'Quick typing test for autosave' } });
+    await act(async () => {});
 
     // wait slightly longer than debounce
     await act(async () => {
@@ -341,14 +333,11 @@ describe('LandingPage autosave integration', () => {
   });
 
   it('clearing inputs persists cleared values to session storage', async () => {
-    let component;
-    await act(async () => {
-      component = render(
-        <AppWrapper>
-          <LandingPage />
-        </AppWrapper>,
-      );
-    });
+    const component = render(
+      <AppWrapper>
+        <LandingPage />
+      </AppWrapper>,
+    );
 
     const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');

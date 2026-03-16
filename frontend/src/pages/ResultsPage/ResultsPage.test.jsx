@@ -1,3 +1,8 @@
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, useNavigate: () => mockNavigate };
+});
 // Mock assessmentApi to prevent real fetches
 vi.mock('@/features/assessments/api/assessmentApi', () => ({
   createAssessment: vi.fn().mockResolvedValue({ id: 'test-id' }),
@@ -22,13 +27,17 @@ vi.mock('@/api/assessment', () => ({
   getAssessment: vi.fn().mockResolvedValue({}),
 }));
 
-// Mock session hook
+// Mock session hook to read from localStorage
 vi.mock('@/features/session/hooks/useSession', () => ({
-  useSession: () => ({
-    sessionData: null,
-    saveSession: vi.fn(),
-    clearSession: vi.fn(),
-  }),
+  useSession: () => {
+    const raw = localStorage.getItem('session_evaluation_state');
+    const data = raw ? JSON.parse(raw) : null;
+    return {
+      sessionData: data,
+      saveSession: vi.fn(),
+      clearSession: vi.fn(),
+    };
+  },
 }));
 
 function Wrapper({ children }) {
@@ -152,13 +161,6 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
   }, 10000);
 
   test('Market Analysis navigates to session view for unsaved results', async () => {
-    // Mock useNavigate
-    const mockNavigate = vi.fn();
-    vi.mock('react-router-dom', async (importOriginal) => {
-      const actual = await importOriginal();
-      return { ...actual, useNavigate: () => mockNavigate };
-    });
-
     // Put a session evaluation with a result into localStorage
     const session = {
       inputs: { businessProblem: 'P', businessSolution: 'S', parameters: {} },

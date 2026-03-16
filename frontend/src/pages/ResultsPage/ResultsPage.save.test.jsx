@@ -1,4 +1,15 @@
-// Mock assessmentApi to prevent real fetches and ensure all methods resolve
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'test-user' }, isAuthenticated: true, loading: false }),
+  AuthProvider: ({ children }) => children,
+}));
+vi.mock('@/config', () => ({
+  default: { apiUrl: 'http://localhost:3001' },
+  API_URL: 'http://localhost:3001',
+}));
+vi.mock('@/config/index.js', () => ({
+  default: { apiUrl: 'http://localhost:3001' },
+  API_URL: 'http://localhost:3001',
+}));
 vi.mock('@/features/assessments/api/assessmentApi', () => ({
   createAssessment: vi.fn().mockResolvedValue({ id: 'test-id' }),
   getAssessments: vi.fn().mockResolvedValue({ assessments: [], total: 0 }),
