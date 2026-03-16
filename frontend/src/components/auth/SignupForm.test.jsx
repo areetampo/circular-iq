@@ -5,8 +5,8 @@ import { MemoryRouter } from 'react-router-dom';
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
-      signUp: vi.fn(),
-      signInWithPassword: vi.fn(),
+      signUp: vi.fn().mockResolvedValue({ user: { id: '123' }, error: null }),
+      signInWithPassword: vi.fn().mockResolvedValue({ user: { id: '123' }, error: null }),
     },
   },
 }));
@@ -71,7 +71,9 @@ describe('SignupForm redirects and preserves session', () => {
       target: { value: 'secret1' },
     });
 
-    fireEvent.click(getByText(/Create Account/i));
+    await act(async () => {
+      fireEvent.click(getByText(/Create Account/i));
+    });
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/results', { replace: true });
@@ -96,7 +98,9 @@ describe('SignupForm redirects and preserves session', () => {
       target: { value: 'p@ssw0rd' },
     });
 
-    fireEvent.click(getByText(/Create Account/i));
+    await act(async () => {
+      fireEvent.click(getByText(/Create Account/i));
+    });
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });

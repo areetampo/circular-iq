@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // Mock hooks and dependencies
 vi.mock('@/features/assessments', async () => {
@@ -62,7 +62,6 @@ vi.mock('@/components/charts/LineChart', () => ({
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { getEnhancedAnalytics } from '@/features/assessments';
-import { Providers } from '@/test/test-utils';
 
 import MarketAnalysisPage from './MarketAnalysisPage';
 
@@ -72,18 +71,22 @@ describe('MarketAnalysisPage', () => {
       defaultOptions: { queries: { retry: false } },
     });
 
-  function Wrapper({ children }) {
+  function Wrapper({ children, initialEntries = ['/assessments/123/market-analysis'] }) {
     const qc = createTestQueryClient();
-    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
   }
 
   test('renders export buttons and time range controls', async () => {
     render(
-      <Providers initialEntries={['/assessments/123/market-analysis']}>
+      <Wrapper initialEntries={['/assessments/123/market-analysis']}>
         <Routes>
           <Route path="/assessments/:id/market-analysis" element={<MarketAnalysisPage />} />
         </Routes>
-      </Providers>,
+      </Wrapper>,
     );
 
     // Export buttons should be visible but disabled for anonymous users
@@ -141,11 +144,11 @@ describe('MarketAnalysisPage', () => {
     localStorage.setItem('session_evaluation_state', JSON.stringify(session));
 
     render(
-      <Providers initialEntries={['/results/market-analysis']}>
+      <Wrapper initialEntries={['/results/market-analysis']}>
         <Routes>
           <Route path="/results/market-analysis" element={<MarketAnalysisPage />} />
         </Routes>
-      </Providers>,
+      </Wrapper>,
     );
 
     // Aggregate export buttons should be present but disabled for anonymous users (page is public)

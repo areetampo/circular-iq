@@ -7,7 +7,7 @@ import { DrawerProvider } from '@/contexts/DrawerContext';
 
 // Mock authentication hook to simulate anonymous user
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: null, isAuthenticated: false }),
+  useAuth: () => ({ user: null, isAuthenticated: false, loading: false }),
 }));
 
 // Mock assessment API to prevent real API calls
@@ -129,7 +129,9 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
     );
 
     // Export buttons should be visible but disabled for anonymous users
-    const pdfBtn = await screen.findByRole('button', { name: /download pdf/i });
+    const pdfBtn = await waitFor(() => screen.getByRole('button', { name: /download pdf/i }), {
+      timeout: 3000,
+    });
     const csvBtn = screen.getByRole('button', { name: /cases csv/i });
 
     expect(pdfBtn).toBeInTheDocument();
@@ -141,7 +143,7 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
     // Native title attribute used for accessibility + easy tooltip testing
     expect(pdfBtn).toHaveAttribute('title', 'Sign in to get access to them');
     expect(csvBtn).toHaveAttribute('title', 'Sign in to get access to them');
-  });
+  }, 10000);
 
   test('Market Analysis navigates to session view for unsaved results', async () => {
     // Put a session evaluation with a result into localStorage

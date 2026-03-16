@@ -29,10 +29,11 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Merge react-aria, react-stately, and react-aria-components into one chunk to break circular chunk warnings
+          // Only split react-aria, react, router, pdf, charts, mui, lodash, dayjs, and main app pages
           if (
             id.includes('@react-aria') ||
             id.includes('@react-stately') ||
@@ -40,18 +41,14 @@ export default defineConfig({
           ) {
             return 'vendor-react-aria';
           }
-          // Split vendor React and router
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom'))
             return 'vendor-react';
           if (id.includes('node_modules/react-router')) return 'vendor-router';
-          // Split PDF/chart vendors
           if (id.includes('jspdf') || id.includes('html2canvas')) return 'vendor-pdf';
           if (id.includes('recharts') || id.includes('@mui/x-charts')) return 'vendor-charts';
-          // Split out other heavy node_modules (mui, lodash, dayjs, etc.)
           if (id.includes('node_modules/@mui/')) return 'vendor-mui';
           if (id.includes('node_modules/lodash')) return 'vendor-lodash';
           if (id.includes('node_modules/dayjs')) return 'vendor-dayjs';
-          // Split large app-level pages
           if (
             id.match(
               /pages\\[\\/](DashboardPage|ResultsPage|MarketAnalysisPage|LandingPage|MyAssessmentsPage|AssessmentComparisonPage|GuidePage)/,
@@ -59,13 +56,6 @@ export default defineConfig({
           ) {
             const match = id.match(/pages\\[\\/](\\w+)\\./);
             if (match) return `page-${match[1].toLowerCase()}`;
-          }
-          // Remove empty chunk entries for set-cookie-parser, formatjs, intl-messageformat, client-only, dom-helpers, motion
-          // (No explicit manualChunks for these, so nothing to remove here, but this comment documents the fix)
-          // Fallback: split all node_modules by top-level package
-          if (id.includes('node_modules')) {
-            const parts = id.split('node_modules/')[1].split('/');
-            return `vendor-${parts[0].replace('@', '')}`;
           }
         },
       },

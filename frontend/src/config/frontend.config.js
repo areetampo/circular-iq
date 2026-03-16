@@ -27,26 +27,30 @@ const deepFreeze = (obj) => {
 // Handle Test Mode / Failure Logic
 let validatedConfig;
 
-if (!result.success) {
-  const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
+const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
+if (isTest) {
+  validatedConfig = {
+    apiBaseUrl: 'http://localhost:3001',
+    supabase: {
+      url: 'https://test.supabase.co',
+      anonKey: 'test-anon-key',
+    },
+    isProd: false,
+    mode: 'test',
+  };
+  // Export minimal config and return early in test mode
+  export default deepFreeze(validatedConfig);
+}
 
-  if (isTest) {
-    validatedConfig = {
-      apiBaseUrl: 'http://localhost:3001',
-      supabase: {
-        url: 'https://test.supabase.co',
-        anonKey: 'test-anon-key',
-      },
-      isProd: false,
-      mode: 'test',
-    };
-  } else {
-    console.error('❌ Frontend Environment Validation Failed:', result.error.flatten().fieldErrors);
-    if (import.meta.env.DEV) {
-      alert('Environment Variable Error: Check browser console');
-    }
-    throw new Error('Invalid environment configuration');
+if (!result.success) {
+  console.error(
+    '\u274c Frontend Environment Validation Failed:',
+    result.error.flatten().fieldErrors,
+  );
+  if (import.meta.env.DEV) {
+    alert('Environment Variable Error: Check browser console');
   }
+  throw new Error('Invalid environment configuration');
 } else {
   // 2. Handle Success Logic
   const env = result.data;

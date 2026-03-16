@@ -1,3 +1,8 @@
+// Mock AuthProvider to avoid async state leaks and timer issues
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, loading: false, session: null }),
+  AuthProvider: ({ children }) => children,
+}));
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -31,12 +36,15 @@ function AppWrapper({ children }) {
 
 describe('LandingPage autosave integration', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: false });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.clearAllMocks();
     localStorage.clear();
+    await act(async () => {
+      vi.runAllTimers();
+    });
     vi.useRealTimers();
   });
 
@@ -154,9 +162,8 @@ describe('LandingPage autosave integration', () => {
       vi.advanceTimersByTime(200);
     });
 
-    await act(async () => {
-      await waitFor(() => expect(mockSaveSession).toHaveBeenCalled());
-    });
+    // No need for waitFor, just assert directly after timers
+    expect(mockSaveSession).toHaveBeenCalled();
 
     expect(mockSaveSession).toHaveBeenCalledWith(
       expect.objectContaining({
