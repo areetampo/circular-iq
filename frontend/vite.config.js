@@ -33,28 +33,31 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Only split react-aria, react, router, pdf, charts, mui, lodash, dayjs, and main app pages
+          // PDF vendor
+          if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('canvg'))
+            return 'vendor-pdf';
+          // Charts vendor
+          if (id.includes('recharts') || id.includes('@mui/x-charts') || id.includes('d3'))
+            return 'vendor-charts';
+          // Merge MUI with react to break the circular dependency
+          if (id.includes('@mui/') || id.includes('react-dom') || id.includes('/react/'))
+            return 'vendor-react';
+          // react-aria separately (already large)
           if (
             id.includes('@react-aria') ||
             id.includes('@react-stately') ||
             id.includes('react-aria-components')
-          ) {
+          )
             return 'vendor-react-aria';
-          }
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom'))
-            return 'vendor-react';
-          if (id.includes('node_modules/react-router')) return 'vendor-router';
-          if (id.includes('jspdf') || id.includes('html2canvas')) return 'vendor-pdf';
-          if (id.includes('recharts') || id.includes('@mui/x-charts')) return 'vendor-charts';
-          if (id.includes('node_modules/@mui/')) return 'vendor-mui';
-          if (id.includes('node_modules/lodash')) return 'vendor-lodash';
-          if (id.includes('node_modules/dayjs')) return 'vendor-dayjs';
+          // supabase
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          // Split main app pages
           if (
             id.match(
-              /pages\\[\\/](DashboardPage|ResultsPage|MarketAnalysisPage|LandingPage|MyAssessmentsPage|AssessmentComparisonPage|GuidePage)/,
+              /pages[\\/](DashboardPage|ResultsPage|MarketAnalysisPage|LandingPage|MyAssessmentsPage|AssessmentComparisonPage|GuidePage)/,
             )
           ) {
-            const match = id.match(/pages\\[\\/](\\w+)\\./);
+            const match = id.match(/pages[\\/](\\w+)\./);
             if (match) return `page-${match[1].toLowerCase()}`;
           }
         },

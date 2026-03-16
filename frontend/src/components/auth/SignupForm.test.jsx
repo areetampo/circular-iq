@@ -1,3 +1,11 @@
+// Mock @heroui/react to include all components, including TextField
+vi.mock('@heroui/react', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    // override only what you need to stub
+  };
+});
 import { fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 

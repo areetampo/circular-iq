@@ -27,41 +27,46 @@ const deepFreeze = (obj) => {
 // Handle Test Mode / Failure Logic
 let validatedConfig;
 
+// Test mode bypass: skip all validation if running in test mode
 const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
-
 if (isTest) {
   validatedConfig = {
-    apiBaseUrl: 'http://localhost:3001',
+    apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
     supabase: {
-      url: 'https://test.supabase.co',
-      anonKey: 'test-anon-key',
+      url: import.meta.env.VITE_SUPABASE_URL ?? 'https://test.supabase.co',
+      anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'test-anon-key',
     },
     isProd: false,
     mode: 'test',
   };
-}
-
-if (!result.success) {
-  console.error(
-    '\u274c Frontend Environment Validation Failed:',
-    result.error.flatten().fieldErrors,
-  );
-  if (import.meta.env.DEV) {
-    alert('Environment Variable Error: Check browser console');
-  }
-  throw new Error('Invalid environment configuration');
+  // Skip all validation in test mode
 } else {
-  // 2. Handle Success Logic
-  const env = result.data;
-  validatedConfig = {
-    apiBaseUrl: env.VITE_API_URL,
-    supabase: {
-      url: env.VITE_SUPABASE_URL,
-      anonKey: env.VITE_SUPABASE_ANON_KEY,
-    },
-    isProd: env.PROD,
-    mode: env.MODE,
-  };
+  if (!result.success) {
+    console.error(
+      '\u274c Frontend Environment Validation Failed:',
+      result.error.flatten().fieldErrors,
+    );
+    if (import.meta.env.DEV) {
+      alert('Environment Variable Error: Check browser console');
+    }
+    throw new Error('Invalid environment configuration');
+  } else {
+    // 2. Handle Success Logic
+    const env = result.data;
+    // Reject localhost API URL in production, but allow in test mode
+    if (!isTest && env.VITE_API_URL && env.VITE_API_URL.includes('localhost')) {
+      throw new Error('Production build cannot use localhost API URL');
+    }
+    validatedConfig = {
+      apiBaseUrl: env.VITE_API_URL,
+      supabase: {
+        url: env.VITE_SUPABASE_URL,
+        anonKey: env.VITE_SUPABASE_ANON_KEY,
+      },
+      isProd: env.PROD,
+      mode: env.MODE,
+    };
+  }
 }
 
 export const FRONTEND_CONFIG = deepFreeze(validatedConfig);

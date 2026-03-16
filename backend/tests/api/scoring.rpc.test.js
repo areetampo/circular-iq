@@ -105,7 +105,7 @@ test('POST /api/score returns similar_cases with structured fields', async () =>
 
   const res = await request(app)
     .post('/api/score')
-    .set('X-API-Key', process.env.API_KEY || process.env.MASTER_API_KEY || 'test-key')
+    .set('X-API-Key', process.env.MASTER_API_KEY || process.env.API_KEY || 'test-key')
     .send(payload);
   assert.equal(res.status, 200);
   assert.ok(Array.isArray(res.body.similar_cases));

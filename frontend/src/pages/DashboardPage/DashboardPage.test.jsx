@@ -178,20 +178,16 @@ vi.mock('@/components/filters/IndustryChipFilter', () => ({
 // NOTE: This test can be slow importing the full page — set a per-test timeout option
 
 describe('DashboardPage (snapshot)', () => {
-  it(
-    'renders Overview section consistently',
-    async () => {
-      // NOTE: This test imports the full page; we stub heavy dependencies above to keep it deterministic
-      const { default: DashboardPage } = await import('./DashboardPage');
+  it('renders Overview section consistently', { timeout: 20000 }, async () => {
+    // NOTE: This test imports the full page; we stub heavy dependencies above to keep it deterministic
+    const { default: DashboardPage } = await import('./DashboardPage');
 
-      const { asFragment, getByText } = render(<DashboardPage />);
+    const { asFragment, getByText } = render(<DashboardPage />);
 
-      // quick sanity check the page rendered key elements
-      expect(getByText('Global Dashboard')).toBeTruthy();
-      expect(getByText('Featured Solutions')).toBeTruthy();
+    // quick sanity check the page rendered key elements
+    expect(getByText('Global Dashboard')).toBeTruthy();
+    expect(getByText('Featured Solutions')).toBeTruthy();
 
-      expect(asFragment()).toMatchSnapshot();
-    },
-    { timeout: 20000 },
-  );
+    expect(asFragment()).toMatchSnapshot();
+  });
 });
