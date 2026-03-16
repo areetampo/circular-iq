@@ -32,6 +32,25 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
   process.env.SUPABASE_CONNECTION_LIMIT = process.env.SUPABASE_CONNECTION_LIMIT || '20';
   process.env.AIVEN_CONNECTION_LIMIT = process.env.AIVEN_CONNECTION_LIMIT || '20';
   process.env.AIVEN_CA_CERT = process.env.AIVEN_CA_CERT || '';
+  // Aiven defaults for tests
+  process.env.AIVEN_HOST = process.env.AIVEN_HOST || 'localhost';
+  process.env.AIVEN_PORT = process.env.AIVEN_PORT || '5432';
+  process.env.AIVEN_DATABASE = process.env.AIVEN_DATABASE || 'postgres';
+  process.env.AIVEN_USER = process.env.AIVEN_USER || 'postgres';
+  process.env.AIVEN_PASSWORD = process.env.AIVEN_PASSWORD || 'password';
+  process.env.AIVEN_SSL_MODE = process.env.AIVEN_SSL_MODE || 'disable';
+  process.env.AIVEN_CONNECTION_STRING = process.env.AIVEN_CONNECTION_STRING || '';
+  // Frontend and CORS defaults
+  process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+  process.env.ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || 'http://localhost:3000';
+  process.env.PUBLIC_ROUTES =
+    process.env.PUBLIC_ROUTES || '/health,/api/score,/api/assessments/market-analysis';
+  // Other defaults
+  process.env.MAX_FREE_TRIES = process.env.MAX_FREE_TRIES || '5';
+  process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+  process.env.API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'false';
+  process.env.API_KEY = process.env.API_KEY || '';
+  process.env.STRICT_ENV = process.env.STRICT_ENV || 'false';
 }
 
 /* ------------------------------ */

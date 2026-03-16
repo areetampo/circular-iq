@@ -26,5 +26,10 @@ export default defineConfig({
     setupFiles: './src/setupTests.js',
     globals: true,
     css: true,
+    env: {
+      VITE_API_URL: 'http://localhost:3000',
+      VITE_SUPABASE_URL: 'http://localhost:54321',
+      VITE_SUPABASE_ANON_KEY: 'test-key',
+    },
   },
 });

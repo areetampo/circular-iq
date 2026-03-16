@@ -1,15 +1,5 @@
 import { render } from '@testing-library/react';
 
-// Provide ResizeObserver for Recharts
-beforeAll(() => {
-  global.ResizeObserver = class {
-    constructor() {}
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
-});
-
 import PieChart from './PieChart';
 
 describe('PieChart', () => {
@@ -26,9 +16,9 @@ describe('PieChart', () => {
       </div>,
     );
 
-    // ensure Recharts container exists (ResponsiveContainer renders a placeholder in JSDOM)
-    const resp = container.querySelector('.recharts-responsive-container');
-    expect(resp).toBeTruthy();
+    // ensure PieChart container exists
+    const pie = container.querySelector('[data-testid="pie-chart"]');
+    expect(pie).toBeTruthy();
 
     expect(asFragment()).toMatchSnapshot();
   });

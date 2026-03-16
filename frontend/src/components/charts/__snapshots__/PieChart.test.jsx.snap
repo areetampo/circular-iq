@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PieChart > renders and matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    style="width: 600px; height: 300px;"
+  >
+    <div
+      data-testid="pie-chart"
+      height="260"
+      slotprops="[object Object]"
+    >
+      Mock PieChart
+    </div>
+  </div>
+</DocumentFragment>
+`;

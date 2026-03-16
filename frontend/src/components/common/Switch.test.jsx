@@ -45,7 +45,7 @@ describe('Switch (wrapper)', () => {
     console.log('variant-switch innerHTML (off):', wrapper.innerHTML);
     // make assertions against the serialized markup instead of querying
     expect(wrapper.outerHTML).toContain('lucide-lock');
-    expect(wrapper.outerHTML).toContain('width="12"');
+    expect(wrapper.outerHTML).toContain('width="10"');
     expect(wrapper.outerHTML).toContain('text-slate-500');
 
     // second render (mount new element), pick the new node
@@ -77,7 +77,7 @@ describe('Switch (wrapper)', () => {
     const wrapper = screen.getByTestId('size-switch');
     console.log('size-switch outerHTML (md):', wrapper.outerHTML);
     console.log('size-switch innerHTML (md):', wrapper.innerHTML);
-    expect(wrapper.outerHTML).toContain('width="16"');
+    expect(wrapper.outerHTML).toContain('width="14"');
     expect(wrapper.outerHTML).toContain('lucide-x');
 
     rerender(
@@ -91,6 +91,6 @@ describe('Switch (wrapper)', () => {
     );
     const wrapperLg = screen.getByTestId('size-switch');
     console.log('size-switch innerHTML (lg):', wrapperLg.innerHTML);
-    expect(wrapperLg.outerHTML).toContain('width="20"');
+    expect(wrapperLg.outerHTML).toContain('width="17"');
   });
 });

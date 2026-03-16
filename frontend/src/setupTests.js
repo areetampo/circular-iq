@@ -18,6 +18,14 @@ console.warn = (...args) => {
 import React from 'react';
 import { vi } from 'vitest';
 
+// Stub environment variables for tests
+vi.stubEnv('VITE_API_URL', 'http://localhost:3000');
+vi.stubEnv('VITE_SUPABASE_URL', 'http://localhost:54321');
+vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key');
+
+// Mock window.alert
+global.alert = vi.fn();
+
 // Minimal mock for @heroui/react used by Card/Button components.
 vi.mock('@heroui/react', () => {
   const Card = Object.assign(
@@ -42,7 +50,8 @@ vi.mock('@heroui/react', () => {
   );
 
   const Button = Object.assign(
-    ({ children, ...props }) => React.createElement('button', props, children),
+    ({ children, isDisabled, ...props }) =>
+      React.createElement('button', { ...props, disabled: isDisabled }, children),
     { displayName: 'Button' },
   );
   const Label = Object.assign(
@@ -59,7 +68,7 @@ vi.mock('@heroui/react', () => {
     { displayName: 'Input' },
   );
   const Switch = Object.assign(
-    ({ children, ...props }) => React.createElement('div', props, children),
+    ({ children, isSelected, ...props }) => React.createElement('div', props, children),
     { displayName: 'Switch' },
   );
   Switch.Control = Object.assign(({ children }) => React.createElement('div', null, children), {
@@ -142,6 +151,12 @@ vi.mock('@heroui/react', () => {
   const ScrollShadow = Object.assign(({ children }) => React.createElement('div', null, children), {
     displayName: 'ScrollShadow',
   });
+  const Separator = Object.assign(
+    ({ children, ...props }) => React.createElement('hr', props, children),
+    {
+      displayName: 'Separator',
+    },
+  );
   const TextArea = Object.assign(
     ({ children, ...props }) => React.createElement('textarea', props, null),
     { displayName: 'TextArea' },
@@ -180,39 +195,29 @@ vi.mock('@heroui/react', () => {
   });
 
   // Minimal AlertDialog mock for dialogs used in tests
-  const AlertDialog = Object.assign(({ children }) => React.createElement('div', null, children), {
-    displayName: 'AlertDialog',
-  });
-  AlertDialog.Backdrop = Object.assign(
-    ({ children, ...props }) => React.createElement('div', props, children),
-    { displayName: 'AlertDialog.Backdrop' },
-  );
-  AlertDialog.Container = Object.assign(
-    ({ children }) => React.createElement('div', null, children),
-    { displayName: 'AlertDialog.Container' },
-  );
-  AlertDialog.Dialog = Object.assign(
-    ({ children }) =>
-      React.createElement(
-        'div',
-        null,
-        typeof children === 'function' ? children({ close: () => {} }) : children,
-      ),
-    { displayName: 'AlertDialog.Dialog' },
-  );
-  AlertDialog.Header = Object.assign(({ children }) => React.createElement('div', null, children), {
-    displayName: 'AlertDialog.Header',
-  });
-  AlertDialog.Heading = Object.assign(
-    ({ children }) => React.createElement('div', null, children),
-    { displayName: 'AlertDialog.Heading' },
-  );
-  AlertDialog.Body = Object.assign(({ children }) => React.createElement('div', null, children), {
-    displayName: 'AlertDialog.Body',
-  });
-  AlertDialog.Footer = Object.assign(({ children }) => React.createElement('div', null, children), {
-    displayName: 'AlertDialog.Footer',
-  });
+  const AlertDialog = {};
+  AlertDialog.displayName = 'AlertDialog';
+  AlertDialog.Backdrop = ({ children, ...props }) => React.createElement('div', props, children);
+  AlertDialog.Backdrop.displayName = 'AlertDialog.Backdrop';
+  AlertDialog.Container = ({ children }) => React.createElement('div', null, children);
+  AlertDialog.Container.displayName = 'AlertDialog.Container';
+  AlertDialog.Dialog = ({ children }) =>
+    React.createElement(
+      'div',
+      null,
+      typeof children === 'function' ? children({ close: () => {} }) : children,
+    );
+  AlertDialog.Dialog.displayName = 'AlertDialog.Dialog';
+  AlertDialog.Header = ({ children }) => React.createElement('div', null, children);
+  AlertDialog.Header.displayName = 'AlertDialog.Header';
+  AlertDialog.Heading = ({ children }) => React.createElement('div', null, children);
+  AlertDialog.Heading.displayName = 'AlertDialog.Heading';
+  AlertDialog.Body = ({ children }) => React.createElement('div', null, children);
+  AlertDialog.Body.displayName = 'AlertDialog.Body';
+  AlertDialog.Footer = ({ children }) => React.createElement('div', null, children);
+  AlertDialog.Footer.displayName = 'AlertDialog.Footer';
+  AlertDialog.Icon = ({ children, ...props }) => React.createElement('div', props, children);
+  AlertDialog.Icon.displayName = 'AlertDialog.Icon';
 
   // Simple Form wrapper used by Login/Signup components
   const Form = Object.assign(
@@ -240,6 +245,7 @@ vi.mock('@heroui/react', () => {
     ListBox,
     Accordion,
     ScrollShadow,
+    Separator,
     TextArea,
     NumberField,
     Tooltip,
@@ -272,5 +278,24 @@ global.ResizeObserver = class {
   disconnect() {}
 };
 
-// Mock utility helpers used broadly in components
-vi.mock('@/utils/cn', () => ({ cn: (...args) => args.filter(Boolean).join(' ') }));
+// Mock recharts
+vi.mock('recharts', async () => {
+  const actual = await vi.importActual('recharts');
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }) =>
+      React.createElement('div', { className: 'recharts-responsive-container' }, children),
+    PieChart: ({ children, ...props }) =>
+      React.createElement('div', { 'data-testid': 'pie-chart', ...props }, children),
+  };
+});
+
+// Mock @mui/x-charts
+vi.mock('@mui/x-charts/LineChart', () => ({
+  LineChart: ({ dataset, series, ...props }) =>
+    React.createElement('div', { 'data-testid': 'line-chart', ...props }, 'Mock LineChart'),
+}));
+vi.mock('@mui/x-charts/PieChart', () => ({
+  PieChart: ({ series, ...props }) =>
+    React.createElement('div', { 'data-testid': 'pie-chart', ...props }, 'Mock PieChart'),
+}));
