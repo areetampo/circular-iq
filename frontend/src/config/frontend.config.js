@@ -28,6 +28,7 @@ const deepFreeze = (obj) => {
 let validatedConfig;
 
 const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
+
 if (isTest) {
   validatedConfig = {
     apiBaseUrl: 'http://localhost:3001',
@@ -38,8 +39,6 @@ if (isTest) {
     isProd: false,
     mode: 'test',
   };
-  // Export minimal config and return early in test mode
-  export default deepFreeze(validatedConfig);
 }
 
 if (!result.success) {
