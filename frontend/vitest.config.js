@@ -28,10 +28,12 @@ export default defineConfig({
     css: true,
     testTimeout: 10000,
     env: {
-      VITE_API_URL: 'http://localhost:3000',
-      VITE_SUPABASE_URL: 'http://localhost:54321',
-      VITE_SUPABASE_ANON_KEY: 'test-key',
-      MODE: 'development',
+      VITE_API_URL: 'http://localhost:3001',
+      VITE_SUPABASE_URL: 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+      VITE_ENV: 'test',
+      MODE: 'test',
+      PROD: 'false',
     },
   },
 });

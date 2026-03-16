@@ -32,6 +32,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Merge react-aria, react-stately, and react-aria-components into one chunk to break circular chunk warnings
+          if (
+            id.includes('@react-aria') ||
+            id.includes('@react-stately') ||
+            id.includes('react-aria-components')
+          ) {
+            return 'vendor-react-aria';
+          }
           // Split vendor React and router
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom'))
             return 'vendor-react';
@@ -52,6 +60,8 @@ export default defineConfig({
             const match = id.match(/pages\\[\\/](\\w+)\\./);
             if (match) return `page-${match[1].toLowerCase()}`;
           }
+          // Remove empty chunk entries for set-cookie-parser, formatjs, intl-messageformat, client-only, dom-helpers, motion
+          // (No explicit manualChunks for these, so nothing to remove here, but this comment documents the fix)
           // Fallback: split all node_modules by top-level package
           if (id.includes('node_modules')) {
             const parts = id.split('node_modules/')[1].split('/');

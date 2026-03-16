@@ -284,22 +284,30 @@ describe('LandingPage autosave integration', () => {
     };
     localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
 
-    const { getByLabelText } = render(
-      <AppWrapper>
-        <LandingPage />
-      </AppWrapper>,
-    );
+    let component;
+    await act(async () => {
+      component = render(
+        <AppWrapper>
+          <LandingPage />
+        </AppWrapper>,
+      );
+    });
 
+    const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');
     // user input matches persisted state
-    fireEvent.change(bp, { target: { value: 'already saved' } });
+    await act(async () => {
+      fireEvent.change(bp, { target: { value: 'already saved' } });
+    });
     await waitFor(() => expect(bp.value).toBe('already saved'));
 
     const e = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(e);
 
     // should NOT block unload (whether autosave executes or not is irrelevant)
-    await new Promise((r) => setTimeout(r, 10));
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 10));
+    });
     expect(e.defaultPrevented).toBe(false);
   });
 
@@ -327,25 +335,35 @@ describe('LandingPage autosave integration', () => {
   });
 
   it('clearing inputs persists cleared values to session storage', async () => {
-    const { getByLabelText } = render(
-      <AppWrapper>
-        <LandingPage />
-      </AppWrapper>,
-    );
+    let component;
+    await act(async () => {
+      component = render(
+        <AppWrapper>
+          <LandingPage />
+        </AppWrapper>,
+      );
+    });
 
+    const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');
 
     // type text and wait for autosave
-    fireEvent.change(bp, { target: { value: 'temporary text to persist' } });
-    await new Promise((r) => setTimeout(r, 250));
+    await act(async () => {
+      fireEvent.change(bp, { target: { value: 'temporary text to persist' } });
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(250);
+    });
     await waitFor(() => expect(mockSaveSession).toHaveBeenCalled());
 
     // clear the input — this SHOULD persist the cleared value (empty string)
     mockSaveSession.mockClear();
-    fireEvent.change(bp, { target: { value: '' } });
-
-    // wait for debounce + persistence
-    vi.advanceTimersByTime(250);
+    await act(async () => {
+      fireEvent.change(bp, { target: { value: '' } });
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(250);
+    });
 
     await waitFor(() =>
       expect(mockSaveSession).toHaveBeenCalledWith(
@@ -367,26 +385,24 @@ describe('LandingPage autosave integration', () => {
     };
 
     let rendered;
-    try {
+    await act(async () => {
       rendered = render(
         <AppWrapper>
           <LandingPage />
         </AppWrapper>,
       );
-    } catch (err) {
-      console.error('render error:', err.stack || err);
-      throw err;
-    }
+    });
 
     const { getByLabelText, rerender } = rendered;
-
     const bp = getByLabelText('Business Problem');
 
     // initial content applied from session
     await waitFor(() => expect(bp.value).toContain('initial value'));
 
     // user clears the input (local edit)
-    fireEvent.change(bp, { target: { value: '' } });
+    await act(async () => {
+      fireEvent.change(bp, { target: { value: '' } });
+    });
     expect(bp.value).toBe('');
 
     // session later updates with an older/stale value — simulate by mutating mock
@@ -395,11 +411,13 @@ describe('LandingPage autosave integration', () => {
     };
 
     // rerender to simulate hook update
-    rerender(
-      <AppWrapper>
-        <LandingPage />
-      </AppWrapper>,
-    );
+    await act(async () => {
+      rerender(
+        <AppWrapper>
+          <LandingPage />
+        </AppWrapper>,
+      );
+    });
 
     // ensure user's cleared input is NOT overwritten by stale session data
     expect(bp.value).toBe('');
@@ -408,12 +426,15 @@ describe('LandingPage autosave integration', () => {
   it('renders LandingPage without initial sessionData', async () => {
     mockSessionHookState.sessionData = null;
 
-    const { getByLabelText } = render(
-      <AppWrapper>
-        <LandingPage />
-      </AppWrapper>,
-    );
-
+    let component;
+    await act(async () => {
+      component = render(
+        <AppWrapper>
+          <LandingPage />
+        </AppWrapper>,
+      );
+    });
+    const { getByLabelText } = component;
     const bp = getByLabelText('Business Problem');
     expect(bp).toBeDefined();
   });
