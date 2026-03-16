@@ -1,9 +1,8 @@
+import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 // mock helper to avoid alias resolution issues in test runner
 vi.mock('../../utils/cn', () => ({ cn: (...args) => args.filter(Boolean).join(' ') }));
-
-import { render } from '@testing-library/react';
 
 import { ChartContainer } from './ChartWrapper';
 

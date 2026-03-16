@@ -1,5 +1,5 @@
 import { AlertDialog } from '@heroui/react';
-import { FileDown, Infinity as inf, OctagonX, Orbit, Save, Share } from 'lucide-react';
+import { FileDown, InfinityIcon, OctagonX, Orbit, Save, Share } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,7 +26,7 @@ export function LimitReachedDialog(props) {
   };
 
   const LIMIT_REACHED_DIALOG_POINTS = [
-    { icon: inf, text: 'Unlimited evaluations' },
+    { icon: InfinityIcon, text: 'Unlimited evaluations' },
     { icon: Share, text: 'Share assessments' },
     { icon: Save, text: 'Save and compare results' },
     { icon: Orbit, text: 'Access dashboard analytics' },

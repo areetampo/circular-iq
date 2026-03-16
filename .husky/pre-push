@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-echo "🏗️ Checking builds in all workspaces..."
+echo "❓ Checking builds in all workspaces..."
 npm run build
 
 if [ $? -ne 0 ]; then

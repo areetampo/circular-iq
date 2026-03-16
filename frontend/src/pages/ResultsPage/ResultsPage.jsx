@@ -1,6 +1,17 @@
-import { toast } from '@heroui/react';
-import { Accordion, Card, Chip, Input, Label, ListBox, Select, Tabs, Tooltip } from '@heroui/react';
-import { Alert, ProgressBar } from '@heroui/react';
+import {
+  Accordion,
+  Alert,
+  Card,
+  Chip,
+  Input,
+  Label,
+  ListBox,
+  ProgressBar,
+  Select,
+  Tabs,
+  toast,
+  Tooltip,
+} from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -565,7 +576,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     if (!source) return '';
 
     // Prefer structured industry when available
-    import.meta.env; // keep this module reference stable for bundlers
+    const _ = import.meta.env; // keep this module reference stable for bundlers
     // lazily import helper to avoid circular imports in some test setups
     let industryVal = null;
     try {
@@ -1098,7 +1109,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <Target
-                          className="text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          className="text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
                           size={20}
                         />
                         <div>
@@ -1126,7 +1137,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <Lightbulb
-                          className="text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          className="text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
                           size={20}
                         />
                         <div>
@@ -1152,7 +1163,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <BarChart3
-                          className="text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          className="text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
                           size={20}
                         />
                         <div>
@@ -1198,7 +1209,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     <Accordion.Trigger className="flex items-center justify-between w-full py-3">
                       <div className="flex items-center gap-3">
                         <ClipboardList
-                          className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-[10deg] group-hover/case:drop-shadow-md mr-1.5"
+                          className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
                           size={20}
                         />
                         <div>

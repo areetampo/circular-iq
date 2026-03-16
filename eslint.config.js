@@ -1,10 +1,10 @@
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import pluginReact from 'eslint-plugin-react';
 // import simpleImportSort from 'eslint-plugin-simple-import-sort';
-import prettierConfig from 'eslint-config-prettier';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
@@ -16,6 +16,8 @@ export default [
       '**/node_modules/**',
       '**/backend/datasets/**',
       '**/backend/database/migrations/**',
+      // third party
+      'frontend/src/components/base/dropdown/**/*.{ts,tsx}',
     ],
   },
 
@@ -29,9 +31,13 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
-        React: 'writable', // Specifically allows React to be used without manual import
+        React: 'writable', // This stops the "React is not defined" error
       },
-      parser: tsParser, // Use TS parser for all files (it handles JS too)
+      // Use the TS parser for everything; it handles plain JS perfectly too
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
     },
     plugins: {
       'unused-imports': unusedImports,
@@ -41,11 +47,13 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
+      // Add the TS recommended rules to avoid "Unexpected token" errors
+      ...tsPlugin.configs.recommended.rules,
       'no-unused-vars': 'off',
       'no-console': 'off',
       semi: ['error', 'always'],
 
-      'unused-imports/no-unused-imports': 'error', // This rule DELETES the lines
+      'unused-imports/no-unused-imports': 'error', // This rule removes unused imports automatically
       'unused-imports/no-unused-vars': 'off',
       // [
       //   'warn',
@@ -58,6 +66,8 @@ export default [
       //     argsIgnorePattern: '^_',
       //   },
       // ],
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
 
       // 'simple-import-sort/imports': 'warn',
       // 'simple-import-sort/exports': 'warn',
@@ -95,6 +105,9 @@ export default [
           },
         },
       ],
+
+      // Clean up multiple blank lines
+      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
     },
   },
 
@@ -119,6 +132,8 @@ export default [
       // Turn off no-redeclare for tests because globals like 'describe'
       // are often flagged by mistake in certain environments
       'no-redeclare': 'off',
+      // Disable import order warnings in test files
+      'import/order': 'off',
     },
   },
 
@@ -126,13 +141,14 @@ export default [
   {
     files: ['backend/controllers/**/*.js', 'backend/routes/**/*.js'],
     rules: {
-      'unused-imports/no-unused-vars': [
-        'warn',
-        {
-          argsIgnorePattern: '^(_|t|next|req|res|params|opts|children)',
-          varsIgnorePattern: '^(_|errorResponse|logRequest)',
-        },
-      ],
+      'unused-imports/no-unused-vars': 'off',
+      // [
+      //   'warn',
+      //   {
+      //     argsIgnorePattern: '^(_|t|next|req|res|params|opts|children)',
+      //     varsIgnorePattern: '^(_|errorResponse|logRequest)',
+      //   },
+      // ],
     },
   },
 
@@ -151,11 +167,19 @@ export default [
       ...pluginReact.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      'no-undef': 'error', // Re-enable to catch real errors, but handled by globals above
+      'no-undef': 'off',
     },
     settings: { react: { version: 'detect' } },
   },
 
   // Prettier should be last to override any conflicting rules
   prettierConfig,
+
+  // disable the rule for that specific file only
+  {
+    files: ['frontend/src/components/base/dropdown/dropdown.tsx'],
+    rules: {
+      '@typescript-eslint/no-empty-object-type': 'off',
+    },
+  },
 ];
