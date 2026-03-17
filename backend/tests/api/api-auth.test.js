@@ -6,9 +6,6 @@ import request from 'supertest';
 process.env.NODE_ENV = 'test';
 process.env.API_AUTH_ENABLED = 'true';
 process.env.API_KEY = 'test-key';
-process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost';
-process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'anon-key';
-process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai';
 
 let app;
 

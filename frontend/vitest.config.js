@@ -1,23 +1,40 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import react from '@vitejs/plugin-react';
-import dotenv from 'dotenv';
 import { defineConfig } from 'vitest/config';
 
-// Load shared test env vars from the monorepo env/.env.test file.
-// Vitest runs from the frontend package, so we resolve relative to this folder.
-const sharedTestEnvPath = path.resolve(__dirname, '../env/.env.test');
-if (fs.existsSync(sharedTestEnvPath)) {
-  dotenv.config({ path: sharedTestEnvPath });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Helper function to find the monorepo root by looking for a .git directory.
+ * This allows us to reliably locate the 'env' directory regardless of where this script is run from.
+ * If .git is not found (e.g., in some CI/CD environments), it falls back to the provided startPath.
+ * You can modify this to check for other files like 'package.json' if .git is not suitable for your environment.
+ * @param {string} startPath - The initial path to start searching from (usually __dirname).
+ * @returns {string} - The path to the monorepo root or the startPath if .git is not found.
+ */
+function getMonorepoRoot(startPath) {
+  let currentPath = startPath;
+
+  while (currentPath !== path.parse(currentPath).root) {
+    // Note: If running in Docker/CI without .git,
+    // you might want to check for 'package.json' or 'pnpm-workspace.yaml' instead.
+    if (fs.existsSync(path.join(currentPath, '.git'))) {
+      return currentPath;
+    }
+    currentPath = path.dirname(currentPath);
+  }
+  // Fallback: If .git isn't found (common in some CI/Docker),
+  // you might want to return process.cwd() or a default.
+  return startPath;
 }
 
-// Ensure tests can rely on a consistent set of VITE_* env vars.
-const {
-  VITE_API_URL = 'http://localhost:3001',
-  VITE_SUPABASE_URL = 'https://test.supabase.co',
-  VITE_SUPABASE_ANON_KEY = 'test-anon-key',
-} = process.env;
+const root = getMonorepoRoot(__dirname);
+const rootEnvPath = path.resolve(root, 'env');
+console.log(`[vitest.config] envDir resolved to: ${rootEnvPath}`);
 
 export default defineConfig({
   plugins: [react()],
@@ -43,13 +60,8 @@ export default defineConfig({
     globals: true,
     css: true,
     testTimeout: 10000,
-    env: {
-      VITE_API_URL,
-      VITE_SUPABASE_URL,
-      VITE_SUPABASE_ANON_KEY,
-      VITE_ENV: 'test',
-      MODE: 'test',
-      PROD: 'false',
-    },
+    envDir: rootEnvPath,
+    logHeapUsage: true,
+    reporters: ['default', 'verbose'],
   },
 });

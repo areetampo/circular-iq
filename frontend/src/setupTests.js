@@ -1,4 +1,50 @@
+/**
+ * @jest-environment jsdom
+ *
+ * setupTests.js
+ *
+ * This file is automatically included by Jest before running tests, as specified in the "setupFiles" configuration in vitest.config.js.
+ * It sets up the testing environment, including loading environment variables from .env.test and providing necessary mocks.
+ *
+ * Key responsibilities:
+ * 1. Load environment variables from env/.env.test using dotenv, ensuring that tests have access to necessary config values.
+ * 2. Mock global functions like window.alert to prevent actual alerts during tests and allow assertions on alert calls.
+ * 3. Provide a basic mock implementation of @heroui/react components used across the app, so that tests can render components without needing the actual library or its styles.
+ * 4. Mock the Supabase client to allow testing of components that use authentication without requiring real network calls or credentials.
+ * 5. Set up a global ResizeObserver mock for libraries like Recharts that depend on it for rendering charts in tests.
+ *
+ * By centralizing these setups in one file, we ensure a consistent testing environment and reduce boilerplate in individual test files.
+ * This also allows us to enforce that certain environment variables are present during tests, improving test reliability and catching configuration issues early.
+ * Note: This file is only for test setup and should not contain any actual test cases or assertions.
+ */
+
 import '@testing-library/jest-dom';
+import dotenv from 'dotenv';
+import path from 'path';
+import React from 'react';
+import { fileURLToPath } from 'url';
+import { vi } from 'vitest';
+
+// manually load env variables from env/.env.test since vitest isn't automatically loading them in the test environment
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../env/.env.test') });
+
+// console.log('=== ENV DEBUG ===');
+// console.log('VITE_API_URL:', process.env.VITE_API_URL);
+// console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
+// console.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY);
+// console.log('INTERNAL_BACKEND_API_KEY:', process.env.INTERNAL_BACKEND_API_KEY);
+// console.log('=================');
+
+// Stub environment variables for tests
+if (!process.env.VITE_API_URL) throw new Error('VITE_API_URL is required in env/.env.test');
+if (!process.env.VITE_SUPABASE_URL)
+  throw new Error('VITE_SUPABASE_URL is required in env/.env.test');
+if (!process.env.VITE_SUPABASE_ANON_KEY)
+  throw new Error('VITE_SUPABASE_ANON_KEY is required in env/.env.test');
+if (!process.env.INTERNAL_BACKEND_API_KEY)
+  throw new Error('INTERNAL_BACKEND_API_KEY is required in env/.env.test');
 
 // Fail tests if `useAuth` is called outside `AuthProvider` so missing provider
 // usage is caught by CI instead of silently falling back. This converts the
@@ -14,18 +60,12 @@ console.warn = (...args) => {
   return _originalConsoleWarn.apply(console, args);
 };
 
-// Global test setup: mock browser/3rd-party UI libs that cause side effects in JSDOM
-import React from 'react';
-import { vi } from 'vitest';
-
 const renderChildren = (children, props = {}) =>
   typeof children === 'function' ? children(props) : children;
 
-// Stub environment variables for tests
-vi.stubEnv('VITE_API_URL', 'http://localhost:3000');
-vi.stubEnv('VITE_SUPABASE_URL', 'http://localhost:54321');
-vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key');
+// Set MODE and PROD for test
 vi.stubEnv('MODE', 'test');
+vi.stubEnv('PROD', 'false');
 
 // Mock window.alert
 global.alert = vi.fn();

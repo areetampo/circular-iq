@@ -15,22 +15,15 @@ import dotenv from 'dotenv';
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 const IS_PROD = NODE_ENV === 'production';
 
-// Detect Node's built-in test runner and ensure we load the test env file.
-// This allows running `node --test` without requiring NODE_ENV=test to be set.
-const IS_NODE_TEST =
-  process.env.NODE_ENV === 'test' ||
-  typeof globalThis.test === 'function' ||
-  process.argv.some((arg) => arg === '--test' || arg.startsWith('--test-'));
-
-if (IS_NODE_TEST && process.env.NODE_ENV !== 'test') {
-  process.env.NODE_ENV = 'test';
-}
-
-// 1. Define __dirname once at the top level
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Finds the monorepo root by looking for a marker (like .git or package.json).
+ * Helper function to find the monorepo root by looking for a .git directory.
+ * This allows us to reliably locate the 'env' directory regardless of where this script is run from.
+ * If .git is not found (e.g., in some CI/CD environments), it falls back to the provided startPath.
+ * You can modify this to check for other files like 'package.json' if .git is not suitable for your environment.
+ * @param {string} startPath - The initial path to start searching from (usually __dirname).
+ * @returns {string} - The path to the monorepo root or the startPath if .git is not found.
  */
 function getMonorepoRoot(startPath) {
   let currentPath = startPath;
@@ -48,19 +41,17 @@ function getMonorepoRoot(startPath) {
   return startPath;
 }
 
-// 2. Calculate the path properly using the helper
 const root = getMonorepoRoot(__dirname);
 const rootEnvPath = path.resolve(root, 'env');
 
 if (!IS_PROD) {
-  // 3. Use the rootEnvPath we already calculated above
-  const envFilename = IS_NODE_TEST ? '.env.test' : '.env.backend';
-  const envPath = path.join(rootEnvPath, envFilename);
+  const envFile = NODE_ENV === 'test' ? '.env.test' : '.env.backend';
+  const backendPath = path.join(rootEnvPath, envFile);
 
-  if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath, override: false });
-    console.log(`✓ Loaded env from: ${envPath}`);
+  if (fs.existsSync(backendPath)) {
+    dotenv.config({ path: backendPath, override: false });
+    console.log(`✓ Loaded env from: ${backendPath}`);
   } else {
-    console.warn(`‼ Warning: ${envFilename} not found at ${envPath}`);
+    console.warn(`‼ Warning: ${envFile} not found at ${backendPath}`);
   }
 }

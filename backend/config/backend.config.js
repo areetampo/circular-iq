@@ -1,80 +1,31 @@
 import '#config/loadEnv.js';
 import crypto from 'crypto';
 
-import { envSchema } from '#config/env.schema.js';
+import { envSchema, testEnvSchema } from '#config/env.schema.js';
 
 /* ------------------------------ */
 /* Test-friendly defaults */
 /* ------------------------------ */
-// Provide robust defaults to keep tests from failing on CI/local without secrets
-if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
-  // Load .env.backend for tests to access real environment variables.
-  // This is handled via #config/loadEnv.js, which runs before this module is evaluated.
-
-  // Override to known-good values regardless of what tests may have set
-  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai';
-  process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'http://localhost';
-  process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'anon-key-0000000000';
-  process.env.SUPABASE_SERVICE_ROLE_KEY =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'service-role-key';
-  // additional supabase db defaults for tests (not usually used)
-  process.env.SUPABASE_HOST = process.env.SUPABASE_HOST || 'localhost';
-  process.env.SUPABASE_PORT = process.env.SUPABASE_PORT || '5432';
-  process.env.SUPABASE_DATABASE = process.env.SUPABASE_DATABASE || 'postgres';
-  process.env.SUPABASE_USER = process.env.SUPABASE_USER || 'postgres';
-  process.env.SUPABASE_PASSWORD = process.env.SUPABASE_PASSWORD || 'password';
-  process.env.SUPABASE_CONNECTION_STRING = process.env.SUPABASE_CONNECTION_STRING || '';
-  process.env.SUPABASE_CONNECTION_LIMIT = process.env.SUPABASE_CONNECTION_LIMIT || '20';
-  process.env.AIVEN_CONNECTION_LIMIT = process.env.AIVEN_CONNECTION_LIMIT || '20';
-  process.env.AIVEN_CA_CERT = process.env.AIVEN_CA_CERT || '';
-  // Aiven defaults for tests
-  process.env.AIVEN_HOST = process.env.AIVEN_HOST || 'localhost';
-  process.env.AIVEN_PORT = process.env.AIVEN_PORT || '5432';
-  process.env.AIVEN_DATABASE = process.env.AIVEN_DATABASE || 'postgres';
-  process.env.AIVEN_USER = process.env.AIVEN_USER || 'postgres';
-  process.env.AIVEN_PASSWORD = process.env.AIVEN_PASSWORD || 'password';
-  process.env.AIVEN_SSL_MODE = process.env.AIVEN_SSL_MODE || 'disable';
-  process.env.AIVEN_CONNECTION_STRING = process.env.AIVEN_CONNECTION_STRING || '';
-  // Frontend and CORS defaults
-  process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-  process.env.ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || 'http://localhost:3000';
-  process.env.PUBLIC_ROUTES =
-    process.env.PUBLIC_ROUTES || '/health,/api/score,/api/assessments/market-analysis';
-  // Other defaults
-  process.env.MAX_FREE_TRIES = process.env.MAX_FREE_TRIES || '5';
-  process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'info';
-  process.env.API_AUTH_ENABLED = process.env.API_AUTH_ENABLED || 'false';
-  process.env.API_KEY = process.env.API_KEY || '';
-  process.env.STRICT_ENV = process.env.STRICT_ENV || 'false';
-}
+// For tests, no defaults; must be in .env.test
+// Removed test defaults to enforce strict env loading
 
 /* ------------------------------ */
 /* Snapshot + Validation */
 /* ------------------------------ */
 
-let parsed = envSchema.safeParse(process.env);
+const schema = (process.env.NODE_ENV || '').toLowerCase() === 'test' ? testEnvSchema : envSchema;
+let parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error('✕ Environment validation failed:\n');
   console.error(parsed.error.format());
 
-  // During test runs we prefer to continue with safe defaults rather than exiting.
+  // For test environment, fail if validation fails; no fallbacks
   if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
-    console.warn('Continuing in test mode with fallback environment defaults.');
-    // override everything with guaranteed-valid test values
-    process.env.OPENAI_API_KEY = 'test-openai';
-    process.env.SUPABASE_URL = 'http://localhost';
-    process.env.SUPABASE_ANON_KEY = 'anon-key-0000000000';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
-    process.env.FRONTEND_URL = 'http://localhost:5173';
-    process.env.API_AUTH_ENABLED = 'false';
-
-    parsed = envSchema.safeParse(process.env);
-    if (!parsed.success) {
-      console.warn(
-        'Fallback defaults still failed validation; proceeding with parsed values where possible.',
-      );
-    }
+    console.error(
+      'Test environment validation failed. Ensure all required variables are set in env/.env.test',
+    );
+    process.exit(1);
   } else {
     process.exit(1);
   }
@@ -159,32 +110,37 @@ const createRouteMatchers = (publicRoutes) => {
 const publicRoutes = new Set(parsePublicRoutes());
 
 /**
- * Builds database configuration based on environment flag
- * Note: we no longer support a separate archives table; both Supabase and Aiven
- * will target the single `documents` table. Function names are static and
- * correspond to the RPC helpers deployed in each database.
+ * List of database function names used in the application. This centralizes the function names, making it easier to manage and refactor database interactions. The actual function names in the database are expected to match these, but if we need to change them, we can do so here without affecting the rest of the codebase.
+ * @type {string[]}
  * @private
  */
-const buildDatabaseConfig = () => {
-  const tableName = 'documents';
+const DB_FUNCTIONS = Object.freeze([
+  'match_documents',
+  'search_documents_by_industry',
+  'search_documents_by_category',
+  'search_documents_hybrid',
+  'search_documents_hybrid_filtered',
+  'truncate_documents',
+  'get_document_statistics',
+  'count_documents_by_category',
+  'find_recent_documents',
+]);
 
-  const functions = {
-    match_documents: 'match_documents',
-    search_documents_by_industry: 'search_documents_by_industry',
-    search_documents_by_category: 'search_documents_by_category',
-    search_documents_hybrid: 'search_documents_hybrid',
-    search_documents_hybrid_filtered: 'search_documents_hybrid_filtered',
-    truncate_documents: 'truncate_documents',
-    get_document_statistics: 'get_document_statistics',
-    count_documents_by_category: 'count_documents_by_category',
-    find_recent_documents: 'find_recent_documents',
-  };
-
-  return {
-    tables: { documents: tableName },
-    functions,
-  };
-};
+/**
+ * Returns database configuration with table and function names.
+ * This abstracts the actual table/function names from the rest of the code,
+ * allowing for easier refactoring and potential multi-database support in the future.
+ * The function names and table names are expected to be the same in both Supabase and Aiven setups,
+ * but this layer of abstraction allows us to change them in one place if needed.
+ * @returns {Object} Database configuration with tables and functions.
+ * @private
+ */
+export const buildDatabaseConfig = () => ({
+  tables: {
+    documents: 'documents',
+  },
+  functions: Object.fromEntries(DB_FUNCTIONS.map((n) => [n, n])),
+});
 
 export const BACKEND_CONFIG = deepFreeze({
   port: env.PORT,
@@ -246,13 +202,23 @@ export const BACKEND_CONFIG = deepFreeze({
 /* Environment Fingerprint (optional debugging) */
 /* ------------------------------ */
 
+const redacted = [
+  'OPENAI_API_KEY',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_PASSWORD',
+  'SUPABASE_CONNECTION_STRING',
+  'AIVEN_PASSWORD',
+  'AIVEN_CONNECTION_STRING',
+  'AIVEN_CA_CERT',
+  'API_KEY',
+];
+
 export const ENV_FINGERPRINT = crypto
   .createHash('sha256')
   .update(
     JSON.stringify({
       ...parsed.data,
-      OPENAI_API_KEY: '[Redacted]',
-      SUPABASE_SERVICE_ROLE_KEY: '[Redacted]',
+      ...Object.fromEntries(redacted.map((key) => [key, '[Redacted]'])),
     }),
   )
   .digest('hex');
