@@ -15,4 +15,6 @@ backend/datasets/out/stored_documents.jsonl !filter !diff !merge
 package-lock.json -diff
 backend/package-lock.json -diff
 frontend/package-lock.json -diff
+# Auto detect text files and perform LF normalization
+* text=auto
 backend/datasets/**/*.txt filter=lfs diff=lfs merge=lfs -text
