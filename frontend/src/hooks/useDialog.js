@@ -92,7 +92,11 @@ export default function useDialog() {
     (data) =>
       openDialogWithPriority(
         DIALOGS.SAVE_ASSESSMENT,
-        { defaultName: data?.defaultName, onSave: data?.onSave },
+        {
+          defaultName: data?.defaultName,
+          onSave: data?.onSave,
+          scoringResult: data?.scoringResult,
+        },
         DIALOG_PRIORITIES.MEDIUM,
       ),
     [openDialogWithPriority],

@@ -59,7 +59,12 @@ export const AuditSchema = z
 export const ResultJsonSchema = z
   .object({
     overall_score: z.number().min(0).max(100),
+    confidence_level: z.number().min(0).max(100).optional(),
     sub_scores: SubScoresSchema.optional(),
+    derived_metrics: z.record(z.any()).optional(),
+    score_breakdown: z.record(z.any()).optional(),
+    audit: AuditSchema.optional(),
+    gap_analysis: z.record(z.any()).optional(),
     similar_cases: z
       .array(
         z
@@ -74,7 +79,6 @@ export const ResultJsonSchema = z
       )
       .optional(),
     metadata: MetadataSchema.optional(),
-    audit: AuditSchema.optional(),
   })
   .passthrough(); // Allow additional properties from backend
 
@@ -97,7 +101,20 @@ export const AssessmentSchema = z
     business_problem: z.string().optional(),
     business_solution: z.string().optional(),
     overall_score: z.number().min(0).max(100).optional(),
-    audit: AuditSchema.optional(),
+    confidence_level: z.number().min(0).max(100).optional(),
+    technical_feasibility: z.number().min(0).max(100).optional(),
+    economic_viability: z.number().min(0).max(100).optional(),
+    circularity_potential: z.number().min(0).max(100).optional(),
+    risk_level: z.enum(['low', 'medium', 'high']).optional(),
+    scale: z.string().optional(),
+    r_strategy: z.string().optional(),
+    primary_material: z.string().optional(),
+    geographic_focus: z.string().optional(),
+    derived_metrics: z.record(z.any()).optional(),
+    score_breakdown: z.record(z.any()).optional(),
+    gap_analysis: z.record(z.any()).optional(),
+    similar_cases: z.array(z.any()).optional(),
+    input_parameters: z.record(z.any()).optional(),
   })
   .passthrough(); // Allow additional properties
 
@@ -129,8 +146,15 @@ export const MarketAnalysisSchema = z.object({
     z.object({
       industry: z.string(),
       avg_score: z.number(),
+      min_score: z.number().optional(),
+      max_score: z.number().optional(),
+      avg_confidence: z.number().optional(),
+      avg_tech_feas: z.number().optional(),
+      avg_econ_viab: z.number().optional(),
+      avg_circ_pot: z.number().optional(),
       scale: z.string(),
       count: z.number().int(),
+      r_strategy: z.string().optional(),
     }),
   ),
   stats: z
@@ -138,6 +162,11 @@ export const MarketAnalysisSchema = z.object({
       min_score: z.number(),
       max_score: z.number(),
       avg_score: z.number(),
+      avg_confidence: z.number().optional(),
+      avg_technical_feasibility: z.number().optional(),
+      avg_economic_viability: z.number().optional(),
+      avg_circularity_potential: z.number().optional(),
+      total_count: z.number().optional(),
     })
     .optional(),
   userScore: z.number().optional(),

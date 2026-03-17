@@ -106,6 +106,11 @@ export function exportAssessmentCSV(assessments) {
       industry: assessment.industry ?? null,
       subScores: result.sub_scores || {},
       overallScore: result.overall_score ?? 'N/A',
+      confidenceLevel: result.confidence_level ?? 'N/A',
+      derivedMetrics: result.derived_metrics || {},
+      scoreBreakdown: result.score_breakdown || {},
+      audit: result.audit || {},
+      gapAnalysis: result.gap_analysis || {},
     };
   });
 
@@ -142,14 +147,59 @@ export function exportAssessmentCSV(assessments) {
     ['Total Overall Score', ...assessmentData.map((a) => escapeCSV(a.overallScore))].join(','),
   );
 
+  // Confidence Level Row
+  csvLines.push(
+    ['Confidence Level', ...assessmentData.map((a) => escapeCSV(a.confidenceLevel))].join(','),
+  );
+
+  csvLines.push('');
+
+  // Derived Metrics Section
+  csvLines.push('DERIVED METRICS');
+  csvLines.push('');
+  csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
+
+  const derivedKeys = [
+    'technical_feasibility',
+    'economic_viability',
+    'circularity_potential',
+    'risk_level',
+  ];
+  derivedKeys.forEach((key) => {
+    const label = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    const values = assessmentData.map((a) => escapeCSV(a.derivedMetrics[key] ?? 'N/A'));
+    csvLines.push([escapeCSV(label), ...values].join(','));
+  });
+
+  csvLines.push('');
+
+  // Score Breakdown Section
+  csvLines.push('SCORE BREAKDOWN');
+  csvLines.push('');
+  csvLines.push(['Category', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
+
+  // Collect all unique categories from score breakdowns
+  const allCategories = new Set();
+  assessmentData.forEach((a) => {
+    Object.keys(a.scoreBreakdown).forEach((category) => allCategories.add(category));
+  });
+
+  Array.from(allCategories)
+    .sort()
+    .forEach((category) => {
+      const label = category.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+      const values = assessmentData.map((a) => {
+        const breakdown = a.scoreBreakdown[category];
+        return breakdown ? escapeCSV(`${breakdown.score || 0} (${breakdown.weight || 0}%)`) : 'N/A';
+      });
+      csvLines.push([escapeCSV(label), ...values].join(','));
+    });
+
+  csvLines.push('');
+
   const csvContent = csvLines.join('\n');
   const blob = downloadCSV(csvContent, filename);
-
-  return {
-    success: true,
-    message: 'CSV exported successfully',
-    blob,
-  };
+  return { success: true, message: 'CSV exported successfully', blob };
 }
 
 /**
@@ -189,7 +239,10 @@ export function exportComparisonCSV(assessments) {
       result,
       metadata,
       overallScore: result.overall_score || 0,
+      confidenceLevel: result.confidence_level || 0,
       subScores: result.sub_scores || {},
+      derivedMetrics: result.derived_metrics || {},
+      scoreBreakdown: result.score_breakdown || {},
       audit: result.audit || {},
     };
   });
@@ -214,6 +267,15 @@ export function exportComparisonCSV(assessments) {
   }
 
   csvLines.push(overallScoreRow.join(','));
+  csvLines.push(''); // Empty row
+
+  // Confidence Level Row
+  const confidenceRow = ['Confidence Level', ...assessmentData.map((a) => a.confidenceLevel)];
+  if (assessmentData.length === 2) {
+    const change = assessmentData[1].confidenceLevel - assessmentData[0].confidenceLevel;
+    confidenceRow.push(`${change > 0 ? '+' : ''}${change}`);
+  }
+  csvLines.push(confidenceRow.join(','));
   csvLines.push(''); // Empty row
 
   // Collect all unique factors across all assessments
@@ -242,6 +304,75 @@ export function exportComparisonCSV(assessments) {
 
     csvLines.push(row.join(','));
   });
+
+  csvLines.push(''); // Empty row
+  csvLines.push(''); // Another empty row for derived metrics section
+
+  // Derived Metrics Section
+  csvLines.push('DERIVED METRICS');
+  csvLines.push(''); // Empty row
+
+  const derivedHeader = ['Derived Metric', ...assessmentData.map((a) => escapeCSV(a.title))];
+  if (assessmentData.length === 2) {
+    derivedHeader.push('Change (Δ)');
+  }
+  csvLines.push(derivedHeader.join(','));
+
+  const derivedKeys = ['technical_feasibility', 'economic_viability', 'circularity_potential'];
+  derivedKeys.forEach((key) => {
+    const label = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    const scores = assessmentData.map((a) => a.derivedMetrics[key] || 0);
+
+    const row = [escapeCSV(label), ...scores];
+
+    if (assessmentData.length === 2) {
+      const change = scores[1] - scores[0];
+      row.push(`${change > 0 ? '+' : ''}${change}`);
+    }
+
+    csvLines.push(row.join(','));
+  });
+
+  // Risk Level Row
+  const riskScores = assessmentData.map((a) => a.derivedMetrics.risk_level || 'N/A');
+  const riskRow = ['Risk Level', ...riskScores];
+  if (assessmentData.length === 2) {
+    riskRow.push('N/A'); // No numeric change for categorical
+  }
+  csvLines.push(riskRow.join(','));
+  csvLines.push(''); // Empty row
+
+  // Score Breakdown Section
+  csvLines.push('SCORE BREAKDOWN');
+  csvLines.push(''); // Empty row
+
+  const breakdownHeader = ['Category', ...assessmentData.map((a) => escapeCSV(a.title))];
+  if (assessmentData.length === 2) {
+    breakdownHeader.push('Change (Δ)');
+  }
+  csvLines.push(breakdownHeader.join(','));
+
+  // Collect all unique categories
+  const allCategories = new Set();
+  assessmentData.forEach((a) => {
+    Object.keys(a.scoreBreakdown).forEach((category) => allCategories.add(category));
+  });
+
+  Array.from(allCategories)
+    .sort()
+    .forEach((category) => {
+      const label = category.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+      const scores = assessmentData.map((a) => a.scoreBreakdown[category]?.score || 0);
+
+      const row = [escapeCSV(label), ...scores];
+
+      if (assessmentData.length === 2) {
+        const change = scores[1] - scores[0];
+        row.push(`${change > 0 ? '+' : ''}${change}`);
+      }
+
+      csvLines.push(row.join(','));
+    });
 
   csvLines.push(''); // Empty row
   csvLines.push(''); // Another empty row for metadata section

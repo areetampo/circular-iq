@@ -48,7 +48,9 @@ function DialogManagerContent() {
       return <DeleteAssessmentDialog assessmentName={data?.assessmentName} />;
 
     case DIALOGS.SAVE_ASSESSMENT:
-      return <SaveAssessmentDialog defaultName={data?.defaultName} />;
+      return (
+        <SaveAssessmentDialog defaultName={data?.defaultName} scoringResult={data?.scoringResult} />
+      );
 
     case DIALOGS.RENAME_ASSESSMENT:
       return <RenameAssessmentDialog defaultName={data?.defaultName} />;

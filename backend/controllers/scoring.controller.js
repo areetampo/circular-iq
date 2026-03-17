@@ -213,9 +213,11 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
  * @param {Object} req - Express request object
  * @param {Object} openai - OpenAI client instance
  * @param {Object} supabase - Supabase client
+ * @param {Object} serviceSupabase - Service-role Supabase client for logging
+ * @param {string|null} userId - User ID if authenticated, null if anonymous
  * @returns {Promise<Object>} Complete scoring audit response
  */
-export async function performScoring(req, openai, supabase) {
+export async function performScoring(req, openai, supabase, serviceSupabase, userId) {
   const startTime = Date.now();
   const requestId = Math.random().toString(36).slice(2, 9);
 
@@ -628,6 +630,47 @@ export async function performScoring(req, openai, supabase) {
         timestamp: new Date().toISOString(),
       },
     };
+
+    // Fire-and-forget logging to scoring_results_log
+    const logData = {
+      request_id: response.processing_info.request_id,
+      user_id: userId,
+      is_anonymous: userId === null,
+      ip_hash: crypto.createHash('sha256').update(extractIPAddress(req)).digest('hex'),
+      identifier_hash: getIdentifierFromRequest(req).hash,
+      user_agent_snippet: req.headers['user-agent']?.substring(0, 200),
+      business_problem_len: businessProblem.length,
+      business_solution_len: businessSolution.length,
+      input_parameters: parameters,
+      overall_score: response.overall_score,
+      confidence_level: response.confidence_level,
+      technical_feasibility: response.derived_metrics.technical_feasibility,
+      economic_viability: response.derived_metrics.economic_viability,
+      circularity_potential: response.derived_metrics.circularity_potential,
+      risk_level: response.derived_metrics.risk_level,
+      industry: response.metadata?.industry,
+      scale: response.metadata?.scale,
+      r_strategy: response.metadata?.r_strategy,
+      primary_material: response.metadata?.primary_material,
+      geographic_focus: response.metadata?.geographic_focus,
+      audit_confidence_score: response.audit?.confidence_score,
+      is_junk_input: response.audit?.is_junk_input ?? false,
+      integrity_gap_count: response.audit?.integrity_gaps?.length ?? 0,
+      similar_cases_count: response.similar_cases?.length ?? 0,
+      processing_time_ms: response.processing_info.processing_time_ms,
+      timings: response.processing_info.timings,
+      result_snapshot: response,
+    };
+
+    serviceSupabase
+      .from('scoring_results_log')
+      .insert(logData)
+      .then(() => {
+        console.log(`[${requestId}] Logged scoring result to scoring_results_log`);
+      })
+      .catch((err) => {
+        console.error(`[${requestId}] Failed to log scoring result:`, err.message);
+      });
 
     logOperation('performScoring', 'success', Date.now() - startTime);
     return response;

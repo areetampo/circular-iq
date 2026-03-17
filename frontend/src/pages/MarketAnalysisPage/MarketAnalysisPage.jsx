@@ -2,6 +2,7 @@ import { Card, Chip, ProgressBar, ProgressCircle, Tab, Table, Tabs, Tooltip } fr
 import { Alert } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import {
+  Activity,
   ArrowRight,
   BarChart3,
   Briefcase,
@@ -333,7 +334,19 @@ export default function MarketAnalysisPage({
 
   const handleExportCSV = () => {
     const rows = [
-      ['Industry', 'Scale', 'Avg Score', 'Min Score', 'Max Score', 'Projects', 'Strategy'],
+      [
+        'Industry',
+        'Scale',
+        'Avg Score',
+        'Min Score',
+        'Max Score',
+        'Avg Confidence',
+        'Avg Technical Feasibility',
+        'Avg Economic Viability',
+        'Avg Circularity Potential',
+        'Projects',
+        'Strategy',
+      ],
     ];
     (marketData || []).forEach((m) => {
       rows.push([
@@ -342,6 +355,10 @@ export default function MarketAnalysisPage({
         m.avg_score ?? '',
         m.min_score ?? '',
         m.max_score ?? '',
+        m.avg_confidence ?? '',
+        m.avg_tech_feas ?? '',
+        m.avg_econ_viab ?? '',
+        m.avg_circ_pot ?? '',
         m.count ?? '',
         m.r_strategy || '',
       ]);
@@ -475,22 +492,75 @@ export default function MarketAnalysisPage({
                       <div className="text-sm text-gray-600">Total Projects</div>
                       <div className="text-2xl font-bold text-[#2c3e50]">{stats.total_count}</div>
                     </div>
-                    {userScore != null && (
-                      <div className="p-5 bg-linear-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-accent-500 shadow-md rounded-xl">
-                        <div className="flex justify-center mb-2 text-3xl">
-                          <Star
-                            className="text-accent-500"
-                            strokeWidth={2}
-                            fill="#ff9800"
-                            size={36}
-                          />
-                        </div>
-                        <div className="text-sm text-gray-600">Your Percentile</div>
-                        <div className="text-2xl font-bold text-accent-500">{userPercentile}th</div>
+                    <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                      <div className="flex justify-center mb-2 text-3xl">
+                        <Activity className="text-emerald-500" strokeWidth={2} size={36} />
                       </div>
-                    )}
+                      <div className="text-sm text-gray-600">Avg Confidence</div>
+                      <div className="text-2xl font-bold text-emerald-500">
+                        {stats.avg_confidence ? `${stats.avg_confidence.toFixed(1)}%` : 'N/A'}
+                      </div>
+                    </div>
                   </div>
                 )}
+
+                {/* Derived Metrics Overview */}
+                {stats &&
+                  (stats.avg_technical_feasibility ||
+                    stats.avg_economic_viability ||
+                    stats.avg_circularity_potential) && (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                      <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                        <div className="flex justify-center mb-2 text-3xl">
+                          <Sparkles className="text-blue-500" strokeWidth={2} size={36} />
+                        </div>
+                        <div className="text-sm text-gray-600">Avg Technical Feasibility</div>
+                        <div className="text-2xl font-bold text-blue-500">
+                          {stats.avg_technical_feasibility
+                            ? stats.avg_technical_feasibility.toFixed(1)
+                            : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                        <div className="flex justify-center mb-2 text-3xl">
+                          <Briefcase className="text-green-500" strokeWidth={2} size={36} />
+                        </div>
+                        <div className="text-sm text-gray-600">Avg Economic Viability</div>
+                        <div className="text-2xl font-bold text-green-500">
+                          {stats.avg_economic_viability
+                            ? stats.avg_economic_viability.toFixed(1)
+                            : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="p-5 bg-white border-2 border-gray-200 shadow-md rounded-xl">
+                        <div className="flex justify-center mb-2 text-3xl">
+                          <Trophy className="text-purple-500" strokeWidth={2} size={36} />
+                        </div>
+                        <div className="text-sm text-gray-600">Avg Circularity Potential</div>
+                        <div className="text-2xl font-bold text-purple-500">
+                          {stats.avg_circularity_potential
+                            ? stats.avg_circularity_potential.toFixed(1)
+                            : 'N/A'}
+                        </div>
+                      </div>
+                      {userScore != null && (
+                        <div className="p-5 bg-linear-to-br from-[#fff9e6] to-[#fffbf0] border-2 border-accent-500 shadow-md rounded-xl">
+                          <div className="flex justify-center mb-2 text-3xl">
+                            <Star
+                              className="text-accent-500"
+                              strokeWidth={2}
+                              fill="#ff9800"
+                              size={36}
+                            />
+                          </div>
+                          <div className="text-sm text-gray-600">Your Percentile</div>
+                          <div className="text-2xl font-bold text-accent-500">
+                            {userPercentile}th
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                 {/* Performance Comparison Metrics */}
                 {stats && userScore != null && marketData && marketData.length > 0 && (

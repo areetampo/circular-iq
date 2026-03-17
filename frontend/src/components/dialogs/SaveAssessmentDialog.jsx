@@ -30,11 +30,12 @@ import { cn } from '@/utils/cn';
  * Content component for save assessment dialog
  * Gets data from centralized dialog state (DialogManager passes defaultName prop)
  */
-function SaveAssessmentDialogContent({ defaultName = '' }) {
+function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null }) {
   // Note: defaultName prop validation handled by wrapper component
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
   const [name, setName] = useState(defaultName);
+  const [industry, setIndustry] = useState(scoringResult?.metadata?.industry ?? '');
   const [isPublic, setIsPublic] = useState(true);
   const [contributeToGlobalBenchmarks, setContributeToGlobalBenchmarks] = useState(true);
   const [error, setError] = useState('');
@@ -46,12 +47,13 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
   useEffect(() => {
     if (isDialogOpen) {
       setName(defaultName);
+      setIndustry(scoringResult?.metadata?.industry ?? '');
       setIsPublic(true);
       setContributeToGlobalBenchmarks(true);
       setError('');
       setIsSubmitting(false);
     }
-  }, [isDialogOpen, defaultName]);
+  }, [isDialogOpen, defaultName, scoringResult]);
 
   const handleBackdropChange = useCallback(
     (isOpen) => {
@@ -84,7 +86,13 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
       try {
         if (onSave) {
           // Let caller throw on validation/server errors so we can show message in-dialog
-          await onSave(name.trim(), isPublic, contributeToGlobalBenchmarks);
+          await onSave({
+            name: name.trim(),
+            industry,
+            isPublic,
+            contributeToGlobalBenchmarks,
+            scoringResult,
+          });
         }
         close();
       } catch (err) {
@@ -142,6 +150,20 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
                     )}
                     fullWidth
                   />
+
+                  <Input
+                    id="industry"
+                    placeholder="Industry (optional)"
+                    value={industry}
+                    onChange={(e) => {
+                      setIndustry(e.target.value);
+                      setError('');
+                    }}
+                    maxLength={60}
+                    className="rounded-full text-xs xs:text-sm"
+                    fullWidth
+                  />
+
                   {error && <p className="text-sm text-red-600">{error}</p>}
                 </div>
 
@@ -206,13 +228,14 @@ function SaveAssessmentDialogContent({ defaultName = '' }) {
 
 SaveAssessmentDialogContent.propTypes = {
   defaultName: PropTypes.string,
+  scoringResult: PropTypes.object,
 };
 
 // Memoized content to prevent duplicate renders
 const MemoizedContent = React.memo(SaveAssessmentDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
-export function SaveAssessmentDialog({ defaultName = '' }) {
+export function SaveAssessmentDialog({ defaultName = '', scoringResult = null }) {
   const { isDialogOpen } = useGlobalDialog();
 
   // Return null when closed to prevent AlertDialog from mounting
@@ -220,11 +243,18 @@ export function SaveAssessmentDialog({ defaultName = '' }) {
     return null;
   }
 
-  return <MemoizedContent key="save-assessment-dialog" defaultName={defaultName} />;
+  return (
+    <MemoizedContent
+      key="save-assessment-dialog"
+      defaultName={defaultName}
+      scoringResult={scoringResult}
+    />
+  );
 }
 
 SaveAssessmentDialog.propTypes = {
   defaultName: PropTypes.string,
+  scoringResult: PropTypes.object,
 };
 
 export default SaveAssessmentDialog;

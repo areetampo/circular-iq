@@ -36,8 +36,10 @@ import BarChart from '@/components/charts/BarChart';
 import RadarChart from '@/components/charts/RadarChart';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useAssessmentComparison } from '@/features/assessments';
+import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV } from '@/features/export';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
+import { getRiskBadgeColor } from '@/lib/scoring';
 
 // Skeleton Loader Component
 function ComparisonSkeleton() {
@@ -155,10 +157,14 @@ export default function AssessmentComparisonPage() {
       />
     );
 
+  // Reconstruct full scoring results
+  const scoringResult1 = reconstructScoringResult(assessment1);
+  const scoringResult2 = reconstructScoringResult(assessment2);
+
   // Derive metrics
   const factorDiffs = Object.entries(comparisonData.factorDiffs || {}).map(([factor, diff]) => {
-    const a1 = assessment1.result_json?.sub_scores?.[factor] || 0;
-    const a2 = assessment2.result_json?.sub_scores?.[factor] || 0;
+    const a1 = scoringResult1?.sub_scores?.[factor] || 0;
+    const a2 = scoringResult2?.sub_scores?.[factor] || 0;
     return {
       factor,
       label: titleize(factor),
@@ -304,11 +310,11 @@ export default function AssessmentComparisonPage() {
   const insights = generateInsights();
 
   // Prepare data for Radar Chart
-  const factors = Object.keys(assessment1.result_json?.sub_scores || {});
+  const factors = Object.keys(scoringResult1?.sub_scores || {});
   const radarChartData = factors.map((factor) => ({
     subject: titleize(factor),
-    [assessment1.title]: assessment1.result_json?.sub_scores?.[factor] || 0,
-    [assessment2.title]: assessment2.result_json?.sub_scores?.[factor] || 0,
+    [assessment1.title]: scoringResult1?.sub_scores?.[factor] || 0,
+    [assessment2.title]: scoringResult2?.sub_scores?.[factor] || 0,
     fullMark: 100,
   }));
 
@@ -343,6 +349,31 @@ export default function AssessmentComparisonPage() {
               <p className="text-xs text-slate-600 font-medium italic">
                 {formatTimestamp(assessment1.created_at)}
               </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Chip color="success" variant="soft" size="sm">
+                  Score: {scoringResult1?.overall_score || 0}/100
+                </Chip>
+                <Chip color="warning" variant="soft" size="sm">
+                  Conf: {scoringResult1?.confidence_level || 0}%
+                </Chip>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {scoringResult1?.metadata?.industry && (
+                  <Chip variant="secondary" size="sm">
+                    {scoringResult1.metadata.industry}
+                  </Chip>
+                )}
+                {scoringResult1?.metadata?.scale && (
+                  <Chip variant="secondary" size="sm">
+                    {scoringResult1.metadata.scale}
+                  </Chip>
+                )}
+                {scoringResult1?.metadata?.r_strategy && (
+                  <Chip variant="secondary" size="sm">
+                    {scoringResult1.metadata.r_strategy}
+                  </Chip>
+                )}
+              </div>
               <Chip color="success" variant="soft" size="sm" className="w-fit mt-1">
                 <Chip.Label className="font-semibold">Assessment 1</Chip.Label>
               </Chip>
@@ -370,6 +401,31 @@ export default function AssessmentComparisonPage() {
               <p className="text-xs text-slate-600 font-medium italic">
                 {formatTimestamp(assessment2.created_at)}
               </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Chip color="primary" variant="soft" size="sm">
+                  Score: {scoringResult2?.overall_score || 0}/100
+                </Chip>
+                <Chip color="warning" variant="soft" size="sm">
+                  Conf: {scoringResult2?.confidence_level || 0}%
+                </Chip>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {scoringResult2?.metadata?.industry && (
+                  <Chip variant="secondary" size="sm">
+                    {scoringResult2.metadata.industry}
+                  </Chip>
+                )}
+                {scoringResult2?.metadata?.scale && (
+                  <Chip variant="secondary" size="sm">
+                    {scoringResult2.metadata.scale}
+                  </Chip>
+                )}
+                {scoringResult2?.metadata?.r_strategy && (
+                  <Chip variant="secondary" size="sm">
+                    {scoringResult2.metadata.r_strategy}
+                  </Chip>
+                )}
+              </div>
               <Chip color="primary" variant="soft" size="sm" className="w-fit mt-1">
                 <Chip.Label className="font-semibold">Assessment 2</Chip.Label>
               </Chip>
@@ -545,6 +601,62 @@ export default function AssessmentComparisonPage() {
                 </Card>
               </div>
 
+              {/* Derived Metrics Comparison */}
+              <Card className="border-2 border-emerald-200 shadow-md rounded-xl bg-white">
+                <Card.Header className="flex items-center gap-3 pb-4">
+                  <Card.Title className="font-bold text-lg text-slate-900">
+                    Derived Metrics
+                  </Card.Title>
+                </Card.Header>
+                <Card.Content className="p-0">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
+                    {[
+                      { key: 'technical_feasibility', label: 'Technical Feasibility' },
+                      { key: 'economic_viability', label: 'Economic Viability' },
+                      { key: 'circularity_potential', label: 'Circularity Potential' },
+                    ].map(({ key, label }) => {
+                      const val1 = scoringResult1?.derived_metrics?.[key] || 0;
+                      const val2 = scoringResult2?.derived_metrics?.[key] || 0;
+                      const winner = val1 > val2 ? 1 : val2 > val1 ? 2 : null;
+                      return (
+                        <div key={key} className="p-3 bg-slate-50 rounded-lg">
+                          <div className="text-xs font-bold text-slate-900 mb-2">{label}</div>
+                          <div className="flex items-center justify-between">
+                            <div
+                              className={`text-sm font-bold ${winner === 1 ? 'text-green-700' : 'text-slate-600'}`}
+                            >
+                              A1: {val1}
+                            </div>
+                            <div
+                              className={`text-sm font-bold ${winner === 2 ? 'text-green-700' : 'text-slate-600'}`}
+                            >
+                              A2: {val2}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <div className="text-xs font-bold text-slate-900 mb-2">Risk Level</div>
+                      <div className="flex items-center justify-between">
+                        <Chip
+                          variant="soft"
+                          className={`text-xs ${getRiskBadgeColor(scoringResult1?.derived_metrics?.risk_level)}`}
+                        >
+                          A1: {scoringResult1?.derived_metrics?.risk_level || 'N/A'}
+                        </Chip>
+                        <Chip
+                          variant="soft"
+                          className={`text-xs ${getRiskBadgeColor(scoringResult2?.derived_metrics?.risk_level)}`}
+                        >
+                          A2: {scoringResult2?.derived_metrics?.risk_level || 'N/A'}
+                        </Chip>
+                      </div>
+                    </div>
+                  </div>
+                </Card.Content>
+              </Card>
+
               {/* Evaluation Parameters Summary */}
               <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-white">
                 <Card.Header className="flex items-center gap-3 pb-4">
@@ -654,23 +766,23 @@ export default function AssessmentComparisonPage() {
                   <div className="flex items-baseline gap-1">
                     <span
                       className={`text-4xl font-bold ${
-                        (assessment1.result_json?.overall_score || 0) >= 75
+                        (scoringResult1?.overall_score || 0) >= 75
                           ? 'text-emerald-700'
-                          : (assessment1.result_json?.overall_score || 0) >= 50
+                          : (scoringResult1?.overall_score || 0) >= 50
                             ? 'text-amber-600'
                             : 'text-red-600'
                       }`}
                     >
-                      {assessment1.result_json?.overall_score || 0}
+                      {scoringResult1?.overall_score || 0}
                     </span>
                     <span className="text-sm text-slate-500 font-medium">/100</span>
                   </div>
                   <ProgressBar
-                    value={assessment1.result_json?.overall_score || 0}
+                    value={scoringResult1?.overall_score || 0}
                     className={`mt-2 h-2 rounded-full border-2 ${
-                      (assessment1.result_json?.overall_score || 0) >= 75
+                      (scoringResult1?.overall_score || 0) >= 75
                         ? 'border-emerald-400'
-                        : (assessment1.result_json?.overall_score || 0) >= 50
+                        : (scoringResult1?.overall_score || 0) >= 50
                           ? 'border-amber-400'
                           : 'border-red-400'
                     }`}
@@ -679,9 +791,9 @@ export default function AssessmentComparisonPage() {
                     <ProgressBar.Track className="h-2 rounded-full bg-gray-200">
                       <ProgressBar.Fill
                         className={`h-2 rounded-full ${
-                          (assessment1.result_json?.overall_score || 0) >= 75
+                          (scoringResult1?.overall_score || 0) >= 75
                             ? 'bg-emerald-500'
-                            : (assessment1.result_json?.overall_score || 0) >= 50
+                            : (scoringResult1?.overall_score || 0) >= 50
                               ? 'bg-amber-500'
                               : 'bg-red-500'
                         }`}
@@ -698,23 +810,23 @@ export default function AssessmentComparisonPage() {
                   <div className="flex items-baseline gap-1">
                     <span
                       className={`text-4xl font-bold ${
-                        (assessment2.result_json?.overall_score || 0) >= 75
+                        (scoringResult2?.overall_score || 0) >= 75
                           ? 'text-emerald-700'
-                          : (assessment2.result_json?.overall_score || 0) >= 50
+                          : (scoringResult2?.overall_score || 0) >= 50
                             ? 'text-amber-600'
                             : 'text-red-600'
                       }`}
                     >
-                      {assessment2.result_json?.overall_score || 0}
+                      {scoringResult2?.overall_score || 0}
                     </span>
                     <span className="text-sm text-slate-500 font-medium">/100</span>
                   </div>
                   <ProgressBar
-                    value={assessment2.result_json?.overall_score || 0}
+                    value={scoringResult2?.overall_score || 0}
                     className={`mt-2 h-2 rounded-full border-2 ${
-                      (assessment2.result_json?.overall_score || 0) >= 75
+                      (scoringResult2?.overall_score || 0) >= 75
                         ? 'border-emerald-400'
-                        : (assessment2.result_json?.overall_score || 0) >= 50
+                        : (scoringResult2?.overall_score || 0) >= 50
                           ? 'border-amber-400'
                           : 'border-red-400'
                     }`}
@@ -723,9 +835,9 @@ export default function AssessmentComparisonPage() {
                     <ProgressBar.Track className="h-2 rounded-full bg-gray-200">
                       <ProgressBar.Fill
                         className={`h-2 rounded-full ${
-                          (assessment2.result_json?.overall_score || 0) >= 75
+                          (scoringResult2?.overall_score || 0) >= 75
                             ? 'bg-emerald-500'
-                            : (assessment2.result_json?.overall_score || 0) >= 50
+                            : (scoringResult2?.overall_score || 0) >= 50
                               ? 'bg-amber-500'
                               : 'bg-red-500'
                         }`}
@@ -803,6 +915,43 @@ export default function AssessmentComparisonPage() {
               </div>
             </Card.Content>
           </Card>
+
+          {/* Score Breakdown Comparison */}
+          {scoringResult1?.score_breakdown && scoringResult2?.score_breakdown && (
+            <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-white">
+              <Card.Header className="flex items-center gap-3 pb-4">
+                <Card.Title className="font-bold text-lg text-slate-900">
+                  Score Breakdown
+                </Card.Title>
+              </Card.Header>
+              <Card.Content className="p-0">
+                <div className="space-y-4 p-4">
+                  {Object.keys(scoringResult1.score_breakdown).map((category) => {
+                    const data1 = scoringResult1.score_breakdown[category];
+                    const data2 = scoringResult2.score_breakdown[category];
+                    return (
+                      <div key={category} className="p-4 bg-slate-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-bold text-slate-900">{category}</div>
+                          <div className="flex gap-4">
+                            <div className="text-sm font-bold text-emerald-700">
+                              A1: {data1.score}
+                            </div>
+                            <div className="text-sm font-bold text-blue-700">A2: {data2.score}</div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-600 mb-2">{data1.weight}</div>
+                        <div className="flex gap-4">
+                          <ProgressBar value={data1.score} className="flex-1 h-2" color="success" />
+                          <ProgressBar value={data2.score} className="flex-1 h-2" color="primary" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card.Content>
+            </Card>
+          )}
         </Tabs.Panel>
 
         {/* ANALYSIS TAB */}

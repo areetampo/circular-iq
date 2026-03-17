@@ -1,5 +1,15 @@
-import { Card, Label, ListBox, Select, Skeleton, Table, Tabs, toast } from '@heroui/react';
-import { Alert, ProgressCircle } from '@heroui/react';
+import {
+  Alert,
+  Card,
+  Label,
+  ListBox,
+  ProgressCircle,
+  Select,
+  Skeleton,
+  Table,
+  Tabs,
+  toast,
+} from '@heroui/react';
 import { Grid } from '@mui/material';
 import {
   Activity,
@@ -15,7 +25,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { BarChart, ComboChart, LineChart, PieChart } from '@/components/charts';
@@ -26,13 +36,12 @@ import DocumentCard from '@/components/search/DocumentCard';
 import SearchBar from '@/components/search/SearchBar';
 import { INDUSTRY_THEMES } from '@/constants/industryThemes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useEnhancedAnalytics } from '@/features/assessments';
-import { useDocumentStats, useSearch } from '@/features/assessments';
+import { useDocumentStats, useEnhancedAnalytics, useSearch } from '@/features/assessments';
+import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { sortByAverageScoreAsc, sortByAverageScoreDesc } from '@/features/assessments/utils';
 import { exportDashboardToPDF } from '@/lib/exportDashboard';
-import { toTitleCase } from '@/lib/formatting';
-import { getCurrentTimestampFormatted } from '@/lib/formatting';
+import { getCurrentTimestampFormatted, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 import FeaturedSolutionsCard from './FeaturedSolutionsCard';
@@ -222,6 +231,23 @@ export default function DashboardPage() {
     isError,
     error,
   } = useEnhancedAnalytics({ filters });
+
+  // User-specific assessment statistics
+  const {
+    totalAssessments: userTotalAssessments,
+    completedAssessments: userCompletedAssessments,
+    averageScore: userAverageScore,
+    medianScore: userMedianScore,
+    minScore: userMinScore,
+    maxScore: userMaxScore,
+    avgConfidence: userAvgConfidence,
+    avgTechnicalFeasibility: userAvgTechnicalFeasibility,
+    avgEconomicViability: userAvgEconomicViability,
+    avgCircularityPotential: userAvgCircularityPotential,
+    assessmentsByIndustry: userAssessmentsByIndustry,
+    assessmentsByRisk: userAssessmentsByRisk,
+    assessmentsByScale: userAssessmentsByScale,
+  } = useAssessmentStats({ enabled: !isLoading });
 
   // Featured solutions - support optional semantic query
   const [featuredQuery, setFeaturedQuery] = useState('');
@@ -591,6 +617,80 @@ export default function DashboardPage() {
             icon={Building2}
             color="amber"
           />
+        </div>
+      )}
+
+      {/* USER-SPECIFIC METRICS */}
+      {userTotalAssessments > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-800">Your Assessment Analytics</h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard
+              title="Your Assessments"
+              value={userTotalAssessments}
+              subtitle={`${userCompletedAssessments} completed`}
+              icon={Users}
+              color="primary"
+            />
+
+            <MetricCard
+              title="Your Avg Score"
+              value={userAverageScore ? userAverageScore.toFixed(1) : 'N/A'}
+              subtitle={`Median: ${userMedianScore ? userMedianScore.toFixed(1) : 'N/A'}`}
+              icon={Gauge}
+              color="emerald"
+            />
+
+            <MetricCard
+              title="Avg Confidence"
+              value={userAvgConfidence ? `${userAvgConfidence.toFixed(1)}%` : 'N/A'}
+              subtitle="Score reliability"
+              icon={Activity}
+              color="indigo"
+            />
+
+            <MetricCard
+              title="Avg Technical Feasibility"
+              value={userAvgTechnicalFeasibility ? userAvgTechnicalFeasibility.toFixed(1) : 'N/A'}
+              subtitle="Implementation readiness"
+              icon={Target}
+              color="amber"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard
+              title="Avg Economic Viability"
+              value={userAvgEconomicViability ? userAvgEconomicViability.toFixed(1) : 'N/A'}
+              subtitle="Financial sustainability"
+              icon={BarChart3}
+              color="rose"
+            />
+
+            <MetricCard
+              title="Avg Circularity Potential"
+              value={userAvgCircularityPotential ? userAvgCircularityPotential.toFixed(1) : 'N/A'}
+              subtitle="Circular economy impact"
+              icon={Sparkles}
+              color="emerald"
+            />
+
+            <MetricCard
+              title="Score Range"
+              value={userMinScore && userMaxScore ? `${userMinScore}-${userMaxScore}` : 'N/A'}
+              subtitle="Your assessment scores"
+              icon={TrendingUp}
+              color="primary"
+            />
+
+            <MetricCard
+              title="Risk Distribution"
+              value={Object.keys(userAssessmentsByRisk).length}
+              subtitle="Risk levels assessed"
+              icon={TrendingDown}
+              color="amber"
+            />
+          </div>
         </div>
       )}
 

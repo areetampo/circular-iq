@@ -5,6 +5,7 @@
  * Location: src/features/export/exportPDF.js
  */
 
+import { reconstructScoringResult } from '@/features/assessments/utils';
 import html2canvas from 'html2canvas';
 
 /**
@@ -249,6 +250,8 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   const result = assessment.result_json || assessment;
   const metadata = result.metadata || {};
 
+  const scoringResult = reconstructScoringResult(assessment);
+
   const assessmentName =
     assessment.title ||
     assessment.caseName ||
@@ -319,6 +322,79 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   const renderY = headerHeight + 10;
 
   pdf.addImage(imgData, 'PNG', renderX, renderY, renderWidth, renderHeight, undefined, 'FAST');
+
+  // Add extra sections for derived metrics and AI audit summary (not always visible in the UI)
+  if (scoringResult?.derived_metrics) {
+    pdf.addPage();
+    pdf.setFontSize(16);
+    pdf.setTextColor(5, 150, 105);
+    pdf.text('Derived Metrics', margin, 30);
+    pdf.setFontSize(12);
+    pdf.setTextColor(44, 62, 80);
+
+    const dm = scoringResult.derived_metrics;
+    const derivedRows = [
+      ['Technical Feasibility', dm.technical_feasibility ?? 'N/A'],
+      ['Economic Viability', dm.economic_viability ?? 'N/A'],
+      ['Circularity Potential', dm.circularity_potential ?? 'N/A'],
+      ['Risk Level', (dm.risk_level ?? 'N/A').toString().toUpperCase()],
+    ];
+
+    let y = 45;
+    derivedRows.forEach(([label, value]) => {
+      pdf.setFontSize(12);
+      pdf.text(`${label}: ${value}`, margin, y);
+      y += 10;
+    });
+  }
+
+  if (scoringResult?.audit) {
+    const audit = scoringResult.audit;
+
+    pdf.addPage();
+    pdf.setFontSize(16);
+    pdf.setTextColor(5, 150, 105);
+    pdf.text('AI Audit Summary', margin, 30);
+    pdf.setFontSize(12);
+    pdf.setTextColor(44, 62, 80);
+
+    let y = 45;
+
+    if (audit.audit_verdict) {
+      pdf.setFontSize(14);
+      pdf.text('Audit Verdict', margin, y);
+      y += 10;
+      pdf.setFontSize(12);
+      pdf.text(pdf.splitTextToSize(formatTextForPDF(audit.audit_verdict), contentWidth), margin, y);
+      y += 20;
+    }
+
+    if (audit.technical_recommendations?.length > 0) {
+      pdf.setFontSize(14);
+      pdf.text('Technical Recommendations', margin, y);
+      y += 10;
+      pdf.setFontSize(12);
+      audit.technical_recommendations.slice(0, 3).forEach((rec, i) => {
+        const line = `${i + 1}. ${formatTextForPDF(rec)}`;
+        pdf.text(pdf.splitTextToSize(line, contentWidth), margin, y);
+        y += 10;
+      });
+      y += 5;
+    }
+
+    if (audit.integrity_gaps?.length > 0) {
+      pdf.setFontSize(14);
+      pdf.text('Integrity Gaps', margin, y);
+      y += 10;
+      pdf.setFontSize(12);
+      audit.integrity_gaps.forEach((gap) => {
+        const line = `[${(gap.severity || 'low').toUpperCase()}] ${formatTextForPDF(gap.issue)}`;
+        pdf.text(pdf.splitTextToSize(line, contentWidth), margin, y);
+        y += 10;
+      });
+      y += 5;
+    }
+  }
 
   // Save the PDF
   const dateStr = new Date().toISOString().split('T')[0];

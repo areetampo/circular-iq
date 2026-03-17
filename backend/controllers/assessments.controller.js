@@ -60,21 +60,46 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
 
     // Ensure assessment stores the case-summary inputs even if the client
     // provided them inside `result_json` instead of top-level fields.
-    const finalResultJson =
-      result_json || (result ? { ...result, input_parameters: parameters || null } : null);
+    const scoringResult = result_json || result; // full API response
 
     const assessmentData = {
       user_id: user.id,
       title: name || title?.substring(0, 255) || 'Untitled Assessment',
       business_problem:
-        businessProblem || finalResultJson?.businessProblem || finalResultJson?.problem || '',
+        businessProblem || scoringResult?.businessProblem || scoringResult?.problem || '',
       business_solution:
-        businessSolution || finalResultJson?.businessSolution || finalResultJson?.solution || '',
-      result_json: finalResultJson,
-      // Use industry field only; metadata should not supply this value
-      industry: industry ?? null,
-      overall_score: Math.round(resultData.overall_score),
-      business_viability_score: resultData.sub_scores?.business_viability || 0,
+        businessSolution || scoringResult?.businessSolution || scoringResult?.solution || '',
+
+      // ── Scoring scalars ──────────────────────────────────────────────────────
+      overall_score: Math.round(scoringResult.overall_score),
+      confidence_level: scoringResult.confidence_level ?? null,
+
+      // ── Derived metric scalars ───────────────────────────────────────────────
+      technical_feasibility: scoringResult.derived_metrics?.technical_feasibility ?? null,
+      economic_viability: scoringResult.derived_metrics?.economic_viability ?? null,
+      circularity_potential: scoringResult.derived_metrics?.circularity_potential ?? null,
+      risk_level: scoringResult.derived_metrics?.risk_level ?? null,
+
+      // ── Metadata scalars ─────────────────────────────────────────────────────
+      industry: industry ?? scoringResult.metadata?.industry ?? null,
+      scale: scoringResult.metadata?.scale ?? null,
+      r_strategy: scoringResult.metadata?.r_strategy ?? null,
+      primary_material: scoringResult.metadata?.primary_material ?? null,
+      geographic_focus: scoringResult.metadata?.geographic_focus ?? null,
+
+      // ── JSON blobs ───────────────────────────────────────────────────────────
+      input_parameters:
+        scoringResult.input_parameters || scoringResult.parameters || parameters || null,
+      sub_scores: scoringResult.sub_scores ?? null,
+      derived_metrics: scoringResult.derived_metrics ?? null,
+      score_breakdown: scoringResult.score_breakdown ?? null,
+      audit: scoringResult.audit ?? null,
+      gap_analysis: scoringResult.gap_analysis ?? null,
+      similar_cases: scoringResult.similar_cases ?? null,
+      metadata: scoringResult.metadata ?? null,
+      result_json: scoringResult, // full snapshot — required NOT NULL
+
+      // ── Sharing ──────────────────────────────────────────────────────────────
       is_public: typeof is_public === 'boolean' ? is_public : true,
       contribute_to_global_benchmarks:
         typeof contribute_to_global_benchmarks === 'boolean'
@@ -214,60 +239,38 @@ export async function getAssessmentStats(supabase, user, token) {
   try {
     const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
 
-    // Get all assessments for the user (no pagination) - fetch both score and industry
-    let queryBuilder = userClient
-      .from('assessments')
-      .select('overall_score, industry', { count: 'exact' });
-
-    if (user && user.id) {
-      queryBuilder = queryBuilder.eq('user_id', user.id);
-    }
-
-    const { data, error, count } = await queryBuilder;
+    // Use the RPC function to get comprehensive statistics including new fields
+    const { data, error } = await userClient.rpc('get_assessment_statistics', {
+      user_uuid: user?.id || null,
+    });
 
     if (error) {
-      console.error('Query error:', error);
+      console.error('RPC error:', error);
       throw error;
     }
 
-    // Calculate statistics
-    const scores = (data || []).map((a) => a.overall_score || 0).filter((s) => s !== null);
+    const stats = data?.[0] || {};
 
-    // Calculate top industry (handle ties by showing all industries with max count)
-    let topIndustries = null;
-    if (data && data.length > 0) {
-      const industryCounts = (data || []).reduce((acc, assessment) => {
-        const ind = assessment.industry || 'general';
-        acc[ind] = (acc[ind] || 0) + 1;
-        return acc;
-      }, {});
-
-      // Find max count
-      const maxCount = Math.max(...Object.values(industryCounts));
-
-      // Get all industries with max count
-      const topIndustriesArray = Object.entries(industryCounts)
-        .filter(([, cnt]) => cnt === maxCount)
-        .map(([ind, cnt]) => ({ industry: ind, count: cnt }))
-        .sort((a, b) => a.industry.localeCompare(b.industry));
-
-      topIndustries = topIndustriesArray;
-    }
-
-    const stats = {
-      totalAssessments: count || 0,
-      averageScore:
-        scores.length > 0
-          ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100
-          : 0,
-      highestScore: scores.length > 0 ? Math.max(...scores) : 0,
-      lowestScore: scores.length > 0 ? Math.min(...scores) : 0,
-      topIndustries,
+    // Transform the RPC result to match expected format
+    const result = {
+      totalAssessments: Number(stats.total_assessments) || 0,
+      completedAssessments: Number(stats.completed_assessments) || 0,
+      averageScore: Number(stats.avg_score) || 0,
+      medianScore: Number(stats.median_score) || 0,
+      minScore: Number(stats.min_score) || null,
+      maxScore: Number(stats.max_score) || null,
+      avgConfidence: Number(stats.avg_confidence) || null,
+      avgTechnicalFeasibility: Number(stats.avg_technical_feasibility) || null,
+      avgEconomicViability: Number(stats.avg_economic_viability) || null,
+      avgCircularityPotential: Number(stats.avg_circularity_potential) || null,
+      assessmentsByIndustry: stats.assessments_by_industry || {},
+      assessmentsByRisk: stats.assessments_by_risk || {},
+      assessmentsByScale: stats.assessments_by_scale || {},
     };
 
     logOperation('getAssessmentStats', 'success', Date.now() - startTime);
 
-    return stats;
+    return result;
   } catch (error) {
     logOperation('getAssessmentStats', 'error', Date.now() - startTime);
     throw error;

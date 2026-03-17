@@ -177,7 +177,7 @@ import { SaveAssessmentDialog } from '@/components/dialogs';
   open={isOpen}
   onOpenChange={setIsOpen}
   defaultName="Untitled Assessment"
-  onSave={(name, isPublic) => handleSave(name, isPublic)}
+  onSave={(payload) => handleSave(payload)}
 />;
 ```
 

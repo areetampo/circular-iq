@@ -46,6 +46,18 @@ export function getScoreColor(score) {
 }
 
 /**
+ * Get Tailwind text color class for a score
+ * @param {number} score - Score from 0-100
+ * @returns {string} Tailwind text color class
+ */
+export function getScoreClass(score) {
+  if (score >= 75) return 'text-green-700';
+  if (score >= 50) return 'text-blue-600';
+  if (score >= 25) return 'text-orange-600';
+  return 'text-red-600';
+}
+
+/**
  * Get confidence level info
  * @param {number} confidence - Confidence from 0-100
  * @returns {Object} Confidence level {color, label, description}
@@ -81,21 +93,42 @@ export function groupParametersByCategory(parameters) {
 }
 
 /**
- * Calculate category averages
- * @param {Object} parameters - All parameters
- * @returns {Object} Category averages
+ * Get risk level badge color
+ * @param {string} riskLevel - 'low', 'medium', 'high'
+ * @returns {string} Tailwind class string
  */
-export function calculateCategoryAverages(parameters) {
-  const grouped = groupParametersByCategory(parameters);
-  const averages = {};
-
-  for (const [category, params] of Object.entries(grouped)) {
-    const values = Object.values(params);
-    const sum = values.reduce((a, b) => a + b, 0);
-    averages[category] = Math.round(sum / values.length);
+export function getRiskBadgeColor(riskLevel) {
+  switch (riskLevel?.toLowerCase()) {
+    case 'low':
+      return 'text-green-700 bg-green-100 border-green-200';
+    case 'medium':
+      return 'text-amber-700 bg-amber-100 border-amber-200';
+    case 'high':
+      return 'text-red-700 bg-red-100 border-red-200';
+    default:
+      return 'text-gray-700 bg-gray-100 border-gray-200';
   }
+}
 
-  return averages;
+/**
+ * Format factor name from snake_case to Title Case
+ * @param {string} snakeCaseKey - e.g. 'public_participation'
+ * @returns {string} Title Case string
+ */
+export function formatFactorName(snakeCaseKey) {
+  return snakeCaseKey
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Get similarity percent
+ * @param {number} similarity - 0-1
+ * @returns {number} Percent
+ */
+export function getSimilarityPercent(similarity) {
+  return Math.round((similarity || 0) * 100);
 }
 
 /**

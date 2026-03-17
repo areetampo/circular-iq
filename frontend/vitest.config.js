@@ -1,7 +1,23 @@
+import fs from 'fs';
 import path from 'path';
 
 import react from '@vitejs/plugin-react';
+import dotenv from 'dotenv';
 import { defineConfig } from 'vitest/config';
+
+// Load shared test env vars from the monorepo env/.env.test file.
+// Vitest runs from the frontend package, so we resolve relative to this folder.
+const sharedTestEnvPath = path.resolve(__dirname, '../env/.env.test');
+if (fs.existsSync(sharedTestEnvPath)) {
+  dotenv.config({ path: sharedTestEnvPath });
+}
+
+// Ensure tests can rely on a consistent set of VITE_* env vars.
+const {
+  VITE_API_URL = 'http://localhost:3001',
+  VITE_SUPABASE_URL = 'https://test.supabase.co',
+  VITE_SUPABASE_ANON_KEY = 'test-anon-key',
+} = process.env;
 
 export default defineConfig({
   plugins: [react()],
@@ -28,9 +44,9 @@ export default defineConfig({
     css: true,
     testTimeout: 10000,
     env: {
-      VITE_API_URL: 'http://localhost:3001',
-      VITE_SUPABASE_URL: 'https://test.supabase.co',
-      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+      VITE_API_URL,
+      VITE_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY,
       VITE_ENV: 'test',
       MODE: 'test',
       PROD: 'false',

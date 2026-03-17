@@ -15,6 +15,17 @@ import dotenv from 'dotenv';
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 const IS_PROD = NODE_ENV === 'production';
 
+// Detect Node's built-in test runner and ensure we load the test env file.
+// This allows running `node --test` without requiring NODE_ENV=test to be set.
+const IS_NODE_TEST =
+  process.env.NODE_ENV === 'test' ||
+  typeof globalThis.test === 'function' ||
+  process.argv.some((arg) => arg === '--test' || arg.startsWith('--test-'));
+
+if (IS_NODE_TEST && process.env.NODE_ENV !== 'test') {
+  process.env.NODE_ENV = 'test';
+}
+
 // 1. Define __dirname once at the top level
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,12 +54,13 @@ const rootEnvPath = path.resolve(root, 'env');
 
 if (!IS_PROD) {
   // 3. Use the rootEnvPath we already calculated above
-  const backendPath = path.join(rootEnvPath, '.env.backend');
+  const envFilename = IS_NODE_TEST ? '.env.test' : '.env.backend';
+  const envPath = path.join(rootEnvPath, envFilename);
 
-  if (fs.existsSync(backendPath)) {
-    dotenv.config({ path: backendPath, override: false });
-    console.log(`✓ Loaded env from: ${backendPath}`);
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath, override: false });
+    console.log(`✓ Loaded env from: ${envPath}`);
   } else {
-    console.warn(`‼ Warning: .env.backend not found at ${backendPath}`);
+    console.warn(`‼ Warning: ${envFilename} not found at ${envPath}`);
   }
 }

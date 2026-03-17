@@ -34,6 +34,31 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
   };
 }
 
+/**
+ * Extract user ID from authorization header
+ * @param {Object} req - Express request object
+ * @param {Object} supabase - Supabase client
+ * @returns {Promise<string|null>} User ID or null if anonymous
+ */
+async function extractUserId(req, supabase) {
+  const authHeader = req.headers.authorization || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  const token = authHeader.slice(7).trim();
+  if (!token) return null;
+
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (!error && data?.user) {
+      return data.user.id;
+    }
+  } catch (err) {
+    console.warn('extractUserId failed:', err.message);
+  }
+  return null;
+}
+
 export default function createScoringRouter(openai, supabase) {
   // Support two call styles used across the codebase and tests:
   // - createScoringRouter(openai, supabase)
@@ -86,10 +111,14 @@ export default function createScoringRouter(openai, supabase) {
         return res.status(status).json(anonCheck.body);
       }
 
+      const userId = await extractUserId(req, supabaseClient);
+
       const response = await scoringController.performScoring(
         req,
         openaiClient || sharedOpenAI,
         supabaseClient,
+        serviceSupabase,
+        userId,
       );
       logRequest('POST', '/score', 200, Date.now() - start);
       res.json(response);

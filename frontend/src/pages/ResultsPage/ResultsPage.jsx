@@ -54,11 +54,13 @@ import {
   usePublicAssessment,
 } from '@/features/assessments';
 import { updateAssessment } from '@/features/assessments/api/assessmentApi';
+import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
 import { titleize } from '@/lib/formatting';
+import { formatFactorName, getRiskBadgeColor, getScoreClass } from '@/lib/scoring';
 import {
   categorizeIntegrityGaps,
   extractCaseInfo,
@@ -330,9 +332,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   // Save assessment handler
   console.log();
   const handleSave = useCallback(
-    async (name, isPublic = true, contributeToGlobalBenchmarks = true) => {
+    async ({
+      name,
+      industry,
+      isPublic = true,
+      contributeToGlobalBenchmarks = true,
+      scoringResult,
+    }) => {
       try {
-        const baseResult = currentData?.result_json || currentData || {};
+        const baseResult = scoringResult || currentData?.result_json || currentData || {};
         const inputParameters =
           resolvedFormData?.parameters || baseResult?.input_parameters || null;
         let resultPayload = inputParameters
@@ -345,7 +353,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         const saveData = {
           name,
           result_json: resultPayload,
-          industry: currentData?.industry ?? null,
+          industry: industry ?? currentData?.industry ?? null,
           is_public: isPublic,
           contribute_to_global_benchmarks: contributeToGlobalBenchmarks,
           // Persist case-summary fields — prefer `resolvedFormData` (from in-memory form)
@@ -427,7 +435,17 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     [currentData, resolvedFormData, createAssessmentAsync, navigate],
   );
 
-  const actualResult = currentData?.result_json || currentData || null;
+  const scoringResult = useMemo(() => {
+    if (!currentData) return null;
+    if (currentData.result_json) return currentData.result_json;
+    // If the payload already looks like a scoring API response, use it directly
+    if (currentData.businessProblem || currentData.businessSolution) return currentData;
+
+    // Otherwise, reconstruct from the saved assessment row
+    return reconstructScoringResult(currentData);
+  }, [currentData]);
+
+  const actualResult = scoringResult || currentData || null;
   const caseId = actualResult?.case_id || currentData?.id || id;
   let caseIndustry = '';
   try {
@@ -534,7 +552,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         const value = actualResult.sub_scores[key];
         const numValue = value != null && !isNaN(value) ? Number(value) : 0;
         return {
-          subject: categoryMapping[key]?.name || key.replace(/_/g, ' '),
+          subject: formatFactorName(key),
           userValue: numValue,
           marketAvg,
         };
@@ -970,6 +988,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 openSaveAssessmentDialog({
                   defaultName: defaultAssessmentName,
                   onSave: handleSave,
+                  scoringResult: actualResult,
                 });
               }}
               variant="success"
@@ -1321,18 +1340,31 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         </Chip>
                       )}
                     </div>
+                    {actualResult.metadata?.short_description && (
+                      <p className="text-sm text-slate-600 mb-2">
+                        {actualResult.metadata.short_description}
+                      </p>
+                    )}
                     <p className="text-sm text-slate-600">
                       AI-powered circularity assessment and recommendations
                     </p>
                   </div>
-                  <Chip
-                    variant="soft"
-                    color="warning"
-                    size="sm"
-                    className="font-semibold text-xs px-3 py-1"
-                  >
-                    {actualResult.audit?.confidence_score || 0}% Confidence
-                  </Chip>
+                  <div className="flex flex-col gap-2">
+                    <Chip
+                      variant="soft"
+                      color="warning"
+                      size="sm"
+                      className="font-semibold text-xs px-3 py-1"
+                    >
+                      Confidence: {actualResult.confidence_level || 0}%
+                    </Chip>
+                    {actualResult.processing_info?.processing_time_ms && (
+                      <Chip variant="secondary" size="sm" className="text-xs">
+                        Analysed in{' '}
+                        {(actualResult.processing_info.processing_time_ms / 1000).toFixed(1)}s
+                      </Chip>
+                    )}
+                  </div>
                 </div>
 
                 {actualResult.audit?.audit_verdict && (
@@ -1357,7 +1389,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="p-4 bg-linear-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-lg">
                     <p className="text-xs text-slate-600 mb-1">Overall Score</p>
-                    <p className="text-3xl font-bold text-emerald-700">
+                    <p className={`text-3xl font-bold ${getScoreClass(overallScore)}`}>
                       {overallScore}
                       <span className="text-lg text-slate-500">/100</span>
                     </p>
@@ -1490,7 +1522,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     Additional consolidated metrics derived from your factor scores.
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     {[
                       { key: 'technical_feasibility', label: 'Technical Feasibility' },
                       { key: 'economic_viability', label: 'Economic Viability' },
@@ -1519,22 +1551,56 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         </div>
                       );
                     })}
+                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs font-bold text-slate-900">Risk Level</div>
+                        <Chip
+                          variant="soft"
+                          className={`text-xs font-bold ${getRiskBadgeColor(actualResult.derived_metrics.risk_level)}`}
+                        >
+                          {actualResult.derived_metrics.risk_level?.toUpperCase() || 'UNKNOWN'}
+                        </Chip>
+                      </div>
+                      <div className="text-sm text-slate-600 mt-2">
+                        Overall project risk assessment
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </Card>
+            )}
 
-                  {actualResult.derived_metrics.risk_level && (
-                    <Alert
-                      severity={
-                        actualResult.derived_metrics.risk_level === 'high'
-                          ? 'error'
-                          : actualResult.derived_metrics.risk_level === 'medium'
-                            ? 'warning'
-                            : 'success'
-                      }
-                      className="text-sm"
-                    >
-                      Risk Level: {actualResult.derived_metrics.risk_level.toUpperCase()}
-                    </Alert>
-                  )}
+            {/* Score Breakdown Section */}
+            {actualResult?.score_breakdown && (
+              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+                <div className="p-1 sm:p-3">
+                  <h3 className="text-lg font-bold text-slate-900 mb-1">Score Breakdown</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Detailed breakdown by value category
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Object.entries(actualResult.score_breakdown).map(([category, data]) => (
+                      <div
+                        key={category}
+                        className="p-4 bg-white border border-slate-200 rounded-lg"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-bold text-slate-900">{category}</div>
+                          <div className="text-sm font-bold text-slate-900">{data.score}</div>
+                        </div>
+                        <div className="text-xs text-slate-600 mb-2">{data.weight}</div>
+                        <p className="text-xs text-slate-700 mb-3">{data.description}</p>
+                        <div className="space-y-1">
+                          {data.factors?.map((factor, i) => (
+                            <Chip key={i} variant="secondary" size="sm" className="text-xs">
+                              {factor.name}: {factor.score}
+                            </Chip>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </Card>
             )}
@@ -1923,6 +1989,121 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       </Accordion.Item>
                     )}
                   </Accordion>
+                </div>
+              </Card>
+            )}
+
+            {/* Audit Section */}
+            {actualResult?.audit && (
+              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+                <div className="p-1 sm:p-3">
+                  <h3 className="text-lg font-bold text-slate-900 mb-1">AI Audit Summary</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Comprehensive analysis and recommendations
+                  </p>
+
+                  {actualResult.audit.audit_verdict && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold text-slate-900 mb-2">Audit Verdict</h4>
+                      <p className="text-sm text-slate-700">{actualResult.audit.audit_verdict}</p>
+                    </div>
+                  )}
+
+                  {actualResult.audit.comparative_analysis && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold text-slate-900 mb-2">
+                        Comparative Analysis
+                      </h4>
+                      <p className="text-sm text-slate-700">
+                        {actualResult.audit.comparative_analysis}
+                      </p>
+                    </div>
+                  )}
+
+                  {actualResult.audit.integrity_gaps &&
+                    actualResult.audit.integrity_gaps.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold text-slate-900 mb-2">Integrity Gaps</h4>
+                        <ul className="space-y-2">
+                          {actualResult.audit.integrity_gaps.map((gap, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                              <Chip
+                                variant="soft"
+                                className={`text-xs ${gap.severity === 'high' ? 'text-red-700 bg-red-100' : gap.severity === 'medium' ? 'text-amber-700 bg-amber-100' : 'text-blue-700 bg-blue-100'}`}
+                              >
+                                {gap.severity || 'medium'}
+                              </Chip>
+                              <span className="text-sm text-slate-700">{gap.issue}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {actualResult.audit.strengths && actualResult.audit.strengths.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold text-slate-900 mb-2">Strengths</h4>
+                      <ul className="space-y-1">
+                        {actualResult.audit.strengths.map((strength, i) => (
+                          <li key={i} className="text-sm text-slate-700">
+                            • {strength.aspect}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {actualResult.audit.technical_recommendations &&
+                    actualResult.audit.technical_recommendations.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold text-slate-900 mb-2">
+                          Technical Recommendations
+                        </h4>
+                        <ul className="space-y-1">
+                          {actualResult.audit.technical_recommendations.map((rec, i) => (
+                            <li key={i} className="text-sm text-slate-700">
+                              • {rec}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {actualResult.audit.similar_cases_summaries &&
+                    actualResult.audit.similar_cases_summaries.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-bold text-slate-900 mb-2">
+                          Similar Cases Summaries
+                        </h4>
+                        <ul className="space-y-1">
+                          {actualResult.audit.similar_cases_summaries.map((summary, i) => (
+                            <li key={i} className="text-sm text-slate-700">
+                              • {summary}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {actualResult.audit.key_metrics_comparison && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold text-slate-900 mb-2">
+                        Key Metrics Comparison
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {Object.entries(actualResult.audit.key_metrics_comparison).map(
+                          ([key, value]) => (
+                            <div key={key} className="p-3 bg-slate-50 rounded-lg">
+                              <div className="text-xs font-bold text-slate-900 capitalize">
+                                {key.replace(/_/g, ' ')}
+                              </div>
+                              <div className="text-sm text-slate-700">{value}</div>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
