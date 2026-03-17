@@ -14,7 +14,7 @@ import { envSchema, testEnvSchema } from '#config/env.schema.js';
 /* ------------------------------ */
 
 const schema = (process.env.NODE_ENV || '').toLowerCase() === 'test' ? testEnvSchema : envSchema;
-let parsed = schema.safeParse(process.env);
+const parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error('✕ Environment validation failed:\n');
@@ -23,7 +23,7 @@ if (!parsed.success) {
   // For test environment, fail if validation fails; no fallbacks
   if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
     console.error(
-      'Test environment validation failed. Ensure all required variables are set in env/.env.test',
+      '✕ Test environment validation failed. Ensure all required variables are set in env/.env.test',
     );
     process.exit(1);
   } else {
@@ -31,7 +31,7 @@ if (!parsed.success) {
   }
 }
 
-const env = Object.freeze({ ...(parsed.success ? parsed.data : {}) });
+const env = Object.freeze({ ...parsed.data });
 
 /* ------------------------------ */
 /* Strict CI Enforcement */
@@ -44,7 +44,7 @@ if (env.STRICT_ENV) {
 
   if (missingExplicit.length > 0) {
     console.error(
-      `✕ STRICT_ENV enabled. Missing explicit values for: ${missingExplicit.join(', ')}`,
+      `✕ STRICT_ENV enabled. Missing explicit values for:\n» ${missingExplicit.join(', ')}`,
     );
     process.exit(1);
   }
@@ -74,22 +74,15 @@ const parseAllowedOrigins = () => {
       ? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
       : [];
 
-  // env.ALLOWED_ORIGINS may be undefined if validation failed; fall back to empty array
-  const origins = Array.isArray(env.ALLOWED_ORIGINS) ? env.ALLOWED_ORIGINS : [];
-
-  // env.FRONTEND_URL may also be undefined
+  const origins = env.ALLOWED_ORIGINS ?? [];
   const frontend = env.FRONTEND_URL ? [env.FRONTEND_URL] : [];
 
   return [...new Set([...defaults, ...origins, ...frontend])];
 };
 
 const parsePublicRoutes = () => {
-  // /health and search endpoint are ALWAYS included as public routes
   const defaults = ['/health', '/api/search'];
-
-  // env.PUBLIC_ROUTES may be undefined if validation failed; treat as empty
-  const routes = Array.isArray(env.PUBLIC_ROUTES) ? env.PUBLIC_ROUTES : [];
-
+  const routes = env.PUBLIC_ROUTES ?? [];
   return [...new Set([...defaults, ...routes])];
 };
 
@@ -107,7 +100,7 @@ const createRouteMatchers = (publicRoutes) => {
 };
 
 // convert to a Set so that callers can use `.has()` for fast lookup
-const publicRoutes = new Set(parsePublicRoutes());
+const publicRoutesSet = new Set(parsePublicRoutes());
 
 /**
  * List of database function names used in the application. This centralizes the function names, making it easier to manage and refactor database interactions. The actual function names in the database are expected to match these, but if we need to change them, we can do so here without affecting the rest of the codebase.
@@ -136,9 +129,7 @@ const DB_FUNCTIONS = Object.freeze([
  * @private
  */
 export const buildDatabaseConfig = () => ({
-  tables: {
-    documents: 'documents',
-  },
+  tables: { documents: 'documents' },
   functions: Object.fromEntries(DB_FUNCTIONS.map((n) => [n, n])),
 });
 
@@ -179,14 +170,13 @@ export const BACKEND_CONFIG = deepFreeze({
 
   db: buildDatabaseConfig(),
 
-  // computed flag - true means we query Supabase for documents, false => Aiven
   useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
 
   app: {
     frontendUrl: env.FRONTEND_URL,
     allowedOrigins: parseAllowedOrigins(),
-    publicRoutes,
-    routeMatchers: createRouteMatchers(publicRoutes),
+    publicRoutes: publicRoutesSet,
+    routeMatchers: createRouteMatchers(publicRoutesSet),
 
     maxFreeTries: env.MAX_FREE_TRIES,
 
@@ -217,8 +207,8 @@ export const ENV_FINGERPRINT = crypto
   .createHash('sha256')
   .update(
     JSON.stringify({
-      ...parsed.data,
-      ...Object.fromEntries(redacted.map((key) => [key, '[Redacted]'])),
+      ...env,
+      ...Object.fromEntries(redacted.map((key) => [key, '[Redacted] (❁´◡`❁)'])),
     }),
   )
   .digest('hex');
