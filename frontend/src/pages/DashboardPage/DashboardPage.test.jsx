@@ -1,15 +1,24 @@
 import { act, render } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
-// Mock assessments API used by DashboardPage
-vi.mock('@/features/assessments/api/assessmentApi', () => ({
-  getAssessments: vi.fn().mockResolvedValue({ assessments: [], total: 0, page: 1, pageSize: 20 }),
-  getEnhancedAnalytics: vi.fn().mockResolvedValue({ data: null }),
-  getFeaturedSolutions: vi.fn().mockResolvedValue([]),
-}));
 
-// Mock utility helpers
-vi.mock('../../utils/cn', () => ({ cn: (...args) => args.filter(Boolean).join(' ') }));
+import { DrawerProvider } from '@/contexts/DrawerContext';
+
+// Mock formatting utilities
+vi.mock('@/lib/formatting', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    toTitleCase: vi.fn((str) => str.charAt(0).toUpperCase() + str.slice(1)),
+    getCurrentTimestampFormatted: () => '12 Jan 2025, 14:30',
+  };
+});
+
+// Mock authentication context
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, isAuthenticated: false, loading: false }),
+  AuthProvider: ({ children }) => children,
+}));
 
 // Mock react-router-dom search params used by Dashboard
 vi.mock('react-router-dom', () => ({
@@ -78,6 +87,8 @@ vi.mock('@heroui/react', () => {
       info: vi.fn(),
       warning: vi.fn(),
     },
+    ProgressCircle: ({ ...props }) => React.createElement('div', props, 'ProgressCircle'),
+    Alert: ({ children, ...props }) => React.createElement('div', props, children),
   };
 });
 
@@ -142,9 +153,7 @@ vi.mock('@/features/assessments/hooks/useFeaturedSolutions', () => ({
 }));
 
 // Mock clocked timestamp formatter to keep snapshots stable
-vi.mock('@/lib/formatting', () => ({
-  getCurrentTimestampFormatted: () => '11 Feb 2026, 10:00 am',
-}));
+// Already mocked above
 
 // Mock drawer hook so Dashboard can call openDashboardFeaturedSolutionsDrawer without side effects
 vi.mock('@/hooks/useDrawer', () => ({
@@ -161,6 +170,7 @@ vi.mock('@/components/charts', () => ({
   PieChart: (props) => React.createElement('div', { 'data-testid': 'pie-chart' }, 'PieChart'),
   LineChart: (props) => React.createElement('div', { 'data-testid': 'line-chart' }, 'LineChart'),
   ComboChart: (props) => React.createElement('div', { 'data-testid': 'combo-chart' }, 'ComboChart'),
+  BarChart: (props) => React.createElement('div', { 'data-testid': 'bar-chart' }, 'BarChart'),
 }));
 
 // Stub DrawerManager to prevent drawer render side-effects
@@ -176,14 +186,20 @@ vi.mock('@/components/filters/IndustryChipFilter', () => ({
   default: ({ industries }) => React.createElement('div', null, 'IndustryChipFilter'),
 }));
 
+import DashboardPage from './DashboardPage';
+
 // NOTE: This test can be slow importing the full page — set a per-test timeout option
 
 describe('DashboardPage (snapshot)', () => {
   it('renders Overview section consistently', { timeout: 20000 }, async () => {
     // NOTE: This test imports the full page; we stub heavy dependencies above to keep it deterministic
-    const { default: DashboardPage } = await import('./DashboardPage');
+    // const { default: DashboardPage } = await import('./DashboardPage');
 
-    const { asFragment, getByText } = render(<DashboardPage />);
+    const { asFragment, getByText } = render(
+      <DrawerProvider>
+        <DashboardPage />
+      </DrawerProvider>,
+    );
     await act(async () => {
       await Promise.resolve();
     });

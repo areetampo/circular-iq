@@ -2,6 +2,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // Mock hooks and dependencies
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: null, isAuthenticated: false, loading: false }),
+  AuthProvider: ({ children }) => children,
+}));
+
 vi.mock('@/features/assessments', () => ({
   useMarketAnalysis: () => ({
     marketData: [
@@ -34,6 +39,11 @@ vi.mock('@/features/assessments', () => ({
     ],
     overallVolatility: 5.2,
     industryMarketShare: 12.5,
+  }),
+  useDocumentStats: () => ({
+    stats: {},
+    loading: false,
+    error: null,
   }),
 }));
 
