@@ -6,7 +6,7 @@ vi.mock('@heroui/react', async (importOriginal) => {
     // override only what you need to stub
   };
 });
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 // Mock supabase methods used by SignupForm
@@ -68,19 +68,15 @@ describe('SignupForm redirects and preserves session', () => {
     supabase.auth.signUp.mockResolvedValue({ error: null });
     supabase.auth.signInWithPassword.mockResolvedValue({ error: null });
 
-    const { getByPlaceholderText, getByText } = renderWithRouter({ from: '/results' });
+    renderWithRouter({ from: '/results' });
 
     // Fill form
-    fireEvent.change(getByPlaceholderText('create your username'), { target: { value: 'tester' } });
-    fireEvent.change(getByPlaceholderText('create your password'), {
-      target: { value: 'secret1' },
-    });
-    fireEvent.change(getByPlaceholderText('confirm your password'), {
-      target: { value: 'secret1' },
-    });
+    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'tester' } });
+    fireEvent.change(screen.getByLabelText(/^Password$/i), { target: { value: 'secret1' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'secret1' } });
 
     await act(async () => {
-      fireEvent.click(getByText(/Create Account/i));
+      fireEvent.click(screen.getByText(/Create Account/i));
     });
 
     await waitFor(() => {
@@ -96,18 +92,14 @@ describe('SignupForm redirects and preserves session', () => {
     supabase.auth.signUp.mockResolvedValue({ error: null });
     supabase.auth.signInWithPassword.mockResolvedValue({ error: null });
 
-    const { getByPlaceholderText, getByText } = renderWithRouter();
+    renderWithRouter();
 
-    fireEvent.change(getByPlaceholderText('create your username'), { target: { value: 'alice' } });
-    fireEvent.change(getByPlaceholderText('create your password'), {
-      target: { value: 'p@ssw0rd' },
-    });
-    fireEvent.change(getByPlaceholderText('confirm your password'), {
-      target: { value: 'p@ssw0rd' },
-    });
+    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'alice' } });
+    fireEvent.change(screen.getByLabelText(/^Password$/i), { target: { value: 'p@ssw0rd' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'p@ssw0rd' } });
 
     await act(async () => {
-      fireEvent.click(getByText(/Create Account/i));
+      fireEvent.click(screen.getByText(/Create Account/i));
     });
 
     await waitFor(() => {

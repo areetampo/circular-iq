@@ -161,6 +161,7 @@ describe('ResultsPage — unauthenticated Save flow (isolated handler)', () => {
   }, 10000);
 
   test('Market Analysis navigates to session view for unsaved results', async () => {
+    mockNavigate.mockClear();
     // Put a session evaluation with a result into localStorage
     const session = {
       inputs: { businessProblem: 'P', businessSolution: 'S', parameters: {} },
