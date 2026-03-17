@@ -238,7 +238,7 @@ export function ClearFormDialog({ isOpen, onOpenChange, onConfirm }) {
 
 ## 📝 Usage Guidelines
 
-### DO ✅
+### DO ✓
 
 - Use `ConfirmationDialog` for new confirmation dialogs
 - Choose appropriate status variants (danger for destructive, success for positive, etc.)
@@ -247,7 +247,7 @@ export function ClearFormDialog({ isOpen, onOpenChange, onConfirm }) {
 - Use `isDismissable={false}` for critical actions
 - Provide clear, concise titles and descriptions
 
-### DON'T ❌
+### DON'T ✕
 
 - Scatter `AlertDialog.Backdrop` implementations across components
 - Use `Modal` for simple confirmations (use AlertDialog)
@@ -312,14 +312,14 @@ If you find an AlertDialog scattered in a component file:
 Example migration:
 
 ```jsx
-// Before (in component file) ❌
+// Before (in component file) ✕
 <AlertDialog.Backdrop isOpen={isOpen} onOpenChange={setIsOpen}>
   <AlertDialog.Container>
     <AlertDialog.Dialog>{/* ... lots of boilerplate ... */}</AlertDialog.Dialog>
   </AlertDialog.Container>
 </AlertDialog.Backdrop>;
 
-// After (using centralized dialog) ✅
+// After (using centralized dialog) ✓
 import { ReplaceInputsDialog } from '@/components/dialogs';
 
 <ReplaceInputsDialog isOpen={isOpen} onOpenChange={setIsOpen} onConfirm={handleReplace} />;

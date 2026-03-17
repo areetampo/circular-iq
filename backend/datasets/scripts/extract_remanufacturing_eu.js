@@ -21,20 +21,20 @@
  * Output: CSV with standardized columns in datasets/processed/
  */
 
-import fs from 'fs';
-import path from 'path';
-import { pathToFileURL, fileURLToPath } from 'url';
-import { createRequire } from 'module';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { Buffer } from 'buffer';
 import {
-  cleanText,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  DATASET_KEYS,
-  verifyPathsExist,
+    cleanText,
+    DATASET_KEYS,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import { Buffer } from 'buffer';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
@@ -465,7 +465,7 @@ async function main() {
     }
     console.log(`Loaded metadata for ${metadataMap.size} PDFs from metadata.json.`);
   } else {
-    console.warn('⚠️  metadata.json not found – categories will be "Unknown".');
+    console.warn('‼ metadata.json not found – categories will be "Unknown".');
   }
 
   if (!fs.existsSync(RAW_DIR)) {
@@ -554,13 +554,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `✅ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('❌ Fatal error:', err.message);
+    console.error('✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

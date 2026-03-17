@@ -1,0 +1,41 @@
+{
+  "search.exclude": {
+    "**/backend/database/migrations/**": true,
+    "**/backend/datasets/{archives,manual_entries,out,processed,raw}/**": true,
+    "**/*.{csv,jsonl,pdf,sql}": true,
+    "**/prompts/**": true
+  },
+
+  "files.exclude": {
+    "**/backend/datasets/archives/*.{json,jsonl}": false,
+    "**/backend/datasets/out/*.{json,jsonl}": false,
+    "**/*.{pdf,csv}": false,
+    "**/backend/datasets/archives/{chunks.json,embedded_chunks.jsonl,stored_documents.jsonl}": true,
+    "**/backend/datasets/out/{chunks.json,embedded_chunks.jsonl,stored_documents.jsonl}": true
+  },
+
+  "files.watcherExclude": {
+    "**/backend/datasets/**": true,
+    "**/frontend/dist/**": true,
+    "**/backend/tests/**": true,
+    "**/prompts/**": true
+  },
+
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+
+  "js/ts.tsserver.watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriorityPolling"
+  },
+
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+
+  "git.autorefresh": true,
+  "git.confirmSync": false,
+  "git.autofetch": false
+}

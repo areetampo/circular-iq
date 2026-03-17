@@ -23,17 +23,17 @@
  * Note: Aggregate regions like 'World', 'Arab States', regional groups are excluded
  */
 
+import {
+    DATASET_KEYS,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse/sync';
-import {
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.env;
 const rawDir = getDatasetRawDir(DATASET_KEY);
@@ -64,7 +64,7 @@ async function main() {
   try {
     raw = await fs.readFile(INPUT_FILE, 'utf-8');
   } catch (err) {
-    console.error(`❌ Input file not found: ${INPUT_FILE}`);
+    console.error(`✕ Input file not found: ${INPUT_FILE}`);
     throw err;
   }
 
@@ -108,13 +108,13 @@ async function main() {
   // 6. Write output (helper creates directory, handles locking)
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
   console.log(
-    `✅ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    `✓ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('❌ Fatal error:', err.message);
+    console.error('✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

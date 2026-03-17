@@ -23,8 +23,11 @@ export const envSchema = z
         errorMap: () => ({ message: 'NODE_ENV must be development, staged, test, or production' }),
       })
       .default('development'),
-
     PORT: z.coerce.number().int().positive().default(3001),
+
+    FRONTEND_URL: z.string().trim().url('A valid FRONTEND_URL is required for CORS and Auth'),
+    ALLOWED_ORIGINS: commaSeparatedStringArraySchema,
+    PUBLIC_ROUTES: commaSeparatedStringArraySchema,
 
     OPENAI_API_KEY: z.string().trim().min(1, 'OpenAI API Key is required'),
 
@@ -45,8 +48,6 @@ export const envSchema = z
       .default(20),
     SUPABASE_CONNECTION_STRING: z.string().trim().optional(),
 
-    USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
-
     AIVEN_HOST: z.string().trim().min(1, 'AIVEN_HOST is required'),
     AIVEN_PORT: z.coerce.number().int().positive().default(5432),
     AIVEN_DATABASE: z.string().trim().min(1, 'AIVEN_DATABASE is required'),
@@ -61,9 +62,7 @@ export const envSchema = z
     AIVEN_CONNECTION_STRING: z.string().trim().optional(),
     AIVEN_CA_CERT: z.string().trim().optional(),
 
-    FRONTEND_URL: z.string().trim().url('A valid FRONTEND_URL is required for CORS and Auth'),
-    ALLOWED_ORIGINS: commaSeparatedStringArraySchema,
-    PUBLIC_ROUTES: commaSeparatedStringArraySchema,
+    USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
 
     MAX_FREE_TRIES: z.coerce.number().int().positive().default(5),
 

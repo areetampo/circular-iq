@@ -47,8 +47,8 @@ if (!IS_PROD) {
 
   if (fs.existsSync(backendPath)) {
     dotenv.config({ path: backendPath, override: false });
-    console.log(`✅ Loaded env from: ${backendPath}`);
+    console.log(`✓ Loaded env from: ${backendPath}`);
   } else {
-    console.warn(`⚠️ Warning: .env.backend not found at ${backendPath}`);
+    console.warn(`‼ Warning: .env.backend not found at ${backendPath}`);
   }
 }

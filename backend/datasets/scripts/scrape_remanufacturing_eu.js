@@ -21,27 +21,27 @@
  *   node scrape_remanufacturing_eu.js --use-backup   (just logs backup content)
  */
 
+import {
+    appendLogs,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetRawDir,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    isBackupRecoveryMode,
+    randomDelay,
+} from '#utils/datasetsUtils.js';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import axios from 'axios';
 import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
-import {
-  getDatasetRawDir,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  isBackupRecoveryMode,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  randomDelay,
-  createBackupHelper,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-} from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -261,17 +261,17 @@ async function scrape() {
       pdf_url: item.pdfUrl,
     }));
     await fs.promises.writeFile(metadataPath, JSON.stringify(metadataList, null, 2));
-    console.log(`✅ Wrote metadata to ${metadataPath}`);
+    console.log(`✓ Wrote metadata to ${metadataPath}`);
     await appendLogs(
       DATASET_KEY,
       `Wrote metadata for ${metadataList.length} cases to ${metadataPath}`,
     );
 
-    console.log(`\n✅ Scrape completed. PDFs saved to ${RAW_DIR}`);
+    console.log(`\n✓ Scrape completed. PDFs saved to ${RAW_DIR}`);
     await appendLogs(DATASET_KEY, `Scrape completed. Total PDFs: ${totalPdfCollected}`);
   } catch (error) {
-    console.error('❌ Fatal error:', error);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    console.error('✕ Fatal error:', error);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
   } finally {
     await browser.close();
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
@@ -291,7 +291,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

@@ -411,7 +411,7 @@ export function exportAuditReportToPDF(assessment, title = 'Audit Report') {
   if (audit.integrity_gaps?.gaps && audit.integrity_gaps.gaps.length > 0) {
     htmlContent += `
       <div class="section">
-        <div class="section-title">⚠️️ Risk Areas & Gaps</div>
+        <div class="section-title">‼ Risk Areas & Gaps</div>
         <div class="gap-box">
           <ol>
     `;

@@ -25,21 +25,20 @@
  * Scope: Covers circular design, material reuse, waste management in construction sector
  */
 
-import fs from 'fs';
-import path from 'path';
-import { pathToFileURL } from 'url';
-import { createRequire } from 'module';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const require = createRequire(import.meta.url);
 
@@ -588,7 +587,7 @@ async function main() {
   console.log(`🔍 Scanning ${RAW_DIR} for PDF files...`);
 
   if (!fs.existsSync(RAW_DIR)) {
-    console.error(`❌ Raw directory not found: ${RAW_DIR}`);
+    console.error(`✕ Raw directory not found: ${RAW_DIR}`);
     process.exit(1);
   }
 
@@ -596,7 +595,7 @@ async function main() {
   const pdfFiles = files.filter((f) => f.toLowerCase().endsWith('.pdf'));
 
   if (pdfFiles.length === 0) {
-    console.log('❌ No PDF files found.');
+    console.log('✕ No PDF files found.');
     return;
   }
 
@@ -628,14 +627,14 @@ async function main() {
       }
 
       allRows.push(...rows);
-      console.log(`   ✅ Extracted ${rows.length} record(s).`);
+      console.log(`   ✓ Extracted ${rows.length} record(s).`);
     } catch (err) {
-      console.error(`   ❌ Error processing ${file}:`, err.message);
+      console.error(`   ✕ Error processing ${file}:`, err.message);
     }
   }
 
   if (allRows.length === 0) {
-    console.log('❌ No data extracted.');
+    console.log('✕ No data extracted.');
     return;
   }
 
@@ -653,13 +652,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
   console.log(
-    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

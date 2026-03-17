@@ -21,28 +21,28 @@
  *   node scrape_circle_knowledge_hub.js --append-backup     # append to backup instead of clearing on start
  */
 
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
-import {
-  cleanText,
-  getDatasetProcessedCsvPath,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-} from '#utils/datasetsUtils.js';
 
 // Add stealth plugin to avoid detection
 puppeteerExtra.use(StealthPlugin());
@@ -187,7 +187,7 @@ async function extractCaseData(page, url, title, type) {
     // Get full page text (including any error banners)
     const fullText = await page.$eval('body', (el) => el.innerText).catch(() => '');
     if (fullText.trim() === 'TBC' || fullText.trim().length < 50) {
-      console.log('    ⚠️ Page has minimal content (TBC or empty)');
+      console.log('    ‼ Page has minimal content (TBC or empty)');
       return null;
     }
 
@@ -385,7 +385,7 @@ async function rebuildFromBackup() {
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
     console.warn('No backup found or backup is empty.');
-    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     return;
   }
 
@@ -432,7 +432,7 @@ async function rebuildFromBackup() {
 
   if (topCases.length === 0) {
     console.warn('No valid cases could be reconstructed from backup.');
-    await appendLogs(DATASET_KEY, `⚠️ No valid cases – output file unchanged.`);
+    await appendLogs(DATASET_KEY, `‼ No valid cases – output file unchanged.`);
     return;
   }
 
@@ -452,13 +452,13 @@ async function rebuildFromBackup() {
     return cleanRow;
   });
 
-  console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
+  console.log(`✓ Rebuilt ${finalRows.length} rows from backup`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
   await appendLogs(
     DATASET_KEY,
-    `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
@@ -523,12 +523,12 @@ async function scrape() {
           success = true;
         } catch (err) {
           retries--;
-          const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
+          const msg = `  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
           console.warn(msg);
           await appendLogs(DATASET_KEY, msg);
 
           if (retries === 0) {
-            const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
+            const skipMsg = `  ‼ Skipping page ${pageNum} after 3 failed attempts.`;
             console.warn(skipMsg);
             await appendLogs(DATASET_KEY, skipMsg);
             break;
@@ -580,7 +580,7 @@ async function scrape() {
       pagesScraped.push(pageNum);
 
       if (pageNum === FINAL_FETCH_PAGE) {
-        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
+        const limitMsg = `‼ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         console.warn(limitMsg);
         await appendLogs(DATASET_KEY, limitMsg);
         break;
@@ -617,8 +617,8 @@ async function scrape() {
     );
 
     if (topRows.length === 0) {
-      console.warn('⚠️ No valid cases found.');
-      await appendLogs(DATASET_KEY, `⚠️ No valid cases found.`);
+      console.warn('‼ No valid cases found.');
+      await appendLogs(DATASET_KEY, `‼ No valid cases found.`);
       return;
     }
 
@@ -642,7 +642,7 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    console.log('\n✅ Scraping complete!');
+    console.log('\n✓ Scraping complete!');
     console.log(`   Final rows kept: ${writeResult.writtenCount}`);
     console.log(`   Output: ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`);
 
@@ -651,7 +651,7 @@ async function scrape() {
 
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Pages: ${pagesScraped.length}, total: ${allRows.length}, ` +
+      `✓ Scrape complete. Pages: ${pagesScraped.length}, total: ${allRows.length}, ` +
         `valid: ${validRows.length}, kept: ${writeResult.writtenCount} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
@@ -660,8 +660,8 @@ async function scrape() {
     );
     await appendLogs(DATASET_KEY, `   Last:  ${lastRow.ID} | ${lastRow.title.substring(0, 50)}...`);
   } catch (error) {
-    console.error('❌ Fatal error:', error);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    console.error('✕ Fatal error:', error);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {
     await browser.close();
@@ -680,7 +680,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

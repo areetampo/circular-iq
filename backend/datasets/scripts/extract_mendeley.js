@@ -25,20 +25,20 @@
  * Sampling: Configurable sample sizes per research category (SME_SAMPLE_SIZE, SBM_SAMPLE_SIZE)
  */
 
-import XLSX from 'xlsx';
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    ensureDir,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import fs from 'fs';
 import path from 'path';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  ensureDir,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
+import XLSX from 'xlsx';
 
 const DATASET_KEY = DATASET_KEYS.mnd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -137,7 +137,7 @@ function processMaskLCA() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.mask_lca);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('⚠️️️  Mask LCA file not found, skipping.');
+    console.warn('‼ ️  Mask LCA file not found, skipping.');
     return rows;
   }
 
@@ -147,7 +147,7 @@ function processMaskLCA() {
   const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
   if (data.length < 3) {
-    console.warn('⚠️️️  Mask LCA sheet has insufficient rows.');
+    console.warn('‼ ️  Mask LCA sheet has insufficient rows.');
     return rows;
   }
 
@@ -168,11 +168,11 @@ function processMaskLCA() {
   }
 
   if (headerRowIndex === -1) {
-    console.warn('⚠️️️  Could not find header row containing "Material flows".');
+    console.warn('‼ ️  Could not find header row containing "Material flows".');
     return rows;
   }
 
-  console.log(`✅ Found header at row ${headerRowIndex}, material column index ${materialColIdx}`);
+  console.log(`✓ Found header at row ${headerRowIndex}, material column index ${materialColIdx}`);
   const headers = data[headerRowIndex];
 
   // Data rows start after header
@@ -212,7 +212,7 @@ function processMaskLCA() {
     });
   }
 
-  console.log(`✅ Extracted ${rows.length} rows from Mask LCA`);
+  console.log(`✓ Extracted ${rows.length} rows from Mask LCA`);
   return rows;
 }
 
@@ -221,7 +221,7 @@ function processSMESurvey() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.sme_practices);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('⚠️️️  SME Survey file not found, skipping.');
+    console.warn('‼ ️  SME Survey file not found, skipping.');
     return rows;
   }
 
@@ -280,7 +280,7 @@ function processSMESurvey() {
     });
   }
 
-  console.log(`✅ Extracted ${rows.length} raw rows from SME Survey`);
+  console.log(`✓ Extracted ${rows.length} raw rows from SME Survey`);
   const sampled = randomSample(rows, SME_SAMPLE_SIZE);
   console.log(`   → Sampled ${sampled.length} rows`);
   return sampled;
@@ -291,7 +291,7 @@ function processSWARA() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.bwm_scores);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('⚠️️️  SWARA file not found, skipping.');
+    console.warn('‼ ️  SWARA file not found, skipping.');
     return rows;
   }
 
@@ -315,7 +315,7 @@ function processSWARA() {
     }
   }
   if (startRow === -1) {
-    console.warn('⚠️️️  Could not find "Drivers Means by SWARA" table.');
+    console.warn('‼ ️  Could not find "Drivers Means by SWARA" table.');
     return rows;
   }
 
@@ -354,10 +354,10 @@ function processSWARA() {
       }),
     });
     console.log(
-      `✅ Extracted top challenge: ${bestChallenge} (geo mean = ${bestGeoMean.toFixed(4)})`,
+      `✓ Extracted top challenge: ${bestChallenge} (geo mean = ${bestGeoMean.toFixed(4)})`,
     );
   } else {
-    console.warn('⚠️️️  No valid challenge data found.');
+    console.warn('‼ ️  No valid challenge data found.');
   }
   return rows;
 }
@@ -367,7 +367,7 @@ function processNetworkCentrality() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.network_scores);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('⚠️️️  Network Centrality file not found, skipping.');
+    console.warn('‼ ️  Network Centrality file not found, skipping.');
     return rows;
   }
 
@@ -376,7 +376,7 @@ function processNetworkCentrality() {
     (name) => /network|scenario/i.test(name) && !/flow|figure/i.test(name),
   );
   if (!targetSheetName) {
-    console.warn('⚠️️️  No suitable data sheet found in Network Centrality file.');
+    console.warn('‼ ️  No suitable data sheet found in Network Centrality file.');
     return rows;
   }
   const sheet = workbook.Sheets[targetSheetName];
@@ -400,7 +400,7 @@ function processNetworkCentrality() {
   }
 
   if (headerRowIndex === -1) {
-    console.warn('⚠️️️  Could not find header row containing "Name".');
+    console.warn('‼ ️  Could not find header row containing "Name".');
     return rows;
   }
 
@@ -436,7 +436,7 @@ function processNetworkCentrality() {
     });
   }
 
-  console.log(`✅ Extracted ${rows.length} rows from Network Centrality`);
+  console.log(`✓ Extracted ${rows.length} rows from Network Centrality`);
   return rows;
 }
 
@@ -447,7 +447,7 @@ function processSustainableBusinessModel() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.business_model);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('⚠️️️  Sustainable Business Model CSV file not found, skipping.');
+    console.warn('‼ ️  Sustainable Business Model CSV file not found, skipping.');
     return rows;
   }
 
@@ -496,7 +496,7 @@ function processSustainableBusinessModel() {
   }
 
   const sampled = randomSample(allRows, SBM_SAMPLE_SIZE);
-  console.log(`✅ Extracted ${sampled.length} rows (out of ${allRows.length} total)`);
+  console.log(`✓ Extracted ${sampled.length} rows (out of ${allRows.length} total)`);
   return sampled;
 }
 
@@ -564,7 +564,7 @@ async function main() {
   }
 
   if (allRows.length === 0) {
-    console.warn('\n⚠️️️  No rows extracted. Check Excel file paths and structure.');
+    console.warn('\n‼ ️  No rows extracted. Check Excel file paths and structure.');
     return;
   }
 
@@ -581,13 +581,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `\n✅ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `\n✓ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

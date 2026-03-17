@@ -23,22 +23,22 @@
  * Output: datasets/processed/refed_processed.csv
  */
 
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import axios from 'axios';
 import { fileURLToPath } from 'url';
-import {
-  cleanText,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-} from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.refed;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -244,7 +244,7 @@ async function rebuildFromBackup() {
     );
   }
 
-  console.log(`✅ Rebuilt ${uniqueRows.length} rows from backup.`);
+  console.log(`✓ Rebuilt ${uniqueRows.length} rows from backup.`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, uniqueRows, {
     append: APPEND_PROCESSED,
   });
@@ -306,7 +306,7 @@ async function fetchAndTransform() {
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rowsWithoutIds, {
     append: APPEND_PROCESSED,
   });
-  console.log(`✅ Successfully transformed ${rowsWithoutIds.length} unique solutions.`);
+  console.log(`✓ Successfully transformed ${rowsWithoutIds.length} unique solutions.`);
   console.log(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
@@ -334,7 +334,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

@@ -27,21 +27,21 @@
  * Regions: Asia, Europe, Africa, Americas, Oceania
  */
 
-import fs from 'fs';
-import path from 'path';
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { Buffer } from 'buffer';
 import { exec } from 'child_process';
 import { parse } from 'csv-parse/sync';
+import fs from 'fs';
+import path from 'path';
 import { promisify } from 'util';
-import { Buffer } from 'buffer';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 
 const execPromise = promisify(exec);
 
@@ -116,7 +116,7 @@ async function runPythonExtraction() {
     await execPromise('py -c "import camelot"');
   } catch {
     console.warn(
-      '⚠️️️ Camelot is not installed. Attempting to install it (this may take a moment)...',
+      '‼ ️ Camelot is not installed. Attempting to install it (this may take a moment)...',
     );
     try {
       await execPromise('py -m pip install camelot-py[cv]');
@@ -137,9 +137,9 @@ async function runPythonExtraction() {
     const { stdout, stderr } = await execPromise(command);
     if (stderr) console.error('Python stderr:', stderr);
     console.log('Python stdout:', stdout);
-    console.log('✅ Python extraction completed.');
+    console.log('✓ Python extraction completed.');
   } catch (error) {
-    console.error('❌ Error running Python script:', error.message);
+    console.error('✕ Error running Python script:', error.message);
     throw error;
   }
 }
@@ -226,7 +226,7 @@ async function cleanData() {
   console.log(`After deduplication: ${uniqueCountries.length} unique countries.`);
 
   if (uniqueCountries.length === 0) {
-    console.warn('⚠️️️ No countries found. The CSV might be empty or misparsed.');
+    console.warn('‼ ️ No countries found. The CSV might be empty or misparsed.');
     return;
   }
 
@@ -268,7 +268,7 @@ async function cleanData() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, mapped); // now allowed inside async function
   console.log(
-    `✅ Final cleaned CSV written to ${OUTPUT_PATH} with ${writeResult.writtenCount} rows (${writeResult.duplicateCount} duplicate rows removed).`,
+    `✓ Final cleaned CSV written to ${OUTPUT_PATH} with ${writeResult.writtenCount} rows (${writeResult.duplicateCount} duplicate rows removed).`,
   );
 }
 

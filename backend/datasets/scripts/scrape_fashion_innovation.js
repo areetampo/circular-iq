@@ -26,31 +26,31 @@
  *   node scrape_fashion_innovation.js --append-backup     # append to backup instead of clearing
  */
 
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetBackupFolderPath,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import fs from 'fs';
+import path from 'path';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
-import path from 'path';
-import {
-  cleanText,
-  getDatasetProcessedCsvPath,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetBackupFolderPath,
-} from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -159,8 +159,8 @@ async function extractDetailLinks(page) {
 
   // If still none, log warning and return empty
   if (!links.length) {
-    console.warn('  ⚠️ No innovator links found on this page');
-    await appendLogs(DATASET_KEY, '  ⚠️ No innovator links found on page');
+    console.warn('  ‼ No innovator links found on this page');
+    await appendLogs(DATASET_KEY, '  ‼ No innovator links found on page');
   }
 
   return [...new Set(links)]; // ensure unique
@@ -422,7 +422,7 @@ async function rebuildFromBackup() {
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
     console.warn('No backup found or backup is empty.');
-    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     return;
   }
 
@@ -461,7 +461,7 @@ async function rebuildFromBackup() {
 
   if (topItems.length === 0) {
     console.warn('No valid innovators could be reconstructed from backup.');
-    await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
+    await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
     return;
   }
 
@@ -476,13 +476,13 @@ async function rebuildFromBackup() {
     metadata_json: JSON.stringify(row.metadata),
   }));
 
-  console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
+  console.log(`✓ Rebuilt ${finalRows.length} rows from backup`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
   await appendLogs(
     DATASET_KEY,
-    `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
@@ -524,10 +524,10 @@ async function scrape() {
       await page.screenshot({ path: screenshotPath });
       const html = await page.content();
       fs.writeFileSync(htmlPath, html);
-      console.error(`❌ Error: ${err.message}`);
-      console.error(`❌ Tile selector not found. Screenshot saved to ${screenshotPath}`);
+      console.error(`✕ Error: ${err.message}`);
+      console.error(`✕ Tile selector not found. Screenshot saved to ${screenshotPath}`);
       console.error(`   HTML saved to ${htmlPath}`);
-      await appendLogs(DATASET_KEY, `❌ Fatal: Tile selector not found. Debug files saved.`);
+      await appendLogs(DATASET_KEY, `✕ Fatal: Tile selector not found. Debug files saved.`);
       throw new Error(`Tile selector not found after timeout. Check debug files.`);
     }
 
@@ -572,7 +572,7 @@ async function scrape() {
             console.log(`      → No data extracted`);
           }
         } catch (err) {
-          console.warn(`      ⚠️ Error on detail page: ${err.message}`);
+          console.warn(`      ‼ Error on detail page: ${err.message}`);
           await appendLogs(DATASET_KEY, `      ERROR: ${link} – ${err.message}`);
         } finally {
           await detailPage.close();
@@ -605,8 +605,8 @@ async function scrape() {
       }
 
       if (!nextLink) {
-        console.log(`  ⚠️ No next page found. Ending at page ${currentPage}.`);
-        await appendLogs(DATASET_KEY, `  ⚠️ No next page found. Ending at page ${currentPage}.`);
+        console.log(`  ‼ No next page found. Ending at page ${currentPage}.`);
+        await appendLogs(DATASET_KEY, `  ‼ No next page found. Ending at page ${currentPage}.`);
         hasNextPage = false;
         break;
       }
@@ -644,7 +644,7 @@ async function scrape() {
         console.log('  New tiles loaded successfully');
       } catch (err) {
         console.warn(
-          `  ⚠️ Timed out waiting for new tiles, but continuing..., Error: ${err.message}`,
+          `  ‼ Timed out waiting for new tiles, but continuing..., Error: ${err.message}`,
         );
       }
 
@@ -655,11 +655,11 @@ async function scrape() {
     // Check if we stopped due to MAX_PAGES_TO_FETCH
     if (hasNextPage && currentPage > FINAL_FETCH_PAGE) {
       console.warn(
-        `⚠️ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
+        `‼ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
       );
       await appendLogs(
         DATASET_KEY,
-        `⚠️ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
+        `‼ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
       );
     }
 
@@ -684,8 +684,8 @@ async function scrape() {
     console.log(`  Keeping top ${top.length} (best score: ${top[0]?._qualityScore})`);
 
     if (top.length === 0) {
-      console.warn('⚠️ No valid innovators found.');
-      await appendLogs(DATASET_KEY, `⚠️ No valid items – skipping CSV write.`);
+      console.warn('‼ No valid innovators found.');
+      await appendLogs(DATASET_KEY, `‼ No valid items – skipping CSV write.`);
       return;
     }
 
@@ -707,7 +707,7 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    console.log('\n✅ Scraping complete!');
+    console.log('\n✓ Scraping complete!');
     console.log(`   Final rows kept: ${finalRows.length}`);
     console.log(
       `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
@@ -717,7 +717,7 @@ async function scrape() {
     const lastRow = finalRows[finalRows.length - 1];
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Pages: ${currentPage - 1}, total: ${allItems.length}, valid: ${valid.length}, kept: ${finalRows.length}, written: ${writeResult.writtenCount} (${writeResult.duplicateCount} duplicate rows removed)`,
+      `✓ Scrape complete. Pages: ${currentPage - 1}, total: ${allItems.length}, valid: ${valid.length}, kept: ${finalRows.length}, written: ${writeResult.writtenCount} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
       DATASET_KEY,
@@ -729,8 +729,8 @@ async function scrape() {
     );
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
   } catch (err) {
-    console.error('❌ Fatal error:', err);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+    console.error('✕ Fatal error:', err);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
     await browser.close();
@@ -747,7 +747,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

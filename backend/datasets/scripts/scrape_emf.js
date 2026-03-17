@@ -23,29 +23,29 @@ import '#server/bootstrap.js';
  *   node scrape_emf.js --append-backup     # append to backup instead of clearing
  */
 
+import { BACKEND_CONFIG } from '#config/backend.config.js';
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
-import {
-  cleanText,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-} from '#utils/datasetsUtils.js';
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -306,7 +306,7 @@ function computeQualityScore(problem, solution, impact) {
 async function callOpenAI(prompt, content) {
   const apiKey = BACKEND_CONFIG.openai.apiKey;
   if (!apiKey) {
-    console.warn('⚠️ OpenAI API key not found – skipping AI refinement.');
+    console.warn('‼ OpenAI API key not found – skipping AI refinement.');
     return null;
   }
 
@@ -374,7 +374,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
+      const msg = `‼ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -407,15 +407,15 @@ async function rebuildFromBackup() {
             qualityScore,
           };
         } catch (e) {
-          console.warn(`⚠️ Skipping invalid backup row: ${e.message}`);
+          console.warn(`‼ Skipping invalid backup row: ${e.message}`);
           return null;
         }
       })
       .filter((item) => item !== null);
 
     if (items.length === 0) {
-      console.warn(`⚠️ No valid items could be reconstructed from backup.`);
-      await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
+      console.warn(`‼ No valid items could be reconstructed from backup.`);
+      await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -443,12 +443,12 @@ async function rebuildFromBackup() {
     console.log(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+      `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('❌ Error rebuilding from backup:', error.message);
-    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    console.error('✕ Error rebuilding from backup:', error.message);
+    await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
@@ -518,7 +518,7 @@ async function scrape_emf() {
           await backup.add(pageRows);
           await appendLogs(DATASET_KEY, `Initial load: collected ${pageRows.length} items.`);
         } catch (e) {
-          const backupErr = `⚠️ Backup add failed for initial load: ${e.message}`;
+          const backupErr = `‼ Backup add failed for initial load: ${e.message}`;
           console.warn(backupErr);
           await appendLogs(DATASET_KEY, backupErr);
         }
@@ -569,7 +569,7 @@ async function scrape_emf() {
                 `Click ${loadCount}: found ${newUrls.length} new, collected ${pageRows.length} items.`,
               );
             } catch (e) {
-              const backupErr = `⚠️ Backup add failed for click ${loadCount}: ${e.message}`;
+              const backupErr = `‼ Backup add failed for click ${loadCount}: ${e.message}`;
               console.warn(backupErr);
               await appendLogs(DATASET_KEY, backupErr);
             }
@@ -585,7 +585,7 @@ async function scrape_emf() {
         // Update previous URLs for next iteration
         previousUrls = new Set(currentUrls);
       } catch (e) {
-        const clickErr = `  ⚠️ Load More click failed at count ${loadCount}: ${e.message}`;
+        const clickErr = `  ‼ Load More click failed at count ${loadCount}: ${e.message}`;
         console.warn(clickErr);
         await appendLogs(DATASET_KEY, clickErr);
         break;
@@ -593,9 +593,9 @@ async function scrape_emf() {
     }
 
     if (loadCount === FINAL_FETCH_LOADS) {
-      await appendLogs(DATASET_KEY, `✅ Reached target end click count (${FINAL_FETCH_LOADS}).`);
+      await appendLogs(DATASET_KEY, `✓ Reached target end click count (${FINAL_FETCH_LOADS}).`);
     } else if (loadCount === MAX_LOADS_TO_FETCH) {
-      const limitMsg = `⚠️ Reached fallback max clicks (${MAX_LOADS_TO_FETCH}) – stopping.`;
+      const limitMsg = `‼ Reached fallback max clicks (${MAX_LOADS_TO_FETCH}) – stopping.`;
       console.warn(limitMsg);
       await appendLogs(DATASET_KEY, limitMsg);
     }
@@ -606,8 +606,8 @@ async function scrape_emf() {
     await appendLogs(DATASET_KEY, `Total raw items collected: ${collected.length}`);
 
     if (collected.length === 0) {
-      console.log('❌ No items collected. Exiting.');
-      await appendLogs(DATASET_KEY, `⚠️ No items collected.`);
+      console.log('✕ No items collected. Exiting.');
+      await appendLogs(DATASET_KEY, `‼ No items collected.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
     }
@@ -624,7 +624,7 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    console.log(`\n✅ Scraped ${finalRows.length} EMF case studies.`);
+    console.log(`\n✓ Scraped ${finalRows.length} EMF case studies.`);
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
@@ -637,7 +637,7 @@ async function scrape_emf() {
 
     await appendLogs(
       DATASET_KEY,
-      `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount}). Clicks with data: ${pagesCollected.join(', ')}.`,
+      `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount}). Clicks with data: ${pagesCollected.join(', ')}.`,
     );
     await appendLogs(
       DATASET_KEY,
@@ -649,8 +649,8 @@ async function scrape_emf() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
   } catch (error) {
-    console.error('❌ Fatal error in scrape_emf:', error);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    console.error('✕ Fatal error in scrape_emf:', error);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
   } finally {
@@ -685,7 +685,7 @@ async function fetchDetail(browser, link) {
     if (NON_CASE_PHRASES.some((phrase) => lowerText.includes(phrase))) {
       await appendLogs(
         DATASET_KEY,
-        `ℹ️ Overview page detected, using OpenAI to extract multiple cases: ${link}`,
+        `※ Overview page detected, using OpenAI to extract multiple cases: ${link}`,
       );
       const aiResults = await extractMultipleFromOverview(pageText);
       if (aiResults.length === 0) {
@@ -975,7 +975,7 @@ async function fetchDetail(browser, link) {
           // Optionally use AI category if it seems reliable – but we'll keep rule‑based for now
         }
       } catch (aiErr) {
-        await appendLogs(DATASET_KEY, `⚠️ OpenAI refinement failed: ${aiErr.message}`);
+        await appendLogs(DATASET_KEY, `‼ OpenAI refinement failed: ${aiErr.message}`);
       }
     }
 
@@ -1055,7 +1055,7 @@ async function fetchDetail(browser, link) {
       return [];
     }
   } catch (err) {
-    const errMsg = `⚠️ Error on ${link}: ${err.message}`;
+    const errMsg = `‼ Error on ${link}: ${err.message}`;
     console.warn(errMsg);
     await appendLogs(DATASET_KEY, errMsg);
     return [];
@@ -1075,7 +1075,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

@@ -20,21 +20,21 @@
  *   node scrape_open_products_facts.js --append-backup     # append to backup instead of clearing
  */
 
-import { fileURLToPath } from 'url';
 import {
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  getDatasetProcessedCsvPath,
+    appendLogs,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.opf;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -326,7 +326,7 @@ async function fetchAllForKeyWord(config) {
   }
 
   if (currentPage > maxPage) {
-    const limitMsg = `⚠️ Reached max pages (${MAX_PAGES_TO_FETCH}) for keyword "${searchTerm}" – stopping.`;
+    const limitMsg = `‼ Reached max pages (${MAX_PAGES_TO_FETCH}) for keyword "${searchTerm}" – stopping.`;
     console.warn(limitMsg);
     await appendLogs(DATASET_KEY, limitMsg);
   }
@@ -394,7 +394,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
+      const msg = `‼ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -407,8 +407,8 @@ async function rebuildFromBackup() {
     let transformed = backupRows.filter(isHighQuality);
 
     if (transformed.length === 0) {
-      console.warn(`⚠️ No valid rows after filtering.`);
-      await appendLogs(DATASET_KEY, `⚠️ No valid rows – output file unchanged.`);
+      console.warn(`‼ No valid rows after filtering.`);
+      await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -417,7 +417,7 @@ async function rebuildFromBackup() {
       transformed = transformed.slice(0, TARGET_ROWS);
     }
 
-    console.log(`✅ Selected ${transformed.length} high-quality rows from backup`);
+    console.log(`✓ Selected ${transformed.length} high-quality rows from backup`);
     await appendLogs(DATASET_KEY, `Selected ${transformed.length} rows after filtering.`);
 
     const finalRows = transformed.map((row, idx) => {
@@ -444,12 +444,12 @@ async function rebuildFromBackup() {
     );
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount})`,
+      `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount})`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('❌ Error rebuilding from backup:', error.message);
-    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    console.error('✕ Error rebuilding from backup:', error.message);
+    await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
@@ -494,8 +494,8 @@ async function main() {
   await backup.flush();
 
   if (productMap.size === 0) {
-    console.log('❌ No products fetched. Exiting.');
-    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
+    console.log('✕ No products fetched. Exiting.');
+    await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
@@ -528,7 +528,7 @@ async function main() {
     append: APPEND_PROCESSED,
   });
 
-  const summary = `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}).`;
+  const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}).`;
   console.log(summary);
 
   const firstRow = finalRows[0];
@@ -545,7 +545,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

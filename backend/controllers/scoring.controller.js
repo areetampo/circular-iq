@@ -109,7 +109,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // 2. Check if serviceSupabase is available for tracking
     if (!serviceSupabase) {
       console.warn(
-        '⚠️️️ serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
+        '‼ ️ serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
       );
       // Allow when tracking is not configured
       return null;
@@ -138,7 +138,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 5. Handle database errors — FAIL CLOSED: block if tracking is unavailable
     if (error) {
-      console.error('❌ Error in atomic usage check:', error);
+      console.error('✕ Error in atomic usage check:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       return {
         blocked: true,
@@ -154,7 +154,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // 6. Validate response
     const result = data?.[0];
     if (!result) {
-      console.error('❌ Unexpected empty result from usage check');
+      console.error('✕ Unexpected empty result from usage check');
       console.error('Response data:', data);
       // Treat as blocked to be conservative (tracking inconsistency)
       return {
@@ -170,11 +170,11 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     const { current_count, is_allowed } = result;
 
-    console.log(`✅ Usage check result: count=${current_count}, allowed=${is_allowed}`);
+    console.log(`✓ Usage check result: count=${current_count}, allowed=${is_allowed}`);
 
     // 7. Check if limit reached
     if (!is_allowed) {
-      console.log(`🚫 Anonymous user limit reached: ${current_count}/${MAX_FREE_TRIES}`);
+      console.log(`✕ Anonymous user limit reached: ${current_count}/${MAX_FREE_TRIES}`);
       return {
         blocked: true,
         status: 403,
@@ -190,10 +190,10 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     }
 
     // 8. Allow request
-    console.log(`✅ Anonymous user allowed: ${current_count}/${MAX_FREE_TRIES} tries used`);
+    console.log(`✓ Anonymous user allowed: ${current_count}/${MAX_FREE_TRIES} tries used`);
     return null;
   } catch (e) {
-    console.error('❌ Anonymous usage check failed:', e?.message || e);
+    console.error('✕ Anonymous usage check failed:', e?.message || e);
     console.error('Stack trace:', e?.stack);
     // Fail-closed on unexpected exceptions related to tracking
     return {
@@ -235,7 +235,7 @@ export async function performScoring(req, openai, supabase) {
 
   console.log('='.repeat(20));
   console.log(`📥 NEW SCORING REQUEST - ${requestId}`);
-  console.log('Authorization header:', req.headers.authorization ? 'PRESENT ⚠️️️' : 'MISSING ✅');
+  console.log('Authorization header:', req.headers.authorization ? 'PRESENT ‼ ️' : 'MISSING ✓');
   console.log('IP:', extractIPAddress(req));
   console.log('='.repeat(20));
 

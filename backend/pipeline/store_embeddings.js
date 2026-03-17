@@ -219,7 +219,7 @@ export async function createInsertAdapter() {
       });
 
       console.log(
-        `  [insertAdapter] ✔ Inserted ${docsToInsert.length} docs (${skipped} skipped as duplicates)`,
+        `  [insertAdapter] ✓ Inserted ${docsToInsert.length}/${docs.length} docs (${skipped} skipped as duplicates)`,
       );
       return docsToInsert.length;
     } catch (error) {
@@ -253,7 +253,7 @@ export async function* streamEmbeddedChunks(filePath) {
       line++;
 
       if (line % 1000 === 0) {
-        console.log(`  Loaded ${line} chunks...`);
+        console.log(`  Loaded ${line} embedded chunks...`);
       }
     } catch (err) {
       throw new Error(`Invalid JSON at line ${line + 1}: ${err.message}`);
@@ -309,7 +309,8 @@ async function verifyEmbeddingDimension(pgPool, expectedDim) {
  * @param {Set} existingIdentifiers - Set of identifiers already in DB (from resume)
  * @param {Set} seenInRun - Set of identifiers already processed in this run
  * @param {function} insertDocuments - The insert adapter
- * @returns {Promise<number>} Count of documents successfully inserted
+ * @returns {Promise<{inserted: number, batchNum: number}>} Object with inserted count and batch number
+ * @throws {Error} If insertion fails
  */
 async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, insertDocuments) {
   const documentsToInsert = [];
@@ -382,7 +383,7 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
 
   if (documentsToInsert.length === 0) {
     console.log(`Batch ${batchNum}: nothing to insert`);
-    return 0;
+    return { inserted: 0, batchNum };
   }
 
   // --- Log initial identifiers (including potential duplicates) before any intra‑batch deduplication ---
@@ -435,14 +436,14 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
 
   if (documentsToInsert.length === 0) {
     console.log(`Batch ${batchNum}: all documents were duplicates, nothing to insert`);
-    return 0;
+    return { inserted: 0, batchNum };
   }
 
   // --- Proceed to insert ---
   try {
     const inserted = await insertDocuments(documentsToInsert);
-    console.log(`✔ Batch ${batchNum}: inserted ${inserted}/${documentsToInsert.length} documents`);
-    return inserted;
+    // console.log(`✓ Batch ${batchNum}: inserted ${inserted}/${documentsToInsert.length} documents`); <- logged in insert adapter for more accurate count after intra-batch deduplication
+    return { inserted, batchNum };
   } catch (error) {
     console.error(`✗ Batch ${batchNum} failed:`, error.message);
     console.error(
@@ -569,7 +570,12 @@ export async function storeDocuments(chunkStream) {
 
     if (queue.length >= WORKERS) {
       const results = await Promise.all(queue.splice(0));
-      totalStored += results.reduce((a, b) => a + b, 0);
+      for (const res of results) {
+        totalStored += res.inserted;
+        console.log(
+          `✓ Batch ${res.batchNum}: inserted ${res.inserted} documents (total stored so far: ${totalStored})`,
+        );
+      }
     }
   }
 
@@ -580,7 +586,12 @@ export async function storeDocuments(chunkStream) {
 
   if (queue.length) {
     const results = await Promise.all(queue);
-    totalStored += results.reduce((a, b) => a + b, 0);
+    for (const res of results) {
+      totalStored += res.inserted;
+      console.log(
+        `✓ Batch ${res.batchNum}: inserted ${res.inserted} documents (total stored so far: ${totalStored})`,
+      );
+    }
   }
 
   console.log(`\n✓ Successfully stored ${totalStored} documents\n`);
@@ -601,7 +612,7 @@ async function validateStorage() {
     console.log('  Running VACUUM ANALYZE...');
     await client.query('VACUUM ANALYZE documents');
   } catch (vacErr) {
-    console.warn('  ⚠️ VACUUM ANALYZE failed (non‑critical):', vacErr.message);
+    console.warn('  ‼ VACUUM ANALYZE failed (non‑critical):', vacErr.message);
   } finally {
     client.release();
   }
@@ -692,7 +703,7 @@ export async function main() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main()
     .catch((err) => {
-      console.error('\n❌ Fatal error:', err.message);
+      console.error('\n✕ Fatal error:', err.message);
       process.exit(1);
     })
     .finally(async () => {

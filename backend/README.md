@@ -292,14 +292,14 @@ The backend follows a **strict 5-layer architecture** for clean code organizatio
 All imports use canonical aliases defined in `package.json` to avoid relative paths:
 
 ```javascript
-// ✅ GOOD (use canonical aliases)
+// ✓ GOOD (use canonical aliases)
 import { performScoring } from '#controllers/scoring.controller.js';
 import { getScores } from '#services/scoring.service.js';
 import supabase from '#database/supabase.client.js';
 import { OPENAI_API_KEY } from '#config/backend.config.js';
 import { DATASETS_PROCESSED_DIR } from '#utils/datasetsUtils.js';
 
-// ❌ AVOID (relative paths)
+// ✕ AVOID (relative paths)
 import { performScoring } from '../../controllers/scoring.controller.js';
 import supabase from '../../../../database/supabase.client.js';
 ```
@@ -342,14 +342,14 @@ await supabase.from('documents').insert({
 Prefer the top-level columns for queries and UI display:
 
 ```javascript
-// ✅ FAST (uses indexes)
+// ✓ FAST (uses indexes)
 const results = await supabase
   .from('documents')
   .select('*')
   .eq('industry', 'textiles')
   .eq('category', 'design');
 
-// ✅ WORKS (JSONB filtering)
+// ✓ WORKS (JSONB filtering)
 const results = await supabase
   .from('documents')
   .select('*')
@@ -845,8 +845,8 @@ node datasets/scripts/scrape_c2c.js --use-backup
 **Console Feedback During Backup Saves:**
 
 ```
-✅ Backup: Saved 45 rows from page 3
-⚠️️️ Backup add failed: [error reason]
+✓ Backup: Saved 45 rows from page 3
+‼ ️ Backup add failed: [error reason]
 ```
 
 See **DATASETS_REFERENCE.md** for complete scraper documentation and **PIPELINE_ADDING_DATASETS.md** for adding new scrapers with backup support.

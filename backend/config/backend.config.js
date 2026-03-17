@@ -55,7 +55,7 @@ if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
 let parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Environment validation failed:\n');
+  console.error('✕ Environment validation failed:\n');
   console.error(parsed.error.format());
 
   // During test runs we prefer to continue with safe defaults rather than exiting.
@@ -93,7 +93,7 @@ if (env.STRICT_ENV) {
 
   if (missingExplicit.length > 0) {
     console.error(
-      `❌ STRICT_ENV enabled. Missing explicit values for: ${missingExplicit.join(', ')}`,
+      `✕ STRICT_ENV enabled. Missing explicit values for: ${missingExplicit.join(', ')}`,
     );
     process.exit(1);
   }

@@ -20,19 +20,19 @@
  * Output: CSV with standardized columns in datasets/processed/
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse/sync';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.oecd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -354,7 +354,7 @@ async function writeCombined(rows) {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `\n✅ Combined output written to ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    `\n✓ Combined output written to ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
@@ -388,7 +388,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

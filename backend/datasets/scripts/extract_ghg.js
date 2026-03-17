@@ -25,18 +25,18 @@
  * Scope: Covers CO2, CH4 (methane), N2O (nitrous oxide), and F-gases with proper weighting
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs/promises';
 import path from 'path';
-import { parse } from 'csv-parse/sync';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.ghg;
@@ -89,7 +89,7 @@ const GHG_FILES = [
 ].filter(Boolean);
 
 if (GHG_FILES.length === 0) {
-  console.error('❌ No GHG files defined in dataset.raw_folder_contents');
+  console.error('✕ No GHG files defined in dataset.raw_folder_contents');
   process.exit(1);
 }
 
@@ -230,13 +230,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `✅ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    `✓ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Error in main execution:', err.message);
+    console.error('\n✕ Error in main execution:', err.message);
     process.exit(1);
   });
 }

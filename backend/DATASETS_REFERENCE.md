@@ -202,7 +202,7 @@ const backup = createBackupHelper(
 for (const page of pages) {
   const rows = await scrapePage(page);
   await backup.add(rows); // Auto-flushes every 3 pages
-  console.log(`✅ Page ${page}: ${rows.length} rows`);
+  console.log(`✓ Page ${page}: ${rows.length} rows`);
 }
 await backup.flush(); // Final flush
 ```
@@ -337,8 +337,8 @@ You can also run scraper scripts with `--append` to add new rows to an existing 
 **Console feedback during backup saves:**
 
 ```
-✅ Backup: Saved 45 rows from page 3
-⚠️️️ Backup add failed at page 2: [error reason]
+✓ Backup: Saved 45 rows from page 3
+‼ ️ Backup add failed at page 2: [error reason]
 ```
 
 **Recovery mode output:**
@@ -346,7 +346,7 @@ You can also run scraper scripts with `--append` to add new rows to an existing 
 ```
 ♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...
 📖 Processing 135 backup rows...
-✅ Selected 42 high-quality rows from backup
+✓ Selected 42 high-quality rows from backup
 ✨ Successfully rebuilt 42 C2C products from backup
 📁 Saved to: /path/to/datasets/processed/c2c_registry.csv
 ```

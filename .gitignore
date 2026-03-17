@@ -6,9 +6,10 @@ node_modules/
 ################################
 # Environment Variables
 ################################
-env/.env.shared
-env/.env.frontend
 env/.env.backend
+env/.env.frontend
+env/.env.shared
+env/.env.test
 .env
 .env.*
 *.local
@@ -21,8 +22,17 @@ env/.env.backend
 dist/
 .eslintcache
 build/
+
 out/
+
 !backend/datasets/out/
+backend/datasets/out/chunks.json
+backend/datasets/out/embedded_chunks.jsonl
+backend/datasets/out/stored_documents.jsonl
+backend/datasets/archives/chunks.json
+backend/datasets/archives/embedded_chunks.jsonl
+backend/datasets/archives/stored_documents.jsonl
+
 .next/
 .vite/
 
@@ -48,7 +58,6 @@ coverage/
 ################################
 # IDE
 ################################
-.vscode/
 .idea/
 
 ################################

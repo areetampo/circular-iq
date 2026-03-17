@@ -20,21 +20,21 @@
  *   node scrape_open_food_facts.js --append-backup     # append to backup instead of clearing
  */
 
-import { fileURLToPath } from 'url';
 import {
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  getDatasetProcessedCsvPath,
+    appendLogs,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.off;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -250,7 +250,7 @@ async function rebuildFromBackup() {
   try {
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `⚠️ No backup found.`;
+      const msg = `‼ No backup found.`;
       console.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       return;
@@ -265,8 +265,8 @@ async function rebuildFromBackup() {
     });
 
     if (transformed.length === 0) {
-      console.warn(`⚠️ No rows passed the filter.`);
-      await appendLogs(DATASET_KEY, `⚠️ No rows passed the filter.`);
+      console.warn(`‼ No rows passed the filter.`);
+      await appendLogs(DATASET_KEY, `‼ No rows passed the filter.`);
       return;
     }
 
@@ -295,12 +295,12 @@ async function rebuildFromBackup() {
     );
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows (duplicate rows removed: ${writeResult.duplicateCount}).`,
+      `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows (duplicate rows removed: ${writeResult.duplicateCount}).`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('❌ Error rebuilding from backup:', error.message);
-    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    console.error('✕ Error rebuilding from backup:', error.message);
+    await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     throw error;
   }
 }
@@ -348,7 +348,7 @@ async function main() {
       pagesScraped.push(page);
 
       if (page === FINAL_FETCH_PAGE) {
-        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
+        const limitMsg = `‼ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         console.warn(limitMsg);
         await appendLogs(DATASET_KEY, limitMsg);
         break;
@@ -357,7 +357,7 @@ async function main() {
       // Polite delay
       await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (err) {
-      const errMsg = `❌ Failed to fetch page ${page}: ${err.message}`;
+      const errMsg = `✕ Failed to fetch page ${page}: ${err.message}`;
       console.error(errMsg);
       await appendLogs(DATASET_KEY, errMsg);
       break;
@@ -365,8 +365,8 @@ async function main() {
   }
 
   if (allProducts.length === 0) {
-    console.log('❌ No products fetched. Exiting.');
-    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
+    console.log('✕ No products fetched. Exiting.');
+    await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     return;
   }
 
@@ -400,7 +400,7 @@ async function main() {
   });
   await backup.flush(); // ensure any remaining buffer is written
 
-  const summary = `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`;
+  const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`;
   console.log(summary);
 
   if (finalRows.length > 0) {
@@ -421,7 +421,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

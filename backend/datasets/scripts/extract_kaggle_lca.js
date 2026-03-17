@@ -25,18 +25,18 @@
  * Scope: Covers product-level LCA data with environmental impact metrics
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs';
 import path from 'path';
-import { parse } from 'csv-parse/sync';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.kaggle;
@@ -230,7 +230,7 @@ async function main() {
   const requiredKeys = ['product_lca', 'livestock', 'supply_chain'];
   for (const key of requiredKeys) {
     if (!dataset.raw_folder_contents?.[key]) {
-      console.warn(`⚠️  Missing raw_folder_contents.${key} – check dataset definition.`);
+      console.warn(`‼ Missing raw_folder_contents.${key} – check dataset definition.`);
     }
   }
 
@@ -246,12 +246,12 @@ async function main() {
 
   for (const file of files) {
     if (!file.name) {
-      console.warn(`⚠️  Skipping undefined file.`);
+      console.warn(`‼ Skipping undefined file.`);
       continue;
     }
     const filePath = path.join(rawDir, file.name);
     if (!fs.existsSync(filePath)) {
-      console.warn(`⚠️  File not found: ${filePath} – skipping.`);
+      console.warn(`‼ File not found: ${filePath} – skipping.`);
       continue;
     }
     console.log(`📄 Processing ${file.name} ...`);
@@ -264,14 +264,14 @@ async function main() {
       }
       console.log(`   → ${rows.length} high‑quality rows.`);
     } catch (err) {
-      console.error(`❌ Error processing ${file.name}:`, err);
+      console.error(`✕ Error processing ${file.name}:`, err);
     }
   }
 
   console.log(`\n📊 Total rows collected: ${allRows.length}`);
 
   if (allRows.length === 0) {
-    console.log('❌ No data processed. Exiting.');
+    console.log('✕ No data processed. Exiting.');
     return;
   }
 
@@ -285,13 +285,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `✅ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Error in main execution:', err.message, err.stack);
+    console.error('\n✕ Error in main execution:', err.message, err.stack);
     process.exit(1);
   });
 }

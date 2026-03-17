@@ -133,7 +133,7 @@ function sampleRecordsByDataset(records) {
   try {
     if (TAKE_ALL)
       console.log(
-        '⚠️ TAKE_ALL is enabled. Ignoring limits and extracting all rows from all datasets...',
+        '‼ TAKE_ALL is enabled. Ignoring limits and extracting all rows from all datasets...',
       );
 
     console.log(`Reading ${INPUT_FILE}...`);

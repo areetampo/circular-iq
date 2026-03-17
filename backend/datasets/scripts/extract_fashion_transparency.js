@@ -25,20 +25,20 @@
  * Configuration: Max rows limit (MAX_ROWS) and year/scope definitions
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse/sync';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
+import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.fashion_transparency;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -248,7 +248,7 @@ async function extractPDFInsights(filePath) {
 async function main() {
   // <-- fixed duplicate async
   if (!fs.existsSync(rawDir)) {
-    console.error(`❌ Raw folder not found: ${rawDir}`);
+    console.error(`✕ Raw folder not found: ${rawDir}`);
     process.exit(1);
   }
 
@@ -411,13 +411,13 @@ async function main() {
   // ---- 6. Write CSV ----
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `✅ ${writeResult.writtenCount} rows Written to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    `✓ ${writeResult.writtenCount} rows Written to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

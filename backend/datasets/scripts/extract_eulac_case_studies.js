@@ -25,18 +25,18 @@
  * Configuration: Field headers defined in FIELD_HEADERS array for parsing
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import {
-  cleanText,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
+import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.eulac;
 const RAW_PDF = path.join(getDatasetRawDir(DATASET_KEY), 'eulac_case_studies.pdf');
@@ -266,7 +266,7 @@ async function main() {
     try {
       text = await extractPagesText(RAW_PDF, range.start, range.end);
     } catch (err) {
-      console.error(`❌ Failed to extract pages for case ${range.id}: ${err.message}`);
+      console.error(`✕ Failed to extract pages for case ${range.id}: ${err.message}`);
       continue; // skip this case study and move to next
     }
 
@@ -307,13 +307,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rows);
   console.log(
-    `✅ Saved ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    `✓ Saved ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('❌ Error:', err.message);
+    console.error('✕ Error:', err.message);
     process.exit(1);
   });
 }

@@ -26,22 +26,22 @@
  * Note: Requires active internet connection to access Open Beauty Facts API
  */
 
-import { fileURLToPath } from 'url';
 import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.obf;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -309,13 +309,13 @@ async function fetchAllForKeyWord({
     try {
       await backup.add(transformed);
     } catch (e) {
-      const errMsg = `⚠️ Backup add failed for ${keyword} page ${page}: ${e.message}`;
+      const errMsg = `‼ Backup add failed for ${keyword} page ${page}: ${e.message}`;
       console.warn(errMsg);
       await appendLogs(DATASET_KEY, errMsg);
     }
 
     if (page === keywordFallback) {
-      const limitMsg = `⚠️ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`;
+      const limitMsg = `‼ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`;
       console.warn(limitMsg);
       await appendLogs(DATASET_KEY, limitMsg);
     }
@@ -333,7 +333,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
+      const msg = `‼ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -347,8 +347,8 @@ async function rebuildFromBackup() {
     let filtered = backupRows.filter((row) => row.problem && (row.materials || row.category));
 
     if (filtered.length === 0) {
-      console.warn(`⚠️ No valid rows after filtering.`);
-      await appendLogs(DATASET_KEY, `⚠️ No valid rows – output file unchanged.`);
+      console.warn(`‼ No valid rows after filtering.`);
+      await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -366,7 +366,7 @@ async function rebuildFromBackup() {
       uniqueRows = uniqueRows.slice(0, TARGET_ROWS);
     }
 
-    console.log(`✅ Selected ${uniqueRows.length} high-quality rows from backup`);
+    console.log(`✓ Selected ${uniqueRows.length} high-quality rows from backup`);
     await appendLogs(
       DATASET_KEY,
       `Selected ${uniqueRows.length} rows after filtering and deduplication.`,
@@ -396,12 +396,12 @@ async function rebuildFromBackup() {
     );
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount})`,
+      `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount})`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('❌ Error rebuilding from backup:', error.message);
-    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    console.error('✕ Error rebuilding from backup:', error.message);
+    await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
@@ -444,8 +444,8 @@ async function main() {
   allProducts = Array.from(productMap.values());
 
   if (allProducts.length === 0) {
-    console.log('❌ No products fetched. Exiting.');
-    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
+    console.log('✕ No products fetched. Exiting.');
+    await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
@@ -478,7 +478,7 @@ async function main() {
   });
   await backup.flush();
 
-  const summary = `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
+  const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
   console.log(summary);
 
   const firstRow = finalRows[0];
@@ -495,7 +495,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

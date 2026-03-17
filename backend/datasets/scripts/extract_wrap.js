@@ -18,20 +18,20 @@
  *   node datasets/scripts/extract_wrap.js
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
-import { createRequire } from 'module';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  cleanText,
-  getDatasetRawDir,
-  DATASET_LOOKUP,
-  DATASETS_PROCESSED_DIR,
-  writeCsv,
-  DATASET_KEYS,
-  verifyPathsExist,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    DATASETS_PROCESSED_DIR,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
@@ -353,7 +353,7 @@ async function main() {
         }
       });
     } catch (err) {
-      console.error(`❌ Failed to extract text from ${relPath}: ${err.message}`);
+      console.error(`✕ Failed to extract text from ${relPath}: ${err.message}`);
     }
   }
 
@@ -392,7 +392,7 @@ async function main() {
   console.log(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
   const writeResult = await writeCsv(DATASET_KEY, outputPath, limitedRows);
   console.log(
-    `✅ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 

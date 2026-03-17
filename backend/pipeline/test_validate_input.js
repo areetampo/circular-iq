@@ -5,7 +5,7 @@ import { validateInput } from '#services/scoring.service.js';
 
 // Ensure API key is available for validation
 if (!BACKEND_CONFIG.openai.apiKey) {
-  console.warn('⚠️️️  OPENAI_API_KEY not configured, running validation logic offline');
+  console.warn('‼ ️  OPENAI_API_KEY not configured, running validation logic offline');
 }
 
 const cases = [
@@ -27,9 +27,9 @@ for (const c of cases) {
 // Exit with non-zero if the realistic case flagged as junk
 const validRes = validateInput(cases[3].p, cases[3].s);
 if (validRes) {
-  console.error('❌ validateInput flagged the valid case as junk:', validRes);
+  console.error('✕ validateInput flagged the valid case as junk:', validRes);
   process.exit(2);
 }
 
-console.log('✅ validateInput checks passed');
+console.log('✓ validateInput checks passed');
 process.exit(0);

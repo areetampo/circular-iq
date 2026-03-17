@@ -68,7 +68,7 @@ let tokenEncoder = null;
 try {
   tokenEncoder = encoding_for_model(EMBEDDING_MODEL);
 } catch {
-  console.warn(`⚠️  No exact tokeniser for model ${EMBEDDING_MODEL}, falling back to cl100k_base`);
+  console.warn(`‼ No exact tokeniser for model ${EMBEDDING_MODEL}, falling back to cl100k_base`);
   // fallback: use the base encoder for OpenAI models
   tokenEncoder = encoding_for_model('gpt-4');
 }
@@ -185,7 +185,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
         }
         existingEmbeddings.set(chunkId, existing);
       } catch (e) {
-        console.warn(`  ⚠️ Skipping malformed line ${lineCount}: ${e.message}`);
+        console.warn(`  ‼ Skipping malformed line ${lineCount}: ${e.message}`);
       }
     }
     console.log(
@@ -210,7 +210,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
       const tokens = estimateTokens(chunk.content, tokenEncoder);
       if (tokens > MAX_SAFE_TOKENS) {
         console.warn(
-          `  ⚠️ Chunk ${c} (${chunk.id}) has ~${tokens} tokens, which may exceed the model limit. Consider shortening.`,
+          `  ‼ Chunk ${c} (${chunk.id}) has ~${tokens} tokens, which may exceed the model limit. Consider shortening.`,
         );
       }
       items.push({ chunkIdx: c, fieldName: 'doc', text: chunk.content });
@@ -241,7 +241,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
   }
 
   if (items.length === 0) {
-    console.warn('⚠️️ No new text items to embed (all were already done or below minimum length)');
+    console.warn('‼ No new text items to embed (all were already done or below minimum length)');
     writeStream.end();
     return;
   }

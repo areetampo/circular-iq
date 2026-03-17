@@ -118,7 +118,7 @@ async function mergeCsvFiles() {
       const { header, rows } = readCsvFile(filePath);
 
       if (!header) {
-        console.log(`  ⚠️️ ${fileName} - Empty file, skipping`);
+        console.log(`  ‼ ${fileName} - Empty file, skipping`);
         continue;
       }
 
@@ -228,7 +228,7 @@ async function mergeCsvFiles() {
     const lines = content.split('\n').filter((line) => line.trim());
 
     if (lines.length < 2) {
-      console.warn('⚠️️ WARNING: Output file has less than 2 lines (header + data)');
+      console.warn('‼ WARNING: Output file has less than 2 lines (header + data)');
     }
 
     const headerLine = lines[0];
@@ -238,7 +238,7 @@ async function mergeCsvFiles() {
     console.log(`✓ Sample:  ${sampleLine.substring(0, 80)}${sampleLine.length > 80 ? '...' : ''}`);
     console.log(`✓ Total lines: ${lines.length}`);
   } catch (error) {
-    console.warn(`⚠️️ Validation warning: ${error.message}`);
+    console.warn(`‼ Validation warning: ${error.message}`);
   }
 
   // Summary
@@ -264,7 +264,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     try {
       await mergeCsvFiles();
     } catch (error) {
-      console.error('\n❌ Fatal error:', error.message);
+      console.error('\n✕ Fatal error:', error.message);
       process.exit(1);
     }
   })();

@@ -7,7 +7,7 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 const { Pool } = pg;
 
 if (!BACKEND_CONFIG.aiven?.connectionString) {
-  console.warn('⚠️ Aiven connection string not configured. poll_aiven will exit.');
+  console.warn('‼ Aiven connection string not configured. poll_aiven will exit.');
   process.exit(0);
 }
 

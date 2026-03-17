@@ -219,7 +219,7 @@ export async function retryWithBackoff(fn, maxRetries = EMBEDDING_MAX_RETRIES) {
       lastError = error;
       if (attempt < maxRetries - 1) {
         const delay = EMBEDDING_RETRY_DELAY_MS * Math.pow(2, attempt);
-        console.warn(`  ⚠️️ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
+        console.warn(`  ‼ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }

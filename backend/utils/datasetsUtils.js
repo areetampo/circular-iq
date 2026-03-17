@@ -1062,7 +1062,7 @@ export function verifyPathsExist(paths) {
   const missing = paths.filter((p) => !p || !fs.existsSync(p));
   if (missing.length > 0) {
     console.error(
-      `❌ Error: The following required folder(s) & file(s) are missing:\n${missing.map((p) => `  - ${p}`).join('\n')}`,
+      `✕ Error: The following required folder(s) & file(s) are missing:\n${missing.map((p) => `  - ${p}`).join('\n')}`,
     );
     process.exit(1);
   }
@@ -1467,14 +1467,14 @@ export async function readBackupCsv(key) {
   try {
     await fs.promises.access(csvPath);
   } catch {
-    console.warn(`⚠️️️ Backup file not found: ${csvPath}`);
+    console.warn(`‼ ️ Backup file not found: ${csvPath}`);
     return [];
   }
 
   try {
     const content = await fs.promises.readFile(csvPath, 'utf8');
     if (!content.trim()) {
-      console.warn(`⚠️️️ Backup file is empty: ${csvPath}`);
+      console.warn(`‼ ️ Backup file is empty: ${csvPath}`);
       return [];
     }
 
@@ -1526,10 +1526,10 @@ export async function readBackupCsv(key) {
       rows.push(row);
     }
 
-    console.log(`✅ Read ${rows.length} rows from backup: ${csvPath}`);
+    console.log(`✓ Read ${rows.length} rows from backup: ${csvPath}`);
     return rows;
   } catch (err) {
-    console.error(`❌ Error reading backup CSV: ${err.message}`);
+    console.error(`✕ Error reading backup CSV: ${err.message}`);
     return [];
   }
 }
@@ -1584,7 +1584,7 @@ export async function appendLogs(key, message) {
     timeZone: 'Asia/Kolkata',
   });
 
-  const logLine = `\n[🕰️ ${day} ${monthYear} — ${timeStr} IST]\n${message}\n`;
+  const logLine = `\n[~ ${day} ${monthYear} — ${timeStr} IST]\n${message}\n`;
 
   await fs.promises.appendFile(logPath, logLine, 'utf8');
 
@@ -1647,7 +1647,7 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
     `Last row in this batch: ${JSON.stringify(batchLast)}`;
 
   const endMsg = (overallFirstRow, overallLastRow, totalRowsWritten) =>
-    `✅ FINALLY:\n` +
+    `✓ FINALLY:\n` +
     `Overall first row of entire scrape: ${JSON.stringify(overallFirstRow)}\n\n` +
     `Overall last row of entire scrape: ${JSON.stringify(overallLastRow)}\n\n` +
     `TOTAL ROWS WRITTEN THIS SCRAPE: ${totalRowsWritten}`;

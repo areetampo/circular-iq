@@ -14,7 +14,7 @@ if (!DRY_RUN) {
   supabase = createSupabaseClient();
 } else {
   console.warn(
-    '⚠️️️  Running in dry-run mode: OpenAI/Supabase keys not fully configured, skipping external calls',
+    '‼ ️  Running in dry-run mode: OpenAI/Supabase keys not fully configured, skipping external calls',
   );
 }
 

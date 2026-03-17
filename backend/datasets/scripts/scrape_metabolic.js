@@ -22,26 +22,26 @@
  *   node scrape_metabolic.js --clear-logs    # clear log file
  */
 
+import {
+    appendLogs,
+    clearLogs,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetRawDir,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    isBackupRecoveryMode,
+    randomDelay,
+} from '#utils/datasetsUtils.js';
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import axios from 'axios';
 import { fileURLToPath } from 'url';
-import path from 'path';
-import fs from 'fs';
-import {
-  getDatasetRawDir,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  isBackupRecoveryMode,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  randomDelay,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-} from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -234,13 +234,13 @@ async function scrape() {
     // Write metadata.json file
     const metadataPath = path.join(RAW_DIR, 'metadata.json');
     await fs.promises.writeFile(metadataPath, JSON.stringify(metadataList, null, 2));
-    console.log(`✅ Wrote metadata to ${metadataPath}`);
+    console.log(`✓ Wrote metadata to ${metadataPath}`);
     await appendLogs(DATASET_KEY, `Metadata saved for ${metadataList.length} entries.`);
 
-    console.log(`\n✅ Processed ${entries.length} publications.`);
+    console.log(`\n✓ Processed ${entries.length} publications.`);
   } catch (error) {
-    console.error('❌ Fatal error:', error);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    console.error('✕ Fatal error:', error);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {
     await browser.close();
@@ -258,7 +258,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

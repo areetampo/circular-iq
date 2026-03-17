@@ -21,28 +21,28 @@
  * For detailed logs, see the path printed at the start of the run.
  */
 
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
-import {
-  cleanText,
-  getDatasetProcessedCsvPath,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-} from '#utils/datasetsUtils.js';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -93,7 +93,7 @@ async function rebuildFromBackup() {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
+      const msg = `‼ No backup content found. Cannot rebuild output.`;
       console.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -139,7 +139,7 @@ async function rebuildFromBackup() {
             certCount,
           };
         } catch (e) {
-          console.warn(`⚠️ Skipping invalid backup row: ${e.message}`);
+          console.warn(`‼ Skipping invalid backup row: ${e.message}`);
           return null;
         }
       })
@@ -147,15 +147,15 @@ async function rebuildFromBackup() {
       .sort((a, b) => b.qualityScore - a.qualityScore)
       .slice(0, MAX_ROWS);
 
-    console.log(`✅ Selected ${productDetails.length} high-quality C2C products from backup`);
+    console.log(`✓ Selected ${productDetails.length} high-quality C2C products from backup`);
     await appendLogs(
       DATASET_KEY,
       `Selected ${productDetails.length} products after scoring/filtering.`,
     );
 
     if (productDetails.length === 0) {
-      console.warn(`⚠️ No valid product details could be reconstructed from backup.`);
-      await appendLogs(DATASET_KEY, `⚠️ No valid products – output file unchanged.`);
+      console.warn(`‼ No valid product details could be reconstructed from backup.`);
+      await appendLogs(DATASET_KEY, `‼ No valid products – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -217,12 +217,12 @@ async function rebuildFromBackup() {
     );
     await appendLogs(
       DATASET_KEY,
-      `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+      `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('❌ Error rebuilding from backup:', error.message);
-    await appendLogs(DATASET_KEY, `❌ Recovery failed: ${error.message}`);
+    console.error('✕ Error rebuilding from backup:', error.message);
+    await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
   }
@@ -267,10 +267,10 @@ async function scrape_c2c() {
         timeout: 5000,
       });
       await page.click('button:has-text("Accept")');
-      await appendLogs(DATASET_KEY, '✅ Accepted cookies.');
+      await appendLogs(DATASET_KEY, '✓ Accepted cookies.');
       await new Promise((r) => setTimeout(r, 1000));
     } catch {
-      await appendLogs(DATASET_KEY, 'ℹ️ No cookie consent overlay found.');
+      await appendLogs(DATASET_KEY, '※ No cookie consent overlay found.');
     }
 
     // 3. Wait for the first product links to appear
@@ -297,7 +297,7 @@ async function scrape_c2c() {
       await appendLogs(DATASET_KEY, `Found ${pageLinks.length} products on page ${pageNum}`);
 
       if (pageLinks.length === 0) {
-        await appendLogs(DATASET_KEY, `⚠️ No products found on page ${pageNum} – stopping.`);
+        await appendLogs(DATASET_KEY, `‼ No products found on page ${pageNum} – stopping.`);
         break;
       }
 
@@ -460,11 +460,11 @@ async function scrape_c2c() {
             detailSuccess = true;
           } catch (err) {
             detailRetries--;
-            const errMsg = `⚠️ Error processing product at ${link} (retries left: ${detailRetries}): ${err.message}`;
+            const errMsg = `‼ Error processing product at ${link} (retries left: ${detailRetries}): ${err.message}`;
             console.warn(errMsg);
             await appendLogs(DATASET_KEY, errMsg);
             if (detailRetries === 0) {
-              const skipMsg = ` ⚠️ Skipping product after 2 failed attempts.`;
+              const skipMsg = ` ‼ Skipping product after 2 failed attempts.`;
               console.warn(skipMsg);
               await appendLogs(DATASET_KEY, skipMsg);
             } else {
@@ -485,7 +485,7 @@ async function scrape_c2c() {
           `Page ${pageNum}: processed ${pageRows.length} new products (total unique: ${productMap.size}).`,
         );
       } catch (e) {
-        const backupErr = `⚠️ Backup add failed for page ${pageNum}: ${e.message}`;
+        const backupErr = `‼ Backup add failed for page ${pageNum}: ${e.message}`;
         console.warn(backupErr);
         await appendLogs(DATASET_KEY, backupErr);
       }
@@ -494,7 +494,7 @@ async function scrape_c2c() {
 
       // If this is the last page, stop
       if (pageNum === FINAL_PAGE) {
-        await appendLogs(DATASET_KEY, `✅ Reached final page ${FINAL_PAGE}.`);
+        await appendLogs(DATASET_KEY, `✓ Reached final page ${FINAL_PAGE}.`);
         break;
       }
 
@@ -514,12 +514,12 @@ async function scrape_c2c() {
             clicked = true;
             await appendLogs(DATASET_KEY, `➡️ Clicked next button.`);
           } else {
-            await appendLogs(DATASET_KEY, `ℹ️ Next button is disabled – stopping pagination.`);
+            await appendLogs(DATASET_KEY, `※ Next button is disabled – stopping pagination.`);
             break;
           }
         }
       } catch (err) {
-        await appendLogs(DATASET_KEY, `⚠️ Error clicking next button: ${err.message}`);
+        await appendLogs(DATASET_KEY, `‼ Error clicking next button: ${err.message}`);
       }
 
       if (!clicked) {
@@ -541,7 +541,7 @@ async function scrape_c2c() {
       }
 
       if (!clicked) {
-        const errMsg = `❌ No enabled next button found.`;
+        const errMsg = `✕ No enabled next button found.`;
         console.error(errMsg);
         await appendLogs(DATASET_KEY, errMsg);
         break;
@@ -638,7 +638,7 @@ async function scrape_c2c() {
         };
       });
 
-      console.log(`\n✅ Scraped ${finalRows.length} unique C2C products.`);
+      console.log(`\n✓ Scraped ${finalRows.length} unique C2C products.`);
       const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
         append: APPEND_PROCESSED,
       });
@@ -652,7 +652,7 @@ async function scrape_c2c() {
       const lastRow = finalRows[finalRows.length - 1];
       await appendLogs(
         DATASET_KEY,
-        `✅ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`,
+        `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`,
       );
       await appendLogs(
         DATASET_KEY,
@@ -664,13 +664,13 @@ async function scrape_c2c() {
       );
       await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
     } else {
-      console.warn('⚠️ No products with quality score > 0 were extracted.');
-      await appendLogs(DATASET_KEY, `⚠️ No products with quality score > 0 extracted.`);
+      console.warn('‼ No products with quality score > 0 were extracted.');
+      await appendLogs(DATASET_KEY, `‼ No products with quality score > 0 extracted.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     }
   } catch (error) {
-    console.error('❌ Fatal error in scrape_c2c:', error);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    console.error('✕ Fatal error in scrape_c2c:', error);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
   } finally {
@@ -689,7 +689,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

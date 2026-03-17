@@ -67,7 +67,7 @@ export function startServer() {
       '',
       renderRow(
         'OpenAI Key',
-        BACKEND_CONFIG.openai.apiKey ? theme.success('CONNECTED ✅') : theme.danger('MISSING ❌'),
+        BACKEND_CONFIG.openai.apiKey ? theme.success('CONNECTED ✓') : theme.danger('MISSING ✕'),
       ),
       renderRow('Supabase URL', theme.url(BACKEND_CONFIG.supabase.url || 'Not set')),
       renderRow(
@@ -111,11 +111,11 @@ export function startServer() {
 
     const authStatus = BACKEND_CONFIG.app.apiAuthEnabled
       ? chalk.bgGreen.black.bold('🛡️  API AUTH: ACTIVE  ')
-      : chalk.white.bold('⚠️️️  API AUTH: DISABLED  ');
+      : chalk.white.bold('‼ ️  API AUTH: DISABLED  ');
 
     const content = [
       '',
-      theme.accent('⚙️  SYSTEM PARAMETERS'),
+      theme.accent('⌀ SYSTEM PARAMETERS'),
       theme.dim('━'.repeat(60)),
       ...configRows,
       '',
@@ -143,7 +143,7 @@ export function startServer() {
   const shutdown = () => {
     if (serverInstance) {
       serverInstance.close(() => {
-        console.log(theme.danger('\n🛑 Server Process Terminated.'));
+        console.log(theme.danger('\n✕ Server Process Terminated.'));
         process.exit(0);
       });
     }

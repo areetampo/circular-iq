@@ -25,18 +25,18 @@
  * Configuration: Target row count (TARGET_ROWS), regional filters, environmental indicators
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse';
 import fs from 'fs';
 import path from 'path';
-import { parse } from 'csv-parse';
-import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.unep;
@@ -236,7 +236,7 @@ async function main() {
 
   // Ensure raw folder exists
   if (!fs.existsSync(RAW_DIR)) {
-    console.error(`❌ Raw directory not found: ${RAW_DIR}`);
+    console.error(`✕ Raw directory not found: ${RAW_DIR}`);
     process.exit(1);
   }
 
@@ -248,7 +248,7 @@ async function main() {
   ].filter((fh) => fh.name); // only include defined files
 
   if (fileHandlers.length === 0) {
-    console.error('❌ No file handlers defined – check dataset.raw_folder_contents');
+    console.error('✕ No file handlers defined – check dataset.raw_folder_contents');
     process.exit(1);
   }
 
@@ -257,22 +257,22 @@ async function main() {
   for (const fh of fileHandlers) {
     const filePath = path.join(RAW_DIR, fh.name);
     if (!fs.existsSync(filePath)) {
-      console.log(`⚠️️️  File not found: ${fh.name} – skipping.`);
+      console.log(`‼ ️  File not found: ${fh.name} – skipping.`);
       continue;
     }
 
     console.log(`📄 Processing ${fh.name}...`);
     try {
       const results = await fh.handler(filePath);
-      console.log(`   ✅ Extracted ${results.length} records.`);
+      console.log(`   ✓ Extracted ${results.length} records.`);
       allResults.push(...results);
     } catch (err) {
-      console.error(`   ❌ Error processing ${fh.name}:`, err.message);
+      console.error(`   ✕ Error processing ${fh.name}:`, err.message);
     }
   }
 
   if (allResults.length === 0) {
-    console.log('❌ No data extracted.');
+    console.log('✕ No data extracted.');
     return;
   }
 
@@ -293,13 +293,13 @@ async function main() {
   // writeCsv handles directory creation, clearing and read-only locking
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
   console.log(
-    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

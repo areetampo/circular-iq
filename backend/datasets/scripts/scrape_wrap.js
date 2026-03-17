@@ -34,35 +34,35 @@
  *   • Backup in datasets/archives/scrape_backup/wrap_scrape_backup/
  */
 
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { fileURLToPath } from 'url';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    DATASETS_PROCESSED_DIR,
+    ensureDir,
+    getBrowserLaunchOptions,
+    getDatasetRawDir,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import fs from 'fs';
 import path from 'path';
-import {
-  cleanText,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-  DATASET_LOOKUP,
-  ensureDir,
-  getDatasetRawDir,
-  DATASET_KEYS,
-  verifyPathsExist,
-  DATASETS_PROCESSED_DIR,
-} from '#utils/datasetsUtils.js';
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
+import { fileURLToPath } from 'url';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -340,7 +340,7 @@ async function extractCaseStudy(page) {
 
   // If primary selectors failed (problem or solution empty), use fallback
   if (!problem || !solution) {
-    console.log('      ⚠️ Primary selectors failed, attempting fallback extraction...');
+    console.log('      ‼ Primary selectors failed, attempting fallback extraction...');
     const fallback = await extractCaseStudyFallback(page);
     if (fallback.problem) problem = fallback.problem;
     if (fallback.solution) solution = fallback.solution;
@@ -444,7 +444,7 @@ async function processResource(browser, url, category) {
 
       // Validate: must be a meaningful case study
       if (!isValidCaseStudy(row.problem, row.solution)) {
-        console.log(`      ⚠️ Skipping case study (invalid content): ${url}`);
+        console.log(`      ‼ Skipping case study (invalid content): ${url}`);
         await appendLogs(
           DATASET_KEY,
           `Skipped case study (invalid): ${url} — problem: "${row.problem.substring(0, 50)}..."`,
@@ -476,8 +476,8 @@ async function rebuildFromBackup() {
 
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (backupRows.length === 0) {
-    console.warn('⚠️ No backup content found. Cannot rebuild output.');
-    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
+    console.warn('‼ No backup content found. Cannot rebuild output.');
+    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
     return;
   }
@@ -516,7 +516,7 @@ async function rebuildFromBackup() {
   );
   await appendLogs(
     DATASET_KEY,
-    `✅ Case studies recovered. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Case studies recovered. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 
   console.log(`\n📝 NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js`);
@@ -567,10 +567,10 @@ async function scrapeCategory(browser, category) {
         success = true;
       } catch (err) {
         retries--;
-        console.warn(`  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${err.message}`);
+        console.warn(`  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`);
         await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${err.message}`);
         if (retries === 0) {
-          console.warn(`  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`);
+          console.warn(`  ‼ Skipping page ${pageNum} after 3 failed attempts.`);
           await appendLogs(DATASET_KEY, `Skipping page ${pageNum} after 3 failed attempts.`);
         } else {
           await sleep(5000 * (3 - retries));
@@ -619,11 +619,11 @@ async function scrapeCategory(browser, category) {
         } catch (err) {
           resourceRetries--;
           console.warn(
-            `      ⚠️ Resource error (retries left: ${resourceRetries}): ${err.message}`,
+            `      ‼ Resource error (retries left: ${resourceRetries}): ${err.message}`,
           );
           await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
           if (resourceRetries === 0) {
-            console.warn(`      ⚠️ Skipping resource after 2 failed attempts.`);
+            console.warn(`      ‼ Skipping resource after 2 failed attempts.`);
             await appendLogs(DATASET_KEY, `Skipping resource ${link} after 2 failed attempts.`);
           } else {
             await sleep(3000);
@@ -641,8 +641,8 @@ async function scrapeCategory(browser, category) {
           `Page ${pageNum}: backed up ${pageRows.length} case study rows.`,
         );
       } catch (e) {
-        console.warn(`  ⚠️ Backup add failed: ${e.message}`);
-        await appendLogs(DATASET_KEY, `  ⚠️ Backup add failed: ${e.message}`);
+        console.warn(`  ‼ Backup add failed: ${e.message}`);
+        await appendLogs(DATASET_KEY, `  ‼ Backup add failed: ${e.message}`);
       }
     } else if (name !== 'case-studies') {
       await appendLogs(DATASET_KEY, `Page ${pageNum}: downloaded ${pdfCount} PDFs to ${outputDir}`);
@@ -700,7 +700,7 @@ async function scrape_wrap() {
       const validRows = allRows.filter((row) => isValidCaseStudy(row.problem, row.solution));
       const skipped = allRows.length - validRows.length;
       if (skipped > 0) {
-        console.log(`\n⚠️ Filtered out ${skipped} invalid rows during final assembly.`);
+        console.log(`\n‼ Filtered out ${skipped} invalid rows during final assembly.`);
         await appendLogs(
           DATASET_KEY,
           `Filtered out ${skipped} invalid rows during final assembly.`,
@@ -718,7 +718,7 @@ async function scrape_wrap() {
         metadata_json: row.metadata_json,
       }));
 
-      console.log(`\n✅ Scraped ${finalRows.length} valid case study rows.`);
+      console.log(`\n✓ Scraped ${finalRows.length} valid case study rows.`);
       const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
         append: APPEND_PROCESSED,
       });
@@ -737,25 +737,25 @@ async function scrape_wrap() {
         );
       }
     } else {
-      console.log(`\nℹ️ No case study rows scraped.`);
+      console.log(`\n※ No case study rows scraped.`);
     }
 
     if (totalPdfs > 0) {
-      console.log(`✅ Downloaded ${totalPdfs} PDFs into:`);
+      console.log(`✓ Downloaded ${totalPdfs} PDFs into:`);
       console.log(`   - Reports: ${REPORTS_DIR}`);
       console.log(`   - Guides: ${GUIDES_DIR}`);
       await appendLogs(
         DATASET_KEY,
-        `✅ Downloaded ${totalPdfs} PDFs into: Reports: ${REPORTS_DIR}, Guides: ${GUIDES_DIR}`,
+        `✓ Downloaded ${totalPdfs} PDFs into: Reports: ${REPORTS_DIR}, Guides: ${GUIDES_DIR}`,
       );
     }
   } catch (err) {
-    console.error('❌ Fatal error:', err);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+    console.error('✕ Fatal error:', err);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
     if (browser) await browser.close();
-    console.log('✅ Browser closed.');
+    console.log('✓ Browser closed.');
   }
 }
 
@@ -770,11 +770,11 @@ async function main() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main()
     .then(async () => {
-      await appendLogs(DATASET_KEY, '✅ Run completed successfully.');
+      await appendLogs(DATASET_KEY, '✓ Run completed successfully.');
     })
     .catch(async (err) => {
-      console.error('❌ Fatal error:', err.message);
-      await appendLogs(DATASET_KEY, `❌ Fatal error: ${err.message}`);
+      console.error('✕ Fatal error:', err.message);
+      await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
       process.exit(1);
     });
 }

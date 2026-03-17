@@ -88,7 +88,7 @@ function main() {
 
   ordered.forEach(runScript);
 
-  console.log('\n✔ All requested dataset scripts completed successfully');
+  console.log('\n✓ All requested dataset scripts completed successfully');
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

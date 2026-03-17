@@ -24,18 +24,18 @@
  * Scoring dimensions: Total Release (40%), Recovery Activity (35%), Disposal Inefficiency (25%)
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse/sync';
-import {
-  cleanText,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-} from '#utils/datasetsUtils.js';
 
 const DATASET_KEY = DATASET_KEYS.epa;
 const rawDir = getDatasetRawDir(DATASET_KEY);
@@ -76,7 +76,7 @@ async function main() {
   try {
     raw = await fs.readFile(inputFile, 'utf-8');
   } catch (err) {
-    console.error(`❌ Input file not found: ${inputFile}`);
+    console.error(`✕ Input file not found: ${inputFile}`);
     throw err;
   }
 
@@ -139,7 +139,7 @@ async function main() {
     })
     .filter((r) => r.chemical && r.totalRelease > 0); // basic quality filter
 
-  console.log(`✅ Usable rows (chemical + release > 0): ${enriched.length}`);
+  console.log(`✓ Usable rows (chemical + release > 0): ${enriched.length}`);
 
   // 4. Compute normalized scores for each dimension
   const maxTotalRelease = Math.max(...enriched.map((r) => r.totalRelease));
@@ -195,13 +195,13 @@ async function main() {
   // 8. Write output
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
   console.log(
-    `✅ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    `✓ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

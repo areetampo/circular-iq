@@ -11,20 +11,20 @@
  * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
  */
 
-import fs from 'fs';
-import path from 'path';
-import { pathToFileURL, fileURLToPath } from 'url';
-import { createRequire } from 'module';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  cleanText,
-  DATASET_LOOKUP,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  DATASET_KEYS,
-  verifyPathsExist,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
@@ -195,7 +195,7 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `✅ Extraction Complete. Processed ${allScoredRows.length} total, saved top ${finalRows.length} high-quality rows.`,
+    `✓ Extraction Complete. Processed ${allScoredRows.length} total, saved top ${finalRows.length} high-quality rows.`,
   );
   console.log(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,

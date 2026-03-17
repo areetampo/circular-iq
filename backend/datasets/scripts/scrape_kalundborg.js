@@ -22,26 +22,26 @@
  *   node scrape_kalundborg.js --append-backup     # append to backup instead of clearing on start
  */
 
+import {
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    getBrowserLaunchOptions,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { fileURLToPath } from 'url';
-import {
-  cleanText,
-  getDatasetProcessedCsvPath,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  writeCsv,
-  hasAppendProcessedFlag,
-  hasAppendBackupFlag,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  appendLogs,
-  clearLogs,
-  getDatasetScrapeLogsPath,
-} from '#utils/datasetsUtils.js';
 
 // Add stealth plugin to avoid detection
 puppeteerExtra.use(StealthPlugin());
@@ -295,7 +295,7 @@ async function rebuildFromBackup() {
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
     console.warn('No backup found or backup is empty.');
-    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     return;
   }
 
@@ -331,7 +331,7 @@ async function rebuildFromBackup() {
 
   if (topCases.length === 0) {
     console.warn('No valid cases could be reconstructed from backup.');
-    await appendLogs(DATASET_KEY, `⚠️ No valid cases – output file unchanged.`);
+    await appendLogs(DATASET_KEY, `‼ No valid cases – output file unchanged.`);
     return;
   }
 
@@ -341,13 +341,13 @@ async function rebuildFromBackup() {
     return cleanRow;
   });
 
-  console.log(`✅ Rebuilt ${finalRows.length} rows from backup`);
+  console.log(`✓ Rebuilt ${finalRows.length} rows from backup`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
   await appendLogs(
     DATASET_KEY,
-    `✅ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
@@ -438,7 +438,7 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    console.log('\n✅ Scraping complete!');
+    console.log('\n✓ Scraping complete!');
     console.log(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);
     console.log(
       `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
@@ -460,8 +460,8 @@ async function scrape() {
       `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
     );
   } catch (error) {
-    console.error('❌ Fatal error:', error);
-    await appendLogs(DATASET_KEY, `❌ Fatal error: ${error.message}`);
+    console.error('✕ Fatal error:', error);
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {
     await browser.close();
@@ -479,7 +479,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

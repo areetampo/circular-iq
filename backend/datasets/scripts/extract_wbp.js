@@ -19,20 +19,20 @@
  * Output: datasets/processed/world_bank_projects_processed.csv
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
-import { createRequire } from 'module';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  cleanText,
-  DATASET_LOOKUP,
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const require = createRequire(import.meta.url);
 
@@ -111,7 +111,7 @@ async function extractTextFromPDF(filePath) {
 // ----------------------------------------------------------------------
 async function parseTaxonomyPDF(filePath) {
   if (!fs.existsSync(filePath)) {
-    console.warn('⚠️ Taxonomy PDF not found, using hard‑coded sector mapping.');
+    console.warn('‼ Taxonomy PDF not found, using hard‑coded sector mapping.');
     return FALLBACK_SECTOR_MAP;
   }
 
@@ -129,7 +129,7 @@ async function parseTaxonomyPDF(filePath) {
       }
     }
     if (startIdx === -1) {
-      console.warn('⚠️ Could not find the sector table in PDF, using hard‑coded mapping.');
+      console.warn('‼ Could not find the sector table in PDF, using hard‑coded mapping.');
       return FALLBACK_SECTOR_MAP;
     }
 
@@ -158,14 +158,14 @@ async function parseTaxonomyPDF(filePath) {
     }
 
     if (sectorMap.size === 0) {
-      console.warn('⚠️ PDF parsing returned 0 codes, using hard‑coded mapping.');
+      console.warn('‼ PDF parsing returned 0 codes, using hard‑coded mapping.');
       return FALLBACK_SECTOR_MAP;
     }
 
     console.log(`📚 Sector taxonomy loaded from PDF: ${sectorMap.size} codes.`);
     return sectorMap;
   } catch (err) {
-    console.warn('⚠️ Error parsing taxonomy PDF, using hard‑coded mapping:', err.message);
+    console.warn('‼ Error parsing taxonomy PDF, using hard‑coded mapping:', err.message);
     return FALLBACK_SECTOR_MAP;
   }
 }
@@ -411,7 +411,7 @@ function buildSolution(project, reportSections) {
     );
   }
 
-  // ⚠️ REMOVE THE SUBSTRING TRUNCATION – we want the full text for chunking
+  // ‼ REMOVE THE SUBSTRING TRUNCATION – we want the full text for chunking
   return parts.join(' ');
 }
 
@@ -447,7 +447,7 @@ async function main() {
       console.log(`📄 Parsed report: ${file} (country: ${country})`);
     }
   } else {
-    console.log('⚠️ Reports folder not found, skipping report extraction.');
+    console.log('‼ Reports folder not found, skipping report extraction.');
   }
 
   // Build report lookup by country
@@ -480,7 +480,7 @@ async function main() {
 
     if (!solution.endsWith('.') && !solution.endsWith('"') && solution.length > 0) {
       console.warn(
-        `⚠️ Solution for ${proj.id} (${proj.project_name}) may be truncated: ends with "${solution.slice(-20)}"`,
+        `‼ Solution for ${proj.id} (${proj.project_name}) may be truncated: ends with "${solution.slice(-20)}"`,
       );
     }
 
@@ -567,13 +567,13 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   console.log(
-    `✅ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal error:', err.message);
+    console.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

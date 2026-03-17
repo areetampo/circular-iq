@@ -22,20 +22,20 @@
  * Output: datasets/processed/dataeu_processed.csv
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse/sync';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import translate from 'google-translate-api-x';
 import {
-  DATASET_KEYS,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  verifyPathsExist,
-  DATASET_LOOKUP,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
+import fs from 'fs';
+import translate from 'google-translate-api-x';
+import path from 'path';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.dataeu;
 const dataset = DATASET_LOOKUP[DATASET_KEY];
@@ -189,7 +189,7 @@ async function translateBatchFrenchToEnglish(texts) {
     toTranslate.forEach((orig, idx) => {
       translationCache.set(orig.trim(), translated[idx]);
     });
-    console.log(`  ✅ Translated ${translated.length} texts from French to English.`);
+    console.log(`  ✓ Translated ${translated.length} texts from French to English.`);
     return translated;
   } catch (err) {
     console.warn(`Batch translation failed: ${err.message}`);
@@ -477,7 +477,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n❌ Fatal Error during extraction:', err.message);
+    console.error('\n✕ Fatal Error during extraction:', err.message);
     process.exit(1);
   });
 }

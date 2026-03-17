@@ -23,19 +23,19 @@
  *   - #utils/datasetsUtils.js for path helpers, writeCsv, formatId, cleanText
  */
 
+import {
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
+} from '#utils/datasetsUtils.js';
+import { parse } from 'csv-parse/sync';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parse } from 'csv-parse/sync';
-import {
-  cleanText,
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  DATASET_KEYS,
-  verifyPathsExist,
-  DATASET_LOOKUP,
-} from '#utils/datasetsUtils.js';
 
 // ===== CONFIGURATION =====
 const DATASET_KEY = DATASET_KEYS.ifixit;
@@ -279,7 +279,7 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, outputPath, topRows);
   console.log(
-    `✅ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    `✓ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 

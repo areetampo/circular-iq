@@ -202,7 +202,7 @@ Return ONLY a JSON object with keys exactly as above and values between 0 and 10
     }
     return scores;
   } catch (error) {
-    console.warn(`⚠️  Failed to enrich scores: ${error.message}`);
+    console.warn(`‼ Failed to enrich scores: ${error.message}`);
     return null;
   }
 }
@@ -571,7 +571,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       console.log('\n✓ Chunking complete!');
       process.exit(0);
     } catch (error) {
-      console.error('\n❌ Fatal error:', error.message);
+      console.error('\n✕ Fatal error:', error.message);
       process.exit(1);
     }
   })().catch((err) => {

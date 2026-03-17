@@ -559,7 +559,7 @@ npm run preview
 #### Components
 
 ```jsx
-// ✅ Good: Self-contained, focused component
+// ✓ Good: Self-contained, focused component
 export default function ResultsPage() {
   const { id } = useParams();
   const { assessment, isLoading } = useAssessment(id);
@@ -571,7 +571,7 @@ export default function ResultsPage() {
 #### Hooks
 
 ```jsx
-// ✅ Good: Custom hook extracts reusable logic
+// ✓ Good: Custom hook extracts reusable logic
 export function useMarketAnalysis({ assessmentId, enabled = true }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['market-analysis', assessmentId],
@@ -586,7 +586,7 @@ export function useMarketAnalysis({ assessmentId, enabled = true }) {
 #### API Calls
 
 ```javascript
-// ✅ Good: Use buildApiUrl for automatic proxy routing
+// ✓ Good: Use buildApiUrl for automatic proxy routing
 import { buildApiUrl } from '@/lib/apiClient';
 
 const url = buildApiUrl('/api/score');
@@ -601,7 +601,7 @@ const response = await fetch(url, {
 #### Constants
 
 ```javascript
-// ✅ Good: Centralized, immutable constants
+// ✓ Good: Centralized, immutable constants
 export const EVALUATION_PARAMETERS = {
   resource_efficiency: { min: 0, max: 100, label: 'Resource Efficiency' },
   // ...
@@ -807,10 +807,10 @@ export function useExportState() {
 Avoid magic strings/numbers:
 
 ```javascript
-// ✅ Good
+// ✓ Good
 import { EVALUATION_PARAMETERS } from '@/constants/evaluationData';
 
-// ❌ Avoid
+// ✕ Avoid
 if (score > 75) {
   /* ... */
 }
@@ -929,13 +929,13 @@ useQuery({
 
 ### API Key Protection
 
-✅ **Good**:
+✓ **Good**:
 
 - Secret key in Vercel env variables only
 - Proxy function injects key server-side
 - Frontend never sees the secret
 
-❌ **Avoid**:
+✕ **Avoid**:
 
 - Storing API keys in `.env.frontend` that gets committed
 - Exposing keys in browser DevTools

@@ -15,7 +15,7 @@ let supabase = null;
 if (BACKEND_CONFIG.supabase && BACKEND_CONFIG.supabase.serviceKey) {
   supabase = createSupabaseClient();
 } else {
-  console.warn('⚠️️️ ️  Supabase service key not found; Supabase checks will be skipped');
+  console.warn('‼ ️ ️  Supabase service key not found; Supabase checks will be skipped');
 }
 
 async function testPipeline() {
@@ -27,7 +27,7 @@ async function testPipeline() {
     try {
       assertFileExists(OUT_COMBINED_INPUT_CSV, 'combined_input.csv');
     } catch (err) {
-      console.error('❌ ' + err.message);
+      console.error('✕ ' + err.message);
       process.exit(1);
     }
     const csvContent = fs.readFileSync(OUT_COMBINED_INPUT_CSV, 'utf8');
@@ -39,7 +39,7 @@ async function testPipeline() {
     try {
       assertFileExists(OUT_CHUNKS_JSON, 'chunks.json');
     } catch (err) {
-      console.error('❌ ' + err.message);
+      console.error('✕ ' + err.message);
       process.exit(1);
     }
     const chunks = JSON.parse(fs.readFileSync(OUT_CHUNKS_JSON, 'utf8'));
@@ -48,7 +48,7 @@ async function testPipeline() {
     // Test 3: Check embeddings in Supabase
     console.log('\n3️⃣  Checking embeddings in Supabase...');
     if (!supabase) {
-      console.warn('⚠️️️  Supabase client not configured; skipping DB checks');
+      console.warn('‼ ️  Supabase client not configured; skipping DB checks');
     } else {
       try {
         const { count, error } = await supabase
@@ -60,10 +60,10 @@ async function testPipeline() {
         );
 
         if (count === 0) {
-          console.warn('⚠️️️  Warning: No vectors in Supabase. Embeddings may still be processing.');
+          console.warn('‼ ️  Warning: No vectors in Supabase. Embeddings may still be processing.');
         }
       } catch (err) {
-        console.warn('⚠️️️  Supabase query failed (continuing):', err.message);
+        console.warn('‼ ️  Supabase query failed (continuing):', err.message);
       }
 
       // Test 4: Test retrieval
@@ -77,7 +77,7 @@ async function testPipeline() {
         });
 
         if (error) {
-          console.warn('⚠️️️  Retrieval test skipped (RPC may not be ready): ', error.message);
+          console.warn('‼ ️  Retrieval test skipped (RPC may not be ready): ', error.message);
         } else {
           console.log(`✓ Retrieved ${data?.length || 0} similar documents`);
           if (data && data.length > 0) {
@@ -88,7 +88,7 @@ async function testPipeline() {
           }
         }
       } catch (err) {
-        console.warn('⚠️️️  Retrieval test error (continuing):', err.message);
+        console.warn('‼ ️  Retrieval test error (continuing):', err.message);
       }
     }
 
@@ -98,7 +98,7 @@ async function testPipeline() {
     const requiredFields = ['id', 'content', 'metadata'];
     const hasAll = requiredFields.every((f) => f in sampleChunk);
     if (!hasAll) {
-      console.error('❌ Chunks missing required fields:', requiredFields);
+      console.error('✕ Chunks missing required fields:', requiredFields);
       process.exit(1);
     }
     console.log(`✓ Chunk structure valid (fields: ${requiredFields.join(', ')})`);
@@ -118,9 +118,9 @@ async function testPipeline() {
     console.log('✓ Chunks created');
     console.log('✓ Embeddings generated (or in progress)');
     console.log('✓ Multi-vector storage ready');
-    console.log('\n✅ Pipeline setup complete!\n');
+    console.log('\n✓ Pipeline setup complete!\n');
   } catch (err) {
-    console.error('\n❌ Pipeline test failed:', err.message);
+    console.error('\n✕ Pipeline test failed:', err.message);
     process.exit(1);
   }
 }

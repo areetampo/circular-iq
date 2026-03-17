@@ -736,7 +736,7 @@ const BusinessProblemSection = () => {
         </div>
 
         <div className="p-4 text-sm italic text-gray-600 bg-gray-100 rounded-lg border border-gray-200">
-          ⚠️️️ <strong>Minimum 200 characters required</strong>
+          ‼ ️ <strong>Minimum 200 characters required</strong>
         </div>
       </div>
     </section>
@@ -867,7 +867,7 @@ const BusinessSolutionSection = () => {
         </div>
 
         <p className="text-sm italic text-gray-500 p-3 bg-gray-100 rounded-lg">
-          ⚠️️️ <strong>Minimum 200 characters required</strong>
+          ‼ ️ <strong>Minimum 200 characters required</strong>
         </p>
       </div>
     </section>

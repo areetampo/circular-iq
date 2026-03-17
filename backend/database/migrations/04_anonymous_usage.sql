@@ -29,8 +29,7 @@ BEGIN
             WHERE proname = func_name
               AND nspname = 'public'
         LOOP
-            EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(%s) CASCADE;',
-                           rec.nspname, rec.proname, rec.args);
+            EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(%s) CASCADE;', rec.nspname, rec.proname, rec.args);
         END LOOP;
     END LOOP;
 END $$;

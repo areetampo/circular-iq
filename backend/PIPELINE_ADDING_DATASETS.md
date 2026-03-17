@@ -120,7 +120,7 @@ async function main() {
     for (const page of pages) {
       const rows = await scrapePage(page);
       await backup.add(rows); // Auto-flushes every 3 calls
-      console.log(`✅ Page ${page}: ${rows.length} rows`);
+      console.log(`✓ Page ${page}: ${rows.length} rows`);
     }
     await backup.flush(); // Final flush
 
@@ -241,7 +241,7 @@ async function main() {
   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
   await writeCsv(csvPath, rows, { clear: true });
 
-  console.log(`✅ Extracted ${rows.length} rows to ${csvPath}`);
+  console.log(`✓ Extracted ${rows.length} rows to ${csvPath}`);
 }
 
 main().catch(console.error);
@@ -306,7 +306,7 @@ async function main() {
   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
   await writeCsv(csvPath, rows, { clear: true });
 
-  console.log(`✅ Processed ${rows.length} records`);
+  console.log(`✓ Processed ${rows.length} records`);
 }
 
 main().catch(console.error);
@@ -351,7 +351,7 @@ async function main() {
   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
   await writeCsv(csvPath, rows, { clear: true });
 
-  console.log(`✅ Fetched and processed ${rows.length} records`);
+  console.log(`✓ Fetched and processed ${rows.length} records`);
 }
 
 main().catch(console.error);
@@ -861,13 +861,13 @@ npm run store
 
 ## Summary: Dataset Integration Workflow
 
-1. ✅ Source data (web scrape, PDF extract, direct file)
-2. ✅ Transform/Extract if needed
-3. ✅ Standardize format (headers, quoting, IDs)
-4. ✅ Move to `datasets/processed/` or add to `datasets/manual_entries/`
-5. ✅ Run merge: `npm run merge`
-6. ✅ Verify in combined_input.csv
-7. ✅ Continue with chunking and embedding: `npm run populate`
-8. ✅ Verify in Supabase
+1. ✓ Source data (web scrape, PDF extract, direct file)
+2. ✓ Transform/Extract if needed
+3. ✓ Standardize format (headers, quoting, IDs)
+4. ✓ Move to `datasets/processed/` or add to `datasets/manual_entries/`
+5. ✓ Run merge: `npm run merge`
+6. ✓ Verify in combined_input.csv
+7. ✓ Continue with chunking and embedding: `npm run populate`
+8. ✓ Verify in Supabase
 
 That's it! Your dataset is now available for RAG retrieval.
