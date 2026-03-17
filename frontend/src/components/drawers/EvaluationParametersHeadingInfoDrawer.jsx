@@ -16,13 +16,12 @@ export default function EvaluationParametersHeadingInfoDrawer() {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      placement={direction === 'right' ? 'right' : 'bottom'}
     >
       <Drawer.Backdrop>
-        <Drawer.Content>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger />
+            {direction === 'right' && <Drawer.CloseTrigger />}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -41,9 +40,6 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                     <Drawer.Heading className="text-lg font-semibold">
                       Evaluation Parameters Guide
                     </Drawer.Heading>
-                    <Drawer.Description className="text-sm text-gray-600">
-                      Factors used to evaluate circularity potential
-                    </Drawer.Description>
                   </div>
                 </div>
               </div>

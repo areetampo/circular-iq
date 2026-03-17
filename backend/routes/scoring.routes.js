@@ -120,6 +120,7 @@ export default function createScoringRouter(openai, supabase) {
         serviceSupabase,
         userId,
       );
+
       logRequest('POST', '/score', 200, Date.now() - start);
       res.json(response);
     } catch (err) {

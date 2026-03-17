@@ -3,8 +3,8 @@ import { useRef, useState } from 'react';
 import DRAWERS from '@/components/drawers/drawerTypes';
 
 // Match the CSS transition duration used by Drawer (overlay/content)
-// reduced from 320ms to match the faster 200ms CSS transitions + small buffer
-const CLOSE_ANIMATION_MS = 260;
+// reduced from 320ms to match the faster CSS transitions + small buffer
+const CLOSE_ANIMATION_MS = 200;
 
 export default function useDrawer() {
   // drawerState.type === null => no drawer mounted
@@ -44,20 +44,21 @@ export default function useDrawer() {
     onClose: closeDrawer,
 
     openAssessmentMethodologyDrawer: () => openDrawer(DRAWERS.ASSESSMENT_METHODOLOGY),
+
     openEvaluationCriteriaDrawer: () => openDrawer(DRAWERS.EVALUATION_CRITERIA),
+
     openBusinessProblemInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_PROBLEM_INFO),
+
     openBusinessSolutionInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_SOLUTION_INFO),
+
     openEvaluationParametersHeadingInfoDrawer: () =>
       openDrawer(DRAWERS.EVALUATION_PARAMETERS_HEADING_INFO),
 
     openSpecificEvaluationParameterInfoDrawer: (paramKey) =>
       openDrawer(DRAWERS.SPECIFIC_EVALUATION_PARAMETER_INFO, { paramKey }),
 
-    openTestCasesHeadingInfoDrawer: () => openDrawer(DRAWERS.SAMPLE_TEST_CASES_HEADING_INFO),
     openSampleTestCasesHeadingInfoDrawer: () => openDrawer(DRAWERS.SAMPLE_TEST_CASES_HEADING_INFO),
 
-    openSpecificTestCaseDetailsDrawer: (testCase) =>
-      openDrawer(DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase }),
     openSpecificSampleTestCaseViewDetailsDrawer: (testCase) =>
       openDrawer(DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase }),
 

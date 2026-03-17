@@ -138,6 +138,15 @@ export const BACKEND_CONFIG = deepFreeze({
   nodeEnv: env.NODE_ENV,
   isProduction: env.NODE_ENV === 'production',
 
+  api: [
+    { method: 'GET', endpoint: '/health', description: 'System Health' },
+    { method: 'GET', endpoint: '/docs/methodology', description: 'Framework Docs' },
+    { method: 'POST', endpoint: '/api/score', description: 'RAG Analysis' },
+    { method: 'GET', endpoint: '/api/profile', description: 'User Data' },
+    { method: 'GET', endpoint: '/api/analytics', description: 'Doc Stats' },
+    { method: 'CRUD', endpoint: '/api/assessments', description: 'User Results' },
+  ],
+
   openai: {
     apiKey: env.OPENAI_API_KEY,
   },

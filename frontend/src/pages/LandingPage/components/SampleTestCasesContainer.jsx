@@ -1,7 +1,7 @@
 import { ScrollShadow, toast } from '@heroui/react';
 import { BookOpen, CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { Button } from '@/components/common';
@@ -16,7 +16,7 @@ export default function SampleTestCasesContainer({
   openEvalParams = () => {},
 }) {
   const { setValue, trigger, getValues } = useFormContext();
-  const { openSpecificTestCaseDetailsDrawer } = useGlobalDrawer();
+  const { openSpecificSampleTestCaseViewDetailsDrawer } = useGlobalDrawer();
   const { openReplaceInputsDialog } = useGlobalDialog();
   const { saveSession } = useSession();
   const [selectedCase, setSelectedCase] = useState('');
@@ -149,7 +149,7 @@ export default function SampleTestCasesContainer({
             <div className="flex justify-end">
               <Button
                 onClick={(e) => {
-                  openSpecificTestCaseDetailsDrawer(testCase);
+                  openSpecificSampleTestCaseViewDetailsDrawer(testCase);
                   e.stopPropagation();
                 }}
                 variant="eco-soft"

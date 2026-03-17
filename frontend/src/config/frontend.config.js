@@ -53,8 +53,8 @@ if (isTest) {
   } else {
     // 2. Handle Success Logic
     const env = result.data;
-    // Reject localhost API URL in production, but allow in test mode
-    if (!isTest && env.VITE_API_URL && env.VITE_API_URL.includes('localhost')) {
+    // Only reject localhost API URL in production builds
+    if (env.PROD && env.VITE_API_URL && env.VITE_API_URL.includes('localhost')) {
       throw new Error('Production build cannot use localhost API URL');
     }
     validatedConfig = {

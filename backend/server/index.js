@@ -54,59 +54,47 @@ export function startServer() {
   serverInstance = app.listen(PORT, () => {
     if (BACKEND_CONFIG.nodeEnv === 'test') return;
 
-    // 1. Core Config (Handling the "weird line" issue)
-    const configRows = [
-      renderRow('Port', theme.success(PORT)),
-      renderRow('Mode', theme.warning(BACKEND_CONFIG.nodeEnv)),
-      renderRow('Frontend URL', theme.url(BACKEND_CONFIG.app.frontendUrl)),
-      renderRow('Allowed Origins', formatList(BACKEND_CONFIG.app.allowedOrigins)),
-      renderRow(
-        'Public Routes',
-        theme.secondary(Array.from(BACKEND_CONFIG.app.publicRoutes || []).join('  •  ') || 'None'),
-      ),
-      '',
-      renderRow(
-        'OpenAI Key',
-        BACKEND_CONFIG.openai.apiKey ? theme.success('CONNECTED ✓') : theme.danger('MISSING ✕'),
-      ),
-      renderRow('Supabase URL', theme.url(BACKEND_CONFIG.supabase.url || 'Not set')),
-      renderRow(
-        'Supabase Anon Key',
-        BACKEND_CONFIG.supabase.anonKey ? theme.success('SET') : theme.danger('NOT SET'),
-      ),
-      renderRow(
-        'Service Service Key',
-        BACKEND_CONFIG.supabase.serviceKey ? theme.success('SET') : theme.danger('NOT SET'),
-      ),
-      renderRow(
-        'Docs Backend',
-        BACKEND_CONFIG.useSupabaseDocuments
-          ? theme.accent('Supabase documents')
-          : theme.accent('Aiven PostgreSQL documents'),
-      ),
-      renderRow(
-        'Log Level',
-        BACKEND_CONFIG.app.logLevel === 'error'
-          ? theme.danger('ERROR')
-          : theme.success(BACKEND_CONFIG.app.logLevel),
-      ),
-      renderRow(
-        'Strict Env',
-        BACKEND_CONFIG.app.strictEnv ? theme.success('ENABLED') : theme.danger('DISABLED'),
-      ),
-    ];
+    const configRows = [];
 
-    // 2. API Map
-    const apiRows = [
-      { m: 'GET', p: '/health', d: 'System Health' },
-      { m: 'GET', p: '/docs/methodology', d: 'Framework Docs' },
-      { m: 'GET', p: '/api/profile', d: 'User Data' },
-      { m: 'GET', p: '/api/analytics', d: 'Doc Stats' },
-      { m: 'POST', p: '/api/score', d: 'RAG Analysis' },
-      { m: 'CRUD', p: '/api/assessments', d: 'User Results' },
-    ].map(
+    const processConfig = (obj, prefix = '') => {
+      for (const [key, value] of Object.entries(obj)) {
+        // Skip the 'api' section as it's displayed separately
+        if (key === 'api') continue;
+
+        const label = prefix ? `${prefix}.${key}` : key;
+
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+          // If it's a nested object, recurse
+          processConfig(value, label);
+        } else {
+          // Format the value based on content
+          let formattedValue = theme.secondary(String(value));
+
+          if (typeof value === 'boolean') {
+            formattedValue = value ? theme.success('ENABLED') : theme.danger('DISABLED');
+          } else if (label.toLowerCase().includes('url')) {
+            formattedValue = theme.url(value || 'Not set');
+          } else if (Array.isArray(value)) {
+            formattedValue = formatList(value);
+          } else if (
+            label.toLowerCase().includes('key') ||
+            label.toLowerCase().includes('password') ||
+            label.toLowerCase().includes('connectionstring') ||
+            label.toLowerCase().includes('sslca')
+          ) {
+            formattedValue = value ? theme.success('SET ✓') : theme.danger('MISSING ✕');
+          }
+
+          configRows.push(renderRow(label, formattedValue));
+        }
+      }
+    };
+
+    processConfig(BACKEND_CONFIG);
+
+    const apiRows = BACKEND_CONFIG.api.map(
       (route) =>
-        `${badge(route.m)} ${theme.secondary(route.p.padEnd(20))} ${theme.dim('⇨ ' + route.d)}`,
+        `${badge(route.method)} ${theme.secondary(route.endpoint.padEnd(20))} ${theme.dim('⇨ ' + route.description)}`,
     );
 
     const authStatus = BACKEND_CONFIG.app.apiAuthEnabled
@@ -138,21 +126,21 @@ export function startServer() {
         backgroundColor: '#1a1a1a',
       }),
     );
+
+    const shutdown = () => {
+      if (serverInstance) {
+        serverInstance.close(() => {
+          console.log(theme.danger('\n✕ Server Process Terminated.'));
+          process.exit(0);
+        });
+      }
+    };
+
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+
+    return serverInstance;
   });
-
-  const shutdown = () => {
-    if (serverInstance) {
-      serverInstance.close(() => {
-        console.log(theme.danger('\n✕ Server Process Terminated.'));
-        process.exit(0);
-      });
-    }
-  };
-
-  process.on('SIGTERM', shutdown);
-  process.on('SIGINT', shutdown);
-
-  return serverInstance;
 }
 
 export function stopServer() {

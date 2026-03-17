@@ -75,11 +75,12 @@ export default function BusinessSolutionInfoDrawer() {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      placement={direction === 'right' ? 'right' : 'left'}
     >
       <Drawer.Backdrop>
-        <Drawer.Content>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
+            {direction === 'bottom' && <Drawer.Handle />}
+            {direction === 'right' && <Drawer.CloseTrigger />}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -101,11 +102,9 @@ export default function BusinessSolutionInfoDrawer() {
                     <p className="text-sm text-gray-600">How your business solves the problem</p>
                   </div>
                 </div>
-
-                {direction === 'right' && <Drawer.CloseTrigger />}
               </div>
             </Drawer.Header>
-            <Drawer.Body className="gap-6">
+            <Drawer.Body className="gap-6 mt-4">
               <div className="space-y-6">
                 <p className="leading-relaxed text-gray-700">
                   Describe <strong>how your business solves the problem</strong> with technical

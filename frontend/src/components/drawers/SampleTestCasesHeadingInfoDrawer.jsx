@@ -15,13 +15,12 @@ export default function SampleTestCasesHeadingInfoDrawer() {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      placement={direction === 'right' ? 'right' : 'bottom'}
     >
       <Drawer.Backdrop>
-        <Drawer.Content>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger />
+            {direction === 'right' && <Drawer.CloseTrigger />}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -40,9 +39,6 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                     <Drawer.Heading className="text-lg font-semibold">
                       Sample Test Cases
                     </Drawer.Heading>
-                    <Drawer.Description className="text-sm text-gray-600">
-                      Pre-filled business model examples
-                    </Drawer.Description>
                   </div>
                 </div>
               </div>

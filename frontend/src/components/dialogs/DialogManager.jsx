@@ -22,6 +22,8 @@
  * (No props needed - gets dialog state directly from context)
  */
 
+import React from 'react';
+
 import {
   ConfirmDialog,
   DeleteAssessmentDialog,

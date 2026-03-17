@@ -64,10 +64,10 @@ async function requestJson(path, options = {}) {
   return data;
 }
 
-export async function scoreAssessment({ businessProblem, businessSolution, parameters }) {
+export async function scoreAssessment(formData) {
   const response = await request('/api/score', {
     method: 'POST',
-    body: JSON.stringify({ businessProblem, businessSolution, parameters }),
+    body: JSON.stringify(formData),
   });
 
   const data = await response.json().catch(() => null);

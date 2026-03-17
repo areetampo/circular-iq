@@ -36,7 +36,6 @@ const signupSchema = z
 
 export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
-  // using HeroUI toast directly
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -54,7 +53,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
     try {
       // Use username with internal domain as email
-      const email = `${data.username}@circular.internal`;
+      const email = `${data.username}@ce.internal`;
 
       const { error: signupError } = await supabase.auth.signUp({
         email,

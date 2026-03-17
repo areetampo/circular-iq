@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
  */
 export function useDrawerDirection(): 'bottom' | 'right' {
   // Switch from bottom → right at md breakpoint (768px) instead of sm (640px)
-  const getDirection = (): 'bottom' | 'right' => (window.innerWidth < 768 ? 'bottom' : 'right');
+  const getDirection = (): 'bottom' | 'right' => (window.innerWidth <= 768 ? 'bottom' : 'right');
 
   const [direction, setDirection] = useState<'bottom' | 'right'>(getDirection);
 

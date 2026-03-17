@@ -77,6 +77,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const location = useLocation();
   const isResultsRoute = location.pathname.startsWith('/results');
   const navigationResult = location.state?.result;
+  console.log(navigationResult);
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
 

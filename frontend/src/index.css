@@ -208,21 +208,29 @@
     @apply hover:scale-[1.05] transition-all duration-200 cursor-pointer;
   }
 
-  /*
-  ** heroui chip override
-  */
+  /* heroui overrides */
+
   .chip {
     @apply px-2;
   }
 
-  /*
-  ** heroui toast override
-  */
   .toast-region {
     @apply w-4/5 sm:w-auto;
   }
 
   .toast__close-button {
     display: none !important;
+  }
+
+  .drawer__handle [data-slot='drawer-handle-bar'] {
+    @apply h-2 w-20 bg-gray-200 text-transparent mb-2 cursor-pointer;
+  }
+
+  .drawer__dialog.drawer__dialog--right {
+    @apply w-150;
+  }
+
+  .dropdown__popover {
+    @apply !absolute !top-16 !left-auto !right-4;
   }
 }

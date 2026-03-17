@@ -377,28 +377,6 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       const keywordForSolution = metadata?.primary_material || 'circularity';
       const matchCount = 8;
 
-      const rpcParamsProblem = {
-        query_embedding: problemVector,
-        keyword_filter: keywordForProblem,
-        industry_filter: metadata?.industry ?? null,
-        category_filter: metadata?.category ?? null,
-        source_filter: metadata?.source ?? null,
-        match_count: matchCount,
-        vector_weight: VECTOR_SEARCH_VECTOR_WEIGHT,
-        similarity_threshold: 0.0,
-      };
-
-      const rpcParamsSolution = {
-        query_embedding: solutionVector,
-        keyword_filter: keywordForSolution,
-        industry_filter: metadata?.industry ?? null,
-        category_filter: metadata?.category ?? null,
-        source_filter: metadata?.source ?? null,
-        match_count: matchCount,
-        vector_weight: VECTOR_SEARCH_VECTOR_WEIGHT,
-        similarity_threshold: 0.0,
-      };
-
       const [searchResults, industryResults] = await Promise.allSettled([
         Promise.all([
           documentsRepository.searchHybrid(
@@ -662,15 +640,17 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       result_snapshot: response,
     };
 
-    serviceSupabase
-      .from('scoring_results_log')
-      .insert(logData)
-      .then(() => {
-        console.log(`[${requestId}] Logged scoring result to scoring_results_log`);
-      })
-      .catch((err) => {
-        console.error(`[${requestId}] Failed to log scoring result:`, err.message);
-      });
+    if (serviceSupabase) {
+      serviceSupabase
+        .from('scoring_results_log')
+        .insert(logData)
+        .then(() => {
+          console.log(`[${requestId}] Logged scoring result to scoring_results_log`);
+        })
+        .catch((err) => {
+          console.error(`[${requestId}] Failed to log scoring result:`, err.message);
+        });
+    }
 
     logOperation('performScoring', 'success', Date.now() - startTime);
     return response;

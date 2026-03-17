@@ -99,3 +99,14 @@ WHERE table_name = 'documents' AND column_name = 'embedding';
 SELECT oprname, oprleft::regtype, oprright::regtype, nspname
 FROM pg_operator o JOIN pg_namespace n ON o.oprnamespace = n.oid
 WHERE oprname = '<=>' AND oprleft::regtype::text LIKE '%halfvec%';
+
+-- functions on a table
+
+SELECT
+    trigger_name,
+    event_manipulation AS event,
+    action_statement AS function_call,
+    action_timing AS timing
+FROM  information_schema.triggers
+WHERE event_object_table = 'documents'
+ORDER BY trigger_name;

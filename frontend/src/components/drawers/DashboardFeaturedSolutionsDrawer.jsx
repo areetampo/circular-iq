@@ -40,11 +40,12 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      placement={direction === 'right' ? 'right' : 'left'}
     >
       <Drawer.Backdrop>
-        <Drawer.Content>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
+            {direction === 'bottom' && <Drawer.Handle />}
+            {direction === 'right' && <Drawer.CloseTrigger />}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -67,8 +68,6 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                     </p>
                   </div>
                 </div>
-
-                {direction === 'right' && <Drawer.CloseTrigger />}
               </div>
             </Drawer.Header>
 

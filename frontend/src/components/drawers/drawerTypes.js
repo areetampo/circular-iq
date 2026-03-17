@@ -7,8 +7,8 @@ export const DRAWERS = {
   SPECIFIC_EVALUATION_PARAMETER_INFO: 'parameter-info',
   SAMPLE_TEST_CASES_HEADING_INFO: 'test-cases-heading',
   SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS: 'test-case',
-  DASHBOARD_FEATURED_SOLUTIONS: 'featured-solutions',
   RESULTS_DATABASE_EVIDENCE_DETAILS: 'evidence-details',
+  DASHBOARD_FEATURED_SOLUTIONS: 'featured-solutions',
 };
 
 export default DRAWERS;

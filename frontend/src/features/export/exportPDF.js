@@ -5,8 +5,10 @@
  * Location: src/features/export/exportPDF.js
  */
 
-import { reconstructScoringResult } from '@/features/assessments/utils';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+
+import { reconstructScoringResult } from '@/features/assessments/utils';
 
 /**
  * Formats text for PDF display

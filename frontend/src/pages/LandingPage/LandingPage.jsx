@@ -1,5 +1,4 @@
-import { toast } from '@heroui/react';
-import { Accordion, Card, Label, TextArea as Textarea, Tooltip } from '@heroui/react';
+import { Accordion, Card, Label, TextArea as Textarea, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import {
@@ -50,11 +49,12 @@ export default function LandingPage() {
   } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
   const {
+    openAssessmentMethodologyDrawer,
+    openEvaluationCriteriaDrawer,
     openBusinessProblemInfoDrawer,
     openBusinessSolutionInfoDrawer,
     openEvaluationParametersHeadingInfoDrawer,
-    openAssessmentMethodologyDrawer,
-    openEvaluationCriteriaDrawer,
+    openSampleTestCasesHeadingInfoDrawer,
   } = useGlobalDrawer();
 
   const [showEvaluationParameters, setShowEvaluationParameters] = useState(true);
@@ -594,7 +594,7 @@ export default function LandingPage() {
                       className={cn(
                         card.iconColor,
                         'h-8 w-8 shrink-0 transition-[scale,rotate] duration-300 ease-out',
-                        'group-hover:scale-[1.2] group-hover:-rotate-[10deg] group-hover:drop-shadow-md',
+                        'group-hover:scale-[1.2] group-hover:-rotate-10 group-hover:drop-shadow-md',
                       )}
                       strokeWidth={1.75}
                     />
@@ -713,7 +713,7 @@ export default function LandingPage() {
                           className={cn(
                             'h-6 w-6 shrink-0 text-emerald-500',
                             'transition-[scale,rotate] duration-300 ease-out',
-                            'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-[10deg] group-hover/parent:drop-shadow-md mr-1',
+                            'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-10 group-hover/parent:drop-shadow-md mr-1',
                           )}
                           strokeWidth={1.75}
                         />
@@ -809,7 +809,7 @@ export default function LandingPage() {
                           className={cn(
                             'h-6 w-6 shrink-0 text-teal-500',
                             'transition-[scale,rotate] duration-300 ease-out',
-                            'group-hover/tc:scale-[1.2] group-hover/tc:-rotate-[10deg] group-hover/tc:drop-shadow-md mr-1',
+                            'group-hover/tc:scale-[1.2] group-hover/tc:-rotate-10 group-hover/tc:drop-shadow-md mr-1',
                           )}
                           strokeWidth={1.75}
                         />
@@ -825,7 +825,7 @@ export default function LandingPage() {
                               color="green"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openEvaluationParametersHeadingInfoDrawer();
+                                openSampleTestCasesHeadingInfoDrawer();
                               }}
                             />
                           </div>

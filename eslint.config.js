@@ -31,7 +31,7 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
-        React: 'writable', // This stops the "React is not defined" error
+        // React: 'writable', // This stops the "React is not defined" error
       },
       // Use the TS parser for everything; it handles plain JS perfectly too
       parser: tsParser,
@@ -167,7 +167,7 @@ export default [
       ...pluginReact.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      'no-undef': 'off',
+      // 'no-undef': 'off',
     },
     settings: { react: { version: 'detect' } },
   },

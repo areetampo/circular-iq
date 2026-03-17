@@ -23,7 +23,6 @@ const loginSchema = z.object({
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
-  // toasts are shown via HeroUI toast helper
 
   const {
     control,

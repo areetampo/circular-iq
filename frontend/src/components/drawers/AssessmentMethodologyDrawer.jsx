@@ -8,6 +8,7 @@ import {
   Search,
   TriangleAlert,
 } from 'lucide-react';
+import React from 'react';
 
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
@@ -70,11 +71,12 @@ export default function AssessmentMethodologyDrawer() {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      placement={direction === 'right' ? 'right' : 'left'}
     >
       <Drawer.Backdrop>
-        <Drawer.Content>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
+            {direction === 'bottom' && <Drawer.Handle />}
+            {direction === 'right' && <Drawer.CloseTrigger />}
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
@@ -99,9 +101,6 @@ export default function AssessmentMethodologyDrawer() {
                     </p>
                   </div>
                 </div>
-
-                {/* Close trigger — right drawer only */}
-                {direction === 'right' && <Drawer.CloseTrigger />}
               </div>
             </Drawer.Header>
 
@@ -112,7 +111,7 @@ export default function AssessmentMethodologyDrawer() {
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
                 <strong className="text-gray-800">
-                  4,000+ high-quality circular economy projects
+                  6,000+ high-quality circular economy projects
                 </strong>
                 .
               </p>

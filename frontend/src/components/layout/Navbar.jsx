@@ -1,9 +1,9 @@
 import { Avatar, Dropdown, Separator } from '@heroui/react';
-import { ChevronDown, HelpCircle, LogOut, Mail, Menu, Settings, User, X } from 'lucide-react';
+import { HelpCircle, LogOut, Mail, Menu, Settings, User, X } from 'lucide-react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/common';
-import { SiteLogo, SiteName } from '@/components/common';
+import { Button, SiteLogo, SiteName } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -14,6 +14,7 @@ export default function Navbar() {
   // console.log('Auth state in Navbar:', { user, profile, isAuthenticated });
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
@@ -171,69 +172,68 @@ export default function Navbar() {
       {/* RIGHT: Profile Dropdown */}
       <div>
         {isAuthenticated ? (
-          <Dropdown>
-            <Dropdown.Trigger>
-              <button
-                className={cn(
-                  'flex items-center gap-2.5 bg-transparent border-0 focus:outline-none cursor-pointer transition-all duration-200',
-                )}
-              >
-                <Avatar color="success" size="md" variant="soft">
-                  <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
-                  <Avatar.Fallback className="text-lg font-semibold">
-                    {getUserInitials()}
-                  </Avatar.Fallback>
-                </Avatar>
-                <span className="hidden xxs:inline text-lg font-medium text-foreground">
-                  {getUsername()}
-                </span>
-                <ChevronDown className="w-4 h-4 text-default-500" />
-              </button>
+          <Dropdown isOpen={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <Dropdown.Trigger
+              className={cn(
+                'flex items-center gap-2.5 bg-transparent border-0 focus:outline-none cursor-pointer transition-all duration-200',
+              )}
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+            >
+              <Avatar color="success" size="md" variant="soft">
+                <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
+                <Avatar.Fallback className="text-lg font-semibold">
+                  {getUserInitials()}
+                </Avatar.Fallback>
+              </Avatar>
+              <span className="hidden xxs:inline text-lg font-medium text-foreground">
+                {getUsername()}
+              </span>
             </Dropdown.Trigger>
-            <Dropdown.Menu aria-label="User menu">
-              {/* User Info Header */}
-              <Dropdown.Item isReadOnly className="h-auto p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar color="success" size="md" variant="soft">
-                    <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
-                    <Avatar.Fallback className="text-lg font-semibold">
-                      {getUserInitials()}
-                    </Avatar.Fallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {profile?.username || user?.username || 'User'}
-                    </p>
-                    <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
-                      <Mail size={12} className="shrink-0" />
-                      <span className="truncate">{user?.email || 'user@example.com'}</span>
-                    </p>
-                  </div>
-                </div>
-              </Dropdown.Item>
-              <Dropdown.Item>
-                <Separator className="my-0" />
-              </Dropdown.Item>
-              {/* Menu Items */}
-              {userDropdownItems.map((item) => (
-                <Dropdown.Item key={item.id} onClick={item.onClick}>
+            <Dropdown.Popover>
+              <Dropdown.Menu aria-label="User menu">
+                {/* User Info Header */}
+                <Dropdown.Item className="h-auto p-3 cursor-default">
                   <div className="flex items-center gap-3">
-                    <item.icon className="text-default-500" size={16} />
-                    <span className="font-medium text-foreground">{item.name}</span>
+                    <Avatar color="success" size="md" variant="soft">
+                      <Avatar.Image
+                        src={profile?.avatar_url || user?.avatar_url}
+                        alt="User avatar"
+                      />
+                      <Avatar.Fallback className="text-lg font-semibold">
+                        {getUserInitials()}
+                      </Avatar.Fallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {profile?.username || user?.username || 'User'}
+                      </p>
+                      <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
+                        <Mail size={12} className="shrink-0" />
+                        <span className="truncate">{user?.email || 'user@example.com'}</span>
+                      </p>
+                    </div>
                   </div>
                 </Dropdown.Item>
-              ))}
-              <Dropdown.Item>
                 <Separator className="my-0" />
-              </Dropdown.Item>
-              {/* Sign Out */}
-              <Dropdown.Item onClick={handleSignOut} className="text-danger">
-                <div className="flex items-center gap-3">
-                  <LogOut size={16} />
-                  <span className="font-semibold">Sign Out</span>
-                </div>
-              </Dropdown.Item>
-            </Dropdown.Menu>
+                {/* Menu Items */}
+                {userDropdownItems.map((item) => (
+                  <Dropdown.Item key={item.id} textValue={item.name} onClick={item.onClick}>
+                    <div className="flex items-center gap-3">
+                      <item.icon className="text-default-500" size={16} />
+                      <span className="font-medium text-foreground">{item.name}</span>
+                    </div>
+                  </Dropdown.Item>
+                ))}
+                <Separator className="my-0" />
+                {/* Sign Out */}
+                <Dropdown.Item textValue="Sign Out" onClick={handleSignOut} variant="danger">
+                  <div className="flex items-center gap-3">
+                    <LogOut size={16} />
+                    <span className="font-semibold">Sign Out</span>
+                  </div>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
           </Dropdown>
         ) : (
           <Button onClick={() => navigate('/auth')} variant="success" className="cursor-pointer">

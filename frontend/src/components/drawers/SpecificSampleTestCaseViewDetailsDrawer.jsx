@@ -18,13 +18,12 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      placement={direction === 'right' ? 'right' : 'bottom'}
     >
       <Drawer.Backdrop>
-        <Drawer.Content>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger />
+            {direction === 'right' && <Drawer.CloseTrigger />}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -43,14 +42,11 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                     <Drawer.Heading className="text-lg font-semibold">
                       {testCase.title}
                     </Drawer.Heading>
-                    <Drawer.Description className="text-sm text-gray-600">
-                      Sample test case details and parameters
-                    </Drawer.Description>
                   </div>
                 </div>
               </div>
             </Drawer.Header>
-            <Drawer.Body className="gap-6">
+            <Drawer.Body className="gap-6 mt-4">
               <div className="space-y-6">
                 <div>
                   <div className="flex items-center gap-2 mb-2">

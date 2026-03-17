@@ -1,41 +1,66 @@
 // styles (required)
-import 'ldrs/react/Spiral.css';
 import 'ldrs/react/Bouncy.css';
-import 'ldrs/react/Ring2.css';
 import 'ldrs/react/BouncyArc.css';
-import 'ldrs/react/Hourglass.css';
-import 'ldrs/react/LineWobble.css';
-import 'ldrs/react/Infinity.css';
-import 'ldrs/react/Helix.css';
-import 'ldrs/react/Quantum.css';
-import 'ldrs/react/Trio.css';
-import 'ldrs/react/DotWave.css';
-import 'ldrs/react/Leapfrog.css';
-import 'ldrs/react/NewtonsCradle.css';
+import 'ldrs/react/ChaoticOrbit.css';
 import 'ldrs/react/DotStream.css';
+import 'ldrs/react/DotWave.css';
+import 'ldrs/react/Grid.css';
+import 'ldrs/react/Helix.css';
+import 'ldrs/react/Hourglass.css';
+import 'ldrs/react/Infinity.css';
+import 'ldrs/react/Jelly.css';
+import 'ldrs/react/JellyTriangle.css';
+import 'ldrs/react/Leapfrog.css';
+import 'ldrs/react/LineWobble.css';
 import 'ldrs/react/Metronome.css';
+import 'ldrs/react/Mirage.css';
+import 'ldrs/react/Momentum.css';
+import 'ldrs/react/NewtonsCradle.css';
+import 'ldrs/react/Orbit.css';
 import 'ldrs/react/Pinwheel.css';
+import 'ldrs/react/Quantum.css';
+import 'ldrs/react/Reuleaux.css';
+import 'ldrs/react/Ring2.css';
+import 'ldrs/react/Spiral.css';
+import 'ldrs/react/Superballs.css';
+import 'ldrs/react/TailChase.css';
+import 'ldrs/react/Treadmill.css';
+import 'ldrs/react/Trefoil.css';
+import 'ldrs/react/Trio.css';
+import 'ldrs/react/Zoomies.css';
 
 import {
   Bouncy,
   BouncyArc,
+  ChaoticOrbit,
   DotStream,
   DotWave,
-  Helix,
+  Grid,
   Hourglass,
   Infinity as InfinityLoader,
+  Jelly,
+  JellyTriangle,
   Leapfrog,
   LineWobble,
   Metronome,
+  Mirage,
+  Momentum,
   NewtonsCradle,
+  Orbit,
   Pinwheel,
   Quantum,
+  Reuleaux,
   Ring2,
   Spiral,
+  Superballs,
+  TailChase,
+  Treadmill,
+  Trefoil,
   Trio,
+  Zoomies,
 } from 'ldrs/react';
 import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
@@ -46,13 +71,12 @@ const LOADERS = [
   ({ color = '#34d399' }) => <BouncyArc size="70" speed="1.65" color={color || '#34d399'} />,
   ({ color = '#10b981' }) => <Hourglass size="40" speed="1.75" color={color || '#10b981'} />,
   ({ color = '#059669' }) => (
-    <LineWobble size="80" stroke="5" speed="1.75" color={color || '#059669'} />
+    <LineWobble size="70" stroke="5" speed="1.75" color={color || '#059669'} />
   ),
   ({ color = '#10b981' }) => (
     <InfinityLoader size="55" stroke="4" speed="1.3" color={color || '#10b981'} />
   ),
-  ({ color = '#34d399' }) => <Helix size="45" speed="2.5" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <Quantum size="45" speed="1.75" color={color || '#10b981'} />,
+  ({ color = '#10b981' }) => <Quantum size="40" speed="1.75" color={color || '#10b981'} />,
   ({ color = '#059669' }) => <Trio size="40" speed="1.3" color={color || '#059669'} />,
   ({ color = '#10b981' }) => <DotWave size="47" speed="1" color={color || '#10b981'} />,
   ({ color = '#34d399' }) => <Leapfrog size="40" speed="2.5" color={color || '#34d399'} />,
@@ -62,10 +86,23 @@ const LOADERS = [
   ({ color = '#34d399' }) => (
     <Pinwheel size="35" stroke="3.5" speed="0.9" color={color || '#34d399'} />
   ),
+  ({ color = '#10b981' }) => <Jelly size="45" speed="1.75" color={color || '#10b981'} />,
+  ({ color = '#059669' }) => <JellyTriangle size="45" speed="1.75" color={color || '#059669'} />,
+  ({ color = '#34d399' }) => <Mirage size="45" speed="1.75" color={color || '#34d399'} />,
+  ({ color = '#10b981' }) => <Momentum size="45" speed="1.75" color={color || '#10b981'} />,
+  ({ color = '#059669' }) => <Superballs size="45" speed="1.75" color={color || '#059669'} />,
+  ({ color = '#34d399' }) => <Orbit size="45" speed="1.75" color={color || '#34d399'} />,
+  ({ color = '#10b981' }) => <ChaoticOrbit size="45" speed="1.75" color={color || '#10b981'} />,
+  ({ color = '#059669' }) => <Grid size="45" speed="1.75" color={color || '#059669'} />,
+  ({ color = '#34d399' }) => <Trefoil size="45" speed="1.75" color={color || '#34d399'} />,
+  ({ color = '#10b981' }) => <Treadmill size="45" speed="1.75" color={color || '#10b981'} />,
+  ({ color = '#059669' }) => <TailChase size="45" speed="1.75" color={color || '#059669'} />,
+  ({ color = '#34d399' }) => <Reuleaux size="45" speed="1.75" color={color || '#34d399'} />,
+  ({ color = '#10b981' }) => <Zoomies size="45" speed="1.75" color={color || '#10b981'} />,
 ];
 
-const SWITCH_INTERVAL = 6000;
-const FADE_DURATION = 700;
+const SWITCH_INTERVAL = 3000;
+const FADE_DURATION = 400;
 
 const getRandomIndex = (exclude) => {
   let idx;
