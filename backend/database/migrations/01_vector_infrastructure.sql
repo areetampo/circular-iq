@@ -1,18 +1,27 @@
 /**
- * ╔══════════════════════════════════════════════════════════════════════════╗
- * ║                                                                          ║
- * ║  MIGRATION: 01_vector_infrastructure.sql                                 ║
- * ║  Vector Search Infrastructure - OPTIMIZED & SECURED                      ║
- * ║  STATUS: Foundation - Must run first                                     ║
- * ║                                                                          ║
- * ║  🔧 PRE-EXECUTION CHECK:                                                 ║
- * ║  If you encounter "cannot allocate memory" errors during index creation, ║
- * ║  increase maintenance_work_mem before running this migration:            ║
- * ║                                                                          ║
- * ║  SET maintenance_work_mem = '128MB';                                     ║
- * ║                                                                          ║
- * ╚══════════════════════════════════════════════════════════════════════════╝
- */
+ * ┌────────────────────────────────────────────────────────────────────────────────┐
+ * │                                                                                │
+ * │  MIGRATION: 01_vector_infrastructure.sql  (v2)                                 │
+ * │  Vector Search Foundation — pgvector, embeddings, documents table              │
+ * │                                                                                │
+ * │  PURPOSE                                                                       │
+ * │  ──────────────────────────────────────────────────────────────────────────────│
+ * │  • Sets up extensions (vector, btree_gin, pgcrypto) in an extensions schema    │
+ * │    (security best practice).                                                   │
+ * │  • Creates the documents table with a 1536-dimension halfvec column            │
+ * │    for OpenAI text-embedding-3-small embeddings.                               │
+ * │  • Adds indexes for fast similarity search (HNSW), full-text search, and       │
+ * │    metadata filtering.                                                         │
+ * │  • Defines search functions (vector, hybrid, filtered) and analytics helpers.  │
+ * │                                                                                │
+ * │  PRE-EXECUTION CHECK                                                           │
+ * │  If you encounter "cannot allocate memory" errors during index creation,       │
+ * │  increase maintenance_work_mem before running:                                 │
+ * │                                                                                │
+ * │      SET maintenance_work_mem = '128MB';                                       │
+ * │                                                                                │
+ * └────────────────────────────────────────────────────────────────────────────────┘
+*/
 
 -- ============================================
 -- 0. Drop all existing functions (regardless of signature)
@@ -48,7 +57,7 @@ BEGIN
               AND nspname = 'public'
         LOOP
             EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(%s) CASCADE;',
-                           rec.nspname, rec.proname, rec.args);
+              rec.nspname, rec.proname, rec.args);
         END LOOP;
     END LOOP;
 END $$;
@@ -139,7 +148,7 @@ COMMENT ON COLUMN documents.updated_at IS 'Last update timestamp (automatically 
 -- 4. Create Optimized Indexes (PERFORMANCE)
 -- ============================================
 
--- ⚡ THE RESUME FIX: Unique Functional Index
+-- Unique Functional Index
 -- This prevents duplicates based on the chunk_id and field_name inside the JSONB metadata.
 -- This is critical for the --resume flag to work reliably.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_chunk_field
@@ -148,7 +157,7 @@ ON documents (chunk_id, field_name);
 COMMENT ON INDEX idx_unique_chunk_field IS
 'Ensures unique (chunk_id, field_name) combinations using generated columns extracted from metadata. Required for Supabase upsert conflict handling and resume-safe ingestion.';
 
--- ⚡ RAG PERFORMANCE: Index on chunk_id for fast retrieval of all rows in the same chunk
+-- Index on chunk_id for fast retrieval of all rows in the same chunk
 CREATE INDEX IF NOT EXISTS idx_documents_chunk_id
 ON documents(chunk_id);
 

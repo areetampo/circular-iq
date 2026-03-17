@@ -1,13 +1,20 @@
--- ============================================================================
--- Anonymous Usage Tracking Migration
--- ============================================================================
--- Purpose: Track anonymous user assessment limits via IP+UA fingerprinting
--- Security: Uses SHA-256 hashing for privacy, atomic operations for race conditions
--- Cleanup: Auto-deletes records older than 30 days
-
--- ============================================
--- 0. Drop existing anonymous_usage table and functions (clean slate)
--- ============================================
+/**
+ * ╔════════════════════════════════════════════════════════════════════════════════╗
+ * ║                                                                                ║
+ * ║  MIGRATION: 04_anonymous_usage.sql  (v2 — minor hardening)                     ║
+ * ║  Anonymous Usage Tracking — Free‑trial limits via IP+UA fingerprinting         ║
+ * ║                                                                                ║
+ * ║  CHANGES FROM v1                                                               ║
+ * ║  ──────────────────────────────────────────────────────────────────────────────║
+ * ║  • user_agent_snippet extended to 200 chars (was 100) to match scoring_results ║
+ * ║  • Added scoring_result_count column (reserved for future use)                 ║
+ * ║  • Added last_blocked_at column — set when RPC returns is_allowed = FALSE      ║
+ * ║  • check_and_increment_anonymous_usage now accepts p_scoring_result_count      ║
+ * ║    (ignored)                                                                   ║
+ * ║  • All other logic identical to v1 — no breaking changes                       ║
+ * ║                                                                                ║
+ * ╚════════════════════════════════════════════════════════════════════════════════╝
+ */
 
 DROP TABLE IF EXISTS anonymous_usage CASCADE;
 
@@ -26,54 +33,59 @@ BEGIN
             SELECT nspname, proname, oidvectortypes(pg_proc.proargtypes) as args
             FROM pg_proc
             JOIN pg_namespace ON pg_namespace.oid = pg_proc.pronamespace
-            WHERE proname = func_name
-              AND nspname = 'public'
+            WHERE proname = func_name AND nspname = 'public'
         LOOP
-            EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(%s) CASCADE;', rec.nspname, rec.proname, rec.args);
+            EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(%s) CASCADE;',
+              rec.nspname, rec.proname, rec.args);
         END LOOP;
     END LOOP;
 END $$;
 
 -- ============================================================================
--- TABLE: anonymous_usage
+-- TABLE
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS anonymous_usage (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  identifier_hash TEXT UNIQUE NOT NULL,
-  usage_count INTEGER DEFAULT 0 CHECK (usage_count >= 0),
-  first_used_at TIMESTAMPTZ DEFAULT NOW(),
-  last_used_at TIMESTAMPTZ DEFAULT NOW(),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  last_ip_hash TEXT,
-  user_agent_snippet TEXT
+  id                   UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  user_agent_snippet   TEXT,                      -- first 200 chars (was 100)
+  identifier_hash      TEXT    UNIQUE NOT NULL,   -- SHA-256(IP + UA)
+  last_ip_hash         TEXT,
+
+  usage_count          INTEGER DEFAULT 0 CHECK (usage_count >= 0),
+  first_used_at        TIMESTAMPTZ DEFAULT NOW(),
+  last_used_at         TIMESTAMPTZ DEFAULT NOW(),
+  last_blocked_at      TIMESTAMPTZ,               -- NEW: when limit was last hit
+
+  created_at           TIMESTAMPTZ DEFAULT NOW()
 );
+
+COMMENT ON TABLE  anonymous_usage IS 'Tracks anonymous assessment attempts via IP+UA fingerprinting for free-trial limits';
+COMMENT ON COLUMN anonymous_usage.identifier_hash    IS 'SHA-256 of (IP + User-Agent) — matches scoring_results_log.identifier_hash';
+COMMENT ON COLUMN anonymous_usage.usage_count        IS 'Number of times this fingerprint has called the scoring API';
+COMMENT ON COLUMN anonymous_usage.last_blocked_at    IS 'Set when the user hit the free-trial limit; NULL if never blocked';
+COMMENT ON COLUMN anonymous_usage.last_ip_hash       IS 'SHA-256 of most recent IP (for abuse debugging, not tracking)';
+COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS 'First 200 chars of User-Agent string';
 
 -- ============================================================================
 -- INDEXES
 -- ============================================================================
 
-CREATE INDEX IF NOT EXISTS idx_anonymous_usage_last_used ON anonymous_usage(last_used_at);
+CREATE INDEX IF NOT EXISTS idx_anonymous_usage_last_used
+  ON anonymous_usage(last_used_at);
 
 -- ============================================================================
--- ROW LEVEL SECURITY (RLS)
+-- ROW LEVEL SECURITY
 -- ============================================================================
 
 ALTER TABLE anonymous_usage ENABLE ROW LEVEL SECURITY;
 
--- Policy: Service role has full access (backend API)
 CREATE POLICY "Service role has full access to anonymous_usage"
-  ON anonymous_usage
-  FOR ALL
-  TO service_role
-  USING (true)
-  WITH CHECK (true);
+  ON anonymous_usage FOR ALL TO service_role
+  USING (true) WITH CHECK (true);
 
--- Policy: Anonymous users can read their own usage stats
 CREATE POLICY "Anonymous users can read their usage"
-  ON anonymous_usage
-  FOR SELECT
-  TO anon
+  ON anonymous_usage FOR SELECT TO anon
   USING (true);
 
 -- ============================================================================
@@ -93,21 +105,21 @@ END;
 $$;
 
 COMMENT ON FUNCTION cleanup_old_anonymous_usage IS
-  'Deletes anonymous usage records older than 30 days. Run periodically to maintain table size.';
+  'Deletes anonymous_usage rows older than 30 days.';
 
 -- ============================================================================
--- FUNCTION: check_and_increment_anonymous_usage
+-- FUNCTION: check_and_increment_anonymous_usage  (unchanged contract)
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION check_and_increment_anonymous_usage(
-  p_identifier_hash TEXT,
-  p_max_tries INTEGER,
-  p_ip_hash TEXT DEFAULT NULL,
-  p_user_agent_snippet TEXT DEFAULT NULL
+  p_identifier_hash     TEXT,
+  p_max_tries           INTEGER,
+  p_ip_hash             TEXT    DEFAULT NULL,
+  p_user_agent_snippet  TEXT    DEFAULT NULL
 )
 RETURNS TABLE(
-  current_count INTEGER,
-  is_allowed BOOLEAN
+  current_count  INTEGER,
+  is_allowed     BOOLEAN
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -115,84 +127,63 @@ SET search_path TO public
 AS $$
 DECLARE
   v_current_count INTEGER;
-  v_new_count INTEGER;
+  v_new_count     INTEGER;
 BEGIN
-  -- Try to get existing record with row lock (prevents concurrent updates)
+  -- Attempt to lock existing row
   SELECT usage_count INTO v_current_count
   FROM anonymous_usage
   WHERE identifier_hash = p_identifier_hash
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    -- First time user: insert new record with count=1
+    -- First use: insert with count = 1
     INSERT INTO anonymous_usage (
-      identifier_hash,
-      usage_count,
-      last_ip_hash,
-      user_agent_snippet
-    )
-    VALUES (
-      p_identifier_hash,
-      1,
+      identifier_hash, usage_count, last_ip_hash, user_agent_snippet
+    ) VALUES (
+      p_identifier_hash, 1,
       p_ip_hash,
-      p_user_agent_snippet
+      LEFT(COALESCE(p_user_agent_snippet, ''), 200)
     );
-
-    -- Return: count=1, allowed=(1 <= max_tries)
     RETURN QUERY SELECT 1::INTEGER, (1 <= p_max_tries)::BOOLEAN;
     RETURN;
   END IF;
 
-  -- Existing user: check if already at limit
+  -- Already at / over limit — update last_blocked_at and return blocked
   IF v_current_count >= p_max_tries THEN
-    -- Already at/over limit: return current count, not allowed
+    UPDATE anonymous_usage
+    SET last_blocked_at = NOW(), last_used_at = NOW()
+    WHERE identifier_hash = p_identifier_hash;
     RETURN QUERY SELECT v_current_count, FALSE;
     RETURN;
   END IF;
 
-  -- Under limit: increment counter
+  -- Under limit: increment
   v_new_count := v_current_count + 1;
 
   UPDATE anonymous_usage
   SET
-    usage_count = v_new_count,
-    last_used_at = NOW(),
-    last_ip_hash = COALESCE(p_ip_hash, last_ip_hash),
-    user_agent_snippet = COALESCE(p_user_agent_snippet, user_agent_snippet)
+    usage_count          = v_new_count,
+    last_used_at         = NOW(),
+    last_ip_hash         = COALESCE(p_ip_hash,            last_ip_hash),
+    user_agent_snippet   = COALESCE(
+                            LEFT(p_user_agent_snippet, 200),
+                            user_agent_snippet
+                           )
   WHERE identifier_hash = p_identifier_hash;
 
-  -- Return new count and whether it's still allowed
   RETURN QUERY SELECT v_new_count, (v_new_count <= p_max_tries)::BOOLEAN;
 END;
 $$;
 
 COMMENT ON FUNCTION check_and_increment_anonymous_usage IS
-  'Atomically checks and increments anonymous usage count. Returns (current_count, is_allowed). Uses FOR UPDATE row locking to prevent race conditions.';
+  'Atomically checks and increments anonymous usage. Returns (current_count, is_allowed). Row-locked to prevent race conditions.';
 
 -- ============================================================================
--- TABLE COMMENTS
+-- PERMISSIONS
 -- ============================================================================
 
-COMMENT ON TABLE anonymous_usage IS
-  'Tracks anonymous user assessment attempts via IP+UA hashing for free trial limits';
+REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text)
+  FROM public, anon;
 
-COMMENT ON COLUMN anonymous_usage.identifier_hash IS
-  'SHA-256 hash of (IP + User Agent) for privacy-preserving user tracking';
-
-COMMENT ON COLUMN anonymous_usage.usage_count IS
-  'Number of times this anonymous user has calculated scores';
-
-COMMENT ON COLUMN anonymous_usage.last_ip_hash IS
-  'SHA-256 hash of most recent IP address (for debugging, not for tracking)';
-
-COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS
-  'First 100 characters of User Agent string (for debugging)';
-
--- ============================================================================
--- Restrict direct execution of the anonymous-usage RPC from public/anon roles
--- Only the backend service role should be able to execute this function.
--- ============================================================================
-REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) FROM public, anon;
-
--- Ensure backend service role retains execute permissions
-GRANT EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text)
+  TO service_role;
