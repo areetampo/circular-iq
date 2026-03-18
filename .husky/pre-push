@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-echo "~ Checking builds in all workspaces..."
+echo "❓ Checking builds in all workspaces..."
 
 if [ -z "$SKIP_BUILD" ]; then
   npm run build

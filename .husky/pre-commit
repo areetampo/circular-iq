@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-if [ "$lint" ]; then
+if [ -z "$SKIP_LINT" ]; then
   echo "Running lint-staged..."
   npx lint-staged
 else
-  echo "Skipping lint-staged..."
+  echo "Skipping lint-staged (SKIP_LINT set)"
 fi
