@@ -1,6 +1,9 @@
 import { frontendSchema } from './env.schema';
 
 const rawEnv = {
+  VITE_FRONTEND_URL:
+    import.meta.env.VITE_FRONTEND_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+
   VITE_API_URL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:3000',
 
   VITE_SUPABASE_URL:
