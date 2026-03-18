@@ -2,9 +2,6 @@
   "functions": {
     "api/proxy.js": {
       "includeFiles": "src/config/**"
-    },
-    "api/**/*.js": {
-      "maxDuration": 10
     }
   },
   "rewrites": [
