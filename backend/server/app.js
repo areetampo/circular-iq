@@ -140,6 +140,17 @@ export function apiKeyGuard(req, res, next) {
 
 // apply middleware
 app.use(helmet());
+app.use(express.json({ limit: '512kb' }));
+app.use(express.urlencoded({ limit: '512kb', extended: true }));
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+  });
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -162,8 +173,6 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: '512kb' }));
-app.use(express.urlencoded({ limit: '512kb', extended: true }));
 app.use(apiKeyGuard);
 
 // initialize clients
@@ -171,15 +180,6 @@ const supabase = createSupabaseAnonClient();
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
 validateConfig();
-
-// ========== Health check ===========
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-  });
-});
 
 // mount routers
 app.use('/api/analytics', createAnalyticsRouter(supabase));

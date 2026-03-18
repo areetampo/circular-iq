@@ -6,7 +6,7 @@
  *
  * Environment Variables (set in Vercel dashboard, NOT in .env.frontend):
  * - INTERNAL_BACKEND_API_KEY: The actual API key for backend authentication
- * - VITE_API_URL: The Railway backend URL (can be public, used as destination)
+ * - VITE_API_URL: The Render backend URL (can be public, used as destination)
  *
  * Usage: Frontend calls /api/proxy?path=/api/score&method=POST
  * Then this function forwards to {VITE_API_URL}/api/score with x-api-key header
