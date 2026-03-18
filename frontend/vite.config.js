@@ -57,7 +57,7 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 1000, // 10KB
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -67,16 +67,16 @@ export default defineConfig({
           // Charts vendor
           if (id.includes('recharts') || id.includes('@mui/x-charts') || id.includes('d3'))
             return 'vendor-charts';
-          // Merge MUI with react to break the circular dependency
-          if (id.includes('@mui/') || id.includes('react-dom') || id.includes('/react/'))
-            return 'vendor-react';
-          // react-aria separately (already large)
+          // React + MUI + React Aria – all in one chunk
           if (
+            id.includes('@mui/') ||
+            id.includes('react-dom') ||
+            id.includes('/react/') ||
             id.includes('@react-aria') ||
             id.includes('@react-stately') ||
             id.includes('react-aria-components')
           )
-            return 'vendor-react-aria';
+            return 'vendor-react';
           // supabase
           if (id.includes('@supabase')) return 'vendor-supabase';
           // Split main app pages
