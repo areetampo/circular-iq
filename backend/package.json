@@ -21,6 +21,7 @@
     "#utils/*": "./utils/*"
   },
   "scripts": {
+    "prepare": "cd .. && husky install || true",
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "datasets-scripts": "node pipeline/run_datasets_scripts.js",
