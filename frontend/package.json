@@ -6,6 +6,9 @@
   "author": "Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>",
   "license": "UNLICENSED",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "vite --mode frontend",
     "build": "vite build --mode production",
