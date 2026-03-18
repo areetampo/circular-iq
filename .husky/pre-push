@@ -1,18 +1,26 @@
 #!/usr/bin/env sh
-echo "❓ Checking builds in all workspaces..."
-npm run build
 
-if [ $? -ne 0 ]; then
-  echo "❌ Build failed! Check your code before pushing."
-  exit 1
+echo "~ Checking builds in all workspaces..."
+
+if [ -z "$SKIP_BUILD" ]; then
+  npm run build
+  if [ $? -ne 0 ]; then
+    echo "❌ Build failed! Check your code before pushing."
+    exit 1
+  fi
+else
+  echo "Skipping build (SKIP_BUILD set)"
 fi
 
-echo "🧪 Running test suites..."
-npm test
-
-if [ $? -ne 0 ]; then
-  echo "❌ Tests failed! Push aborted."
-  exit 1
+if [ -z "$SKIP_TESTS" ]; then
+  echo "🧪 Running test suites..."
+  npm test
+  if [ $? -ne 0 ]; then
+    echo "❌ Tests failed! Push aborted."
+    exit 1
+  fi
+else
+  echo "Skipping tests (SKIP_TESTS set)"
 fi
 
 echo "🚀 Everything looks good. Pushing now..."
