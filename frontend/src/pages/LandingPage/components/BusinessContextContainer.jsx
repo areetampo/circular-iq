@@ -1,4 +1,4 @@
-import { Select, Switch } from '@heroui/react';
+import { Label, ListBox, Select, Switch } from '@heroui/react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 const BUSINESS_MODEL_OPTIONS = [
@@ -54,21 +54,27 @@ export default function BusinessContextContainer({ loading }) {
         control={control}
         render={({ field }) => (
           <Select
-            selectedKey={field.value ?? null}
-            onSelectionChange={(key) => field.onChange(key ?? undefined)}
+            value={field.value ?? null}
+            onChange={(val) => field.onChange(val ?? undefined)}
             isDisabled={loading}
             placeholder="Select (optional)"
             className="w-full"
-            size="sm"
           >
-            <Select.Trigger />
-            <Select.List>
-              {options.map((opt) => (
-                <Select.Option key={opt.value} id={opt.value}>
-                  {opt.label}
-                </Select.Option>
-              ))}
-            </Select.List>
+            <Label className="sr-only">{label}</Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {options.map((opt) => (
+                  <ListBox.Item key={opt.value} id={opt.value} textValue={opt.label}>
+                    {opt.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
         )}
       />
