@@ -131,18 +131,31 @@ CREATE TABLE IF NOT EXISTS documents (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE documents IS 'Documents with vector embeddings for semantic search. Dimension: 1536 (matches text-embedding-3-small). See backend/config/embedding.js';
-COMMENT ON COLUMN documents.id IS 'UUID primary key with auto-generation (gen_random_uuid())';
-COMMENT ON COLUMN documents.content IS 'Full text content of the document (required)';
-COMMENT ON COLUMN documents.embedding IS 'OpenAI text-embedding-3-small vector (1536 dimensions). NOT NULL to ensure all documents are queryable';
-COMMENT ON COLUMN documents.industry IS 'Primary industry classification for filtering';
-COMMENT ON COLUMN documents.category IS 'Primary category classification for filtering';
-COMMENT ON COLUMN documents.source IS 'Source identifier or dataset name';
-COMMENT ON COLUMN documents.metadata IS 'Flexible JSONB for additional metadata (legacy/flexible fields)';
-COMMENT ON COLUMN documents.chunk_id IS 'Grouping column used to retrieve all rows belonging to the same chunk during RAG context expansion';
-COMMENT ON COLUMN documents.field_name IS 'Generated column from metadata->>field_name used for uniqueness and resume-safe upserts';
-COMMENT ON COLUMN documents.created_at IS 'Creation timestamp (automatically set)';
-COMMENT ON COLUMN documents.updated_at IS 'Last update timestamp (automatically set)';
+-- Column comments for documents table
+COMMENT ON TABLE documents IS
+  'Documents with vector embeddings for semantic search. Dimension: 1536 (matches text-embedding-3-small). See backend/config/embedding.js';
+COMMENT ON COLUMN documents.id IS
+  'UUID primary key with auto-generation (gen_random_uuid())';
+COMMENT ON COLUMN documents.content IS
+  'Full text content of the document (required)';
+COMMENT ON COLUMN documents.embedding IS
+  'OpenAI text-embedding-3-small vector (1536 dimensions). NOT NULL to ensure all documents are queryable';
+COMMENT ON COLUMN documents.industry IS
+  'Primary industry classification for filtering';
+COMMENT ON COLUMN documents.category IS
+  'Primary category classification for filtering';
+COMMENT ON COLUMN documents.source IS
+  'Source identifier or dataset name';
+COMMENT ON COLUMN documents.metadata IS
+  'Flexible JSONB for additional metadata (legacy/flexible fields)';
+COMMENT ON COLUMN documents.chunk_id IS
+  'Grouping column used to retrieve all rows belonging to the same chunk during RAG context expansion';
+COMMENT ON COLUMN documents.field_name IS
+  'Generated column from metadata->>field_name used for uniqueness and resume-safe upserts';
+COMMENT ON COLUMN documents.created_at IS
+  'Creation timestamp (automatically set)';
+COMMENT ON COLUMN documents.updated_at IS
+  'Last update timestamp (automatically set)';
 
 -- ============================================
 -- 4. Create Optimized Indexes (PERFORMANCE)

@@ -60,12 +60,18 @@ CREATE TABLE IF NOT EXISTS anonymous_usage (
   created_at           TIMESTAMPTZ DEFAULT NOW()
 );
 
-COMMENT ON TABLE  anonymous_usage IS 'Tracks anonymous assessment attempts via IP+UA fingerprinting for free-trial limits';
-COMMENT ON COLUMN anonymous_usage.identifier_hash    IS 'SHA-256 of (IP + User-Agent) — matches scoring_results_log.identifier_hash';
-COMMENT ON COLUMN anonymous_usage.usage_count        IS 'Number of times this fingerprint has called the scoring API';
-COMMENT ON COLUMN anonymous_usage.last_blocked_at    IS 'Set when the user hit the free-trial limit; NULL if never blocked';
-COMMENT ON COLUMN anonymous_usage.last_ip_hash       IS 'SHA-256 of most recent IP (for abuse debugging, not tracking)';
-COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS 'First 200 chars of User-Agent string';
+COMMENT ON TABLE  anonymous_usage IS
+  'Tracks anonymous assessment attempts via IP+UA fingerprinting for free-trial limits';
+COMMENT ON COLUMN anonymous_usage.identifier_hash IS
+  'SHA-256 of (IP + User-Agent) — matches scoring_results_log.identifier_hash';
+COMMENT ON COLUMN anonymous_usage.usage_count IS
+  'Number of times this fingerprint has called the scoring API';
+COMMENT ON COLUMN anonymous_usage.last_blocked_at IS
+  'Set when the user hit the free-trial limit; NULL if never blocked';
+COMMENT ON COLUMN anonymous_usage.last_ip_hash IS
+  'SHA-256 of most recent IP (for abuse debugging, not tracking)';
+COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS
+  'First 200 chars of User-Agent string';
 
 -- ============================================================================
 -- INDEXES

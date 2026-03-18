@@ -113,25 +113,44 @@ CREATE TABLE IF NOT EXISTS assessments (
 );
 
 -- ── Column comments ───────────────────────────────────────────────────────────
-COMMENT ON TABLE  assessments IS 'Saved assessment results — every column mirrors a field from the scoring API response so the full result can be repopulated without parsing result_json';
-COMMENT ON COLUMN assessments.result_json            IS 'Complete raw scoring API response — source of truth for repopulating UI';
-COMMENT ON COLUMN assessments.input_parameters       IS '8-factor scores the user provided (mirrors scoring API response.input_parameters)';
-COMMENT ON COLUMN assessments.sub_scores             IS 'Validated 8-factor sub-scores after clamping (mirrors scores.sub_scores)';
-COMMENT ON COLUMN assessments.derived_metrics        IS 'Full derived_metrics object from scoring API';
-COMMENT ON COLUMN assessments.score_breakdown        IS 'Category-level breakdown (Access / Embedded / Processing Value)';
-COMMENT ON COLUMN assessments.audit                  IS 'Full AI audit object (verdict, integrity_gaps, strengths, recommendations, …)';
-COMMENT ON COLUMN assessments.gap_analysis           IS 'Gap analysis vs similar-case benchmarks';
-COMMENT ON COLUMN assessments.similar_cases          IS 'Array of top-4 similar database cases returned by scoring API';
-COMMENT ON COLUMN assessments.metadata               IS 'LLM-extracted metadata (industry, scale, r_strategy, primary_material, geographic_focus, short_description)';
-COMMENT ON COLUMN assessments.confidence_level       IS 'Score distribution confidence 0-100 (scores.confidence_level)';
-COMMENT ON COLUMN assessments.technical_feasibility  IS 'Promoted scalar from derived_metrics for fast analytics';
-COMMENT ON COLUMN assessments.economic_viability     IS 'Promoted scalar from derived_metrics for fast analytics';
-COMMENT ON COLUMN assessments.circularity_potential  IS 'Promoted scalar from derived_metrics for fast analytics';
-COMMENT ON COLUMN assessments.risk_level             IS 'Promoted scalar from derived_metrics: low | medium | high';
-COMMENT ON COLUMN assessments.scale                  IS 'Promoted from metadata.scale: prototype|pilot|regional|commercial|global';
-COMMENT ON COLUMN assessments.r_strategy             IS 'Promoted from metadata.r_strategy (Refuse/Reduce/Reuse/…)';
-COMMENT ON COLUMN assessments.primary_material       IS 'Promoted from metadata.primary_material (e.g. plastic, e-waste)';
-COMMENT ON COLUMN assessments.geographic_focus       IS 'Promoted from metadata.geographic_focus (EU, Asia, global, …)';
+COMMENT ON TABLE  assessments IS
+  'Saved assessment results — every column mirrors a field from the scoring API response so the full result can be repopulated without parsing result_json';
+COMMENT ON COLUMN assessments.result_json IS
+  'Complete raw scoring API response — source of truth for repopulating UI';
+COMMENT ON COLUMN assessments.input_parameters IS
+  '8-factor scores the user provided (mirrors scoring API response.input_parameters)';
+COMMENT ON COLUMN assessments.sub_scores IS
+  'Validated 8-factor sub-scores after clamping (mirrors scores.sub_scores)';
+COMMENT ON COLUMN assessments.derived_metrics IS
+  'Full derived_metrics object from scoring API';
+COMMENT ON COLUMN assessments.score_breakdown IS
+  'Category-level breakdown (Access / Embedded / Processing Value)';
+COMMENT ON COLUMN assessments.audit IS
+  'Full AI audit object (verdict, integrity_gaps, strengths, recommendations, …)';
+COMMENT ON COLUMN assessments.gap_analysis IS
+  'Gap analysis vs similar-case benchmarks';
+COMMENT ON COLUMN assessments.similar_cases IS
+  'Array of top-4 similar database cases returned by scoring API';
+COMMENT ON COLUMN assessments.metadata IS
+  'LLM-extracted metadata (industry, scale, r_strategy, primary_material, geographic_focus, short_description)';
+COMMENT ON COLUMN assessments.confidence_level IS
+  'Score distribution confidence 0-100 (scores.confidence_level)';
+COMMENT ON COLUMN assessments.technical_feasibility IS
+  'Promoted scalar from derived_metrics for fast analytics';
+COMMENT ON COLUMN assessments.economic_viability IS
+  'Promoted scalar from derived_metrics for fast analytics';
+COMMENT ON COLUMN assessments.circularity_potential IS
+  'Promoted scalar from derived_metrics for fast analytics';
+COMMENT ON COLUMN assessments.risk_level IS
+  'Promoted scalar from derived_metrics: low | medium | high';
+COMMENT ON COLUMN assessments.scale IS
+  'Promoted from metadata.scale: prototype|pilot|regional|commercial|global';
+COMMENT ON COLUMN assessments.r_strategy IS
+  'Promoted from metadata.r_strategy (Refuse/Reduce/Reuse/…)';
+COMMENT ON COLUMN assessments.primary_material IS
+  'Promoted from metadata.primary_material (e.g. plastic, e-waste)';
+COMMENT ON COLUMN assessments.geographic_focus IS
+  'Promoted from metadata.geographic_focus (EU, Asia, global, …)';
 
 -- ============================================
 -- 2. Indexes

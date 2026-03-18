@@ -76,12 +76,18 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-COMMENT ON TABLE  profiles IS 'User profiles — one-to-one with auth.users. Includes denormalised assessment_count for fast dashboard queries.';
-COMMENT ON COLUMN profiles.username             IS 'Unique username chosen at signup';
-COMMENT ON COLUMN profiles.display_name         IS 'Optional human-readable display name';
-COMMENT ON COLUMN profiles.assessment_count     IS 'Denormalised count of saved assessments — kept in sync by trigger';
-COMMENT ON COLUMN profiles.last_assessment_at   IS 'Timestamp of most recent saved assessment';
-COMMENT ON COLUMN profiles.preferred_industry   IS 'User-selected default industry for new assessments';
+COMMENT ON TABLE  profiles IS
+  'User profiles — one-to-one with auth.users. Includes denormalised assessment_count for fast dashboard queries.';
+COMMENT ON COLUMN profiles.username IS
+  'Unique username chosen at signup';
+COMMENT ON COLUMN profiles.display_name IS
+  'Optional human-readable display name';
+COMMENT ON COLUMN profiles.assessment_count IS
+  'Denormalised count of saved assessments — kept in sync by trigger';
+COMMENT ON COLUMN profiles.last_assessment_at IS
+  'Timestamp of most recent saved assessment';
+COMMENT ON COLUMN profiles.preferred_industry IS
+  'User-selected default industry for new assessments';
 
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);
 
