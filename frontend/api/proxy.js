@@ -17,6 +17,8 @@
  * - All requests are authenticated server-to-server
  */
 
+import { FRONTEND_CONFIG } from '../src/config/frontend.config';
+
 export default async function handler(req, res) {
   // Enable CORS for requests from the Vercel domain
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -79,6 +81,7 @@ export default async function handler(req, res) {
     const headers = {
       'Content-Type': 'application/json',
       'x-api-key': internalApiKey,
+      Origin: req.headers.origin || FRONTEND_CONFIG.frontendUrl,
     };
 
     // Forward Authorization header if present (for Supabase auth tokens)

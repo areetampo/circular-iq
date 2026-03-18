@@ -5,6 +5,8 @@ const booleanSchema = z.preprocess((val) => val === 'true' || val === true, z.bo
 
 export const frontendSchema = z
   .object({
+    VITE_FRONTEND_URL: z.string().trim().url('VITE_FRONTEND_URL must be a valid URL'),
+
     VITE_API_URL: z.string().trim().url('VITE_API_URL must be a valid URL'),
 
     VITE_SUPABASE_URL: z.string().trim().url('VITE_SUPABASE_URL must be a valid URL'),

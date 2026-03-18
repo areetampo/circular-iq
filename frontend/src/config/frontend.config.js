@@ -31,6 +31,7 @@ let validatedConfig;
 const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
 if (isTest) {
   validatedConfig = {
+    frontendUrl: import.meta.env.VITE_FRONTEND_URL ?? 'http://localhost:5173',
     apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
     supabase: {
       url: import.meta.env.VITE_SUPABASE_URL ?? 'https://test.supabase.co',
@@ -53,11 +54,15 @@ if (isTest) {
   } else {
     // 2. Handle Success Logic
     const env = result.data;
-    // Only reject localhost API URL in production builds
+    // Only reject localhost FRONTEND URL and API URL in production builds
+    if (env.PROD && env.VITE_FRONTEND_URL && env.VITE_FRONTEND_URL.includes('localhost')) {
+      throw new Error('Production build cannot use localhost FRONTEND URL');
+    }
     if (env.PROD && env.VITE_API_URL && env.VITE_API_URL.includes('localhost')) {
       throw new Error('Production build cannot use localhost API URL');
     }
     validatedConfig = {
+      frontendUrl: env.VITE_FRONTEND_URL,
       apiBaseUrl: env.VITE_API_URL,
       supabase: {
         url: env.VITE_SUPABASE_URL,
