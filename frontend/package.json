@@ -10,7 +10,7 @@
     "node": ">=24.x"
   },
   "scripts": {
-    "prepare": "husky install || true",
+    "prepare": "cd .. && husky install || true",
     "dev": "vite --mode frontend",
     "build": "vite build --mode production",
     "lint": "eslint .",
