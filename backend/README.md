@@ -1,18 +1,27 @@
-# Backend Architecture: Circular Economy Document Processing & RAG System
+# Backend: Circular Economy RAG System
 
-Complete technical documentation of the circular economy business auditor backend stack.
+Node.js/Express backend that powers document processing, semantic search, and AI-driven circular economy business assessments.
 
-## System Overview
+## Overview
 
-The backend is a Node.js/Express server that powers a document processing pipeline and RAG (Retrieval-Augmented Generation) system for circular economy business evaluation and problem-solution matching. It:
+The backend serves as the core of the RAG (Retrieval-Augmented Generation) system:
 
-1. **Ingests** 34+ datasets from various sources (scraped/extracted/API)
-2. **Processes** CSV data into semantic chunks with metadata extraction
-3. **Generates** vector embeddings using OpenAI's text-embedding-3-small model
-4. **Stores** embeddings in Supabase PostgreSQL with pgvector extension
-5. **Serves** REST APIs for hybrid search, scoring, and assessment management
+1. **Data Pipeline**: Ingests 34+ circular economy datasets → chunks → embeddings → PostgreSQL + pgvector
+2. **Hybrid Search**: Combines semantic vector similarity with BM25 keyword matching for retrieval
+3. **Assessment Scoring**: Eight-dimensional scoring system with AI-powered reasoning (GPT-4o-mini)
+4. **API Layer**: REST endpoints for assessment management, hybrid search, analytics, and scoring
+5. **Database**: Supabase PostgreSQL with pgvector for vector similarity search
 
-## Scoring Enrichment Layers (v2)
+### Key Technologies
+
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **Database**: Supabase PostgreSQL + pgvector
+- **AI/Embeddings**: OpenAI text-embedding-3-small (1536 dimensions)
+- **AI/Reasoning**: GPT-4o-mini for evidence-based scoring
+- **Data Processing**: Puppeteer (web scraping), pdf-parse (PDF extraction), csv-parse/csv-writer
+
+## Scoring System
 
 The backend implements a three-layer enrichment system for comprehensive circular economy assessment:
 
@@ -202,6 +211,7 @@ backend/
 │   ├── api/                      # API integration tests
 │   ├── integration/              # End-to-end pipeline tests
 │   └── services/                 # Service unit tests
+│       └── scoring-logic-enrichment.test.js  # Enrichment layer unit tests
 │
 ├── package.json                  # Dependencies & npm scripts
 ├── .env.backend                  # Environment secrets (gitignored)
@@ -930,7 +940,19 @@ npm test                  # Full test suite (all *.test.js files)
 npm run test:validate     # Run input validation checks (pipeline/test_validate_input.js)
 npm run test:score-fetch  # Run scoring test (pipeline/test_score_fetch.js)
 npm run poll:supabase     # Monitor vector storage (pipeline/poll_supabase.js)
+
+# New: Scoring enrichment layer tests
+node --test tests/services/scoring-logic-enrichment.test.js
 ```
+
+**Test Suite Coverage:**
+
+| Test File                          | Tests | Functions        | Description                                                                           |
+| ---------------------------------- | ----- | ---------------- | ------------------------------------------------------------------------------------- |
+| `scoring-logic-enrichment.test.js` | 33    | 4 core + 4 tiers | Weighted score card, tier classification, parameter consistency, R-strategy alignment |
+| `anonymous.test.js`                | –     | –                | Anonymous tracking middleware                                                         |
+| `apiKeyGuard.test.js`              | –     | –                | API authentication                                                                    |
+| `datasetsUtils.test.js`            | –     | –                | Dataset utility functions                                                             |
 
 ## Datasets Included
 

@@ -1,17 +1,17 @@
 # Circular Economy Evaluator
 
-Complete technical documentation of the circular economy business auditor full-stack application.
+AI-powered platform for assessing circular economy business initiatives against real-world benchmarks using semantic search and evidence-based scoring.
 
-## System Overview
+## Overview
 
-The Circular Economy Evaluator is a comprehensive AI-powered platform that helps businesses assess their circular economy initiatives by evaluating them against real-world benchmarks using semantic search and evidence-based scoring. The system:
+The Circular Economy Evaluator helps businesses evaluate their circular economy initiatives across 8 key dimensions by:
 
-1. **Evaluates** business initiatives through guided questionnaires across 8 key dimensions
-2. **Scores** initiatives using AI-powered evidence matching and reasoning
-3. **Compares** against similar real-world projects from a curated dataset of 34+ sources
-4. **Provides** AI-generated recommendations and gap analysis
-5. **Generates** exportable reports and shareable results
-6. **Tracks** assessment history and improvement over time
+1. **Evaluating** initiatives through guided questionnaires (8 dimensions: materials, design, manufacturing, distribution, consumption, end-of-life, business model, policy)
+2. **Scoring** using AI-powered evidence matching (semantic search + GPT-4o-mini reasoning)
+3. **Comparing** against 34+ real-world datasets and case studies from authoritative sources
+4. **Recommending** improvements with actionable gap analysis and priority roadmaps
+5. **Exporting** results as PDF reports or CSV data with SDG alignment
+6. **Tracking** assessment history to measure progress over time
 
 ### Core Architecture
 

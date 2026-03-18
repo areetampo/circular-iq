@@ -1,20 +1,17 @@
-/**
- * ╔════════════════════════════════════════════════════════════════════════════════╗
- * ║                                                                                ║
- * ║  MIGRATION: 04_anonymous_usage.sql  (v2 — minor hardening)                     ║
- * ║  Anonymous Usage Tracking — Free‑trial limits via IP+UA fingerprinting         ║
- * ║                                                                                ║
- * ║  CHANGES FROM v1                                                               ║
- * ║  ──────────────────────────────────────────────────────────────────────────────║
- * ║  • user_agent_snippet extended to 200 chars (was 100) to match scoring_results ║
- * ║  • Added scoring_result_count column (reserved for future use)                 ║
- * ║  • Added last_blocked_at column — set when RPC returns is_allowed = FALSE      ║
- * ║  • check_and_increment_anonymous_usage now accepts p_scoring_result_count      ║
- * ║    (ignored)                                                                   ║
- * ║  • All other logic identical to v1 — no breaking changes                       ║
- * ║                                                                                ║
- * ╚════════════════════════════════════════════════════════════════════════════════╝
- */
+-- MIGRATION: 04_anonymous_usage.sql (v2 — minor hardening)
+-- Anonymous Usage Tracking — Free‑trial limits via IP+UA fingerprinting
+--
+-- CHANGES FROM v1:
+-- • user_agent_snippet extended to 200 chars (was 100)
+-- • Added last_blocked_at column — set when limit is reached
+-- • check_and_increment_anonymous_usage now updates last_blocked_at when blocked
+-- • All other logic identical to v1 — no breaking changes
+--
+-- PURPOSE:
+-- - Tracks anonymous assessment attempts via SHA-256 fingerprint of (IP + User-Agent).
+-- - Enforces free‑trial limits using row‑level locking to prevent race conditions.
+-- - Provides cleanup function for rows older than 30 days.
+-- - RLS: service_role has full access; anon can only read.
 
 DROP TABLE IF EXISTS anonymous_usage CASCADE;
 

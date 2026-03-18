@@ -1,4 +1,4 @@
-import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
+import { Accordion, cn, Label, NumberField, Separator, Switch } from '@heroui/react';
 import { BadgeInfo, ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -8,6 +8,118 @@ import { parameterGroups, parameterGuidance, parameterLabels } from '@/constants
 import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
+
+// ─── GuidedOptionCards ────────────────────────────────────────────────────────
+/**
+ * Guided option cards for a single parameter.
+ * Renders 5 clickable cards from parameterGuidance[paramKey].scale.
+ * Selecting a card sets the form value to that card's score.
+ * A small fine-tune number input allows further adjustment.
+ */
+const GuidedOptionCards = React.memo(({ paramKey, loading }) => {
+  const { control } = useFormContext();
+  const guidance = parameterGuidance[paramKey];
+  const scale = guidance?.scale || [];
+
+  return (
+    <Controller
+      name={`parameters.${paramKey}`}
+      control={control}
+      render={({ field }) => {
+        const currentValue = field.value ?? 50;
+
+        // Find the closest selected card (within 8 points of a scale score)
+        const selectedScore =
+          scale.find((s) => Math.abs(s.score - currentValue) <= 8)?.score ?? null;
+
+        return (
+          <div className="w-full flex flex-col gap-3">
+            {/* Factor label */}
+            <p className="text-sm font-semibold text-slate-700 text-center">
+              {parameterLabels[paramKey]?.label}
+            </p>
+
+            {/* Option cards — 5 in a row, wrap on mobile */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              {scale.map((option) => {
+                const isSelected = selectedScore === option.score;
+                // Colour coding by score tier
+                const tierClass =
+                  option.score >= 75
+                    ? isSelected
+                      ? 'border-green-500 bg-green-50 text-green-800'
+                      : 'border-green-200 hover:border-green-400 hover:bg-green-50/50 text-green-700'
+                    : option.score >= 50
+                      ? isSelected
+                        ? 'border-blue-500 bg-blue-50 text-blue-800'
+                        : 'border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 text-blue-700'
+                      : option.score >= 30
+                        ? isSelected
+                          ? 'border-amber-500 bg-amber-50 text-amber-800'
+                          : 'border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-700'
+                        : isSelected
+                          ? 'border-red-500 bg-red-50 text-red-800'
+                          : 'border-red-200 hover:border-red-400 hover:bg-red-50/50 text-red-700';
+
+                return (
+                  <button
+                    key={option.score}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => field.onChange(option.score)}
+                    className={cn(
+                      'flex-1 p-2.5 rounded-lg border-2 text-left transition-all duration-150',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
+                      isSelected ? 'shadow-sm' : 'bg-white',
+                      tierClass,
+                      loading && 'opacity-50 cursor-not-allowed',
+                    )}
+                  >
+                    <div className="text-xs font-bold leading-tight mb-1">{option.label}</div>
+                    <div className="text-[10px] leading-tight opacity-80">{option.description}</div>
+                    <div
+                      className={cn(
+                        'text-xs font-bold mt-1.5 tabular-nums',
+                        isSelected ? 'opacity-100' : 'opacity-60',
+                      )}
+                    >
+                      ~{option.score}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Fine-tune row */}
+            <div className="flex items-center gap-2 justify-center">
+              <span className="text-[11px] text-slate-400">Fine-tune:</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={currentValue}
+                disabled={loading}
+                onChange={(e) => {
+                  const num = Math.min(100, Math.max(0, parseInt(e.target.value, 10) || 0));
+                  field.onChange(num);
+                }}
+                className="w-16 text-center text-sm font-bold text-slate-800 border border-slate-300 rounded-md px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+              />
+              <span className="text-[11px] text-slate-400">/ 100</span>
+            </div>
+          </div>
+        );
+      }}
+    />
+  );
+});
+
+GuidedOptionCards.displayName = 'GuidedOptionCards';
+GuidedOptionCards.propTypes = {
+  paramKey: PropTypes.string.isRequired,
+  loading: PropTypes.bool.isRequired,
+};
 
 const SCALE_COLORS = [
   'text-red-500 bg-red-50',
@@ -173,9 +285,28 @@ export default function EvaluationParametersContainer({
   onInnerExpandedChange,
 }) {
   const groupEntries = Object.entries(parameterGroups);
+  const [guidedMode, setGuidedMode] = React.useState(true);
 
   return (
     <div className="w-full">
+      {/* ── Mode toggle ─────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-slate-100 bg-slate-50/60">
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold text-slate-700">
+            {guidedMode ? 'Guided Mode' : 'Manual Mode'}
+          </span>
+          <span className="text-[10px] text-slate-400">
+            {guidedMode ? 'Select from pre-calibrated options' : 'Enter your own scores (0–100)'}
+          </span>
+        </div>
+        <Switch
+          isSelected={guidedMode}
+          onChange={setGuidedMode}
+          size="sm"
+          color="success"
+          aria-label="Toggle guided mode"
+        />
+      </div>
       <Accordion
         className="w-full"
         variant="default"
@@ -233,7 +364,15 @@ export default function EvaluationParametersContainer({
                     {group.map((key, idx) => (
                       <React.Fragment key={idx}>
                         <div className="flex-1 flex flex-col items-center py-1 px-2">
-                          <ParameterBox paramGroupIdx={groupIdx} paramKey={key} loading={loading} />
+                          {guidedMode ? (
+                            <GuidedOptionCards paramKey={key} loading={loading} />
+                          ) : (
+                            <ParameterBox
+                              paramGroupIdx={groupIdx}
+                              paramKey={key}
+                              loading={loading}
+                            />
+                          )}
                         </div>
                         {idx < group.length - 1 && (
                           <div className="flex justify-center items-center">

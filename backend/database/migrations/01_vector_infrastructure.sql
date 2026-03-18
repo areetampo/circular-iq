@@ -1,27 +1,24 @@
-/**
- * ┌────────────────────────────────────────────────────────────────────────────────┐
- * │                                                                                │
- * │  MIGRATION: 01_vector_infrastructure.sql  (v2)                                 │
- * │  Vector Search Foundation — pgvector, embeddings, documents table              │
- * │                                                                                │
- * │  PURPOSE                                                                       │
- * │  ──────────────────────────────────────────────────────────────────────────────│
- * │  • Sets up extensions (vector, btree_gin, pgcrypto) in an extensions schema    │
- * │    (security best practice).                                                   │
- * │  • Creates the documents table with a 1536-dimension halfvec column            │
- * │    for OpenAI text-embedding-3-small embeddings.                               │
- * │  • Adds indexes for fast similarity search (HNSW), full-text search, and       │
- * │    metadata filtering.                                                         │
- * │  • Defines search functions (vector, hybrid, filtered) and analytics helpers.  │
- * │                                                                                │
- * │  PRE-EXECUTION CHECK                                                           │
- * │  If you encounter "cannot allocate memory" errors during index creation,       │
- * │  increase maintenance_work_mem before running:                                 │
- * │                                                                                │
- * │      SET maintenance_work_mem = '128MB';                                       │
- * │                                                                                │
- * └────────────────────────────────────────────────────────────────────────────────┘
-*/
+-- MIGRATION: 01_vector_infrastructure.sql (v2)
+-- Vector Search Foundation — pgvector, embeddings, documents table
+
+-- PURPOSE:
+-- Sets up extensions (vector, btree_gin, pgcrypto) in an extensions schema (security best practice).
+-- Creates the documents table with a 1536‑dimension halfvec column for OpenAI text‑embedding‑3‑small embeddings.
+-- Adds generated columns (chunk_id, field_name) extracted from metadata for conflict handling and fast chunk retrieval.
+-- Enforces a unique constraint on (chunk_id, field_name) to enable resume‑safe ingestion (--resume flag).
+-- Adds indexes: HNSW for vector similarity, GIN for full‑text search, btree for structured metadata filters (industry, category, source).
+-- Defines search functions: vector (match_documents), filtered by industry/category, hybrid (keyword + vector + optional filters), and recent documents.
+-- Provides analytics helpers: get_document_statistics, count_documents_by_category.
+-- Includes truncate_documents() for efficient table clearing (prevents storage bloat).
+-- Sets up Row Level Security (public read/write) and grants appropriate permissions.
+-- Adds automatic updated_at trigger.
+
+-- IMPORTANT NOTES:
+-- Embedding dimension must match EMBEDDING_DIMENSION in backend/config/embedding.js (currently 1536).
+-- The unique constraint on (chunk_id, field_name) requires those fields to be present in metadata during upserts.
+-- For memory‑intensive index creation (HNSW), increase maintenance_work_mem if needed:
+-- SET maintenance_work_mem = '128MB';
+-- All search functions are STABLE and return UUIDs, compatible with Supabase/PostgREST.
 
 -- ============================================
 -- 0. Drop all existing functions (regardless of signature)

@@ -1,23 +1,42 @@
-/**
- * ╔═══════════════════════════════════════════════════════════════════════════════╗
- * ║                                                                               ║
- * ║  MIGRATION: 05_results_logs.sql  (NEW)                                        ║
- * ║  Immutable Audit Log — every scoring API call recorded here                   ║
- * ║                                                                               ║
- * ║  DESIGN DECISIONS                                                             ║
- * ║  ───────────────────────────────────────────────────────────────────────────  ║
- * ║  • INSERT-only table (no UPDATE/DELETE for non-service roles)                 ║
- * ║  • user_id is nullable — NULL means anonymous session                         ║
- * ║  • ip_hash / identifier_hash / user_agent_snippet mirror anonymous_usage      ║
- * ║    so the two tables can be joined for abuse analysis without storing PII     ║
- * ║  • result_snapshot stores the FULL scoring API response for reproducibility   ║
- * ║  • Promoted scalar columns mirror assessments table for fast aggregation      ║
- * ║  • Auto-cleanup: rows older than 90 days are purged by cleanup function       ║
- * ║  • Scoring API: after returning the response to the client, fire-and-forget   ║
- * ║    INSERT via service-role client (does not block the HTTP response)          ║
- * ║                                                                               ║
- * ╚═══════════════════════════════════════════════════════════════════════════════╝
- */
+-- MIGRATION: 05_results_logs.sql (NEW)
+-- Immutable Audit Log — every scoring API call recorded here
+--
+-- DESIGN DECISIONS:
+-- • INSERT‑only table (no UPDATE/DELETE for non‑service roles).
+-- • user_id is nullable — NULL = anonymous session.
+-- • Privacy‑preserving fingerprints (ip_hash, identifier_hash, user_agent_snippet)
+--   mirror anonymous_usage for abuse analysis without storing PII.
+-- • result_snapshot stores the FULL scoring API response for reproducibility.
+-- • Promoted scalar columns (overall_score, industry, risk_level, etc.) mirror the
+--   assessments table for fast aggregation without parsing JSONB.
+-- • Auto‑cleanup: rows older than 90 days are purged by cleanup_old_scoring_results_log().
+--
+-- PURPOSE:
+-- - Immutable audit trail of all scoring API calls, supporting analytics,
+--   abuse detection, and full result reproducibility.
+-- - Enables joining with anonymous_usage via identifier_hash for usage pattern analysis.
+-- - Allows authenticated users to view their own scoring history (RLS).
+--
+-- KEY COLUMNS:
+-- - request_id: random hex ID from the scoring controller (links logs to backend console).
+-- - identifier_hash: SHA‑256 of (IP + User‑Agent) — same as anonymous_usage.
+-- - input_parameters: 8‑factor scores submitted by the user.
+-- - overall_score, confidence_level, technical_feasibility, economic_viability,
+--   circularity_potential, risk_level — promoted scalars for analytics.
+-- - industry, scale, primary_material, geographic_focus — extracted metadata.
+-- - audit_confidence_score, audit_is_junk_input, audit_integrity_gaps_count,
+--   audit_similar_cases_count — audit quality signals.
+-- - parameter_consistency_score, parameter_consistency_rating, r_strategy_alignment_score,
+--   r_strategy_alignment_rating, r_strategy — Layer 2 enrichment columns.
+-- - improvement_roadmap, sdg_alignment, market_opportunity_summary — Layer 3 extended audit.
+-- - processing_time_ms, timings — performance metrics.
+-- - result_snapshot: complete API response for full UI repopulation.
+--
+-- ACCESS CONTROL:
+-- - Writes only via service‑role (backend).
+-- - Authenticated users can SELECT their own rows.
+-- - Anonymous users have no access.
+-- - Row Level Security policies enforce these access rules.
 
 -- ============================================
 -- 0. Drop if exists (clean slate)

@@ -1,24 +1,26 @@
-/**
- * ╔═══════════════════════════════════════════════════════════════════════════════╗
- * ║                                                                               ║
- * ║  MIGRATION: 03_user_profiles.sql  (v2)                                        ║
- * ║  User Profile System — OPTIMIZED & SECURED                                    ║
- * ║  STATUS: Depends on 02_user_assessments.sql (v2)                              ║
- * ║                                                                               ║
- * ║  CHANGES FROM v1                                                              ║
- * ║  ───────────────────────────────────────────────────────────────────────────  ║
- * ║  • profiles table: added display_name, avatar_url, bio, preferred_industry,   ║
- * ║    assessment_count (denormalised counter), last_assessment_at                ║
- * ║  • Added increment_profile_assessment_count() trigger on assessments INSERT   ║
- * ║    so the counter stays in sync automatically                                 ║
- * ║  • assessments.user_id FK now points to profiles(id) (same as v1 step 4)      ║
- * ║    but preserved as optional (nullable) until 03_ is run so that              ║
- * ║    02_ alone remains self-contained for guest sessions                        ║
- * ║  • RLS, trigger functions, helper functions all re-secured with               ║
- * ║    SET search_path + SECURITY DEFINER where appropriate                       ║
- * ║                                                                               ║
- * ╚═══════════════════════════════════════════════════════════════════════════════╝
- */
+-- MIGRATION: 03_user_profiles.sql (v2)
+-- User Profile System — OPTIMIZED & SECURED
+-- STATUS: Depends on 02_assessments.sql (v2)
+--
+-- CHANGES FROM v1:
+-- • Added columns to profiles table: display_name, avatar_url, bio, preferred_industry,
+--   assessment_count (denormalised counter), last_assessment_at.
+-- • Added increment_profile_assessment_count() trigger on assessments INSERT to keep
+--   assessment_count in sync automatically.
+-- • Added decrement_profile_assessment_count() trigger on assessments DELETE.
+-- • Updated assessments.user_id FK to point to profiles(id) (previously optional,
+--   now NOT NULL after this migration).
+-- • Removed session_id from assessments (guest sessions no longer supported).
+-- • Tightened RLS policies on assessments to rely only on user_id (no session_id fallback).
+-- • Added helper functions: get_user_profile(), update_username().
+-- • Backfilled assessment_count for existing users.
+--
+-- PURPOSE:
+-- - Creates a profiles table linked one-to-one with auth.users.
+-- - Automatically creates a profile when a new user signs up (via trigger on auth.users).
+-- - Maintains a denormalised assessment_count for fast dashboard queries.
+-- - Provides RLS policies so users can only manage their own profile.
+-- - Upgrades the assessments table to fully rely on authenticated users (no guest mode).
 
 -- ============================================
 -- 0. Drop existing profiles table and functions (clean slate)

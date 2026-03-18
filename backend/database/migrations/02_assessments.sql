@@ -1,28 +1,28 @@
-/**
- * ╔════════════════════════════════════════════════════════════════════════════════╗
- * ║                                                                                ║
- * ║  MIGRATION: 02_assessments.sql  (v2 — full scoring API schema)            ║
- * ║  User Assessment Storage — OPTIMIZED & SECURED                                 ║
- * ║  STATUS: Depends on 01_vector_infrastructure.sql                               ║
- * ║                                                                                ║
- * ║  CHANGES FROM v1                                                               ║
- * ║  ───────────────────────────────────────────────────────────────────────────   ║
- * ║  • Added dedicated columns for every top-level field the scoring API returns:  ║
- * ║      confidence_level, derived_metrics (JSONB), score_breakdown (JSONB),       ║
- * ║      sub_scores (JSONB), audit (JSONB), gap_analysis (JSONB),                  ║
- * ║      similar_cases (JSONB), metadata (JSONB), input_parameters (JSONB)         ║
- * ║  • Added scalar sub-columns promoted out of derived_metrics for fast queries:  ║
- * ║      technical_feasibility, economic_viability, circularity_potential,         ║
- * ║      risk_level                                                                ║
- * ║  • Added scalar metadata sub-columns for market analytics:                     ║
- * ║      scale, r_strategy, primary_material, geographic_focus                     ║
- * ║  • Removed business_viability_score (not a real scoring API field —            ║
- * ║      replaced by economic_viability from derived_metrics)                      ║
- * ║  • Updated get_assessment_statistics and get_market_data to use new columns    ║
- * ║  • All prior RLS policies, indexes, and constraints preserved                  ║
- * ║                                                                                ║
- * ╚════════════════════════════════════════════════════════════════════════════════╝
- */
+-- MIGRATION: 02_assessments.sql (v2 — full scoring API schema)
+-- User Assessment Storage — OPTIMIZED & SECURED
+-- STATUS: Depends on 01_vector_infrastructure.sql
+
+-- CHANGES FROM v1:
+-- • Added dedicated columns for every top-level field the scoring API returns:
+--   confidence_level, derived_metrics (JSONB), score_breakdown (JSONB),
+--   sub_scores (JSONB), audit (JSONB), gap_analysis (JSONB),
+--   similar_cases (JSONB), metadata (JSONB), input_parameters (JSONB)
+-- • Added scalar sub-columns promoted out of derived_metrics for fast queries:
+--   technical_feasibility, economic_viability, circularity_potential, risk_level
+-- • Added scalar metadata sub-columns for market analytics:
+--   scale, r_strategy, primary_material, geographic_focus
+-- • Removed business_viability_score (not a real scoring API field —
+--   replaced by economic_viability from derived_metrics)
+-- • Updated get_assessment_statistics and get_market_data to use new columns
+-- • All prior RLS policies, indexes, and constraints preserved
+
+-- PURPOSE:
+-- - Stores complete assessment results with columns mirroring the scoring API response,
+--   enabling full UI repopulation without parsing result_json.
+-- - Promotes key metrics to scalar columns for fast filtering, sorting, and analytics.
+-- - Provides RLS policies for authenticated users and guest sessions.
+-- - Includes analytics functions for statistics and market data.
+-- - Automatically updates updated_at timestamp.
 
 -- ============================================
 -- 0. Drop existing table and functions (clean slate)

@@ -1,48 +1,38 @@
-/\*\*
-
-- Dialogs System Documentation
-- HeroUI v3 AlertDialog & Modal Implementation Guide
--
-- This folder contains reusable dialog components following the HeroUI v3 patterns
-- and implementing the DRY principle for common dialog use cases.
--
-- Location: src/components/dialogs/README.md
-  \*/
-
 # Dialogs System
 
 Centralized, reusable dialog components based on HeroUI v3 AlertDialog and Modal patterns.
 
-## 🎯 Design Philosophy
+## Overview
+
+The dialogs system provides:
+
+1. **ConfirmationDialog** - Flexible confirmation dialogs with status variants (danger, warning, success, accent)
+2. **ConfirmDialog** - Simpler confirmation (legacy, use ConfirmationDialog for new code)
+3. **Custom Dialog Components** - Save, Delete, Rename assessment dialogs
+4. **Global Dialog Context** - Access anywhere via `useDialog()` hook
+
+## Design Philosophy
 
 ### Why Centralized Dialogs?
 
-1. **DRY Principle**: Avoid scattered AlertDialog implementations across components
-2. **Consistent UX**: Unified styling, animations, and behavior
-3. **Type Safety**: Reusable PropTypes and validation
-4. **Maintainability**: Update dialog behavior in one place
-5. **Accessibility**: Built-in ARIA support and keyboard navigation
+1. **DRY Principle** - Avoid scattered AlertDialog/Modal implementations
+2. **Consistent UX** - Unified styling, animations, behavior
+3. **Type Safety** - Reusable PropTypes and validation
+4. **Maintainability** - Update dialog behavior in one place
+5. **Accessibility** - Built-in ARIA support and keyboard navigation
 
 ### AlertDialog vs Modal
 
-- **AlertDialog**: For critical confirmations requiring user attention
-  - Blocking by default (`isDismissable={false}`)
-  - Keyboard dismiss disabled by default
-  - Status-based styling (danger, warning, success, etc.)
-  - Examples: Delete confirmations, destructive actions, session restore
+- **AlertDialog** - For critical confirmations (blocking, no dismiss, keyboard dismiss disabled)
+- **Modal** - For complex interactions (dismissible, supports forms/inputs)
 
-- **Modal**: For complex interactions and forms
-  - Can be dismissed freely
-  - Supports form inputs and complex layouts
-  - Examples: Save dialogs, settings, multi-step forms
+## Components
 
-## 📦 Available Components
+### ConfirmationDialog (Recommended)
 
-### Base Components
+Flexible confirmation dialog with status variants.
 
-#### `ConfirmationDialog` ⭐ (New - Preferred)
-
-Flexible confirmation dialog with full status support.
+**Usage**:
 
 ```jsx
 import { ConfirmationDialog } from '@/components/dialogs';
@@ -52,9 +42,10 @@ import { ConfirmationDialog } from '@/components/dialogs';
   onOpenChange={setIsOpen}
   status="danger"
   title="Delete project?"
-  description="This will permanently delete your project and all associated data."
+  description="This will permanently delete your project and all data."
   confirmText="Delete"
   onConfirm={handleDelete}
+  onCancel={handleCancel}
 />;
 ```
 
@@ -85,13 +76,11 @@ import { ConfirmationDialog } from '@/components/dialogs';
 }
 ```
 
-#### `ConfirmDialog` (Legacy)
+### ConfirmDialog (Legacy)
 
-Basic confirmation dialog. Use `ConfirmationDialog` for new code.
+Simple confirmation dialog.
 
 ```jsx
-import { ConfirmDialog } from '@/components/dialogs';
-
 <ConfirmDialog
   open={isOpen}
   onOpenChange={setIsOpen}
@@ -100,8 +89,151 @@ import { ConfirmDialog } from '@/components/dialogs';
   description="This action cannot be undone."
   confirmText="Delete"
   onConfirm={handleDelete}
+/>
+```
+
+### Assessment-Specific Dialogs
+
+**SaveAssessmentDialog**:
+
+```jsx
+<SaveAssessmentDialog
+  isOpen={isSaveOpen}
+  onOpenChange={setIsSaveOpen}
+  onSave={handleSave}
+  initialName="My Assessment"
+/>
+```
+
+**DeleteAssessmentDialog**:
+
+```jsx
+<DeleteAssessmentDialog
+  isOpen={isDeleteOpen}
+  onOpenChange={setIsDeleteOpen}
+  assessmentName="My Assessment"
+  onDelete={handleDelete}
+/>
+```
+
+**RenameAssessmentDialog**:
+
+```jsx
+<RenameAssessmentDialog
+  isOpen={isRenameOpen}
+  onOpenChange={setIsRenameOpen}
+  currentName="My Assessment"
+  onRename={handleRename}
+/>
+```
+
+## Dialog Context Hook
+
+Access global dialog state via `useDialog()`:
+
+```jsx
+import { useDialog } from '@/hooks/useDialog';
+
+const { open, close, isOpen } = useDialog();
+
+// Open dialog programmatically
+open({
+  title: 'Confirm Action?',
+  description: 'Are you sure?',
+  onConfirm: () => handleConfirm(),
+});
+```
+
+## Styling
+
+Dialogs use Tailwind CSS and inherit HeroUI styling:
+
+```jsx
+// Dialog container
+<div className="rounded-lg border border-slate-200 bg-white shadow-lg">
+  {/* Title */}
+  <h2 className="text-lg font-bold text-slate-900">Title</h2>
+
+  {/* Description */}
+  <p className="text-sm text-slate-600">Description</p>
+
+  {/* Buttons */}
+  <div className="flex gap-2">
+    <Button variant="light">Cancel</Button>
+    <Button color="danger">Delete</Button>
+  </div>
+</div>
+```
+
+## Best Practices
+
+1. **Use appropriate status** - `danger` for destructive, `success` for positive actions
+2. **Provide clear descriptions** - Help users understand consequences
+3. **Use consistent button text** - "Delete", "Confirm", "Save", etc.
+4. **Keep dialogs simple** - Complex interactions belong in modals
+5. **Handle cancellation** - Provide escape/cancel option when safe
+6. **Test accessibility** - Ensure keyboard navigation and screen readers work
+
+## Examples
+
+### Delete Confirmation
+
+```jsx
+const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+<ConfirmationDialog
+  isOpen={isOpen}
+  onOpenChange={onOpenChange}
+  status="danger"
+  title="Delete Assessment?"
+  description={`Delete "${assessment.name}" and all results? This cannot be undone.`}
+  confirmText="Delete"
+  onConfirm={async () => {
+    await deleteAssessment(assessment.id);
+    onOpenChange(false);
+  }}
 />;
 ```
+
+### Save Confirmation
+
+```jsx
+<ConfirmationDialog
+  isOpen={isOpen}
+  onOpenChange={onOpenChange}
+  status="accent"
+  title="Save Changes?"
+  description="You have unsaved changes. Would you like to save before leaving?"
+  confirmText="Save"
+  cancelText="Discard"
+  onConfirm={handleSave}
+  onCancel={handleDiscard}
+/>
+```
+
+### Success Notification
+
+```jsx
+<ConfirmationDialog
+  isOpen={isOpen}
+  onOpenChange={onOpenChange}
+  status="success"
+  title="Assessment Saved"
+  description="Your assessment has been saved successfully."
+  confirmText="Close"
+  onConfirm={() => onOpenChange(false)}
+/>
+```
+
+## See Also
+
+- [Frontend README](../../README.md) - Overall frontend architecture
+- HeroUI v3 Docs - [AlertDialog](https://heroui.com/docs/components/alert-dialog), [Modal](https://heroui.com/docs/components/modal)
+  confirmText="Delete"
+  onConfirm={handleDelete}
+  />;
+
+````
 
 #### `InputDialog`
 
@@ -121,7 +253,7 @@ import { InputDialog } from '@/components/dialogs';
   validate={(value) => (value.length < 3 ? 'Name must be at least 3 characters' : null)}
   maxLength={100}
 />;
-```
+````
 
 ### Specialized Components
 
