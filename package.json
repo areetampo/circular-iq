@@ -20,7 +20,7 @@
     "lint": "eslint .",
     "lint:errors": "eslint . --quiet",
     "lint:fix": "eslint . --fix --quiet && npm run format",
-    "prepare": "husky",
+    "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL) { try { require('husky').install() } catch (e) { console.log('Husky not available, skipping'); } }\"",
     "build": "npm run build --workspaces --if-present",
     "test": "npm test --workspaces --if-present"
   },
