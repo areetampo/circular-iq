@@ -10,7 +10,7 @@
     "node": ">=24.x"
   },
   "scripts": {
-    "prepare": "node -e \"try { require('husky').install() } catch (e) {}\"",
+    "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL && process.env.NODE_ENV !== 'production') { try { require('husky').install() } catch (e) { console.log('Husky not available, skipping'); } }\"",
     "dev": "vite --mode frontend",
     "build": "vite build --mode production",
     "lint": "eslint .",
