@@ -2273,24 +2273,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     Comprehensive analysis and recommendations
                   </p>
 
-                  {actualResult.audit.audit_verdict && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-slate-900 mb-2">Audit Verdict</h4>
-                      <p className="text-sm text-slate-700">{actualResult.audit.audit_verdict}</p>
-                    </div>
-                  )}
-
-                  {actualResult.audit.comparative_analysis && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-slate-900 mb-2">
-                        Comparative Analysis
-                      </h4>
-                      <p className="text-sm text-slate-700">
-                        {actualResult.audit.comparative_analysis}
-                      </p>
-                    </div>
-                  )}
-
                   {actualResult.audit.integrity_gaps &&
                     actualResult.audit.integrity_gaps.length > 0 && (
                       <div className="mb-4">
