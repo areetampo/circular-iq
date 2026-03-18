@@ -35,6 +35,10 @@ export function calculateScores(parameters) {
   // Determine confidence level based on score distribution
   const confidence = calculateConfidenceLevel(validatedParams);
 
+  const weightedScoreCard = generateWeightedScoreCard(validatedParams, weights);
+  const circularEconomyTier = classifyCircularEconomyTier(Math.round(overall_score));
+  const parameterConsistency = calculateParameterConsistency(validatedParams);
+
   const technical_feasibility = Math.round(
     validatedParams.tech_readiness * 0.4 +
       validatedParams.size_efficiency * 0.3 +
@@ -80,6 +84,388 @@ export function calculateScores(parameters) {
     derived_metrics,
     weights: weights,
     score_breakdown: generateScoreBreakdown(validatedParams, weights),
+    // NEW FIELDS
+    weighted_score_card: weightedScoreCard,
+    circular_economy_tier: circularEconomyTier,
+    parameter_consistency: parameterConsistency,
+  };
+}
+
+/**
+ * Generate a weighted score card showing each factor's contribution
+ * to the overall score.
+ * @param {Object} validatedParams - Clamped 0-100 sub_scores
+ * @param {Object} weights - Factor weights
+ * @returns {Object} Score card with per-factor contribution breakdown
+ */
+export function generateWeightedScoreCard(validatedParams, weights) {
+  const factors = Object.keys(weights);
+  const entries = {};
+
+  let totalContribution = 0;
+
+  factors.forEach((key) => {
+    const raw = validatedParams[key];
+    const weight = weights[key];
+    const contribution = Math.round(raw * weight * 100) / 100; // 2 dp
+    totalContribution += contribution;
+
+    // Classify each factor
+    let classification;
+    if (raw >= 75) classification = 'Strong';
+    else if (raw >= 50) classification = 'Moderate';
+    else if (raw >= 25) classification = 'Weak';
+    else classification = 'Critical';
+
+    entries[key] = {
+      raw_score: raw,
+      weight: weight,
+      weight_percent: `${Math.round(weight * 100)}%`,
+      contribution: Math.round(contribution * 100) / 100,
+      contribution_percent: `${Math.round((contribution / 100) * 100)}%`,
+      classification,
+    };
+  });
+
+  // Sort factors by contribution descending for easy reading
+  const ranked = Object.entries(entries)
+    .sort(([, a], [, b]) => b.contribution - a.contribution)
+    .map(([key], rank) => ({ key, rank: rank + 1 }));
+
+  ranked.forEach(({ key, rank }) => {
+    entries[key].rank = rank;
+  });
+
+  return {
+    factors: entries,
+    total: Math.round(totalContribution),
+    top_contributor: ranked[0]?.key || null,
+    bottom_contributor: ranked[ranked.length - 1]?.key || null,
+  };
+}
+
+/**
+ * Classify overall score into a named circular economy tier.
+ * @param {number} overallScore - 0-100
+ * @returns {Object} Tier classification with description and next milestone
+ */
+export function classifyCircularEconomyTier(overallScore) {
+  if (overallScore >= 76) {
+    return {
+      tier: 'Leader',
+      range: '76–100',
+      badge_color: 'green',
+      description:
+        'This solution demonstrates strong circular economy principles with viable economics ' +
+        'and proven technical feasibility. Ready for scale or already operating at meaningful volume.',
+      next_milestone:
+        'Focus on maximising impact through replication, partnerships, and policy engagement. ' +
+        'Consider publishing case studies to advance industry benchmarks.',
+      percentile_estimate: 'Top 15% of assessed solutions',
+    };
+  }
+  if (overallScore >= 61) {
+    return {
+      tier: 'Established',
+      range: '61–75',
+      badge_color: 'blue',
+      description:
+        'A well-developed circular solution with solid fundamentals. Most dimensions are performing ' +
+        'adequately but 1–2 areas are limiting full potential.',
+      next_milestone:
+        'Identify the 1–2 lowest-scoring factors and allocate focused resources there. ' +
+        'A targeted improvement in your weakest dimension can unlock the next tier.',
+      percentile_estimate: 'Top 35% of assessed solutions',
+    };
+  }
+  if (overallScore >= 41) {
+    return {
+      tier: 'Developing',
+      range: '41–60',
+      badge_color: 'amber',
+      description:
+        'The solution shows genuine circular economy intent but faces significant barriers in ' +
+        'multiple dimensions. Viable with the right investment and partnerships.',
+      next_milestone:
+        'Prioritise market validation and at least one supply chain partnership. ' +
+        'Consider a pilot programme to de-risk before full deployment.',
+      percentile_estimate: 'Middle 30% of assessed solutions',
+    };
+  }
+  return {
+    tier: 'Emerging',
+    range: '0–40',
+    badge_color: 'red',
+    description:
+      'Early-stage or concept-level solution. Core circular economy mechanisms are not yet ' +
+      'sufficiently developed for commercial viability without substantial improvement.',
+    next_milestone:
+      'Focus on validating the core hypothesis: is there real market demand and a feasible ' +
+      'collection / processing pathway? Start with the two highest-weight factors: ' +
+      'market_price and infrastructure.',
+    percentile_estimate: 'Bottom 20% of assessed solutions',
+  };
+}
+
+/**
+ * Score the internal consistency of the 8 parameters.
+ * Detects known contradictory patterns (from identifyIntegrityGaps logic)
+ * and penalises implausible combinations.
+ * Returns 0-100 where 100 = perfectly consistent, 0 = highly contradictory.
+ *
+ * @param {Object} params - Validated sub_scores
+ * @returns {Object} Consistency analysis
+ */
+export function calculateParameterConsistency(params) {
+  const penalties = [];
+  let totalPenalty = 0;
+
+  // Each rule: condition → penalty (0-25) + explanation
+  const rules = [
+    {
+      condition: params.market_price > 70 && params.tech_readiness < 40,
+      penalty: 20,
+      issue: 'High market value claimed but technology is not mature enough to capture it.',
+      factors: ['market_price', 'tech_readiness'],
+    },
+    {
+      condition: params.uniqueness > 75 && params.maintenance < 35,
+      penalty: 15,
+      issue: 'Highly innovative materials typically require higher maintenance, not lower.',
+      factors: ['uniqueness', 'maintenance'],
+    },
+    {
+      condition: params.public_participation > 75 && params.infrastructure < 40,
+      penalty: 20,
+      issue: 'High community participation is difficult without adequate infrastructure.',
+      factors: ['public_participation', 'infrastructure'],
+    },
+    {
+      condition: params.chemical_safety > 85 && params.market_price < 20,
+      penalty: 10,
+      issue: 'Extremely safe materials with near-zero market value is an unusual combination.',
+      factors: ['chemical_safety', 'market_price'],
+    },
+    {
+      condition: params.tech_readiness > 80 && params.size_efficiency < 20,
+      penalty: 12,
+      issue: 'Mature technology solutions typically have optimised footprints.',
+      factors: ['tech_readiness', 'size_efficiency'],
+    },
+    {
+      condition: params.market_price > 80 && params.infrastructure < 25,
+      penalty: 18,
+      issue: 'High-value recovered materials require adequate infrastructure to reach the market.',
+      factors: ['market_price', 'infrastructure'],
+    },
+    {
+      // Suspiciously uniform high scores
+      condition: (() => {
+        const values = Object.values(params);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        return max - min < 8 && values.every((v) => v > 65);
+      })(),
+      penalty: 25,
+      issue:
+        'All scores are suspiciously uniform and high. Real-world solutions always have ' +
+        'relative weaknesses. Consider calibrating more carefully.',
+      factors: Object.keys(params),
+    },
+  ];
+
+  rules.forEach((rule) => {
+    if (rule.condition) {
+      totalPenalty += rule.penalty;
+      penalties.push({ issue: rule.issue, penalty: rule.penalty, factors: rule.factors });
+    }
+  });
+
+  const score = Math.max(0, Math.min(100, 100 - totalPenalty));
+
+  let rating;
+  if (score >= 85) rating = 'High';
+  else if (score >= 65) rating = 'Moderate';
+  else if (score >= 40) rating = 'Low';
+  else rating = 'Very Low';
+
+  return {
+    score,
+    rating,
+    penalty_total: totalPenalty,
+    issues_found: penalties.length,
+    issues: penalties,
+    interpretation:
+      score >= 85
+        ? 'Parameter choices are internally coherent and plausible.'
+        : score >= 65
+          ? 'Minor inconsistencies detected. Review flagged factor combinations.'
+          : 'Significant inconsistencies detected. Scores may be overestimated in key areas.',
+  };
+}
+
+/**
+ * Score how well the 8 factor scores align with the detected R-strategy.
+ * Each strategy has a different ideal factor profile based on CE theory.
+ *
+ * @param {Object} params - Validated sub_scores
+ * @param {string} rStrategy - Detected R-strategy from metadata (e.g. 'Recycle')
+ * @returns {Object} Alignment analysis
+ */
+export function calculateRStrategyAlignment(params, rStrategy) {
+  // Ideal factor importance weights per R-strategy
+  // Values indicate how critical each factor is for this strategy (0-1)
+  const strategyProfiles = {
+    Refuse: {
+      public_participation: 0.9, // needs broad behaviour change
+      market_price: 0.7, // substitute must be economically viable
+      uniqueness: 0.8, // differentiation is key
+      tech_readiness: 0.6,
+      infrastructure: 0.5,
+      maintenance: 0.5,
+      size_efficiency: 0.4,
+      chemical_safety: 0.5,
+    },
+    Reduce: {
+      tech_readiness: 0.8, // efficiency technology
+      market_price: 0.7,
+      size_efficiency: 0.8, // physical reduction matters
+      maintenance: 0.6,
+      uniqueness: 0.6,
+      public_participation: 0.5,
+      infrastructure: 0.4,
+      chemical_safety: 0.5,
+    },
+    Reuse: {
+      infrastructure: 0.9, // collection/return logistics critical
+      public_participation: 0.9, // consumer behaviour change
+      maintenance: 0.8, // product must survive multiple uses
+      market_price: 0.6,
+      tech_readiness: 0.5,
+      uniqueness: 0.5,
+      size_efficiency: 0.6,
+      chemical_safety: 0.6,
+    },
+    Repair: {
+      tech_readiness: 0.7,
+      maintenance: 0.9, // repairability is core
+      public_participation: 0.8,
+      infrastructure: 0.7,
+      market_price: 0.6,
+      uniqueness: 0.5,
+      size_efficiency: 0.4,
+      chemical_safety: 0.5,
+    },
+    Refurbish: {
+      tech_readiness: 0.8,
+      maintenance: 0.8,
+      market_price: 0.7,
+      infrastructure: 0.7,
+      size_efficiency: 0.5,
+      uniqueness: 0.6,
+      public_participation: 0.5,
+      chemical_safety: 0.6,
+    },
+    Remanufacture: {
+      tech_readiness: 0.9, // high-tech disassembly and reassembly
+      maintenance: 0.9,
+      size_efficiency: 0.7,
+      market_price: 0.8,
+      infrastructure: 0.8,
+      chemical_safety: 0.7,
+      uniqueness: 0.6,
+      public_participation: 0.4,
+    },
+    Repurpose: {
+      uniqueness: 0.8, // creative value creation
+      market_price: 0.7,
+      tech_readiness: 0.6,
+      public_participation: 0.6,
+      maintenance: 0.5,
+      infrastructure: 0.5,
+      size_efficiency: 0.5,
+      chemical_safety: 0.5,
+    },
+    Recycle: {
+      infrastructure: 0.9, // collection and processing network
+      market_price: 0.9, // commodity value drives economics
+      chemical_safety: 0.8, // processing safety
+      tech_readiness: 0.7,
+      size_efficiency: 0.6,
+      maintenance: 0.5,
+      public_participation: 0.6,
+      uniqueness: 0.3,
+    },
+    Recover: {
+      tech_readiness: 0.8,
+      chemical_safety: 0.9, // energy/material recovery safety
+      infrastructure: 0.8,
+      market_price: 0.6,
+      size_efficiency: 0.7,
+      maintenance: 0.6,
+      public_participation: 0.4,
+      uniqueness: 0.3,
+    },
+  };
+
+  // Normalise strategy name (LLM may return lowercase or with spaces)
+  const normalised = Object.keys(strategyProfiles).find(
+    (k) => k.toLowerCase() === (rStrategy || '').toLowerCase().trim(),
+  );
+
+  if (!normalised) {
+    return {
+      strategy: rStrategy || 'Unknown',
+      alignment_score: null,
+      rating: 'Unknown',
+      message: 'Strategy not recognised — cannot compute alignment.',
+      critical_factors: [],
+      misaligned_factors: [],
+    };
+  }
+
+  const profile = strategyProfiles[normalised];
+
+  // For each critical factor (importance > 0.7), check if score is adequate
+  const criticalFactors = Object.entries(profile)
+    .filter(([, importance]) => importance >= 0.7)
+    .map(([key]) => key);
+
+  const misalignedFactors = criticalFactors.filter((key) => params[key] < 50);
+  const wellAlignedFactors = criticalFactors.filter((key) => params[key] >= 70);
+
+  // Weighted alignment score: for each factor, score = param_value * importance
+  // Normalise to 0-100
+  let weightedSum = 0;
+  let importanceSum = 0;
+  Object.entries(profile).forEach(([key, importance]) => {
+    weightedSum += (params[key] / 100) * importance;
+    importanceSum += importance;
+  });
+
+  const alignmentScore = Math.round((weightedSum / importanceSum) * 100);
+
+  let rating;
+  if (alignmentScore >= 75) rating = 'Strong Alignment';
+  else if (alignmentScore >= 55) rating = 'Moderate Alignment';
+  else if (alignmentScore >= 35) rating = 'Weak Alignment';
+  else rating = 'Poor Alignment';
+
+  const message =
+    misalignedFactors.length === 0
+      ? `Your factor scores strongly support a ${normalised} strategy.`
+      : `${normalised} strategy requires strong ${criticalFactors.slice(0, 2).join(' and ')}, ` +
+        `but ${misalignedFactors.join(', ')} ${misalignedFactors.length === 1 ? 'is' : 'are'} below threshold.`;
+
+  return {
+    strategy: normalised,
+    alignment_score: alignmentScore,
+    rating,
+    message,
+    critical_factors: criticalFactors,
+    misaligned_factors: misalignedFactors,
+    well_aligned_factors: wellAlignedFactors,
+    profile_used: profile,
   };
 }
 

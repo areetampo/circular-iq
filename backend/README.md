@@ -12,6 +12,40 @@ The backend is a Node.js/Express server that powers a document processing pipeli
 4. **Stores** embeddings in Supabase PostgreSQL with pgvector extension
 5. **Serves** REST APIs for hybrid search, scoring, and assessment management
 
+## Scoring Enrichment Layers (v2)
+
+The backend implements a three-layer enrichment system for comprehensive circular economy assessment:
+
+### Layer 1: Structured Context Inputs
+
+- **Business Model Type**: Classification of circular strategy (PaaS, take-back, remanufacturing, recycling, etc.)
+- **Operational Stage**: Business maturity (idea → prototype → pilot → scaling → mature)
+- **Target Geography**: Market scope (local → global)
+- **Annual Volume**: Material processing volume (< 1 tonne → > 100 tonnes)
+- **Material Complexity**: Type of materials handled (single → multi-material → hazardous → electronics → biological)
+- **Partnerships**: Existing supply chain relationships (boolean)
+
+These optional inputs enable stage-appropriate scoring and improve LLM calibration.
+
+### Layer 2: Deterministic Computed Outputs
+
+New metrics computed from the 8 scoring factors:
+
+- **Weighted Score Card**: Per-factor contribution breakdown with classifications (Strong/Moderate/Weak/Critical)
+- **Circular Economy Tier**: Classification tier (Leader/Established/Developing/Emerging) with percentile estimates
+- **Parameter Consistency**: Internal score coherence analysis (0-100) detecting unrealistic combinations
+- **R-Strategy Alignment**: Validation that factor scores match the detected circular strategy (Refuse/Reduce/Reuse/Repair/etc.)
+
+### Layer 3: Extended LLM Output
+
+Enhanced AI audit analysis with three new fields:
+
+- **Improvement Roadmap**: Prioritized action plan (3 items) with effort/impact/timeframe estimates
+- **SDG Alignment**: UN Sustainable Development Goals (2-4 most relevant) with rationale
+- **Market Opportunity Summary**: Realistic market assessment grounded in database evidence and scores
+
+See [Layer 2 functions](services/scoring.logic.js) and [Layer 3 prompts](services/scoring.service.js) for implementation details.
+
 ### Core Architecture
 
 ```

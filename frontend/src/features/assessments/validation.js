@@ -46,6 +46,42 @@ export const assessmentSchema = z.object({
       .min(0, 'Value must be between 0 and 100')
       .max(100, 'Value must be between 0 and 100'),
   }),
+  context: z
+    .object({
+      business_model_type: z
+        .enum([
+          'product-as-a-service',
+          'take-back',
+          'remanufacturing',
+          'sharing-platform',
+          'repair-service',
+          'recycling',
+          'other',
+        ])
+        .optional(),
+      operational_stage: z.enum(['idea', 'prototype', 'pilot', 'scaling', 'mature']).optional(),
+      target_geography: z.enum(['local', 'national', 'regional', 'global']).optional(),
+      annual_volume_estimate: z
+        .enum([
+          'under-1-tonne',
+          '1-10-tonnes',
+          '10-100-tonnes',
+          'over-100-tonnes',
+          'digital-intangible',
+        ])
+        .optional(),
+      material_complexity: z
+        .enum([
+          'single-material',
+          'multi-material',
+          'hazardous-components',
+          'electronics',
+          'biological',
+        ])
+        .optional(),
+      has_existing_partnerships: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -63,5 +99,13 @@ export const defaultValues = {
     size_efficiency: 50,
     chemical_safety: 50,
     tech_readiness: 50,
+  },
+  context: {
+    business_model_type: undefined,
+    operational_stage: undefined,
+    target_geography: undefined,
+    annual_volume_estimate: undefined,
+    material_complexity: undefined,
+    has_existing_partnerships: undefined,
   },
 };

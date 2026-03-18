@@ -92,6 +92,7 @@ export function SessionRestoreDialog(props) {
           businessSolution:
             sessionData?.inputs?.businessSolution || sessionData?.businessSolution || '',
           parameters: sessionData?.inputs?.parameters || sessionData?.parameters || {},
+          context: sessionData?.inputs?.context || sessionData?.context || {},
         },
         fromAnonymous: sessionData?.fromAnonymous || false,
       },

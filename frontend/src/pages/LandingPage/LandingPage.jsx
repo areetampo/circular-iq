@@ -8,6 +8,7 @@ import {
   ChevronDown,
   CircleCheck,
   ClipboardList,
+  Info,
   LayersPlus,
   NotebookPen,
   PencilRuler,
@@ -29,6 +30,7 @@ import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
 import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
+import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
 import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
 import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
@@ -100,11 +102,12 @@ export default function LandingPage() {
   // Pre-fill form with data from ResultsPage (reevaluate)
   useEffect(() => {
     if (location.state?.formData) {
-      const { businessProblem, businessSolution, parameters } = location.state.formData;
+      const { businessProblem, businessSolution, parameters, context } = location.state.formData;
       reset({
         businessProblem: businessProblem || '',
         businessSolution: businessSolution || '',
         parameters: parameters || {},
+        context: context || {},
       });
       // Open the evaluation parameters panel
       setShowEvaluationParameters(true);
@@ -170,7 +173,14 @@ export default function LandingPage() {
         const bBS = (b.businessSolution || '').trim();
         const aParams = a.parameters || {};
         const bParams = b.parameters || {};
-        return aBP === bBP && aBS === bBS && JSON.stringify(aParams) === JSON.stringify(bParams);
+        const aContext = a.context || {};
+        const bContext = b.context || {};
+        return (
+          aBP === bBP &&
+          aBS === bBS &&
+          JSON.stringify(aParams) === JSON.stringify(bParams) &&
+          JSON.stringify(aContext) === JSON.stringify(bContext)
+        );
       } catch (err) {
         return false;
       }
@@ -190,6 +200,7 @@ export default function LandingPage() {
         businessProblem: sessionInputs.businessProblem || '',
         businessSolution: sessionInputs.businessSolution || '',
         parameters: sessionInputs.parameters || {},
+        context: sessionInputs.context || {},
       });
       setShowEvaluationParameters(true);
       skipAutosaveRef.current = true;
@@ -204,6 +215,7 @@ export default function LandingPage() {
         businessProblem: sessionInputs.businessProblem || '',
         businessSolution: sessionInputs.businessSolution || '',
         parameters: sessionInputs.parameters || {},
+        context: sessionInputs.context || {},
       });
       setShowEvaluationParameters(true);
       skipAutosaveRef.current = true;
@@ -235,6 +247,7 @@ export default function LandingPage() {
         businessProblem: (values?.businessProblem || '').trim(),
         businessSolution: (values?.businessSolution || '').trim(),
         parameters: values?.parameters || {},
+        context: values?.context || {},
       };
 
       // Stored inputs (read directly from localStorage to avoid useSession timing races)
@@ -243,6 +256,7 @@ export default function LandingPage() {
         businessProblem: '',
         businessSolution: '',
         parameters: {},
+        context: {},
       };
 
       const inputsEqualLocal = (a = {}, b = {}) => {
@@ -253,7 +267,14 @@ export default function LandingPage() {
           const bBS = (b.businessSolution || '').trim();
           const aParams = a.parameters || {};
           const bParams = b.parameters || {};
-          return aBP === bBP && aBS === bBS && JSON.stringify(aParams) === JSON.stringify(bParams);
+          const aContext = a.context || {};
+          const bContext = b.context || {};
+          return (
+            aBP === bBP &&
+            aBS === bBS &&
+            JSON.stringify(aParams) === JSON.stringify(bParams) &&
+            JSON.stringify(aContext) === JSON.stringify(bContext)
+          );
         } catch (err) {
           return false;
         }
@@ -269,6 +290,7 @@ export default function LandingPage() {
           businessProblem: values.businessProblem || '',
           businessSolution: values.businessSolution || '',
           parameters: values.parameters || {},
+          context: values.context || {},
         },
         timestamp: savedAt,
       });
@@ -281,6 +303,7 @@ export default function LandingPage() {
           businessProblem: values.businessProblem || '',
           businessSolution: values.businessSolution || '',
           parameters: values.parameters || {},
+          context: values.context || {},
         };
         lastAppliedSessionRef.current = snapshot;
       } catch (err) {
@@ -360,8 +383,15 @@ export default function LandingPage() {
       const bBS = (b.businessSolution || '').trim();
       const aParams = a.parameters || {};
       const bParams = b.parameters || {};
+      const aContext = a.context || {};
+      const bContext = b.context || {};
       try {
-        return aBP === bBP && aBS === bBS && JSON.stringify(aParams) === JSON.stringify(bParams);
+        return (
+          aBP === bBP &&
+          aBS === bBS &&
+          JSON.stringify(aParams) === JSON.stringify(bParams) &&
+          JSON.stringify(aContext) === JSON.stringify(bContext)
+        );
       } catch (err) {
         return false;
       }
@@ -477,6 +507,7 @@ export default function LandingPage() {
           businessProblem: formData.businessProblem,
           businessSolution: formData.businessSolution,
           parameters: formData.parameters || {},
+          context: formData.context || {},
         },
         results: result,
       });
@@ -695,6 +726,51 @@ export default function LandingPage() {
                   className="w-full border border-gray-300 placeholder:opacity-60 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 dark:border-gray-600 dark:focus:ring-green-900/40 rounded-lg transition-all duration-200 font-semibold"
                 />
                 <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
+              </div>
+
+              {/* Business Context Section */}
+              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
+                <Accordion
+                  className="w-full"
+                  variant="default"
+                  defaultExpandedKeys={['business-context-heading']}
+                >
+                  <Accordion.Item id="business-context-heading">
+                    <Accordion.Heading>
+                      <Accordion.Trigger className="hover:bg-slate-50/80 group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                        <Info
+                          className={cn(
+                            'h-6 w-6 shrink-0 text-purple-500',
+                            'transition-[scale,rotate] duration-300 ease-out',
+                            'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-10 group-hover/parent:drop-shadow-md mr-1',
+                          )}
+                          strokeWidth={1.75}
+                        />
+
+                        <div className="flex flex-col gap-1 text-left">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-lg leading-6 text-slate-800">
+                              Business Context
+                            </span>
+                            <span className="text-xs font-normal leading-4 text-slate-400">
+                              Optional — improves analysis quality
+                            </span>
+                          </div>
+                        </div>
+
+                        <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                          <ChevronDown />
+                        </Accordion.Indicator>
+                      </Accordion.Trigger>
+                    </Accordion.Heading>
+
+                    <Accordion.Panel>
+                      <Accordion.Body className="p-0 bg-transparent">
+                        <BusinessContextContainer loading={loading} />
+                      </Accordion.Body>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
               </div>
 
               {/* EvaluationParameters Parameters Section */}

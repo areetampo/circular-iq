@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as scoringController from '#controllers/scoring.controller.js';
 import { createSupabaseClient } from '#database/supabase.client.js';
+import { setOpenAIClient as setServiceOpenAIClient } from '#services/scoring.service.js';
 import { extractIPAddress } from '#utils/anonymousTracking.js';
 
 // Module-scoped OpenAI client to support tests that call `setOpenAIClient()`
@@ -16,6 +17,7 @@ let sharedOpenAI = null;
 
 export function setOpenAIClient(client) {
   sharedOpenAI = client;
+  setServiceOpenAIClient(client);
 }
 
 const IS_PROD = BACKEND_CONFIG.isProduction;

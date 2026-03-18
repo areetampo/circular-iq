@@ -67,7 +67,12 @@ async function requestJson(path, options = {}) {
 export async function scoreAssessment(formData) {
   const response = await request('/api/score', {
     method: 'POST',
-    body: JSON.stringify(formData),
+    body: JSON.stringify({
+      businessProblem: formData.businessProblem,
+      businessSolution: formData.businessSolution,
+      parameters: formData.parameters,
+      context: formData.context || null,
+    }),
   });
 
   const data = await response.json().catch(() => null);

@@ -97,6 +97,13 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       gap_analysis: scoringResult.gap_analysis ?? null,
       similar_cases: scoringResult.similar_cases ?? null,
       metadata: scoringResult.metadata ?? null,
+      // New enriched scoring outputs
+      weighted_score_card: scoringResult.weighted_score_card ?? null,
+      circular_economy_tier: scoringResult.circular_economy_tier ?? null,
+      parameter_consistency: scoringResult.parameter_consistency ?? null,
+      r_strategy_alignment: scoringResult.r_strategy_alignment ?? null,
+      context: scoringResult.context ?? null,
+      // The rest of the data is persisted inside result_json for full reconstruction
       result_json: scoringResult, // full snapshot — required NOT NULL
 
       // ── Sharing ──────────────────────────────────────────────────────────────

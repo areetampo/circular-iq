@@ -117,6 +117,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                           businessProblem: values.businessProblem || '',
                           businessSolution: values.businessSolution || '',
                           parameters: values.parameters || {},
+                          context: values.context || {},
                         },
                       });
                     } catch (e) {

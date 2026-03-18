@@ -13,6 +13,7 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
 import { documentsRepository } from '#database/index.js';
 import {
+  calculateRStrategyAlignment,
   calculateScores,
   dedupeResultsWeighted,
   identifyIntegrityGaps,
@@ -242,7 +243,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
   console.log('='.repeat(20));
 
   try {
-    const { businessProblem, businessSolution, parameters } = req.body;
+    const { businessProblem, businessSolution, parameters, context } = req.body;
 
     // ========== INPUT VALIDATION ==========
     if (!businessProblem || !businessSolution) {
@@ -373,8 +374,8 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       // Use hybrid search for problem and solution separately
       console.log(`[${requestId}] Running hybrid searches for problem and solution...`);
 
-      const keywordForProblem = metadata?.primary_material || 'circularity';
-      const keywordForSolution = metadata?.primary_material || 'circularity';
+      const keywordForProblem = metadata?.primary_material || '';
+      const keywordForSolution = metadata?.primary_material || '';
       const matchCount = 8;
 
       const [searchResults, industryResults] = await Promise.allSettled([
@@ -539,6 +540,12 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       // Continue without database context - don't fail the request
     }
 
+    // ========== STEP 2b: R-STRATEGY ALIGNMENT ==========
+    const rStrategyAlignment = calculateRStrategyAlignment(
+      scores.sub_scores,
+      metadata?.r_strategy || null,
+    );
+
     // ========== STEP 3: IDENTIFY INTEGRITY GAPS ==========
     const integrityGaps = identifyIntegrityGaps(scores.sub_scores);
     console.log(`[${requestId}] Identified ${integrityGaps.length} potential integrity gaps`);
@@ -553,6 +560,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       businessSolution,
       scores,
       similarCases || [],
+      context || null,
     );
 
     // Add integrity gaps to audit result
@@ -597,10 +605,17 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       sub_scores: scores.sub_scores,
       derived_metrics: scores.derived_metrics,
       score_breakdown: scores.score_breakdown,
+      // Layer 2: New deterministic computed outputs
+      weighted_score_card: scores.weighted_score_card,
+      circular_economy_tier: scores.circular_economy_tier,
+      parameter_consistency: scores.parameter_consistency,
+      // LLM audit and analysis
       audit: auditResult,
       similar_cases: formattedCases,
       metadata: metadata,
+      r_strategy_alignment: rStrategyAlignment,
       gap_analysis: gapAnalysis,
+      context: context || null,
       processing_info: {
         request_id: requestId,
         processing_time_ms: Date.now() - startTime,

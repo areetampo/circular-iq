@@ -409,17 +409,52 @@ Requests without `Authorization` header are treated as anonymous:
 
 ### 1. Evaluation Engine
 
-**Multi-Dimensional Scoring**
+#### Multi-Dimensional Scoring
 
 - 8 key parameters across circular economy dimensions
 - Evidence-based scoring with AI reasoning
 - Confidence scoring & integrity gap analysis
+
+#### Assessment Enrichment Layers
+
+The evaluation engine now supports three enrichment layers:
+
+#### Layer 1 - Business Context (Optional)
+
+- Business Model Type: Classify circular strategy (PaaS, take-back, remanufacturing, recycling, etc.)
+- Operational Stage: Maturity level (idea → mature operation)
+- Target Geography: Market scope (local → global)
+- Annual Volume: Material processing volume
+- Material Complexity: Type of materials handled
+- Supply Chain Partnerships: Existing collection/distribution relationships
+
+These optional context fields improve AI reasoning and enable stage-appropriate scoring.
+
+**Files**: `src/pages/LandingPage/components/BusinessContextContainer.jsx`
+
+#### Layer 2 - Deterministic Outputs
+
+- Weighted Score Card: Per-factor contribution breakdown with classifications
+- Circular Economy Tier: Tier classification (Leader/Established/Developing/Emerging)
+- Parameter Consistency: Score coherence analysis detecting unrealistic inputs
+- R-Strategy Alignment: Validation that scores match the detected circular strategy
+
+These are computed deterministically with no LLM involvement.
+
+#### Layer 3 - Extended LLM Output
+
+- Improvement Roadmap: Prioritized action plan (3 items) with effort/impact estimates
+- SDG Alignment: UN Sustainable Development Goals (2-4 most relevant)
+- Market Opportunity Summary: Realistic market assessment grounded in database evidence
+
+Enhanced LLM analysis providing actionable recommendations.
 
 **Files**:
 
 - `src/constants/evaluationData.js` – Parameter definitions
 - `src/lib/scoring.js` – Score formatting & calculations
 - `src/features/assessments/api/assessmentApi.js` – API calls
+- `src/pages/ResultsPage/ResultsPage.jsx` – Results display with all enrichment fields
 
 ### 2. Smart Navigation & Routing
 

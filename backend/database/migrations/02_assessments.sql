@@ -95,6 +95,11 @@ CREATE TABLE IF NOT EXISTS assessments (
   gap_analysis                JSONB,         -- gap_analysis (benchmarks, comparisons, …)
   similar_cases               JSONB,         -- formattedCases array (top 4 similar docs)
   metadata                    JSONB,         -- metadata (industry, scale, r_strategy, …)
+  weighted_score_card         JSONB,         -- breakdown of factor contributions to overall score
+  circular_economy_tier       JSONB,         -- tier classification and guidance
+  parameter_consistency       JSONB,         -- internal consistency analysis of parameter choices
+  r_strategy_alignment        JSONB,         -- alignment analysis vs detected R-strategy
+  context                     JSONB,         -- user-provided structured context from form
   result_json                 JSONB NOT NULL, -- FULL scoring API response (complete snapshot)
 
   -- ── Sharing / visibility ─────────────────────────────────────────────────────

@@ -50,6 +50,9 @@ export const AuditSchema = z
     integrity_issues: z.array(z.string()).optional(),
     integrity_gaps: z.array(z.any()).optional(), // Be lenient with integrity_gaps structure
     similar_cases_summaries: z.array(z.any()).optional(), // Be lenient with similar_cases_summaries structure
+    improvement_roadmap: z.array(z.any()).optional(),
+    sdg_alignment: z.array(z.any()).optional(),
+    market_opportunity_summary: z.string().optional(),
   })
   .passthrough();
 
@@ -79,6 +82,11 @@ export const ResultJsonSchema = z
       )
       .optional(),
     metadata: MetadataSchema.optional(),
+    weighted_score_card: z.record(z.any()).optional(),
+    circular_economy_tier: z.record(z.any()).optional(),
+    parameter_consistency: z.record(z.any()).optional(),
+    r_strategy_alignment: z.record(z.any()).optional(),
+    context: z.record(z.any()).optional(),
   })
   .passthrough(); // Allow additional properties from backend
 

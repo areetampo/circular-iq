@@ -2,9 +2,13 @@ import OpenAI from 'openai';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
-const client = new OpenAI({
+let openaiClient = new OpenAI({
   apiKey: BACKEND_CONFIG.openai.apiKey,
 });
+
+export function setOpenAIClient(client) {
+  openaiClient = client;
+}
 
 /**
  * Main export function: Generate complete audit with metadata and gap analysis
@@ -61,7 +65,7 @@ Be concise and precise. If uncertain, use "other" or infer from context.`;
   const userPrompt = `Extract metadata from this circular economy business idea:\n\n${combinedText}`;
 
   try {
-    const response = await client.chat.completions.create({
+    const response = await openaiClient.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -162,6 +166,7 @@ export async function generateReasoning(
   businessSolution,
   scores,
   similarDocs = [],
+  context = null,
 ) {
   // Validate inputs
   if (!businessProblem || !businessSolution) {
@@ -186,17 +191,42 @@ export async function generateReasoning(
     similarDocs,
     contextText,
     gapContext,
+    context,
   );
 
+  // If the OpenAI client is not configured for chat completions (e.g. in unit tests),
+  // return a minimal mock analysis so scoring can proceed without external calls.
+  if (!openaiClient?.chat?.completions?.create) {
+    return enhanceAnalysis(
+      {
+        confidence_score: 50,
+        is_junk_input: false,
+        audit_verdict: 'Mock audit analysis (no LLM available)',
+        comparative_analysis: 'No comparative analysis available.',
+        integrity_gaps: [],
+        strengths: [],
+        technical_recommendations: [],
+        similar_cases_summaries: [],
+        key_metrics_comparison: {
+          market_readiness: 'Unavailable',
+          scalability: 'Unavailable',
+          economic_viability: 'Unavailable',
+        },
+      },
+      similarDocs,
+      scores,
+    );
+  }
+
   try {
-    const response = await client.chat.completions.create({
+    const response = await openaiClient.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemRole },
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 3000,
       response_format: { type: 'json_object' },
     });
 
@@ -265,6 +295,7 @@ function buildUserPrompt(
   similarDocs,
   contextText,
   gapContext = '',
+  context = null,
 ) {
   var similarCasesInfo =
     'No direct matches found in database for this specific query. Proceed with general circular economy principles.';
@@ -283,11 +314,30 @@ function buildUserPrompt(
       .join('\n');
   }
 
+  const contextBlock = context
+    ? `\nBUSINESS CONTEXT (user-provided structured data):
+Business Model Type: ${context.business_model_type || 'not specified'}
+Operational Stage: ${context.operational_stage || 'not specified'}
+Target Geography: ${context.target_geography || 'not specified'}
+Annual Material Volume: ${context.annual_volume_estimate || 'not specified'}
+Material Complexity: ${context.material_complexity || 'not specified'}
+Existing Partnerships: ${
+        context.has_existing_partnerships === true
+          ? 'Yes'
+          : context.has_existing_partnerships === false
+            ? 'No'
+            : 'not specified'
+      }
+
+Use this context to calibrate your analysis. A prototype-stage business should be judged differently
+from a mature operation. Adjust your recommendations to be stage-appropriate.\n`
+    : '';
+
   return `USER SUBMISSION:
 Problem: ${businessProblem}
 Solution: ${businessSolution}
 
-USER'S SELF-ASSESSMENT SCORES:
+${contextBlock}USER'S SELF-ASSESSMENT SCORES:
 ${JSON.stringify(scores, null, 2)}
 
 DATABASE EVIDENCE (Top 4 Similar Projects):
@@ -337,8 +387,35 @@ Return EXACTLY this JSON structure:
     "market_readiness": "<How user's tech_readiness compares to similar cases>",
     "scalability": "<Assessment based on infrastructure scores vs. database>",
     "economic_viability": "<Market_price reality check>"
-  }
+  },
+
+  "improvement_roadmap": [
+    {
+      "priority": <1|2|3>,
+      "action": "<Specific, actionable step this business should take next>",
+      "target_factor": "<which of the 8 factors this most improves>",
+      "effort": "<low|medium|high>",
+      "impact": "<low|medium|high>",
+      "timeframe": "<e.g. 0-3 months | 3-12 months | 1-3 years>"
+    }
+  ],
+
+  "sdg_alignment": [
+    {
+      "sdg_number": <integer 1-17>,
+      "sdg_name": "<official SDG name>",
+      "relevance": "<high|medium|low>",
+      "rationale": "<1 sentence: why this solution contributes to this goal>"
+    }
+  ],
+
+  "market_opportunity_summary": "<2-3 sentences: What is the realistic market opportunity for this solution given the scores and database evidence? Include a rough scale assessment (niche/regional/national/global) and any key market timing factors.>"
 }
+
+IMPORTANT for new fields:
+- improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step".
+- sdg_alignment: return 2-4 SDGs most relevant to circular economy: SDG 12 (Responsible Consumption), SDG 13 (Climate Action), SDG 9 (Industry Innovation), SDG 8 (Decent Work), SDG 11 (Sustainable Cities), SDG 6 (Clean Water) are the most common. Only include SDGs with genuine relevance.
+- market_opportunity_summary: grounded in the database evidence and scores, not generic statements.
 
 CRITICAL: Be honest. If the user's scores are too high, say so with evidence. If the idea is unproven, cite that similar ideas struggled. Make this feel like a professional audit.`;
 }
@@ -398,6 +475,34 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
     similar_cases_summaries: Array.isArray(analysis.similar_cases_summaries)
       ? analysis.similar_cases_summaries.filter((s) => typeof s === 'string').slice(0, 5)
       : [],
+
+    improvement_roadmap: Array.isArray(analysis.improvement_roadmap)
+      ? analysis.improvement_roadmap.slice(0, 3).map((item, i) => ({
+          priority: item.priority || i + 1,
+          action: item.action || 'No action specified',
+          target_factor: item.target_factor || null,
+          effort: ['low', 'medium', 'high'].includes(item.effort) ? item.effort : 'medium',
+          impact: ['low', 'medium', 'high'].includes(item.impact) ? item.impact : 'medium',
+          timeframe: item.timeframe || 'Not specified',
+        }))
+      : [],
+
+    sdg_alignment: Array.isArray(analysis.sdg_alignment)
+      ? analysis.sdg_alignment
+          .filter((s) => s.sdg_number >= 1 && s.sdg_number <= 17)
+          .slice(0, 4)
+          .map((s) => ({
+            sdg_number: s.sdg_number,
+            sdg_name: s.sdg_name || `SDG ${s.sdg_number}`,
+            relevance: ['high', 'medium', 'low'].includes(s.relevance) ? s.relevance : 'medium',
+            rationale: s.rationale || '',
+          }))
+      : [],
+
+    market_opportunity_summary:
+      typeof analysis.market_opportunity_summary === 'string'
+        ? analysis.market_opportunity_summary
+        : 'Market opportunity assessment unavailable.',
 
     key_metrics_comparison: analysis.key_metrics_comparison || {
       market_readiness: 'Assessment unavailable',
@@ -477,7 +582,7 @@ export function validateInput(problem, solution) {
  * @private
  */
 async function executeReasoningCall(systemRole, userPrompt, similarDocs) {
-  const response = await client.chat.completions.create({
+  const response = await openaiClient.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0,
     response_format: { type: 'json_object' },
