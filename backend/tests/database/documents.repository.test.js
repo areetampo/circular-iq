@@ -81,7 +81,8 @@ test('matchDocuments uses query for postgres override', async () => {
     query: async (sql, params) => {
       queryCalled = true;
       assert.ok(sql.includes('match_documents')); // function name should appear
-      assert.deepStrictEqual(params, [expectedEmbedding, 2]);
+      assert.ok(sql.includes('::extensions.halfvec'), 'expected halfvec cast in SQL');
+      assert.deepStrictEqual(params, [`[${expectedEmbedding.join(',')}]`, 2]);
       return { rows: [{ id: 2 }] };
     },
   };

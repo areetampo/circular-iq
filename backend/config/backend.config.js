@@ -130,7 +130,12 @@ const DB_FUNCTIONS = Object.freeze([
  */
 export const buildDatabaseConfig = () => ({
   tables: { documents: 'documents' },
-  functions: Object.fromEntries(DB_FUNCTIONS.map((n) => [n, n])),
+  functions: {
+    ...Object.fromEntries(DB_FUNCTIONS.map((n) => [n, n])),
+    // Ensure all hybrid searches use the full result set (including industry/category/source)
+    // even when callers originally used the filtered variant.
+    search_documents_hybrid_filtered: 'search_documents_hybrid',
+  },
 });
 
 export const BACKEND_CONFIG = deepFreeze({

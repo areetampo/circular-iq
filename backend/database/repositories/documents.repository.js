@@ -19,10 +19,25 @@ export class DocumentsRepository {
       return data || [];
     }
 
-    const placeholders = params.map((_, i) => `$${i + 1}`).join(',');
-    const sql = `SELECT * FROM ${functionName}(${placeholders})`;
+    // Aiven Postgres path — build SQL with explicit halfvec cast on any
+    // array parameter (all vector search functions take the embedding as
+    // the first positional argument and it must be cast to halfvec).
+    // The pg driver serialises JS float arrays as {"0.04","0.08",...}
+    // (JSON object syntax) which Postgres halfvec rejects. We must format
+    // the array as a proper vector literal "[0.04,0.08,...]" and cast it.
+    const queryParams = [];
+    const placeholders = params.map((param, i) => {
+      if (Array.isArray(param)) {
+        // Format as a halfvec literal — square brackets, comma-separated
+        queryParams.push(`[${param.join(',')}]`);
+        return `$${queryParams.length}::extensions.halfvec`;
+      }
+      queryParams.push(param);
+      return `$${queryParams.length}`;
+    });
 
-    const { rows } = await client.query(sql, params);
+    const sql = `SELECT * FROM ${functionName}(${placeholders.join(',')})`;
+    const { rows } = await client.query(sql, queryParams);
     return rows;
   }
 
