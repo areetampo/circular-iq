@@ -10,6 +10,7 @@ env/.env.backend
 env/.env.frontend
 env/.env.shared
 env/.env.test
+env/.env.production
 .env
 .env.*
 *.local

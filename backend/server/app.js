@@ -161,22 +161,27 @@ app.get('/', (req, res) => {
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin && !IS_PROD) return callback(null, true);
+      // 1. Allow internal server-to-server requests (Origin is undefined)
+      // This is necessary for your Vercel proxy to work in Production
+      if (!origin) {
+        return callback(null, true);
+      }
 
-      // direct match
+      // 2. Direct match from your config
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // wildcard support for vercel domains
-      if ((origin && origin.endsWith('.vercel.app')) || (origin && origin.endsWith('.vercel.sh'))) {
-        // allow any preview deployment or .vercel.sh alias
+      // 3. Wildcard support for Vercel preview/branch domains
+      if (origin.endsWith('.vercel.app') || origin.endsWith('.vercel.sh')) {
         return callback(null, true);
       }
 
+      // 4. Fail if none of the above match
       console.error(`CORS Error: Origin ${origin} not allowed`);
       return callback(new Error('Not allowed by CORS'));
     },
+    credentials: true, // Recommended for Supabase Auth cookies/headers
   }),
 );
 
