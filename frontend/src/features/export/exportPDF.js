@@ -348,6 +348,59 @@ export async function exportAssessmentPDF(assessment, options = {}) {
       pdf.text(`${label}: ${value}`, margin, y);
       y += 10;
     });
+
+    // Circular Economy Tier
+    if (scoringResult.circular_economy_tier) {
+      y += 8;
+      pdf.setFontSize(14);
+      pdf.setTextColor(5, 150, 105);
+      pdf.text('Circular Economy Tier', margin, y);
+      y += 8;
+      pdf.setFontSize(12);
+      pdf.setTextColor(44, 62, 80);
+      const tier = scoringResult.circular_economy_tier;
+      pdf.text(`Tier: ${tier.tier} (${tier.range})`, margin, y);
+      y += 7;
+      pdf.text(`${tier.percentile_estimate}`, margin, y);
+      y += 7;
+      pdf.text(pdf.splitTextToSize(formatTextForPDF(tier.next_milestone), contentWidth), margin, y);
+      y += 14;
+    }
+
+    // Parameter Consistency
+    if (scoringResult.parameter_consistency) {
+      y += 4;
+      pdf.setFontSize(14);
+      pdf.setTextColor(5, 150, 105);
+      pdf.text('Self-Assessment Reliability', margin, y);
+      y += 8;
+      pdf.setFontSize(12);
+      pdf.setTextColor(44, 62, 80);
+      const pc = scoringResult.parameter_consistency;
+      pdf.text(`Consistency Score: ${pc.score}/100 (${pc.rating})`, margin, y);
+      y += 7;
+      pdf.text(pdf.splitTextToSize(formatTextForPDF(pc.interpretation), contentWidth), margin, y);
+      y += 14;
+    }
+
+    // R-Strategy Alignment
+    if (scoringResult.r_strategy_alignment?.alignment_score != null) {
+      y += 4;
+      pdf.setFontSize(14);
+      pdf.setTextColor(5, 150, 105);
+      pdf.text('R-Strategy Alignment', margin, y);
+      y += 8;
+      pdf.setFontSize(12);
+      pdf.setTextColor(44, 62, 80);
+      const ra = scoringResult.r_strategy_alignment;
+      pdf.text(
+        `Strategy: ${ra.strategy}  |  Alignment: ${ra.alignment_score}/100 (${ra.rating})`,
+        margin,
+        y,
+      );
+      y += 7;
+      pdf.text(pdf.splitTextToSize(formatTextForPDF(ra.message), contentWidth), margin, y);
+    }
   }
 
   if (scoringResult?.audit) {
@@ -395,6 +448,66 @@ export async function exportAssessmentPDF(assessment, options = {}) {
         y += 10;
       });
       y += 5;
+    }
+
+    // Improvement Roadmap
+    if (audit.improvement_roadmap?.length > 0) {
+      // Start a new page if running low (rough check)
+      if (y > 230) {
+        pdf.addPage();
+        y = 30;
+      }
+      pdf.setFontSize(14);
+      pdf.setTextColor(5, 150, 105);
+      pdf.text('Improvement Roadmap', margin, y);
+      y += 8;
+      pdf.setFontSize(11);
+      pdf.setTextColor(44, 62, 80);
+      audit.improvement_roadmap.forEach((item) => {
+        const line = `${item.priority}. ${formatTextForPDF(item.action)} [${item.effort} effort / ${item.impact} impact / ${item.timeframe}]`;
+        pdf.text(pdf.splitTextToSize(line, contentWidth), margin, y);
+        y += 12;
+      });
+      y += 5;
+    }
+
+    // SDG Alignment
+    if (audit.sdg_alignment?.length > 0) {
+      if (y > 230) {
+        pdf.addPage();
+        y = 30;
+      }
+      pdf.setFontSize(14);
+      pdf.setTextColor(5, 150, 105);
+      pdf.text('UN SDG Alignment', margin, y);
+      y += 8;
+      pdf.setFontSize(11);
+      pdf.setTextColor(44, 62, 80);
+      audit.sdg_alignment.forEach((sdg) => {
+        const line = `SDG ${sdg.sdg_number} ${sdg.sdg_name} (${sdg.relevance}): ${formatTextForPDF(sdg.rationale)}`;
+        pdf.text(pdf.splitTextToSize(line, contentWidth), margin, y);
+        y += 10;
+      });
+      y += 5;
+    }
+
+    // Market Opportunity
+    if (audit.market_opportunity_summary) {
+      if (y > 230) {
+        pdf.addPage();
+        y = 30;
+      }
+      pdf.setFontSize(14);
+      pdf.setTextColor(5, 150, 105);
+      pdf.text('Market Opportunity', margin, y);
+      y += 8;
+      pdf.setFontSize(11);
+      pdf.setTextColor(44, 62, 80);
+      pdf.text(
+        pdf.splitTextToSize(formatTextForPDF(audit.market_opportunity_summary), contentWidth),
+        margin,
+        y,
+      );
     }
   }
 

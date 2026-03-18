@@ -643,7 +643,6 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       risk_level: response.derived_metrics.risk_level,
       industry: response.metadata?.industry,
       scale: response.metadata?.scale,
-      r_strategy: response.metadata?.r_strategy,
       primary_material: response.metadata?.primary_material,
       geographic_focus: response.metadata?.geographic_focus,
       audit_confidence_score: response.audit?.confidence_score,
@@ -652,6 +651,18 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       similar_cases_count: response.similar_cases?.length ?? 0,
       processing_time_ms: response.processing_info.processing_time_ms,
       timings: response.processing_info.timings,
+      // Layer 2 enrichment
+      weighted_score_card: response.weighted_score_card ?? null,
+      circular_economy_tier: response.circular_economy_tier ?? null,
+      parameter_consistency_score: response.parameter_consistency?.score ?? null,
+      parameter_consistency_rating: response.parameter_consistency?.rating ?? null,
+      r_strategy_alignment_score: response.r_strategy_alignment?.alignment_score ?? null,
+      r_strategy_alignment_rating: response.r_strategy_alignment?.rating ?? null,
+      r_strategy: response.r_strategy_alignment?.strategy ?? response.metadata?.r_strategy ?? null,
+      // Layer 3 extended audit
+      improvement_roadmap: response.audit?.improvement_roadmap ?? null,
+      sdg_alignment: response.audit?.sdg_alignment ?? null,
+      market_opportunity_summary: response.audit?.market_opportunity_summary ?? null,
       result_snapshot: response,
     };
 

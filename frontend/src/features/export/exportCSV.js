@@ -111,6 +111,10 @@ export function exportAssessmentCSV(assessments) {
       scoreBreakdown: result.score_breakdown || {},
       audit: result.audit || {},
       gapAnalysis: result.gap_analysis || {},
+      weightedScoreCard: result.weighted_score_card || null,
+      circularEconomyTier: result.circular_economy_tier || null,
+      parameterConsistency: result.parameter_consistency || null,
+      rStrategyAlignment: result.r_strategy_alignment || null,
     };
   });
 
@@ -197,6 +201,147 @@ export function exportAssessmentCSV(assessments) {
 
   csvLines.push('');
 
+  // Circular Economy Tier Section
+  if (assessmentData.some((a) => a.circularEconomyTier)) {
+    csvLines.push('CIRCULAR ECONOMY TIER');
+    csvLines.push('');
+    csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
+    csvLines.push(
+      ['Tier', ...assessmentData.map((a) => escapeCSV(a.circularEconomyTier?.tier ?? 'N/A'))].join(
+        ',',
+      ),
+    );
+    csvLines.push(
+      [
+        'Score Range',
+        ...assessmentData.map((a) => escapeCSV(a.circularEconomyTier?.range ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push(
+      [
+        'Percentile Estimate',
+        ...assessmentData.map((a) =>
+          escapeCSV(a.circularEconomyTier?.percentile_estimate ?? 'N/A'),
+        ),
+      ].join(','),
+    );
+    csvLines.push('');
+  }
+
+  // Self-Assessment Reliability Section
+  if (assessmentData.some((a) => a.parameterConsistency)) {
+    csvLines.push('SELF-ASSESSMENT RELIABILITY');
+    csvLines.push('');
+    csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
+    csvLines.push(
+      [
+        'Consistency Score',
+        ...assessmentData.map((a) => escapeCSV(a.parameterConsistency?.score ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push(
+      [
+        'Rating',
+        ...assessmentData.map((a) => escapeCSV(a.parameterConsistency?.rating ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push(
+      [
+        'Issues Found',
+        ...assessmentData.map((a) => escapeCSV(a.parameterConsistency?.issues_found ?? 0)),
+      ].join(','),
+    );
+    csvLines.push('');
+  }
+
+  // R-Strategy Alignment Section
+  if (assessmentData.some((a) => a.rStrategyAlignment?.alignment_score != null)) {
+    csvLines.push('R-STRATEGY ALIGNMENT');
+    csvLines.push('');
+    csvLines.push(['Metric', ...assessmentData.map((a) => escapeCSV(a.name))].join(','));
+    csvLines.push(
+      [
+        'Strategy',
+        ...assessmentData.map((a) => escapeCSV(a.rStrategyAlignment?.strategy ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push(
+      [
+        'Alignment Score',
+        ...assessmentData.map((a) => escapeCSV(a.rStrategyAlignment?.alignment_score ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push(
+      [
+        'Rating',
+        ...assessmentData.map((a) => escapeCSV(a.rStrategyAlignment?.rating ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push('');
+  }
+
+  // Improvement Roadmap Section
+  if (assessmentData.some((a) => a.audit?.improvement_roadmap?.length > 0)) {
+    csvLines.push('IMPROVEMENT ROADMAP');
+    csvLines.push('');
+    assessmentData.forEach((a) => {
+      if (a.audit?.improvement_roadmap?.length > 0) {
+        csvLines.push(escapeCSV(a.name));
+        csvLines.push(
+          ['Priority', 'Action', 'Target Factor', 'Effort', 'Impact', 'Timeframe'].join(','),
+        );
+        a.audit.improvement_roadmap.forEach((item) => {
+          csvLines.push(
+            [
+              escapeCSV(item.priority),
+              escapeCSV(item.action),
+              escapeCSV(item.target_factor ?? ''),
+              escapeCSV(item.effort),
+              escapeCSV(item.impact),
+              escapeCSV(item.timeframe),
+            ].join(','),
+          );
+        });
+        csvLines.push('');
+      }
+    });
+  }
+
+  // SDG Alignment Section
+  if (assessmentData.some((a) => a.audit?.sdg_alignment?.length > 0)) {
+    csvLines.push('UN SDG ALIGNMENT');
+    csvLines.push('');
+    assessmentData.forEach((a) => {
+      if (a.audit?.sdg_alignment?.length > 0) {
+        csvLines.push(escapeCSV(a.name));
+        csvLines.push(['SDG Number', 'SDG Name', 'Relevance', 'Rationale'].join(','));
+        a.audit.sdg_alignment.forEach((sdg) => {
+          csvLines.push(
+            [
+              escapeCSV(sdg.sdg_number),
+              escapeCSV(sdg.sdg_name),
+              escapeCSV(sdg.relevance),
+              escapeCSV(sdg.rationale),
+            ].join(','),
+          );
+        });
+        csvLines.push('');
+      }
+    });
+  }
+
+  // Market Opportunity Section
+  if (assessmentData.some((a) => a.audit?.market_opportunity_summary)) {
+    csvLines.push('MARKET OPPORTUNITY');
+    csvLines.push('');
+    assessmentData.forEach((a) => {
+      if (a.audit?.market_opportunity_summary) {
+        csvLines.push(`${escapeCSV(a.name)},${escapeCSV(a.audit.market_opportunity_summary)}`);
+      }
+    });
+    csvLines.push('');
+  }
+
   const csvContent = csvLines.join('\n');
   const blob = downloadCSV(csvContent, filename);
   return { success: true, message: 'CSV exported successfully', blob };
@@ -244,6 +389,9 @@ export function exportComparisonCSV(assessments) {
       derivedMetrics: result.derived_metrics || {},
       scoreBreakdown: result.score_breakdown || {},
       audit: result.audit || {},
+      circularEconomyTier: result.circular_economy_tier || null,
+      parameterConsistency: result.parameter_consistency || null,
+      rStrategyAlignment: result.r_strategy_alignment || null,
     };
   });
 
@@ -376,6 +524,33 @@ export function exportComparisonCSV(assessments) {
 
   csvLines.push(''); // Empty row
   csvLines.push(''); // Another empty row for metadata section
+
+  // Circular Economy Tier Comparison
+  if (assessmentData.some((a) => a.circularEconomyTier)) {
+    csvLines.push('CIRCULAR ECONOMY TIER');
+    csvLines.push('');
+    const tierHeader = ['Metric', ...assessmentData.map((a) => escapeCSV(a.title))];
+    csvLines.push(tierHeader.join(','));
+    csvLines.push(
+      ['Tier', ...assessmentData.map((a) => escapeCSV(a.circularEconomyTier?.tier ?? 'N/A'))].join(
+        ',',
+      ),
+    );
+    csvLines.push(
+      [
+        'Alignment Score',
+        ...assessmentData.map((a) => escapeCSV(a.rStrategyAlignment?.alignment_score ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push(
+      [
+        'Consistency Score',
+        ...assessmentData.map((a) => escapeCSV(a.parameterConsistency?.score ?? 'N/A')),
+      ].join(','),
+    );
+    csvLines.push('');
+    csvLines.push('');
+  }
 
   // Metadata Section - horizontal comparison
   csvLines.push('ASSESSMENT METADATA');
