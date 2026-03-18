@@ -82,19 +82,14 @@ CREATE TABLE IF NOT EXISTS scoring_results_log (
   -- ── Metadata (LLM-extracted) ─────────────────────────────────────────────────
   industry              TEXT,
   scale                 TEXT,
-  r_strategy            TEXT,
   primary_material      TEXT,
   geographic_focus      TEXT,
 
   -- ── Audit quality signals ────────────────────────────────────────────────────
   audit_confidence_score INTEGER,              -- audit.confidence_score (LLM's own confidence)
-  is_junk_input         BOOLEAN,              -- audit.is_junk_input
-  integrity_gap_count   INTEGER DEFAULT 0,    -- count of integrity gaps found
-  similar_cases_count   INTEGER DEFAULT 0,    -- how many similar DB cases were returned
-
-  -- ── Processing performance ───────────────────────────────────────────────────
-  processing_time_ms    INTEGER,              -- total end-to-end ms
-  timings               JSONB,               -- per-step timings from processing_info.timings
+  audit_is_junk_input         BOOLEAN,              -- audit.is_junk_input
+  audit_integrity_gaps_count   INTEGER DEFAULT 0,    -- count of integrity gaps found
+  audit_similar_cases_count   INTEGER DEFAULT 0,    -- how many similar DB cases were returned
 
   -- ── Layer 2 enrichment columns ────────────────────────────────────────────
   weighted_score_card         JSONB,         -- factor contribution breakdown
@@ -110,6 +105,10 @@ CREATE TABLE IF NOT EXISTS scoring_results_log (
   sdg_alignment               JSONB,         -- array of 2-4 SDG objects
   market_opportunity_summary  TEXT,          -- 2-3 sentence market assessment
 
+  -- ── Processing performance ───────────────────────────────────────────────────
+  processing_time_ms    INTEGER,              -- total end-to-end ms
+  timings               JSONB,               -- per-step timings from processing_info.timings
+
   -- ── Full snapshot (complete API response — for reproducibility / debugging) ───
   result_snapshot       JSONB,               -- full scoring API response object
 
@@ -120,8 +119,8 @@ CREATE TABLE IF NOT EXISTS scoring_results_log (
 -- Column comments for scoring_results_log table
 COMMENT ON TABLE scoring_results_log IS
   'Immutable append-only log of every scoring API call. Supports analytics, abuse detection, and reproducibility.';
-COMMENT ON TABLE  scoring_results_log IS
-  'Immutable append-only log of every scoring API call. Supports analytics, abuse detection, and reproducibility.';
+COMMENT ON COLUMN scoring_results_log.id IS
+  'Primary key UUID for this log entry';
 COMMENT ON COLUMN scoring_results_log.request_id IS
   'Random hex ID from scoring controller — links logs to backend console output';
 COMMENT ON COLUMN scoring_results_log.user_id IS
@@ -136,7 +135,7 @@ COMMENT ON COLUMN scoring_results_log.user_agent_snippet IS
   'First 200 chars of User-Agent header';
 COMMENT ON COLUMN scoring_results_log.business_problem_len IS
   'Length in chars of the business problem description (not the content itself)';
-COMMENT ON COLUMN scoring_results_log. IS
+COMMENT ON COLUMN scoring_results_log.business_solution_len IS
   'Length in chars of the business solution description (not the content itself)';
 COMMENT ON COLUMN scoring_results_log.input_parameters IS
   'Raw 8-factor scores as submitted by the user';
@@ -144,11 +143,11 @@ COMMENT ON COLUMN scoring_results_log.overall_score IS
   'Final overall score (0-100)';
 COMMENT ON COLUMN scoring_results_log.confidence_level IS
   'LLM-reported confidence level (0-100)';
-COMMENT ON COLUMN scoring_results_log. IS
+COMMENT ON COLUMN scoring_results_log.technical_feasibility IS
   'Technical feasibility score (0-100)';
 COMMENT ON COLUMN scoring_results_log.economic_viability IS
   'Economic viability score (0-100)';
-COMMENT ON COLUMN scoring_results_log. IS
+COMMENT ON COLUMN scoring_results_log.circularity_potential IS
   'Circularity potential score (0-100)';
 COMMENT ON COLUMN scoring_results_log.risk_level IS
   'Risk level category (low/medium/high)';
@@ -156,44 +155,42 @@ COMMENT ON COLUMN scoring_results_log.industry IS
   'LLM-extracted industry sector';
 COMMENT ON COLUMN scoring_results_log.scale IS
   'LLM-extracted company scale (e.g. Startup, SME, Enterprise)';
-COMMENT ON COLUMN scoring_results_log.r_strategy IS
-  'LLM-extracted R-strategy (e.g. Refuse, Rethink, Reduce, Reuse, Repair, etc.)';
 COMMENT ON COLUMN scoring_results_log.primary_material IS
   'LLM-extracted primary material (e.g. Plastic, Metal, Textile)';
 COMMENT ON COLUMN scoring_results_log.geographic_focus IS
   'LLM-extracted geographic focus (e.g. Local, Regional, Global)';
-COMMENT ON COLUMN scoring_results_log. IS
+COMMENT ON COLUMN scoring_results_log.audit_confidence_score IS
   'LLM-reported confidence (audit.confidence_score), distinct from score confidence_level';
-COMMENT ON COLUMN scoring_results_log.is_junk_input IS
+COMMENT ON COLUMN scoring_results_log.audit_is_junk_input IS
   'LLM-determined boolean flag for junk input (audit.is_junk_input)';
-COMMENT ON COLUMN scoring_results_log. IS
+COMMENT ON COLUMN scoring_results_log.audit_integrity_gaps_count IS
   'Count of integrity gaps found during scoring (audit.integrity_gaps)';
-COMMENT ON COLUMN scoring_results_log. IS
+COMMENT ON COLUMN scoring_results_log.audit_similar_cases_count IS
   'Number of similar cases returned from DB during scoring (audit.similar_cases_count)';
+COMMENT ON COLUMN scoring_results_log.weighted_score_card IS
+  'JSONB object breaking down the overall score into factor contributions (for explainability)';
+COMMENT ON COLUMN scoring_results_log.circular_economy_tier IS
+  'LLM-determined circular economy tier classification (e.g. Tier 1: Circular, Tier 2: Partially Circular, Tier 3: Linear)';
+COMMENT ON COLUMN scoring_results_log.parameter_consistency_score IS
+  'Scalar consistency score 0-100 for fast aggregation without parsing JSONB';
+COMMENT ON COLUMN scoring_results_log.parameter_consistency_rating IS
+  'Categorical rating (High/Moderate/Low/Very Low) derived from parameter_consistency_score';
+COMMENT ON COLUMN scoring_results_log.r_strategy_alignment_score IS
+  'Scalar alignment score 0-100 for fast aggregation without parsing JSONB';
+COMMENT ON COLUMN scoring_results_log.r_strategy_alignment_rating IS
+  'Categorical rating (Strong Alignment / Moderate / Weak / Poor) derived from r_strategy_alignment_score';
+COMMENT ON COLUMN scoring_results_log.r_strategy IS
+  'LLM-detected R-strategy (e.g. Refuse, Rethink, Reduce, Reuse, Repair, etc.) — mirrors the same column in assessments for easy querying';
+COMMENT ON COLUMN scoring_results_log.improvement_roadmap IS
+  'LLM-generated prioritised improvement roadmap (3 items)';
+COMMENT ON COLUMN scoring_results_log.sdg_alignment IS
+  'LLM-generated UN SDG alignment (2-4 goals)';
+COMMENT ON COLUMN scoring_results_log.market_opportunity_summary IS
+  'LLM-generated market opportunity assessment (2-3 sentences)';
 COMMENT ON COLUMN scoring_results_log.processing_time_ms IS
   'Total end-to-end processing time in milliseconds';
 COMMENT ON COLUMN scoring_results_log.timings IS
   'Per-step duration breakdown (validation, scoring, embeddings, vectorSearch, audit, …)';
-COMMENT ON COLUMN scoring_results_log. IS
-  'JSONB object breaking down the overall score into factor contributions (for explainability)';
-COMMENT ON COLUMN scoring_results_log. IS
-  'LLM-determined circular economy tier classification (e.g. Tier 1: Circular, Tier 2: Partially Circular, Tier 3: Linear)';
-COMMENT ON COLUMN scoring_results_log. IS
-  'Scalar consistency score 0-100 for fast aggregation without parsing JSONB';
-COMMENT ON COLUMN scoring_results_log. IS
-  'Categorical rating (High/Moderate/Low/Very Low) derived from parameter_consistency_score';
-COMMENT ON COLUMN scoring_results_log. IS
-  'Scalar alignment score 0-100 for fast aggregation without parsing JSONB';
-COMMENT ON COLUMN scoring_results_log. IS
-  'Categorical rating (Strong Alignment / Moderate / Weak / Poor) derived from r_strategy_alignment_score';
-COMMENT ON COLUMN scoring_results_log.r_strategy IS
-  'LLM-detected R-strategy (e.g. Refuse, Rethink, Reduce, Reuse, Repair, etc.) — mirrors the same column in assessments for easy querying';
-COMMENT ON COLUMN scoring_results_log. IS
-  'LLM-generated prioritised improvement roadmap (3 items)';
-COMMENT ON COLUMN scoring_results_log. IS
-  'LLM-generated UN SDG alignment (2-4 goals)';
-COMMENT ON COLUMN scoring_results_log. IS
-  'LLM-generated market opportunity assessment (2-3 sentences)';
 COMMENT ON COLUMN scoring_results_log.result_snapshot IS
   'Complete scoring API response — allows full UI repopulation from this row alone';
 COMMENT ON COLUMN scoring_results_log.created_at IS
