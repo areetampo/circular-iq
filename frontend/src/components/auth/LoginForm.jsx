@@ -1,10 +1,9 @@
 'use client';
 
-import { Card, FieldError, Form, Input, Label, TextField } from '@heroui/react';
-import { toast } from '@heroui/react';
+import { Card, FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
 import { z } from 'zod';
@@ -39,8 +38,8 @@ export function LoginForm({ onSwitchToSignup }) {
     setIsLoading(true);
 
     try {
-      // Append @circular.internal to username to form email
-      const email = `${data.username}@circular.internal`;
+      // Append @ce.internal to username to form email for internal authentication
+      const email = `${data.username}@ce.internal`;
 
       const { error } = await supabase.auth.signInWithPassword({
         email,
