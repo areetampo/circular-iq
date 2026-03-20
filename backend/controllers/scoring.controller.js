@@ -649,8 +649,6 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       };
     });
 
-    console.log(req);
-
     const response = {
       // input echo
       businessProblem,
@@ -683,34 +681,38 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     // Fire-and-forget logging to scoring_results_log
     const logData = {
+      // request provenance
       request_id: response.processing_info.request_id,
       user_id: userId,
       is_anonymous: userId === null,
+      // privacy-preserving fingerprints
       ip_hash: crypto.createHash('sha256').update(extractIPAddress(req)).digest('hex'),
       identifier_hash: getIdentifierFromRequest(req).hash,
       user_agent_snippet: req.headers['user-agent']?.substring(0, 200),
+      // inputs
       business_problem: businessProblem,
       business_solution: businessSolution,
-      evaluation_parameters: evaluation_parameters,
-      business_context: business_context,
       business_problem_len: businessProblem.length,
       business_solution_len: businessSolution.length,
+      evaluation_parameters: evaluation_parameters,
+      business_context: business_context,
+      // scoring results
       overall_score: response.overall_score,
       confidence_level: response.confidence_level,
       technical_feasibility: response.derived_metrics.technical_feasibility,
       economic_viability: response.derived_metrics.economic_viability,
       circularity_potential: response.derived_metrics.circularity_potential,
       risk_level: response.derived_metrics.risk_level,
+      // metadata
       industry: response.metadata?.industry,
       scale: response.metadata?.scale,
       primary_material: response.metadata?.primary_material,
       geographic_focus: response.metadata?.geographic_focus,
+      // audit quality signals
       audit_confidence_score: response.audit?.confidence_score,
-      is_junk_input: response.audit?.is_junk_input ?? false,
-      integrity_gap_count: response.audit?.integrity_gaps?.length ?? 0,
-      similar_cases_count: response.similar_cases?.length ?? 0,
-      processing_time_ms: response.processing_info.processing_time_ms,
-      timings: response.processing_info.timings,
+      audit_is_junk_input: response.audit?.is_junk_input ?? false,
+      audit_integrity_gap_count: response.audit?.integrity_gaps?.length ?? 0,
+      audit_similar_cases_count: response.similar_cases?.length ?? 0,
       // Layer 2 enrichment
       weighted_score_card: response.weighted_score_card ?? null,
       circular_economy_tier: response.circular_economy_tier ?? null,
@@ -723,6 +725,9 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       improvement_roadmap: response.audit?.improvement_roadmap ?? null,
       sdg_alignment: response.audit?.sdg_alignment ?? null,
       market_opportunity_summary: response.audit?.market_opportunity_summary ?? null,
+      // processing performance
+      processing_time_ms: response.processing_info.processing_time_ms,
+      timings: response.processing_info.timings,
       result_snapshot: response,
     };
 
@@ -735,11 +740,11 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
         if (error) {
           console.error(`[${requestId}] Database Error:`, error.message);
         } else {
-          console.log(`[${requestId}] Background log successful`);
+          console.log(`[${requestId}] Result logged successfully to database.`);
         }
       })
       .catch((err) => {
-        console.error(`[${requestId}] Background log critical failure:`, err.message);
+        console.error(`[${requestId}] Result logging critical failure:`, err.message);
       });
 
     // --- RETURN TO CONTROLLER ---
