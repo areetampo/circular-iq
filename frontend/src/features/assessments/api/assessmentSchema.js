@@ -122,7 +122,9 @@ export const AssessmentSchema = z
     score_breakdown: z.record(z.any()).optional(),
     gap_analysis: z.record(z.any()).optional(),
     similar_cases: z.array(z.any()).optional(),
-    input_parameters: z.record(z.any()).optional(),
+    evaluation_parameters: z.record(z.any()).optional(),
+    evaluationParameters: z.record(z.any()).optional(),
+    business_context: z.record(z.any()).optional(),
   })
   .passthrough(); // Allow additional properties
 

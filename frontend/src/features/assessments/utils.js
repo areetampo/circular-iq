@@ -27,8 +27,8 @@ export function reconstructScoringResult(assessment) {
   return {
     businessProblem: assessment.business_problem,
     businessSolution: assessment.business_solution,
-    parameters: assessment.input_parameters,
-    input_parameters: assessment.input_parameters,
+    evaluation_parameters: assessment.evaluation_parameters,
+    business_context: assessment.business_context,
 
     overall_score: assessment.overall_score,
     confidence_level: assessment.confidence_level,

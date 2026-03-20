@@ -3,7 +3,10 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 import { cn } from '@/utils/cn';
 
+const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
+
 const BUSINESS_MODEL_OPTIONS = [
+  LEAVE_EMPTY_OPTION,
   { value: 'product-as-a-service', label: 'Product-as-a-Service' },
   { value: 'take-back', label: 'Take-Back Scheme' },
   { value: 'remanufacturing', label: 'Remanufacturing' },
@@ -14,6 +17,7 @@ const BUSINESS_MODEL_OPTIONS = [
 ];
 
 const OPERATIONAL_STAGE_OPTIONS = [
+  LEAVE_EMPTY_OPTION,
   { value: 'idea', label: 'Idea / Concept' },
   { value: 'prototype', label: 'Prototype' },
   { value: 'pilot', label: 'Pilot / Early Stage' },
@@ -22,6 +26,7 @@ const OPERATIONAL_STAGE_OPTIONS = [
 ];
 
 const GEOGRAPHY_OPTIONS = [
+  LEAVE_EMPTY_OPTION,
   { value: 'local', label: 'Local (City / Region)' },
   { value: 'national', label: 'National' },
   { value: 'regional', label: 'Multi-Country Region' },
@@ -29,6 +34,7 @@ const GEOGRAPHY_OPTIONS = [
 ];
 
 const VOLUME_OPTIONS = [
+  LEAVE_EMPTY_OPTION,
   { value: 'under-1-tonne', label: '< 1 tonne / year' },
   { value: '1-10-tonnes', label: '1 – 10 tonnes / year' },
   { value: '10-100-tonnes', label: '10 – 100 tonnes / year' },
@@ -37,6 +43,7 @@ const VOLUME_OPTIONS = [
 ];
 
 const MATERIAL_OPTIONS = [
+  LEAVE_EMPTY_OPTION,
   { value: 'single-material', label: 'Single Material (e.g. aluminium only)' },
   { value: 'multi-material', label: 'Multi-Material Composite' },
   { value: 'hazardous-components', label: 'Hazardous Components' },
@@ -56,8 +63,8 @@ export default function BusinessContextContainer({ loading }) {
         control={control}
         render={({ field }) => (
           <Select
-            value={field.value ?? undefined}
-            onChange={(val) => field.onChange(val)}
+            value={field.value === null ? '__LEAVE_EMPTY__' : (field.value ?? undefined)}
+            onChange={(val) => field.onChange(val === '__LEAVE_EMPTY__' ? null : val)}
             isDisabled={loading}
             placeholder="Select (optional)"
             className="w-full"
@@ -70,7 +77,11 @@ export default function BusinessContextContainer({ loading }) {
             <Select.Popover>
               <ListBox>
                 {options.map((item) => (
-                  <ListBox.Item key={item.value} id={item.value} textValue={item.label}>
+                  <ListBox.Item
+                    key={item.value === null ? '__LEAVE_EMPTY__' : item.value}
+                    id={item.value === null ? '__LEAVE_EMPTY__' : item.value}
+                    textValue={item.label}
+                  >
                     {item.label}
                     <ListBox.ItemIndicator />
                   </ListBox.Item>
@@ -137,7 +148,7 @@ export default function BusinessContextContainer({ loading }) {
           >
             <Switch.Content className="w-full">
               <Label className="cursor-pointer flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-0.5 mr-2">
                   <span className="text-sm font-semibold text-slate-700">
                     Existing Supply Chain / Collection Partnerships
                   </span>

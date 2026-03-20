@@ -257,12 +257,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           resultData.solution ??
           '',
         evaluationParameters:
-          resolvedFormData?.parameters ??
-          resultData.parameters ??
-          resultData.input_parameters ??
-          {},
-        businessContext:
-          resolvedFormData?.context ?? resultData.context ?? resultData?.result_json?.context ?? {},
+          resolvedFormData?.evaluation_parameters ?? resultData.evaluation_parameters ?? {},
+        businessContext: resolvedFormData?.businessContext ?? resultData.business_context ?? {},
       };
 
       const stateToSave = {
@@ -341,9 +337,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       try {
         const baseResult = scoringResult || currentData?.result_json || currentData || {};
         const inputParameters =
-          resolvedFormData?.parameters || baseResult?.input_parameters || null;
+          resolvedFormData?.evaluation_parameters || baseResult?.evaluation_parameters || null;
         let resultPayload = inputParameters
-          ? { ...baseResult, input_parameters: inputParameters }
+          ? { ...baseResult, evaluation_parameters: inputParameters }
           : baseResult;
 
         // Defensive normalization to avoid backend validation failures
@@ -370,13 +366,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             '',
           parameters:
             // Prefer resolved form inputs, then any parameters embedded in the
-            // result payload (server returns `parameters` / `input_parameters`),
+            // result payload (server returns `evaluation_parameters`),
             // then fall back to top-level `currentData` parameters.
-            resolvedFormData?.parameters ||
-            resultPayload?.parameters ||
-            resultPayload?.input_parameters ||
-            currentData?.parameters ||
-            currentData?.result_json?.parameters ||
+            resolvedFormData?.evaluation_parameters ||
+            resultPayload?.evaluation_parameters ||
+            currentData?.evaluation_parameters ||
             undefined,
         };
 
@@ -409,7 +403,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             inputs: currentState?.inputs || {
               businessProblem: resolvedFormData?.businessProblem || '',
               businessSolution: resolvedFormData?.businessSolution || '',
-              evaluationParameters: resolvedFormData?.parameters || {},
+              evaluationParameters: resolvedFormData?.evaluationParameters || {},
               businessContext: resolvedFormData?.businessContext || {},
             },
             results: null, // Clear results
@@ -477,10 +471,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       res.audit?.businessSolution ||
       caseProblemSolution?.solution ||
       'Solution data unavailable';
-    evaluationParameterValues =
-      res.input_parameters ||
-      res.parameters ||
-      (res.audit?.parameters ? res.audit.parameters : null);
+    evaluationParameterValues = res.evaluation_parameters || null;
+    businessContextValues = res.business_context || null;
   } else {
     // Fallback to previous logic for saved assessments or navigation
     const storedProblemText =
@@ -499,9 +491,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     solutionText =
       storedSolutionText || caseProblemSolution?.solution || 'Solution data unavailable';
     evaluationParameterValues =
-      resolvedFormData?.parameters ||
-      actualResult?.input_parameters ||
-      currentData?.result_json?.input_parameters ||
+      resolvedFormData?.evaluation_parameters ||
+      actualResult?.evaluation_parameters ||
+      currentData?.evaluation_parameters ||
+      null;
+    businessContextValues =
+      resolvedFormData?.businessContext ||
+      actualResult?.business_context ||
+      currentData?.business_context ||
       null;
   }
 
@@ -523,11 +520,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           businessProblem: problemText,
           businessSolution: solutionText,
           parameters: evaluationParameterValues,
-          businessContext: actualResult?.businessContext || {},
+          businessContext: businessContextValues || {},
         },
       },
     });
-  }, [navigate, problemText, solutionText, evaluationParameterValues, actualResult]);
+  }, [navigate, problemText, solutionText, evaluationParameterValues, businessContextValues]);
 
   const computeMarketAvg = (res) => {
     if (!res?.similar_cases || res.similar_cases.length === 0) return 65;
@@ -956,7 +953,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         inputs: {
                           businessProblem: formInputs?.businessProblem || '',
                           businessSolution: formInputs?.businessSolution || '',
-                          evaluationParameters: formInputs?.parameters || {},
+                          evaluationParameters: formInputs?.evaluation_parameters || {},
                           businessContext: formInputs?.businessContext || {},
                         },
                         results: pendingResults,
@@ -1174,6 +1171,69 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 </Accordion.Item>
 
                 {/* --- Business Context Item --- */}
+                <Accordion.Item id="context" className="group/case">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                      <div className="flex items-center gap-3">
+                        <Globe
+                          className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
+                          size={20}
+                        />
+                        <div>
+                          <h4 className="font-bold text-slate-900">Business Context</h4>
+                          <p className="text-sm text-slate-600">
+                            Operational and contextual details
+                          </p>
+                        </div>
+                      </div>
+                      <Accordion.Indicator />
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+                  <Accordion.Panel>
+                    <Accordion.Body>
+                      <div className="py-2">
+                        {businessContextValues &&
+                        typeof businessContextValues === 'object' &&
+                        Object.keys(businessContextValues).length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2">
+                            {Object.entries(businessContextValues).map(([key, value]) => {
+                              const labelKey = key
+                                .replace(/_/g, ' ')
+                                .split(' ')
+                                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                                .join(' ');
+                              const displayValue =
+                                value === null || value === undefined || value === ''
+                                  ? 'Not specified'
+                                  : value === true
+                                    ? 'Yes'
+                                    : value === false
+                                      ? 'No'
+                                      : String(value);
+                              return (
+                                <div
+                                  key={key}
+                                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                                >
+                                  <span className="text-xs font-semibold text-slate-700">
+                                    {labelKey}
+                                  </span>
+                                  <span className="text-xs font-bold text-blue-700">
+                                    {displayValue}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-600">
+                            No business context data available.
+                          </p>
+                        )}
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
 
                 {/* --- Evaluation Parameters Item --- */}
                 <Accordion.Item id="parameters" className="group/case">

@@ -15,7 +15,7 @@ describe('SessionRestoreDialog', () => {
       inputs: {
         businessProblem: 'Test problem',
         businessSolution: 'Test solution',
-        parameters: { a: 1 },
+        evaluationParameters: { a: 1 },
       },
       timestamp: new Date().toISOString(),
     };
@@ -40,7 +40,7 @@ describe('SessionRestoreDialog', () => {
 
   it('shows Restore Results when results exist and still no Restore Inputs button', () => {
     const sessionData = {
-      inputs: { businessProblem: 'x', businessSolution: 'y', parameters: {} },
+      inputs: { businessProblem: 'x', businessSolution: 'y', evaluationParameters: {} },
       results: { overall_score: 42 },
       timestamp: new Date().toISOString(),
     };

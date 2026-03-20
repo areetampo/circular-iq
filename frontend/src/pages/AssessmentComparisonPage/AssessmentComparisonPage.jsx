@@ -48,36 +48,33 @@ function ComparisonSkeleton() {
       {/* Header Skeleton */}
       <div className="w-full px-4 sm:px-8">
         <div className="flex items-center justify-center gap-4">
-          <Skeleton animationType="shimmer" className="h-10 w-32 rounded-lg" />
-          <Skeleton animationType="shimmer" className="h-10 w-24 rounded-lg" />
+          <Skeleton className="h-10 w-32 rounded-lg" />
+          <Skeleton className="h-10 w-24 rounded-lg" />
         </div>
       </div>
 
       {/* Assessment Headers Skeleton */}
       <div className="w-full px-4 sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-          <Skeleton animationType="shimmer" className="h-32 rounded-xl" />
-          <Skeleton
-            animationType="shimmer"
-            className="hidden lg:block h-16 w-16 rounded-full mx-auto"
-          />
-          <Skeleton animationType="shimmer" className="h-32 rounded-xl" />
+          <Skeleton className="h-32 rounded-xl" />
+          <Skeleton className="hidden lg:block h-16 w-16 rounded-full mx-auto" />
+          <Skeleton className="h-32 rounded-xl" />
         </div>
       </div>
 
       {/* Tabs Skeleton */}
       <div className="w-full px-4 sm:px-8">
         <div className="flex justify-center mb-6">
-          <Skeleton animationType="shimmer" className="h-12 w-96 rounded-xl" />
+          <Skeleton className="h-12 w-96 rounded-xl" />
         </div>
 
         {/* Content Cards Skeleton */}
         <div className="space-y-6">
-          <Skeleton animationType="shimmer" className="h-64 rounded-xl" />
-          <Skeleton animationType="shimmer" className="h-48 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Skeleton animationType="shimmer" className="h-96 rounded-xl" />
-            <Skeleton animationType="shimmer" className="h-96 rounded-xl" />
+            <Skeleton className="h-96 rounded-xl" />
+            <Skeleton className="h-96 rounded-xl" />
           </div>
         </div>
       </div>
@@ -443,11 +440,16 @@ export default function AssessmentComparisonPage() {
       >
         {/* Mobile Select Dropdown */}
         <div className="md:hidden my-4 w-full flex items-center justify-center px-4">
-          <Select value={selectedTab} onChange={setSelectedTab} variant="primary" className="w-2/5">
+          <Select
+            value={selectedTab}
+            onChange={setSelectedTab}
+            className="w-2/5"
+            placeholder="View Section"
+          >
             <Label className="text-xs font-semibold text-slate-600">View Section</Label>
             <Select.Trigger className="mt-2">
               <Select.Value />
-              <Select.Indicator />
+              <Select.Icon />
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
@@ -466,25 +468,16 @@ export default function AssessmentComparisonPage() {
         </div>
 
         {/* Desktop Tabs */}
-        <Tabs.ListContainer className="my-4 hidden md:flex justify-center">
+        <div className="my-4 hidden md:flex justify-center">
           <Tabs.List
             aria-label="Comparison sections"
             className="bg-linear-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-full shadow-sm *:font-semibold"
           >
-            <Tabs.Tab id="overview">
-              Overview
-              <Tabs.Indicator className="bg-linear-to-r from-emerald-200 to-teal-200" />
-            </Tabs.Tab>
-            <Tabs.Tab id="analysis">
-              Factor Analysis
-              <Tabs.Indicator className="bg-linear-to-r from-emerald-200 to-teal-200" />
-            </Tabs.Tab>
-            <Tabs.Tab id="details">
-              Details
-              <Tabs.Indicator className="bg-linear-to-r from-emerald-200 to-teal-200" />
-            </Tabs.Tab>
+            <Tabs.Tab id="overview">Overview</Tabs.Tab>
+            <Tabs.Tab id="analysis">Factor Analysis</Tabs.Tab>
+            <Tabs.Tab id="details">Details</Tabs.Tab>
           </Tabs.List>
-        </Tabs.ListContainer>
+        </div>
 
         {/* OVERVIEW TAB */}
         <Tabs.Panel id="overview" className="w-full px-0 md:px-4 space-y-8">
@@ -509,45 +502,43 @@ export default function AssessmentComparisonPage() {
                   </Card.Header>
                   <Card.Content className="p-0">
                     <Table>
-                      <Table.ScrollContainer>
-                        <Table.Content
-                          aria-label="Business problem comparison"
-                          className="min-w-full"
-                        >
-                          <Table.Header>
-                            <Table.Column className="w-1/2 bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
-                              Assessment 1
-                            </Table.Column>
-                            <Table.Column className="w-1/2 bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700">
-                              Assessment 2
-                            </Table.Column>
-                          </Table.Header>
-                          <Table.Body>
-                            <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                              <Table.Cell className="align-top py-4">
-                                <div>
-                                  <p className="text-sm font-semibold text-slate-900 mb-2">
-                                    {assessment1?.title || 'Assessment 1'}
-                                  </p>
-                                  <p className="text-sm text-slate-700 leading-relaxed">
-                                    {assessment1?.business_problem || 'N/A'}
-                                  </p>
-                                </div>
-                              </Table.Cell>
-                              <Table.Cell className="align-top py-4">
-                                <div>
-                                  <p className="text-sm font-semibold text-slate-900 mb-2">
-                                    {assessment2?.title || 'Assessment 2'}
-                                  </p>
-                                  <p className="text-sm text-slate-700 leading-relaxed">
-                                    {assessment2?.business_problem || 'N/A'}
-                                  </p>
-                                </div>
-                              </Table.Cell>
-                            </Table.Row>
-                          </Table.Body>
-                        </Table.Content>
-                      </Table.ScrollContainer>
+                      <Table
+                        aria-label="Business problem comparison"
+                        removeWrapper
+                        classNames={{
+                          th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                          td: 'align-top py-4',
+                        }}
+                      >
+                        <Table.Header>
+                          <Table.Column className="w-1/2">Assessment 1</Table.Column>
+                          <Table.Column className="w-1/2">Assessment 2</Table.Column>
+                        </Table.Header>
+                        <Table.Body>
+                          <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                            <Table.Cell>
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900 mb-2">
+                                  {assessment1?.title || 'Assessment 1'}
+                                </p>
+                                <p className="text-sm text-slate-700 leading-relaxed">
+                                  {assessment1?.business_problem || 'N/A'}
+                                </p>
+                              </div>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <div>
+                                <p className="text-sm font-semibold text-slate-900 mb-2">
+                                  {assessment2?.title || 'Assessment 2'}
+                                </p>
+                                <p className="text-sm text-slate-700 leading-relaxed">
+                                  {assessment2?.business_problem || 'N/A'}
+                                </p>
+                              </div>
+                            </Table.Cell>
+                          </Table.Row>
+                        </Table.Body>
+                      </Table>
                     </Table>
                   </Card.Content>
                 </Card>
@@ -683,29 +674,131 @@ export default function AssessmentComparisonPage() {
                       </Table.Column>
                     </Table.Header>
                     <Table.Body>
-                      {Object.entries(assessment1?.result_json?.input_parameters || {}).map(
-                        ([key, value1]) => {
-                          const value2 = assessment2?.result_json?.input_parameters?.[key];
+                      {Object.entries(
+                        assessment1?.evaluation_parameters ||
+                          assessment1?.result_json?.evaluation_parameters ||
+                          {},
+                      ).map(([key, value1]) => {
+                        const value2 =
+                          assessment2?.evaluation_parameters?.[key] ||
+                          assessment2?.result_json?.evaluation_parameters?.[key];
+                        return (
+                          <Table.Row
+                            key={key}
+                            className="hover:bg-slate-50/50 transition-colors duration-150"
+                          >
+                            <Table.Cell className="font-medium text-slate-900 capitalize">
+                              {key.replace(/_/g, ' ')}
+                            </Table.Cell>
+                            <Table.Cell className="text-center text-slate-600">
+                              {String(value1).substring(0, 30)}
+                              {String(value1).length > 30 ? '...' : ''}
+                            </Table.Cell>
+                            <Table.Cell className="text-center text-slate-600">
+                              {String(value2 || '').substring(0, 30)}
+                              {String(value2 || '').length > 30 ? '...' : ''}
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </Table.Body>
+                  </Table>
+                </Card.Content>
+              </Card>
+
+              {/* Business Context Comparison */}
+              <Card className="border-2 border-amber-200 shadow-md rounded-xl bg-white">
+                <Card.Header className="flex items-center gap-3 pb-4">
+                  <Card.Title className="font-bold text-lg text-slate-900">
+                    Business Context
+                  </Card.Title>
+                </Card.Header>
+                <Card.Content className="p-0 overflow-x-auto">
+                  <Table
+                    aria-label="Business context comparison"
+                    removeWrapper
+                    classNames={{
+                      th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
+                      td: 'py-3',
+                    }}
+                  >
+                    <Table.Header>
+                      <Table.Column className="w-2/5">CONTEXT FIELD</Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
+                        {assessment1?.title || 'Assessment 1'}
+                      </Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
+                        {assessment2?.title || 'Assessment 2'}
+                      </Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {(() => {
+                        const ctx1 =
+                          assessment1?.result_json?.business_context ||
+                          assessment1?.business_context ||
+                          {};
+                        const ctx2 =
+                          assessment2?.result_json?.business_context ||
+                          assessment2?.business_context ||
+                          {};
+                        const allKeys = new Set([...Object.keys(ctx1), ...Object.keys(ctx2)]);
+
+                        if (allKeys.size === 0) {
+                          return (
+                            <Table.Row>
+                              <Table.Cell colSpan={3} className="text-center text-slate-500 py-6">
+                                No business context data available
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        }
+
+                        return Array.from(allKeys).map((key) => {
+                          const value1 = ctx1[key];
+                          const value2 = ctx2[key];
+                          const val1Str =
+                            value1 === null || value1 === undefined
+                              ? 'Not specified'
+                              : typeof value1 === 'boolean'
+                                ? value1
+                                  ? 'Yes'
+                                  : 'No'
+                                : String(value1);
+                          const val2Str =
+                            value2 === null || value2 === undefined
+                              ? 'Not specified'
+                              : typeof value2 === 'boolean'
+                                ? value2
+                                  ? 'Yes'
+                                  : 'No'
+                                : String(value2);
+
                           return (
                             <Table.Row
                               key={key}
-                              className="hover:bg-slate-50/50 transition-colors duration-150"
+                              className={`hover:bg-slate-50/50 transition-colors duration-150 ${
+                                val1Str === val2Str ? '' : 'bg-yellow-50/30'
+                              }`}
                             >
                               <Table.Cell className="font-medium text-slate-900 capitalize">
                                 {key.replace(/_/g, ' ')}
                               </Table.Cell>
-                              <Table.Cell className="text-center text-slate-600">
-                                {String(value1).substring(0, 30)}
-                                {String(value1).length > 30 ? '...' : ''}
+                              <Table.Cell
+                                className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
+                              >
+                                {val1Str.substring(0, 30)}
+                                {val1Str.length > 30 ? '...' : ''}
                               </Table.Cell>
-                              <Table.Cell className="text-center text-slate-600">
-                                {String(value2 || '').substring(0, 30)}
-                                {String(value2 || '').length > 30 ? '...' : ''}
+                              <Table.Cell
+                                className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
+                              >
+                                {val2Str.substring(0, 30)}
+                                {val2Str.length > 30 ? '...' : ''}
                               </Table.Cell>
                             </Table.Row>
                           );
-                        },
-                      )}
+                        });
+                      })()}
                     </Table.Body>
                   </Table>
                 </Card.Content>
@@ -779,27 +872,15 @@ export default function AssessmentComparisonPage() {
                   </div>
                   <ProgressBar
                     value={scoringResult1?.overall_score || 0}
-                    className={`mt-2 h-2 rounded-full border-2 ${
+                    className={`mt-2 h-2 rounded-full ${
                       (scoringResult1?.overall_score || 0) >= 75
-                        ? 'border-emerald-400'
+                        ? 'bg-emerald-500'
                         : (scoringResult1?.overall_score || 0) >= 50
-                          ? 'border-amber-400'
-                          : 'border-red-400'
+                          ? 'bg-amber-500'
+                          : 'bg-red-500'
                     }`}
                     aria-label="Assessment 1 score"
-                  >
-                    <ProgressBar.Track className="h-2 rounded-full bg-gray-200">
-                      <ProgressBar.Fill
-                        className={`h-2 rounded-full ${
-                          (scoringResult1?.overall_score || 0) >= 75
-                            ? 'bg-emerald-500'
-                            : (scoringResult1?.overall_score || 0) >= 50
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
-                        }`}
-                      />
-                    </ProgressBar.Track>
-                  </ProgressBar>
+                  />
                 </div>
 
                 {/* Assessment 2 Score */}
@@ -823,27 +904,15 @@ export default function AssessmentComparisonPage() {
                   </div>
                   <ProgressBar
                     value={scoringResult2?.overall_score || 0}
-                    className={`mt-2 h-2 rounded-full border-2 ${
+                    className={`mt-2 h-2 rounded-full ${
                       (scoringResult2?.overall_score || 0) >= 75
-                        ? 'border-emerald-400'
+                        ? 'bg-emerald-500'
                         : (scoringResult2?.overall_score || 0) >= 50
-                          ? 'border-amber-400'
-                          : 'border-red-400'
+                          ? 'bg-amber-500'
+                          : 'bg-red-500'
                     }`}
                     aria-label="Assessment 2 score"
-                  >
-                    <ProgressBar.Track className="h-2 rounded-full bg-gray-200">
-                      <ProgressBar.Fill
-                        className={`h-2 rounded-full ${
-                          (scoringResult2?.overall_score || 0) >= 75
-                            ? 'bg-emerald-500'
-                            : (scoringResult2?.overall_score || 0) >= 50
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
-                        }`}
-                      />
-                    </ProgressBar.Track>
-                  </ProgressBar>
+                  />
                 </div>
 
                 {/* Overall Change */}
@@ -1052,13 +1121,9 @@ export default function AssessmentComparisonPage() {
                       </div>
                       <ProgressBar
                         value={factor.a1}
-                        className="h-2.5 rounded-full"
+                        className="h-2.5 rounded-full bg-emerald-500"
                         aria-label={`${assessment1.title} factor score`}
-                      >
-                        <ProgressBar.Track className="h-2.5 rounded-full bg-gray-200">
-                          <ProgressBar.Fill className="h-2.5 rounded-full bg-emerald-500" />
-                        </ProgressBar.Track>
-                      </ProgressBar>
+                      />
                     </div>
                     <span className="text-xs text-emerald-700 font-bold w-10 text-right">
                       {factor.a1}%
@@ -1071,13 +1136,9 @@ export default function AssessmentComparisonPage() {
                       </div>
                       <ProgressBar
                         value={factor.a2}
-                        className="h-2.5 rounded-full"
+                        className="h-2.5 rounded-full bg-amber-500"
                         aria-label={`${assessment2.title} factor score`}
-                      >
-                        <ProgressBar.Track className="h-2.5 rounded-full bg-gray-200">
-                          <ProgressBar.Fill className="h-2.5 rounded-full bg-amber-500" />
-                        </ProgressBar.Track>
-                      </ProgressBar>
+                      />
                     </div>
                     <span className="text-xs text-amber-600 font-bold w-10 text-right">
                       {factor.a2}%
@@ -1570,11 +1631,11 @@ export default function AssessmentComparisonPage() {
           Last updated: {getCurrentTimestampFormatted()}
         </p>
         <div className="flex gap-2">
-          <Button variant="teal" onPress={() => exportComparisonCSV([assessment1, assessment2])}>
+          <Button color="success" onClick={() => exportComparisonCSV([assessment1, assessment2])}>
             <Upload size={16} />
             Export CSV
           </Button>
-          <Button variant="neutral" onPress={handleBack}>
+          <Button variant="bordered" onClick={handleBack}>
             <ArrowLeft size={16} />
             Back to Assessments
           </Button>

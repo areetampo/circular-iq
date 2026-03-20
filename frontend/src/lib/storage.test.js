@@ -70,7 +70,7 @@ test('saveEvaluationState enriches a newly-saved result with snapshot inputs (if
   // Snapshot should have been enriched from persisted inputs
   expect(loaded.results.businessProblem).toBe('Stored BP');
   expect(loaded.results.businessSolution).toBe('Stored BS');
-  expect(loaded.results.parameters).toEqual({ a: 1 });
+  expect(loaded.results.evaluationParameters).toEqual({ a: 1 });
   expect(loaded.results.overall_score).toBe(55);
 });
 
@@ -79,13 +79,13 @@ test('saveEvaluationState does NOT overwrite existing results when only inputs c
     inputs: {
       businessProblem: 'Original BP',
       businessSolution: 'Original BS',
-      parameters: { x: 9 },
+      evaluationParameters: { x: 9 },
     },
     results: {
       overall_score: 88,
       businessProblem: 'Snapshot BP',
       businessSolution: 'Snapshot BS',
-      parameters: { x: 9 },
+      evaluationParameters: { x: 9 },
     },
     timestamp: new Date().toISOString(),
   };

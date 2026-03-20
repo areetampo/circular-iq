@@ -12,7 +12,7 @@ export const assessmentSchema = z.object({
   businessSolution: z.string().refine((val) => getCharacterCount(val) >= 200, {
     message: 'Business solution must be at least 200 characters',
   }),
-  parameters: z.object({
+  evaluationParameters: z.object({
     public_participation: z
       .number()
       .min(0, 'Value must be between 0 and 100')
@@ -90,7 +90,7 @@ export const assessmentSchema = z.object({
 export const defaultValues = {
   businessProblem: '',
   businessSolution: '',
-  parameters: {
+  evaluationParameters: {
     public_participation: 50,
     infrastructure: 50,
     market_price: 50,
@@ -101,11 +101,11 @@ export const defaultValues = {
     tech_readiness: 50,
   },
   businessContext: {
-    business_model_type: undefined,
-    operational_stage: undefined,
-    target_geography: undefined,
-    annual_volume_estimate: undefined,
-    material_complexity: undefined,
-    has_existing_partnerships: undefined,
+    business_model_type: null,
+    operational_stage: null,
+    target_geography: null,
+    annual_volume_estimate: null,
+    material_complexity: null,
+    has_existing_partnerships: null,
   },
 };

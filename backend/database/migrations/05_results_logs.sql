@@ -86,9 +86,12 @@ CREATE TABLE IF NOT EXISTS scoring_results_log (
   user_agent_snippet    TEXT,                   -- first 200 chars of User-Agent
 
   -- ── Inputs (truncated to avoid bloat) ────────────────────────────────────────
+  business_problem      TEXT,                   -- full business problem text
+  business_solution     TEXT,                   -- full business solution text
   business_problem_len  INTEGER,                -- length in chars (not content, for analytics)
   business_solution_len INTEGER,
-  input_parameters      JSONB,                  -- 8-factor scores user submitted
+  evaluation_parameters JSONB,                  -- 8-factor scores user submitted
+  business_context      JSONB,                  -- business context fields submitted
 
   -- ── Scoring results — promoted scalars for fast aggregation ──────────────────
   overall_score         INTEGER,
@@ -156,8 +159,14 @@ COMMENT ON COLUMN scoring_results_log.business_problem_len IS
   'Length in chars of the business problem description (not the content itself)';
 COMMENT ON COLUMN scoring_results_log.business_solution_len IS
   'Length in chars of the business solution description (not the content itself)';
-COMMENT ON COLUMN scoring_results_log.input_parameters IS
-  'Raw 8-factor scores as submitted by the user';
+COMMENT ON COLUMN scoring_results_log.business_problem IS
+  'Full text of the business problem description';
+COMMENT ON COLUMN scoring_results_log.business_solution IS
+  'Full text of the business solution description';
+COMMENT ON COLUMN scoring_results_log.evaluation_parameters IS
+  'User-submitted 8-factor evaluation scores (0-100 scale)';
+COMMENT ON COLUMN scoring_results_log.business_context IS
+  'User-submitted business context (model type, stage, geography, volume, material complexity, partnerships)';
 COMMENT ON COLUMN scoring_results_log.overall_score IS
   'Final overall score (0-100)';
 COMMENT ON COLUMN scoring_results_log.confidence_level IS

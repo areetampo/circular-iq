@@ -243,7 +243,12 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
   console.log('='.repeat(20));
 
   try {
-    const { businessProblem, businessSolution, parameters, context } = req.body;
+    const { businessProblem, businessSolution, evaluation_parameters, businessContext } = req.body;
+
+    console.log(businessProblem, businessSolution, evaluation_parameters, businessContext);
+
+    // Use businessContext and evaluation_parameters
+    const business_context = businessContext;
 
     // ========== INPUT VALIDATION ==========
     if (!businessProblem || !businessSolution) {
@@ -282,9 +287,9 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       throw error;
     }
 
-    // Validate parameters
-    if (!parameters || typeof parameters !== 'object') {
-      const error = new Error('Parameters object is required');
+    // Validate evaluation parameters
+    if (!evaluation_parameters || typeof evaluation_parameters !== 'object') {
+      const error = new Error('Evaluation parameters object is required');
       error.code = 'MISSING_PARAMETERS';
       error.status = 400;
       throw error;
@@ -303,17 +308,17 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     for (const param of requiredParams) {
       if (
-        typeof parameters[param] !== 'number' ||
-        parameters[param] < 0 ||
-        parameters[param] > 100
+        typeof evaluation_parameters[param] !== 'number' ||
+        evaluation_parameters[param] < 0 ||
+        evaluation_parameters[param] > 100
       ) {
         let msg = `${param.replace(/_/g, ' ')} must be a number between 0 and 100`;
-        if (typeof parameters[param] !== 'number') {
-          msg = `${param.replace(/_/g, ' ')} must be a number (received: ${typeof parameters[param]})`;
-        } else if (parameters[param] < 0) {
-          msg = `${param.replace(/_/g, ' ')} cannot be negative (received: ${parameters[param]})`;
-        } else if (parameters[param] > 100) {
-          msg = `${param.replace(/_/g, ' ')} cannot exceed 100 (received: ${parameters[param]})`;
+        if (typeof evaluation_parameters[param] !== 'number') {
+          msg = `${param.replace(/_/g, ' ')} must be a number (received: ${typeof evaluation_parameters[param]})`;
+        } else if (evaluation_parameters[param] < 0) {
+          msg = `${param.replace(/_/g, ' ')} cannot be negative (received: ${evaluation_parameters[param]})`;
+        } else if (evaluation_parameters[param] > 100) {
+          msg = `${param.replace(/_/g, ' ')} cannot exceed 100 (received: ${evaluation_parameters[param]})`;
         }
         const error = new Error(msg);
         error.code = 'INVALID_PARAMETER_VALUE';
@@ -328,7 +333,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
     console.log(`[${requestId}] Starting score calculation...`);
 
     // ========== STEP 1: CALCULATE DETERMINISTIC SCORES ==========
-    const scores = calculateScores(parameters);
+    const scores = calculateScores(evaluation_parameters);
     console.log(`[${requestId}] Scores calculated: ${scores.overall_score} / 100`);
 
     timings.scoring = Date.now() - stepStart;
@@ -560,7 +565,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       businessSolution,
       scores,
       similarCases || [],
-      context || null,
+      business_context || null,
     );
 
     // Add integrity gaps to audit result
@@ -650,7 +655,8 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       // input echo
       businessProblem,
       businessSolution,
-      input_parameters: parameters || {},
+      evaluation_parameters: evaluation_parameters || {},
+      business_context: business_context || null,
       // Main scoring results
       overall_score: scores.overall_score,
       confidence_level: scores.confidence_level,
@@ -667,7 +673,6 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       metadata: metadata,
       r_strategy_alignment: rStrategyAlignment,
       gap_analysis: gapAnalysis,
-      context: context || null,
       processing_info: {
         request_id: requestId,
         processing_time_ms: Date.now() - startTime,
@@ -684,9 +689,12 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       ip_hash: crypto.createHash('sha256').update(extractIPAddress(req)).digest('hex'),
       identifier_hash: getIdentifierFromRequest(req).hash,
       user_agent_snippet: req.headers['user-agent']?.substring(0, 200),
+      business_problem: businessProblem,
+      business_solution: businessSolution,
+      evaluation_parameters: evaluation_parameters,
+      business_context: business_context,
       business_problem_len: businessProblem.length,
       business_solution_len: businessSolution.length,
-      input_parameters: parameters,
       overall_score: response.overall_score,
       confidence_level: response.confidence_level,
       technical_feasibility: response.derived_metrics.technical_feasibility,

@@ -31,7 +31,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
   return (
     <div className="w-full flex flex-col items-center gap-2.5">
       <Controller
-        name={`parameters.${paramKey}`}
+        name={`evaluationParameters.${paramKey}`}
         control={control}
         render={({ field }) => {
           const currentValue = field.value ?? 50;
@@ -129,7 +129,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                           inputs: {
                             businessProblem: values.businessProblem || '',
                             businessSolution: values.businessSolution || '',
-                            evaluationParameters: values.parameters || {},
+                            evaluationParameters: values.evaluationParameters || {},
                             businessContext: values.businessContext || {},
                           },
                         });

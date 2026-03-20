@@ -60,7 +60,7 @@ END $$;
 
 CREATE TABLE IF NOT EXISTS assessments (
   -- ── Identity ────────────────────────────────────────────────────────────────
-  id                          BIGSERIAL PRIMARY KEY,
+  id                          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id                     UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   session_id                  TEXT,          -- kept for guest sessions (removed in 03_)
 
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS assessments (
   title                       TEXT NOT NULL,
   business_problem            TEXT NOT NULL,
   business_solution           TEXT NOT NULL,
-  input_parameters            JSONB,         -- raw 8-factor scores user entered
+  evaluation_parameters       JSONB,         -- raw 8-factor scores user entered
 
   -- ── Top-level scoring API scalars ────────────────────────────────────────────
   overall_score               INTEGER,       -- 0-100
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS assessments (
   circular_economy_tier       JSONB,         -- tier classification and guidance
   parameter_consistency       JSONB,         -- internal consistency analysis of parameter choices
   r_strategy_alignment        JSONB,         -- alignment analysis vs detected R-strategy
-  context                     JSONB,         -- user-provided structured context from form
+  business_context            JSONB,         -- user-provided structured business context (model type, stage, geography, volume, material complexity, partnerships)
   result_json                 JSONB NOT NULL, -- FULL scoring API response (complete snapshot)
 
   -- ── Sharing / visibility ─────────────────────────────────────────────────────
@@ -117,8 +117,8 @@ COMMENT ON TABLE  assessments IS
   'Saved assessment results — every column mirrors a field from the scoring API response so the full result can be repopulated without parsing result_json';
 COMMENT ON COLUMN assessments.result_json IS
   'Complete raw scoring API response — source of truth for repopulating UI';
-COMMENT ON COLUMN assessments.input_parameters IS
-  '8-factor scores the user provided (mirrors scoring API response.input_parameters)';
+COMMENT ON COLUMN assessments.evaluation_parameters IS
+  '8-factor scores the user provided (mirrors scoring API response.evaluation_parameters)';
 COMMENT ON COLUMN assessments.sub_scores IS
   'Validated 8-factor sub-scores after clamping (mirrors scores.sub_scores)';
 COMMENT ON COLUMN assessments.derived_metrics IS
@@ -147,6 +147,8 @@ COMMENT ON COLUMN assessments.scale IS
   'Promoted from metadata.scale: prototype|pilot|regional|commercial|global';
 COMMENT ON COLUMN assessments.r_strategy IS
   'Promoted from metadata.r_strategy (Refuse/Reduce/Reuse/…)';
+COMMENT ON COLUMN assessments.business_context IS
+  'User-provided structured business context including business_model_type, operational_stage, target_geography, annual_volume_estimate, material_complexity, has_existing_partnerships';
 COMMENT ON COLUMN assessments.primary_material IS
   'Promoted from metadata.primary_material (e.g. plastic, e-waste)';
 COMMENT ON COLUMN assessments.geographic_focus IS

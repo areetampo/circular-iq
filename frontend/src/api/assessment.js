@@ -11,10 +11,10 @@ import { buildApiUrl } from '@/lib/apiClient';
  * Call backend API to score a business idea
  * @param {string} businessProblem - Problem description
  * @param {string} businessSolution - Solution description
- * @param {Object} parameters - Scoring parameters
+ * @param {Object} evaluation_parameters - Scoring parameters
  * @returns {Promise<Object>} API response with scores and audit
  */
-export async function submitForScoring(businessProblem, businessSolution, parameters) {
+export async function submitForScoring(businessProblem, businessSolution, evaluation_parameters) {
   try {
     const response = await fetch(buildApiUrl('/api/score'), {
       method: 'POST',
@@ -24,7 +24,7 @@ export async function submitForScoring(businessProblem, businessSolution, parame
       body: JSON.stringify({
         businessProblem,
         businessSolution,
-        parameters,
+        evaluation_parameters,
       }),
     });
 
@@ -90,10 +90,10 @@ export async function saveAssessment({
         contribute_to_global_benchmarks: contributeToGlobal ?? true,
         // Full scoring API response — backend stores every column from this
         result_json: scoringResult,
-        // Top-level fields for backward compatibility with validation middleware
+        // Top-level fields for validation middleware
         businessProblem: scoringResult?.businessProblem,
         businessSolution: scoringResult?.businessSolution,
-        parameters: scoringResult?.input_parameters || scoringResult?.parameters,
+        evaluation_parameters: scoringResult?.evaluation_parameters,
       }),
     });
 

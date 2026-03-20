@@ -125,7 +125,7 @@ describe('AppSessionManager (pending-save post-login)', () => {
 
   it('shows toast when navigating to home via SPA after initial load', async () => {
     const persisted = {
-      inputs: { businessProblem: 'X', businessSolution: 'Y', parameters: {} },
+      inputs: { businessProblem: 'X', businessSolution: 'Y', evaluationParameters: {} },
       results: null,
       timestamp: new Date().toISOString(),
     };

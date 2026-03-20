@@ -50,7 +50,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
   try {
     const { name, industry, result_json, is_public, contribute_to_global_benchmarks } =
       validatedBody;
-    const { title, businessProblem, businessSolution, result, parameters } = rawBody;
+    const { title, businessProblem, businessSolution, result, evaluation_parameters } = rawBody;
 
     // Check for required result data (either from result_json or result field)
     const resultData = result_json || result;
@@ -88,8 +88,8 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       geographic_focus: scoringResult.metadata?.geographic_focus ?? null,
 
       // ── JSON blobs ───────────────────────────────────────────────────────────
-      input_parameters:
-        scoringResult.input_parameters || scoringResult.parameters || parameters || null,
+      evaluation_parameters: scoringResult.evaluation_parameters ?? null,
+      business_context: scoringResult.business_context ?? null,
       sub_scores: scoringResult.sub_scores ?? null,
       derived_metrics: scoringResult.derived_metrics ?? null,
       score_breakdown: scoringResult.score_breakdown ?? null,
@@ -102,7 +102,6 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       circular_economy_tier: scoringResult.circular_economy_tier ?? null,
       parameter_consistency: scoringResult.parameter_consistency ?? null,
       r_strategy_alignment: scoringResult.r_strategy_alignment ?? null,
-      context: scoringResult.context ?? null,
       // The rest of the data is persisted inside result_json for full reconstruction
       result_json: scoringResult, // full snapshot — required NOT NULL
 

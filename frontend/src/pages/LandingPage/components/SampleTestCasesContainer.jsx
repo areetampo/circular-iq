@@ -11,9 +11,107 @@ import testCases from '@/data/testCases.json';
 import { useSession } from '@/features/session/hooks/useSession';
 import { cn } from '@/utils/cn';
 
+// Helper function to validate and normalize business model type values
+// Since testCases.json now uses valid enum values, this primarily handles case normalization
+const normalizeBusinessModelType = (value) => {
+  if (!value) return null;
+  const normalized = String(value).toLowerCase().trim();
+  const validOptions = [
+    'recycling',
+    'product-as-a-service',
+    'take-back',
+    'remanufacturing',
+    'sharing-platform',
+    'repair-service',
+    'other',
+  ];
+  return validOptions.includes(normalized) ? normalized : null;
+};
+
+// Helper function to validate and normalize operational stage values
+const normalizeOperationalStage = (value) => {
+  if (!value) return null;
+  const normalized = String(value).toLowerCase().trim();
+  const validOptions = ['idea', 'prototype', 'pilot', 'scaling', 'mature'];
+  return validOptions.includes(normalized) ? normalized : null;
+};
+
+// Helper function to validate and normalize geography values
+const normalizeGeography = (value) => {
+  if (!value) return null;
+  const normalized = String(value).toLowerCase().trim();
+  const validOptions = ['local', 'national', 'regional', 'global'];
+  return validOptions.includes(normalized) ? normalized : null;
+};
+
+// Helper function to validate and normalize volume values
+const normalizeVolume = (value) => {
+  if (!value) return null;
+  const normalized = String(value).toLowerCase().trim();
+  const validOptions = [
+    'under-1-tonne',
+    '1-10-tonnes',
+    '10-100-tonnes',
+    'over-100-tonnes',
+    'digital-intangible',
+  ];
+  return validOptions.includes(normalized) ? normalized : null;
+};
+
+// Helper function to validate and normalize material complexity values
+const normalizeMaterialComplexity = (value) => {
+  if (!value) return null;
+  const normalized = String(value).toLowerCase().trim();
+  const validOptions = [
+    'single-material',
+    'multi-material',
+    'hazardous-components',
+    'electronics',
+    'biological',
+  ];
+  return validOptions.includes(normalized) ? normalized : null;
+};
+
+// Helper function to map test case business context to form field names
+const mapTestCaseContextToFormFields = (testCaseContext) => {
+  if (!testCaseContext || typeof testCaseContext !== 'object') {
+    return {
+      business_model_type: null,
+      operational_stage: null,
+      target_geography: null,
+      annual_volume_estimate: null,
+      material_complexity: null,
+      has_existing_partnerships: null,
+    };
+  }
+
+  return {
+    business_model_type: normalizeBusinessModelType(
+      testCaseContext.businessModelType || testCaseContext.business_model_type,
+    ),
+    operational_stage: normalizeOperationalStage(
+      testCaseContext.operationalStage || testCaseContext.operational_stage,
+    ),
+    target_geography: normalizeGeography(
+      testCaseContext.targetGeography || testCaseContext.target_geography,
+    ),
+    annual_volume_estimate: normalizeVolume(
+      testCaseContext.annualVolume || testCaseContext.annual_volume_estimate,
+    ),
+    material_complexity: normalizeMaterialComplexity(
+      testCaseContext.materialComplexity || testCaseContext.material_complexity,
+    ),
+    has_existing_partnerships:
+      testCaseContext.partnerships !== undefined
+        ? testCaseContext.partnerships
+        : testCaseContext.has_existing_partnerships || null,
+  };
+};
+
 export default function SampleTestCasesContainer({
   setShowEvaluationParameters = () => {},
   openEvalParams = () => {},
+  openBusinessContext = () => {},
 }) {
   const { setValue, trigger, getValues } = useFormContext();
   const { openSpecificSampleTestCaseViewDetailsDrawer } = useGlobalDrawer();
@@ -25,7 +123,14 @@ export default function SampleTestCasesContainer({
     setSelectedCase(testCase.id);
     setValue('businessProblem', testCase.problem, { shouldValidate: true });
     setValue('businessSolution', testCase.solution, { shouldValidate: true });
-    setValue('parameters', testCase.parameters, { shouldValidate: true });
+    setValue('evaluationParameters', testCase.evaluationParameters, { shouldValidate: true });
+
+    // Map and set business context from test case
+    if (testCase.businessContext) {
+      const mappedContext = mapTestCaseContextToFormFields(testCase.businessContext);
+      setValue('businessContext', mappedContext, { shouldValidate: true });
+    }
+
     await trigger();
 
     // Persist immediately when a user explicitly selects a sample test case.
@@ -34,8 +139,8 @@ export default function SampleTestCasesContainer({
         inputs: {
           businessProblem: testCase.problem || '',
           businessSolution: testCase.solution || '',
-          evaluationParameters: testCase.parameters || {},
-          businessContext: getValues('businessContext') || {},
+          evaluationParameters: testCase.evaluationParameters || {},
+          businessContext: testCase.businessContext || getValues('businessContext') || {},
         },
         timestamp: new Date().toISOString(),
       });
@@ -49,6 +154,7 @@ export default function SampleTestCasesContainer({
     });
     setShowEvaluationParameters(true);
     openEvalParams();
+    openBusinessContext();
   };
 
   const hasUserInput = () => {
@@ -131,7 +237,7 @@ export default function SampleTestCasesContainer({
 
             {/* Score pills */}
             <div className="flex flex-wrap gap-1.5">
-              {Object.entries(testCase.parameters)
+              {Object.entries(testCase.evaluationParameters || {})
                 .slice(0, 3)
                 .map(([key, value]) => (
                   <span
@@ -171,4 +277,5 @@ export default function SampleTestCasesContainer({
 SampleTestCasesContainer.propTypes = {
   setShowEvaluationParameters: PropTypes.func,
   openEvalParams: PropTypes.func,
+  openBusinessContext: PropTypes.func,
 };

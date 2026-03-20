@@ -67,6 +67,9 @@ export default function LandingPage() {
   const [evalParamsExpandedKeys, setEvalParamsExpandedKeys] = useState(
     new Set(['evaluation-parameters-heading']),
   );
+  const [businessContextExpandedKeys, setBusinessContextExpandedKeys] = useState(
+    new Set(['business-context-heading']),
+  );
   const ALL_INNER_KEYS = new Set(['Access Value', 'Embedded Value', 'Processing Value']);
   const [innerExpandedKeys, setInnerExpandedKeys] = useState(new Set(ALL_INNER_KEYS));
 
@@ -74,6 +77,11 @@ export default function LandingPage() {
     setEvalParamsExpandedKeys(new Set(['evaluation-parameters-heading']));
     setInnerExpandedKeys(new Set(ALL_INNER_KEYS));
   };
+
+  const openBusinessContext = () => {
+    setBusinessContextExpandedKeys(new Set(['business-context-heading']));
+  };
+
   const [error, setError] = useState(null);
   // session prompt handled globally in AppSessionManager
   const skipAutosaveRef = useRef(false);
@@ -103,12 +111,12 @@ export default function LandingPage() {
   // Pre-fill form with data from ResultsPage (reevaluate)
   useEffect(() => {
     if (location.state?.formData) {
-      const { businessProblem, businessSolution, parameters, businessContext } =
+      const { businessProblem, businessSolution, evaluation_parameters, businessContext } =
         location.state.formData;
       reset({
         businessProblem: businessProblem || '',
         businessSolution: businessSolution || '',
-        parameters: parameters || {},
+        evaluation_parameters: evaluation_parameters || {},
         businessContext: businessContext || {},
       });
       // Open the evaluation parameters panel
@@ -173,8 +181,8 @@ export default function LandingPage() {
         const bBP = (b.businessProblem || '').trim();
         const aBS = (a.businessSolution || '').trim();
         const bBS = (b.businessSolution || '').trim();
-        const aParams = a.parameters || a.evaluationParameters || {};
-        const bParams = b.parameters || b.evaluationParameters || {};
+        const aParams = a.evaluationParameters || {};
+        const bParams = b.evaluationParameters || {};
         const aContext = a.businessContext || {};
         const bContext = b.businessContext || {};
 
@@ -217,9 +225,8 @@ export default function LandingPage() {
       reset({
         businessProblem: sessionInputs.businessProblem || '',
         businessSolution: sessionInputs.businessSolution || '',
-        parameters: sessionInputs.evaluationParameters || {},
-        businessContext:
-          sessionInputs.businessContext || sessionData?.results?.businessContext || {},
+        evaluationParameters: sessionInputs.evaluationParameters || {},
+        businessContext: sessionInputs.businessContext || {},
       });
       setShowEvaluationParameters(true);
       skipAutosaveRef.current = true;
@@ -233,9 +240,8 @@ export default function LandingPage() {
       reset({
         businessProblem: sessionInputs.businessProblem || '',
         businessSolution: sessionInputs.businessSolution || '',
-        parameters: sessionInputs.evaluationParameters || {},
-        businessContext:
-          sessionInputs.businessContext || sessionData?.results?.businessContext || {},
+        evaluationParameters: sessionInputs.evaluationParameters || {},
+        businessContext: sessionInputs.businessContext || {},
       });
       setShowEvaluationParameters(true);
       skipAutosaveRef.current = true;
@@ -266,7 +272,7 @@ export default function LandingPage() {
       const current = {
         businessProblem: (values?.businessProblem || '').trim(),
         businessSolution: (values?.businessSolution || '').trim(),
-        evaluationParameters: values?.parameters || {},
+        evaluationParameters: values?.evaluationParameters || {},
         businessContext: values?.businessContext || {},
       };
 
@@ -286,8 +292,8 @@ export default function LandingPage() {
           const aBS = (a.businessSolution || '').trim();
           const bBS = (b.businessSolution || '').trim();
           // Normalize to evaluationParameters for the canonical persisted shape
-          const aParams = a.evaluationParameters || a.parameters || {};
-          const bParams = b.evaluationParameters || b.parameters || {};
+          const aParams = a.evaluationParameters || {};
+          const bParams = b.evaluationParameters || {};
           const aContext = a.businessContext || {};
           const bContext = b.businessContext || {};
 
@@ -326,7 +332,7 @@ export default function LandingPage() {
         inputs: {
           businessProblem: values.businessProblem || '',
           businessSolution: values.businessSolution || '',
-          evaluationParameters: values.parameters || {},
+          evaluationParameters: values.evaluationParameters || {},
           businessContext: values.businessContext || {},
         },
         timestamp: savedAt,
@@ -339,7 +345,7 @@ export default function LandingPage() {
         const snapshot = {
           businessProblem: values.businessProblem || '',
           businessSolution: values.businessSolution || '',
-          evaluationParameters: values.parameters || {},
+          evaluationParameters: values.evaluationParameters || {},
           businessContext: values.businessContext || {},
         };
         lastAppliedSessionRef.current = snapshot;
@@ -420,10 +426,10 @@ export default function LandingPage() {
       const bBP = (b.businessProblem || '').trim();
       const aBS = (a.businessSolution || '').trim();
       const bBS = (b.businessSolution || '').trim();
-      const aParams = a.evaluationParameters || a.parameters || {};
-      const bParams = b.evaluationParameters || b.parameters || {};
-      const aContext = a.businessContext || a.context || {};
-      const bContext = b.businessContext || b.context || {};
+      const aParams = a.evaluationParameters || {};
+      const bParams = b.evaluationParameters || {};
+      const aContext = a.businessContext || {};
+      const bContext = b.businessContext || {};
 
       // Normalize context by removing undefined values for comparison
       const normalizeContext = (ctx) => {
@@ -586,7 +592,7 @@ export default function LandingPage() {
         inputs: {
           businessProblem: formData.businessProblem,
           businessSolution: formData.businessSolution,
-          evaluationParameters: formData.parameters || {},
+          evaluationParameters: formData.evaluationParameters || {},
           businessContext: formData.businessContext || {},
         },
         results: result,
@@ -813,7 +819,8 @@ export default function LandingPage() {
                 <Accordion
                   className="w-full"
                   variant="default"
-                  defaultExpandedKeys={['business-context-heading']}
+                  expandedKeys={businessContextExpandedKeys}
+                  onExpandedChange={setBusinessContextExpandedKeys}
                 >
                   <Accordion.Item id="business-context-heading">
                     <Accordion.Heading>
@@ -1010,6 +1017,7 @@ export default function LandingPage() {
                         <SampleTestCasesContainer
                           setShowEvaluationParameters={setShowEvaluationParameters}
                           openEvalParams={openEvalParams}
+                          openBusinessContext={openBusinessContext}
                         />
                       </Accordion.Body>
                     </Accordion.Panel>

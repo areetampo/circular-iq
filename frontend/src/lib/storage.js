@@ -127,13 +127,11 @@ export function saveEvaluationState(state) {
           state?.inputs?.evaluationParameters ??
           state?.evaluationParameters ??
           existingState.inputs?.evaluationParameters ??
-          existingState.inputs?.parameters ??
           {},
         businessContext:
           state?.inputs?.businessContext ??
           state?.businessContext ??
           existingState.inputs?.businessContext ??
-          existingState.inputs?.context ??
           {},
       },
       // PRESERVE existing results unless explicitly provided or set to null
@@ -163,28 +161,14 @@ export function saveEvaluationState(state) {
                   state.results.solution ??
                   srcInputs.businessSolution ??
                   '',
-                // Prefer explicit `parameters` or `input_parameters` on the result,
+                // Use explicit `evaluationParameters` on the result,
                 // otherwise fall back to the inputs snapshot
                 evaluationParameters:
                   state.results.evaluationParameters ??
-                  state.results.parameters ??
-                  state.results.input_parameters ??
-                  srcInputs.evaluationParameters ??
-                  srcInputs.parameters ??
-                  {},
-                parameters:
-                  state.results.parameters ??
-                  state.results.input_parameters ??
-                  state.results.evaluationParameters ??
-                  srcInputs.parameters ??
+                  state.results.evaluation_parameters ??
                   srcInputs.evaluationParameters ??
                   {},
-                businessContext:
-                  state.results.businessContext ??
-                  state.results.context ??
-                  srcInputs.businessContext ??
-                  srcInputs.context ??
-                  {},
+                businessContext: state.results.businessContext ?? srcInputs.businessContext ?? {},
                 // Preserve all original result fields (scores, metadata, similar_cases, etc.)
                 ...state.results,
               };

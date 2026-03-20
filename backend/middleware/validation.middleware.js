@@ -40,7 +40,7 @@ export const assessmentSchema = z
     contribute_to_global_benchmarks: z.boolean().optional(),
     businessProblem: z.string().optional(),
     businessSolution: z.string().optional(),
-    parameters: z.record(z.number()).optional(),
+    evaluation_parameters: z.record(z.number()).optional(),
   })
   .strict();
 

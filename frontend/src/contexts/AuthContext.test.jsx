@@ -82,7 +82,11 @@ describe('AuthProvider (init behavior)', () => {
 
     // Existing persisted session should remain untouched by AuthProvider
     const existingSessionState = {
-      inputs: { businessProblem: 'EXISTING', businessSolution: 'KEEP', parameters: { x: 1 } },
+      inputs: {
+        businessProblem: 'EXISTING',
+        businessSolution: 'KEEP',
+        evaluationParameters: { x: 1 },
+      },
       results: { overall_score: 10 },
       timestamp: new Date().toISOString(),
     };
@@ -131,8 +135,13 @@ describe('AuthProvider (init behavior)', () => {
 
     // Persisted session already contains inputs + results (edge case)
     const persistedSessionState = {
-      inputs: { businessProblem: 'P2', businessSolution: 'S2', parameters: {} },
-      results: { overall_score: 88, businessProblem: 'P2', businessSolution: 'S2', parameters: {} },
+      inputs: { businessProblem: 'P2', businessSolution: 'S2', evaluationParameters: {} },
+      results: {
+        overall_score: 88,
+        businessProblem: 'P2',
+        businessSolution: 'S2',
+        evaluationParameters: {},
+      },
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem('session_evaluation_state', JSON.stringify(persistedSessionState));

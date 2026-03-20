@@ -5,7 +5,7 @@
       "title": "Bio-Industrial Lubricants",
       "problem": "Current industrial lubricants are primarily petroleum-derived compounds, causing toxic runoff in manufacturing plants and creating non-biodegradable hazardous waste streams. These substances contaminate groundwater and urban waterways, harming aquatic ecosystems.",
       "solution": "We engineered a high-performance biolubricant from recycled waste cooking oils and agricultural cellulose using enzymatic catalysis processes. It matches synthetic oil viscosity standards but is 98% biodegradable within 21 days in soil environments.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 65,
         "infrastructure": 70,
         "market_price": 75,
@@ -14,6 +14,14 @@
         "size_efficiency": 72,
         "chemical_safety": 90,
         "tech_readiness": 78
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "pilot",
+        "targetGeography": "global",
+        "annualVolume": "10-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
       }
     },
     {
@@ -21,7 +29,7 @@
       "title": "Smart Bin Network",
       "problem": "Urban waste management relies on fixed collection schedules causing overflow or unnecessary pickups daily. Cities spend billions annually on routes that don't adapt to real-time demand patterns. Contamination occurs when waste streams mix at collection points.",
       "solution": "IoT-enabled waste bins with real-time fill-level sensors and AI routing algorithms reduce fuel consumption by 40% and emissions by 35%. Integrated sorting automatically separates organic, recyclable, and residual streams at collection points efficiently.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 72,
         "infrastructure": 80,
         "market_price": 68,
@@ -30,6 +38,14 @@
         "size_efficiency": 88,
         "chemical_safety": 85,
         "tech_readiness": 80
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "local",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
       }
     },
     {
@@ -37,7 +53,7 @@
       "title": "Circuit-Harvest Robotics",
       "problem": "Electronic waste (e-waste) is one of the fastest-growing waste streams globally, with over 57 million tons generated annually worldwide. Current manual disassembly is labor-intensive, dangerous due to toxic materials like lead and mercury, and economically unviable for low-value components. The precious metals and rare earth elements embedded in electronics are largely lost to landfills, representing trillions in unrealized material value.",
       "solution": "We've developed specialized robotics with computer vision and AI to safely disassemble electronics at industrial scale. Our system identifies and extracts precious metals (gold, silver, copper) and rare earth elements with 98% purity levels. Hazardous components are safely isolated and processed separately. The system processes 5x more units per hour than manual labor while eliminating worker exposure and recovering materials worth 10x collection cost.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 60,
         "infrastructure": 75,
         "market_price": 80,
@@ -46,6 +62,14 @@
         "size_efficiency": 85,
         "chemical_safety": 88,
         "tech_readiness": 85
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "electronics",
+        "partnerships": false
       }
     },
     {
@@ -53,7 +77,7 @@
       "title": "Textile Regeneration",
       "problem": "Fashion industry produces 92 million tons of textile waste annually across global markets. Current fast-fashion models encourage disposal over repair, and most textiles end up in landfills taking 200+ years to decompose, leaching synthetic dyes and microplastics into soil and groundwater. Textile production consumes 93 billion tons of water annually while producing 10% of global carbon emissions. Existing recycling captures only 15% of discarded textiles, and quality degradation limits recycling to lower-grade applications.",
       "solution": "Our fiber-to-fiber regeneration technology uses enzymatic and mechanical processes to break down mixed textiles back to component fibers without quality loss or degradation. We've achieved 95% fiber recovery rates from blended fabrics using proprietary catalysts that work at low temperatures, reducing energy consumption by 60% compared to conventional chemical recycling. Regenerated fibers match virgin material quality, enabling infinite closed-loop production cycles and creating genuine sustainability in fashion.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 78,
         "infrastructure": 68,
         "market_price": 72,
@@ -62,6 +86,14 @@
         "size_efficiency": 80,
         "chemical_safety": 82,
         "tech_readiness": 82
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
       }
     },
     {
@@ -69,7 +101,7 @@
       "title": "Anaerobic Digestion",
       "problem": "Food waste represents 1/3 of all generated waste globally, yet it decomposes in landfills producing methane, a greenhouse gas 28-36 times more potent than CO2 emissions. Current landfill disposal releases this energy value into the atmosphere rather than recovering it for productive use. Wastewater treatment facilities consume enormous amounts of energy (3-4 kWh per cubic meter), and nutrient recovery remains minimal despite sewage containing valuable nitrogen and phosphorus.",
       "solution": "Our anaerobic digestion system processes food waste and wastewater simultaneously to produce biogas (60% methane, 40% CO2) for grid-injection or direct facility power generation. The process recovers 70% of embodied energy while producing nutrient-rich digestate that replaces synthetic fertilizers effectively. A 500-ton/day facility generates enough biogas to power 200 homes while eliminating 1,200 tons of CO2 annually.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 65,
         "infrastructure": 82,
         "market_price": 78,
@@ -78,6 +110,14 @@
         "size_efficiency": 78,
         "chemical_safety": 80,
         "tech_readiness": 88
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
       }
     },
     {
@@ -85,7 +125,7 @@
       "title": "Building Material Passport",
       "problem": "Construction accounts for 40% of global waste with buildings treated as end-of-life disposal problems. Materials are mixed during demolition, making recovery impossible for most components. Material losses represent $300+ billion annually in unrealized value.",
       "solution": "Digital building material passports using QR codes and blockchain technology track materials throughout their lifecycle. Enables design for disassembly, increasing recovery value by 8-12x compared to traditional methods. We've recovered 95% of materials vs. 5% typical rates.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 70,
         "infrastructure": 78,
         "market_price": 80,
@@ -94,6 +134,14 @@
         "size_efficiency": 72,
         "chemical_safety": 88,
         "tech_readiness": 80
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "prototype",
+        "targetGeography": "national",
+        "annualVolume": "under-1-tonne",
+        "materialComplexity": "multi-material",
+        "partnerships": false
       }
     },
     {
@@ -101,7 +149,7 @@
       "title": "Ocean Plastic Intercept",
       "problem": "Over 8 million tons of plastic enter oceans annually, with 80% originating from land-based sources via river systems. Current cleanup efforts focus on open ocean collection, which costs $1,000+ per ton and misses 95% of plastic waste. By the time plastic reaches the ocean, it's fragmented and toxic to marine life ecosystems. Most plastic enters from 10 major river systems in developing nations where waste management infrastructure is inadequate.",
       "solution": "We deploy intelligent collection systems at river mouths before plastic reaches the ocean environments. Our barrier-free technology uses underwater currents and AI-guided nets to passively collect plastic (costing $50-100/ton vs. $1,000/ton ocean cleanup). We recover 80% of incoming plastic and 95% of collected material is recyclable or compostable. Recovered plastic is processed into high-grade pellets for manufacturing or building materials.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 75,
         "infrastructure": 72,
         "market_price": 68,
@@ -110,6 +158,14 @@
         "size_efficiency": 85,
         "chemical_safety": 90,
         "tech_readiness": 78
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "single-material",
+        "partnerships": true
       }
     },
     {
@@ -117,7 +173,7 @@
       "title": "EV Battery Second-Life",
       "problem": "EV batteries lose 20% capacity after 10 years but remain 80% functional for other applications. Current recycling involves costly disassembly and material recovery with only 50% effective reuse rates. Globally, 14 million used EV batteries will require handling by 2035, yet infrastructure exists for only 5% of projected volumes. Batteries represent $5 billion in material value annually, mostly being destroyed rather than recovered. Second-life applications remain underdeveloped due to lack of standardization.",
       "solution": "We aggregate used EV batteries into second-life energy storage systems for grid stabilization and microgrid applications. Our battery management system extends useful life by 10+ additional years at 80-85% capacity levels. We've standardized modular configurations enabling cost-effective integration into renewable energy systems, reducing storage costs by 40% vs. new batteries. Our system manages 500+ battery packs simultaneously, handling charge/discharge optimization and predictive maintenance. A single installation stores 5 MWh at 1/4 the cost.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 68,
         "infrastructure": 80,
         "market_price": 85,
@@ -126,6 +182,14 @@
         "size_efficiency": 80,
         "chemical_safety": 85,
         "tech_readiness": 82
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "electronics",
+        "partnerships": true
       }
     },
     {
@@ -133,7 +197,7 @@
       "title": "Agricultural Bioplastics",
       "problem": "Agriculture generates 931 million tons of waste including crop residues often burned, releasing carbon emissions. Single-use plastics consume 4 million tons of petroleum annually and contaminate soil systems, taking 400+ years to decompose completely.",
       "solution": "Bioplastics from agricultural waste using proprietary fermentation processes match conventional plastic performance while degrading within 2 years without toxins. Partnerships with 200+ farms ensure consistent feedstock supply for manufacturing.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 72,
         "infrastructure": 75,
         "market_price": 70,
@@ -142,6 +206,14 @@
         "size_efficiency": 82,
         "chemical_safety": 88,
         "tech_readiness": 80
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "pilot",
+        "targetGeography": "regional",
+        "annualVolume": "10-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
       }
     },
     {
@@ -149,7 +221,7 @@
       "title": "Water Membrane Regeneration",
       "problem": "Industrial wastewater treatment consumes 3-4 kWh per cubic meter of water processed daily. Reverse osmosis membranes become fouled within 1-2 years, requiring replacement at $50,000+ per installation cost. Membrane disposal adds 20% to treatment costs, and most facilities lack recovery infrastructure. Discarded membranes end up in landfills despite containing recoverable materials. Industry-wide, 100 million membranes are replaced annually, yet only 5% are recycled. Water scarcity affects 2 billion people.",
       "solution": "Our regeneration system cleans fouled membranes using low-energy enzymatic and mechanical processes, extending membrane lifespan by 4-5x compared to conventional replacement cycles. We've reduced replacement frequency from annual to every 5 years, cutting treatment costs by 65% overall. Our system recovers 95% of membrane material for reuse or manufacturing. Treated water is polished through our multi-stage system achieving 99.5% purity suitable for industrial reuse or environmental discharge. A single installation serves 500,000 people while reducing wastewater treatment energy consumption by 50%.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 70,
         "infrastructure": 82,
         "market_price": 75,
@@ -158,6 +230,14 @@
         "size_efficiency": 85,
         "chemical_safety": 90,
         "tech_readiness": 85
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "hazardous-components",
+        "partnerships": true
       }
     },
     {
@@ -165,7 +245,7 @@
       "title": "Coffee Waste Materials",
       "problem": "The coffee industry generates 20 million tons of waste annually including used grounds, pulp, and parchment materials. Coffee waste represents 50% of coffee bean mass but is typically discarded or used minimally in applications. Current applications capture less than 5% of generated waste, leaving 19 million tons in landfills where they decompose over 8+ years. Hospitality waste streams remain largely untapped despite consistent volume and composition predictability that enables scalable recovery solutions.",
       "solution": "We've commercialized coffee waste conversion into three product lines: (1) activated carbon for air/water filtration systems, (2) compostable bioplastics and packaging materials, (3) nutrient-dense fertilizer for agriculture applications. Our process recovers 85% of coffee waste mass in usable form. We've partnered with 500+ cafes providing collection infrastructure, creating revenue streams for hospitality businesses. Our activated carbon matches commercial performance at 30% lower cost. Annual capacity now processes 50,000 tons, preventing 50,000 tons CO2 equivalent emissions.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 78,
         "infrastructure": 72,
         "market_price": 75,
@@ -174,6 +254,14 @@
         "size_efficiency": 85,
         "chemical_safety": 88,
         "tech_readiness": 78
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "scaling",
+        "targetGeography": "regional",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "biological",
+        "partnerships": true
       }
     },
     {
@@ -181,7 +269,7 @@
       "title": "Tire Pyrolysis Plant",
       "problem": "1.5 billion tires are discarded annually, with 90% ending in landfills or illegal dumps despite taking decades to decompose fully. Tire stockpiles occupy 14 million tons globally, creating fire hazards and mosquito breeding grounds. Current recycling methods (grinding for rubberized asphalt) use 80% of recovered tire material while recovering only 20% effectively. Pyrolysis technology exists but lacks scalable economics due to high energy costs and uncertain product markets. Recovered materials (carbon black, oil, steel) have lower value than virgin alternatives.",
       "solution": "We've developed an integrated pyrolysis system that processes whole tires without shredding, reducing energy consumption by 60% vs. conventional pyrolysis methods. Our process recovers: (1) 25% fuel-grade pyrolysis oil, (2) 45% carbon black for tire manufacturing and composites, (3) 20% steel for metal recycling, (4) 10% syngas for system energy. Our facility processes 20,000 tires/day with full automation. Carbon black quality matches virgin material, commanding 90% of virgin pricing while using 100% waste feedstock. Economic recovery of $180/ton tire enables profitable operations.",
-      "parameters": {
+      "evaluationParameters": {
         "public_participation": 65,
         "infrastructure": 78,
         "market_price": 80,
@@ -190,6 +278,206 @@
         "size_efficiency": 82,
         "chemical_safety": 85,
         "tech_readiness": 80
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 13,
+      "title": "Construction Material Recovery",
+      "problem": "Construction and demolition waste accounts for over 30% of all solid waste generated globally. Concrete, steel, and wood are often mixed and landfilled, representing a massive loss of embodied energy and material value. Current recycling rates for construction materials remain below 20% in most regions, largely due to contamination and lack of sorting infrastructure.",
+      "solution": "We operate mobile crushing and sorting units that process mixed construction waste on-site, separating concrete, metals, and wood into high-purity streams. Our AI-powered optical sorters achieve 98% purity for recycled aggregates, which we sell back to local construction firms at 20% below virgin material cost. Steel is baled for smelters, and wood is chipped for biomass energy or composite panel production.",
+      "evaluationParameters": {
+        "public_participation": 60,
+        "infrastructure": 85,
+        "market_price": 70,
+        "maintenance": 75,
+        "uniqueness": 78,
+        "size_efficiency": 88,
+        "chemical_safety": 80,
+        "tech_readiness": 85
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "scaling",
+        "targetGeography": "regional",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 14,
+      "title": "Electronics Refurbishment",
+      "problem": "Only 17% of global e-waste is formally recycled, leaving millions of functional or repairable electronics to rot in landfills. The lack of standardized refurbishment processes and consumer trust in refurbished devices limits market growth, while new device manufacturing consumes scarce resources and generates high carbon footprints.",
+      "solution": "We operate a certified electronics refurbishment facility that tests, repairs, and resells used smartphones, laptops, and tablets. Using proprietary diagnostic software and modular repair techniques, we restore devices to like-new condition with a 12-month warranty. Our marketplace connects consumers with high-quality refurbished devices at 40-60% below retail price, diverting over 500,000 devices from landfills annually.",
+      "evaluationParameters": {
+        "public_participation": 80,
+        "infrastructure": 70,
+        "market_price": 85,
+        "maintenance": 75,
+        "uniqueness": 72,
+        "size_efficiency": 78,
+        "chemical_safety": 88,
+        "tech_readiness": 90
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "national",
+        "annualVolume": "10-100-tonnes",
+        "materialComplexity": "electronics",
+        "partnerships": false
+      }
+    },
+    {
+      "id": 15,
+      "title": "Plastic Packaging Take-back",
+      "problem": "Flexible plastic packaging, such as films and pouches, makes up nearly 40% of all plastic waste but is rarely recycled due to contamination and sorting difficulties. Most ends up in incinerators or oceans, contributing to microplastic pollution and resource depletion.",
+      "solution": "We partner with consumer goods brands to create a closed-loop take-back program for flexible plastic packaging. Consumers return used packaging via prepaid mailers or drop-off bins; we then wash, shred, and pelletize the material into high-quality recycled resin. This resin is used to manufacture new packaging, achieving up to 30% recycled content in a circular model.",
+      "evaluationParameters": {
+        "public_participation": 85,
+        "infrastructure": 75,
+        "market_price": 68,
+        "maintenance": 70,
+        "uniqueness": 80,
+        "size_efficiency": 82,
+        "chemical_safety": 85,
+        "tech_readiness": 78
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "pilot",
+        "targetGeography": "national",
+        "annualVolume": "10-100-tonnes",
+        "materialComplexity": "single-material",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 16,
+      "title": "Industrial Symbiosis Platform",
+      "problem": "Manufacturing facilities generate large volumes of by-products, waste heat, and wastewater that often go untreated. Lack of information and coordination prevents these resources from being used as inputs by other nearby industries, leading to unnecessary environmental impact and lost economic value.",
+      "solution": "Our digital platform connects industrial facilities to identify and facilitate symbiosis opportunities. Using geographic and material flow data, we match waste streams with potential users (e.g., a brewery's spent grain to a farm, a factory's waste heat to a greenhouse). We provide logistics coordination and quality assurance, enabling 20+ industrial parks to reduce waste by 40% and cut CO2 emissions by 25%.",
+      "evaluationParameters": {
+        "public_participation": 75,
+        "infrastructure": 80,
+        "market_price": 72,
+        "maintenance": 78,
+        "uniqueness": 88,
+        "size_efficiency": 85,
+        "chemical_safety": 90,
+        "tech_readiness": 82
+      },
+      "businessContext": {
+        "businessModelType": "other",
+        "operationalStage": "scaling",
+        "targetGeography": "global",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 17,
+      "title": "Textile Rental Service",
+      "problem": "Fast fashion generates massive textile waste and consumes enormous water resources. The average garment is worn only 7 times before disposal, and consumers often buy new clothes for special occasions they rarely wear again, leading to high per-use environmental impact.",
+      "solution": "We offer a subscription-based rental service for high-quality clothing, allowing customers to rotate their wardrobe without ownership. Our logistics include dry cleaning, repair, and redistribution. By extending the use phase of garments, we reduce the need for new production by 70% compared to conventional retail, and our circular model ensures garments are reused until they can be responsibly recycled.",
+      "evaluationParameters": {
+        "public_participation": 88,
+        "infrastructure": 65,
+        "market_price": 75,
+        "maintenance": 70,
+        "uniqueness": 85,
+        "size_efficiency": 72,
+        "chemical_safety": 90,
+        "tech_readiness": 85
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "local",
+        "annualVolume": "10-100-tonnes",
+        "materialComplexity": "multi-material",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 18,
+      "title": "Solar Panel Recycling",
+      "problem": "The first wave of solar panels is reaching end-of-life, with an estimated 8 million tons of PV waste expected by 2030. Current recycling methods recover only about 20% of materials, leaving valuable silver, silicon, and aluminum in landfills. Improper disposal also risks releasing hazardous heavy metals.",
+      "solution": "We've developed a thermal and chemical process that recovers 95% of materials from end-of-life solar panels. Silver, silicon, aluminum, and glass are separated and purified for reuse in new panels or other industries. Our process operates at lower temperatures than conventional methods, reducing energy use by 40% and making recycling economically viable even for smaller volumes.",
+      "evaluationParameters": {
+        "public_participation": 62,
+        "infrastructure": 78,
+        "market_price": 82,
+        "maintenance": 75,
+        "uniqueness": 90,
+        "size_efficiency": 80,
+        "chemical_safety": 85,
+        "tech_readiness": 75
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "prototype",
+        "targetGeography": "global",
+        "annualVolume": "under-1-tonne",
+        "materialComplexity": "electronics",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 19,
+      "title": "Food Waste Upcycling",
+      "problem": "Supermarkets and restaurants discard tons of edible food daily due to cosmetic imperfections, overstock, or approaching expiration dates. This food waste contributes to methane emissions in landfills while 800 million people globally face food insecurity.",
+      "solution": "We operate a network of collection and processing centers that rescue unsold but still safe food from retail partners. Using high-pressure processing and freeze-drying, we transform this food into shelf-stable ingredients and ready-to-eat meals. Our products are sold through our own direct-to-consumer brand and distributed to food banks, reducing food waste by 80% across our partner network.",
+      "evaluationParameters": {
+        "public_participation": 90,
+        "infrastructure": 72,
+        "market_price": 78,
+        "maintenance": 70,
+        "uniqueness": 80,
+        "size_efficiency": 82,
+        "chemical_safety": 95,
+        "tech_readiness": 88
+      },
+      "businessContext": {
+        "businessModelType": "recycling",
+        "operationalStage": "scaling",
+        "targetGeography": "local",
+        "annualVolume": "over-100-tonnes",
+        "materialComplexity": "biological",
+        "partnerships": true
+      }
+    },
+    {
+      "id": 20,
+      "title": "Biogas from Agricultural Waste",
+      "problem": "Crop residues (corn stalks, wheat straw, rice husks) are often burned in the field, releasing black carbon and greenhouse gases. This practice contributes to air pollution and loses a valuable energy resource. Meanwhile, many rural communities lack access to reliable clean energy.",
+      "solution": "We install modular anaerobic digesters on farms that convert crop residues into biogas for cooking, heating, and electricity generation. The digestate is returned to fields as organic fertilizer, closing nutrient loops. Our model reduces reliance on fossil fuels and provides farmers with a new revenue stream, with each installation offsetting 200 tonnes of CO2 annually.",
+      "evaluationParameters": {
+        "public_participation": 78,
+        "infrastructure": 85,
+        "market_price": 70,
+        "maintenance": 75,
+        "uniqueness": 82,
+        "size_efficiency": 85,
+        "chemical_safety": 88,
+        "tech_readiness": 85
+      },
+      "businessContext": {
+        "businessModelType": "product-as-a-service",
+        "operationalStage": "scaling",
+        "targetGeography": "regional",
+        "annualVolume": "10-100-tonnes",
+        "materialComplexity": "biological",
+        "partnerships": true
       }
     }
   ]

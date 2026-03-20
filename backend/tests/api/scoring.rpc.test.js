@@ -102,7 +102,7 @@ test('POST /api/score returns similar_cases with structured fields', async () =>
   const payload = {
     businessProblem: 'P'.repeat(200), // Minimum 200 characters
     businessSolution: 'S'.repeat(200), // Minimum 200 characters
-    parameters: {
+    evaluation_parameters: {
       public_participation: 50,
       infrastructure: 50,
       market_price: 50,
