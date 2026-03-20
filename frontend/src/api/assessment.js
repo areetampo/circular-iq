@@ -5,10 +5,7 @@
  * Location: src/api/assessment.js
  */
 
-import { FRONTEND_CONFIG } from '@/config';
 import { buildApiUrl } from '@/lib/apiClient';
-
-const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 
 /**
  * Call backend API to score a business idea

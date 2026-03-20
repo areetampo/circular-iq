@@ -582,22 +582,74 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     // ========== STEP 6: COMPILE FINAL RESPONSE ==========
     // Format similar cases using structured columns only.
-    const formattedCases = (similarCases || []).map((c) => ({
-      id: c.id,
-      title: c.title || (c.content ? String(c.content).substring(0, 100) : ''),
-      industry: c.industry ?? null,
-      category: c.category ?? null,
-      source: c.source ?? null,
-      similarity: c.similarity ?? c.combined_score ?? 0,
-      rrf_score: c.rrf_score ?? null,
-      metadata: c.metadata,
-    }));
+    const formattedCases = (similarCases || []).map((c) => {
+      const fields = c.metadata?.fields || {};
+
+      // Extract title from the metadata_json summary string.
+      // metadata_json is a JSON string; parse it to get the "summary" field.
+      // The "circular_economy_case_studies" field has the project name on the
+      // first line before " | " — use that as a short title.
+      let title = '';
+      let summary = '';
+      let projectName = '';
+      try {
+        const metaJson = fields.metadata_json ? JSON.parse(fields.metadata_json) : null;
+        if (metaJson) {
+          summary = metaJson.summary || '';
+          // Project name is the first segment before " | " in
+          // circular_economy_case_studies
+          const ceText = metaJson.circular_economy_case_studies || '';
+          const pipeIdx = ceText.indexOf(' | ');
+          projectName = pipeIdx > -1 ? ceText.substring(0, pipeIdx).trim() : '';
+        }
+      } catch (_) {
+        // metadata_json parse failed — leave empty
+      }
+
+      // Build title: prefer projectName, fall back to first 80 chars of summary
+      title =
+        projectName ||
+        (summary ? summary.substring(0, 80) : '') ||
+        `Case ${c.id?.substring(0, 8) || '?'}`;
+
+      return {
+        id: c.id,
+        title,
+        summary, // clean one-para description
+        problem: fields.problem || '', // full problem text
+        solution: fields.solution || '', // full solution text
+        impact: fields.impact || '', // outcomes/impact text
+        materials: fields.materials || '', // materials involved
+        circular_strategy:
+          fields.circular_strategy || // e.g. "Material Reuse"
+          (c.metadata?.r_strategy
+            ? c.metadata.r_strategy.charAt(0).toUpperCase() + c.metadata.r_strategy.slice(1)
+            : null),
+        industry: c.industry ?? null,
+        category: c.category ?? null,
+        source: c.source ?? null,
+        similarity: c.similarity ?? c.combined_score ?? 0,
+        rrf_score: c.rrf_score ?? null,
+        // Keep metadata for backward compat but strip the large metadata_json
+        // string to avoid bloating the response payload
+        metadata: c.metadata
+          ? {
+              ...c.metadata,
+              fields: {
+                ...fields,
+                metadata_json: undefined, // omit — already extracted what's needed
+              },
+            }
+          : null,
+      };
+    });
+
+    console.log(req);
 
     const response = {
+      // input echo
       businessProblem,
       businessSolution,
-      // keep old name for tests/clients
-      parameters: parameters || {},
       input_parameters: parameters || {},
       // Main scoring results
       overall_score: scores.overall_score,

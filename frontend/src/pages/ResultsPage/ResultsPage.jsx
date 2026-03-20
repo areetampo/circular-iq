@@ -61,12 +61,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
 import { titleize } from '@/lib/formatting';
 import { formatFactorName, getRiskBadgeColor, getScoreClass } from '@/lib/scoring';
-import {
-  categorizeIntegrityGaps,
-  extractCaseInfo,
-  extractProblemSolution,
-  getMatchStrength,
-} from '@/utils/content';
+import { categorizeIntegrityGaps, extractProblemSolution, getMatchStrength } from '@/utils/content';
 import { getSession, saveSession } from '@/utils/session';
 
 import ResultsSkeleton from './components/ResultsSkeleton';
@@ -465,7 +460,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   );
 
   // When results are restored via session restore, always use the snapshot in results for Case Summary
-  let problemText, solutionText, businessContextValues, evaluationParameterValues, industryText;
+  let problemText, solutionText, businessContextValues, evaluationParameterValues;
 
   if (!isViewFromMyAssessments && sessionSnapshot?.results) {
     // Use the snapshot from session results (calculated, not editable)
@@ -486,11 +481,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       res.input_parameters ||
       res.parameters ||
       (res.audit?.parameters ? res.audit.parameters : null);
-    // Prefer structured `industry` field from the server/session snapshot
-    industryText =
-      (res.industry && titleize(res.industry)) ||
-      (res.audit?.industry && titleize(res.audit.industry)) ||
-      'Industry data unavailable';
   } else {
     // Fallback to previous logic for saved assessments or navigation
     const storedProblemText =
@@ -508,7 +498,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     problemText = storedProblemText || caseProblemSolution?.problem || 'Problem data unavailable';
     solutionText =
       storedSolutionText || caseProblemSolution?.solution || 'Solution data unavailable';
-    industryText = caseIndustry ? titleize(caseIndustry) : 'Industry data unavailable';
     evaluationParameterValues =
       resolvedFormData?.parameters ||
       actualResult?.input_parameters ||
@@ -1184,7 +1173,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   </Accordion.Panel>
                 </Accordion.Item>
 
-                {/* --- Parameters Item --- */}
+                {/* --- Business Context Item --- */}
+
+                {/* --- Evaluation Parameters Item --- */}
                 <Accordion.Item id="parameters" className="group/case">
                   <Accordion.Heading>
                     <Accordion.Trigger className="flex items-center justify-between w-full py-3">
@@ -1194,7 +1185,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           size={20}
                         />
                         <div>
-                          <h4 className="font-bold text-slate-900">Parameters</h4>
+                          <h4 className="font-bold text-slate-900">Evaluation Parameters</h4>
                           <p className="text-sm text-slate-600">Input parameters and values</p>
                         </div>
                       </div>
@@ -1226,32 +1217,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           <p className="text-sm text-slate-600">No parameter values available.</p>
                         )}
                       </div>
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                {/* --- Industry Item --- */}
-                <Accordion.Item id="industry" className="group/case">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
-                      <div className="flex items-center gap-3">
-                        <ClipboardList
-                          className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
-                          size={20}
-                        />
-                        <div>
-                          <h4 className="font-bold text-slate-900">Industry</h4>
-                          <p className="text-sm text-slate-600">Market or sector context</p>
-                        </div>
-                      </div>
-                      <Accordion.Indicator />
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-                  <Accordion.Panel>
-                    <Accordion.Body>
-                      <p className="text-sm text-slate-700 leading-relaxed rounded-xl py-1.5 px-3 bg-slate-100 w-fit">
-                        {industryText}
-                      </p>
                     </Accordion.Body>
                   </Accordion.Panel>
                 </Accordion.Item>
@@ -2519,13 +2484,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   {actualResult.similar_cases && actualResult.similar_cases.length > 0 ? (
                     <div className="space-y-6">
                       {actualResult.similar_cases.map((caseItem, index) => {
-                        const caseTitle = casesSummaries[index] || `Related Case ${index + 1}`;
-                        const { matchPercentage, sourceCaseId, content } = extractCaseInfo(
-                          caseItem,
-                          index,
-                        );
-                        const { problem: problemText, solution: solutionText } =
-                          extractProblemSolution(caseItem);
+                        const matchPercentage = Math.round((caseItem.similarity || 0) * 100);
+                        const sourceCaseId = caseItem.id || `case-${index}`;
+                        const caseTitle =
+                          caseItem.title || casesSummaries[index] || `Related Case ${index + 1}`;
+                        const problemText =
+                          caseItem.problem ||
+                          casesSummaries[index] ||
+                          'No problem description available.';
+                        const solutionText =
+                          caseItem.solution || 'No solution description available.';
                         const { label: matchStrengthLabel, color: matchStrengthColor } =
                           getMatchStrength(caseItem.similarity || 0);
 
@@ -2576,6 +2544,34 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 <p className="text-sm text-gray-600">{solutionText}</p>
                               </div>
                             </div>
+                            {/* Impact / outcomes row */}
+                            {caseItem.impact && (
+                              <div className="p-3 border-l-4 border-blue-500 rounded bg-blue-50 mb-3">
+                                <h5 className="text-sm font-semibold text-gray-700 mb-1">
+                                  Impact & Outcomes
+                                </h5>
+                                <p className="text-sm text-gray-600">{caseItem.impact}</p>
+                              </div>
+                            )}
+
+                            {/* Metadata chips row */}
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {caseItem.circular_strategy && (
+                                <Chip size="sm" variant="flat" color="success">
+                                  {caseItem.circular_strategy}
+                                </Chip>
+                              )}
+                              {caseItem.materials && (
+                                <Chip size="sm" variant="flat" color="default">
+                                  {caseItem.materials}
+                                </Chip>
+                              )}
+                              {caseItem.industry && (
+                                <Chip size="sm" variant="flat" color="primary">
+                                  {caseItem.industry}
+                                </Chip>
+                              )}
+                            </div>
                             <div className="flex justify-end">
                               <Button
                                 size="sm"
@@ -2583,7 +2579,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 onPress={() =>
                                   openResultsDatabaseEvidenceDetailsDrawer({
                                     caseItem,
-                                    content,
+                                    content: caseItem.summary || caseItem.problem || '',
                                     title: caseTitle,
                                     matchPercentage,
                                     matchStrengthLabel,

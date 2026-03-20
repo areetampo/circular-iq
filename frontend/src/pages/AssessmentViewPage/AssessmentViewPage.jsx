@@ -812,6 +812,30 @@ export default function AssessmentViewPage() {
                     {summary && (
                       <p className="text-xs text-slate-600 mt-2 leading-relaxed">{summary}</p>
                     )}
+
+                    {/* Problem preview */}
+                    {caseItem.problem && !summary && (
+                      <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                        <span className="font-semibold">Problem: </span>
+                        {caseItem.problem.substring(0, 200)}
+                        {caseItem.problem.length > 200 ? '…' : ''}
+                      </p>
+                    )}
+
+                    {/* Metadata chips */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {caseItem.circular_strategy && (
+                        <Chip variant="soft" color="success" size="sm" className="text-xs">
+                          {caseItem.circular_strategy}
+                        </Chip>
+                      )}
+                      {caseItem.materials && (
+                        <Chip variant="secondary" size="sm" className="text-xs">
+                          {caseItem.materials}
+                        </Chip>
+                      )}
+                    </div>
+
                     {/* Similarity bar */}
                     <div className="mt-3 w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                       <div
