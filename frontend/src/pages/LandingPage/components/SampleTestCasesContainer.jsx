@@ -34,8 +34,8 @@ export default function SampleTestCasesContainer({
         inputs: {
           businessProblem: testCase.problem || '',
           businessSolution: testCase.solution || '',
-          parameters: testCase.parameters || {},
-          context: getValues('context') || {},
+          evaluationParameters: testCase.parameters || {},
+          businessContext: getValues('businessContext') || {},
         },
         timestamp: new Date().toISOString(),
       });

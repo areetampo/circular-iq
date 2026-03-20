@@ -5,10 +5,10 @@ import {
   AlertTriangle,
   BadgeInfo,
   Bot,
+  BriefcaseBusiness,
   ChevronDown,
   CircleCheck,
   ClipboardList,
-  Info,
   LayersPlus,
   NotebookPen,
   PencilRuler,
@@ -56,6 +56,7 @@ export default function LandingPage() {
     openBusinessProblemInfoDrawer,
     openBusinessSolutionInfoDrawer,
     openEvaluationParametersHeadingInfoDrawer,
+    openBusinessContextHeadingInfoDrawer,
     openSampleTestCasesHeadingInfoDrawer,
   } = useGlobalDrawer();
 
@@ -102,12 +103,13 @@ export default function LandingPage() {
   // Pre-fill form with data from ResultsPage (reevaluate)
   useEffect(() => {
     if (location.state?.formData) {
-      const { businessProblem, businessSolution, parameters, context } = location.state.formData;
+      const { businessProblem, businessSolution, parameters, businessContext } =
+        location.state.formData;
       reset({
         businessProblem: businessProblem || '',
         businessSolution: businessSolution || '',
         parameters: parameters || {},
-        context: context || {},
+        businessContext: businessContext || {},
       });
       // Open the evaluation parameters panel
       setShowEvaluationParameters(true);
@@ -164,22 +166,38 @@ export default function LandingPage() {
       // ignore parsing errors and fall back to previous logic
     }
 
-    // Helper to compare input shapes
+    // Helper to compare input shapes (supports both legacy and new naming)
     const inputsEqual = (a = {}, b = {}) => {
       try {
         const aBP = (a.businessProblem || '').trim();
         const bBP = (b.businessProblem || '').trim();
         const aBS = (a.businessSolution || '').trim();
         const bBS = (b.businessSolution || '').trim();
-        const aParams = a.parameters || {};
-        const bParams = b.parameters || {};
-        const aContext = a.context || {};
-        const bContext = b.context || {};
+        const aParams = a.parameters || a.evaluationParameters || {};
+        const bParams = b.parameters || b.evaluationParameters || {};
+        const aContext = a.businessContext || {};
+        const bContext = b.businessContext || {};
+
+        // Normalize context by removing undefined values for comparison
+        const normalizeContext = (ctx) => {
+          if (!ctx) return {};
+          const normalized = {};
+          Object.keys(ctx).forEach((key) => {
+            if (ctx[key] !== undefined) {
+              normalized[key] = ctx[key];
+            }
+          });
+          return normalized;
+        };
+
+        const aContextNorm = normalizeContext(aContext);
+        const bContextNorm = normalizeContext(bContext);
+
         return (
           aBP === bBP &&
           aBS === bBS &&
           JSON.stringify(aParams) === JSON.stringify(bParams) &&
-          JSON.stringify(aContext) === JSON.stringify(bContext)
+          JSON.stringify(aContextNorm) === JSON.stringify(bContextNorm)
         );
       } catch (err) {
         return false;
@@ -199,8 +217,9 @@ export default function LandingPage() {
       reset({
         businessProblem: sessionInputs.businessProblem || '',
         businessSolution: sessionInputs.businessSolution || '',
-        parameters: sessionInputs.parameters || {},
-        context: sessionInputs.context || {},
+        parameters: sessionInputs.evaluationParameters || {},
+        businessContext:
+          sessionInputs.businessContext || sessionData?.results?.businessContext || {},
       });
       setShowEvaluationParameters(true);
       skipAutosaveRef.current = true;
@@ -214,8 +233,9 @@ export default function LandingPage() {
       reset({
         businessProblem: sessionInputs.businessProblem || '',
         businessSolution: sessionInputs.businessSolution || '',
-        parameters: sessionInputs.parameters || {},
-        context: sessionInputs.context || {},
+        parameters: sessionInputs.evaluationParameters || {},
+        businessContext:
+          sessionInputs.businessContext || sessionData?.results?.businessContext || {},
       });
       setShowEvaluationParameters(true);
       skipAutosaveRef.current = true;
@@ -246,8 +266,8 @@ export default function LandingPage() {
       const current = {
         businessProblem: (values?.businessProblem || '').trim(),
         businessSolution: (values?.businessSolution || '').trim(),
-        parameters: values?.parameters || {},
-        context: values?.context || {},
+        evaluationParameters: values?.parameters || {},
+        businessContext: values?.businessContext || {},
       };
 
       // Stored inputs (read directly from localStorage to avoid useSession timing races)
@@ -255,8 +275,8 @@ export default function LandingPage() {
       const stored = storedState?.inputs || {
         businessProblem: '',
         businessSolution: '',
-        parameters: {},
-        context: {},
+        evaluationParameters: {},
+        businessContext: {},
       };
 
       const inputsEqualLocal = (a = {}, b = {}) => {
@@ -265,15 +285,32 @@ export default function LandingPage() {
           const bBP = (b.businessProblem || '').trim();
           const aBS = (a.businessSolution || '').trim();
           const bBS = (b.businessSolution || '').trim();
-          const aParams = a.parameters || {};
-          const bParams = b.parameters || {};
-          const aContext = a.context || {};
-          const bContext = b.context || {};
+          // Normalize to evaluationParameters for the canonical persisted shape
+          const aParams = a.evaluationParameters || a.parameters || {};
+          const bParams = b.evaluationParameters || b.parameters || {};
+          const aContext = a.businessContext || {};
+          const bContext = b.businessContext || {};
+
+          // Normalize context by removing undefined values for comparison
+          const normalizeContext = (ctx) => {
+            if (!ctx) return {};
+            const normalized = {};
+            Object.keys(ctx).forEach((key) => {
+              if (ctx[key] !== undefined) {
+                normalized[key] = ctx[key];
+              }
+            });
+            return normalized;
+          };
+
+          const aContextNorm = normalizeContext(aContext);
+          const bContextNorm = normalizeContext(bContext);
+
           return (
             aBP === bBP &&
             aBS === bBS &&
             JSON.stringify(aParams) === JSON.stringify(bParams) &&
-            JSON.stringify(aContext) === JSON.stringify(bContext)
+            JSON.stringify(aContextNorm) === JSON.stringify(bContextNorm)
           );
         } catch (err) {
           return false;
@@ -289,8 +326,8 @@ export default function LandingPage() {
         inputs: {
           businessProblem: values.businessProblem || '',
           businessSolution: values.businessSolution || '',
-          parameters: values.parameters || {},
-          context: values.context || {},
+          evaluationParameters: values.parameters || {},
+          businessContext: values.businessContext || {},
         },
         timestamp: savedAt,
       });
@@ -302,8 +339,8 @@ export default function LandingPage() {
         const snapshot = {
           businessProblem: values.businessProblem || '',
           businessSolution: values.businessSolution || '',
-          parameters: values.parameters || {},
-          context: values.context || {},
+          evaluationParameters: values.parameters || {},
+          businessContext: values.businessContext || {},
         };
         lastAppliedSessionRef.current = snapshot;
       } catch (err) {
@@ -318,11 +355,13 @@ export default function LandingPage() {
     autosaveTimerRef.current = setTimeout(() => {
       if (skipAutosaveRef.current) {
         skipAutosaveRef.current = false;
+        autosaveTimerRef.current = null;
         return;
       }
 
       const values = methods.getValues();
       persistInputs(values);
+      autosaveTimerRef.current = null;
     }, AUTOSAVE_DEBOUNCE_MS);
   }, [methods, persistInputs]);
 
@@ -381,16 +420,41 @@ export default function LandingPage() {
       const bBP = (b.businessProblem || '').trim();
       const aBS = (a.businessSolution || '').trim();
       const bBS = (b.businessSolution || '').trim();
-      const aParams = a.parameters || {};
-      const bParams = b.parameters || {};
-      const aContext = a.context || {};
-      const bContext = b.context || {};
+      const aParams = a.evaluationParameters || a.parameters || {};
+      const bParams = b.evaluationParameters || b.parameters || {};
+      const aContext = a.businessContext || a.context || {};
+      const bContext = b.businessContext || b.context || {};
+
+      // Normalize context by removing undefined values for comparison
+      const normalizeContext = (ctx) => {
+        if (!ctx) return {};
+        const normalized = {};
+        Object.keys(ctx).forEach((key) => {
+          if (ctx[key] !== undefined) {
+            normalized[key] = ctx[key];
+          }
+        });
+        return normalized;
+      };
+
+      const aContextNorm = normalizeContext(aContext);
+      const bContextNorm = normalizeContext(bContext);
+
+      const shallowEqual = (objA = {}, objB = {}) => {
+        const aKeys = Object.keys(objA);
+        const bKeys = Object.keys(objB);
+        if (aKeys.length !== bKeys.length) return false;
+        return aKeys.every(
+          (key) => Object.prototype.hasOwnProperty.call(objB, key) && objA[key] === objB[key],
+        );
+      };
+
       try {
         return (
           aBP === bBP &&
           aBS === bBS &&
-          JSON.stringify(aParams) === JSON.stringify(bParams) &&
-          JSON.stringify(aContext) === JSON.stringify(bContext)
+          shallowEqual(aParams, bParams) &&
+          shallowEqual(aContextNorm, bContextNorm)
         );
       } catch (err) {
         return false;
@@ -399,30 +463,46 @@ export default function LandingPage() {
 
     const shouldWarn = () => {
       const values = methods.getValues();
-      // Prefer direct localStorage read to avoid races with useSession refetch
       const persisted = loadEvaluationState();
       const stored = persisted?.inputs ||
         sessionData?.inputs || {
           businessProblem: '',
           businessSolution: '',
-          parameters: {},
+          evaluationParameters: {},
+          businessContext: {},
         };
 
       // If the current form already matches persisted inputs, DO NOT warn
       if (inputsEqual(values, stored)) return false;
 
-      // Otherwise warn when there is a pending autosave or the values differ
+      // Warn when there is a pending autosave OR unsaved edits are present.
       return Boolean(autosaveTimerRef.current) || !inputsEqual(values, stored);
     };
 
     const handler = (e) => {
       if (!shouldWarn()) return;
-      // Try to persist synchronously before leaving
+
+      // Persist any pending work before deciding whether to show a browser prompt.
       flushAutosave();
-      // Standard browser prompt
-      e.preventDefault();
-      e.returnValue = '';
-      return '';
+
+      const values = methods.getValues();
+      const persisted = loadEvaluationState();
+      const stored = persisted?.inputs ||
+        sessionData?.inputs || {
+          businessProblem: '',
+          businessSolution: '',
+          evaluationParameters: {},
+          businessContext: {},
+        };
+
+      // If sync succeeded and inputs now match persisted state, no prompt needed.
+      if (!inputsEqual(values, stored)) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+
+      return;
     };
 
     window.addEventListener('beforeunload', handler);
@@ -506,8 +586,8 @@ export default function LandingPage() {
         inputs: {
           businessProblem: formData.businessProblem,
           businessSolution: formData.businessSolution,
-          parameters: formData.parameters || {},
-          context: formData.context || {},
+          evaluationParameters: formData.parameters || {},
+          businessContext: formData.businessContext || {},
         },
         results: result,
       });
@@ -738,9 +818,9 @@ export default function LandingPage() {
                   <Accordion.Item id="business-context-heading">
                     <Accordion.Heading>
                       <Accordion.Trigger className="hover:bg-slate-50/80 group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150">
-                        <Info
+                        <BriefcaseBusiness
                           className={cn(
-                            'h-6 w-6 shrink-0 text-purple-500',
+                            'h-6 w-6 shrink-0 text-rose-800',
                             'transition-[scale,rotate] duration-300 ease-out',
                             'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-10 group-hover/parent:drop-shadow-md mr-1',
                           )}
@@ -752,10 +832,19 @@ export default function LandingPage() {
                             <span className="font-bold text-lg leading-6 text-slate-800">
                               Business Context
                             </span>
-                            <span className="text-xs font-normal leading-4 text-slate-400">
-                              Optional — improves analysis quality
-                            </span>
+                            <BadgeInfo
+                              className="info-icon"
+                              size={22}
+                              color="brown"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openBusinessContextHeadingInfoDrawer();
+                              }}
+                            />
                           </div>
+                          <span className="text-xs font-normal leading-4 text-slate-400">
+                            Optional — improves analysis quality
+                          </span>
                         </div>
 
                         <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">

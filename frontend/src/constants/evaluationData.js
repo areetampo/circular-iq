@@ -681,6 +681,64 @@ export const categoryMapping = {
   },
 };
 
+/**
+ * Tier configuration for score-based color coding
+ * Each tier defines minScore and color classes for selected/unselected states
+ */
+export const TIER_CONFIG = [
+  {
+    minScore: 90,
+    selected: 'border-emerald-600 bg-emerald-50 text-emerald-900',
+    unselected:
+      'border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 text-emerald-800',
+  },
+  {
+    minScore: 80,
+    selected: 'border-green-600 bg-green-50 text-green-900',
+    unselected: 'border-green-200 hover:border-green-400 hover:bg-green-50/50 text-green-700',
+  },
+  {
+    minScore: 70,
+    selected: 'border-lime-600 bg-lime-50 text-lime-900',
+    unselected: 'border-lime-200 hover:border-lime-400 hover:bg-lime-50/50 text-lime-700',
+  },
+  {
+    minScore: 60,
+    selected: 'border-yellow-600 bg-yellow-50 text-yellow-900',
+    unselected: 'border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50/50 text-yellow-700',
+  },
+  {
+    minScore: 50,
+    selected: 'border-amber-600 bg-amber-50 text-amber-900',
+    unselected: 'border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-700',
+  },
+  {
+    minScore: 40,
+    selected: 'border-orange-600 bg-orange-50 text-orange-900',
+    unselected: 'border-orange-200 hover:border-orange-400 hover:bg-orange-50/50 text-orange-700',
+  },
+  {
+    minScore: 30,
+    selected: 'border-red-600 bg-red-50 text-red-900',
+    unselected: 'border-red-200 hover:border-red-400 hover:bg-red-50/50 text-red-700',
+  },
+  {
+    minScore: 20,
+    selected: 'border-red-700 bg-red-50 text-red-900',
+    unselected: 'border-red-200 hover:border-red-500 hover:bg-red-50/50 text-red-700',
+  },
+  {
+    minScore: 10,
+    selected: 'border-red-800 bg-red-50 text-red-900',
+    unselected: 'border-red-200 hover:border-red-600 hover:bg-red-50/50 text-red-700',
+  },
+  {
+    minScore: 0,
+    selected: 'border-red-900 bg-red-50 text-red-900',
+    unselected: 'border-red-200 hover:border-red-700 hover:bg-red-50/50 text-red-700',
+  },
+];
+
 export default {
   VIEWS,
   COLORS,
@@ -695,4 +753,5 @@ export default {
   initialParameters,
   validKeys,
   categoryMapping,
+  TIER_CONFIG,
 };

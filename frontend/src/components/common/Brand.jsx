@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { cn } from '@/utils/cn';
 
-export const SITE_NAME = 'mystic mountains';
+export const SITE_NAME = 'CE';
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
 export const SiteName = ({ className = '' }) => <span className={cn(className)}>{SITE_NAME}</span>;

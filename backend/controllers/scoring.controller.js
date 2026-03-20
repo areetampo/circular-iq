@@ -666,20 +666,25 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       result_snapshot: response,
     };
 
-    if (serviceSupabase) {
-      serviceSupabase
-        .from('scoring_results_log')
-        .insert(logData)
-        .then(() => {
-          console.log(`[${requestId}] Logged scoring result to scoring_results_log`);
-        })
-        .catch((err) => {
-          console.error(`[${requestId}] Failed to log scoring result:`, err.message);
-        });
-    }
+    // --- BACKGROUND LOGGING ---
+    // We do not 'await' this. It triggers and the function immediately returns.
+    serviceSupabase
+      .from('scoring_results_log')
+      .insert(logData)
+      .then(({ error }) => {
+        if (error) {
+          console.error(`[${requestId}] Database Error:`, error.message);
+        } else {
+          console.log(`[${requestId}] Background log successful`);
+        }
+      })
+      .catch((err) => {
+        console.error(`[${requestId}] Background log critical failure:`, err.message);
+      });
 
+    // --- RETURN TO CONTROLLER ---
     logOperation('performScoring', 'success', Date.now() - startTime);
-    return response;
+    return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
     console.error(`[${requestId}] Request error:`, error);
     logOperation('performScoring', 'error', Date.now() - startTime);

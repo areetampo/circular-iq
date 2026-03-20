@@ -210,6 +210,101 @@
 
   /* heroui overrides */
 
+  /* Base toast – refined spacing, no border, subtle per‑variant backgrounds */
+  .toast {
+    @apply flex! min-h-12! w-full! items-center! justify-center! gap-3!
+           rounded-3xl! p-3! px-4! shadow-2xl! transition-all! duration-200! ease-out!;
+
+    box-shadow:
+      0 8px 20px -6px rgba(0, 0, 0, 0.08),
+      0 2px 4px -2px rgba(0, 0, 0, 0.02) !important;
+  }
+
+  /* Content wrapper – tighter gap */
+  .toast__content {
+    @apply flex! flex-1! flex-col! gap-0! p-0!;
+  }
+
+  /* Title – medium weight, comfortable size */
+  .toast__title {
+    @apply text-[14px]! font-semibold! tracking-tight! text-zinc-800!
+           dark:text-zinc-100!;
+  }
+
+  /* Description – slightly darker for readability */
+  .toast__description {
+    @apply text-[13px]! font-normal! leading-normal! text-zinc-700!
+           dark:text-zinc-300!;
+  }
+
+  /* Icon wrapper – no extra spacing */
+  .toast__indicator {
+    @apply flex! shrink-0! items-start! justify-center! p-0!;
+  }
+  .toast__indicator svg {
+    @apply size-5!; /* 20×20 */
+  }
+
+  /* Close button – always visible, subtle */
+  .toast__close {
+    @apply absolute! right-2! top-2! rounded-md! p-1! text-zinc-400!
+           transition-colors! hover:bg-black/5! hover:text-zinc-700!
+           dark:text-zinc-500! dark:hover:bg-white/10! dark:hover:text-zinc-300!;
+  }
+
+  /* Action button – minimal, blends in */
+  .toast__action {
+    @apply ml-auto! flex! h-7! items-center! rounded-md! border! border-zinc-200/50!
+           bg-transparent! px-2.5! text-xs! font-medium! text-zinc-700!
+           transition-colors! hover:bg-zinc-100/80! dark:border-zinc-700/50!
+           dark:text-zinc-300! dark:hover:bg-zinc-800/80!;
+  }
+
+  /* -------------------- Variants with subtle backgrounds -------------------- */
+  /* Default / Accent */
+  .toast--default,
+  .toast--accent {
+    @apply bg-sky-50! dark:bg-sky-950/30!;
+  }
+  .toast--default .toast__indicator,
+  .toast--accent .toast__indicator {
+    @apply text-sky-600! dark:text-sky-400!;
+  }
+
+  /* Success */
+  .toast--success {
+    @apply bg-emerald-50! dark:bg-emerald-950/30!;
+  }
+  .toast--success .toast__indicator {
+    @apply text-emerald-600! dark:text-emerald-400!;
+  }
+
+  /* Warning */
+  .toast--warning {
+    @apply bg-amber-50! dark:bg-amber-950/30!;
+  }
+  .toast--warning .toast__indicator {
+    @apply text-amber-600! dark:text-amber-400!;
+  }
+
+  /* Danger */
+  .toast--danger {
+    @apply bg-rose-50! dark:bg-rose-950/30!;
+  }
+  .toast--danger .toast__indicator {
+    @apply text-rose-600! dark:text-rose-400!;
+  }
+
+  /* Ensure all toasts have the same border (none) */
+  .toast,
+  .toast--default,
+  .toast--accent,
+  .toast--success,
+  .toast--warning,
+  .toast--danger {
+    @apply border-0!;
+  }
+
   .chip {
     @apply px-2;
   }
@@ -231,6 +326,41 @@
   }
 
   .dropdown__popover {
-    @apply !absolute !top-16 !left-auto !right-4;
+    @apply absolute! top-16! left-auto! right-4!;
+  }
+
+  .number-field__group {
+    transition: none !important;
+    overflow: visible !important;
+  }
+
+  .number-field__group[data-focus-within='true'],
+  .number-field__group[data-focus-within='true']::before,
+  .number-field__group[data-focus-within='true']::after {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #000000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+  }
+
+  .number-field__group[data-focus-within='true'] {
+    --field-focus: #000000;
+    border-color: var(--field-focus) !important;
+    box-shadow:
+      0 0 0 1px #ffffff,
+      0 0 0 2.5px var(--field-focus) !important;
+    outline: none !important;
+  }
+
+  .number-field__input:focus,
+  .number-field__input:focus-visible,
+  .number-field__input::after,
+  .number-field__increment-button::after,
+  .number-field__decrement-button::after {
+    outline: none !important;
+    box-shadow: none !important;
+    content: none !important;
   }
 }

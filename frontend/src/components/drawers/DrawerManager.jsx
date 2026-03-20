@@ -1,5 +1,6 @@
 import {
   AssessmentMethodologyDrawer,
+  BusinessContextHeadingInfoDrawer,
   BusinessProblemInfoDrawer,
   BusinessSolutionInfoDrawer,
   DashboardFeaturedSolutionsDrawer,
@@ -34,6 +35,9 @@ export default function DrawerManager() {
 
     case DRAWERS.BUSINESS_SOLUTION_INFO:
       return <BusinessSolutionInfoDrawer />;
+
+    case DRAWERS.BUSINESS_CONTEXT_HEADING_INFO:
+      return <BusinessContextHeadingInfoDrawer />;
 
     case DRAWERS.EVALUATION_PARAMETERS_HEADING_INFO:
       return <EvaluationParametersHeadingInfoDrawer />;

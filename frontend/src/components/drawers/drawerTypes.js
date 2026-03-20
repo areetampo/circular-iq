@@ -3,6 +3,7 @@ export const DRAWERS = {
   EVALUATION_CRITERIA: 'evaluation-criteria',
   BUSINESS_PROBLEM_INFO: 'business-problem',
   BUSINESS_SOLUTION_INFO: 'business-solution',
+  BUSINESS_CONTEXT_HEADING_INFO: 'business-context',
   EVALUATION_PARAMETERS_HEADING_INFO: 'evaluation-parameters',
   SPECIFIC_EVALUATION_PARAMETER_INFO: 'parameter-info',
   SAMPLE_TEST_CASES_HEADING_INFO: 'test-cases-heading',

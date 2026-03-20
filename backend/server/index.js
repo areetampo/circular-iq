@@ -129,10 +129,26 @@ export function startServer() {
 
     const shutdown = () => {
       if (serverInstance) {
-        serverInstance.close(() => {
-          console.log(theme.danger('\n✕ Server Process Terminated.'));
+        console.log(theme.warning('\n揪 SIGTERM/SIGINT received. Cleaning up...'));
+
+        // 1. Stop accepting new requests immediately
+        serverInstance.close(async () => {
+          console.log(theme.dim('  - Server stopped accepting new connections.'));
+
+          // 2. Give background tasks (like Supabase logging) 2-3 seconds to finish
+          // This is crucial for Render redeploys
+          console.log(theme.dim('  - Draining background tasks...'));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+
+          console.log(theme.danger('✕ Server Process Terminated.'));
           process.exit(0);
         });
+
+        // Forced kill after 10 seconds if it hangs
+        setTimeout(() => {
+          console.error(theme.danger('! Could not close connections in time, forceful shutdown'));
+          process.exit(1);
+        }, 10000);
       }
     };
 
@@ -150,6 +166,13 @@ export function stopServer() {
     console.log(theme.dim('Server Instance Stopped.'));
   });
 }
+
+// Prevent background logging errors from crashing the Render instance
+process.on('unhandledRejection', (reason, promise) => {
+  if (BACKEND_CONFIG.nodeEnv !== 'test') {
+    console.error(theme.danger('\n‼ UNHANDLED REJECTION:'), reason);
+  }
+});
 
 if (BACKEND_CONFIG.nodeEnv !== 'test') {
   startServer();

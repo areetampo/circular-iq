@@ -51,6 +51,8 @@ export default function useDrawer() {
 
     openBusinessSolutionInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_SOLUTION_INFO),
 
+    openBusinessContextHeadingInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_CONTEXT_HEADING_INFO),
+
     openEvaluationParametersHeadingInfoDrawer: () =>
       openDrawer(DRAWERS.EVALUATION_PARAMETERS_HEADING_INFO),
 

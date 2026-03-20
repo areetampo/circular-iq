@@ -41,11 +41,14 @@ export function useSession() {
     const evalState = loadEvaluationState();
 
     if (evalState) {
-      const hasContent = Boolean(
+      const hasInputs = Boolean(
         evalState.inputs?.businessProblem?.trim() ||
         evalState.inputs?.businessSolution?.trim() ||
-        evalState.results,
+        Object.keys(evalState.inputs?.businessContext || {}).length > 0 ||
+        Object.keys(evalState.inputs?.evaluationParameters || {}).length > 0,
       );
+
+      const hasContent = hasInputs || Boolean(evalState.results);
 
       if (hasContent) {
         setHasRestorableSession(true);

@@ -15,50 +15,75 @@ The Circular Economy Evaluator helps businesses evaluate their circular economy 
 
 ### Core Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Full-Stack Architecture                          │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  Frontend Layer (React/Vite)                                      │
-│  ├─ Assessment Flow - Guided evaluation questionnaires           │
-│  ├─ Results Visualization - Charts, tables, and export options   │
-│  ├─ State Management - React Query + custom hooks                │
-│  ├─ UI Components - HeroUI v3 (Beta) + MUI X Charts              │
-│  └─ Session Persistence - Local storage + anonymous tracking     │
-│                                                                     │
-│  API Layer (Express.js)                                          │
-│  ├─ /scoring - Business problem scoring & hybrid search          │
-│  ├─ /analytics - Data analytics & filtering                      │
-│  ├─ /assessments - User assessment CRUD operations               │
-│  └─ /search - Semantic search across documents                   │
-│                                                                     │
-│  Business Logic Layer (Services)                                 │
-│  ├─ scoring.service.js - RPC calls + hybrid search               │
-│  ├─ embedding.service.js - OpenAI API integration                │
-│  ├─ chunking.service.js - Semantic text splitting                │
-│  ├─ assessment.service.js - CRUD operations                      │
-│  └─ scoring.logic.js - Pure scoring algorithms                   │
-│                                                                     │
-│  Data Processing Pipeline                                        │
-│  ├─ Extraction Layer (34 dataset extraction scripts)             │
-│  │  ├─ scrape_*.js (Puppeteer web automation)                    │
-│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)                   │
-│  ├─ Ingestion (merge_datasets.js)                                │
-│  ├─ Chunking (generate_chunks.js)                                │
-│  ├─ Embedding (generate_embeddings.js)                           │
-│  └─ Storage (store_embeddings.js)                                │
-│                                                                     │
-│  Orchestration                                                   │
-│  └─ run_datasets_scripts.js - Automate dataset processing        │
-│                                                                     │
-│  Database Layer (Supabase PostgreSQL + pgvector)                │
-│  ├─ documents - Primary vector-searchable document store         │
-│  ├─ user_assessments - Evaluation result persistence             │
-│  ├─ user_profiles - Anonymous usage tracking                     │
-│  └─ RPC Functions - Hybrid search logic (embeddings + BM25)     │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph "Full-Stack Architecture"
+        subgraph "Frontend Layer (React/Vite)"
+            A1["Assessment Flow - Guided evaluation questionnaires"]
+            A2["Results Visualization - Charts, tables, and export options"]
+            A3["State Management - React Query + custom hooks"]
+            A4["UI Components - HeroUI v3 (Beta) + MUI X Charts"]
+            A5["Session Persistence - Local storage + anonymous tracking"]
+        end
+
+        subgraph "API Layer (Express.js)"
+            B1[/scoring - Business problem scoring & hybrid search\]
+            B2[/analytics - Data analytics & filtering\]
+            B3[/assessments - User assessment CRUD operations\]
+            B4[/search - Semantic search across documents\]
+        end
+
+        subgraph "Business Logic Layer (Services)"
+            C1["scoring.service.js - RPC calls + hybrid search"]
+            C2["embedding.service.js - OpenAI API integration"]
+            C3["chunking.service.js - Semantic text splitting"]
+            C4["assessment.service.js - CRUD operations"]
+            C5["scoring.logic.js - Pure scoring algorithms"]
+        end
+
+        subgraph "Data Processing Pipeline"
+            D1["Extraction Layer (34 dataset extraction scripts)"]
+            D11["scrape_*.js (Puppeteer web automation)"]
+            D12["extract_*.js (PDF/CSV/JSON/API parsing)"]
+            D2["Ingestion (merge_datasets.js)"]
+            D3["Chunking (generate_chunks.js)"]
+            D4["Embedding (generate_embeddings.js)"]
+            D5["Storage (store_embeddings.js)"]
+        end
+
+        subgraph "Orchestration"
+            E1["run_datasets_scripts.js - Automate dataset processing"]
+        end
+
+        subgraph "Database Layer (Supabase PostgreSQL + pgvector)"
+            F1["documents - Primary vector-searchable document store"]
+            F2["user_assessments - Evaluation result persistence"]
+            F3["user_profiles - Anonymous usage tracking"]
+            F4["RPC Functions - Hybrid search logic (embeddings + BM25)"]
+        end
+    end
+
+    A1 --> B1
+    A2 --> B2
+    A3 --> B3
+    A4 --> B4
+    B1 --> C1
+    B2 --> C2
+    B3 --> C3
+    B4 --> C4
+    C5 --> D1
+    D1 --> D11
+    D1 --> D12
+    D11 --> D2
+    D12 --> D2
+    D2 --> D3
+    D3 --> D4
+    D4 --> D5
+    D5 --> E1
+    E1 --> F1
+    E1 --> F2
+    E1 --> F3
+    E1 --> F4
 ```
 
 ## Tech Stack

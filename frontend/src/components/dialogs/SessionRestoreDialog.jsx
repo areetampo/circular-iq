@@ -91,8 +91,16 @@ export function SessionRestoreDialog(props) {
             sessionData?.inputs?.businessProblem || sessionData?.businessProblem || '',
           businessSolution:
             sessionData?.inputs?.businessSolution || sessionData?.businessSolution || '',
-          parameters: sessionData?.inputs?.parameters || sessionData?.parameters || {},
-          context: sessionData?.inputs?.context || sessionData?.context || {},
+          parameters:
+            sessionData?.inputs?.evaluationParameters ||
+            sessionData?.inputs?.parameters ||
+            sessionData?.parameters ||
+            {},
+          context:
+            sessionData?.inputs?.businessContext ||
+            sessionData?.inputs?.context ||
+            sessionData?.context ||
+            {},
         },
         fromAnonymous: sessionData?.fromAnonymous || false,
       },

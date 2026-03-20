@@ -36,8 +36,13 @@ describe('AppSessionManager (pending-save post-login)', () => {
 
   it('does NOT automatically open SaveAssessmentDialog after login (user must click Save)', async () => {
     const persistedSession = {
-      inputs: { businessProblem: 'P', businessSolution: 'S', parameters: {} },
-      results: { overall_score: 55, businessProblem: 'P', businessSolution: 'S', parameters: {} },
+      inputs: { businessProblem: 'P', businessSolution: 'S', evaluationParameters: {} },
+      results: {
+        overall_score: 55,
+        businessProblem: 'P',
+        businessSolution: 'S',
+        evaluationParameters: {},
+      },
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem('session_evaluation_state', JSON.stringify(persistedSession));
@@ -55,7 +60,11 @@ describe('AppSessionManager (pending-save post-login)', () => {
 
   it('does NOT show SessionRestoreDialog when user is viewing /results with session.results present', async () => {
     const persisted = {
-      inputs: { businessProblem: 'EXIST', businessSolution: 'KEEP', parameters: { a: 1 } },
+      inputs: {
+        businessProblem: 'EXIST',
+        businessSolution: 'KEEP',
+        evaluationParameters: { a: 1 },
+      },
       results: { overall_score: 42 },
       timestamp: new Date().toISOString(),
     };
@@ -78,7 +87,7 @@ describe('AppSessionManager (pending-save post-login)', () => {
 
   it('does NOT open session-restore prompt for inputs-only persisted sessions', async () => {
     const persisted = {
-      inputs: { businessProblem: 'EXIST', businessSolution: 'KEEP', parameters: {} },
+      inputs: { businessProblem: 'EXIST', businessSolution: 'KEEP', evaluationParameters: {} },
       results: null,
       timestamp: new Date().toISOString(),
     };
@@ -97,7 +106,7 @@ describe('AppSessionManager (pending-save post-login)', () => {
 
   it('shows toast when page loads on home and inputs exist', async () => {
     const persisted = {
-      inputs: { businessProblem: 'EXIST', businessSolution: 'KEEP', parameters: {} },
+      inputs: { businessProblem: 'EXIST', businessSolution: 'KEEP', evaluationParameters: {} },
       results: null,
       timestamp: new Date().toISOString(),
     };

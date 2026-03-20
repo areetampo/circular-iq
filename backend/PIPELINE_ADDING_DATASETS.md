@@ -6,17 +6,15 @@ Complete guide for sourcing, preparing, and integrating new circular economy dat
 
 ### Dataset Lifecycle
 
-New datasets follow this standard flow:
-
-```
-Source (Web/File)
-  → Extract/Transform (dataset scripts)
-  → Standardize Format (CSV with standard columns)
-  → Register in DATASETS array (utils/datasetsUtils.js)
-  → Merge into combined CSV (pipeline/merge_datasets.js)
-  → Chunk into semantic units (pipeline/generate_chunks.js)
-  → Generate embeddings (pipeline/generate_embeddings.js)
-  → Store in Supabase (pipeline/store_embeddings.js)
+```mermaid
+flowchart LR
+    A["Source (Web/File)"] --> B["Extract/Transform (dataset scripts)"]
+    B --> C["Standardize Format (CSV with standard columns)"]
+    C --> D["Register in DATASETS array (utils/datasetsUtils.js)"]
+    D --> E["Merge into combined CSV (pipeline/merge_datasets.js)"]
+    E --> F["Chunk into semantic units (pipeline/generate_chunks.js)"]
+    F --> G["Generate embeddings (pipeline/generate_embeddings.js)"]
+    G --> H["Store in Supabase (pipeline/store_embeddings.js)"]
 ```
 
 ### File I/O Best Practices

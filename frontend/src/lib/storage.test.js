@@ -9,7 +9,7 @@ afterEach(() => {
 test('saveEvaluationState persists empty strings when clearing inputs', () => {
   // Start with an existing non-empty value
   const initial = {
-    inputs: { businessProblem: 'original', businessSolution: 'sol', parameters: {} },
+    inputs: { businessProblem: 'original', businessSolution: 'sol', evaluationParameters: {} },
     results: null,
     timestamp: new Date().toISOString(),
   };
@@ -25,18 +25,18 @@ test('saveEvaluationState persists empty strings when clearing inputs', () => {
   expect(loaded.inputs.businessSolution).toBe('sol');
 });
 
-test('saveEvaluationState preserves unspecified fields and accepts empty parameters object', () => {
+test('saveEvaluationState preserves unspecified fields and accepts empty evaluationParameters object', () => {
   const initial = {
-    inputs: { businessProblem: 'x', businessSolution: 'y', parameters: { a: 1 } },
+    inputs: { businessProblem: 'x', businessSolution: 'y', evaluationParameters: { a: 1 } },
     results: null,
     timestamp: new Date().toISOString(),
   };
   localStorage.setItem('session_evaluation_state', JSON.stringify(initial));
 
-  // Update only parameters to an empty object
-  saveEvaluationState({ inputs: { parameters: {} } });
+  // Update only evaluationParameters to an empty object
+  saveEvaluationState({ inputs: { evaluationParameters: {} } });
   const loaded = loadEvaluationState();
-  expect(loaded.inputs.parameters).toEqual({});
+  expect(loaded.inputs.evaluationParameters).toEqual({});
   // Other fields remain
   expect(loaded.inputs.businessProblem).toBe('x');
 });
@@ -51,7 +51,11 @@ test('clearEvaluationState removes stored session', () => {
 test('saveEvaluationState enriches a newly-saved result with snapshot inputs (if missing)', () => {
   // Start with existing inputs persisted but no explicit business fields on results
   const initial = {
-    inputs: { businessProblem: 'Stored BP', businessSolution: 'Stored BS', parameters: { a: 1 } },
+    inputs: {
+      businessProblem: 'Stored BP',
+      businessSolution: 'Stored BS',
+      evaluationParameters: { a: 1 },
+    },
     results: null,
     timestamp: new Date().toISOString(),
   };

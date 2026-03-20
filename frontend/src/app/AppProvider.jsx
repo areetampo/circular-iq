@@ -49,7 +49,7 @@ export default function AppProvider({ children }) {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Toast.Provider placement="top" max={5} gap={12} duration={4000} />
+        <Toast.Provider placement="top" max={3} gap={10} duration={3500} />
         <DrawerProvider>
           <DialogProvider>
             <QueryClientProvider client={queryClient}>

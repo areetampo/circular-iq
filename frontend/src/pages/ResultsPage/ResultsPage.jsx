@@ -77,7 +77,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const location = useLocation();
   const isResultsRoute = location.pathname.startsWith('/results');
   const navigationResult = location.state?.result;
-  console.log(navigationResult);
+  console.log('Navigation result:', navigationResult);
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
 
@@ -261,12 +261,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           resultData.businessSolution ??
           resultData.solution ??
           '',
-        parameters:
+        evaluationParameters:
           resolvedFormData?.parameters ??
           resultData.parameters ??
           resultData.input_parameters ??
           {},
-        context:
+        businessContext:
           resolvedFormData?.context ?? resultData.context ?? resultData?.result_json?.context ?? {},
       };
 
@@ -278,7 +278,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           // Embed the snapshot inputs inside results so the snapshot is self-contained
           businessProblem: snapshotInputs.businessProblem,
           businessSolution: snapshotInputs.businessSolution,
-          parameters: snapshotInputs.parameters,
+          evaluationParameters: snapshotInputs.evaluationParameters,
+          businessContext: snapshotInputs.businessContext,
           ...resultData,
         },
       };
@@ -413,7 +414,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             inputs: currentState?.inputs || {
               businessProblem: resolvedFormData?.businessProblem || '',
               businessSolution: resolvedFormData?.businessSolution || '',
-              parameters: resolvedFormData?.parameters || {},
+              evaluationParameters: resolvedFormData?.parameters || {},
+              businessContext: resolvedFormData?.businessContext || {},
             },
             results: null, // Clear results
           });
@@ -463,7 +465,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   );
 
   // When results are restored via session restore, always use the snapshot in results for Case Summary
-  let problemText, solutionText, industryText, parameterValues;
+  let problemText, solutionText, businessContextValues, evaluationParameterValues, industryText;
 
   if (!isViewFromMyAssessments && sessionSnapshot?.results) {
     // Use the snapshot from session results (calculated, not editable)
@@ -480,15 +482,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       res.audit?.businessSolution ||
       caseProblemSolution?.solution ||
       'Solution data unavailable';
+    evaluationParameterValues =
+      res.input_parameters ||
+      res.parameters ||
+      (res.audit?.parameters ? res.audit.parameters : null);
     // Prefer structured `industry` field from the server/session snapshot
     industryText =
       (res.industry && titleize(res.industry)) ||
       (res.audit?.industry && titleize(res.audit.industry)) ||
       'Industry data unavailable';
-    parameterValues =
-      res.input_parameters ||
-      res.parameters ||
-      (res.audit?.parameters ? res.audit.parameters : null);
   } else {
     // Fallback to previous logic for saved assessments or navigation
     const storedProblemText =
@@ -507,7 +509,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     solutionText =
       storedSolutionText || caseProblemSolution?.solution || 'Solution data unavailable';
     industryText = caseIndustry ? titleize(caseIndustry) : 'Industry data unavailable';
-    parameterValues =
+    evaluationParameterValues =
       resolvedFormData?.parameters ||
       actualResult?.input_parameters ||
       currentData?.result_json?.input_parameters ||
@@ -515,15 +517,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }
 
   const parameterEntries = useMemo(() => {
-    if (!parameterValues || typeof parameterValues !== 'object') return [];
+    if (!evaluationParameterValues || typeof evaluationParameterValues !== 'object') return [];
     return validKeys
-      .filter((key) => parameterValues[key] != null)
+      .filter((key) => evaluationParameterValues[key] != null)
       .map((key) => ({
         key,
         label: parameterLabels[key]?.label || titleize(key),
-        value: Number(parameterValues[key]) || 0,
+        value: Number(evaluationParameterValues[key]) || 0,
       }));
-  }, [parameterValues]);
+  }, [evaluationParameterValues]);
 
   const handleReevaluate = useCallback(() => {
     navigate('/', {
@@ -531,11 +533,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         formData: {
           businessProblem: problemText,
           businessSolution: solutionText,
-          parameters: parameterValues,
+          parameters: evaluationParameterValues,
+          businessContext: actualResult?.businessContext || {},
         },
       },
     });
-  }, [navigate, problemText, solutionText, parameterValues]);
+  }, [navigate, problemText, solutionText, evaluationParameterValues, actualResult]);
 
   const computeMarketAvg = (res) => {
     if (!res?.similar_cases || res.similar_cases.length === 0) return 65;
@@ -949,7 +952,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   // (results and inputs are independent), then redirect to auth so the
                   // user can sign in and be returned to /results to confirm save.
                   try {
-                    const formInputs = resolvedFormData || sessionSnapshot || getSession() || {};
+                    const formState = resolvedFormData || sessionSnapshot || getSession() || {};
+                    const formInputs = formState?.inputs ? formState.inputs : formState;
 
                     const pendingResults =
                       (navigationResult && (navigationResult.result || navigationResult)) ||
@@ -963,7 +967,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         inputs: {
                           businessProblem: formInputs?.businessProblem || '',
                           businessSolution: formInputs?.businessSolution || '',
-                          parameters: formInputs?.parameters || {},
+                          evaluationParameters: formInputs?.parameters || {},
+                          businessContext: formInputs?.businessContext || {},
                         },
                         results: pendingResults,
                       });

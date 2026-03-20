@@ -57,47 +57,70 @@ See [Layer 2 functions](services/scoring.logic.js) and [Layer 3 prompts](service
 
 ### Core Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Backend Architecture                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  API Layer (Express.js)                                   │
-│  ├─ /analytics - Data analytics & filtering              │
-│  ├─ /scoring - Business problem scoring & hybrid search  │
-│  └─ /assessments - User assessment management            │
-│                                                             │
-│  Business Logic Layer (Services)                          │
-│  ├─ scoring.service.js - RPC calls + hybrid search       │
-│  ├─ embedding.service.js - OpenAI API integration        │
-│  ├─ chunking.service.js - Semantic text splitting        │
-│  ├─ assessment.service.js - CRUD operations              │
-│  └─ scoring.logic.js - Pure scoring algorithms           │
-│                                                             │
-│  Data Processing Pipeline                                 │
-│  ├─ Extraction Layer (34 dataset extraction scripts)      │
-│  │  ├─ scrape_*.js (Puppeteer web automation)            │
-│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)           │
-│  ├─ Ingestion (merge_datasets.js)                        │
-│  ├─ Chunking (generate_chunks.js)                        │
-│  ├─ Embedding (generate_embeddings.js)                   │
-│  └─ Storage (store_embeddings.js)                        │
-│                                                             │
-│  Orchestration                                            │
-│  └─ run_datasets_scripts.js - Automate dataset processing │
-│                                                             │
-│  Database Layer (Supabase PostgreSQL + pgvector)         │
-│  ├─ documents - Primary vector-searchable document store (Supabase or Aiven)
-│  ├─ user_assessments - Evaluation result persistence     │
-│  ├─ user_profiles - Anonymous usage tracking             │
-│  └─ RPC Functions - Hybrid search logic (embeddings + BM25) │
-│                                                             │
-│  Utilities & Configuration                               │
-│  ├─ datasetsUtils.js - Dataset registry & path helpers   │
-│  ├─ backend.config.js - Centralized config               │
-│  └─ anonymousTracking.js - Usage analytics               │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph "Backend Architecture"
+        subgraph "API Layer (Express.js)"
+            A1[/analytics - Data analytics & filtering\]
+            A2[/scoring - Business problem scoring & hybrid search\]
+            A3[/assessments - User assessment management\]
+        end
+
+        subgraph "Business Logic Layer (Services)"
+            B1["scoring.service.js - RPC calls + hybrid search"]
+            B2["embedding.service.js - OpenAI API integration"]
+            B3["chunking.service.js - Semantic text splitting"]
+            B4["assessment.service.js - CRUD operations"]
+            B5["scoring.logic.js - Pure scoring algorithms"]
+        end
+
+        subgraph "Data Processing Pipeline"
+            C1["Extraction Layer (34 dataset extraction scripts)"]
+            C11["scrape_*.js (Puppeteer web automation)"]
+            C12["extract_*.js (PDF/CSV/JSON/API parsing)"]
+            C2["Ingestion (merge_datasets.js)"]
+            C3["Chunking (generate_chunks.js)"]
+            C4["Embedding (generate_embeddings.js)"]
+            C5["Storage (store_embeddings.js)"]
+        end
+
+        subgraph "Orchestration"
+            D1["run_datasets_scripts.js - Automate dataset processing"]
+        end
+
+        subgraph "Database Layer (Supabase PostgreSQL + pgvector)"
+            E1["documents - Primary vector-searchable document store (Supabase or Aiven)"]
+            E2["user_assessments - Evaluation result persistence"]
+            E3["user_profiles - Anonymous usage tracking"]
+            E4["RPC Functions - Hybrid search logic (embeddings + BM25)"]
+        end
+
+        subgraph "Utilities & Configuration"
+            F1["datasetsUtils.js - Dataset registry & path helpers"]
+            F2["backend.config.js - Centralized config"]
+            F3["anonymousTracking.js - Usage analytics"]
+        end
+    end
+
+    A1 --> B1
+    A2 --> B2
+    A3 --> B3
+    B4 --> C1
+    C1 --> C11
+    C1 --> C12
+    C11 --> C2
+    C12 --> C2
+    C2 --> C3
+    C3 --> C4
+    C4 --> C5
+    C5 --> D1
+    D1 --> E1
+    D1 --> E2
+    D1 --> E3
+    D1 --> E4
+    F1 --> C1
+    F2 --> D1
+    F3 --> E3
 ```
 
 ## Directory Structure

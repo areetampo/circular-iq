@@ -1,6 +1,8 @@
 import { Label, ListBox, Select, Switch } from '@heroui/react';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import { cn } from '@/utils/cn';
+
 const BUSINESS_MODEL_OPTIONS = [
   { value: 'product-as-a-service', label: 'Product-as-a-Service' },
   { value: 'take-back', label: 'Take-Back Scheme' },
@@ -50,12 +52,12 @@ export default function BusinessContextContainer({ loading }) {
       <span className="text-sm font-semibold text-slate-700">{label}</span>
       {description && <span className="text-xs text-slate-400">{description}</span>}
       <Controller
-        name={`context.${name}`}
+        name={`businessContext.${name}`}
         control={control}
         render={({ field }) => (
           <Select
-            value={field.value ?? null}
-            onChange={(val) => field.onChange(val ?? undefined)}
+            value={field.value ?? undefined}
+            onChange={(val) => field.onChange(val)}
             isDisabled={loading}
             placeholder="Select (optional)"
             className="w-full"
@@ -67,9 +69,9 @@ export default function BusinessContextContainer({ loading }) {
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
-                {options.map((opt) => (
-                  <ListBox.Item key={opt.value} id={opt.value} textValue={opt.label}>
-                    {opt.label}
+                {options.map((item) => (
+                  <ListBox.Item key={item.value} id={item.value} textValue={item.label}>
+                    {item.label}
                     <ListBox.ItemIndicator />
                   </ListBox.Item>
                 ))}
@@ -123,25 +125,32 @@ export default function BusinessContextContainer({ loading }) {
 
       {/* Boolean toggle — existing partnerships */}
       <Controller
-        name="context.has_existing_partnerships"
+        name="businessContext.has_existing_partnerships"
         control={control}
         render={({ field }) => (
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-            <div>
-              <span className="text-sm font-semibold text-slate-700">
-                Existing Supply Chain / Collection Partnerships
-              </span>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Do you already have partners for collection, processing, or distribution?
-              </p>
-            </div>
-            <Switch
-              isSelected={field.value === true}
-              onChange={(checked) => field.onChange(checked ? true : undefined)}
-              isDisabled={loading}
-              size="sm"
-            />
-          </div>
+          <Switch
+            isSelected={field.value === true}
+            onChange={(checked) => field.onChange(checked)}
+            isDisabled={loading}
+            size="sm"
+            className="w-full"
+          >
+            <Switch.Content className="w-full">
+              <Label className="cursor-pointer flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Existing Supply Chain / Collection Partnerships
+                  </span>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Do you already have partners for collection, processing, or distribution?
+                  </p>
+                </div>
+                <Switch.Control className={cn(field.value === true ? 'bg-rose-900' : '')}>
+                  <Switch.Thumb>{/* <Switch.Icon></Switch.Icon> */}</Switch.Thumb>
+                </Switch.Control>
+              </Label>
+            </Switch.Content>
+          </Switch>
         )}
       />
     </div>

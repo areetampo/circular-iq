@@ -123,8 +123,18 @@ export function saveEvaluationState(state) {
           state?.businessSolution ??
           existingState.inputs?.businessSolution ??
           '',
-        parameters:
-          state?.inputs?.parameters ?? state?.parameters ?? existingState.inputs?.parameters ?? {},
+        evaluationParameters:
+          state?.inputs?.evaluationParameters ??
+          state?.evaluationParameters ??
+          existingState.inputs?.evaluationParameters ??
+          existingState.inputs?.parameters ??
+          {},
+        businessContext:
+          state?.inputs?.businessContext ??
+          state?.businessContext ??
+          existingState.inputs?.businessContext ??
+          existingState.inputs?.context ??
+          {},
       },
       // PRESERVE existing results unless explicitly provided or set to null
       // If `state.results` is provided (including an empty object), we treat this as
@@ -155,10 +165,25 @@ export function saveEvaluationState(state) {
                   '',
                 // Prefer explicit `parameters` or `input_parameters` on the result,
                 // otherwise fall back to the inputs snapshot
+                evaluationParameters:
+                  state.results.evaluationParameters ??
+                  state.results.parameters ??
+                  state.results.input_parameters ??
+                  srcInputs.evaluationParameters ??
+                  srcInputs.parameters ??
+                  {},
                 parameters:
                   state.results.parameters ??
                   state.results.input_parameters ??
+                  state.results.evaluationParameters ??
                   srcInputs.parameters ??
+                  srcInputs.evaluationParameters ??
+                  {},
+                businessContext:
+                  state.results.businessContext ??
+                  state.results.context ??
+                  srcInputs.businessContext ??
+                  srcInputs.context ??
                   {},
                 // Preserve all original result fields (scores, metadata, similar_cases, etc.)
                 ...state.results,
@@ -254,7 +279,10 @@ export function hasEvaluationContent() {
   if (!state) return false;
 
   const hasInputs = Boolean(
-    state.inputs?.businessProblem?.trim() || state.inputs?.businessSolution?.trim(),
+    state.inputs?.businessProblem?.trim() ||
+    state.inputs?.businessSolution?.trim() ||
+    Object.keys(state.inputs?.businessContext || {}).length > 0 ||
+    Object.keys(state.inputs?.evaluationParameters || {}).length > 0,
   );
 
   const hasResults = Boolean(state.results);

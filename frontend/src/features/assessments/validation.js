@@ -46,7 +46,7 @@ export const assessmentSchema = z.object({
       .min(0, 'Value must be between 0 and 100')
       .max(100, 'Value must be between 0 and 100'),
   }),
-  context: z
+  businessContext: z
     .object({
       business_model_type: z
         .enum([
@@ -100,7 +100,7 @@ export const defaultValues = {
     chemical_safety: 50,
     tech_readiness: 50,
   },
-  context: {
+  businessContext: {
     business_model_type: undefined,
     operational_stage: undefined,
     target_geography: undefined,
