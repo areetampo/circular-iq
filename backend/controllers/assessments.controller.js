@@ -149,7 +149,10 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
     // Insert assessment using an authenticated user client to respect RLS
     const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
 
-    const { data, error } = await userClient.from('assessments').insert([assessmentData]).select();
+    const { data, error } = await userClient
+      .from('user_assessments')
+      .insert([assessmentData])
+      .select();
 
     if (error) throw error;
 
@@ -203,7 +206,7 @@ export async function fetchUserAssessments(supabase, user, token, query) {
     // Create authenticated user client to respect RLS policies
     const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
 
-    let queryBuilder = userClient.from('assessments').select('*', { count: 'exact' });
+    let queryBuilder = userClient.from('user_assessments').select('*', { count: 'exact' });
 
     // Filter by user_id to match the authenticated user (mirrors RLS policy)
     if (user && user.id) {
@@ -327,7 +330,7 @@ export async function getPublicAssessment(supabase, publicId) {
 
   try {
     const { data, error } = await supabase
-      .from('assessments')
+      .from('user_assessments')
       .select('*')
       .eq('public_id', publicId)
       .eq('is_public', true)
@@ -370,7 +373,7 @@ export async function validatePublicId(supabase, publicId) {
     }
 
     const { data, error } = await supabase
-      .from('assessments')
+      .from('user_assessments')
       .select('id,is_public')
       .eq('public_id', publicId)
       .maybeSingle();
@@ -450,7 +453,7 @@ export async function getAssessmentById(supabase, user, token, id) {
   try {
     const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
 
-    let queryBuilder = userClient.from('assessments').select('*').eq('id', id);
+    let queryBuilder = userClient.from('user_assessments').select('*').eq('id', id);
 
     if (user && user.id) {
       queryBuilder = queryBuilder.eq('user_id', user.id);
@@ -494,7 +497,7 @@ export async function updateAssessment(supabase, user, token, id, updates) {
     const updateData = { ...updates };
     if (updates.is_public === true) {
       const { data: current } = await userClient
-        .from('assessments')
+        .from('user_assessments')
         .select('public_id')
         .eq('id', id)
         .eq('user_id', user.id)
@@ -508,7 +511,7 @@ export async function updateAssessment(supabase, user, token, id, updates) {
 
     // Update only if the assessment belongs to the authenticated user
     const { data, error } = await userClient
-      .from('assessments')
+      .from('user_assessments')
       .update(updateData)
       .eq('id', id)
       .eq('user_id', user.id)
@@ -551,7 +554,7 @@ export async function deleteAssessment(supabase, user, token, id) {
 
     // Verify assessment exists and belongs to user before deleting
     const { data: assessment, error: getError } = await userClient
-      .from('assessments')
+      .from('user_assessments')
       .select('id')
       .eq('id', id)
       .eq('user_id', userId)
@@ -568,7 +571,7 @@ export async function deleteAssessment(supabase, user, token, id) {
 
     // Delete the assessment using authenticated client
     const { error: deleteError } = await userClient
-      .from('assessments')
+      .from('user_assessments')
       .delete()
       .eq('id', id)
       .eq('user_id', userId);
@@ -613,7 +616,7 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, id) {
 
     // Fetch the assessment to obtain user score and metadata (ownership enforced)
     const { data: assessmentRow, error: assessmentError } = await supabase
-      .from('assessments')
+      .from('user_assessments')
       .select('overall_score, result_json, industry')
       .eq('id', id)
       .eq('user_id', user.id)
@@ -630,7 +633,7 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, id) {
     let userPercentile = null;
     if (typeof userScore === 'number') {
       const { count: lessOrEqualCount } = await supabase
-        .from('assessments')
+        .from('user_assessments')
         .select('id', { count: 'exact' })
         .lte('overall_score', userScore);
 
@@ -717,7 +720,7 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
 
     // Fetch the assessment by public_id and ensure it is public
     const { data: assessmentRow, error: assessmentError } = await supabase
-      .from('assessments')
+      .from('user_assessments')
       .select('overall_score, result_json, industry, is_public')
       .eq('public_id', publicId)
       .eq('is_public', true)
@@ -744,7 +747,7 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
     let userPercentile = null;
     if (typeof userScore === 'number') {
       const { count: lessOrEqualCount } = await supabase
-        .from('assessments')
+        .from('user_assessments')
         .select('id', { count: 'exact' })
         .lte('overall_score', userScore);
 

@@ -127,7 +127,7 @@ export function getSummary(supabase) {
       const days = parseTimeRange(timeRangeRaw);
 
       let query = supabase
-        .from('assessments')
+        .from('user_assessments')
         .select('industry, result_json, overall_score, created_at')
         .eq('is_public', true);
 
@@ -229,9 +229,9 @@ export function getEnhanced(supabase) {
       }
 
       let query = supabase
-        .from('assessments')
+        .from('user_assessments')
         .select(
-          'industry, result_json, overall_score, business_viability_score, created_at, is_public, contribute_to_global_benchmarks',
+          'industry, result_json, overall_score, economic_viability, created_at, is_public, contribute_to_global_benchmarks',
         )
         .eq('is_public', true);
 
@@ -250,9 +250,7 @@ export function getEnhanced(supabase) {
 
       const totalCount = assessments?.length || 0;
       const scores = (assessments || []).map(getScoreFromRow);
-      const viabilityScores = (assessments || []).map((a) =>
-        safeNumber(a.business_viability_score),
-      );
+      const viabilityScores = (assessments || []).map((a) => safeNumber(a.economic_viability));
 
       // Basic aggregate stats
       const averageScore = scores.length
@@ -280,7 +278,7 @@ export function getEnhanced(supabase) {
       for (const row of assessments || []) {
         const industry = row.industry || 'Unknown'; // Explicitly group null as "Unknown"
         const score = getScoreFromRow(row);
-        const viability = safeNumber(row.business_viability_score);
+        const viability = safeNumber(row.economic_viability);
 
         if (!industryMap.has(industry)) {
           industryMap.set(industry, {
@@ -408,7 +406,7 @@ export function getEnhanced(supabase) {
           const score = getScoreFromRow(row);
           bucket.count += 1;
           bucket.totalScore += score;
-          bucket.totalViability += safeNumber(row.business_viability_score);
+          bucket.totalViability += safeNumber(row.economic_viability);
           bucket.scores.push(score);
           if (bucket.newAssessments != null) bucket.newAssessments += 1;
         }

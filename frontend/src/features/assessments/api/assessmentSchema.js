@@ -118,15 +118,22 @@ export const AssessmentSchema = z
     r_strategy: z.string().optional(),
     primary_material: z.string().optional(),
     geographic_focus: z.string().optional(),
-    derived_metrics: z.record(z.any()).optional(),
-    score_breakdown: z.record(z.any()).optional(),
-    gap_analysis: z.record(z.any()).optional(),
-    similar_cases: z.array(z.any()).optional(),
-    evaluation_parameters: z.record(z.any()).optional(),
-    evaluationParameters: z.record(z.any()).optional(),
-    business_context: z.record(z.any()).optional(),
+    parameter_consistency_score: z.number().min(0).max(100).optional(),
+    parameter_consistency_rating: z.string().optional(),
+    r_strategy_alignment_score: z.number().min(0).max(100).optional(),
+    r_strategy_alignment_rating: z.string().optional(),
+    audit_confidence_score: z.number().min(0).max(100).optional(),
+    audit_is_junk_input: z.boolean().optional(),
+    audit_integrity_gaps_count: z.number().optional(),
+    similar_cases_count: z.number().optional(),
+    improvement_roadmap: z.array(z.any()).optional(),
+    sdg_alignment: z.array(z.any()).optional(),
+    market_opportunity_summary: z.string().optional(),
+    is_public: z.boolean().optional(),
+    public_id: z.string().optional(),
+    contribute_to_global_benchmarks: z.boolean().optional(),
   })
-  .passthrough(); // Allow additional properties
+  .passthrough();
 
 /**
  * Schema for assessment list response

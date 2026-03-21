@@ -1,4 +1,4 @@
--- MIGRATION: 02_assessments.sql (v3 — fully aligned with scoring API v2)
+-- MIGRATION: 02_user_assessments.sql (v3 — fully aligned with scoring API v2)
 -- User Assessment Storage — OPTIMIZED & SECURED
 -- STATUS: Depends on 01_vector_infrastructure.sql
 
@@ -43,7 +43,7 @@
 -- 0. Drop existing table and functions (clean slate)
 -- ============================================
 
-DROP TABLE IF EXISTS assessments CASCADE;
+DROP TABLE IF EXISTS user_assessments CASCADE;
 
 DO $$
 DECLARE
@@ -70,30 +70,30 @@ BEGIN
 END $$;
 
 -- ============================================
--- 1. Create Assessments Table
+-- 1. Create User Assessments Table
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS assessments (
+CREATE TABLE IF NOT EXISTS user_assessments (
   -- ── Identity ────────────────────────────────────────────────────────────────
   id                          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id                     UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   session_id                  TEXT,          -- kept for guest sessions
 
   -- ── User-supplied inputs ─────────────────────────────────────────────────────
-  title                       TEXT NOT NULL,
-  business_problem            TEXT NOT NULL,
-  business_solution           TEXT NOT NULL,
+  title                       TEXT NOT NULL CHECK (title != ''),
+  business_problem            TEXT NOT NULL CHECK (business_problem != ''),
+  business_solution           TEXT NOT NULL CHECK (business_solution != ''),
   evaluation_parameters       JSONB,         -- raw 8-factor scores user entered
   business_context            JSONB,         -- user-provided structured context (model type, stage, geography, etc.)
 
   -- ── Top-level scoring API scalars ────────────────────────────────────────────
-  overall_score               INTEGER,       -- 0-100
-  confidence_level            INTEGER,       -- 0-100 (scores.confidence_level)
+  overall_score               INTEGER CHECK (overall_score BETWEEN 0 AND 100),       -- 0-100
+  confidence_level            INTEGER CHECK (confidence_level BETWEEN 0 AND 100),       -- 0-100 (scores.confidence_level)
 
   -- ── Derived metrics (promoted scalars for fast filtering / analytics) ────────
-  technical_feasibility       INTEGER,       -- derived_metrics.technical_feasibility
-  economic_viability          INTEGER,       -- derived_metrics.economic_viability
-  circularity_potential       INTEGER,       -- derived_metrics.circularity_potential
+  technical_feasibility       INTEGER CHECK (technical_feasibility BETWEEN 0 AND 100),       -- derived_metrics.technical_feasibility
+  economic_viability          INTEGER CHECK (economic_viability BETWEEN 0 AND 100),       -- derived_metrics.economic_viability
+  circularity_potential       INTEGER CHECK (circularity_potential BETWEEN 0 AND 100),       -- derived_metrics.circularity_potential
   risk_level                  TEXT CHECK (risk_level IN ('low','medium','high')),
 
   -- ── Metadata scalars (promoted for market analytics & filtering) ─────────────
@@ -104,16 +104,16 @@ CREATE TABLE IF NOT EXISTS assessments (
   geographic_focus            TEXT,          -- metadata.geographic_focus
 
   -- ── Layer 2 enrichment scalars (promoted for fast analytics) ─────────────────
-  parameter_consistency_score   INTEGER,     -- parameter_consistency.score (0-100)
+  parameter_consistency_score   INTEGER CHECK (parameter_consistency_score BETWEEN 0 AND 100),     -- parameter_consistency.score (0-100)
   parameter_consistency_rating  TEXT,        -- parameter_consistency.rating (High/Moderate/Low/Very Low)
-  r_strategy_alignment_score    INTEGER,     -- r_strategy_alignment.alignment_score (0-100)
+  r_strategy_alignment_score    INTEGER CHECK (r_strategy_alignment_score BETWEEN 0 AND 100),     -- r_strategy_alignment.alignment_score (0-100)
   r_strategy_alignment_rating   TEXT,        -- r_strategy_alignment.rating (Strong/Moderate/Weak/Poor)
 
   -- ── Audit quality signals (promoted scalars for analytics) ───────────────────
-  audit_confidence_score        INTEGER,     -- audit.confidence_score (0-100, LLM's own confidence)
+  audit_confidence_score        INTEGER CHECK (audit_confidence_score BETWEEN 0 AND 100),     -- audit.confidence_score (0-100, LLM's own confidence)
   audit_is_junk_input           BOOLEAN,     -- audit.is_junk_input
-  audit_integrity_gaps_count    INTEGER DEFAULT 0, -- count of integrity gaps found
-  similar_cases_count           INTEGER DEFAULT 0, -- how many similar DB cases returned
+  audit_integrity_gaps_count    INTEGER DEFAULT 0 CHECK (audit_integrity_gaps_count >= 0), -- count of integrity gaps found
+  similar_cases_count           INTEGER DEFAULT 0 CHECK (similar_cases_count >= 0), -- how many similar DB cases returned
 
   -- ── Full JSON blobs (complete API response sections) ─────────────────────────
   sub_scores                  JSONB,         -- scores.sub_scores {public_participation, …}
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS assessments (
 
   -- ── Sharing / visibility ─────────────────────────────────────────────────────
   is_public                   BOOLEAN DEFAULT TRUE,
-  public_id                   UUID    DEFAULT gen_random_uuid(),
+  public_id                   UUID    DEFAULT gen_random_uuid() UNIQUE, -- public identifier for sharing (never exposes internal id)
   contribute_to_global_benchmarks BOOLEAN DEFAULT TRUE,
 
   -- ── Timestamps ───────────────────────────────────────────────────────────────
@@ -143,91 +143,91 @@ CREATE TABLE IF NOT EXISTS assessments (
 );
 
 -- ── Column comments ───────────────────────────────────────────────────────────
-COMMENT ON TABLE  assessments IS 'Saved assessment results — columns mirror scoring API response fields for fast analytics without parsing result_json';
-COMMENT ON COLUMN assessments.result_json                  IS 'Complete raw scoring API response — source of truth for repopulating UI';
-COMMENT ON COLUMN assessments.evaluation_parameters        IS '8-factor scores the user provided';
-COMMENT ON COLUMN assessments.business_context             IS 'User-provided structured context (business_model_type, operational_stage, target_geography, annual_volume_estimate, material_complexity, has_existing_partnerships)';
-COMMENT ON COLUMN assessments.sub_scores                   IS 'Validated 8-factor sub-scores after clamping';
-COMMENT ON COLUMN assessments.derived_metrics              IS 'Full derived_metrics object from scoring API';
-COMMENT ON COLUMN assessments.score_breakdown              IS 'Category-level breakdown (Access / Embedded / Processing Value)';
-COMMENT ON COLUMN assessments.audit                        IS 'Full AI audit object (verdict, integrity_gaps, strengths, recommendations, roadmap, SDGs, market_opportunity, …)';
-COMMENT ON COLUMN assessments.gap_analysis                 IS 'Gap analysis vs similar-case benchmarks';
-COMMENT ON COLUMN assessments.similar_cases                IS 'Array of top-4 enriched similar database cases (with title, summary, problem, solution, impact, scores, year, location, etc.)';
-COMMENT ON COLUMN assessments.metadata                     IS 'LLM-extracted metadata (industry, scale, r_strategy, primary_material, geographic_focus, short_description)';
-COMMENT ON COLUMN assessments.confidence_level             IS 'Score distribution confidence 0-100';
-COMMENT ON COLUMN assessments.technical_feasibility        IS 'Promoted scalar from derived_metrics for fast analytics';
-COMMENT ON COLUMN assessments.economic_viability           IS 'Promoted scalar from derived_metrics for fast analytics';
-COMMENT ON COLUMN assessments.circularity_potential        IS 'Promoted scalar from derived_metrics for fast analytics';
-COMMENT ON COLUMN assessments.risk_level                   IS 'Promoted scalar from derived_metrics: low | medium | high';
-COMMENT ON COLUMN assessments.scale                        IS 'Promoted from metadata.scale';
-COMMENT ON COLUMN assessments.r_strategy                   IS 'Promoted from metadata.r_strategy (Refuse/Reduce/Reuse/…)';
-COMMENT ON COLUMN assessments.primary_material             IS 'Promoted from metadata.primary_material';
-COMMENT ON COLUMN assessments.geographic_focus             IS 'Promoted from metadata.geographic_focus';
-COMMENT ON COLUMN assessments.parameter_consistency_score  IS 'Promoted scalar for fast analytics — avoids parsing parameter_consistency JSONB';
-COMMENT ON COLUMN assessments.parameter_consistency_rating IS 'Categorical rating derived from parameter_consistency_score';
-COMMENT ON COLUMN assessments.r_strategy_alignment_score   IS 'Promoted scalar for fast analytics — avoids parsing r_strategy_alignment JSONB';
-COMMENT ON COLUMN assessments.r_strategy_alignment_rating  IS 'Categorical rating derived from r_strategy_alignment_score';
-COMMENT ON COLUMN assessments.audit_confidence_score       IS 'LLM-reported audit confidence (audit.confidence_score)';
-COMMENT ON COLUMN assessments.audit_is_junk_input          IS 'LLM-determined junk input flag (audit.is_junk_input)';
-COMMENT ON COLUMN assessments.audit_integrity_gaps_count   IS 'Count of integrity gaps found during scoring';
-COMMENT ON COLUMN assessments.similar_cases_count          IS 'Number of similar cases returned from vector search';
-COMMENT ON COLUMN assessments.improvement_roadmap          IS 'Promoted from audit.improvement_roadmap — 3 prioritised actions with effort/impact/timeframe';
-COMMENT ON COLUMN assessments.sdg_alignment                IS 'Promoted from audit.sdg_alignment — 2-4 UN SDG objects';
-COMMENT ON COLUMN assessments.market_opportunity_summary   IS 'Promoted from audit.market_opportunity_summary — 2-3 sentence market assessment';
+COMMENT ON TABLE  user_assessments IS 'Saved assessment results — columns mirror scoring API response fields for fast analytics without parsing result_json';
+COMMENT ON COLUMN user_assessments.result_json                  IS 'Complete raw scoring API response — source of truth for repopulating UI';
+COMMENT ON COLUMN user_assessments.evaluation_parameters        IS '8-factor scores the user provided';
+COMMENT ON COLUMN user_assessments.business_context             IS 'User-provided structured context (business_model_type, operational_stage, target_geography, annual_volume_estimate, material_complexity, has_existing_partnerships)';
+COMMENT ON COLUMN user_assessments.sub_scores                   IS 'Validated 8-factor sub-scores after clamping';
+COMMENT ON COLUMN user_assessments.derived_metrics              IS 'Full derived_metrics object from scoring API';
+COMMENT ON COLUMN user_assessments.score_breakdown              IS 'Category-level breakdown (Access / Embedded / Processing Value)';
+COMMENT ON COLUMN user_assessments.audit                        IS 'Full AI audit object (verdict, integrity_gaps, strengths, recommendations, roadmap, SDGs, market_opportunity, …)';
+COMMENT ON COLUMN user_assessments.gap_analysis                 IS 'Gap analysis vs similar-case benchmarks';
+COMMENT ON COLUMN user_assessments.similar_cases                IS 'Array of top-4 enriched similar database cases (with title, summary, problem, solution, impact, scores, year, location, etc.)';
+COMMENT ON COLUMN user_assessments.metadata                     IS 'LLM-extracted metadata (industry, scale, r_strategy, primary_material, geographic_focus, short_description)';
+COMMENT ON COLUMN user_assessments.confidence_level             IS 'Score distribution confidence 0-100';
+COMMENT ON COLUMN user_assessments.technical_feasibility        IS 'Promoted scalar from derived_metrics for fast analytics';
+COMMENT ON COLUMN user_assessments.economic_viability           IS 'Promoted scalar from derived_metrics for fast analytics';
+COMMENT ON COLUMN user_assessments.circularity_potential        IS 'Promoted scalar from derived_metrics for fast analytics';
+COMMENT ON COLUMN user_assessments.risk_level                   IS 'Promoted scalar from derived_metrics: low | medium | high';
+COMMENT ON COLUMN user_assessments.scale                        IS 'Promoted from metadata.scale';
+COMMENT ON COLUMN user_assessments.r_strategy                   IS 'Promoted from metadata.r_strategy (Refuse/Reduce/Reuse/…)';
+COMMENT ON COLUMN user_assessments.primary_material             IS 'Promoted from metadata.primary_material';
+COMMENT ON COLUMN user_assessments.geographic_focus             IS 'Promoted from metadata.geographic_focus';
+COMMENT ON COLUMN user_assessments.parameter_consistency_score  IS 'Promoted scalar for fast analytics — avoids parsing parameter_consistency JSONB';
+COMMENT ON COLUMN user_assessments.parameter_consistency_rating IS 'Categorical rating derived from parameter_consistency_score';
+COMMENT ON COLUMN user_assessments.r_strategy_alignment_score   IS 'Promoted scalar for fast analytics — avoids parsing r_strategy_alignment JSONB';
+COMMENT ON COLUMN user_assessments.r_strategy_alignment_rating  IS 'Categorical rating derived from r_strategy_alignment_score';
+COMMENT ON COLUMN user_assessments.audit_confidence_score       IS 'LLM-reported audit confidence (audit.confidence_score)';
+COMMENT ON COLUMN user_assessments.audit_is_junk_input          IS 'LLM-determined junk input flag (audit.is_junk_input)';
+COMMENT ON COLUMN user_assessments.audit_integrity_gaps_count   IS 'Count of integrity gaps found during scoring';
+COMMENT ON COLUMN user_assessments.similar_cases_count          IS 'Number of similar cases returned from vector search';
+COMMENT ON COLUMN user_assessments.improvement_roadmap          IS 'Promoted from audit.improvement_roadmap — 3 prioritised actions with effort/impact/timeframe';
+COMMENT ON COLUMN user_assessments.sdg_alignment                IS 'Promoted from audit.sdg_alignment — 2-4 UN SDG objects';
+COMMENT ON COLUMN user_assessments.market_opportunity_summary   IS 'Promoted from audit.market_opportunity_summary — 2-3 sentence market assessment';
 
 -- ============================================
 -- 2. Indexes
 -- ============================================
 
-CREATE INDEX IF NOT EXISTS idx_assessments_user_id       ON assessments(user_id);
-CREATE INDEX IF NOT EXISTS idx_assessments_session_id    ON assessments(session_id);
-CREATE INDEX IF NOT EXISTS idx_assessments_industry      ON assessments(industry);
-CREATE INDEX IF NOT EXISTS idx_assessments_overall_score ON assessments(overall_score);
-CREATE INDEX IF NOT EXISTS idx_assessments_is_public     ON assessments(is_public) WHERE is_public = true;
-CREATE INDEX IF NOT EXISTS idx_assessments_created_at    ON assessments(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_assessments_user_created  ON assessments(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_assessments_public_id     ON assessments(public_id);
+CREATE INDEX IF NOT EXISTS idx_assessments_user_id       ON user_assessments(user_id);
+CREATE INDEX IF NOT EXISTS idx_assessments_session_id    ON user_assessments(session_id);
+CREATE INDEX IF NOT EXISTS idx_assessments_industry      ON user_assessments(industry);
+CREATE INDEX IF NOT EXISTS idx_assessments_overall_score ON user_assessments(overall_score);
+CREATE INDEX IF NOT EXISTS idx_assessments_is_public     ON user_assessments(is_public) WHERE is_public = true;
+CREATE INDEX IF NOT EXISTS idx_assessments_created_at    ON user_assessments(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_assessments_user_created  ON user_assessments(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_assessments_public_id     ON user_assessments(public_id);
 -- Analytics indexes on promoted scalars
-CREATE INDEX IF NOT EXISTS idx_assessments_risk_level    ON assessments(risk_level);
-CREATE INDEX IF NOT EXISTS idx_assessments_scale         ON assessments(scale);
-CREATE INDEX IF NOT EXISTS idx_assessments_r_strategy    ON assessments(r_strategy);
-CREATE INDEX IF NOT EXISTS idx_assessments_param_consistency_score ON assessments(parameter_consistency_score);
-CREATE INDEX IF NOT EXISTS idx_assessments_r_alignment_score       ON assessments(r_strategy_alignment_score);
-CREATE INDEX IF NOT EXISTS idx_assessments_audit_is_junk           ON assessments(audit_is_junk_input) WHERE audit_is_junk_input = true;
+CREATE INDEX IF NOT EXISTS idx_assessments_risk_level    ON user_assessments(risk_level);
+CREATE INDEX IF NOT EXISTS idx_assessments_scale         ON user_assessments(scale);
+CREATE INDEX IF NOT EXISTS idx_assessments_r_strategy    ON user_assessments(r_strategy);
+CREATE INDEX IF NOT EXISTS idx_assessments_param_consistency_score ON user_assessments(parameter_consistency_score);
+CREATE INDEX IF NOT EXISTS idx_assessments_r_alignment_score       ON user_assessments(r_strategy_alignment_score);
+CREATE INDEX IF NOT EXISTS idx_assessments_audit_is_junk           ON user_assessments(audit_is_junk_input) WHERE audit_is_junk_input = true;
 
 -- ============================================
 -- 3. Row Level Security
 -- ============================================
 
-ALTER TABLE assessments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_assessments ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS assessments_select_policy ON assessments;
-DROP POLICY IF EXISTS assessments_insert_policy ON assessments;
-DROP POLICY IF EXISTS assessments_update_policy ON assessments;
-DROP POLICY IF EXISTS assessments_delete_policy ON assessments;
-DROP POLICY IF EXISTS assessments_select_authenticated ON assessments;
-DROP POLICY IF EXISTS assessments_select_guest         ON assessments;
-DROP POLICY IF EXISTS assessments_insert_authenticated ON assessments;
-DROP POLICY IF EXISTS assessments_insert_guest         ON assessments;
-DROP POLICY IF EXISTS assessments_update_authenticated ON assessments;
-DROP POLICY IF EXISTS assessments_update_guest         ON assessments;
-DROP POLICY IF EXISTS assessments_delete_authenticated ON assessments;
-DROP POLICY IF EXISTS assessments_delete_guest         ON assessments;
-DROP POLICY IF EXISTS "Anyone can view public assessments" ON assessments;
+DROP POLICY IF EXISTS assessments_select_policy ON user_assessments;
+DROP POLICY IF EXISTS assessments_insert_policy ON user_assessments;
+DROP POLICY IF EXISTS assessments_update_policy ON user_assessments;
+DROP POLICY IF EXISTS assessments_delete_policy ON user_assessments;
+DROP POLICY IF EXISTS assessments_select_authenticated ON user_assessments;
+DROP POLICY IF EXISTS assessments_select_guest         ON user_assessments;
+DROP POLICY IF EXISTS assessments_insert_authenticated ON user_assessments;
+DROP POLICY IF EXISTS assessments_insert_guest         ON user_assessments;
+DROP POLICY IF EXISTS assessments_update_authenticated ON user_assessments;
+DROP POLICY IF EXISTS assessments_update_guest         ON user_assessments;
+DROP POLICY IF EXISTS assessments_delete_authenticated ON user_assessments;
+DROP POLICY IF EXISTS assessments_delete_guest         ON user_assessments;
+DROP POLICY IF EXISTS "Anyone can view public assessments" ON user_assessments;
 
-CREATE POLICY assessments_select_policy ON assessments
+CREATE POLICY assessments_select_policy ON user_assessments
   FOR SELECT USING (
     (SELECT auth.uid()) = user_id OR
     is_public = true OR
     session_id = current_setting('request.headers', true)::json->>'x-session-id'
   );
 
-CREATE POLICY assessments_insert_policy ON assessments
+CREATE POLICY assessments_insert_policy ON user_assessments
   FOR INSERT WITH CHECK (
     (SELECT auth.uid()) = user_id OR user_id IS NULL
   );
 
-CREATE POLICY assessments_update_policy ON assessments
+CREATE POLICY assessments_update_policy ON user_assessments
   FOR UPDATE
   USING (
     (SELECT auth.uid()) = user_id OR
@@ -238,7 +238,7 @@ CREATE POLICY assessments_update_policy ON assessments
     (user_id IS NULL AND session_id = current_setting('request.headers', true)::json->>'x-session-id')
   );
 
-CREATE POLICY assessments_delete_policy ON assessments
+CREATE POLICY assessments_delete_policy ON user_assessments
   FOR DELETE USING (
     (SELECT auth.uid()) = user_id OR
     (user_id IS NULL AND session_id = current_setting('request.headers', true)::json->>'x-session-id')
@@ -271,7 +271,7 @@ BEGIN
   RETURN QUERY
   WITH base AS (
     SELECT a.*
-    FROM assessments a
+    FROM user_assessments a
     WHERE (user_uuid IS NULL OR a.user_id = user_uuid)
       AND a.overall_score IS NOT NULL
   ),
@@ -368,7 +368,7 @@ BEGIN
     ROUND(AVG(a.parameter_consistency_score)::NUMERIC, 1)   AS avg_param_consistency,
     ROUND(AVG(a.r_strategy_alignment_score)::NUMERIC, 1)    AS avg_r_alignment,
     COUNT(*)                                                AS count
-  FROM assessments a
+  FROM user_assessments a
   WHERE a.overall_score IS NOT NULL
     AND a.contribute_to_global_benchmarks = TRUE
   GROUP BY a.industry, a.scale, a.r_strategy
@@ -391,35 +391,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SET search_path = public, extensions SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS update_assessments_updated_at ON assessments;
+DROP TRIGGER IF EXISTS update_assessments_updated_at ON user_assessments;
 CREATE TRIGGER update_assessments_updated_at
-  BEFORE UPDATE ON assessments
+  BEFORE UPDATE ON user_assessments
   FOR EACH ROW EXECUTE FUNCTION update_assessments_updated_at_column();
 
 -- ============================================
 -- 6. Grants
 -- ============================================
 
-GRANT ALL ON assessments TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON assessments TO anon;
-GRANT ALL ON assessments TO service_role;
-GRANT USAGE, SELECT ON SEQUENCE assessments_id_seq TO authenticated, anon, service_role;
+GRANT ALL ON user_assessments TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_assessments TO anon;
+GRANT ALL ON user_assessments TO service_role;
 
 -- ============================================
 -- 7. Constraints
 -- ============================================
 
-ALTER TABLE assessments ADD CONSTRAINT check_title_not_empty
-  CHECK (title != '');
-ALTER TABLE assessments ADD CONSTRAINT check_business_problem_not_empty
-  CHECK (business_problem != '');
-ALTER TABLE assessments ADD CONSTRAINT check_business_solution_not_empty
-  CHECK (business_solution != '');
+-- added in table definition with CHECK constraints for value ranges and NOT NULL where appropriate
 
 -- ============================================
 -- 8. Verification
 -- ============================================
 
-SELECT tablename, rowsecurity FROM pg_tables WHERE tablename = 'assessments';
-SELECT policyname FROM pg_policies WHERE tablename = 'assessments';
-SELECT indexname  FROM pg_indexes  WHERE tablename = 'assessments';
+SELECT tablename, rowsecurity FROM pg_tables WHERE tablename = 'user_assessments';
+SELECT policyname FROM pg_policies WHERE tablename = 'user_assessments';
+SELECT indexname  FROM pg_indexes  WHERE tablename = 'user_assessments';
