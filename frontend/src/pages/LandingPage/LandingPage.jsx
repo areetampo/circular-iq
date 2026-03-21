@@ -610,7 +610,7 @@ export default function LandingPage() {
       // Handle anonymous limit reached
       if (err?.code === 'LIMIT_REACHED') {
         openLimitReachedDialog({
-          limit: err?.limit || 5,
+          limit: err?.limit || 20,
           message:
             err?.message ||
             `You've reached the limit of free evaluations. Create an account to continue assessing your circular economy initiatives!`,
