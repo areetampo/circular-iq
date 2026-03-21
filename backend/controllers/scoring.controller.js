@@ -711,7 +711,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       // audit quality signals
       audit_confidence_score: response.audit?.confidence_score,
       audit_is_junk_input: response.audit?.is_junk_input ?? false,
-      audit_integrity_gap_count: response.audit?.integrity_gaps?.length ?? 0,
+      audit_integrity_gaps_count: response.audit?.integrity_gaps?.length ?? 0,
       audit_similar_cases_count: response.similar_cases?.length ?? 0,
       // Layer 2 enrichment
       weighted_score_card: response.weighted_score_card ?? null,
