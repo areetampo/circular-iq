@@ -19,9 +19,45 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
     sourceCaseId = null,
   } = data;
 
+  // Robust fallback for partial invocation from AssessmentComparisonPage
+  const derivedMatchPercentage =
+    matchPercentage != null
+      ? matchPercentage
+      : caseItem?.similarity != null
+        ? Math.round(caseItem.similarity * 100)
+        : null;
+  const derivedMatchStrengthLabel =
+    matchStrengthLabel ||
+    (derivedMatchPercentage >= 80
+      ? 'Very Strong Match'
+      : derivedMatchPercentage >= 60
+        ? 'Strong Match'
+        : derivedMatchPercentage >= 40
+          ? 'Moderate Match'
+          : derivedMatchPercentage != null
+            ? 'Weak Match'
+            : 'No match label');
+  const derivedMatchColor =
+    matchColor ||
+    (derivedMatchPercentage >= 80
+      ? '#22c55e'
+      : derivedMatchPercentage >= 60
+        ? '#3b82f6'
+        : derivedMatchPercentage >= 40
+          ? '#f59e0b'
+          : derivedMatchPercentage != null
+            ? '#ef4444'
+            : '#94a3b8');
+  const derivedSourceCaseId =
+    sourceCaseId ?? caseItem?.id ?? caseItem?.source_case_id ?? caseItem?.sourceId ?? null;
+
+  const derivedTitle =
+    title || caseItem?.title || caseItem?.case_title || `Case ${derivedSourceCaseId || 'N/A'}`;
+  const derivedContent = content || caseItem?.summary || caseItem?.problem || '';
+
   // Use structured fields from caseItem (preferred) — these are now cleaned
   // by the LLM cleanup pass before being sent to the frontend
-  const problem = caseItem?.problem || content || '';
+  const problem = caseItem?.problem || derivedContent || '';
   const solution = caseItem?.solution || '';
   const impact = caseItem?.impact || '';
   const summary = caseItem?.summary || '';
@@ -65,7 +101,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
-                      {title || 'Evidence Details'}
+                      {derivedTitle || 'Evidence Details'}
                     </Drawer.Heading>
                     <p className="text-sm text-gray-600">
                       Detailed evidence and matched case context
@@ -79,27 +115,27 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
               <div className="space-y-6">
                 {/* ── Metadata badges ──────────────────────────────────────────── */}
                 <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-100">
-                  {matchPercentage && (
+                  {derivedMatchPercentage != null && (
                     <>
                       <div className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-md bg-gray-100 font-semibold text-gray-600">
                         <NotebookText className="size-4" />
-                        <span>Case {sourceCaseId}</span>
+                        <span>Case {derivedSourceCaseId}</span>
                       </div>
                       <span className="text-gray-300">•</span>
                       <Chip
                         size="sm"
                         variant="secondary"
                         className="text-xs font-bold text-white"
-                        style={{ backgroundColor: matchColor }}
+                        style={{ backgroundColor: derivedMatchColor }}
                       >
-                        {matchPercentage}% Similar
+                        {derivedMatchPercentage}% Similar
                       </Chip>
                       <span className="text-gray-300">•</span>
                       <span
                         className="text-xs font-bold uppercase tracking-wide"
-                        style={{ color: matchColor }}
+                        style={{ color: derivedMatchColor }}
                       >
-                        {matchStrengthLabel}
+                        {derivedMatchStrengthLabel}
                       </span>
                     </>
                   )}

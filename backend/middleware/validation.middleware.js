@@ -40,7 +40,7 @@ export const assessmentSchema = z
     contribute_to_global_benchmarks: z.boolean().optional(),
     businessProblem: z.string().optional(),
     businessSolution: z.string().optional(),
-    evaluation_parameters: z.record(z.number()).optional(),
+    parameters: z.record(z.number()).optional(), // Frontend sends 'parameters', not 'evaluation_parameters'
   })
   .strict();
 
@@ -115,7 +115,17 @@ export function validateRequest(schema) {
  */
 export function validateAssessment(req, res, next) {
   try {
-    const validated = assessmentSchema.parse(req.body);
+    // Allow missing/empty industry values to pass validation by defaulting to a placeholder.
+    // This prevents client-side empty strings from causing repeated 400 when API still has this data.
+    const body = {
+      ...req.body,
+      industry:
+        (typeof req.body?.industry === 'string' && req.body.industry.trim()) ||
+        req.body?.industry ||
+        'Unknown',
+    };
+
+    const validated = assessmentSchema.parse(body);
     req.validatedBody = validated;
     next();
   } catch (error) {

@@ -729,53 +729,76 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     // Fire-and-forget logging to scoring_results_log table
     const logData = {
-      // request provenance
+      // ── Request provenance ──────────────────────────────────────────────────────
       request_id: response.processing_info.request_id,
       user_id: userId,
       is_anonymous: userId === null,
-      // privacy-preserving fingerprints
+
+      // ── Privacy fingerprints ────────────────────────────────────────────────────
       ip_hash: crypto.createHash('sha256').update(extractIPAddress(req)).digest('hex'),
       identifier_hash: getIdentifierFromRequest(req).hash,
       user_agent_snippet: req.headers['user-agent']?.substring(0, 200),
-      // inputs
+
+      // ── User-supplied inputs ────────────────────────────────────────────────────
       business_problem: businessProblem,
       business_solution: businessSolution,
       business_problem_len: businessProblem.length,
       business_solution_len: businessSolution.length,
       evaluation_parameters: evaluationParameters || {},
       business_context: businessContext || {},
-      // scoring results
+
+      // ── Top-level scoring scalars ───────────────────────────────────────────────
       overall_score: response.overall_score,
       confidence_level: response.confidence_level,
+
+      // ── Derived metric scalars ──────────────────────────────────────────────────
       technical_feasibility: response.derived_metrics.technical_feasibility,
       economic_viability: response.derived_metrics.economic_viability,
       circularity_potential: response.derived_metrics.circularity_potential,
       risk_level: response.derived_metrics.risk_level,
-      // metadata
+
+      // ── Metadata scalars ────────────────────────────────────────────────────────
       industry: response.metadata?.industry,
       scale: response.metadata?.scale,
       primary_material: response.metadata?.primary_material,
       geographic_focus: response.metadata?.geographic_focus,
-      // audit quality signals
-      audit_confidence_score: response.audit?.confidence_score,
+
+      // ── Audit quality signals ───────────────────────────────────────────────────
+      audit_confidence_score: response.audit?.confidence_score ?? null,
       audit_is_junk_input: response.audit?.is_junk_input ?? false,
       audit_integrity_gaps_count: response.audit?.integrity_gaps?.length ?? 0,
-      audit_similar_cases_count: response.similar_cases?.length ?? 0,
-      // Layer 2 enrichment
-      weighted_score_card: response.weighted_score_card ?? null,
-      circular_economy_tier: response.circular_economy_tier ?? null,
+      similar_cases_count: response.similar_cases?.length ?? 0,
+
+      // ── Layer 2 enrichment scalars ──────────────────────────────────────────────
       parameter_consistency_score: response.parameter_consistency?.score ?? null,
       parameter_consistency_rating: response.parameter_consistency?.rating ?? null,
       r_strategy_alignment_score: response.r_strategy_alignment?.alignment_score ?? null,
       r_strategy_alignment_rating: response.r_strategy_alignment?.rating ?? null,
       r_strategy: response.r_strategy_alignment?.strategy ?? response.metadata?.r_strategy ?? null,
-      // Layer 3 extended audit
+
+      // ── Full JSON blobs ─────────────────────────────────────────────────────────
+      sub_scores: response.sub_scores ?? null,
+      derived_metrics: response.derived_metrics ?? null,
+      score_breakdown: response.score_breakdown ?? null,
+      weighted_score_card: response.weighted_score_card ?? null,
+      circular_economy_tier: response.circular_economy_tier ?? null,
+      parameter_consistency: response.parameter_consistency ?? null,
+      r_strategy_alignment: response.r_strategy_alignment ?? null,
+      audit: response.audit ?? null,
+      gap_analysis: response.gap_analysis ?? null,
+      similar_cases: response.similar_cases ?? null,
+      metadata: response.metadata ?? null,
+
+      // ── Layer 3 audit sub-fields ────────────────────────────────────────────────
       improvement_roadmap: response.audit?.improvement_roadmap ?? null,
       sdg_alignment: response.audit?.sdg_alignment ?? null,
       market_opportunity_summary: response.audit?.market_opportunity_summary ?? null,
-      // processing performance
+
+      // ── Processing performance ──────────────────────────────────────────────────
       processing_time_ms: response.processing_info.processing_time_ms,
       timings: response.processing_info.timings,
+
+      // ── Full snapshot ───────────────────────────────────────────────────────────
       result_snapshot: response,
     };
 

@@ -73,7 +73,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const location = useLocation();
   const isResultsRoute = location.pathname.startsWith('/results');
   const navigationResult = location.state?.result;
-  console.log('Navigation result:', navigationResult);
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
 
@@ -346,10 +345,26 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         // Defensive normalization to avoid backend validation failures
         resultPayload = normalizeResultForSave(resultPayload);
 
+        const resolvedIndustry =
+          (industry && industry.trim()) ||
+          currentData?.industry ||
+          resultPayload?.metadata?.industry ||
+          resultPayload?.industry ||
+          'Unknown';
+
+        if (
+          !resultPayload ||
+          (typeof resultPayload === 'object' && !Object.keys(resultPayload).length)
+        ) {
+          throw new Error(
+            'Cannot save assessment: result_json is empty. Please re-run evaluation before saving.',
+          );
+        }
+
         const saveData = {
           name,
           result_json: resultPayload,
-          industry: industry ?? currentData?.industry ?? null,
+          industry: resolvedIndustry,
           is_public: isPublic,
           contribute_to_global_benchmarks: contributeToGlobalBenchmarks,
           // Persist case-summary fields — prefer `resolvedFormData` (from in-memory form)

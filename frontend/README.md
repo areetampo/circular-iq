@@ -43,6 +43,7 @@ frontend/
 │   ├── pages/                        # Page-level components
 │   │   ├── AssessmentPage/           # Questionnaire flow
 │   │   ├── ResultsPage/              # Results & visualization
+│   │   ├── AssessmentComparisonPage/ # Compare two assessments side-by-side
 │   │   ├── DashboardPage/            # Analytics dashboard
 │   │   ├── MarketAnalysisPage/       # Benchmarking
 │   │   ├── MyAssessmentsPage/        # Assessment history
@@ -722,7 +723,7 @@ export async function exportAssessmentCSV(assessment) {
 **Related Files**:
 
 - `src/lib/metadata.js` – Helper implementations
-- Used in: `ResultsPage`, `MarketAnalysisPage`, `AssessmentComparisonPage`
+- Used in: `ResultsPage`, `MarketAnalysisPage`, `AssessmentComparisonPage` (including new Database Evidence tab and enrichment comparison panels)
 
 ```javascript
 import { getIndustry, getCategory } from '@/lib/metadata';

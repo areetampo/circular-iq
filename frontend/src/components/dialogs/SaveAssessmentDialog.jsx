@@ -151,19 +151,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     fullWidth
                   />
 
-                  <Input
-                    id="industry"
-                    placeholder="Industry (optional)"
-                    value={industry}
-                    onChange={(e) => {
-                      setIndustry(e.target.value);
-                      setError('');
-                    }}
-                    maxLength={60}
-                    className="rounded-full text-xs xs:text-sm"
-                    fullWidth
-                  />
-
                   {error && <p className="text-sm text-red-600">{error}</p>}
                 </div>
 

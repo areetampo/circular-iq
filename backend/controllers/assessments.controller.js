@@ -48,9 +48,17 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
   const startTime = Date.now();
 
   try {
-    const { name, industry, result_json, is_public, contribute_to_global_benchmarks } =
-      validatedBody;
-    const { title, businessProblem, businessSolution, result, evaluation_parameters } = rawBody;
+    const {
+      name,
+      industry,
+      result_json,
+      is_public,
+      contribute_to_global_benchmarks,
+      businessProblem,
+      businessSolution,
+      parameters,
+    } = validatedBody;
+    const { title, result, evaluation_parameters } = rawBody;
 
     // Check for required result data (either from result_json or result field)
     const resultData = result_json || result;
@@ -81,15 +89,18 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       risk_level: scoringResult.derived_metrics?.risk_level ?? null,
 
       // ── Metadata scalars ─────────────────────────────────────────────────────
-      industry: industry ?? scoringResult.metadata?.industry ?? null,
+      industry:
+        (typeof industry === 'string' && industry.trim()) ||
+        scoringResult.metadata?.industry ||
+        null,
       scale: scoringResult.metadata?.scale ?? null,
       r_strategy: scoringResult.metadata?.r_strategy ?? null,
       primary_material: scoringResult.metadata?.primary_material ?? null,
       geographic_focus: scoringResult.metadata?.geographic_focus ?? null,
 
       // ── JSON blobs ───────────────────────────────────────────────────────────
-      evaluation_parameters: scoringResult.evaluation_parameters ?? null,
-      business_context: scoringResult.business_context ?? null,
+      evaluation_parameters:
+        parameters || evaluation_parameters || scoringResult.evaluation_parameters || null,
       sub_scores: scoringResult.sub_scores ?? null,
       derived_metrics: scoringResult.derived_metrics ?? null,
       score_breakdown: scoringResult.score_breakdown ?? null,
@@ -97,13 +108,35 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       gap_analysis: scoringResult.gap_analysis ?? null,
       similar_cases: scoringResult.similar_cases ?? null,
       metadata: scoringResult.metadata ?? null,
-      // New enriched scoring outputs
+
+      // ── Layer 2 enrichment JSONB blobs ───────────────────────────────────────
       weighted_score_card: scoringResult.weighted_score_card ?? null,
       circular_economy_tier: scoringResult.circular_economy_tier ?? null,
       parameter_consistency: scoringResult.parameter_consistency ?? null,
       r_strategy_alignment: scoringResult.r_strategy_alignment ?? null,
-      // The rest of the data is persisted inside result_json for full reconstruction
-      result_json: scoringResult, // full snapshot — required NOT NULL
+
+      // ── Layer 2 enrichment scalars (promoted for fast analytics) ─────────────
+      parameter_consistency_score: scoringResult.parameter_consistency?.score ?? null,
+      parameter_consistency_rating: scoringResult.parameter_consistency?.rating ?? null,
+      r_strategy_alignment_score: scoringResult.r_strategy_alignment?.alignment_score ?? null,
+      r_strategy_alignment_rating: scoringResult.r_strategy_alignment?.rating ?? null,
+
+      // ── Audit quality signals (promoted scalars) ──────────────────────────────
+      audit_confidence_score: scoringResult.audit?.confidence_score ?? null,
+      audit_is_junk_input: scoringResult.audit?.is_junk_input ?? false,
+      audit_integrity_gaps_count: scoringResult.audit?.integrity_gaps?.length ?? 0,
+      similar_cases_count: scoringResult.similar_cases?.length ?? 0,
+
+      // ── Layer 3 audit sub-fields (promoted for fast access) ──────────────────
+      improvement_roadmap: scoringResult.audit?.improvement_roadmap ?? null,
+      sdg_alignment: scoringResult.audit?.sdg_alignment ?? null,
+      market_opportunity_summary: scoringResult.audit?.market_opportunity_summary ?? null,
+
+      // ── business_context: API response uses key "business_context" ───────────
+      business_context: scoringResult.business_context ?? null,
+
+      // Full snapshot — required NOT NULL
+      result_json: scoringResult,
 
       // ── Sharing ──────────────────────────────────────────────────────────────
       is_public: typeof is_public === 'boolean' ? is_public : true,

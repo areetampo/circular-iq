@@ -130,6 +130,8 @@ CREATE TABLE IF NOT EXISTS scoring_results_log (
   gap_analysis                JSONB,
   similar_cases               JSONB,
   metadata                    JSONB,
+
+  -- ── Layer 3 audit sub-fields ───────────────────────────────────────
   improvement_roadmap         JSONB,            -- audit.improvement_roadmap
   sdg_alignment               JSONB,            -- audit.sdg_alignment
   market_opportunity_summary  TEXT,             -- audit.market_opportunity_summary

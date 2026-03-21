@@ -56,11 +56,26 @@ async function request(path, options = {}) {
 
 async function requestJson(path, options = {}) {
   const response = await request(path, options);
-  const data = await response.json();
-  if (!response.ok) {
-    const message = data?.error || data?.message || `Request failed (${response.status})`;
-    throw new Error(message);
+  const text = await response.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
   }
+
+  if (!response.ok) {
+    const message =
+      data?.error ||
+      data?.message ||
+      (typeof data === 'object' ? JSON.stringify(data) : text) ||
+      `Request failed (${response.status})`;
+    const err = new Error(`HTTP ${response.status}: ${message}`);
+    err.status = response.status;
+    err.response = data;
+    throw err;
+  }
+
   return data;
 }
 
