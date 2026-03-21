@@ -1,1378 +1,770 @@
-import {
-  Alert,
-  Card,
-  Label,
-  ListBox,
-  ProgressCircle,
-  Select,
-  Skeleton,
-  Table,
-  Tabs,
-  toast,
-} from '@heroui/react';
-import { Grid } from '@mui/material';
+import { Card, Chip, Input, Skeleton } from '@heroui/react';
 import {
   Activity,
   BarChart3,
+  BookOpen,
   Building2,
-  Download,
+  ChevronRight,
   Gauge,
+  Globe,
   Layers,
-  PieChart as PieChartIcon,
+  RefreshCw,
+  Search,
+  Shield,
   Sparkles,
   Target,
-  TrendingDown,
   TrendingUp,
   Users,
+  Zap,
 } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { BarChart, ComboChart, LineChart, PieChart } from '@/components/charts';
+import { BarChart, LineChart, PieChart } from '@/components/charts';
 import { Button } from '@/components/common';
-import LoaderIcon from '@/components/common/LoaderIcon';
-import IndustryChipFilter from '@/components/filters/IndustryChipFilter';
-import DocumentCard from '@/components/search/DocumentCard';
-import SearchBar from '@/components/search/SearchBar';
-import { INDUSTRY_THEMES } from '@/constants/industryThemes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDocumentStats, useEnhancedAnalytics, useSearch } from '@/features/assessments';
-import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
+import { useAssessmentStats, useDocumentStats, useGlobalStats } from '@/features/assessments';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
-import { sortByAverageScoreAsc, sortByAverageScoreDesc } from '@/features/assessments/utils';
-import { exportDashboardToPDF } from '@/lib/exportDashboard';
-import { getCurrentTimestampFormatted, toTitleCase } from '@/lib/formatting';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
-import FeaturedSolutionsCard from './FeaturedSolutionsCard';
+// ─── Reusable small components ────────────────────────────────────────────────
 
-// Memoized metric card component for better performance
-const MetricCard = memo(({ title, value, subtitle, icon: Icon, trend, color = 'primary' }) => {
-  const colorClasses = {
-    primary: 'bg-primary/10 text-primary',
-    emerald: 'bg-emerald-500/10 text-emerald-600',
-    indigo: 'bg-indigo-500/10 text-indigo-600',
-    amber: 'bg-amber-500/10 text-amber-600',
-    rose: 'bg-rose-500/10 text-rose-600',
-  };
+function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading }) {
+  const iconCls =
+    {
+      emerald: 'bg-emerald-50 text-emerald-600',
+      blue: 'bg-blue-50 text-blue-600',
+      purple: 'bg-purple-50 text-purple-600',
+      amber: 'bg-amber-50 text-amber-600',
+      rose: 'bg-rose-50 text-rose-600',
+      indigo: 'bg-indigo-50 text-indigo-600',
+    }[color] ?? 'bg-slate-50 text-slate-600';
+
+  if (loading) {
+    return (
+      <Card className="border border-slate-200 shadow-sm">
+        <div className="p-5 space-y-2">
+          <Skeleton className="h-3 w-20 rounded" />
+          <Skeleton className="h-8 w-14 rounded" />
+          <Skeleton className="h-3 w-28 rounded" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="border-0 shadow-md bg-linear-to-br from-white to-slate-50 hover:shadow-lg transition-shadow">
-      <Card.Header className="flex flex-row items-start justify-between gap-4">
-        <div className="flex-1 space-y-2">
-          <Card.Description className="text-md">{title}</Card.Description>
-          <Card.Title className="text-3xl font-bold mt-0 mb-1">{value}</Card.Title>
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
-          {trend && (
-            <div
-              className={cn(
-                'flex items-center gap-1 mt-2 text-sm font-medium',
-                trend > 0 ? 'text-emerald-600' : 'text-rose-600',
-              )}
-            >
-              {trend > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-              <span>
-                {Math.abs(trend).toFixed(1)}
-                {trend > 0 ? ' increase' : ' decrease'}
-              </span>
-            </div>
-          )}
+    <Card className="border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+      <div className="p-5 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1 truncate">
+            {label}
+          </p>
+          <p className="text-3xl font-bold text-slate-900 leading-none">{value ?? '—'}</p>
+          {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
         </div>
-        <div
-          className={cn(
-            'flex items-center justify-center w-12 h-12 rounded-full',
-            colorClasses[color],
-          )}
-        >
-          <Icon size={24} />
-        </div>
-      </Card.Header>
-    </Card>
-  );
-});
-
-MetricCard.displayName = 'MetricCard';
-
-// Memoized chart section
-const ChartSection = memo(({ title, description, icon: Icon, children, actions }) => (
-  <Card className="border-0 shadow-md overflow-hidden">
-    <Card.Header className="flex flex-row items-start justify-between gap-4 mt-1.5">
-      <div className="flex-1 flex flex-col items-center justify-center gap-0.5">
-        <Card.Title className="flex items-center gap-2 text-lg">
-          {Icon && <Icon className="text-primary" size={20} />}
-          {title}
-        </Card.Title>
-        {description && (
-          <Card.Description className="text-sm text-slate-500">{description}</Card.Description>
+        {Icon && (
+          <div className={cn('p-2 rounded-lg', iconCls)}>
+            <Icon size={20} />
+          </div>
         )}
       </div>
-      {actions && <div className="flex gap-2">{actions}</div>}
-    </Card.Header>
-    <Card.Content className=" overflow-hidden">{children}</Card.Content>
-  </Card>
-));
-
-ChartSection.displayName = 'ChartSection';
-
-export default function DashboardPage() {
-  // Multi-select industries (like MyAssessmentsPage)
-  const [selectedIndustries, setSelectedIndustries] = useState(['all']);
-  const [timeRange, setTimeRange] = useState('180d');
-  const [isExporting, setIsExporting] = useState(false);
-  const [viewMode, setViewMode] = useState('overview'); // overview, detailed, trends
-
-  // Sorting for industry performance (client-side) — persisted to URL
-  const [industrySort, setIndustrySort] = useState('avg_desc');
-
-  // URL state (persist filters & view) — readable/shareable links
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // initialise from URL (first render)
-  useEffect(() => {
-    const industries = searchParams.get('industry');
-    if (industries) {
-      const items = industries
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-      if (items.length) setSelectedIndustries(items);
-    }
-    const tr = searchParams.get('timeRange');
-    if (tr) setTimeRange(tr);
-    const vm = searchParams.get('view');
-    if (vm) setViewMode(vm);
-    const is = searchParams.get('industrySort');
-    if (is) setIndustrySort(is);
-  }, []);
-
-  // sync URL when filters change (keeps history clean using replace)
-  useEffect(() => {
-    const params = Object.fromEntries([...searchParams.entries()]);
-
-    if (
-      !selectedIndustries ||
-      (selectedIndustries.length === 1 && selectedIndustries[0] === 'all')
-    ) {
-      delete params.industry;
-    } else {
-      params.industry = selectedIndustries.join(',');
-    }
-
-    if (timeRange && timeRange !== '180d') params.timeRange = timeRange;
-    else delete params.timeRange;
-
-    if (viewMode && viewMode !== 'overview') params.view = viewMode;
-    else delete params.view;
-
-    if (industrySort && industrySort !== 'avg_desc') params.industrySort = industrySort;
-    else delete params.industrySort;
-
-    setSearchParams(params, { replace: true });
-  }, [selectedIndustries, timeRange, viewMode, industrySort]);
-
-  // toasts will be issued directly using HeroUI's toast helper
-
-  // All available industries (prefer canonical list from INDUSTRY_THEMES + any metrics)
-  const { industryMetrics: allIndustryMetrics } = useEnhancedAnalytics({
-    filters: { industry: 'all', timeRange: 'all' },
-  });
-  const industryOptions = useMemo(() => {
-    const fromThemes = Object.keys(INDUSTRY_THEMES || {});
-    const fromMetrics = (allIndustryMetrics || []).map((m) => m.industry);
-    // keep 'all' first, then alphabetical
-    const combined = Array.from(new Set(['all', ...fromThemes, ...fromMetrics]));
-    return [
-      'all',
-      ...combined
-        .filter((i) => i && i !== 'all')
-        .sort((a, b) => String(a).localeCompare(String(b))),
-    ];
-  }, [allIndustryMetrics]);
-
-  // Handle industry chip toggle
-  const handleToggleIndustry = useCallback((industry) => {
-    setSelectedIndustries((prev) => {
-      if (industry === 'all') return ['all'];
-      const next = new Set(prev);
-      next.delete('all');
-      if (next.has(industry)) next.delete(industry);
-      else next.add(industry);
-      if (next.size === 0) return ['all'];
-      return Array.from(next);
-    });
-  }, []);
-
-  // Compose filter param for analytics hook
-  const industryFilterParam = useMemo(() => {
-    const active = selectedIndustries.filter((i) => i !== 'all');
-    if (active.length === 0) return undefined;
-    return active.join(',');
-  }, [selectedIndustries]);
-
-  const filters = useMemo(
-    () => ({
-      industry: industryFilterParam,
-      timeRange,
-    }),
-    [industryFilterParam, timeRange],
+    </Card>
   );
+}
 
-  const {
-    aggregate,
-    industryMetrics,
-    timeSeries,
-    scoreDistribution,
-    strategyDistribution,
-    scaleDistribution,
-    trends,
-    overallVolatility,
-    isLoading,
-    isFetching,
-    isError,
-    error,
-  } = useEnhancedAnalytics({ filters });
-
-  // User-specific assessment statistics
-  const {
-    totalAssessments: userTotalAssessments,
-    completedAssessments: userCompletedAssessments,
-    averageScore: userAverageScore,
-    medianScore: userMedianScore,
-    minScore: userMinScore,
-    maxScore: userMaxScore,
-    avgConfidence: userAvgConfidence,
-    avgTechnicalFeasibility: userAvgTechnicalFeasibility,
-    avgEconomicViability: userAvgEconomicViability,
-    avgCircularityPotential: userAvgCircularityPotential,
-    assessmentsByIndustry: userAssessmentsByIndustry,
-    assessmentsByRisk: userAssessmentsByRisk,
-    assessmentsByScale: userAssessmentsByScale,
-  } = useAssessmentStats({ enabled: !isLoading });
-
-  // Featured solutions - support optional semantic query
-  const [featuredQuery, setFeaturedQuery] = useState('');
-  const [featuredSearch, setFeaturedSearch] = useState(undefined);
-
-  const { solutions: featuredSolutions = [], isLoading: solutionsLoading } = useFeaturedSolutions({
-    limit: 3,
-    industry: industryFilterParam,
-    q: featuredSearch,
-    enabled: !isLoading,
-  });
-
-  // Landing drawer integration (use landing drawer hook to open the shared drawer)
-  const { openDashboardFeaturedSolutionsDrawer } = useGlobalDrawer();
-
-  // Extra fetch to compute quick document stats (top keywords and count)
-  const { solutions: statsSolutions = [], count: extendedCount = 0 } = useFeaturedSolutions({
-    limit: 10,
-    industry: industryFilterParam,
-    enabled: !isLoading,
-  });
-
-  // New search and document stats hooks
-  const {
-    results: searchResults,
-    loading: searchLoading,
-    error: searchError,
-    search,
-  } = useSearch();
-  const { stats: documentStats, loading: statsLoading, error: statsError } = useDocumentStats();
-
-  // Search handler
-  const handleSearch = useCallback(
-    (query, filters) => {
-      search(query, filters);
-    },
-    [search],
-  );
-
-  const topKeywords = useMemo(() => {
-    const stopWords = new Set([
-      'the',
-      'and',
-      'for',
-      'with',
-      'from',
-      'to',
-      'of',
-      'in',
-      'a',
-      'an',
-      'is',
-      'are',
-      'by',
-      'on',
-      'per',
-    ]);
-    const freq = {};
-    statsSolutions.forEach((s) => {
-      const text = `${s.title || ''} ${s.solution || ''} ${s.problem || ''}`;
-      text.split(/\W+/).forEach((word) => {
-        const w = word.toLowerCase();
-        if (!w || w.length < 3 || stopWords.has(w) || /^\d+$/.test(w)) return;
-        freq[w] = (freq[w] || 0) + 1;
-      });
-    });
-    return Object.entries(freq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([k]) => k);
-  }, [statsSolutions]);
-
-  // Pie chart color palette (colorblind-friendly, high contrast)
-  const pieColors = [
-    '#2563eb', // blue-600
-    '#059669', // emerald-600
-    '#f97316', // orange-500
-    '#8b5cf6', // purple-500
-    '#ef4444', // red-500
-    '#f59e0b', // amber-500
-    '#6366f1', // indigo-500
-    '#ec4899', // pink-500
-    '#0f172a', // slate-900
-    '#991b1b', // red-700
-    '#0ea5a4', // teal-500
-    '#2563eb', // repeat/support
-  ];
-
-  // Time range options for export / labels
-  const timeRangeOptions = useMemo(
-    () => [
-      { label: '30 Days', value: '30d' },
-      { label: '3 Months', value: '90d' },
-      { label: '6 Months', value: '180d' },
-      { label: 'All Time', value: 'all' },
-    ],
-    [],
-  );
-
-  // Derived display values
-  const formattedAverage = useMemo(
-    () =>
-      aggregate && typeof aggregate.averageScore === 'number'
-        ? aggregate.averageScore.toFixed(1)
-        : '0.0',
-    [aggregate],
-  );
-
-  // Demo fallback data when API returns empty results
-  const demoTimeSeriesData = [
-    { period: '2025-W48', averageScore: 65, avgViability: 58, growth: 3 },
-    { period: '2025-W49', averageScore: 68, avgViability: 61, growth: 5 },
-    { period: '2025-W50', averageScore: 70, avgViability: 63, growth: 7 },
-    { period: '2025-W51', averageScore: 72, avgViability: 65, growth: 4 },
-    { period: '2025-W52', averageScore: 75, avgViability: 68, growth: 6 },
-    { period: '2026-W01', averageScore: 78, avgViability: 70, growth: 8 },
-    { period: '2026-W02', averageScore: 77, avgViability: 72, growth: 5 },
-  ];
-
-  const demoScoreDistribution = [
-    { name: '0-20', value: 2, percent: 5 },
-    { name: '20-40', value: 5, percent: 12 },
-    { name: '40-60', value: 12, percent: 28 },
-    { name: '60-80', value: 18, percent: 42 },
-    { name: '80-100', value: 6, percent: 14 },
-  ];
-
-  const demoScaleDistribution = [
-    { name: 'Startup', value: 8, percent: 18 },
-    { name: 'SME', value: 18, percent: 42 },
-    { name: 'Enterprise', value: 12, percent: 28 },
-    { name: 'Non-Profit', value: 5, percent: 12 },
-  ];
-
-  const demoIndustryMetrics = [
-    { industry: 'energy', averageScore: 82, count: 12, avgViability: 79 },
-    { industry: 'packaging', averageScore: 76, count: 14, avgViability: 71 },
-    { industry: 'textiles', averageScore: 73, count: 10, avgViability: 68 },
-    { industry: 'construction', averageScore: 70, count: 9, avgViability: 65 },
-    { industry: 'electronics', averageScore: 68, count: 7, avgViability: 62 },
-  ];
-
-  const timeSeriesData = timeSeries && timeSeries.length > 0 ? timeSeries : demoTimeSeriesData;
-  const trendConfig = {};
-
-  const strategyChartData = useMemo(() => {
-    const data =
-      strategyDistribution && strategyDistribution.length > 0
-        ? strategyDistribution
-        : [
-            { strategy: 'Reuse & Refurbishment', value: 14, average_score: 76 },
-            { strategy: 'Material Recovery', value: 18, average_score: 72 },
-            { strategy: 'Component Remanufacturing', value: 12, average_score: 79 },
-            { strategy: 'Design for Disassembly', value: 10, average_score: 74 },
-          ];
-    return data.map((s, idx) => ({
-      name: s.strategy || s.name || 'Unknown',
-      value: s.value || s.count || 0,
-      averageScore: s.averageScore || s.average_score || 0,
-      percentage: s.percentage || s.percent || 0,
-      color: pieColors[idx % pieColors.length],
-    }));
-  }, [strategyDistribution]);
-
-  const scaleChartData = useMemo(() => {
-    const source =
-      scaleDistribution && scaleDistribution.length > 0
-        ? scaleDistribution
-        : demoScaleDistribution.map((d) => ({
-            scale: d.name,
-            count: d.value,
-            percentage: d.percent,
-          }));
-    return source.map((s, idx) => ({
-      name: s.scale || s.name || 'Unknown',
-      value: s.count || s.value || 0,
-      percent: s.percentage || s.percent || 0,
-      color: pieColors[idx % pieColors.length],
-    }));
-  }, [scaleDistribution]);
-
-  const mostActiveIndustry = useMemo(() => {
-    if (!industryMetrics || industryMetrics.length === 0) return null;
-    return industryMetrics.slice().sort((a, b) => b.count - a.count)[0];
-  }, [industryMetrics]);
-
-  // Industry label map for chips
-  const industryLabelMap = useMemo(() => {
-    const map = {};
-    allIndustryMetrics.forEach((m) => {
-      map[m.industry] = toTitleCase(m.industry);
-    });
-    map['all'] = 'All Industries';
-    return map;
-  }, [allIndustryMetrics]);
-
-  // Aggregate industry metrics for selected industries
-  const filteredIndustryMetrics = useMemo(() => {
-    if (selectedIndustries.includes('all')) return industryMetrics;
-    return industryMetrics.filter((m) => selectedIndustries.includes(m.industry));
-  }, [industryMetrics, selectedIndustries]);
-
-  // Pie chart data for selected industries (use demo when API returns empty so charts are never blank)
-  const filteredPieChartData = useMemo(() => {
-    const source =
-      scoreDistribution && scoreDistribution.length > 0
-        ? scoreDistribution
-        : demoScoreDistribution.map((d) => ({
-            range: d.name,
-            count: d.value,
-            percentage: d.percent,
-          }));
-    return source.map((bucket, idx) => ({
-      name: bucket.range || bucket.name || 'Unknown',
-      value: bucket.count || bucket.value || 0,
-      percent: bucket.percentage || bucket.percent || 0,
-      color: pieColors[idx % pieColors.length],
-      label: `${bucket.range || bucket.name} (${bucket.count || bucket.value}, ${bucket.percentage || bucket.percent}%)`,
-    }));
-  }, [scoreDistribution]);
-
-  // Industry Performance Bar Chart Data (use demo when no API data so chart is never empty)
-  const industryPerformanceData = useMemo(() => {
-    let source =
-      filteredIndustryMetrics && filteredIndustryMetrics.length > 0
-        ? filteredIndustryMetrics
-        : industryMetrics;
-    if (!source || source.length === 0) source = demoIndustryMetrics;
-
-    const mapped = source.map((m, idx) => ({
-      ...m,
-      industry: m.industry,
-      label: toTitleCase(m.industry),
-      color: pieColors[idx % pieColors.length],
-      averageScore: typeof m.averageScore === 'number' ? m.averageScore : m.average_score || 0,
-    }));
-
-    switch (industrySort) {
-      case 'avg_asc':
-        return mapped.slice().sort(sortByAverageScoreAsc);
-      case 'count_desc':
-        return mapped.slice().sort((a, b) => (b.count || 0) - (a.count || 0));
-      case 'count_asc':
-        return mapped.slice().sort((a, b) => (a.count || 0) - (b.count || 0));
-      case 'avg_desc':
-      default:
-        return mapped.slice().sort(sortByAverageScoreDesc);
-    }
-  }, [filteredIndustryMetrics, industryMetrics, industrySort]);
-
-  // Helper for empty chart states
-  const EmptyChartState = ({ message }) => (
-    <div className="flex items-center justify-center h-full text-gray-400 text-base font-medium py-12">
-      {message}
-    </div>
-  );
-
-  // IndustryChipFilter for dashboard (render only the chips here; label is provided by the parent)
-  const renderIndustryChipFilter = () => (
-    <div className="w-full overflow-x-auto py-1">
-      <div className="flex gap-2 flex-nowrap">
-        <IndustryChipFilter
-          industries={industryOptions}
-          selected={selectedIndustries}
-          onToggle={handleToggleIndustry}
-          labelMap={industryLabelMap}
-        />
+function SectionHeader({ icon: Icon, title, subtitle, iconCls = 'text-emerald-600' }) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <div className={cn('p-2 rounded-lg bg-slate-100', iconCls)}>
+        <Icon size={20} />
+      </div>
+      <div>
+        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+        {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
       </div>
     </div>
   );
+}
 
-  const renderStatus = useCallback(() => {
-    if (isLoading) return 'Loading analytics...';
-    if (isError) return error || 'Unable to load analytics.';
-    if (!aggregate.totalCount) return 'No assessments yet. Submit an audit to populate insights.';
-    return 'Comprehensive analytics across all circular economy assessments.';
-  }, [isLoading, isError, error, aggregate.totalCount]);
+function ChartCard({ title, icon: Icon, iconCls, loading, children, height = 'h-48' }) {
+  return (
+    <Card className="border border-slate-200 shadow-sm bg-white">
+      <div className="p-4">
+        {title && (
+          <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            {Icon && <Icon size={15} className={iconCls ?? 'text-slate-500'} />}
+            {title}
+          </h3>
+        )}
+        {loading ? <Skeleton className={cn('w-full rounded', height)} /> : children}
+      </div>
+    </Card>
+  );
+}
 
-  const handleClearFilters = useCallback(() => {
-    setSelectedIndustries(['all']);
-    setTimeRange('180d');
-  }, []);
+function EmptyChart({ message = 'No data yet' }) {
+  return (
+    <div className="h-40 flex items-center justify-center text-slate-400 text-sm">{message}</div>
+  );
+}
 
-  const handleExportPDF = useCallback(async () => {
-    try {
-      setIsExporting(true);
-      await exportDashboardToPDF({
-        elementId: 'dashboard-content',
-        filters: { industry: industryFilterParam, timeRange },
-        timeRangeOptions,
-      });
-      toast.success('Dashboard exported successfully!', { timeout: 3000 });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.danger('Failed to export dashboard. Please try again.', { timeout: 4000 });
-    } finally {
-      setIsExporting(false);
-    }
-  }, [industryFilterParam, timeRange, timeRangeOptions]);
+// ─── Main page ────────────────────────────────────────────────────────────────
 
-  const timeRangeLabel = useMemo(
-    () => timeRangeOptions.find((option) => option.value === timeRange)?.label || 'Last 6 Months',
-    [timeRange, timeRangeOptions],
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { openDashboardFeaturedSolutionsDrawer } = useGlobalDrawer();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearch, setActiveSearch] = useState(undefined);
+
+  // ── Data hooks ──────────────────────────────────────────────────────────────
+  const {
+    totalScoringCalls,
+    avgScore,
+    avgConfidence,
+    avgTechFeas,
+    avgEconViab,
+    avgCircPot,
+    avgParamConsistency,
+    avgRAlignment,
+    scoreDistribution,
+    tierDistribution,
+    riskDistribution,
+    industryDistribution,
+    strategyDistribution,
+    weeklyTrend,
+    marketDataByIndustry,
+    totalSavedAssessments,
+    assessmentsByTier,
+    assessmentsByRisk,
+    assessmentsByScale,
+    isLoading: globalLoading,
+    refetch: refetchGlobal,
+  } = useGlobalStats();
+
+  const {
+    totalAssessments: userTotal,
+    averageScore: userAvg,
+    medianScore: userMedian,
+    minScore: userMin,
+    maxScore: userMax,
+    avgConfidence: userConf,
+    avgTechnicalFeasibility: userTechFeas,
+    avgEconomicViability: userEconViab,
+    avgCircularityPotential: userCircPot,
+    assessmentsByIndustry: userByIndustry,
+    assessmentsByRisk: userByRisk,
+    isLoading: userStatsLoading,
+  } = useAssessmentStats({ enabled: !!user });
+
+  const { stats: docStats, loading: docLoading } = useDocumentStats();
+
+  const { solutions: featuredSolutions, isLoading: featuredLoading } = useFeaturedSolutions({
+    limit: 4,
+    q: activeSearch,
+    enabled: true,
+  });
+
+  // ── Chart data ──────────────────────────────────────────────────────────────
+
+  const scoreDistData = useMemo(
+    () =>
+      Object.entries(scoreDistribution).map(([range, count]) => ({ name: range, value: count })),
+    [scoreDistribution],
   );
 
-  const isBusy = isLoading || isFetching;
+  const tierDistData = useMemo(
+    () =>
+      Object.entries(tierDistribution)
+        .filter(([t]) => t !== 'Unknown')
+        .map(([tier, count]) => ({ name: tier, value: count }))
+        .sort((a, b) => b.value - a.value),
+    [tierDistribution],
+  );
+
+  const riskDistData = useMemo(
+    () =>
+      Object.entries(riskDistribution)
+        .filter(([r]) => r !== 'unknown')
+        .map(([risk, count]) => ({
+          name: risk.charAt(0).toUpperCase() + risk.slice(1),
+          value: count,
+        })),
+    [riskDistribution],
+  );
+
+  const strategyData = useMemo(
+    () =>
+      strategyDistribution
+        .filter((s) => s.strategy && s.strategy !== 'unknown')
+        .slice(0, 8)
+        .map((s) => ({ name: s.strategy, value: s.count })),
+    [strategyDistribution],
+  );
+
+  const industryBarData = useMemo(
+    () =>
+      industryDistribution
+        .filter((d) => d.industry && d.industry !== 'other')
+        .slice(0, 10)
+        .map((d) => ({ name: d.industry, count: d.count })),
+    [industryDistribution],
+  );
+
+  const weeklyData = useMemo(
+    () => weeklyTrend.map((w) => ({ period: w.week, count: w.count, averageScore: w.avg_score })),
+    [weeklyTrend],
+  );
+
+  const marketTableRows = useMemo(
+    () => marketDataByIndustry.filter((m) => m.industry).slice(0, 15),
+    [marketDataByIndustry],
+  );
+
+  const userIndustryData = useMemo(
+    () =>
+      Object.entries(userByIndustry || {})
+        .map(([industry, d]) => ({
+          name: industry,
+          count: typeof d === 'object' ? (d.count ?? 0) : (d ?? 0),
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8),
+    [userByIndustry],
+  );
+
+  const userRiskData = useMemo(
+    () =>
+      Object.entries(userByRisk || {}).map(([risk, count]) => ({
+        name: risk.charAt(0).toUpperCase() + risk.slice(1),
+        value: typeof count === 'number' ? count : 0,
+      })),
+    [userByRisk],
+  );
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div
-      id="dashboard-content"
-      className={cn('space-y-8 transition-opacity duration-300 p-4', isBusy && 'opacity-60')}
-    >
-      {/* HEADER: Title + Status */}
-      <p className="text-sm text-slate-600 max-w-2xl text-center mx-auto mb-4">
-        Last updated: {getCurrentTimestampFormatted()}
-      </p>
-
-      {/* KEY METRICS */}
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array(4)
-            .fill(0)
-            .map((_, i) => (
-              <Skeleton
-                key={i}
-                className="rounded-lg h-32 bg-linear-to-br from-slate-100 to-slate-50"
-                animationType="pulse"
-              />
-            ))}
+    <div className="space-y-12 pb-12">
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Globe className="text-emerald-600" size={24} />
+            Global Intelligence Dashboard
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Real-time insights from all circular economy assessments worldwide
+          </p>
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            title="Total Assessments"
-            value={aggregate.totalCount || 0}
-            subtitle={`${aggregate.publicCount ?? 0} public, ${aggregate.contributingCount ?? 0} contributing to benchmarks`}
-            icon={Layers}
-            trend={trends.recentGrowth}
-            color="primary"
-          />
+        <Button size="sm" variant="secondary" onPress={refetchGlobal} isDisabled={globalLoading}>
+          <RefreshCw size={14} className={globalLoading ? 'animate-spin' : ''} />
+          Refresh
+        </Button>
+      </div>
 
-          <MetricCard
-            title="Average Score"
-            value={formattedAverage}
-            subtitle={`Median: ${aggregate.medianScore || 0}`}
-            icon={Gauge}
-            trend={trends.scoreImprovement}
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 1 — GLOBAL ACTIVITY  (scoring_results_log — all calls)
+          ══════════════════════════════════════════════════════════════════════ */}
+      <section>
+        <SectionHeader
+          icon={Globe}
+          title="Global Activity"
+          subtitle={`${totalScoringCalls.toLocaleString()} assessments scored — authenticated and anonymous`}
+          iconCls="text-emerald-600"
+        />
+
+        {/* Primary metrics */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <StatCard
+            label="Total Scored"
+            value={totalScoringCalls.toLocaleString()}
+            icon={Activity}
             color="emerald"
+            loading={globalLoading}
           />
-
-          <MetricCard
-            title="Avg Viability"
-            value={Number(aggregate.avgViability || 0).toFixed(1)}
-            subtitle="Business readiness"
-            icon={Target}
+          <StatCard
+            label="Avg Score"
+            value={avgScore?.toFixed(1)}
+            icon={Gauge}
+            color="blue"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Avg Confidence"
+            value={avgConfidence?.toFixed(0)}
+            icon={Zap}
+            color="amber"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Avg Tech Feasibility"
+            value={avgTechFeas?.toFixed(0)}
+            icon={Shield}
+            color="purple"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Avg Econ Viability"
+            value={avgEconViab?.toFixed(0)}
+            icon={Building2}
+            color="rose"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Saved Assessments"
+            value={totalSavedAssessments.toLocaleString()}
+            sub="opted-in contributors"
+            icon={Users}
             color="indigo"
           />
+        </div>
 
-          <MetricCard
-            title="Active Industries"
-            value={industryMetrics.length}
-            subtitle={
-              industryMetrics.length > 0
-                ? `Top: ${toTitleCase(industryMetrics[0].industry)}`
-                : 'N/A'
-            }
-            icon={Building2}
-            color="amber"
+        {/* Secondary metrics — enrichment averages */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            label="Avg Circularity"
+            value={avgCircPot?.toFixed(0)}
+            icon={Sparkles}
+            color="emerald"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Avg Consistency Score"
+            value={avgParamConsistency?.toFixed(0)}
+            sub="self-assessment reliability"
+            icon={BarChart3}
+            color="blue"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Avg Strategy Alignment"
+            value={avgRAlignment?.toFixed(0)}
+            sub="R-strategy fit"
+            icon={Target}
+            color="purple"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Industries Covered"
+            value={industryDistribution.length}
+            icon={Layers}
+            color="indigo"
+            loading={globalLoading}
           />
         </div>
+
+        {/* Distribution charts row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <ChartCard
+            title="Score Distribution"
+            icon={BarChart3}
+            iconCls="text-blue-600"
+            loading={globalLoading}
+          >
+            {scoreDistData.length > 0 ? (
+              <PieChart
+                data={scoreDistData}
+                height={192}
+                colors={['#10b981', '#3b82f6', '#f59e0b', '#ef4444']}
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
+
+          <ChartCard
+            title="Circular Economy Tier"
+            icon={Target}
+            iconCls="text-emerald-600"
+            loading={globalLoading}
+          >
+            {tierDistData.length > 0 ? (
+              <PieChart data={tierDistData} height={192} />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
+
+          <ChartCard
+            title="Risk Distribution"
+            icon={Shield}
+            iconCls="text-rose-600"
+            loading={globalLoading}
+          >
+            {riskDistData.length > 0 ? (
+              <PieChart data={riskDistData} height={192} />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
+        </div>
+
+        {/* Weekly trend + R-strategy */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <ChartCard
+            title="Weekly Trend (Last 12 weeks)"
+            icon={TrendingUp}
+            iconCls="text-blue-600"
+            loading={globalLoading}
+            height="h-64"
+          >
+            {weeklyData.length > 0 ? (
+              <LineChart
+                data={weeklyData}
+                lines={[{ dataKey: 'count', stroke: '#2563eb', name: 'Assessments' }]}
+                height={224}
+                xAxisKey="period"
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
+
+          <ChartCard
+            title="R-Strategy Distribution"
+            icon={Layers}
+            iconCls="text-purple-600"
+            loading={globalLoading}
+            height="h-64"
+          >
+            {strategyData.length > 0 ? (
+              <BarChart
+                data={strategyData}
+                barConfigs={[{ dataKey: 'value', fill: '#a855f7' }]}
+                xAxisKey="name"
+                height={224}
+                layout="horizontal"
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartCard>
+        </div>
+
+        {/* Industry volume bar chart */}
+        {(globalLoading || industryBarData.length > 0) && (
+          <ChartCard
+            title="Top Industries by Assessment Volume"
+            icon={Building2}
+            iconCls="text-amber-600"
+            loading={globalLoading}
+            height="h-80"
+          >
+            {industryBarData.length > 0 ? (
+              <BarChart
+                data={industryBarData}
+                barConfigs={[{ dataKey: 'count', fill: '#f59e0b' }]}
+                xAxisKey="name"
+                height={288}
+              />
+            ) : (
+              <EmptyChart message="No industry data available" />
+            )}
+          </ChartCard>
+        )}
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 2 — BENCHMARK INTELLIGENCE  (get_market_data RPC)
+          ══════════════════════════════════════════════════════════════════════ */}
+      {(globalLoading || marketTableRows.length > 0) && (
+        <section>
+          <SectionHeader
+            icon={TrendingUp}
+            title="Benchmark Intelligence"
+            subtitle="Per-industry / per-scale / per-strategy benchmarks from public saved assessments"
+            iconCls="text-blue-600"
+          />
+
+          <Card className="border border-slate-200 shadow-sm bg-white">
+            <div className="p-4 overflow-x-auto">
+              {globalLoading ? (
+                <Skeleton className="w-full h-32 rounded" />
+              ) : marketTableRows.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-3 font-semibold text-slate-700">Industry</th>
+                      <th className="text-left py-2 px-3 font-semibold text-slate-700">Scale</th>
+                      <th className="text-left py-2 px-3 font-semibold text-slate-700">Strategy</th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">
+                        Avg Score
+                      </th>
+                      <th className="text-right py-2 px-3 font-semibold text-slate-700">Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {marketTableRows.map((row, idx) => (
+                      <tr
+                        key={idx}
+                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="py-3 px-3 text-slate-900">{row.industry}</td>
+                        <td className="py-3 px-3 text-slate-700">{row.scale || '—'}</td>
+                        <td className="py-3 px-3 text-slate-700">{row.strategy || '—'}</td>
+                        <td className="py-3 px-3 text-right font-semibold text-blue-700">
+                          {row.avg_score?.toFixed(1) || '—'}
+                        </td>
+                        <td className="py-3 px-3 text-right text-slate-600">{row.count || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="py-8 text-center text-slate-400">
+                  No benchmark data available yet
+                </div>
+              )}
+            </div>
+          </Card>
+        </section>
       )}
 
-      {/* USER-SPECIFIC METRICS */}
-      {userTotalAssessments > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-slate-800">Your Assessment Analytics</h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              title="Your Assessments"
-              value={userTotalAssessments}
-              subtitle={`${userCompletedAssessments} completed`}
-              icon={Users}
-              color="primary"
-            />
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 3 — KNOWLEDGE BASE  (documents dataset + featured solutions)
+          ══════════════════════════════════════════════════════════════════════ */}
+      <section>
+        <SectionHeader
+          icon={BookOpen}
+          title="Knowledge Base"
+          subtitle="Curated articles, case studies, and solutions from the database"
+          iconCls="text-indigo-600"
+        />
 
-            <MetricCard
-              title="Your Avg Score"
-              value={userAverageScore ? userAverageScore.toFixed(1) : 'N/A'}
-              subtitle={`Median: ${userMedianScore ? userMedianScore.toFixed(1) : 'N/A'}`}
-              icon={Gauge}
-              color="emerald"
-            />
+        {/* Doc stats top-line */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            label="Total Documents"
+            value={(
+              docStats?.byIndustry?.reduce((sum, item) => sum + (item.count || 0), 0) || 0
+            ).toLocaleString()}
+            icon={BookOpen}
+            color="indigo"
+            loading={docLoading}
+          />
+          <StatCard
+            label="Categories"
+            value={docStats?.byCategory?.length ?? 0}
+            icon={Layers}
+            color="blue"
+            loading={docLoading}
+          />
+          <StatCard
+            label="Industries"
+            value={docStats?.byIndustry?.length ?? 0}
+            icon={Building2}
+            color="amber"
+            loading={docLoading}
+          />
+          <StatCard
+            label="Sources"
+            value={docStats?.bySource?.length ?? 0}
+            icon={Globe}
+            color="emerald"
+            loading={docLoading}
+          />
+        </div>
 
-            <MetricCard
-              title="Avg Confidence"
-              value={userAvgConfidence ? `${userAvgConfidence.toFixed(1)}%` : 'N/A'}
-              subtitle="Score reliability"
+        {/* Featured solutions search card */}
+        <Card className="border border-slate-200 shadow-sm bg-white">
+          <div className="p-5">
+            <div className="mb-4">
+              <h3 className="text-sm font-bold text-slate-900 mb-2">Search Solutions</h3>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    size="sm"
+                    type="text"
+                    placeholder="Search for solutions, case studies..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Search
+                    size={16}
+                    className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  onPress={() => setActiveSearch(searchQuery || undefined)}
+                  isDisabled={featuredLoading}
+                >
+                  Search
+                </Button>
+              </div>
+            </div>
+
+            {featuredLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {Array(4)
+                  .fill(null)
+                  .map((_, i) => (
+                    <Skeleton key={i} className="h-32 rounded" />
+                  ))}
+              </div>
+            ) : featuredSolutions.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {featuredSolutions.map((solution) => (
+                  <div
+                    key={solution.id}
+                    className="border border-slate-200 bg-white rounded-lg cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => openDashboardFeaturedSolutionsDrawer(solution)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && openDashboardFeaturedSolutionsDrawer(solution)
+                    }
+                  >
+                    <div className="p-3">
+                      <h4 className="text-xs font-bold text-slate-900 mb-1 line-clamp-2">
+                        {solution.title}
+                      </h4>
+                      <p className="text-xs text-slate-600 mb-2 line-clamp-2">
+                        {solution.description || 'No description'}
+                      </p>
+                      {solution.industry && (
+                        <Chip size="sm" variant="secondary" className="text-xs">
+                          {solution.industry}
+                        </Chip>
+                      )}
+                      <div className="mt-2 flex items-center gap-1 text-slate-400">
+                        <ChevronRight size={12} />
+                        <span className="text-xs">View</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-slate-400">
+                {searchQuery
+                  ? 'No solutions found. Try a different search.'
+                  : 'No featured solutions yet.'}
+              </div>
+            )}
+          </div>
+        </Card>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 4 — YOUR ASSESSMENTS  (authenticated users only)
+          ══════════════════════════════════════════════════════════════════════ */}
+      {user ? (
+        <section>
+          <SectionHeader
+            icon={Activity}
+            title="Your Assessments"
+            subtitle={`You have ${userTotal} saved assessments`}
+            iconCls="text-purple-600"
+          />
+
+          {/* User stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <StatCard
+              label="Total Assessments"
+              value={userTotal}
               icon={Activity}
-              color="indigo"
+              color="purple"
+              loading={userStatsLoading}
             />
-
-            <MetricCard
-              title="Avg Technical Feasibility"
-              value={userAvgTechnicalFeasibility ? userAvgTechnicalFeasibility.toFixed(1) : 'N/A'}
-              subtitle="Implementation readiness"
-              icon={Target}
+            <StatCard
+              label="Average Score"
+              value={userAvg?.toFixed(1)}
+              icon={Gauge}
+              color="blue"
+              loading={userStatsLoading}
+            />
+            <StatCard
+              label="Median Score"
+              value={userMedian?.toFixed(1)}
+              sub={`Range: ${userMin}–${userMax}`}
+              icon={BarChart3}
+              color="emerald"
+              loading={userStatsLoading}
+            />
+            <StatCard
+              label="Avg Confidence"
+              value={userConf?.toFixed(0)}
+              icon={Zap}
               color="amber"
+              loading={userStatsLoading}
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              title="Avg Economic Viability"
-              value={userAvgEconomicViability ? userAvgEconomicViability.toFixed(1) : 'N/A'}
-              subtitle="Financial sustainability"
-              icon={BarChart3}
-              color="rose"
+          {/* User's secondary metrics */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+            <StatCard
+              label="Avg Tech Feasibility"
+              value={userTechFeas?.toFixed(0)}
+              icon={Shield}
+              color="purple"
+              loading={userStatsLoading}
             />
-
-            <MetricCard
-              title="Avg Circularity Potential"
-              value={userAvgCircularityPotential ? userAvgCircularityPotential.toFixed(1) : 'N/A'}
-              subtitle="Circular economy impact"
+            <StatCard
+              label="Avg Econ Viability"
+              value={userEconViab?.toFixed(0)}
+              icon={Building2}
+              color="rose"
+              loading={userStatsLoading}
+            />
+            <StatCard
+              label="Avg Circularity"
+              value={userCircPot?.toFixed(0)}
               icon={Sparkles}
               color="emerald"
-            />
-
-            <MetricCard
-              title="Score Range"
-              value={userMinScore && userMaxScore ? `${userMinScore}-${userMaxScore}` : 'N/A'}
-              subtitle="Your assessment scores"
-              icon={TrendingUp}
-              color="primary"
-            />
-
-            <MetricCard
-              title="Risk Distribution"
-              value={Object.keys(userAssessmentsByRisk).length}
-              subtitle="Risk levels assessed"
-              icon={TrendingDown}
-              color="amber"
+              loading={userStatsLoading}
             />
           </div>
-        </div>
-      )}
 
-      {/* FILTERS: Industry Chips + Time Range + Actions */}
-      <Card className="border-0 shadow-sm bg-white">
-        {/* <Card.Header>
-          <Card.Title className="text-lg">Filters</Card.Title>
-        </Card.Header> */}
-        <Card.Content className="space-y-4 p-2 md:p-4">
-          {/* Industry Filter */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold text-slate-700">Filter by Industry</Label>
-              <span className="text-xs text-slate-400">
-                Showing {industryOptions.length - 1} sectors
-                {typeof overallVolatility === 'number' && (
-                  <> · Volatility: {overallVolatility.toFixed(1)}</>
-                )}
-              </span>
-            </div>
-            {renderIndustryChipFilter()}
-          </div>
-
-          <div className="flex flex-col gap-4 border-t pt-4 md:flex-row md:items-end md:justify-between">
-            {/* Time Range + Buttons Row */}
-            <div className="flex flex-col gap-2">
-              <Label className="text-sm font-semibold text-slate-700">Time Range</Label>
-
-              {/* Select */}
-              <div>
-                <Select
-                  value={timeRange}
-                  onChange={setTimeRange}
-                  variant="secondary"
-                  size="normal md:sm"
-                  className="w-2/3 md:w-44"
+          {/* User's industry and risk distributions */}
+          {!userStatsLoading && (userIndustryData.length > 0 || userRiskData.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {userIndustryData.length > 0 && (
+                <ChartCard
+                  title="Your Assessments by Industry"
+                  icon={Building2}
+                  iconCls="text-amber-600"
                 >
-                  <Select.Trigger className="mt-2 md:mt-0">
-                    <Select.Value />
-                    <Select.Indicator />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
-                      <ListBox.Item textValue="30 Days" id="30d">
-                        30 Days
-                      </ListBox.Item>
-                      <ListBox.Item textValue="3 Months" id="90d">
-                        3 Months
-                      </ListBox.Item>
-                      <ListBox.Item textValue="6 Months" id="180d">
-                        6 Months
-                      </ListBox.Item>
-                      <ListBox.Item textValue="All Time" id="all">
-                        All Time
-                      </ListBox.Item>
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
-              </div>
-            </div>
+                  <BarChart
+                    data={userIndustryData}
+                    barConfigs={[{ dataKey: 'count', fill: '#f59e0b' }]}
+                    xAxisKey="name"
+                    height={224}
+                  />
+                </ChartCard>
+              )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                id="dashboard-export-button"
-                variant="teal"
-                onClick={handleExportPDF}
-                disabled={isExporting || isBusy}
-                size="md"
-                aria-label="Export dashboard as PDF"
-              >
-                {isExporting ? (
-                  <>
-                    <LoaderIcon />
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <Download className="mr-2" size={16} />
-                    Export PDF
-                  </>
-                )}
-              </Button>
-              <Button variant="neutral" onClick={handleClearFilters} size="md">
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-        </Card.Content>
-      </Card>
-
-      {/* VIEW MODE TABS */}
-      <Tabs
-        selectedKey={viewMode}
-        onSelectionChange={setViewMode}
-        variant="primary"
-        className="w-full"
-      >
-        {/* Mobile: switch to Select for compact screens */}
-        <div className="md:hidden my-0 w-full flex items-center justify-center">
-          <Select value={viewMode} onChange={setViewMode} variant="primary" className="w-3/5">
-            <Label className="text-xs font-semibold text-slate-600">View</Label>
-            <Select.Trigger className="mt-2">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                <ListBox.Item textValue="Overview" id="overview">
-                  Overview
-                </ListBox.Item>
-                <ListBox.Item textValue="Detailed" id="detailed">
-                  Detailed
-                </ListBox.Item>
-                <ListBox.Item textValue="Trends" id="trends">
-                  Trends
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
-
-        <Tabs.ListContainer className="my-4 hidden md:flex justify-center">
-          <Tabs.List
-            aria-label="Dashboard View"
-            className="bg-blue-50/60 border-2 border-sky-200/40"
-          >
-            <Tabs.Tab id="overview">
-              Overview
-              <Tabs.Indicator />
-            </Tabs.Tab>
-            <Tabs.Tab id="detailed">
-              Detailed
-              <Tabs.Indicator />
-            </Tabs.Tab>
-            <Tabs.Tab id="trends">
-              Trends
-              <Tabs.Indicator />
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs.ListContainer>
-      </Tabs>
-
-      {/* OVERVIEW VIEW */}
-      {viewMode === 'overview' && (
-        <div className="space-y-6">
-          {/* Trends and Distribution Row */}
-          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-            <ChartSection
-              title="Performance Trends"
-              description="Score and viability trends over time"
-              icon={Activity}
-            >
-              {timeSeriesData.length > 0 ? (
-                <div
-                  className={cn('w-full min-w-0', isLoading && 'opacity-50')}
-                  style={{ height: '320px' }}
+              {userRiskData.length > 0 && (
+                <ChartCard
+                  title="Your Projects by Risk Level"
+                  icon={Shield}
+                  iconCls="text-rose-600"
                 >
-                  <LineChart
-                    data={timeSeriesData}
-                    xAxisKey="period"
-                    lines={[
-                      { dataKey: 'averageScore', stroke: '#2563eb', name: 'Avg Score', area: true },
-                      {
-                        dataKey: 'avgViability',
-                        stroke: '#059669',
-                        name: 'Avg Viability',
-                        area: true,
-                      },
-                    ]}
-                    height={320}
-                  />
-                </div>
-              ) : (
-                <EmptyChartState message="No trend data available" />
+                  <PieChart data={userRiskData} height={224} />
+                </ChartCard>
               )}
-            </ChartSection>
-
-            <div className="space-y-4">
-              <ChartSection
-                title="Score Distribution"
-                description="Assessment score ranges"
-                icon={PieChartIcon}
-              >
-                {filteredPieChartData.length > 0 ? (
-                  <div className={cn('w-full', isLoading && 'opacity-50')}>
-                    <div style={{ height: '300px', minHeight: '300px' }}>
-                      <PieChart
-                        data={filteredPieChartData}
-                        dataKey="value"
-                        nameKey="name"
-                        height={300}
-                        colors={filteredPieChartData.map((d) => d.color)}
-                        showLegend={true}
-                        showDataSummary={true}
-                        innerRadius={70}
-                        centerLabel={{
-                          main: aggregate?.totalCount || 0,
-                          subLabel: `Avg ${formattedAverage}`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <EmptyChartState message="No distribution data" />
-                )}
-              </ChartSection>
-
-              <ChartSection
-                title="Scale Distribution"
-                description="Company size breakdown"
-                icon={Users}
-              >
-                {scaleChartData.length > 0 ? (
-                  <div className={cn('w-full', isLoading && 'opacity-50')}>
-                    <div style={{ height: '280px', minHeight: '280px' }}>
-                      <PieChart
-                        data={scaleChartData}
-                        dataKey="value"
-                        nameKey="name"
-                        height={280}
-                        colors={scaleChartData.map((d) => d.color)}
-                        showLegend={false}
-                        showDataSummary={true}
-                        innerRadius={50}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <EmptyChartState message="No scale data" />
-                )}
-              </ChartSection>
             </div>
+          )}
+        </section>
+      ) : (
+        <Card className="border border-slate-200 shadow-sm bg-linear-to-br from-purple-50 to-white">
+          <div className="p-6 flex flex-col sm:flex-row items-center gap-4">
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Users className="text-purple-600" size={24} />
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="font-bold text-slate-900">Track Your Assessments</h3>
+              <p className="text-sm text-slate-600 mt-1">
+                Sign in to save your evaluations and track your circular economy progress
+              </p>
+            </div>
+            <Button onPress={() => navigate('/auth')}>Sign In</Button>
           </div>
-
-          {/* Industry Performance  */}
-          <ChartSection
-            title="Industry Performance"
-            description="Average scores and assessment count by sector"
-            icon={BarChart3}
-            actions={
-              <Select
-                value={industrySort}
-                onChange={setIndustrySort}
-                variant="secondary"
-                size="sm"
-                className="w-40"
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item textValue="Avg Score (High → Low)" id="avg_desc">
-                      Avg Score (High → Low)
-                    </ListBox.Item>
-                    <ListBox.Item textValue="Avg Score (Low → High)" id="avg_asc">
-                      Avg Score (Low → High)
-                    </ListBox.Item>
-                    <ListBox.Item textValue="Count (High → Low)" id="count_desc">
-                      Count (High → Low)
-                    </ListBox.Item>
-                    <ListBox.Item textValue="Count (Low → High)" id="count_asc">
-                      Count (Low → High)
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-            }
-          >
-            <div className="w-full min-w-0">
-              {industryPerformanceData.length > 0 ? (
-                <div className="w-full" style={{ height: '400px' }}>
-                  <BarChart
-                    data={industryPerformanceData.map((m) => ({
-                      name: m.label || toTitleCase(m.industry),
-                      value: m.averageScore,
-                      averageScore: m.averageScore,
-                    }))}
-                    barConfigs={[{ dataKey: 'averageScore', name: 'Avg Score' }]}
-                    barColors={industryPerformanceData.map((m) => m.color || pieColors[0])}
-                    height={400}
-                    showLegend={false}
-                    showGrid={true}
-                    yAxisDomain={[0, 100]}
-                    yAxisLabel="Score"
-                  />
-                </div>
-              ) : (
-                <EmptyChartState message="No industry data available" />
-              )}
-            </div>
-          </ChartSection>
-
-          {/* Featured Solutions */}
-          <FeaturedSolutionsCard industry={industryFilterParam} />
-
-          {/* Search Section */}
-          <ChartSection
-            title="Search Dataset"
-            description="Search through the circular economy dataset for relevant cases and insights"
-            icon={Layers}
-          >
-            <SearchBar onSearch={handleSearch} loading={searchLoading} />
-            {searchLoading && (
-              <div className="flex justify-center py-8">
-                <ProgressCircle size="lg" />
-              </div>
-            )}
-            {searchError && (
-              <Alert color="danger" className="mt-4">
-                {searchError}
-              </Alert>
-            )}
-            {searchResults.length > 0 && (
-              <>
-                <p className="text-sm text-slate-600 mt-4">{searchResults.length} results found</p>
-                <Grid container spacing={2} className="mt-2">
-                  {searchResults.map((doc) => (
-                    <Grid item xs={12} sm={6} md={4} key={doc.id}>
-                      <DocumentCard document={doc} />
-                    </Grid>
-                  ))}
-                </Grid>
-              </>
-            )}
-          </ChartSection>
-
-          {/* Dataset Distribution Section */}
-          <ChartSection
-            title="Dataset Overview"
-            description="Distribution of cases across industries and strategies"
-            icon={PieChartIcon}
-          >
-            {statsLoading ? (
-              <div className="flex justify-center py-8">
-                <ProgressCircle size="lg" />
-              </div>
-            ) : statsError ? (
-              <Alert color="danger">{statsError}</Alert>
-            ) : documentStats ? (
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <BarChart
-                    data={documentStats.byIndustry || []}
-                    barConfigs={[{ dataKey: 'count', name: 'Count', fill: '#2563eb' }]}
-                    height={300}
-                    xAxisKey="value"
-                    xAxisLabel="Industry"
-                    yAxisLabel="Number of Cases"
-                    showLegend={false}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <PieChart
-                    data={documentStats.byRStrategy || []}
-                    dataKey="count"
-                    nameKey="value"
-                    height={300}
-                    showLegend={true}
-                  />
-                </Grid>
-              </Grid>
-            ) : (
-              <EmptyChartState message="No dataset statistics available" />
-            )}
-          </ChartSection>
-        </div>
-      )}
-
-      {/* DETAILED VIEW */}
-      {viewMode === 'detailed' && (
-        <div className="space-y-6">
-          {/* Detailed Industry Metrics Table */}
-          <ChartSection
-            title="Comprehensive Industry Analysis"
-            description="Full metrics including viability, median, and score ranges"
-            icon={BarChart3}
-          >
-            <div className="overflow-x-auto">
-              {industryMetrics.length > 0 ? (
-                <Table>
-                  <Table.ScrollContainer>
-                    <Table.Content aria-label="Industry Metrics" className="min-w-full">
-                      <Table.Header>
-                        <Table.Column className="bg-slate-50 border-b text-left font-semibold text-slate-900">
-                          Industry
-                        </Table.Column>
-                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
-                          Count
-                        </Table.Column>
-                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
-                          Avg Score
-                        </Table.Column>
-                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
-                          Viability
-                        </Table.Column>
-                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
-                          Median
-                        </Table.Column>
-                        <Table.Column className="bg-slate-50 border-b text-center font-semibold text-slate-900">
-                          Range
-                        </Table.Column>
-                      </Table.Header>
-                      <Table.Body>
-                        {industryMetrics
-                          .slice()
-                          .sort((a, b) => b.count - a.count)
-                          .map((metric) => (
-                            <Table.Row key={metric.industry} className="hover:bg-slate-50 border-b">
-                              <Table.Cell className="font-medium text-slate-900">
-                                {metric.industry
-                                  .replace(/_/g, ' ')
-                                  .replace(/\b\w/g, (c) => c.toUpperCase())}
-                              </Table.Cell>
-                              <Table.Cell className="text-center text-slate-700">
-                                {metric.count}
-                              </Table.Cell>
-                              <Table.Cell className="text-center">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                  {typeof metric.averageScore === 'number'
-                                    ? metric.averageScore.toFixed(1)
-                                    : metric.average_score?.toFixed(1) || '—'}
-                                </span>
-                              </Table.Cell>
-                              <Table.Cell className="text-center text-slate-700">
-                                {typeof metric.avgViability === 'number'
-                                  ? metric.avgViability.toFixed(1)
-                                  : metric.avg_viability?.toFixed(1) || '—'}
-                              </Table.Cell>
-                              <Table.Cell className="text-center text-slate-700">
-                                {metric.median || '—'}
-                              </Table.Cell>
-                              <Table.Cell className="text-center text-xs text-slate-600">
-                                {metric.min || '—'} - {metric.max || '—'}
-                              </Table.Cell>
-                            </Table.Row>
-                          ))}
-                      </Table.Body>
-                    </Table.Content>
-                  </Table.ScrollContainer>
-                </Table>
-              ) : (
-                <div className="py-12 text-center text-slate-500">No industry data available</div>
-              )}
-            </div>
-          </ChartSection>
-
-          {/* Strategy and Scale Charts */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ChartSection
-              title="R-Strategy Distribution"
-              description="Circular economy strategies used"
-              icon={Target}
-            >
-              <div className="space-y-3">
-                {strategyChartData.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4 min-w-0">
-                    <div className="w-full min-w-0" style={{ height: '320px' }}>
-                      <div className="w-full min-w-0" style={{ height: '320px' }}>
-                        <ComboChart
-                          data={strategyChartData}
-                          bars={[{ dataKey: 'value', fill: pieColors[0], name: 'Count' }]}
-                          lines={[
-                            { dataKey: 'averageScore', stroke: '#059669', name: 'Avg Score' },
-                          ]}
-                          xAxisKey="name"
-                          leftYAxisKey="value"
-                          rightYAxisKey="averageScore"
-                          barColors={strategyChartData.map((s) => s.color)}
-                          height={320}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="w-full min-w-0 shrink-0" style={{ minHeight: '300px' }}>
-                      <div className="min-w-0" style={{ height: '300px' }}>
-                        <PieChart
-                          data={strategyChartData.map((s) => ({ name: s.name, value: s.value }))}
-                          dataKey="value"
-                          nameKey="name"
-                          height={300}
-                          innerRadius={46}
-                          showLegend={false}
-                          showDataSummary={true}
-                          colors={strategyChartData.map((s) => s.color)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <EmptyChartState message="No strategy data" />
-                )}
-              </div>
-            </ChartSection>
-            <ChartSection
-              title="Scale Distribution"
-              description="Company size distribution"
-              icon={Users}
-            >
-              {scaleChartData.length > 0 ? (
-                <div style={{ height: '300px', minHeight: '300px' }}>
-                  <PieChart
-                    data={scaleChartData}
-                    dataKey="value"
-                    nameKey="name"
-                    height={300}
-                    innerRadius={54}
-                    centerLabel={{ main: aggregate?.totalCount || 0, subLabel: 'companies' }}
-                    showLegend={true}
-                    showDataSummary={true}
-                  />
-                </div>
-              ) : (
-                <EmptyChartState message="No scale data" />
-              )}
-            </ChartSection>
-          </div>
-        </div>
-      )}
-
-      {/* TRENDS VIEW */}
-      {viewMode === 'trends' && (
-        <div className="space-y-6">
-          {/* Growth Trends */}
-          <ChartSection
-            title="Weekly Assessment Growth"
-            description="New assessments submitted over time"
-            icon={TrendingUp}
-          >
-            <div className="w-full min-w-0" style={{ height: '300px' }}>
-              {timeSeries.length > 0 ? (
-                <LineChart
-                  data={timeSeries}
-                  lines={[{ dataKey: 'growth', stroke: '#2563eb', name: 'New Assessments' }]}
-                  xAxisKey="period"
-                  height={300}
-                />
-              ) : (
-                <EmptyChartState message="No trend data" />
-              )}
-            </div>
-          </ChartSection>
-
-          {/* Comparative Trends */}
-          <ChartSection
-            title="Score vs Viability Trends"
-            description="Comparative analysis of scores and business viability"
-            icon={Activity}
-          >
-            <div className="w-full min-w-0" style={{ height: '360px' }}>
-              {timeSeries.length > 0 ? (
-                <LineChart
-                  data={timeSeries}
-                  lines={[
-                    { dataKey: 'averageScore', stroke: pieColors[0], name: 'Average Score' },
-                    { dataKey: 'avgViability', stroke: pieColors[1], name: 'Avg Viability' },
-                  ]}
-                  xAxisKey="period"
-                  height={360}
-                />
-              ) : (
-                <EmptyChartState message="No trend data" />
-              )}
-            </div>
-          </ChartSection>
-
-          {/* Key Insights */}
-          <Card className="border border-slate-200 shadow-sm bg-white">
-            <Card.Header className="border-b border-slate-100 py-3">
-              <Card.Title className="flex items-center gap-2 text-slate-800 text-base">
-                <Sparkles className="text-slate-500" size={16} />
-                Key Insights
-              </Card.Title>
-            </Card.Header>
-            <Card.Content className="py-4">
-              <div className="space-y-5">
-                {/* Insight 1 */}
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-medium text-xs">
-                    1
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Recent Growth</p>
-                    <p className="text-sm text-slate-600">
-                      {trends.recentGrowth > 0
-                        ? `${trends.recentGrowth} new assessments in recent weeks.`
-                        : 'No recent assessments.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Insight 2 */}
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-medium text-xs">
-                    2
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Score Improvement</p>
-                    <p className="text-sm text-slate-600">
-                      {trends.scoreImprovement !== 0
-                        ? trends.scoreImprovement > 0
-                          ? `Scores improved by ${trends.scoreImprovement.toFixed(1)} points`
-                          : `Scores decreased by ${Math.abs(trends.scoreImprovement).toFixed(1)} points`
-                        : 'Scores remain stable'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Insight 3 */}
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-medium text-xs">
-                    3
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Industry Coverage</p>
-                    <p className="text-sm text-slate-600">
-                      {industryMetrics.length > 0
-                        ? `${industryMetrics.length} active industries`
-                        : 'No industry data yet'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Next Steps Section */}
-                <div className="pt-4 border-t border-slate-100">
-                  <div className="flex items-baseline justify-between mb-3">
-                    <p className="text-xs font-bold text-slate-900 uppercase tracking-tight">
-                      Suggested next steps
-                    </p>
-                    <span className="text-[10px] text-slate-400 italic">Auto-generated</span>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    {(() => {
-                      const low = (industryMetrics || [])
-                        .slice()
-                        .sort(sortByAverageScoreAsc)
-                        .slice(0, 3);
-
-                      if (!low || low.length === 0) {
-                        return (
-                          <div className="text-sm text-slate-500">No targeted actions needed</div>
-                        );
-                      }
-
-                      const mapAction = (ind) => {
-                        const label = ind.label || ind.industry;
-                        const score = ind.averageScore?.toFixed(0) || ind.average_score || '—';
-                        const suggestion =
-                          ind.averageScore <= 50
-                            ? 'Prioritise product redesign'
-                            : ind.averageScore <= 70
-                              ? 'Pilot reuse programs'
-                              : 'Maintain best practices';
-                        return { label, score, suggestion };
-                      };
-
-                      return low.map((l) => {
-                        const info = mapAction(l);
-                        return (
-                          <Button
-                            key={l.industry}
-                            variant="teal-soft"
-                            className=""
-                            onPress={() => setSelectedIndustries([l.industry])}
-                          >
-                            <span className="text-sm font-medium text-slate-900 block capitalize">
-                              {info.label.replace(/_/g, ' ')} (Avg {info.score})
-                            </span>
-                            <span className="text-xs text-slate-500 block">{info.suggestion}</span>
-                          </Button>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </Card.Content>
-          </Card>
-        </div>
+        </Card>
       )}
     </div>
   );

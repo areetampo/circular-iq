@@ -881,10 +881,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 <FileText size={16} />
                 My Assessments
               </Button>
-              <Button variant="teal-soft" onPress={handleMarketAnalysis}>
-                <BarChart3 size={16} />
-                Market Analysis
-              </Button>
               {currentData && (
                 <Button variant="yellow-soft" onPress={handleReevaluate}>
                   <RefreshCw size={16} />

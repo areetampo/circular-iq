@@ -782,3 +782,189 @@ export function getDocumentsStats(/*supabase*/) {
     }
   };
 }
+
+/**
+ * GET /api/analytics/global-stats
+ *
+ * Aggregate dashboard data from three sources:
+ *   1. scoring_results_log (service-role) — all scoring calls, anon + auth,
+ *      junk excluded. Widest possible data coverage.
+ *   2. get_market_data() RPC — per-industry/scale/strategy benchmarks from
+ *      opted-in saved assessments only.
+ *   3. get_assessment_statistics() RPC (no user_uuid) — global saved
+ *      assessment stats.
+ *
+ * Uses serviceSupabase — no RLS restriction, no PII returned.
+ */
+export function getGlobalStats(serviceSupabase) {
+  return async (req, res) => {
+    if (!serviceSupabase) {
+      return res
+        .status(503)
+        .json(
+          buildErrorResponse({ message: 'Service client not available' }, 'Service unavailable'),
+        );
+    }
+
+    try {
+      // Run all three queries in parallel; partial failures are tolerated
+      const [logResult, marketResult, statsResult] = await Promise.allSettled([
+        // 1. scoring_results_log — all non-junk calls with a valid score
+        serviceSupabase
+          .from('scoring_results_log')
+          .select(
+            [
+              'id',
+              'created_at',
+              'overall_score',
+              'confidence_level',
+              'technical_feasibility',
+              'economic_viability',
+              'circularity_potential',
+              'parameter_consistency_score',
+              'r_strategy_alignment_score',
+              'risk_level',
+              'industry',
+              'r_strategy',
+              'circular_economy_tier',
+              'audit_is_junk_input',
+            ].join(', '),
+          )
+          .or('audit_is_junk_input.is.null,audit_is_junk_input.eq.false')
+          .not('overall_score', 'is', null),
+
+        // 2. get_market_data() RPC
+        serviceSupabase.rpc('get_market_data'),
+
+        // 3. get_assessment_statistics() RPC — global (no user filter)
+        serviceSupabase.rpc('get_assessment_statistics'),
+      ]);
+
+      // ── Process scoring_results_log ────────────────────────────────────────
+      const logRows = logResult.status === 'fulfilled' ? logResult.value?.data || [] : [];
+      if (logResult.status === 'rejected') {
+        console.error('[getGlobalStats] log query failed:', logResult.reason?.message);
+      }
+
+      const totalScoringCalls = logRows.length;
+      const validScores = logRows.map((r) => safeNumber(r.overall_score)).filter((s) => s > 0);
+
+      const avg = (arr) =>
+        arr.length ? Number((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)) : null;
+
+      // Score distribution — 4 bands
+      const scoreDist = { '0-25': 0, '26-50': 0, '51-75': 0, '76-100': 0 };
+      validScores.forEach((s) => {
+        if (s <= 25) scoreDist['0-25']++;
+        else if (s <= 50) scoreDist['26-50']++;
+        else if (s <= 75) scoreDist['51-75']++;
+        else scoreDist['76-100']++;
+      });
+
+      // Tier distribution from JSONB column
+      const tierDist = {};
+      logRows.forEach((r) => {
+        const tier = r.circular_economy_tier?.tier || 'Unknown';
+        tierDist[tier] = (tierDist[tier] || 0) + 1;
+      });
+
+      // Risk distribution
+      const riskDist = {};
+      logRows.forEach((r) => {
+        const risk = r.risk_level || 'unknown';
+        riskDist[risk] = (riskDist[risk] || 0) + 1;
+      });
+
+      // Industry distribution (top 12 by call count)
+      const industryAcc = {};
+      logRows.forEach((r) => {
+        const ind = r.industry || 'other';
+        if (!industryAcc[ind]) industryAcc[ind] = { count: 0, scores: [] };
+        industryAcc[ind].count++;
+        if (r.overall_score != null) industryAcc[ind].scores.push(safeNumber(r.overall_score));
+      });
+      const industryDist = Object.entries(industryAcc)
+        .map(([industry, d]) => ({
+          industry,
+          count: d.count,
+          avg_score: avg(d.scores),
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 12);
+
+      // R-strategy distribution
+      const stratAcc = {};
+      logRows.forEach((r) => {
+        const s = r.r_strategy || 'unknown';
+        stratAcc[s] = (stratAcc[s] || 0) + 1;
+      });
+      const strategyDist = Object.entries(stratAcc)
+        .map(([strategy, count]) => ({ strategy, count }))
+        .sort((a, b) => b.count - a.count);
+
+      // Weekly trend — last 12 ISO weeks
+      const weekBuckets = new Map();
+      for (let i = 11; i >= 0; i--) {
+        const ref = new Date();
+        ref.setUTCDate(ref.getUTCDate() - i * 7);
+        const key = getISOWeekKey(ref);
+        if (key) weekBuckets.set(key, { week: key, count: 0, scores: [] });
+      }
+      logRows.forEach((r) => {
+        if (!r.created_at) return;
+        const key = getISOWeekKey(new Date(r.created_at));
+        if (key && weekBuckets.has(key)) {
+          const b = weekBuckets.get(key);
+          b.count++;
+          if (r.overall_score != null) b.scores.push(safeNumber(r.overall_score));
+        }
+      });
+      const weeklyTrend = Array.from(weekBuckets.values()).map((b) => ({
+        week: b.week,
+        count: b.count,
+        avg_score: avg(b.scores),
+      }));
+
+      // Average derived metrics (nulls excluded)
+      const metricAvg = (key) => {
+        const vals = logRows
+          .map((r) => r[key])
+          .filter((v) => v != null && Number.isFinite(Number(v)));
+        return vals.length
+          ? Number((vals.reduce((a, b) => a + Number(b), 0) / vals.length).toFixed(1))
+          : null;
+      };
+
+      // ── Assemble response ──────────────────────────────────────────────────
+      res.json({
+        log_stats: {
+          total_scoring_calls: totalScoringCalls,
+          avg_score: avg(validScores),
+          avg_metrics: {
+            confidence_level: metricAvg('confidence_level'),
+            technical_feasibility: metricAvg('technical_feasibility'),
+            economic_viability: metricAvg('economic_viability'),
+            circularity_potential: metricAvg('circularity_potential'),
+            parameter_consistency_score: metricAvg('parameter_consistency_score'),
+            r_strategy_alignment_score: metricAvg('r_strategy_alignment_score'),
+          },
+          score_distribution: scoreDist,
+          tier_distribution: tierDist,
+          risk_distribution: riskDist,
+          industry_distribution: industryDist,
+          strategy_distribution: strategyDist,
+          weekly_trend: weeklyTrend,
+        },
+        // From get_market_data RPC
+        market_data: marketResult.status === 'fulfilled' ? marketResult.value?.data || [] : [],
+        // From get_assessment_statistics RPC
+        assessment_stats:
+          statsResult.status === 'fulfilled' ? statsResult.value?.data?.[0] || null : null,
+        generated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('[getGlobalStats] unexpected error:', err);
+      res.status(500).json(buildErrorResponse(err, 'Failed to fetch global stats'));
+    }
+  };
+}

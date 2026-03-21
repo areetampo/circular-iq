@@ -303,3 +303,13 @@ export async function compareAssessments(id1, id2) {
   const query = new URLSearchParams({ id1, id2 });
   return requestJson(`/api/assessments/compare?${query}`);
 }
+
+/**
+ * Fetch global dashboard statistics.
+ * Aggregates from scoring_results_log (all scoring calls, anon + auth)
+ * + get_market_data RPC + get_assessment_statistics RPC.
+ * No authentication required.
+ */
+export async function getGlobalStats() {
+  return requestJson('/api/analytics/global-stats');
+}

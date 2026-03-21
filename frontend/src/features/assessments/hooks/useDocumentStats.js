@@ -15,7 +15,7 @@ export function useDocumentStats() {
       setError(null);
 
       try {
-        const res = await apiClient.get('/analytics/documents/summary');
+        const res = await apiClient.get('/api/analytics/documents/summary');
         if (!canceled) setStats(res.data);
       } catch (err) {
         if (!canceled) setError(err?.message || 'Failed to load document stats');

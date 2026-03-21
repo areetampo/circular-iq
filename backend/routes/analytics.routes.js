@@ -28,7 +28,7 @@ export function setOpenAIClient(client) {
   analyticsController.setOpenAIClient(client);
 }
 
-export default function createAnalyticsRouter(supabase) {
+export default function createAnalyticsRouter(supabase, serviceSupabase) {
   const router = express.Router();
 
   router.get('/', analyticsController.getSummary(supabase));
@@ -37,6 +37,7 @@ export default function createAnalyticsRouter(supabase) {
   router.post('/embeddings/reindex', analyticsController.postEmbeddingsReindex());
   router.get('/documents/summary', analyticsController.getDocumentsSummary());
   router.get('/documents/stats', analyticsController.getDocumentsStats(supabase));
+  router.get('/global-stats', analyticsController.getGlobalStats(serviceSupabase));
 
   // fallback error handler for unexpected errors
   router.use((err, req, res, next) => {

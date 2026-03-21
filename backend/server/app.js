@@ -12,7 +12,7 @@ import { OpenAI } from 'openai';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { EMBEDDING_DIMENSION, EMBEDDING_MODEL } from '#config/embedding.js';
-import { createSupabaseAnonClient } from '#database/supabase.client.js';
+import { createSupabaseAnonClient, createSupabaseClient } from '#database/supabase.client.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
@@ -189,12 +189,13 @@ app.use(apiKeyGuard);
 
 // initialize clients
 const supabase = createSupabaseAnonClient();
+const serviceSupabase = createSupabaseClient();
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
 validateConfig();
 
 // mount routers
-app.use('/api/analytics', createAnalyticsRouter(supabase));
+app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/search', createSearchRouter(openai));
 app.use('/api/assessments', createAssessmentsRouter(supabase));

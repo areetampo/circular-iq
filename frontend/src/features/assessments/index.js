@@ -7,5 +7,6 @@ export * from './hooks/useDocumentStats';
 export * from './hooks/useEnhancedAnalytics';
 export * from './hooks/useFeaturedSolutions';
 export * from './hooks/useGlobalAnalytics';
+export * from './hooks/useGlobalStats';
 export * from './hooks/useMarketAnalysis';
 export * from './hooks/useSearch';
