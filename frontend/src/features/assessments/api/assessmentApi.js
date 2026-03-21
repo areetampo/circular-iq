@@ -70,7 +70,7 @@ export async function scoreAssessment(formData) {
     body: JSON.stringify({
       businessProblem: formData.businessProblem,
       businessSolution: formData.businessSolution,
-      evaluation_parameters: formData.evaluationParameters || formData.evaluation_parameters,
+      evaluationParameters: formData.evaluationParameters,
       businessContext: formData.businessContext || null,
     }),
   });
