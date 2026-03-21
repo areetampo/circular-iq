@@ -384,7 +384,13 @@ from a mature operation. Adjust your recommendations to be stage-appropriate.\n`
     }
   ],
 
-  "market_opportunity_summary": "<2-3 sentences: What is the realistic market opportunity for this solution given the scores and database evidence? Include a rough scale assessment (niche/regional/national/global) and any key market timing factors.>"
+  "market_opportunity_summary": "<2-3 sentences: What is the realistic market opportunity for this solution given the scores and database evidence? Include a rough scale assessment (niche/regional/national/global) and any key market timing factors.>",
+
+  "key_metrics_comparison": {
+    "market_readiness": "<How user's tech_readiness score compares to similar cases in the database>",
+    "scalability": "<Assessment based on user's infrastructure score vs. database benchmarks>",
+    "economic_viability": "<Reality check on user's market_price score given database evidence>"
+  }
 }
 
 BUSINESS PROBLEM:
@@ -407,6 +413,7 @@ IMPORTANT for new fields:
 - improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step".
 - sdg_alignment: return 2-4 SDGs most relevant to circular economy: SDG 12 (Responsible Consumption), SDG 13 (Climate Action), SDG 9 (Industry Innovation), SDG 8 (Decent Work), SDG 11 (Sustainable Cities), SDG 6 (Clean Water) are the most common. Only include SDGs with genuine relevance.
 - market_opportunity_summary: grounded in the database evidence and scores, not generic statements.
+- key_metrics_comparison: provide all three fields (market_readiness, scalability, economic_viability) with specific comparisons to the database cases. Do not leave any field as "unavailable".
 
 CRITICAL: Be honest. If the user's scores are too high, say so with evidence. If the idea is unproven, cite that similar ideas struggled. Make this feel like a professional audit.`;
 }
@@ -522,24 +529,33 @@ export async function cleanSimilarCases(cases) {
   const cleaned = await Promise.all(
     cases.map(async (c) => {
       try {
+        // Only include fields that have actual content — avoids LLM hallucinating
+        // content for empty fields and wastes fewer tokens
+        const rawLines = [
+          c.summary ? `Summary: ${c.summary}` : null,
+          c.problem ? `Problem: ${c.problem}` : null,
+          c.solution ? `Solution: ${c.solution}` : null,
+          c.impact ? `Impact: ${c.impact}` : null,
+        ]
+          .filter(Boolean)
+          .join('\n');
+
         const prompt = `You are cleaning text from a circular economy case study database.
 Fix OCR artifacts (e.g. "go als" → "goals", "weigh t" → "weight"), remove any trailing
 document-header noise (e.g. lines starting with "CIRCULAR ECONOMY CASE STUDIES"),
 and if a sentence is truncated mid-word, end it naturally at the last complete sentence.
 Do NOT add information that is not present. Do NOT change facts, numbers, or proper nouns.
+If a field was not provided, return an empty string for that key.
 Return ONLY a JSON object with these exact keys:
 {
-  "summary": "<cleaned summary, max 2 sentences, no trailing header noise>",
-  "problem": "<cleaned problem text>",
-  "solution": "<cleaned solution text>",
-  "impact": "<cleaned impact text>"
+  "summary": "<cleaned summary or empty string if not provided>",
+  "problem": "<cleaned problem text or empty string if not provided>",
+  "solution": "<cleaned solution text or empty string if not provided>",
+  "impact": "<cleaned impact text or empty string if not provided>"
 }
 
 RAW TEXT TO CLEAN:
-Summary: ${c.summary || ''}
-Problem: ${c.problem || ''}
-Solution: ${c.solution || ''}
-Impact: ${c.impact || ''}`;
+${rawLines}`;
 
         const response = await openaiClient.chat.completions.create({
           model: 'gpt-4o-mini',
@@ -552,10 +568,12 @@ Impact: ${c.impact || ''}`;
         const result = JSON.parse(response.choices[0].message.content);
         return {
           ...c,
-          summary: result.summary || c.summary,
-          problem: result.problem || c.problem,
-          solution: result.solution || c.solution,
-          impact: result.impact || c.impact,
+          // Only overwrite if the original had content AND cleanup returned content
+          // This prevents empty-field hallucination from overwriting good data
+          summary: c.summary && result.summary ? result.summary : c.summary,
+          problem: c.problem && result.problem ? result.problem : c.problem,
+          solution: c.solution && result.solution ? result.solution : c.solution,
+          impact: c.impact && result.impact ? result.impact : c.impact,
         };
       } catch (_) {
         // If cleanup fails for any case, return original unchanged

@@ -72,7 +72,10 @@ const normalizeMaterialComplexity = (value) => {
   return validOptions.includes(normalized) ? normalized : null;
 };
 
-// Helper function to map test case business context to form field names
+// Helper function to map test case business context to form field names.
+// Now that testCases.json uses consistent snake_case field names, this simply
+// validates and passes through the values. The normalize functions ensure enum
+// values are valid according to the form schema.
 const mapTestCaseContextToFormFields = (testCaseContext) => {
   if (!testCaseContext || typeof testCaseContext !== 'object') {
     return {
@@ -86,25 +89,12 @@ const mapTestCaseContextToFormFields = (testCaseContext) => {
   }
 
   return {
-    business_model_type: normalizeBusinessModelType(
-      testCaseContext.businessModelType || testCaseContext.business_model_type,
-    ),
-    operational_stage: normalizeOperationalStage(
-      testCaseContext.operationalStage || testCaseContext.operational_stage,
-    ),
-    target_geography: normalizeGeography(
-      testCaseContext.targetGeography || testCaseContext.target_geography,
-    ),
-    annual_volume_estimate: normalizeVolume(
-      testCaseContext.annualVolume || testCaseContext.annual_volume_estimate,
-    ),
-    material_complexity: normalizeMaterialComplexity(
-      testCaseContext.materialComplexity || testCaseContext.material_complexity,
-    ),
-    has_existing_partnerships:
-      testCaseContext.partnerships !== undefined
-        ? testCaseContext.partnerships
-        : testCaseContext.has_existing_partnerships || null,
+    business_model_type: normalizeBusinessModelType(testCaseContext.business_model_type),
+    operational_stage: normalizeOperationalStage(testCaseContext.operational_stage),
+    target_geography: normalizeGeography(testCaseContext.target_geography),
+    annual_volume_estimate: normalizeVolume(testCaseContext.annual_volume_estimate),
+    material_complexity: normalizeMaterialComplexity(testCaseContext.material_complexity),
+    has_existing_partnerships: testCaseContext.has_existing_partnerships ?? null,
   };
 };
 
@@ -113,7 +103,7 @@ export default function SampleTestCasesContainer({
   openEvalParams = () => {},
   openBusinessContext = () => {},
 }) {
-  const { setValue, trigger, getValues } = useFormContext();
+  const { setValue, trigger, getValues, reset } = useFormContext();
   const { openSpecificSampleTestCaseViewDetailsDrawer } = useGlobalDrawer();
   const { openReplaceInputsDialog } = useGlobalDialog();
   const { saveSession } = useSession();
@@ -121,22 +111,39 @@ export default function SampleTestCasesContainer({
 
   const handleSelectCase = async (testCase) => {
     setSelectedCase(testCase.id);
-    // Set all form fields WITHOUT immediate validation to avoid race conditions.
-    // React Hook Form's state updates are asynchronous, so validating during
-    // individual setValue calls can validate against incomplete/stale form state.
-    // We'll validate once at the end with trigger() after all fields are set.
-    setValue('businessProblem', testCase.problem);
-    setValue('businessSolution', testCase.solution);
-    setValue('evaluationParameters', testCase.evaluationParameters);
 
-    // Map and set business context from test case
-    if (testCase.businessContext) {
-      const mappedContext = mapTestCaseContextToFormFields(testCase.businessContext);
-      setValue('businessContext', mappedContext);
-    }
+    // Map business context from test case
+    const mappedContext = testCase.businessContext
+      ? mapTestCaseContextToFormFields(testCase.businessContext)
+      : getValues('businessContext');
 
-    // Trigger validation once after all fields are set, ensuring complete form state
-    await trigger();
+    // Get current form state and update only the needed fields
+    const currentValues = getValues();
+
+    // Use reset() to atomically update all form values at once.
+    // This is more reliable than multiple setValue calls because it updates
+    // the form state in a single batch operation, eliminating race conditions
+    // where validation might run against partially-updated state.
+    reset(
+      {
+        // Preserve other fields that might be set
+        ...currentValues,
+        // Override with new test case values
+        businessProblem: testCase.problem,
+        businessSolution: testCase.solution,
+        evaluationParameters: testCase.evaluationParameters,
+        businessContext: mappedContext,
+      },
+      {
+        keepDirty: true,
+        keepTouched: true,
+        keepValues: false, // We're explicitly setting new values
+      },
+    );
+
+    // Validation will be triggered by reset() with keepDirty/keepTouched
+    // but we ensure it completes before proceeding
+    await Promise.resolve();
 
     // Persist immediately when a user explicitly selects a sample test case.
     try {

@@ -16,12 +16,12 @@
         "tech_readiness": 78
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "pilot",
-        "targetGeography": "global",
-        "annualVolume": "10-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "pilot",
+        "target_geography": "global",
+        "annual_volume_estimate": "10-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -40,12 +40,12 @@
         "tech_readiness": 80
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "local",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "local",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -64,12 +64,12 @@
         "tech_readiness": 85
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "electronics",
-        "partnerships": false
+        "business_model_type": "recycling",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "electronics",
+        "has_existing_partnerships": false
       }
     },
     {
@@ -88,12 +88,12 @@
         "tech_readiness": 82
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -112,12 +112,12 @@
         "tech_readiness": 88
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -136,12 +136,12 @@
         "tech_readiness": 80
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "prototype",
-        "targetGeography": "national",
-        "annualVolume": "under-1-tonne",
-        "materialComplexity": "multi-material",
-        "partnerships": false
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "prototype",
+        "target_geography": "national",
+        "annual_volume_estimate": "under-1-tonne",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": false
       }
     },
     {
@@ -160,12 +160,12 @@
         "tech_readiness": 78
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "single-material",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "single-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -184,12 +184,12 @@
         "tech_readiness": 82
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "electronics",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "electronics",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -208,12 +208,12 @@
         "tech_readiness": 80
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "pilot",
-        "targetGeography": "regional",
-        "annualVolume": "10-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "pilot",
+        "target_geography": "regional",
+        "annual_volume_estimate": "10-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -232,12 +232,12 @@
         "tech_readiness": 85
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "hazardous-components",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "hazardous-components",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -256,12 +256,12 @@
         "tech_readiness": 78
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "scaling",
-        "targetGeography": "regional",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "biological",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "scaling",
+        "target_geography": "regional",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "biological",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -280,12 +280,12 @@
         "tech_readiness": 80
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -304,12 +304,12 @@
         "tech_readiness": 85
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "scaling",
-        "targetGeography": "regional",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "scaling",
+        "target_geography": "regional",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -328,12 +328,12 @@
         "tech_readiness": 90
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "national",
-        "annualVolume": "10-100-tonnes",
-        "materialComplexity": "electronics",
-        "partnerships": false
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "national",
+        "annual_volume_estimate": "10-100-tonnes",
+        "material_complexity": "electronics",
+        "has_existing_partnerships": false
       }
     },
     {
@@ -352,12 +352,12 @@
         "tech_readiness": 78
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "pilot",
-        "targetGeography": "national",
-        "annualVolume": "10-100-tonnes",
-        "materialComplexity": "single-material",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "pilot",
+        "target_geography": "national",
+        "annual_volume_estimate": "10-100-tonnes",
+        "material_complexity": "single-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -376,12 +376,12 @@
         "tech_readiness": 82
       },
       "businessContext": {
-        "businessModelType": "other",
-        "operationalStage": "scaling",
-        "targetGeography": "global",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "other",
+        "operational_stage": "scaling",
+        "target_geography": "global",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -400,12 +400,12 @@
         "tech_readiness": 85
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "local",
-        "annualVolume": "10-100-tonnes",
-        "materialComplexity": "multi-material",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "local",
+        "annual_volume_estimate": "10-100-tonnes",
+        "material_complexity": "multi-material",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -424,12 +424,12 @@
         "tech_readiness": 75
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "prototype",
-        "targetGeography": "global",
-        "annualVolume": "under-1-tonne",
-        "materialComplexity": "electronics",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "prototype",
+        "target_geography": "global",
+        "annual_volume_estimate": "under-1-tonne",
+        "material_complexity": "electronics",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -448,12 +448,12 @@
         "tech_readiness": 88
       },
       "businessContext": {
-        "businessModelType": "recycling",
-        "operationalStage": "scaling",
-        "targetGeography": "local",
-        "annualVolume": "over-100-tonnes",
-        "materialComplexity": "biological",
-        "partnerships": true
+        "business_model_type": "recycling",
+        "operational_stage": "scaling",
+        "target_geography": "local",
+        "annual_volume_estimate": "over-100-tonnes",
+        "material_complexity": "biological",
+        "has_existing_partnerships": true
       }
     },
     {
@@ -472,12 +472,12 @@
         "tech_readiness": 85
       },
       "businessContext": {
-        "businessModelType": "product-as-a-service",
-        "operationalStage": "scaling",
-        "targetGeography": "regional",
-        "annualVolume": "10-100-tonnes",
-        "materialComplexity": "biological",
-        "partnerships": true
+        "business_model_type": "product-as-a-service",
+        "operational_stage": "scaling",
+        "target_geography": "regional",
+        "annual_volume_estimate": "10-100-tonnes",
+        "material_complexity": "biological",
+        "has_existing_partnerships": true
       }
     }
   ]

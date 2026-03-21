@@ -246,8 +246,6 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
   try {
     const { businessProblem, businessSolution, evaluation_parameters, businessContext } = req.body;
 
-    console.log(businessProblem, businessSolution, evaluation_parameters, businessContext);
-
     // Use businessContext and evaluation_parameters
     const business_context = businessContext;
 
@@ -559,21 +557,16 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
     timings.integrityGaps = Date.now() - stepStart;
     stepStart = Date.now();
 
-    // ========== STEP 4: GENERATE AI-POWERED AUDIT + CLEAN SIMILAR CASES ==========
-    console.log(`[${requestId}] Generating audit analysis and cleaning similar cases...`);
+    // ========== STEP 4: GENERATE AI-POWERED AUDIT ==========
+    console.log(`[${requestId}] Generating audit analysis...`);
 
-    // Run audit generation and case text cleanup in parallel — both use OpenAI
-    // but are independent. cleanSimilarCases never throws (catches internally).
-    const [auditResult, cleanedSimilarCases] = await Promise.all([
-      generateReasoning(
-        businessProblem,
-        businessSolution,
-        scores,
-        similarCases || [],
-        business_context || null,
-      ),
-      cleanSimilarCases(similarCases || []),
-    ]);
+    const auditResult = await generateReasoning(
+      businessProblem,
+      businessSolution,
+      scores,
+      similarCases || [],
+      business_context || null,
+    );
 
     // Add integrity gaps to audit result
     if (
@@ -594,7 +587,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     // ========== STEP 6: COMPILE FINAL RESPONSE ==========
     // Format similar cases using structured columns only.
-    const formattedCases = (cleanedSimilarCases || []).map((c) => {
+    const formattedCases = (similarCases || []).map((c) => {
       const fields = c.metadata?.fields || {};
 
       // Extract title, summary, projectName from metadata_json
@@ -626,8 +619,18 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
           if (locationMatch) location = locationMatch[1].trim();
 
           // Extract USE TYPE: text after "USE " to end of line or "__"
-          const useMatch = ceText.match(/USE\s+([A-Za-z &-]+?)(?=\s+CONSTRUCTION|\s*_{3,}|$)/);
-          if (useMatch) useType = useMatch[1].trim();
+          const useMatch = ceText.match(
+            /USE\s+([A-Za-z][A-Za-z &/-]*?)(?=\s+C(?:\s*ONSTRUCTION|ONSTRUCTION)|\s*_{3,}|$)/,
+          );
+          if (useMatch) {
+            // Trim and clean: remove trailing "C" fragment if present, clean spacing
+            useType = useMatch[1]
+              .trim()
+              .replace(/\s*\bC\s*$/, '') // remove trailing isolated "C"
+              .replace(/\s{2,}/g, ' ') // collapse multiple spaces
+              .replace(/ - /g, '-') // clean spaced hyphens
+              .trim();
+          }
         }
       } catch (_) {
         // metadata_json parse failed
@@ -692,6 +695,12 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       };
     });
 
+    // ========== STEP 6b: CLEAN SIMILAR CASE TEXT ==========
+    // Run AFTER formattedCases mapping so c.problem/solution/impact/summary
+    // are already extracted from metadata.fields into top-level fields.
+    // cleanSimilarCases never throws — returns originals on any failure.
+    const cleanedFormattedCases = await cleanSimilarCases(formattedCases);
+
     const response = {
       // input echo
       businessProblem,
@@ -710,7 +719,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       parameter_consistency: scores.parameter_consistency,
       // LLM audit and analysis
       audit: auditResult,
-      similar_cases: formattedCases,
+      similar_cases: cleanedFormattedCases,
       metadata: metadata,
       r_strategy_alignment: rStrategyAlignment,
       gap_analysis: gapAnalysis,
