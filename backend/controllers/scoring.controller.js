@@ -20,6 +20,7 @@ import {
 } from '#services/scoring.logic.js';
 import {
   calculateGapAnalysis,
+  cleanSimilarCases,
   extractMetadata,
   generateReasoning,
   validateInput,
@@ -558,15 +559,21 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
     timings.integrityGaps = Date.now() - stepStart;
     stepStart = Date.now();
 
-    // ========== STEP 4: GENERATE AI-POWERED AUDIT ==========
-    console.log(`[${requestId}] Generating audit analysis...`);
-    const auditResult = await generateReasoning(
-      businessProblem,
-      businessSolution,
-      scores,
-      similarCases || [],
-      business_context || null,
-    );
+    // ========== STEP 4: GENERATE AI-POWERED AUDIT + CLEAN SIMILAR CASES ==========
+    console.log(`[${requestId}] Generating audit analysis and cleaning similar cases...`);
+
+    // Run audit generation and case text cleanup in parallel — both use OpenAI
+    // but are independent. cleanSimilarCases never throws (catches internally).
+    const [auditResult, cleanedSimilarCases] = await Promise.all([
+      generateReasoning(
+        businessProblem,
+        businessSolution,
+        scores,
+        similarCases || [],
+        business_context || null,
+      ),
+      cleanSimilarCases(similarCases || []),
+    ]);
 
     // Add integrity gaps to audit result
     if (
@@ -587,62 +594,98 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     // ========== STEP 6: COMPILE FINAL RESPONSE ==========
     // Format similar cases using structured columns only.
-    const formattedCases = (similarCases || []).map((c) => {
+    const formattedCases = (cleanedSimilarCases || []).map((c) => {
       const fields = c.metadata?.fields || {};
 
-      // Extract title from the metadata_json summary string.
-      // metadata_json is a JSON string; parse it to get the "summary" field.
-      // The "circular_economy_case_studies" field has the project name on the
-      // first line before " | " — use that as a short title.
-      let title = '';
-      let summary = '';
-      let projectName = '';
+      // Extract title, summary, projectName from metadata_json
+      let title = c.title || ''; // already extracted by previous mapping
+      let summary = c.summary || ''; // already cleaned by cleanSimilarCases
+      let projectName = c.title || '';
+      let year = '';
+      let location = '';
+      let useType = '';
+
       try {
         const metaJson = fields.metadata_json ? JSON.parse(fields.metadata_json) : null;
         if (metaJson) {
-          summary = metaJson.summary || '';
-          // Project name is the first segment before " | " in
-          // circular_economy_case_studies
+          if (!summary) summary = metaJson.summary || '';
           const ceText = metaJson.circular_economy_case_studies || '';
-          const pipeIdx = ceText.indexOf(' | ');
-          projectName = pipeIdx > -1 ? ceText.substring(0, pipeIdx).trim() : '';
+
+          // Extract project name (before first " | ")
+          if (!projectName) {
+            const pipeIdx = ceText.indexOf(' | ');
+            projectName = pipeIdx > -1 ? ceText.substring(0, pipeIdx).trim() : '';
+          }
+
+          // Extract YEAR using regex: "YEAR 2023"
+          const yearMatch = ceText.match(/YEAR\s+(\d{4})/);
+          if (yearMatch) year = yearMatch[1];
+
+          // Extract LOCATION: text between "LOCATION " and " USE "
+          const locationMatch = ceText.match(/LOCATION\s+(.+?)\s+USE\s/);
+          if (locationMatch) location = locationMatch[1].trim();
+
+          // Extract USE TYPE: text after "USE " to end of line or "__"
+          const useMatch = ceText.match(/USE\s+([A-Za-z &-]+?)(?=\s+CONSTRUCTION|\s*_{3,}|$)/);
+          if (useMatch) useType = useMatch[1].trim();
         }
       } catch (_) {
-        // metadata_json parse failed — leave empty
+        // metadata_json parse failed
       }
 
-      // Build title: prefer projectName, fall back to first 80 chars of summary
       title =
         projectName ||
         (summary ? summary.substring(0, 80) : '') ||
         `Case ${c.id?.substring(0, 8) || '?'}`;
 
+      // Clean summary: strip trailing "\nCIRCULAR ECONOMY CASE STUDIES..." noise
+      // (may still be present even after LLM cleanup on some cases)
+      summary = summary.split('\nCIRCULAR ECONOMY CASE STUDIES')[0].trim();
+
+      // Source URL — strip to domain for display
+      const rawSourceUrl = fields.source_url || '';
+      let sourceDisplay = '';
+      try {
+        if (rawSourceUrl) {
+          sourceDisplay = new URL(rawSourceUrl).hostname.replace(/^www\./, '');
+        }
+      } catch (_) {
+        sourceDisplay = rawSourceUrl;
+      }
+
       return {
         id: c.id,
         title,
-        summary, // clean one-para description
-        problem: fields.problem || '', // full problem text
-        solution: fields.solution || '', // full solution text
-        impact: fields.impact || '', // outcomes/impact text
-        materials: fields.materials || '', // materials involved
+        summary,
+        problem: c.problem || fields.problem || '',
+        solution: c.solution || fields.solution || '',
+        impact: c.impact || fields.impact || '',
+        materials: c.materials || fields.materials || '',
         circular_strategy:
-          fields.circular_strategy || // e.g. "Material Reuse"
+          c.circular_strategy ||
+          fields.circular_strategy ||
           (c.metadata?.r_strategy
             ? c.metadata.r_strategy.charAt(0).toUpperCase() + c.metadata.r_strategy.slice(1)
             : null),
+        // New enrichment fields
+        year,
+        location,
+        use_type: useType,
+        source_url: rawSourceUrl,
+        source_display: sourceDisplay, // e.g. "wbcsd.org"
+        // Per-case scores for comparison with user scores
+        case_scores: c.metadata?.scores || null,
         industry: c.industry ?? null,
         category: c.category ?? null,
         source: c.source ?? null,
         similarity: c.similarity ?? c.combined_score ?? 0,
         rrf_score: c.rrf_score ?? null,
-        // Keep metadata for backward compat but strip the large metadata_json
-        // string to avoid bloating the response payload
         metadata: c.metadata
           ? {
               ...c.metadata,
               fields: {
                 ...fields,
-                metadata_json: undefined, // omit — already extracted what's needed
+                metadata_json: undefined,
               },
             }
           : null,

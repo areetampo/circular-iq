@@ -21,6 +21,7 @@ import {
   CircleX,
   ClipboardList,
   Download,
+  ExternalLink,
   FileText,
   FolderPen,
   Frown,
@@ -2559,15 +2560,47 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                         return (
                           <div key={index} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-lg font-semibold text-gray-900">{caseTitle}</h4>
-                              <div className="flex items-center gap-2">
-                                <Chip size="sm" variant="flat" color="primary">
-                                  Case #{sourceCaseId}
-                                </Chip>
-                                <Chip size="sm" variant="flat" color="secondary">
-                                  {matchPercentage}% similar
-                                </Chip>
+                            <div className="flex flex-col gap-1 mb-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <h4 className="text-lg font-semibold text-gray-900">
+                                    {caseTitle}
+                                  </h4>
+                                  {/* Year + Location + Use type */}
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {caseItem.year && (
+                                      <Chip size="sm" variant="secondary" className="text-xs">
+                                        {caseItem.year}
+                                      </Chip>
+                                    )}
+                                    {caseItem.location && (
+                                      <Chip size="sm" variant="secondary" className="text-xs">
+                                        {caseItem.location}
+                                      </Chip>
+                                    )}
+                                    {caseItem.use_type && (
+                                      <Chip size="sm" variant="secondary" className="text-xs">
+                                        {caseItem.use_type}
+                                      </Chip>
+                                    )}
+                                    {caseItem.source_display && (
+                                      <a
+                                        href={caseItem.source_url || '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                                      >
+                                        <ExternalLink size={10} />
+                                        {caseItem.source_display}
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <Chip size="sm" variant="flat" color="secondary">
+                                    {matchPercentage}% similar
+                                  </Chip>
+                                </div>
                               </div>
                             </div>
                             <div className="mb-3">
@@ -2604,6 +2637,55 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 <p className="text-sm text-gray-600">{solutionText}</p>
                               </div>
                             </div>
+                            {caseItem.case_scores && (
+                              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                <p className="text-xs font-semibold text-purple-700 mb-2">
+                                  Their scores (from database) — compare with yours
+                                </p>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                  {Object.entries(caseItem.case_scores).map(([factor, score]) => {
+                                    const label = factor
+                                      .split('_')
+                                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                                      .join(' ');
+                                    const userScore = actualResult?.sub_scores?.[factor];
+                                    const diff = userScore != null ? userScore - score : null;
+                                    const scoreColor =
+                                      score >= 75
+                                        ? 'text-green-700'
+                                        : score >= 50
+                                          ? 'text-blue-700'
+                                          : 'text-amber-700';
+                                    return (
+                                      <div key={factor} className="text-center">
+                                        <div className="text-[10px] text-slate-500 truncate">
+                                          {label}
+                                        </div>
+                                        <div className={`text-sm font-bold ${scoreColor}`}>
+                                          {score}
+                                        </div>
+                                        {diff != null && (
+                                          <div
+                                            className={`text-[10px] font-semibold ${
+                                              diff > 0
+                                                ? 'text-green-600'
+                                                : diff < 0
+                                                  ? 'text-red-500'
+                                                  : 'text-slate-400'
+                                            }`}
+                                          >
+                                            {diff > 0 ? `+${diff}` : diff === 0 ? '=' : diff}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-1 italic">
+                                  Diff = your score − their score
+                                </p>
+                              </div>
+                            )}
                             {/* Impact / outcomes row */}
                             {caseItem.impact && (
                               <div className="p-3 border-l-4 border-blue-500 rounded bg-blue-50 mb-3">

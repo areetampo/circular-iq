@@ -958,7 +958,7 @@ export default function LandingPage() {
                       )}
                     </Button>
                   </Tooltip.Trigger>
-                  <Tooltip.Content showArrow placement="top">
+                  <Tooltip.Content showArrow placement="top" className="text-center">
                     <Tooltip.Arrow />
                     <span>
                       Please fill out business problem and solution fields (min. 200 chars each)

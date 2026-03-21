@@ -121,16 +121,21 @@ export default function SampleTestCasesContainer({
 
   const handleSelectCase = async (testCase) => {
     setSelectedCase(testCase.id);
-    setValue('businessProblem', testCase.problem, { shouldValidate: true });
-    setValue('businessSolution', testCase.solution, { shouldValidate: true });
-    setValue('evaluationParameters', testCase.evaluationParameters, { shouldValidate: true });
+    // Set all form fields WITHOUT immediate validation to avoid race conditions.
+    // React Hook Form's state updates are asynchronous, so validating during
+    // individual setValue calls can validate against incomplete/stale form state.
+    // We'll validate once at the end with trigger() after all fields are set.
+    setValue('businessProblem', testCase.problem);
+    setValue('businessSolution', testCase.solution);
+    setValue('evaluationParameters', testCase.evaluationParameters);
 
     // Map and set business context from test case
     if (testCase.businessContext) {
       const mappedContext = mapTestCaseContextToFormFields(testCase.businessContext);
-      setValue('businessContext', mappedContext, { shouldValidate: true });
+      setValue('businessContext', mappedContext);
     }
 
+    // Trigger validation once after all fields are set, ensuring complete form state
     await trigger();
 
     // Persist immediately when a user explicitly selects a sample test case.

@@ -333,61 +333,36 @@ Use this context to calibrate your analysis. A prototype-stage business should b
 from a mature operation. Adjust your recommendations to be stage-appropriate.\n`
     : '';
 
-  return `USER SUBMISSION:
-Problem: ${businessProblem}
-Solution: ${businessSolution}
-
-${contextBlock}USER'S SELF-ASSESSMENT SCORES:
-${JSON.stringify(scores, null, 2)}
-
-DATABASE EVIDENCE (Top 4 Similar Projects):
-${similarCasesInfo}
-
-Full Context:
-${contextText}
-
-${gapContext}ANALYSIS REQUIRED:
-Return EXACTLY this JSON structure:
+  return `Analyze this circular economy business idea and return a JSON object with the following structure:
 
 {
-  "confidence_score": <0-100, your confidence this idea is viable>,
-  "is_junk_input": <boolean, true if input is nonsense>,
-
-  "audit_verdict": "<2-3 sentence professional assessment of viability>",
-
-  "comparative_analysis": "<How does this compare to the database cases? Are the user's scores realistic given the evidence?>",
+  "confidence_score": <integer 0-100, how confident you are in this assessment>,
+  "is_junk_input": <boolean, true if this appears to be test/spam input>,
+  "audit_verdict": "<2-3 sentences: Overall assessment of business viability and circular economy alignment>",
+  "comparative_analysis": "<2-3 sentences: How this compares to similar projects in the dataset>",
 
   "integrity_gaps": [
     {
-      "issue": "<Specific discrepancy between user claims and database evidence>",
-      "evidence_source_id": <case ID that contradicts user's claim, or null>,
+      "issue": "<Specific concern where user scores may be inflated vs. database evidence>",
+      "evidence_source_id": "<ID of similar case that contradicts user's claims>",
       "severity": "<low|medium|high>"
     }
   ],
 
   "strengths": [
     {
-      "aspect": "<What's genuinely strong about this idea>",
-      "evidence_source_id": <case ID that supports this, or null>
+      "aspect": "<Specific strength validated by database evidence>",
+      "evidence_source_id": "<ID of similar case that supports this strength>"
     }
   ],
 
   "technical_recommendations": [
-    "<Specific, actionable recommendation based on database learnings>"
+    "<Specific, actionable technical recommendations based on database evidence>"
   ],
 
   "similar_cases_summaries": [
-    "<One sentence: Why Case 1 is relevant and what it teaches>",
-    "<One sentence: Why Case 2 is relevant and what it teaches>",
-    "<One sentence: Why Case 3 is relevant and what it teaches>",
-    "<One sentence: Why Case 4 is relevant and what it teaches>"
+    "<1-sentence summary of each similar case and its relevance>"
   ],
-
-  "key_metrics_comparison": {
-    "market_readiness": "<How user's tech_readiness compares to similar cases>",
-    "scalability": "<Assessment based on infrastructure scores vs. database>",
-    "economic_viability": "<Market_price reality check>"
-  },
 
   "improvement_roadmap": [
     {
@@ -411,6 +386,22 @@ Return EXACTLY this JSON structure:
 
   "market_opportunity_summary": "<2-3 sentences: What is the realistic market opportunity for this solution given the scores and database evidence? Include a rough scale assessment (niche/regional/national/global) and any key market timing factors.>"
 }
+
+BUSINESS PROBLEM:
+${businessProblem}
+
+BUSINESS SOLUTION:
+${businessSolution}
+
+USER SCORES:
+${Object.entries(scores.sub_scores)
+  .map(([factor, score]) => `${factor}: ${score}/100`)
+  .join('\n')}
+
+SIMILAR CASES FROM DATABASE:
+${similarCasesInfo}
+
+${gapContext}${contextBlock}
 
 IMPORTANT for new fields:
 - improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step".
@@ -512,6 +503,68 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
   };
 
   return enhanced;
+}
+
+/**
+ * Clean and polish similar case text fields using LLM.
+ * Fixes OCR artifacts, ends truncated sentences gracefully, and removes
+ * pipeline noise — without adding or inventing information.
+ *
+ * Runs in parallel for all cases (Promise.all) so total latency is
+ * the latency of the slowest single case, not sum of all.
+ *
+ * @param {Array} cases - Array of formatted similar case objects
+ * @returns {Promise<Array>} Cases with cleaned text fields
+ */
+export async function cleanSimilarCases(cases) {
+  if (!cases || cases.length === 0) return cases;
+
+  const cleaned = await Promise.all(
+    cases.map(async (c) => {
+      try {
+        const prompt = `You are cleaning text from a circular economy case study database.
+Fix OCR artifacts (e.g. "go als" → "goals", "weigh t" → "weight"), remove any trailing
+document-header noise (e.g. lines starting with "CIRCULAR ECONOMY CASE STUDIES"),
+and if a sentence is truncated mid-word, end it naturally at the last complete sentence.
+Do NOT add information that is not present. Do NOT change facts, numbers, or proper nouns.
+Return ONLY a JSON object with these exact keys:
+{
+  "summary": "<cleaned summary, max 2 sentences, no trailing header noise>",
+  "problem": "<cleaned problem text>",
+  "solution": "<cleaned solution text>",
+  "impact": "<cleaned impact text>"
+}
+
+RAW TEXT TO CLEAN:
+Summary: ${c.summary || ''}
+Problem: ${c.problem || ''}
+Solution: ${c.solution || ''}
+Impact: ${c.impact || ''}`;
+
+        const response = await openaiClient.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0,
+          max_tokens: 800,
+          response_format: { type: 'json_object' },
+        });
+
+        const result = JSON.parse(response.choices[0].message.content);
+        return {
+          ...c,
+          summary: result.summary || c.summary,
+          problem: result.problem || c.problem,
+          solution: result.solution || c.solution,
+          impact: result.impact || c.impact,
+        };
+      } catch (_) {
+        // If cleanup fails for any case, return original unchanged
+        return c;
+      }
+    }),
+  );
+
+  return cleaned;
 }
 
 /**

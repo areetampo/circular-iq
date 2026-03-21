@@ -1,11 +1,10 @@
 import { Chip, Drawer } from '@heroui/react';
-import { Lightbulb, NotebookText, Target } from 'lucide-react';
+import { ExternalLink, Lightbulb, MapPin, NotebookText, Target, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 import { cn } from '@/utils/cn';
-import { extractProblemSolution } from '@/utils/content';
 
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
   // if data is {} return null
@@ -20,17 +19,20 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
     sourceCaseId = null,
   } = data;
 
-  // Use structured metadata if available (preferred), otherwise parse content
-  const { problem: problemPart, solution: solutionPart } = extractProblemSolution(
-    caseItem || content,
-  );
-
-  // Check if we have valid problem and solution
-  const hasSeparateSections =
-    problemPart &&
-    solutionPart &&
-    problemPart !== 'Problem data not clearly formatted' &&
-    solutionPart !== 'Solution data not clearly formatted';
+  // Use structured fields from caseItem (preferred) — these are now cleaned
+  // by the LLM cleanup pass before being sent to the frontend
+  const problem = caseItem?.problem || content || '';
+  const solution = caseItem?.solution || '';
+  const impact = caseItem?.impact || '';
+  const summary = caseItem?.summary || '';
+  const year = caseItem?.year || '';
+  const location = caseItem?.location || '';
+  const useType = caseItem?.use_type || '';
+  const sourceDisplay = caseItem?.source_display || '';
+  const sourceUrl = caseItem?.source_url || '';
+  const materials = caseItem?.materials || '';
+  const circularStrategy = caseItem?.circular_strategy || '';
+  const caseScores = caseItem?.case_scores || null;
 
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();
@@ -74,64 +76,181 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
             </Drawer.Header>
 
             <Drawer.Body className="gap-6 mt-4">
-              <div className="space-y-8">
-                {/* Metadata badges */}
-                {matchPercentage && (
-                  <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-100">
-                    <div className="flex items-center justify-center gap-2 text-sm py-2 px-3 rounded-md bg-gray-100 font-semibold text-gray-600">
-                      <NotebookText className="size-4" />
-                      <span>Source Case {sourceCaseId}</span>
+              <div className="space-y-6">
+                {/* ── Metadata badges ──────────────────────────────────────────── */}
+                <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-100">
+                  {matchPercentage && (
+                    <>
+                      <div className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-md bg-gray-100 font-semibold text-gray-600">
+                        <NotebookText className="size-4" />
+                        <span>Case {sourceCaseId}</span>
+                      </div>
+                      <span className="text-gray-300">•</span>
+                      <Chip
+                        size="sm"
+                        variant="secondary"
+                        className="text-xs font-bold text-white"
+                        style={{ backgroundColor: matchColor }}
+                      >
+                        {matchPercentage}% Similar
+                      </Chip>
+                      <span className="text-gray-300">•</span>
+                      <span
+                        className="text-xs font-bold uppercase tracking-wide"
+                        style={{ color: matchColor }}
+                      >
+                        {matchStrengthLabel}
+                      </span>
+                    </>
+                  )}
+
+                  {/* Year + Location + Use type */}
+                  {(year || location || useType) && (
+                    <div className="flex flex-wrap gap-2 mt-1 w-full">
+                      {year && (
+                        <Chip size="sm" variant="secondary" className="text-xs">
+                          {year}
+                        </Chip>
+                      )}
+                      {location && (
+                        <Chip
+                          size="sm"
+                          variant="secondary"
+                          className="text-xs flex items-center gap-1"
+                        >
+                          <MapPin size={10} />
+                          {location}
+                        </Chip>
+                      )}
+                      {useType && (
+                        <Chip size="sm" variant="secondary" className="text-xs">
+                          {useType}
+                        </Chip>
+                      )}
                     </div>
-                    <span className="text-gray-400">•</span>
-                    <Chip
-                      size="sm"
-                      variant="secondary"
-                      className="text-xs py-0.5 text-white font-bold"
-                      style={{
-                        backgroundColor: matchColor,
-                      }}
-                    >
-                      {matchPercentage}%&nbsp;&nbsp;Similarity
-                    </Chip>
-                    <span className="text-gray-400">•</span>
-                    <div
-                      className="text-xs font-bold tracking-wide uppercase"
-                      style={{ color: matchColor }}
-                    >
-                      {matchStrengthLabel}
+                  )}
+
+                  {/* Strategy + Materials + Source */}
+                  <div className="flex flex-wrap gap-2 mt-1 w-full">
+                    {circularStrategy && (
+                      <Chip size="sm" variant="flat" color="success" className="text-xs">
+                        {circularStrategy}
+                      </Chip>
+                    )}
+                    {materials && (
+                      <Chip size="sm" variant="flat" color="default" className="text-xs">
+                        {materials}
+                      </Chip>
+                    )}
+                    {sourceDisplay && (
+                      <a
+                        href={sourceUrl || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                      >
+                        <ExternalLink size={10} />
+                        {sourceDisplay}
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Summary ──────────────────────────────────────────────────── */}
+                {summary && (
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-sm text-slate-700 leading-relaxed italic">{summary}</p>
+                  </div>
+                )}
+
+                {/* ── Problem ──────────────────────────────────────────────────── */}
+                {problem && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-emerald-600">
+                      <Target className="size-5 text-emerald-600" strokeWidth={2} />
+                      <h3 className="text-base font-semibold text-gray-900">Problem Addressed</h3>
+                    </div>
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                      <p className="text-sm leading-7 text-gray-700">{problem}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Content sections */}
-                {hasSeparateSections ? (
-                  <>
-                    <div>
-                      <div className="flex items-center gap-2.5 mb-4 pb-3 border-b-2 border-emerald-600">
-                        <Target className="size-5 text-emerald-600" strokeWidth={2} />
-                        <h3 className="m-0 text-lg font-semibold text-gray-900">
-                          Problem Addressed
-                        </h3>
-                      </div>
-                      <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-                        <p className="m-0 text-base leading-7 text-gray-600">{problemPart}</p>
-                      </div>
+                {/* ── Solution ─────────────────────────────────────────────────── */}
+                {solution && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-emerald-600">
+                      <Lightbulb className="size-5 text-emerald-600" strokeWidth={2} />
+                      <h3 className="text-base font-semibold text-gray-900">Solution Approach</h3>
                     </div>
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                      <p className="text-sm leading-7 text-gray-700">{solution}</p>
+                    </div>
+                  </div>
+                )}
 
-                    <div>
-                      <div className="flex items-center gap-2.5 mb-3 pb-2 border-b-2 border-emerald-600">
-                        <Lightbulb className="size-5 text-emerald-600" strokeWidth={2} />
-                        <h3 className="m-0 text-lg font-semibold text-gray-900">
-                          Solution Approach
-                        </h3>
-                      </div>
-                      <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-                        <p className="m-0 text-base leading-7 text-gray-600">{solutionPart}</p>
-                      </div>
+                {/* ── Impact ───────────────────────────────────────────────────── */}
+                {impact && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-blue-500">
+                      <TrendingUp className="size-5 text-blue-500" strokeWidth={2} />
+                      <h3 className="text-base font-semibold text-gray-900">Impact & Outcomes</h3>
                     </div>
-                  </>
-                ) : (
-                  <p className="m-0 leading-7 text-gray-600">{content}</p>
+                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                      <p className="text-sm leading-7 text-gray-700">{impact}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Score Comparison ─────────────────────────────────────────── */}
+                {caseScores && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-purple-500">
+                      <NotebookText className="size-5 text-purple-500" strokeWidth={2} />
+                      <h3 className="text-base font-semibold text-gray-900">
+                        Their Scores vs Yours
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(caseScores).map(([factor, caseScore]) => {
+                        const userScore = caseItem?.metadata?.scores
+                          ? null // user scores not stored on caseItem — shown via label only
+                          : null;
+                        const label = factor
+                          .split('_')
+                          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                          .join(' ');
+                        const diff = null; // user scores not available here — show case score only
+                        const barColor =
+                          caseScore >= 75
+                            ? 'bg-green-500'
+                            : caseScore >= 50
+                              ? 'bg-blue-500'
+                              : caseScore >= 25
+                                ? 'bg-amber-500'
+                                : 'bg-red-500';
+                        return (
+                          <div key={factor} className="flex items-center gap-3">
+                            <div className="w-32 text-xs font-medium text-slate-600 truncate shrink-0">
+                              {label}
+                            </div>
+                            <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                              <div
+                                className={`h-2 rounded-full ${barColor}`}
+                                style={{ width: `${caseScore}%` }}
+                              />
+                            </div>
+                            <div className="text-xs font-bold text-slate-700 w-8 text-right shrink-0">
+                              {caseScore}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2 italic">
+                      Scores assigned to this case from the database.
+                    </p>
+                  </div>
                 )}
               </div>
             </Drawer.Body>
