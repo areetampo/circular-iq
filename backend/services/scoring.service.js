@@ -301,17 +301,29 @@ function buildUserPrompt(
     'No direct matches found in database for this specific query. Proceed with general circular economy principles.';
 
   if (similarDocs && similarDocs.length > 0) {
-    // 2. Add safety checks inside the map using optional chaining (?.) and fallbacks (||)
     similarCasesInfo = similarDocs
       .slice(0, 4)
       .map((doc, idx) => {
-        const content = doc.content || 'No content available';
         const id = doc.id || 'N/A';
         const similarity = doc.similarity ? (doc.similarity * 100).toFixed(1) : 0;
 
-        return `Case ${idx + 1} (ID: ${id}, Similarity: ${similarity}%): "${content.substring(0, 200)}..."`;
+        // Prefer structured fields from metadata — these are the clean, full
+        // problem/solution texts, not the raw chunked content column
+        const fields = doc.metadata?.fields || {};
+        const problemText = fields.problem || doc.content || '';
+        const solutionText = fields.solution || '';
+        const strategy = fields.circular_strategy || doc.metadata?.r_strategy || '';
+        const materials = fields.materials || '';
+
+        const parts = [`Case ${idx + 1} (ID: ${id}, Similarity: ${similarity}%)`];
+        if (problemText) parts.push(`Problem: ${problemText.substring(0, 300)}`);
+        if (solutionText) parts.push(`Solution: ${solutionText.substring(0, 300)}`);
+        if (strategy) parts.push(`Strategy: ${strategy}`);
+        if (materials) parts.push(`Materials: ${materials}`);
+
+        return parts.join('\n');
       })
-      .join('\n');
+      .join('\n\n---\n\n');
   }
 
   const contextBlock = context
@@ -410,9 +422,10 @@ ${similarCasesInfo}
 ${gapContext}${contextBlock}
 
 IMPORTANT for new fields:
-- improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step".
+- improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step". target_factor MUST be one of these exact values only: public_participation, infrastructure, market_price, maintenance, uniqueness, size_efficiency, chemical_safety, tech_readiness. Do not use any other value.
 - sdg_alignment: return 2-4 SDGs most relevant to circular economy: SDG 12 (Responsible Consumption), SDG 13 (Climate Action), SDG 9 (Industry Innovation), SDG 8 (Decent Work), SDG 11 (Sustainable Cities), SDG 6 (Clean Water) are the most common. Only include SDGs with genuine relevance.
 - market_opportunity_summary: grounded in the database evidence and scores, not generic statements.
+- similar_cases_summaries: return EXACTLY one entry per similar case provided in the DATABASE EVIDENCE section. If 4 cases are provided, return exactly 4 summaries — one per case, in order. Never return fewer than the number of cases provided.
 - key_metrics_comparison: provide all three fields (market_readiness, scalability, economic_viability) with specific comparisons to the database cases. Do not leave any field as "unavailable".
 
 CRITICAL: Be honest. If the user's scores are too high, say so with evidence. If the idea is unproven, cite that similar ideas struggled. Make this feel like a professional audit.`;
@@ -540,18 +553,26 @@ export async function cleanSimilarCases(cases) {
           .filter(Boolean)
           .join('\n');
 
-        const prompt = `You are cleaning text from a circular economy case study database.
-Fix OCR artifacts (e.g. "go als" → "goals", "weigh t" → "weight"), remove any trailing
-document-header noise (e.g. lines starting with "CIRCULAR ECONOMY CASE STUDIES"),
-and if a sentence is truncated mid-word, end it naturally at the last complete sentence.
-Do NOT add information that is not present. Do NOT change facts, numbers, or proper nouns.
+        const prompt = `You are editing text from a circular economy case study database for display to business users.
+
+Your tasks:
+1. Fix OCR artifacts (e.g. "go als" → "goals", "weigh t" → "weight", "physcially" → "physically", "memebers" → "members", "strcutrual" → "structural", "exisintg" → "existing", "aƯordable" → "affordable", "diƯerent" → "different")
+2. Remove trailing document-header noise (lines starting with "CIRCULAR ECONOMY CASE STUDIES")
+3. If a sentence is truncated mid-word, end it at the last complete sentence — do NOT continue or add new content
+4. Reframe "problem" text as a clear "Problem Addressed" statement — what challenge or need this project was solving. Start with "This project addressed..." or a similar user-facing framing.
+5. Reframe "solution" text as a clear "Solution Implemented" description — what was actually done. Keep all specific details, numbers, and materials.
+6. Clean the "summary" to be a single clean sentence describing what the project achieved.
+7. Keep "impact" factual — just fix OCR and truncation, do not reframe.
+
+Do NOT invent information. Do NOT change facts, numbers, organisations, or proper nouns.
 If a field was not provided, return an empty string for that key.
+
 Return ONLY a JSON object with these exact keys:
 {
-  "summary": "<cleaned summary or empty string if not provided>",
-  "problem": "<cleaned problem text or empty string if not provided>",
-  "solution": "<cleaned solution text or empty string if not provided>",
-  "impact": "<cleaned impact text or empty string if not provided>"
+  "summary": "<one clean sentence: what the project achieved>",
+  "problem": "<reframed problem addressed, starting from user-facing perspective>",
+  "solution": "<reframed solution implemented, preserving all specific details>",
+  "impact": "<impact text with OCR fixed and truncation cleaned>"
 }
 
 RAW TEXT TO CLEAN:

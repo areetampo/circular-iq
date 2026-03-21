@@ -660,12 +660,11 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
         id: c.id,
         title,
         summary,
-        problem: c.problem || fields.problem || '',
-        solution: c.solution || fields.solution || '',
-        impact: c.impact || fields.impact || '',
-        materials: c.materials || fields.materials || '',
+        problem: fields.problem || '',
+        solution: fields.solution || '',
+        impact: fields.impact || '',
+        materials: fields.materials || '',
         circular_strategy:
-          c.circular_strategy ||
           fields.circular_strategy ||
           (c.metadata?.r_strategy
             ? c.metadata.r_strategy.charAt(0).toUpperCase() + c.metadata.r_strategy.slice(1)
