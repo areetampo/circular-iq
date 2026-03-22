@@ -44,6 +44,10 @@ export function useGlobalStats({ enabled = true } = {}) {
     riskDistribution: logStats?.risk_distribution ?? {},
     industryDistribution: logStats?.industry_distribution ?? [],
     strategyDistribution: logStats?.strategy_distribution ?? [],
+    materialDistribution: logStats?.material_distribution ?? [],
+    geoDistribution: logStats?.geo_distribution ?? [],
+    scaleDistribution: logStats?.scale_distribution ?? [],
+    junkRate: logStats?.junk_rate ?? 0,
     weeklyTrend: logStats?.weekly_trend ?? [],
 
     // market data (contributed assessments)

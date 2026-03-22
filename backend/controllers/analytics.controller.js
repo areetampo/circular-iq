@@ -826,6 +826,9 @@ export function getGlobalStats(serviceSupabase) {
               'risk_level',
               'industry',
               'r_strategy',
+              'scale',
+              'primary_material',
+              'geographic_focus',
               'circular_economy_tier',
               'audit_is_junk_input',
             ].join(', '),
@@ -902,6 +905,43 @@ export function getGlobalStats(serviceSupabase) {
         .map(([strategy, count]) => ({ strategy, count }))
         .sort((a, b) => b.count - a.count);
 
+      // Primary material distribution
+      const materialAcc = {};
+      logRows.forEach((r) => {
+        const m = r.primary_material || 'unknown';
+        materialAcc[m] = (materialAcc[m] || 0) + 1;
+      });
+      const materialDist = Object.entries(materialAcc)
+        .map(([material, count]) => ({ material, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      // Geographic focus distribution
+      const geoAcc = {};
+      logRows.forEach((r) => {
+        const g = r.geographic_focus || 'unknown';
+        geoAcc[g] = (geoAcc[g] || 0) + 1;
+      });
+      const geoDist = Object.entries(geoAcc)
+        .map(([geo, count]) => ({ geo, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      // Scale distribution
+      const scaleAcc = {};
+      logRows.forEach((r) => {
+        const s = r.scale || 'unknown';
+        scaleAcc[s] = (scaleAcc[s] || 0) + 1;
+      });
+      const scaleDist = Object.entries(scaleAcc)
+        .map(([scale, count]) => ({ scale, count }))
+        .sort((a, b) => b.count - a.count);
+
+      // Junk input rate
+      const junkCount = logRows.filter((r) => r.audit_is_junk_input === true).length;
+      const junkRate =
+        totalScoringCalls > 0 ? Number(((junkCount / totalScoringCalls) * 100).toFixed(1)) : 0;
+
       // Weekly trend — last 12 ISO weeks
       const weekBuckets = new Map();
       for (let i = 11; i >= 0; i--) {
@@ -953,6 +993,10 @@ export function getGlobalStats(serviceSupabase) {
           risk_distribution: riskDist,
           industry_distribution: industryDist,
           strategy_distribution: strategyDist,
+          material_distribution: materialDist,
+          geo_distribution: geoDist,
+          scale_distribution: scaleDist,
+          junk_rate: junkRate,
           weekly_trend: weeklyTrend,
         },
         // From get_market_data RPC
