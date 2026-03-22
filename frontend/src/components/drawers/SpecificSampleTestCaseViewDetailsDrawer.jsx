@@ -13,56 +13,17 @@ import {
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import {
+  TEST_CASE_DETAIL_CONTENT,
+  getContextFieldIcon,
+  getContextFieldLabel,
+  getContextValueLabel,
+} from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 import { cn } from '@/utils/cn';
 
 // Helper function to format business context labels and values
-const getContextFieldLabel = (key) => {
-  const labelMap = {
-    business_model_type: 'Business Model Type',
-    businessModelType: 'Business Model Type',
-    operational_stage: 'Operational Stage',
-    operationalStage: 'Operational Stage',
-    target_geography: 'Target Geography',
-    targetGeography: 'Target Geography',
-    annual_volume_estimate: 'Annual Material Volume',
-    annualVolume: 'Annual Material Volume',
-    material_complexity: 'Material Complexity',
-    materialComplexity: 'Material Complexity',
-    has_existing_partnerships: 'Partnerships',
-    partnerships: 'Partnerships',
-  };
-  return labelMap[key] || key.replace(/([A-Z])/g, ' $1').trim();
-};
-
-const getContextValueLabel = (key, value) => {
-  if (value === null || value === undefined || value === '' || value === false) {
-    return '[Not specified]';
-  }
-  if (typeof value === 'boolean') {
-    return value ? 'Yes' : 'No';
-  }
-  // Format hyphenated values to title case
-  return String(value)
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, (l) => l.toUpperCase());
-};
-
-const getContextFieldIcon = (key) => {
-  const normalizedKey = key.toLowerCase().replace(/_/g, '');
-  const iconMap = {
-    businessmodeltype: <Package className="size-4" />,
-    operationalstage: <TrendingUp className="size-4" />,
-    targetgeography: <Globe className="size-4" />,
-    annualvolume: <Layers className="size-4" />,
-    annualvolumeestimate: <Layers className="size-4" />,
-    materialcomplexity: <Layers className="size-4" />,
-    hasexistingpartnerships: <Briefcase className="size-4" />,
-    partnerships: <Briefcase className="size-4" />,
-  };
-  return iconMap[normalizedKey];
-};
 
 export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   if (!testCase) return null;
@@ -109,7 +70,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                     <Drawer.Heading className="text-2xl font-bold text-gray-900 mb-1">
                       {title}
                     </Drawer.Heading>
-                    <p className="text-sm text-slate-500">Sample test case details</p>
+                    <p className="text-sm text-slate-500">{TEST_CASE_DETAIL_CONTENT.subheading}</p>
                   </div>
                 </div>
               </div>
@@ -125,9 +86,11 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                     </div>
                     <div>
                       <Card.Title className="font-bold text-base text-gray-900">
-                        Business Problem
+                        {TEST_CASE_DETAIL_CONTENT.sections.businessProblem.title}
                       </Card.Title>
-                      <p className="text-xs text-slate-500 mt-0.5">Challenge & Context</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {TEST_CASE_DETAIL_CONTENT.sections.businessProblem.subtitle}
+                      </p>
                     </div>
                   </Card.Header>
                   <Card.Content className="pt-0">
@@ -145,9 +108,11 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                     </div>
                     <div>
                       <Card.Title className="font-bold text-base text-gray-900">
-                        Business Solution
+                        {TEST_CASE_DETAIL_CONTENT.sections.businessSolution.title}
                       </Card.Title>
-                      <p className="text-xs text-slate-500 mt-0.5">Implementation Approach</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {TEST_CASE_DETAIL_CONTENT.sections.businessSolution.subtitle}
+                      </p>
                     </div>
                   </Card.Header>
                   <Card.Content className="pt-0">
@@ -166,7 +131,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                       </div>
                       <div>
                         <Card.Title className="font-bold text-base text-gray-900">
-                          Business Context
+                          {TEST_CASE_DETAIL_CONTENT.sections.businessContext.title}
                         </Card.Title>
                         <p className="text-xs text-slate-500 mt-0.5">
                           {filteredBusinessContext.length} field
@@ -179,7 +144,19 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                         {filteredBusinessContext.map(([key, value]) => {
                           const label = getContextFieldLabel(key);
                           const displayValue = getContextValueLabel(key, value);
-                          const icon = getContextFieldIcon(key);
+                          const iconName = getContextFieldIcon(key);
+                          const icon =
+                            iconName === 'Package' ? (
+                              <Package className="size-4" />
+                            ) : iconName === 'TrendingUp' ? (
+                              <TrendingUp className="size-4" />
+                            ) : iconName === 'Globe' ? (
+                              <Globe className="size-4" />
+                            ) : iconName === 'Layers' ? (
+                              <Layers className="size-4" />
+                            ) : iconName === 'Briefcase' ? (
+                              <Briefcase className="size-4" />
+                            ) : null;
 
                           return (
                             <div
@@ -222,9 +199,11 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                     </div>
                     <div>
                       <Card.Title className="font-bold text-base text-gray-900">
-                        Evaluation Parameters
+                        {TEST_CASE_DETAIL_CONTENT.sections.evaluationParameters.title}
                       </Card.Title>
-                      <p className="text-xs text-slate-500 mt-0.5">Circular Value Scores</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {TEST_CASE_DETAIL_CONTENT.sections.evaluationParameters.subtitle}
+                      </p>
                     </div>
                   </Card.Header>
                   <Card.Content className="pt-0">

@@ -1,35 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import apiClient from '@/lib/apiClient';
 
-export function useDocumentStats() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export function useDocumentStats({ enabled = true } = {}) {
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['document-stats'],
+    queryFn: () => apiClient.get('/api/analytics/documents/summary').then((res) => res.data),
+    enabled,
+    staleTime: 10 * 60 * 1000, // 10 minutes - document stats don't change often
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+  });
 
-  useEffect(() => {
-    let canceled = false;
-
-    const fetchStats = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const res = await apiClient.get('/api/analytics/documents/summary');
-        if (!canceled) setStats(res.data);
-      } catch (err) {
-        if (!canceled) setError(err?.message || 'Failed to load document stats');
-      } finally {
-        if (!canceled) setLoading(false);
-      }
-    };
-
-    fetchStats();
-
-    return () => {
-      canceled = true;
-    };
-  }, []);
-
-  return { stats, loading, error };
+  return {
+    stats: data,
+    loading: isLoading,
+    isLoading,
+    error: error?.message || null,
+    isError,
+    refetch,
+  };
 }

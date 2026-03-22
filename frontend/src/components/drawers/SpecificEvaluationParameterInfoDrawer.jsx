@@ -1,6 +1,7 @@
 import { Drawer } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { SPECIFIC_PARAMETER_CONTENT } from '@/constants/drawers';
 import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
 import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
@@ -50,7 +51,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                   />
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
-                      Parameter Information
+                      {SPECIFIC_PARAMETER_CONTENT.heading}
                     </Drawer.Heading>
                   </div>
                 </div>
@@ -83,19 +84,25 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                   <div className="space-y-3 text-sm leading-relaxed">
                     {guidance.definition && (
                       <div>
-                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>Definition</p>
+                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
+                          {SPECIFIC_PARAMETER_CONTENT.sections.definition}
+                        </p>
                         <p className="text-gray-600">{guidance.definition}</p>
                       </div>
                     )}
                     {guidance.methodology && (
                       <div>
-                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>Methodology</p>
+                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
+                          {SPECIFIC_PARAMETER_CONTENT.sections.methodology}
+                        </p>
                         <p className="text-gray-600">{guidance.methodology}</p>
                       </div>
                     )}
                     {guidance.calibration && (
                       <div>
-                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>Calibration</p>
+                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
+                          {SPECIFIC_PARAMETER_CONTENT.sections.calibration}
+                        </p>
                         <p className="text-gray-700">{guidance.calibration}</p>
                       </div>
                     )}
@@ -104,7 +111,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
 
                 {guidance.scale && (
                   <div className={cn('p-4 rounded-xl', cfg.panelBg, 'border', cfg.panelBorder)}>
-                    <h4 className={cn('mb-3 text-base font-bold', cfg.panelTitle)}>Score Guide</h4>
+                    <h4 className={cn('mb-3 text-base font-bold', cfg.panelTitle)}>
+                      {SPECIFIC_PARAMETER_CONTENT.sections.scoreGuide}
+                    </h4>
                     <div className="space-y-2">
                       {guidance.scale.map(({ score, label, description }) => (
                         <div
@@ -123,7 +132,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
 
                 {guidance.examples && (
                   <div className="p-4 border border-blue-200 rounded-xl bg-blue-50">
-                    <h4 className="mb-3 text-base font-bold text-blue-700">Benchmarks</h4>
+                    <h4 className="mb-3 text-base font-bold text-blue-700">
+                      {SPECIFIC_PARAMETER_CONTENT.sections.benchmarks}
+                    </h4>
                     <div className="space-y-2">
                       {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
                         <div

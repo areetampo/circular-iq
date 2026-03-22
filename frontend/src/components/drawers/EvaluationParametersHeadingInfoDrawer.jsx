@@ -1,6 +1,7 @@
 import { Drawer } from '@heroui/react';
 import { ClipboardMinus } from 'lucide-react';
 
+import { EVALUATION_PARAMETERS_HEADING_CONTENT } from '@/constants/drawers';
 import { factorDefinitions } from '@/constants/evaluationData';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
@@ -38,7 +39,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
-                      Evaluation Parameters Guide
+                      {EVALUATION_PARAMETERS_HEADING_CONTENT.heading}
                     </Drawer.Heading>
                   </div>
                 </div>
@@ -47,8 +48,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
             <Drawer.Body>
               <div className="space-y-6">
                 <p className="leading-relaxed text-gray-600">
-                  These are the factors we use to evaluate circularity potential. Use the
-                  definitions to align your self-assessed scores with our scoring model.
+                  {EVALUATION_PARAMETERS_HEADING_CONTENT.description}
                 </p>
 
                 <div className="grid gap-4 md:grid-cols-2">
@@ -78,8 +78,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                 </div>
 
                 <p className="text-xs italic text-gray-500 p-3 bg-gray-100 rounded-lg">
-                  💡 <strong>Stronger detail helps the model</strong> differentiate between nearby
-                  scores.
+                  {EVALUATION_PARAMETERS_HEADING_CONTENT.tip}
                 </p>
               </div>
             </Drawer.Body>

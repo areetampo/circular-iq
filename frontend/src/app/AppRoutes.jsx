@@ -3,6 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 
 import LoaderComponent from '@/components/common/LoaderComponent';
+import ScrollToTop from '@/components/common/ScrollToTop';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
 import AppContainer from '@/components/layout/AppContainer';
 import { useAuth } from '@/hooks/useAuth';
@@ -97,6 +98,7 @@ export default function AppRoutes() {
         }
       >
         <AppContainer>
+          <ScrollToTop />
           <Routes>
             {/* Public Route - Authentication */}
             <Route path="/auth" element={<AuthPage />} />

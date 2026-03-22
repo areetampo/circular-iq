@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { deleteAssessment, getAssessments } from '@/features/assessments';
+import { deleteAssessment, getAssessmentById, getAssessments } from '@/features/assessments';
 
 export function useAssessments({
   sessionId,
@@ -105,6 +105,16 @@ export function useAssessments({
     },
   });
 
+  // Prefetch individual assessments for better UX
+  const prefetchAssessment = (assessmentId) => {
+    if (!assessmentId) return;
+    queryClient.prefetchQuery({
+      queryKey: ['assessment', assessmentId],
+      queryFn: () => getAssessmentById(assessmentId),
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+  };
+
   return {
     assessments: data?.assessments || [],
     total: Number(data?.total || 0),
@@ -117,6 +127,7 @@ export function useAssessments({
     removeAssessmentAsync: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
     deleteError: deleteMutation.error,
+    prefetchAssessment, // Add prefetch function
     data, // Return full data object for flexibility
   };
 }

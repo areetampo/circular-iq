@@ -102,6 +102,16 @@ export default function LandingPage() {
     formState: { isValid },
   } = methods;
 
+  // Prefetch ResultsPage bundle when form becomes valid to reduce navigation delay
+  useEffect(() => {
+    if (isValid) {
+      // Start prefetching the ResultsPage bundle in the background
+      import('@/pages/ResultsPage/ResultsPage').catch((err) => {
+        console.warn('Failed to prefetch ResultsPage:', err);
+      });
+    }
+  }, [isValid]);
+
   // Use refs + onChange handlers to debounce autosave without subscribing the whole
   // component to form changes (avoids re-renders on each keystroke).
   const autosaveTimerRef = useRef(null);

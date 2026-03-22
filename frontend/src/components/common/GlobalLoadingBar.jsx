@@ -1,50 +1,32 @@
-import { useIsFetching, useQueryClient } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 /**
  * Global Loading Bar Component
- * Displays a subtle top progress bar during background refetches (like GitHub/YouTube)
- * Shows when TanStack Query is performing background refetch operations
+ * Displays a subtle top progress bar during page visits or refreshes
+ * Shows when navigating to new pages or on initial page load
  */
 export default function GlobalLoadingBar() {
-  const queryClient = useQueryClient();
-  const isFetchingCount = useIsFetching();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const hasActiveQueries = isFetchingCount > 0;
-    setIsLoading(hasActiveQueries);
+    // Trigger loading on route change or initial load
+    setIsLoading(true);
+    setProgress(10);
 
-    if (hasActiveQueries && progress === 0) {
-      setProgress(10);
-    }
-  }, [isFetchingCount, progress]);
-
-  useEffect(() => {
-    let progressInterval;
-    // Animate progress bar
-    if (isLoading && progress < 90) {
-      progressInterval = setTimeout(
-        () => {
-          setProgress((prev) => {
-            const increment = Math.random() * 30;
-            return Math.min(prev + increment, 90);
-          });
-        },
-        300 + Math.random() * 600,
-      ); // Random interval for natural feel
-    } else if (!isLoading && progress > 0) {
-      // Complete the progress bar
+    // Simulate loading completion after a short delay
+    const timer = setTimeout(() => {
       setProgress(100);
-      const resetTimeout = setTimeout(() => setProgress(0), 300);
-      return () => clearTimeout(resetTimeout);
-    }
+      setTimeout(() => {
+        setIsLoading(false);
+        setProgress(0);
+      }, 300);
+    }, 500);
 
-    return () => {
-      if (progressInterval) clearTimeout(progressInterval);
-    };
-  }, [isLoading, progress]);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   // Don't render if progress is 0
   if (progress === 0) {
@@ -53,7 +35,7 @@ export default function GlobalLoadingBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 h-1 bg-linear-to-r from-emerald-400 via-emerald-500 to-emerald-600 shadow-lg z-9999 transition-all duration-500 ease-out"
+      className="fixed top-0 left-0 h-0.5 bg-linear-to-r from-emerald-400 via-emerald-500 to-emerald-600 shadow-lg z-9999 transition-all duration-500 ease-out"
       style={{
         width: `${progress}%`,
         opacity: progress === 100 ? 0 : 1,

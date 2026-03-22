@@ -1,6 +1,7 @@
 import { Drawer } from '@heroui/react';
 import { ClipboardPenLine, Lightbulb } from 'lucide-react';
 
+import { SAMPLE_TEST_CASES_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 import { cn } from '@/utils/cn';
@@ -37,7 +38,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
-                      Sample Test Cases
+                      {SAMPLE_TEST_CASES_HEADING_CONTENT.heading}
                     </Drawer.Heading>
                   </div>
                 </div>
@@ -46,37 +47,23 @@ export default function SampleTestCasesHeadingInfoDrawer() {
             <Drawer.Body>
               <div className="space-y-6">
                 <p className="leading-relaxed text-gray-600">
-                  <strong>Test Cases</strong> are pre-filled form submissions representing real
-                  circular economy business models. They help you:
+                  {SAMPLE_TEST_CASES_HEADING_CONTENT.description}
                 </p>
                 <ul className="ml-3 space-y-2">
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="font-bold text-blue-500">→</span>
-                    <span>See what good problem/solution descriptions look like</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="font-bold text-blue-500">→</span>
-                    <span>Understand parameter scoring in real-world contexts</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="font-bold text-blue-500">→</span>
-                    <span>Quickly test the evaluation framework</span>
-                  </li>
+                  {SAMPLE_TEST_CASES_HEADING_CONTENT.benefits.map((benefit, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="font-bold text-blue-500">→</span>
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
                 </ul>
 
                 <div className="pt-2">
-                  <h3 className="mb-3 text-base font-bold text-gray-900">How They Work</h3>
+                  <h3 className="mb-3 text-base font-bold text-gray-900">
+                    {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.title}
+                  </h3>
                   <div className="space-y-2">
-                    {[
-                      { num: 1, title: 'Select', desc: 'Pick any test case from the dropdown' },
-                      { num: 2, title: 'Auto-fill', desc: 'Your form populates automatically' },
-                      { num: 3, title: 'Submit', desc: 'Click "Get Evaluation" to see scores' },
-                      {
-                        num: 4,
-                        title: 'Learn',
-                        desc: 'Review the evaluation against known results',
-                      },
-                    ].map((step) => (
+                    {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.steps.map((step) => (
                       <div
                         key={step.num}
                         className={[
@@ -110,7 +97,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                       size={16}
                     />
                     <span>
-                      <strong>Tip:</strong> Great for learning before submitting your own idea.
+                      <strong>Tip:</strong> {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.tip}
                     </span>
                   </p>
                 </div>

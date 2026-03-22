@@ -2,6 +2,7 @@ import { Toast, toast } from '@heroui/react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 
 import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
 import DrawerManager from '@/components/drawers/DrawerManager';
@@ -46,6 +47,13 @@ const queryClient = new QueryClient({
  * - ReactQueryDevtools for development debugging
  */
 export default function AppProvider({ children }) {
+  // Enable browser scroll restoration for back/forward navigation
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'auto';
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>

@@ -165,9 +165,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       )}
                     >
                       <div className="text-xs font-bold leading-tight mb-1">
-                        {option.label}
-                        &nbsp;
-                        <span className={cn('tabular-nums')}>(~{option.score})</span>
+                        {option.label} <span className={cn('tabular-nums')}>(~{option.score})</span>
                       </div>
                       <div className="text-[10px] leading-tight opacity-80">
                         {option.description}

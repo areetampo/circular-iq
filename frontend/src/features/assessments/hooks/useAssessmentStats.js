@@ -33,8 +33,8 @@ export function useAssessmentStats({ enabled = true } = {}) {
     queryKey: ['assessment-stats'],
     queryFn: () => getAssessmentStats(),
     enabled,
-    staleTime: 0, // Always fetch fresh - no caching
-    gcTime: 0, // Don't cache in garbage collection
+    staleTime: 5 * 60 * 1000, // 5 minutes - assessment stats change but not too frequently
+    cacheTime: 15 * 60 * 1000, // 15 minutes
   });
 
   // Debug log

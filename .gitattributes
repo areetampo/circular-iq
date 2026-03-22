@@ -1,16 +1,9 @@
-# Standard LFS tracking
+# LFS tracking for large dataset files
 backend/datasets/**/*.csv filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.json filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.pdf filter=lfs diff=lfs merge=lfs -text
 
-# EXCLUSIONS: Force these specific files to NOT use LFS
-backend/datasets/archives/chunks.json !filter !diff !merge
-backend/datasets/archives/embedded_chunks.jsonl !filter !diff !merge
-backend/datasets/archives/stored_documents.jsonl !filter !diff !merge
-backend/datasets/out/chunks.json !filter !diff !merge
-backend/datasets/out/embedded_chunks.jsonl !filter !diff !merge
-backend/datasets/out/stored_documents.jsonl !filter !diff !merge
 # Lockfile noise reduction
 package-lock.json -diff
 backend/package-lock.json -diff

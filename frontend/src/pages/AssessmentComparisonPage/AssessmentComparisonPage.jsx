@@ -2230,11 +2230,13 @@ export default function AssessmentComparisonPage() {
                   <span className="text-md font-bold">
                     {assessment1.title}
                     <span className="italic font-normal">
-                      &nbsp;({formatTimestamp(assessment1.created_at)}) vs.&nbsp;
+                      {' '}
+                      ({formatTimestamp(assessment1.created_at)}) vs.{' '}
                     </span>
                     {assessment2.title}
                     <span className="italic font-normal">
-                      &nbsp;({formatTimestamp(assessment2.created_at)})
+                      {' '}
+                      ({formatTimestamp(assessment2.created_at)})
                     </span>
                   </span>
                 </div>
