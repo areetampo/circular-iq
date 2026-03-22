@@ -68,7 +68,7 @@ import { getSession, saveSession } from '@/utils/session';
 import ResultsSkeleton from './components/ResultsSkeleton';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
-  const { id, publicId } = useParams();
+  const { publicId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const isResultsRoute = location.pathname.startsWith('/results');
@@ -162,8 +162,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     isLoading: privateLoading,
     error: privateError,
     refetch: privateRefetch,
-  } = useAssessment(id, {
-    enabled: isViewFromMyAssessments && !isPublicShare && !!id,
+  } = useAssessment(publicId, {
+    enabled: isViewFromMyAssessments && !isPublicShare && !!publicId,
     placeholderData: (previousData) => previousData,
   });
 
@@ -178,6 +178,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   // Use appropriate data source based on view type
   const fetchedAssessment = isPublicShare ? publicAssessment : privateAssessment;
+  const id = fetchedAssessment?.id;
   const refetch = isPublicShare ? publicRefetch : privateRefetch;
 
   const detailLoading = isPublicShare ? publicLoading : privateLoading;
@@ -198,19 +199,19 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }, [navigate]);
 
   // Market analysis navigation:
-  // - Saved assessment view  -> `/assessments/:id/market-analysis` (protected)
+  // - Saved assessment view  -> `/assessments/:publicId/market-analysis` (protected)
   // - Unsaved/session result -> `/results/market-analysis` (public, uses session_evaluation_state.results)
   // NOTE: avoid referencing `currentData` here because it is declared later.
   const handleMarketAnalysis = useCallback(() => {
-    // Treat as saved when viewing from My Assessments or when URL provides an id
-    if (isViewFromMyAssessments || id) {
-      if (id) navigate(`/assessments/${id}/market-analysis`);
+    // Treat as saved when viewing from My Assessments or when URL provides a publicId
+    if (isViewFromMyAssessments || publicId) {
+      if (publicId) navigate(`/assessments/${publicId}/market-analysis`);
       return;
     }
 
     // Otherwise use the session-based Market Analysis for unsaved results
     navigate('/results/market-analysis');
-  }, [isViewFromMyAssessments, id, navigate]);
+  }, [isViewFromMyAssessments, publicId, navigate]);
 
   const sessionSnapshot = useMemo(() => {
     if (isViewFromMyAssessments) return null;
@@ -1310,8 +1311,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {/* Mobile: Use Select */}
           <div className="md:hidden my-2 w-full flex items-center justify-center">
             <Select
-              value={selectedTab}
-              onChange={setSelectedTab}
+              selectedKey={selectedTab}
+              onSelectionChange={setSelectedTab}
               variant="primary"
               className="w-2/5"
             >

@@ -147,7 +147,14 @@ export default function createAssessmentsRouter(supabase) {
       );
       res.json(result);
     } catch (error) {
-      const statusCode = error.code === 'INVALID_FORMAT' ? 0 : 0;
+      const statusCode =
+        error.code === 'INVALID_FORMAT'
+          ? 400
+          : error.code === 'NOT_FOUND'
+            ? 404
+            : error.code === 'FORBIDDEN'
+              ? 403
+              : 500;
       logRequest(
         'GET',
         `/assessments/validate/${req.params.publicId}`,
@@ -176,10 +183,11 @@ export default function createAssessmentsRouter(supabase) {
   });
 
   /**
-   * GET /:id
-   * Retrieve a single assessment by ID (auth required, user-specific)
+   * GET /:publicId
+   * Retrieve a single assessment by publicId (auth required, user-specific)
+   * Note: Uses public_id instead of primary key for security
    */
-  router.get('/:id', requireAuth(supabase), async (req, res) => {
+  router.get('/:publicId', requireAuth(supabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
@@ -187,13 +195,13 @@ export default function createAssessmentsRouter(supabase) {
         supabase,
         req.user,
         token,
-        req.params.id,
+        req.params.publicId,
       );
-      logRequest('GET', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
+      logRequest('GET', `/assessments/${req.params.publicId}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logRequest('GET', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
+      logRequest('GET', `/assessments/${req.params.publicId}`, statusCode, Date.now() - startTime);
       res.status(statusCode).json(errorResponse(error, 'Failed to fetch assessment'));
     }
   });
@@ -246,20 +254,20 @@ export default function createAssessmentsRouter(supabase) {
   });
 
   /**
-   * GET /market-analysis/:id
+   * GET /market-analysis/:publicId
    * Retrieve per-assessment market analysis with user-specific benchmarks
    */
-  router.get('/market-analysis/:id', requireAuth(supabase), async (req, res) => {
+  router.get('/market-analysis/:publicId', requireAuth(supabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const result = await assessmentsController.getPerAssessmentMarketAnalysis(
         supabase,
         req.user,
-        req.params.id,
+        req.params.publicId,
       );
       logRequest(
         'GET',
-        `/assessments/market-analysis/${req.params.id}`,
+        `/assessments/market-analysis/${req.params.publicId}`,
         200,
         Date.now() - startTime,
       );
@@ -268,7 +276,7 @@ export default function createAssessmentsRouter(supabase) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
       logRequest(
         'GET',
-        `/assessments/market-analysis/${req.params.id}`,
+        `/assessments/market-analysis/${req.params.publicId}`,
         statusCode,
         Date.now() - startTime,
       );
@@ -307,6 +315,50 @@ export default function createAssessmentsRouter(supabase) {
       res
         .status(statusCode)
         .json(errorResponse(error, 'Failed to fetch per-assessment market data'));
+    }
+  });
+
+  /**
+   * GET /compare/:publicId1/:publicId2
+   * Compare two assessments by publicId with visibility rules
+   * Supports cross-user comparison with privacy enforcement
+   */
+  router.get('/compare/:publicId1/:publicId2', requireAuth(supabase), async (req, res) => {
+    const startTime = Date.now();
+    try {
+      const token = req.headers.authorization?.slice(7).trim();
+      const result = await assessmentsController.compareAssessments(
+        supabase,
+        req.user,
+        token,
+        req.params.publicId1,
+        req.params.publicId2,
+      );
+      logRequest(
+        'GET',
+        `/assessments/compare/${req.params.publicId1}/${req.params.publicId2}`,
+        200,
+        Date.now() - startTime,
+      );
+      res.json(result);
+    } catch (error) {
+      const statusCode =
+        error.code === 'NOT_FOUND'
+          ? 404
+          : error.code === 'FORBIDDEN'
+            ? 403
+            : error.code === 'INVALID_IDS'
+              ? 400
+              : error.code === 'NOT_PUBLIC'
+                ? 403
+                : 500;
+      logRequest(
+        'GET',
+        `/assessments/compare/${req.params.publicId1}/${req.params.publicId2}`,
+        statusCode,
+        Date.now() - startTime,
+      );
+      res.status(statusCode).json(errorResponse(error, 'Failed to compare assessments'));
     }
   });
 

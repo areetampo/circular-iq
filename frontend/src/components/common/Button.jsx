@@ -1,4 +1,4 @@
-import { Button as HeroButton } from '@heroui/react';
+import { Button as HeroButton, Spinner } from '@heroui/react';
 import { clsx } from 'clsx';
 import PropTypes from 'prop-types';
 
@@ -64,6 +64,7 @@ const customVariantStyles = {
  * Supports all heroui variants plus custom circular economy themed variants.
  *
  * Size prop uses Tailwind naming: xs | sm | md (default) | lg | xl | 2xl
+ * Loading state: pass isLoading=true to show loading spinner and prevent clicks
  */
 export function Button({
   className,
@@ -71,10 +72,21 @@ export function Button({
   size = 'md',
   isDisabled = false,
   disabled = false,
+  isLoading = false,
+  children,
   ...props
 }) {
   const isCustomVariant = variant && customVariantStyles[variant];
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
+  const isButtonDisabled = isDisabled || disabled || isLoading;
+
+  const buttonContent = isLoading ? (
+    <span className="flex items-center justify-center gap-2 w-full">
+      <Spinner size="sm" color="current" />
+    </span>
+  ) : (
+    children
+  );
 
   if (isCustomVariant) {
     return (
@@ -82,28 +94,41 @@ export function Button({
         className={clsx(
           customVariantStyles[variant],
           resolvedSize,
+          'transition-all duration-200 ease-out',
+          'active:scale-95',
+          isLoading && 'opacity-70',
           'data-[disabled=true]:cursor-not-allowed',
           className,
         )}
-        variant={undefined} // Don't pass custom variant to heroui
-        size={undefined} // We handle sizing ourselves
-        isDisabled={isDisabled}
-        disabled={disabled}
+        variant={undefined}
+        size={undefined}
+        isDisabled={isButtonDisabled}
+        disabled={isButtonDisabled}
         {...props}
-      />
+      >
+        {buttonContent}
+      </HeroButton>
     );
   }
 
-  // Use heroui's native variant but still apply our size system
   return (
     <HeroButton
-      className={clsx(resolvedSize, 'data-[disabled=true]:cursor-not-allowed', className)}
+      className={clsx(
+        resolvedSize,
+        'transition-all duration-200 ease-out',
+        'active:scale-95',
+        isLoading && 'opacity-70',
+        'data-[disabled=true]:cursor-not-allowed',
+        className,
+      )}
       variant={variant}
-      size={undefined} // We handle sizing ourselves
-      isDisabled={isDisabled}
-      disabled={disabled}
+      size={undefined}
+      isDisabled={isButtonDisabled}
+      disabled={isButtonDisabled}
       {...props}
-    />
+    >
+      {buttonContent}
+    </HeroButton>
   );
 }
 
@@ -137,6 +162,7 @@ Button.propTypes = {
   children: PropTypes.node,
   isDisabled: PropTypes.bool,
   disabled: PropTypes.bool,
+  isLoading: PropTypes.bool,
 };
 
 export default Button;

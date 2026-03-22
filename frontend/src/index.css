@@ -368,4 +368,81 @@
     box-shadow: none !important;
     content: none !important;
   }
+
+  /* ===== PERFORMANCE OPTIMIZATIONS FOR BUTTONS ===== */
+  /* Prevent jank and laggy feelings on button interactions */
+  button,
+  [role='button'] {
+    /* Optimize GPU rendering during interactions */
+    transform: translate3d(0, 0, 0);
+    -webkit-font-smoothing: antialiased;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Reduce transition lag on active state */
+  button:active,
+  [role='button']:active {
+    /* Use CPU-friendly properties instead of heavy transforms */
+    outline: 2px solid transparent;
+    outline-offset: 0;
+  }
+
+  /* ===== PERFORMANCE OPTIMIZATIONS FOR SWITCHES ===== */
+  /* Prevent jitter and stutter on switch interactions */
+  [role='switch'] {
+    /* Enable GPU acceleration */
+    will-change: transform, background-color;
+    transform: translate3d(0, 0, 0);
+    -webkit-font-smoothing: antialiased;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Optimize switch thumb for smooth sliding */
+  [role='switch'] [role='presentation'] {
+    /* Prevent layout shift during animation */
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  /* Ensure smooth transitions without stalls */
+  @media (prefers-reduced-motion: no-preference) {
+    button,
+    [role='button'],
+    [role='switch'],
+    [class*='transition'] {
+      /* Use GPU acceleration for smoother animations */
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  /* ===== FIX FOR MOTION/FRAMER PERF ===== */
+  /* Improve Framer Motion animation performance */
+  [style*='transform'] {
+    will-change: transform;
+    /* Use transform3d for GPU acceleration */
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+
+  /* ===== REDUCE REPAINTS ON CLICK ===== */
+  /* Optimize pointer events to reduce interaction latency */
+  button,
+  [role='button'],
+  [role='switch'],
+  input[type='checkbox'] {
+    /* Allow browser to optimize for click events */
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  /* Disabled state should not trigger hover effects */
+  button:disabled,
+  button[aria-disabled='true'],
+  [role='button'][aria-disabled='true'],
+  input:disabled {
+    pointer-events: none;
+    touch-action: none;
+  }
 }

@@ -1,15 +1,28 @@
 import { Input, Label } from '@heroui/react';
 import { Frown } from 'lucide-react';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 
+const STORAGE_KEY = 'sharePageInput';
+
 export default function SharePage() {
-  const [publicId, setPublicId] = useState('');
+  const [publicId, setPublicId] = useState(() => {
+    try {
+      return sessionStorage.getItem(STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Save to sessionStorage whenever input changes
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, publicId);
+  }, [publicId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +55,8 @@ export default function SharePage() {
         return;
       }
 
-      // Valid - redirect to public view
+      // Valid - clear saved input and redirect to public view
+      sessionStorage.removeItem(STORAGE_KEY);
       navigate(`/assessments/share/${id}`);
     } catch (err) {
       console.error(err);

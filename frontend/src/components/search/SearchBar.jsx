@@ -1,7 +1,6 @@
-import { Box, Chip, InputAdornment, TextField } from '@mui/material';
-import { Search } from 'lucide-react';
+import { Chip, SearchField } from '@heroui/react';
 import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -36,41 +35,46 @@ export default function SearchBar({ onSearch, loading }) {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <TextField
+    <div className="w-full">
+      <SearchField
+        name="search"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={setQuery}
+        isDisabled={loading}
         placeholder="Search for circular economy solutions..."
-        fullWidth
-        variant="outlined"
-        size="small"
-        disabled={loading}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search size={18} />
-            </InputAdornment>
-          ),
-        }}
-      />
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+      >
+        <SearchField.Group>
+          <SearchField.SearchIcon />
+          <SearchField.Input />
+          <SearchField.ClearButton />
+        </SearchField.Group>
+      </SearchField>
+      <div className="flex flex-wrap gap-1 mt-1">
         {PRESET_FILTERS.map((filter) => {
           const isActive = activeFilter?.key === filter.key && activeFilter?.value === filter.value;
           return (
             <Chip
               key={`${filter.key}-${filter.value}`}
-              label={filter.label}
-              variant={isActive ? 'filled' : 'outlined'}
-              color={isActive ? 'primary' : 'default'}
               onClick={() => toggleFilter(filter)}
-              size="small"
-            />
+              variant={isActive ? 'solid' : 'bordered'}
+            >
+              {filter.label}
+            </Chip>
           );
         })}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
+
+SearchBar.propTypes = {
+  onSearch: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+};
+
+SearchBar.defaultProps = {
+  loading: false,
+};
 
 SearchBar.propTypes = {
   onSearch: PropTypes.func.isRequired,

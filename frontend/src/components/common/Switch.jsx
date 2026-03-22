@@ -89,7 +89,18 @@ const Switch = React.forwardRef(function Switch(
 Switch.Control = React.forwardRef(function Control({ className = '', ...props }, ref) {
   const { theme, isSelected } = useContext(SwitchContext);
   const appliedClass = isSelected ? theme.controlSelectedClass : theme.controlUnselectedClass || '';
-  return <HeroSwitch.Control ref={ref} className={cn(appliedClass, className)} {...props} />;
+  return (
+    <HeroSwitch.Control
+      ref={ref}
+      className={cn(
+        appliedClass,
+        'transition-colors duration-150 ease-out',
+        'will-change-colors',
+        className,
+      )}
+      {...props}
+    />
+  );
 });
 
 Switch.Thumb = HeroSwitch.Thumb;
@@ -100,7 +111,11 @@ Switch.Icon = React.forwardRef(function Icon({ children, className = '', ...prop
   // if user supplied their own children, just forward them unchanged
   if (children) {
     return (
-      <HeroSwitch.Icon ref={ref} className={className} {...props}>
+      <HeroSwitch.Icon
+        ref={ref}
+        className={cn('transition-all duration-150 ease-out will-change-transform', className)}
+        {...props}
+      >
         {children}
       </HeroSwitch.Icon>
     );
@@ -110,8 +125,12 @@ Switch.Icon = React.forwardRef(function Icon({ children, className = '', ...prop
   const IconComp = isSelected ? theme.iconOn : theme.iconOff;
   const colorClass = isSelected ? theme.iconOnClass : theme.iconOffClass;
   return (
-    <HeroSwitch.Icon ref={ref} className={className} {...props}>
-      <IconComp size={iconSize} className={colorClass} />
+    <HeroSwitch.Icon
+      ref={ref}
+      className={cn('transition-all duration-150 ease-out will-change-colors', className)}
+      {...props}
+    >
+      <IconComp size={iconSize} className={cn(colorClass, 'transition-colors duration-150')} />
     </HeroSwitch.Icon>
   );
 });

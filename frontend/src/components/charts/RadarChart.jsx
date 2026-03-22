@@ -1,10 +1,17 @@
-import { ProgressCircle } from '@heroui/react';
-import { Box, Paper, Typography, useTheme } from '@mui/material';
+import { Card, ProgressCircle } from '@heroui/react';
 import PropTypes from 'prop-types';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 function RadarChartComponent({ data, radarConfigs, height, showLegend, showTooltip, isLoading }) {
-  const theme = useTheme();
+  // Default color palette for charts
+  const defaultColors = [
+    '#3b82f6', // blue
+    '#10b981', // emerald
+    '#f59e0b', // amber
+    '#ef4444', // red
+    '#8b5cf6', // violet
+    '#ec4899', // pink
+  ];
 
   const chartData = useMemo(
     () =>
@@ -16,19 +23,11 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
   );
 
   const colorMap = useMemo(() => {
-    const colors = [
-      theme.palette.primary.main,
-      theme.palette.secondary.main,
-      theme.palette.success.main,
-      theme.palette.warning.main,
-      theme.palette.error.main,
-      theme.palette.info.main,
-    ];
     return radarConfigs.reduce((acc, config, i) => {
-      acc[config.dataKey] = config.stroke || colors[i % colors.length];
+      acc[config.dataKey] = config.stroke || defaultColors[i % defaultColors.length];
       return acc;
     }, {});
-  }, [radarConfigs, theme]);
+  }, [radarConfigs]);
 
   const dimensions = useMemo(() => {
     const size = Math.min(height - 80, 400);
@@ -65,43 +64,27 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
 
   if (isLoading) {
     return (
-      <Paper
-        elevation={0}
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: height || 400,
-          width: '100%',
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          border: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <ProgressCircle size="lg" />
-      </Paper>
+      <Card className="w-full border border-default-200">
+        <div
+          className="flex items-center justify-center w-full"
+          style={{ minHeight: height || 400 }}
+        >
+          <ProgressCircle size="lg" />
+        </div>
+      </Card>
     );
   }
 
   if (!chartData || chartData.length === 0) {
     return (
-      <Paper
-        elevation={0}
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: height || 400,
-          width: '100%',
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          border: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <Typography color="text.secondary" variant="body2">
-          No data available
-        </Typography>
-      </Paper>
+      <Card className="w-full border border-default-200">
+        <div
+          className="flex items-center justify-center w-full text-default-400"
+          style={{ minHeight: height || 400 }}
+        >
+          <span className="text-sm">No data available</span>
+        </div>
+      </Card>
     );
   }
 
@@ -110,32 +93,11 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
   const maxValue = 100;
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        width: '100%',
-        minWidth: 0,
-        height: height || 400,
-        bgcolor: 'background.paper',
-        borderRadius: 2,
-        border: `1px solid ${theme.palette.divider}`,
-        p: { xs: 1, sm: 1.5, md: 2 },
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
+    <Card
+      className="w-full border border-default-200 overflow-hidden"
+      style={{ height: height || 400 }}
     >
-      <Box
-        sx={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
+      <div className="w-full h-full flex flex-col items-center justify-center relative p-4">
         <svg width={size} height={size} style={{ overflow: 'visible' }}>
           <defs>
             {radarConfigs.map((config) => {
@@ -166,7 +128,7 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
                 cy={center}
                 r={r}
                 fill="none"
-                stroke={theme.palette.divider}
+                stroke="#d1d5db"
                 strokeWidth={1}
                 strokeDasharray="3 3"
                 opacity={0.3}
@@ -184,7 +146,7 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
                 y1={center}
                 x2={end.x}
                 y2={end.y}
-                stroke={theme.palette.divider}
+                stroke="#d1d5db"
                 strokeWidth={1}
                 opacity={0.3}
               />
@@ -219,7 +181,7 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
                       cy={point.y}
                       r={3}
                       fill={color}
-                      stroke={theme.palette.background.paper}
+                      stroke="#ffffff"
                       strokeWidth={1}
                     />
                   );
@@ -241,7 +203,7 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={600}
-                fill={theme.palette.text.secondary}
+                fill="#6b7280"
               >
                 {subject}
               </text>
@@ -257,7 +219,7 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
                 x={center + 5}
                 y={center - (radius * (level + 1)) / gridLevels}
                 fontSize={9}
-                fill={theme.palette.text.secondary}
+                fill="#6b7280"
                 fontWeight={500}
               >
                 {value}
@@ -268,41 +230,20 @@ function RadarChartComponent({ data, radarConfigs, height, showLegend, showToolt
 
         {/* Legend */}
         {showLegend && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: 2,
-              mt: 2,
-              pt: 1,
-            }}
-          >
+          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-2">
             {radarConfigs.map((config) => {
               const color = colorMap[config.dataKey];
               return (
-                <Box key={config.dataKey} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <Box
-                    sx={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: '50%',
-                      bgcolor: color,
-                    }}
-                  />
-                  <Typography
-                    variant="caption"
-                    sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}
-                  >
-                    {config.name}
-                  </Typography>
-                </Box>
+                <div key={config.dataKey} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+                  <span className="text-xs font-semibold text-default-500">{config.name}</span>
+                </div>
               );
             })}
-          </Box>
+          </div>
         )}
-      </Box>
-    </Paper>
+      </div>
+    </Card>
   );
 }
 

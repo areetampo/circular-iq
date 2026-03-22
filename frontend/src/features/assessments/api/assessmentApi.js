@@ -224,6 +224,34 @@ export async function deleteAssessment(id) {
   }
 }
 
+/**
+ * Compare two assessments by publicId with visibility checking
+ * Handles cross-user comparisons with privacy enforcement
+ */
+export async function getComparisonAssessments(id1, id2) {
+  if (!id1 || !id2) {
+    throw new Error('Both assessment ids are required');
+  }
+
+  const data = await requestJson(`/api/assessments/compare/${id1}/${id2}`);
+
+  // Validate response data for both assessments
+  try {
+    const validated1 = validateAssessment(data.assessment1 || {});
+    const validated2 = validateAssessment(data.assessment2 || {});
+    return {
+      ...data,
+      assessment1: validated1,
+      assessment2: validated2,
+    };
+  } catch (error) {
+    const validationError = new Error(`Validation failed: ${error.message}`);
+    validationError.originalError = error;
+    validationError.data = data;
+    throw validationError;
+  }
+}
+
 export async function getMarketAnalysis(id) {
   const path = id ? `/api/assessments/market-analysis/${id}` : '/api/assessments/market-analysis';
   const data = await requestJson(path);

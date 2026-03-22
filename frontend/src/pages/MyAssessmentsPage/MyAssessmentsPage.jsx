@@ -22,6 +22,7 @@ import {
   Building,
   CheckCircle2,
   Clock,
+  Copy,
   Edit,
   Eye,
   Ghost,
@@ -98,7 +99,7 @@ const AssessmentCard = React.memo(function AssessmentCard({
       label: 'View',
       icon: Eye,
       variant: 'teal',
-      onClick: () => onView(assessment.id),
+      onClick: () => onView(assessment.public_id),
       className: '',
     },
     {
@@ -126,7 +127,7 @@ const AssessmentCard = React.memo(function AssessmentCard({
         'group relative overflow-hidden bg-slate-50 transition-all duration-200 ease-out ',
         isSelected ? 'shadow-lg shadow-blue-100' : 'hover:shadow-lg',
       )}
-      onMouseEnter={() => onPrefetch(assessment.id)}
+      onMouseEnter={() => onPrefetch(assessment.public_id)}
     >
       {/* Subtle gradient overlay on hover */}
       <div className="absolute inset-0 bg-linear-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -252,6 +253,24 @@ const AssessmentCard = React.memo(function AssessmentCard({
             }
           />
         </div>
+
+        {/* Copy PublicId Button */}
+        {assessment.public_id && (
+          <div className="px-4 pt-2">
+            <Button
+              size="sm"
+              variant="neutral"
+              className="w-full"
+              onPress={() => {
+                navigator.clipboard.writeText(assessment.public_id).catch(() => {});
+                toast.success('Assessment ID copied to clipboard');
+              }}
+            >
+              <Copy size={16} />
+              Copy Assessment ID
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );
@@ -684,9 +703,19 @@ export default function MyAssessmentsPage() {
       return;
     }
 
-    const ids = Array.from(selectedIds);
-    navigate(`/assessments/compare?id1=${ids[0]}&id2=${ids[1]}`);
-  }, [selectedIds, navigate]);
+    const selectedIdArray = Array.from(selectedIds);
+    // Find the publicIds for the selected assessments
+    const publicIds = selectedIdArray
+      .map((id) => assessments.find((a) => a.id === id)?.public_id)
+      .filter(Boolean);
+
+    if (publicIds.length !== 2) {
+      toast.danger('Could not find selected assessments', { timeout: 3000 });
+      return;
+    }
+
+    navigate(`/assessments/compare/${publicIds[0]}/${publicIds[1]}`);
+  }, [selectedIds, assessments, navigate]);
 
   const handleViewDetail = useCallback(
     (id) => {

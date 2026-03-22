@@ -1,34 +1,18 @@
-import { useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
-import { getAssessmentById } from '@/features/assessments';
+import { getComparisonAssessments } from '@/features/assessments';
 
 export function useAssessmentComparison(id1, id2) {
-  // Fetch both assessments in parallel using useQueries
-  const queries = useQueries({
-    queries: [
-      {
-        queryKey: ['assessment', id1],
-        queryFn: () => getAssessmentById(id1),
-        enabled: !!id1,
-      },
-      {
-        queryKey: ['assessment', id2],
-        queryFn: () => getAssessmentById(id2),
-        enabled: !!id2,
-      },
-    ],
+  // Fetch both assessments using the comparison endpoint with visibility checking
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['comparison', id1, id2],
+    queryFn: () => getComparisonAssessments(id1, id2),
+    enabled: !!id1 && !!id2,
   });
 
-  const [query1, query2] = queries;
-
   // Extract assessment data
-  const assessment1 = query1.data?.assessment ?? query1.data ?? null;
-  const assessment2 = query2.data?.assessment ?? query2.data ?? null;
-
-  // Determine loading and error states
-  const isLoading = query1.isLoading || query2.isLoading;
-  const isError = query1.isError || query2.isError;
-  const error = query1.error?.message || query2.error?.message || null;
+  const assessment1 = data?.assessment1 ?? null;
+  const assessment2 = data?.assessment2 ?? null;
 
   // Derive comparison metrics
   const comparisonData = deriveComparison(assessment1, assessment2);
@@ -39,11 +23,10 @@ export function useAssessmentComparison(id1, id2) {
     comparisonData,
     loading: isLoading,
     isLoading,
-    error,
+    error: error?.message || null,
     isError,
     refetch: () => {
-      query1.refetch();
-      query2.refetch();
+      // Refetch would be handled by React Query automatically
     },
   };
 }

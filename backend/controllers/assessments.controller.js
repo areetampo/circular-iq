@@ -440,20 +440,21 @@ export async function getMarketAnalysis(supabase) {
 }
 
 /**
- * Fetch a single assessment by ID (user-specific)
+ * Fetch a single assessment by publicId (user-specific)
+ * Uses public_id for routing, but still requires user authentication
  * @param {Object} supabase - Supabase client
  * @param {Object} user - Authenticated user object
  * @param {string} token - Authorization token
- * @param {string} id - Assessment ID
+ * @param {string} publicId - Assessment public ID
  * @returns {Promise<Object>} Assessment data
  */
-export async function getAssessmentById(supabase, user, token, id) {
+export async function getAssessmentById(supabase, user, token, publicId) {
   const startTime = Date.now();
 
   try {
     const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
 
-    let queryBuilder = userClient.from('user_assessments').select('*').eq('id', id);
+    let queryBuilder = userClient.from('user_assessments').select('*').eq('public_id', publicId);
 
     if (user && user.id) {
       queryBuilder = queryBuilder.eq('user_id', user.id);
@@ -599,7 +600,7 @@ export async function deleteAssessment(supabase, user, token, id) {
  * @param {string} id - Assessment ID
  * @returns {Promise<Object>} Market analysis data including benchmarks
  */
-export async function getPerAssessmentMarketAnalysis(supabase, user, id) {
+export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
   const startTime = Date.now();
 
   try {
@@ -614,11 +615,11 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, id) {
       console.warn('Assessment statistics query warning:', statsError.message);
     }
 
-    // Fetch the assessment to obtain user score and metadata (ownership enforced)
+    // Fetch the assessment using publicId and ownership check (ownership enforced)
     const { data: assessmentRow, error: assessmentError } = await supabase
       .from('user_assessments')
       .select('overall_score, result_json, industry')
-      .eq('id', id)
+      .eq('public_id', publicId)
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -809,6 +810,184 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
     };
   } catch (error) {
     logOperation('getPublicPerAssessmentMarketAnalysis', 'error', Date.now() - startTime);
+    throw error;
+  }
+}
+
+/**
+ * Compare two assessments with visibility rules
+ * Handles cross-user comparisons with proper privacy enforcement
+ * @param {Object} supabase - Supabase client
+ * @param {Object} user - Authenticated user object
+ * @param {string} token - Authorization token
+ * @param {string} publicId1 - First assessment public ID
+ * @param {string} publicId2 - Second assessment public ID
+ * @returns {Promise<Object>} Both assessments with visibility checking
+ */
+export async function compareAssessments(supabase, user, token, publicId1, publicId2) {
+  const startTime = Date.now();
+
+  try {
+    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+    const userId = user?.id;
+
+    // Fetch both assessments with public_id
+    const [res1, res2] = await Promise.all([
+      userClient.from('user_assessments').select('*').eq('public_id', publicId1).maybeSingle(),
+      userClient.from('user_assessments').select('*').eq('public_id', publicId2).maybeSingle(),
+    ]);
+
+    if (res1.error || res2.error) {
+      throw res1.error || res2.error;
+    }
+
+    // Get basic info (just user_id and is_public) without RLS filtering to check access
+    const [basicRes1, basicRes2] = await Promise.all([
+      supabase
+        .from('user_assessments')
+        .select('id,user_id,is_public,public_id')
+        .eq('public_id', publicId1)
+        .maybeSingle(),
+      supabase
+        .from('user_assessments')
+        .select('id,user_id,is_public,public_id')
+        .eq('public_id', publicId2)
+        .maybeSingle(),
+    ]);
+
+    if (basicRes1.error || basicRes2.error) {
+      throw basicRes1.error || basicRes2.error;
+    }
+
+    const basic1 = basicRes1.data;
+    const basic2 = basicRes2.data;
+
+    // Check if IDs are invalid
+    if (!basic1 || !basic2) {
+      const error = new Error('one or more ids incorrect');
+      error.code = 'INVALID_IDS';
+      throw error;
+    }
+
+    // Check visibility rules
+    const isOwnAssessment1 = basic1.user_id === userId;
+    const isOwnAssessment2 = basic2.user_id === userId;
+
+    // If both belong to user, allow access
+    if (isOwnAssessment1 && isOwnAssessment2) {
+      // Return full data for user's own assessments
+      const data1 = res1.data;
+      const data2 = res2.data;
+
+      if (!data1 || !data2) {
+        const error = new Error('Assessment not found');
+        error.code = 'NOT_FOUND';
+        throw error;
+      }
+
+      logOperation('compareAssessments', 'success', Date.now() - startTime);
+      return {
+        assessment1: data1,
+        assessment2: data2,
+      };
+    }
+
+    // If one is user's and one is from another user
+    if (isOwnAssessment1 && !isOwnAssessment2) {
+      // Check if the other user's assessment is public
+      if (!basic2.is_public) {
+        const error = new Error('one or more assessments isnt public');
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+      // Fetch the public assessment
+      const pubRes2 = await supabase
+        .from('user_assessments')
+        .select('*')
+        .eq('public_id', publicId2)
+        .eq('is_public', true)
+        .maybeSingle();
+
+      if (pubRes2.error || !pubRes2.data) {
+        const error = new Error('one or more assessments isnt public');
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+
+      logOperation('compareAssessments', 'success', Date.now() - startTime);
+      return {
+        assessment1: res1.data,
+        assessment2: pubRes2.data,
+      };
+    }
+
+    if (!isOwnAssessment1 && isOwnAssessment2) {
+      // Check if the other user's assessment is public
+      if (!basic1.is_public) {
+        const error = new Error('one or more assessments isnt public');
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+      // Fetch the public assessment
+      const pubRes1 = await supabase
+        .from('user_assessments')
+        .select('*')
+        .eq('public_id', publicId1)
+        .eq('is_public', true)
+        .maybeSingle();
+
+      if (pubRes1.error || !pubRes1.data) {
+        const error = new Error('one or more assessments isnt public');
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+
+      logOperation('compareAssessments', 'success', Date.now() - startTime);
+      return {
+        assessment1: pubRes1.data,
+        assessment2: res2.data,
+      };
+    }
+
+    // Both belong to different users
+    if (!isOwnAssessment1 && !isOwnAssessment2) {
+      // Both must be public
+      if (!basic1.is_public || !basic2.is_public) {
+        const error = new Error('one or more assessments isnt public');
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+
+      // Fetch both public assessments
+      const [pubRes1, pubRes2] = await Promise.all([
+        supabase
+          .from('user_assessments')
+          .select('*')
+          .eq('public_id', publicId1)
+          .eq('is_public', true)
+          .maybeSingle(),
+        supabase
+          .from('user_assessments')
+          .select('*')
+          .eq('public_id', publicId2)
+          .eq('is_public', true)
+          .maybeSingle(),
+      ]);
+
+      if (pubRes1.error || pubRes2.error || !pubRes1.data || !pubRes2.data) {
+        const error = new Error('one or more assessments isnt public');
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+
+      logOperation('compareAssessments', 'success', Date.now() - startTime);
+      return {
+        assessment1: pubRes1.data,
+        assessment2: pubRes2.data,
+      };
+    }
+  } catch (error) {
+    logOperation('compareAssessments', 'error', Date.now() - startTime);
     throw error;
   }
 }

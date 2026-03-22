@@ -1,46 +1,38 @@
-// Local implementation of the CopyButton component.
-// We originally attempted to pull this from a fictional `@modern-core/ui`
-// package via the CLI command in the design doc, but the package isn't
-// published/available.  Instead we provide our own lightweight version
-// here under `modern-ui` so imports continue to look like:
-//
-//   import { CopyButton } from '@/components/modern-ui/copy-button';
-//
-// This keeps the API stable while avoiding external dependencies.
-
 import { Check, Copy } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import React, { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export default function CopyButton({ value, disabled = false, className = '', ...props }) {
   const [hasCopied, setHasCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     if (disabled) return;
     try {
       await navigator.clipboard.writeText(value);
+      setHasCopied(true);
+      // Reset after 2 seconds
+      const timeout = setTimeout(() => setHasCopied(false), 2000);
+      return () => clearTimeout(timeout);
     } catch {
       // ignore
     }
-    setHasCopied(true);
-    setTimeout(() => setHasCopied(false), 2000);
-  };
+  }, [disabled, value]);
+
+  const handleClick = useCallback(
+    (e) => {
+      e.stopPropagation();
+      handleCopy();
+    },
+    [handleCopy],
+  );
 
   return (
     <motion.button
-      onClick={(e) => {
-        e.stopPropagation();
-        handleCopy();
-      }}
-      className={`group relative rounded-md p-1.5 text-zinc-400 ${className}`}
+      onClick={handleClick}
+      className={`group relative rounded-md p-1.5 text-zinc-400 transition-all duration-150 ease-out will-change-colors ${className}`}
       aria-label="Copy command"
-      whileHover={
-        {
-          // backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          // color: '#ffffff',
-        }
-      }
-      whileTap={{ scale: 0.9 }}
+      whileHover={!disabled ? { backgroundColor: 'rgba(255, 255, 255, 0.05)' } : {}}
+      whileTap={!disabled ? { scale: 0.92 } : {}}
       disabled={disabled}
       {...props}
     >
@@ -48,23 +40,23 @@ export default function CopyButton({ value, disabled = false, className = '', ..
         {hasCopied ? (
           <motion.div
             key="check"
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ duration: 0.12, ease: 'easeOut' }}
           >
-            <Check className="h-4 w-4" color="#006045" />
+            <Check className="h-4 w-4 transition-colors duration-150" color="#006045" />
           </motion.div>
         ) : (
           <motion.div
             key="copy"
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            transition={{ duration: 0.12, ease: 'easeOut' }}
             className="cursor-pointer"
           >
-            <Copy className="h-4 w-4" color="#006045" />
+            <Copy className="h-4 w-4 transition-colors duration-150" color="#006045" />
           </motion.div>
         )}
       </AnimatePresence>

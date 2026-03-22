@@ -32,7 +32,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import BarChart from '@/components/charts/BarChart';
 import RadarChart from '@/components/charts/RadarChart';
@@ -88,13 +88,18 @@ function ComparisonSkeleton() {
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
+  const params = useParams();
   const [selectedTab, setSelectedTab] = useState('overview');
-  const id1 = searchParams.get('id1');
-  const id2 = searchParams.get('id2');
+
+  // Support both URL params (/assessments/compare/:publicId1/:publicId2) and query params (?publicId1=...&publicId2=...)
+  const publicId1 =
+    params.publicId1 || searchParams.get('publicId1') || params.id1 || searchParams.get('id1');
+  const publicId2 =
+    params.publicId2 || searchParams.get('publicId2') || params.id2 || searchParams.get('id2');
   const navigate = useNavigate();
 
   const { assessment1, assessment2, comparisonData, isLoading, isError, error } =
-    useAssessmentComparison(id1, id2);
+    useAssessmentComparison(publicId1, publicId2);
 
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
@@ -102,7 +107,7 @@ export default function AssessmentComparisonPage() {
     navigate('/assessments');
   };
 
-  if (!id1 || !id2) {
+  if (!publicId1 || !publicId2) {
     return (
       <ErrorDisplay
         variant="warning"
@@ -128,8 +133,8 @@ export default function AssessmentComparisonPage() {
     return (
       <ErrorDisplay
         variant="error"
-        title="Error Loading Assessments"
-        message={error || 'Failed to load assessment data. Please try again.'}
+        title="Cannot Compare Assessments"
+        message={error || 'One or more ids incorrect'}
         actions={[
           {
             label: 'Back to Assessments',
@@ -137,7 +142,14 @@ export default function AssessmentComparisonPage() {
             onClick: () => navigate('/assessments'),
             variant: 'tertiary',
           },
+          {
+            label: 'Try Different IDs',
+            icon: ArrowLeft,
+            onClick: () => navigate('/assessments/compare'),
+            variant: 'tertiary',
+          },
         ]}
+        showDefaultActions={false}
       />
     );
 

@@ -24,6 +24,7 @@ const AssessmentViewPage = lazy(() => import('@/pages/AssessmentViewPage/Assessm
 const AssessmentComparisonPage = lazy(
   () => import('@/pages/AssessmentComparisonPage/AssessmentComparisonPage'),
 );
+const ComparePage = lazy(() => import('@/pages/ComparePage/ComparePage'));
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
@@ -169,17 +170,17 @@ export default function AppRoutes() {
               }
             />
             <Route
-              path="/assessments/:id"
+              path="/assessments/compare"
               element={
                 <ProtectedRoute>
-                  <PageErrorBoundary pageName="Assessment Results">
-                    <ResultsPage isViewFromMyAssessments={true} />
+                  <PageErrorBoundary pageName="Compare Assessments">
+                    <ComparePage />
                   </PageErrorBoundary>
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/assessments/compare"
+              path="/assessments/compare/:publicId1/:publicId2"
               element={
                 <ProtectedRoute>
                   <PageErrorBoundary pageName="Assessment Comparison">
@@ -189,7 +190,17 @@ export default function AppRoutes() {
               }
             />
             <Route
-              path="/assessments/:id/market-analysis"
+              path="/assessments/:publicId"
+              element={
+                <ProtectedRoute>
+                  <PageErrorBoundary pageName="Assessment Results">
+                    <ResultsPage isViewFromMyAssessments={true} />
+                  </PageErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/:publicId/market-analysis"
               element={
                 <ProtectedRoute>
                   <PageErrorBoundary pageName="Market Analysis">

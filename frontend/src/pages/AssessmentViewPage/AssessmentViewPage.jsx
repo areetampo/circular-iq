@@ -2,41 +2,33 @@ import { Card, Chip, toast } from '@heroui/react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import LoaderComponent from '@/components/common/LoaderComponent';
 import { DIALOGS } from '@/components/dialogs/dialogTypes';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { deleteAssessment, useAssessment, usePublicAssessment } from '@/features/assessments';
+import { deleteAssessment, usePublicAssessment } from '@/features/assessments';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportAssessmentPDF } from '@/features/export';
 import { formatTimestamp } from '@/lib/formatting';
 import { formatFactorName, getRiskBadgeColor, getScoreClass } from '@/lib/scoring';
 
 export default function AssessmentViewPage() {
-  const { id, publicId } = useParams();
-  const isPublicShare = Boolean(publicId);
-
-  const {
-    assessment: privateAssessment,
-    isLoading: privateLoading,
-    error: privateError,
-  } = useAssessment(id, {
-    enabled: !isPublicShare && !!id,
-    placeholderData: (previousData) => previousData,
-  });
+  const { publicId } = useParams();
+  const isPublicShare = !!publicId;
 
   const {
     assessment: publicAssessment,
     isLoading: publicLoading,
     error: publicError,
   } = usePublicAssessment(publicId, {
-    enabled: isPublicShare && !!publicId,
+    enabled: !!publicId,
   });
 
-  const assessment = isPublicShare ? publicAssessment : privateAssessment;
-  const loading = isPublicShare ? publicLoading : privateLoading;
-  const error = isPublicShare ? publicError : privateError;
+  const assessment = publicAssessment;
+  const loading = publicLoading;
+  const error = publicError;
 
   const scoringResult = useMemo(() => reconstructScoringResult(assessment), [assessment]);
 
@@ -93,27 +85,27 @@ export default function AssessmentViewPage() {
           <div className="flex flex-wrap gap-2 shrink-0">
             {/* Share */}
             {assessment?.public_id && (
-              <button
+              <Button
+                size="sm"
+                variant="info-soft"
                 onClick={() => {
                   const shareUrl = `${window.location.origin}/share/${assessment.public_id}`;
                   navigator.clipboard?.writeText(shareUrl).catch(() => {});
                 }}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Copy Share Link
-              </button>
+              </Button>
             )}
 
             {/* Export PDF */}
-            <button
-              onClick={() => exportAssessmentPDF(assessment)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-            >
+            <Button size="sm" variant="info-soft" onClick={() => exportAssessmentPDF(assessment)}>
               Export PDF
-            </button>
+            </Button>
 
             {/* Delete */}
-            <button
+            <Button
+              size="sm"
+              variant="neutral"
               onClick={() =>
                 openDialog(DIALOGS.DELETE_ASSESSMENT, {
                   assessmentName: assessment?.title,
@@ -121,10 +113,9 @@ export default function AssessmentViewPage() {
                   onConfirm: handleConfirmDelete,
                 })
               }
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-200 bg-white text-red-600 hover:bg-red-50 transition-colors"
             >
               Delete
-            </button>
+            </Button>
           </div>
         )}
       </div>

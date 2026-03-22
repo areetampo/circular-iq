@@ -66,7 +66,8 @@ export default function ChoiceCardSwitch({
       isDisabled={disabled}
       // size={size} //ResponsiveSizeWrapper used in components/common/Switch to auto-adjust size based on screen
       className={cn(
-        'w-full group/toggle flex items-center justify-between gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl border transition-all duration-300 cursor-pointer min-h-14 sm:min-h-16',
+        'w-full group/toggle flex items-center justify-between gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl border transition-all duration-200 ease-out cursor-pointer min-h-14 sm:min-h-16',
+        'will-change-colors will-change-shadow',
         selected ? theme.selected : theme.unselected,
         className,
       )}
@@ -78,7 +79,8 @@ export default function ChoiceCardSwitch({
             {icon && (
               <span
                 className={cn(
-                  'shrink-0 transition-transform duration-300',
+                  'shrink-0 transition-all duration-200 ease-out',
+                  'will-change-transform',
                   'group-hover/toggle:scale-[1.18] group-hover/toggle:-rotate-[8deg] group-hover/toggle:drop-shadow-md',
                   sel ? theme.iconSelected : theme.iconUnselected,
                 )}
