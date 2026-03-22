@@ -93,12 +93,23 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                                 {s.wordCount || 0} words
                               </span>
                             </div>
-                            <p className="text-sm text-slate-600 mt-2 truncate">
-                              {s.solution || s.problem}
+                            <p className="text-sm text-slate-600 mt-2 leading-relaxed line-clamp-4">
+                              {s.solution || s.problem || ''}
                             </p>
-                            <div className="mt-2 text-xs text-slate-400">
-                              Source: {s.sourceId || s.id}
-                            </div>
+                            {(s.source || s.category) && (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {s.category && (
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                    {s.category}
+                                  </span>
+                                )}
+                                {s.industry && (
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600">
+                                    {s.industry}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

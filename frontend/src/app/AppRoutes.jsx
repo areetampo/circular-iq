@@ -99,6 +99,7 @@ export default function AppRoutes() {
           <Routes>
             {/* Public Route - Authentication */}
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/" element={<LandingPage />} />
 
             {/* Public Route - Shared Assessment (DEPRECATED: redirecting to new share path) */}
             <Route
@@ -143,7 +144,6 @@ export default function AppRoutes() {
             />
 
             {/* Protected Routes - Require Authentication */}
-            <Route path="/" element={<LandingPage />} />
             <Route
               path="/dashboard"
               element={

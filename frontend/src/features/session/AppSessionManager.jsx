@@ -108,7 +108,8 @@ export function AppSessionManager() {
     openSessionRestoreDialog({
       sessionData: sessionData,
       onDismiss: () => {
-        // User dismissed - do nothing
+        // User dismissed - stay on the same page
+        navigate(location.pathname);
       },
     });
   }, []); // Empty deps = run once on mount only

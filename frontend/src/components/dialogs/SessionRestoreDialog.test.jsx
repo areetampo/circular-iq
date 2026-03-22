@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { DialogProvider } from '@/contexts/DialogContext';
@@ -56,5 +56,25 @@ describe('SessionRestoreDialog', () => {
     expect(getByText(/Your inputs are already saved locally/i)).toBeTruthy();
     expect(getByText(/Restore Results/i)).toBeTruthy();
     expect(queryByText(/Restore Inputs/i)).toBeNull();
+  });
+
+  it('does not call onDismiss when user clicks cancel', () => {
+    const sessionData = {
+      inputs: { businessProblem: 'x', businessSolution: 'y', evaluationParameters: {} },
+      results: { overall_score: 42 },
+      timestamp: new Date().toISOString(),
+    };
+    const onDismiss = vi.fn();
+
+    const { getByText } = render(
+      <MemoryRouter>
+        <DialogProvider>
+          <SessionRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={onDismiss} />
+        </DialogProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(getByText(/Cancel/i));
+    expect(onDismiss).not.toHaveBeenCalled();
   });
 });

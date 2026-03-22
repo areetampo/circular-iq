@@ -611,9 +611,7 @@ export function getFeaturedSolutions(supabase) {
           // Prefer structured/title or content fields; avoid relying on metadata for core fields
           const title =
             r.title ||
-            (r.content
-              ? String(r.content).substring(0, 100) + '...'
-              : `Solution ${solutions.length + 1}`);
+            (r.content ? String(r.content).substring(0, 120) : `Solution ${solutions.length + 1}`);
 
           solutions.push({
             id: r.id,
@@ -624,8 +622,8 @@ export function getFeaturedSolutions(supabase) {
             similarity: r.similarity || r.combined_score || 0,
             rrf_score: r.rrf_score || null,
             // keep minimal textual fields but do not depend on metadata for structured values
-            problem: r.content ? String(r.content).substring(0, 200) : '',
-            solution: r.content ? String(r.content).substring(0, 200) : '',
+            problem: r.content ? String(r.content).substring(0, 2000) : '',
+            solution: r.content ? String(r.content).substring(0, 2000) : '',
             wordCount: r.word_count ?? r.metadata?.word_count ?? 0,
           });
 
@@ -667,7 +665,7 @@ export function getFeaturedSolutions(supabase) {
         if (doc.metadata.chunk_type === 'problem_solution') {
           // Try to parse the content or extract from metadata
           const title = doc.metadata.fields?.problem
-            ? doc.metadata.fields.problem.substring(0, 100) + '...'
+            ? doc.metadata.fields.problem.substring(0, 120)
             : `Solution ${solutions.length + 1}`;
 
           solutions.push({
@@ -679,8 +677,8 @@ export function getFeaturedSolutions(supabase) {
             similarity: null,
             rrf_score: null,
             // legacy fields preserved if needed
-            problem: doc.metadata.fields?.problem || 'Problem statement available',
-            solution: doc.metadata.fields?.solution || doc.content.substring(0, 200),
+            problem: doc.metadata.fields?.problem || '',
+            solution: doc.metadata.fields?.solution || doc.content.substring(0, 2000),
             wordCount: doc.metadata.word_count || 0,
             sourceId,
           });

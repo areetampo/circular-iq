@@ -74,7 +74,8 @@ export function SessionRestoreDialog(props) {
 
   const handleCancel = () => {
     if (!usingProps) onClose();
-    navigate('/');
+    // Stay on the same page when canceling
+    navigate(location.pathname);
   };
 
   const handleRestoreResults = () => {
@@ -107,7 +108,9 @@ export function SessionRestoreDialog(props) {
       onOpenChange={(open) => {
         if (!open) {
           if (!usingProps) onClose();
-          propOnDismiss?.();
+          // Do not call propOnDismiss here to avoid parent-driven navigation,
+          // especially for Cancel close flows. Navigation is handled explicitly
+          // in Restore action only.
         }
       }}
       variant="opaque"

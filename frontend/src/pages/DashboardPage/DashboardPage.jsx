@@ -5,7 +5,6 @@ import {
   BookOpen,
   Building2,
   ChevronRight,
-  ExternalLink,
   Gauge,
   Globe,
   Layers,
@@ -32,35 +31,48 @@ import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSo
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
-// ─── Color palettes ───────────────────────────────────────────────────────────
+// ─── Colours ──────────────────────────────────────────────────────────────────
 const TIER_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 const RISK_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 const SCORE_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
-const STRATEGY_FILL = '#818cf8';
-const INDUSTRY_FILL = '#10b981';
-const MATERIAL_FILL = '#f59e0b';
-const GEO_FILL = '#06b6d4';
 const SCALE_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
-const USER_IND_FILL = '#a78bfa';
 
-// ─── ICON_CLS map ─────────────────────────────────────────────────────────────
 const ICON_CLS = {
   emerald: 'bg-emerald-50 text-emerald-600',
-  blue: 'bg-blue-50 text-blue-600',
+  blue: 'bg-blue-50   text-blue-600',
   purple: 'bg-purple-50 text-purple-600',
-  amber: 'bg-amber-50 text-amber-600',
-  rose: 'bg-rose-50 text-rose-600',
+  amber: 'bg-amber-50  text-amber-600',
+  rose: 'bg-rose-50   text-rose-600',
   indigo: 'bg-indigo-50 text-indigo-600',
-  teal: 'bg-teal-50 text-teal-600',
-  cyan: 'bg-cyan-50 text-cyan-600',
+  teal: 'bg-teal-50   text-teal-600',
+  cyan: 'bg-cyan-50   text-cyan-600',
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Only show a PieChart when we have ≥ 2 distinct values with total ≥ 2 */
+function usablePie(data) {
+  if (!data || data.length < 2) return false;
+  const total = data.reduce((s, d) => s + (d.value ?? 0), 0);
+  return total >= 2;
+}
+
+/** Only show a BarChart when we have ≥ 1 bar with count/value > 0 */
+function usableBar(data, key = 'count') {
+  return data && data.length > 0 && data.some((d) => (d[key] ?? 0) > 0);
+}
+
 // ─── StatCard ─────────────────────────────────────────────────────────────────
-function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading }) {
+function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, wide }) {
   if (loading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-2.5">
-        <Skeleton className="h-2.5 w-16 rounded-full" />
+      <div
+        className={cn(
+          'rounded-xl border border-slate-200 bg-white p-5 space-y-2.5',
+          wide && 'col-span-2 sm:col-span-1',
+        )}
+      >
+        <Skeleton className="h-2.5 w-14 rounded-full" />
         <Skeleton className="h-7 w-20 rounded" />
         {sub !== undefined && <Skeleton className="h-2.5 w-24 rounded-full" />}
       </div>
@@ -68,10 +80,15 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading })
   }
   const iconCls = ICON_CLS[color] ?? 'bg-slate-50 text-slate-600';
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 hover:border-slate-300 hover:shadow-sm transition-all duration-150">
+    <div
+      className={cn(
+        'rounded-xl border border-slate-200 bg-white p-5 hover:border-slate-300 hover:shadow-sm transition-all duration-150',
+        wide && 'col-span-2 sm:col-span-1',
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 truncate">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 leading-tight">
             {label}
           </p>
           <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">
@@ -93,19 +110,19 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading })
 
 // ─── SectionDivider ───────────────────────────────────────────────────────────
 function SectionDivider({ icon: Icon, title, subtitle, accent = 'emerald' }) {
-  const bar =
+  const barColor =
     {
-      emerald: 'bg-emerald-500',
-      blue: 'bg-blue-500',
-      indigo: 'bg-indigo-500',
-      purple: 'bg-purple-500',
-      amber: 'bg-amber-500',
-      cyan: 'bg-cyan-500',
-    }[accent] ?? 'bg-slate-400';
+      emerald: '#10b981',
+      blue: '#3b82f6',
+      indigo: '#6366f1',
+      purple: '#8b5cf6',
+      amber: '#f59e0b',
+      cyan: '#06b6d4',
+    }[accent] ?? '#94a3b8';
   const iconCls = ICON_CLS[accent] ?? 'bg-slate-100 text-slate-600';
   return (
-    <div className="flex items-center gap-4 mb-6">
-      <div className="w-1 h-10 rounded-full shrink-0" style={{ backgroundColor: bar }} />
+    <div className="flex items-center gap-4 mb-5">
+      <div className="w-1 h-10 rounded-full shrink-0" style={{ backgroundColor: barColor }} />
       <div className="flex items-center gap-3">
         {Icon && (
           <div
@@ -116,7 +133,7 @@ function SectionDivider({ icon: Icon, title, subtitle, accent = 'emerald' }) {
         )}
         <div>
           <h2 className="text-base font-bold text-slate-900 leading-tight">{title}</h2>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-slate-500 mt-0.5 leading-tight">{subtitle}</p>}
         </div>
       </div>
     </div>
@@ -129,131 +146,71 @@ function ChartPanel({
   icon: Icon,
   iconColor = 'text-slate-400',
   loading,
-  skeleton = 'h-44',
+  skeleton = 'h-48',
   children,
   className,
 }) {
   return (
     <div className={cn('rounded-xl border border-slate-200 bg-white overflow-hidden', className)}>
       {title && (
-        <div className="px-4 pt-3.5 pb-1 flex items-center gap-2 border-b border-slate-50">
+        <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-100">
           {Icon && <Icon size={13} className={iconColor} strokeWidth={2.5} />}
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide leading-none">
             {title}
           </span>
         </div>
       )}
       <div className="p-3">
-        {loading ? (
-          <div className="px-1">
-            <Skeleton className={cn('w-full rounded-lg', skeleton)} />
-          </div>
-        ) : (
-          children
-        )}
+        {loading ? <Skeleton className={cn('w-full rounded-lg', skeleton)} /> : children}
       </div>
     </div>
   );
 }
 
-// ─── EmptyState ───────────────────────────────────────────────────────────────
-function EmptyState({ message = 'No data yet', compact }) {
+// ─── SingleValueChart (fallback when pie has only 1 data point) ───────────────
+function SingleValueChart({ name, value, color = '#10b981' }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-44 gap-2">
+      <div
+        className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl text-white"
+        style={{ backgroundColor: color }}
+      >
+        {value}
+      </div>
+      <p className="text-xs font-semibold text-slate-600 text-center">{name}</p>
+      <p className="text-[10px] text-slate-400">100% of assessments</p>
+    </div>
+  );
+}
+
+// ─── EmptyChart ───────────────────────────────────────────────────────────────
+function EmptyChart({ message = 'No data yet', compact }) {
   return (
     <div
       className={cn(
-        'flex items-center justify-center text-slate-300 text-xs font-medium',
-        compact ? 'h-24' : 'h-36',
+        'flex flex-col items-center justify-center gap-2 text-slate-300',
+        compact ? 'h-24' : 'h-44',
       )}
     >
-      {message}
-    </div>
-  );
-}
-
-// ─── Solution detail modal (inline, no drawer dependency) ─────────────────────
-function SolutionModal({ solution, onClose }) {
-  if (!solution) return null;
-  const text = solution.solution || solution.problem || '';
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-      <div
-        className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl max-h-[80vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 p-5 border-b border-slate-100">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
-              {solution.title?.charAt(0)?.toUpperCase() || 'S'}
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-semibold text-slate-900 truncate">
-                {solution.title || 'Untitled'}
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">{solution.category || 'Solution'}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors shrink-0"
-          >
-            <X size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 p-5 space-y-5">
-          {solution.problem && (
-            <div>
-              <h4 className="font-medium text-slate-900 mb-2 flex items-center gap-2">
-                <Lightbulb size={14} className="text-amber-500" />
-                Problem
-              </h4>
-              <p className="text-sm text-slate-700 leading-relaxed">{solution.problem}</p>
-            </div>
-          )}
-          {solution.solution && (
-            <div>
-              <h4 className="font-medium text-slate-900 mb-2 flex items-center gap-2">
-                <Target size={14} className="text-emerald-500" />
-                Solution
-              </h4>
-              <p className="text-sm text-slate-700 leading-relaxed">{solution.solution}</p>
-            </div>
-          )}
-          {!solution.problem && !solution.solution && text && (
-            <p className="text-sm text-slate-700 leading-relaxed">{text}</p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between gap-3">
-          <span className="text-xs text-slate-400">
-            Source:{' '}
-            {solution.source || (solution.sourceId ? `#${solution.sourceId}` : 'Knowledge base')}
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-700 transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+      <BarChart3 size={24} strokeWidth={1} />
+      <span className="text-xs font-medium">{message}</span>
     </div>
   );
 }
 
 // ─── SolutionCard ────────────────────────────────────────────────────────────
 function SolutionCard({ solution, onOpen }) {
-  const preview = (solution.solution || solution.problem || '').slice(0, 100);
+  const preview = solution.solution || solution.problem || '';
   const initial = (solution.title || 'S').charAt(0).toUpperCase();
+  const bgColors = [
+    'bg-indigo-100 text-indigo-700',
+    'bg-emerald-100 text-emerald-700',
+    'bg-amber-100 text-amber-700',
+    'bg-rose-100 text-rose-700',
+    'bg-purple-100 text-purple-700',
+  ];
+  const colorIdx = initial.charCodeAt(0) % bgColors.length;
+
   return (
     <button
       type="button"
@@ -261,29 +218,42 @@ function SolutionCard({ solution, onOpen }) {
       className="w-full text-left rounded-xl border border-slate-200 bg-white p-4 hover:border-indigo-300 hover:shadow-md transition-all duration-150 group"
     >
       <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0 group-hover:bg-indigo-200 transition-colors">
+        <div
+          className={cn(
+            'w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition-opacity',
+            bgColors[colorIdx],
+          )}
+        >
           {initial}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-indigo-700 transition-colors">
+          {/* Title — full text, wraps */}
+          <p className="text-xs font-bold text-slate-900 mb-1 leading-snug group-hover:text-indigo-700 transition-colors">
             {solution.title || 'Untitled'}
           </p>
-          <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-3">
-            {preview || 'Click to view details'}
-            {preview.length === 100 && '…'}
+          {/* Preview — 4 lines */}
+          <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-4">
+            {preview || 'Click to view full details'}
           </p>
-          <div className="flex gap-1 mt-2 flex-wrap">
+          {/* Tags */}
+          <div className="flex gap-1 mt-2.5 flex-wrap">
             {solution.category && (
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-600">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
                 {solution.category}
+              </span>
+            )}
+            {solution.industry && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600">
+                {solution.industry}
               </span>
             )}
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-end gap-1 mt-2 text-slate-300 group-hover:text-indigo-400 transition-colors">
-        <span className="text-[10px] font-semibold">View details</span>
-        <ChevronRight size={10} />
+      <div className="flex items-center gap-1 mt-3 pt-2.5 border-t border-slate-100 text-slate-400 group-hover:text-indigo-500 transition-colors">
+        <Lightbulb size={11} strokeWidth={2} />
+        <span className="text-[10px] font-semibold">View full details in drawer</span>
+        <ChevronRight size={10} className="ml-auto" />
       </div>
     </button>
   );
@@ -293,11 +263,14 @@ function SolutionCard({ solution, onOpen }) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { openDashboardFeaturedSolutionsDrawer } = useGlobalDrawer();
+  const { openDashboardFeaturedSolutionsDrawer, openResultsDatabaseEvidenceDetailsDrawer } =
+    useGlobalDrawer();
 
+  // Search & filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState(undefined);
-  const [selectedSolution, setSelectedSolution] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState(undefined);
+  const [industryFilter, setIndustryFilter] = useState(undefined);
 
   const handleSearchSubmit = useCallback(() => {
     setActiveSearch(searchQuery.trim() || undefined);
@@ -308,7 +281,20 @@ export default function DashboardPage() {
     setActiveSearch(undefined);
   }, []);
 
-  // ── Data hooks ──────────────────────────────────────────────────────────────
+  // Open a single solution in the evidence drawer with full content
+  const handleOpenSolution = useCallback(
+    (solution) => {
+      openResultsDatabaseEvidenceDetailsDrawer({
+        title: solution.title || 'Solution Details',
+        content: solution.problem || solution.solution || '',
+        caseItem: solution, // drawer reads .problem and .solution directly
+        matchPercentage: null, // no similarity context here
+      });
+    },
+    [openResultsDatabaseEvidenceDetailsDrawer],
+  );
+
+  // ── Global data ─────────────────────────────────────────────────────────────
   const {
     totalScoringCalls,
     avgScore,
@@ -334,6 +320,7 @@ export default function DashboardPage() {
     refetch: refetchGlobal,
   } = useGlobalStats();
 
+  // ── User data ────────────────────────────────────────────────────────────────
   const {
     totalAssessments: userTotal,
     averageScore: userAvg,
@@ -349,19 +336,23 @@ export default function DashboardPage() {
     isLoading: userStatsLoading,
   } = useAssessmentStats({ enabled: !!user });
 
+  // ── Doc stats ─────────────────────────────────────────────────────────────────
   const { stats: docStats, loading: docLoading } = useDocumentStats();
 
+  // ── Featured solutions — filtered by category/industry + search ──────────────
   const { solutions: featuredSolutions, isLoading: featuredLoading } = useFeaturedSolutions({
-    limit: 4,
-    q: activeSearch,
+    limit: 8,
+    q: activeSearch || undefined,
+    industry: industryFilter || undefined,
     enabled: true,
   });
 
-  // ── Chart data ──────────────────────────────────────────────────────────────
+  // ── Chart data (all memoised) ─────────────────────────────────────────────────
+
   const scoreDistData = useMemo(
     () =>
       Object.entries(scoreDistribution)
-        .map(([range, count]) => ({ name: range, value: Number(count) }))
+        .map(([name, count]) => ({ name, value: Number(count) }))
         .filter((d) => d.value > 0),
     [scoreDistribution],
   );
@@ -395,8 +386,6 @@ export default function DashboardPage() {
     [strategyDistribution],
   );
 
-  // Industry: filter out 'general' and 'other' — they're catch-all categories
-  // that swamp the chart and carry no actionable information
   const industryBarData = useMemo(
     () =>
       industryDistribution
@@ -476,582 +465,586 @@ export default function DashboardPage() {
 
   const qualityRate = junkRate != null ? (100 - junkRate).toFixed(1) : null;
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // Category chips for filtering (derived from current solutions list)
+  const availableCategories = useMemo(() => {
+    const cats = new Set((featuredSolutions || []).map((s) => s.category).filter(Boolean));
+    return Array.from(cats);
+  }, [featuredSolutions]);
+
+  const filteredSolutions = useMemo(() => {
+    if (!categoryFilter) return featuredSolutions || [];
+    return (featuredSolutions || []).filter((s) => s.category === categoryFilter);
+  }, [featuredSolutions, categoryFilter]);
+
+  // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────
+  const renderPieOrSingle = (data, colors, emptyMsg) => {
+    if (!data || data.length === 0) return <EmptyChart message={emptyMsg} />;
+    if (!usablePie(data)) {
+      return (
+        <SingleValueChart
+          name={data[0]?.name}
+          value={data[0]?.value}
+          color={colors?.[0] ?? '#10b981'}
+        />
+      );
+    }
+    return (
+      <PieChart
+        data={data}
+        dataKey="value"
+        nameKey="name"
+        height={200}
+        showLegend
+        innerRadius={40}
+        colors={colors}
+      />
+    );
+  };
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <>
-      {/* Solution detail modal */}
-      {selectedSolution && (
-        <SolutionModal solution={selectedSolution} onClose={() => setSelectedSolution(null)} />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10 pb-16">
+      {/* Header */}
+      <div className="pt-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Globe size={20} className="text-emerald-500" strokeWidth={2.5} />
+            Global Intelligence Dashboard
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Live insights from all circular economy assessments worldwide
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={refetchGlobal}
+          disabled={globalLoading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all disabled:opacity-40"
+        >
+          <RefreshCw size={12} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
+          Refresh
+        </button>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 1 — GLOBAL ACTIVITY
+          ════════════════════════════════════════════════════════════════════ */}
+      <section>
+        <SectionDivider
+          icon={Globe}
+          title="Global Activity"
+          subtitle={`${totalScoringCalls.toLocaleString()} assessments scored — authenticated and anonymous`}
+          accent="emerald"
+        />
+
+        {/* Headline 3 */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <StatCard
+            label="Total Scored"
+            value={totalScoringCalls?.toLocaleString()}
+            sub="All-time scoring calls"
+            icon={Activity}
+            color="emerald"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Avg Score"
+            value={avgScore ? `${avgScore}%` : null}
+            sub="Across all assessments"
+            icon={Gauge}
+            color="blue"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Input Quality"
+            value={qualityRate ? `${qualityRate}%` : null}
+            sub="non-junk inputs"
+            icon={Shield}
+            color="purple"
+            loading={globalLoading}
+          />
+        </div>
+
+        {/* Derived metrics 6-grid — SHORT labels to avoid truncation */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <StatCard
+            label="Confidence"
+            value={avgConfidence ? `${avgConfidence}%` : null}
+            icon={Target}
+            color="indigo"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Tech Feas."
+            value={avgTechFeas ? `${avgTechFeas}%` : null}
+            icon={Zap}
+            color="amber"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Econ Viab."
+            value={avgEconViab ? `${avgEconViab}%` : null}
+            icon={TrendingUp}
+            color="emerald"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Circularity"
+            value={avgCircPot ? `${avgCircPot}%` : null}
+            icon={RefreshCw}
+            color="cyan"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="Consistency"
+            value={avgParamConsistency ? `${avgParamConsistency}%` : null}
+            icon={Layers}
+            color="purple"
+            loading={globalLoading}
+          />
+          <StatCard
+            label="R-Alignment"
+            value={avgRAlignment ? `${avgRAlignment}%` : null}
+            icon={Sparkles}
+            color="rose"
+            loading={globalLoading}
+          />
+        </div>
+
+        {/* Row A: 3 donuts with single-value fallback */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <ChartPanel title="Score Distribution" icon={Gauge} loading={globalLoading}>
+            {renderPieOrSingle(scoreDistData, SCORE_COLORS, 'Score data unavailable')}
+          </ChartPanel>
+          <ChartPanel title="CE Tier Breakdown" icon={Layers} loading={globalLoading}>
+            {renderPieOrSingle(tierDistData, TIER_COLORS, 'Tier data unavailable')}
+          </ChartPanel>
+          <ChartPanel title="Risk Distribution" icon={Shield} loading={globalLoading}>
+            {renderPieOrSingle(riskDistData, RISK_COLORS, 'Risk data unavailable')}
+          </ChartPanel>
+        </div>
+
+        {/* Row B: Weekly trend + R-strategy bar */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <ChartPanel title="Weekly Volume — last 12 weeks" icon={TrendingUp} skeleton="h-56">
+            {weeklyData.some((d) => d.count > 0) ? (
+              <LineChart
+                data={weeklyData}
+                xAxisKey="period"
+                lines={[{ dataKey: 'count', stroke: '#3b82f6', name: 'Assessments' }]}
+                height={220}
+                showLegend={false}
+              />
+            ) : (
+              <EmptyChart compact />
+            )}
+          </ChartPanel>
+          <ChartPanel title="R-Strategy Distribution" icon={Sparkles} skeleton="h-56">
+            {usableBar(strategyData, 'value') ? (
+              <BarChart
+                data={strategyData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'value', fill: '#818cf8', name: 'Count' }]}
+                height={220}
+                showGrid
+              />
+            ) : (
+              <EmptyChart compact />
+            )}
+          </ChartPanel>
+        </div>
+
+        {/* Row C: Industry bar (full width) */}
+        {(globalLoading || industryBarData.length > 0) && (
+          <ChartPanel
+            title="Assessment Volume by Industry — top 10 (excluding uncategorized)"
+            icon={Building2}
+            className="mb-4"
+          >
+            {usableBar(industryBarData) ? (
+              <BarChart
+                data={industryBarData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'count', fill: '#10b981', name: 'Count' }]}
+                height={220}
+                showGrid
+              />
+            ) : (
+              <EmptyChart compact />
+            )}
+          </ChartPanel>
+        )}
+
+        {/* Row D: Material + Geography + Scale */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <ChartPanel title="Primary Material" icon={Package} loading={globalLoading}>
+            {renderPieOrSingle(materialData, undefined, 'No material data')}
+          </ChartPanel>
+          <ChartPanel title="Geographic Focus" icon={MapPin} loading={globalLoading}>
+            {geoData.length > 0 ? (
+              <BarChart
+                data={geoData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'value', fill: '#06b6d4', name: 'Count' }]}
+                height={200}
+                showGrid
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartPanel>
+          <ChartPanel title="Company Scale" icon={Users} loading={globalLoading}>
+            {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
+          </ChartPanel>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 2 — BENCHMARK INTELLIGENCE
+          ════════════════════════════════════════════════════════════════════ */}
+      {(globalLoading || marketTableRows.length > 0) && (
+        <section>
+          <SectionDivider
+            icon={BarChart3}
+            title="Benchmark Intelligence"
+            subtitle="Industry averages from contributed assessments"
+            accent="blue"
+          />
+
+          <ChartPanel loading={globalLoading} className="overflow-x-auto">
+            {marketTableRows.length > 0 ? (
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-2 px-3 font-semibold text-slate-600">Industry</th>
+                    <th className="text-right py-2 px-3 font-semibold text-slate-600">Count</th>
+                    <th className="text-right py-2 px-3 font-semibold text-slate-600">Avg Score</th>
+                    <th className="text-right py-2 px-3 font-semibold text-slate-600">
+                      Market Share
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {marketTableRows.map((row) => (
+                    <tr key={row.industry} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="py-2 px-3 text-slate-900 font-medium">{row.industry}</td>
+                      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
+                        {row.count?.toLocaleString() ?? 0}
+                      </td>
+                      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
+                        {row.average_score ? `${row.average_score}%` : '—'}
+                      </td>
+                      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
+                        {row.market_share ? `${row.market_share}%` : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <EmptyChart message="No benchmark data available yet" />
+            )}
+          </ChartPanel>
+        </section>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10 pb-16">
-        {/* Page header */}
-        <div className="pt-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <BarChart3 size={20} className="text-slate-600" />
-              Dashboard
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Global circular economy insights and your assessment activity
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 3 — KNOWLEDGE BASE
+          ════════════════════════════════════════════════════════════════════ */}
+      <section>
+        <SectionDivider
+          icon={BookOpen}
+          title="Knowledge Base"
+          subtitle="Featured circular economy solutions and insights"
+          accent="indigo"
+        />
+
+        {/* Doc stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <StatCard
+            label="Total Documents"
+            value={totalDocs?.toLocaleString()}
+            icon={BookOpen}
+            color="indigo"
+            loading={docLoading}
+          />
+          <StatCard
+            label="Industries"
+            value={docStats?.byIndustry?.length}
+            icon={Building2}
+            color="purple"
+            loading={docLoading}
+          />
+          <StatCard
+            label="Sources"
+            value={docStats?.bySources?.length}
+            icon={Package}
+            color="amber"
+            loading={docLoading}
+          />
+          <StatCard
+            label="Categories"
+            value={availableCategories?.length}
+            icon={Layers}
+            color="cyan"
+            loading={docLoading}
+          />
+        </div>
+
+        {/* Doc distribution charts */}
+        {!docLoading && docStats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <ChartPanel title="Documents by Industry" icon={Building2}>
+              {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
+                <BarChart
+                  data={docStats.byIndustry
+                    .filter((d) => d.industry && d.industry !== 'unknown')
+                    .slice(0, 8)
+                    .map((d) => ({ name: d.industry, count: d.count }))}
+                  xAxisKey="name"
+                  barConfigs={[{ dataKey: 'count', fill: '#6366f1', name: 'Count' }]}
+                  height={180}
+                  showGrid
+                />
+              ) : (
+                <EmptyChart compact />
+              )}
+            </ChartPanel>
+            <ChartPanel title="Documents by Source" icon={Package}>
+              {docStats.bySources && docStats.bySources.length > 0 ? (
+                <BarChart
+                  data={docStats.bySources
+                    .slice(0, 8)
+                    .map((d) => ({ name: d.source, count: d.count }))}
+                  xAxisKey="name"
+                  barConfigs={[{ dataKey: 'count', fill: '#8b5cf6', name: 'Count' }]}
+                  height={180}
+                  showGrid
+                />
+              ) : (
+                <EmptyChart compact />
+              )}
+            </ChartPanel>
+          </div>
+        )}
+
+        {/* ── Featured Solutions ───────────────────────────────────────────── */}
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          {/* Header + search */}
+          <div className="px-4 py-3 border-b border-slate-100">
+            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Lightbulb size={14} className="text-amber-500" />
+              Featured Solutions
+            </h3>
+            <div className="space-y-3">
+              {/* Search bar */}
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
+                    placeholder="Search solutions..."
+                    className="w-full pl-9 pr-9 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={handleSearchClear}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
+                >
+                  Search
+                </button>
+              </div>
+
+              {/* Category filters */}
+              {availableCategories.length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilter(undefined)}
+                    className={cn(
+                      'px-2.5 py-1 rounded-full text-[10px] font-medium transition-all',
+                      !categoryFilter
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                    )}
+                  >
+                    All
+                  </button>
+                  {availableCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCategoryFilter(cat)}
+                      className={cn(
+                        'px-2.5 py-1 rounded-full text-[10px] font-medium transition-all',
+                        categoryFilter === cat
+                          ? 'bg-indigo-100 text-indigo-700'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Solutions grid */}
+          <div className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-56">
+              {featuredLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
+                  >
+                    <Skeleton className="h-4 w-3/4 rounded" />
+                    <Skeleton className="h-3 w-full rounded" />
+                    <Skeleton className="h-3 w-2/3 rounded" />
+                  </div>
+                ))
+              ) : filteredSolutions?.length > 0 ? (
+                filteredSolutions.map((solution) => (
+                  <SolutionCard
+                    key={solution.id || solution.title}
+                    solution={solution}
+                    onOpen={handleOpenSolution}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full flex flex-col items-center justify-center h-40 text-slate-400">
+                  <BarChart3 size={32} strokeWidth={1} />
+                  <p className="text-sm font-medium mt-2">No solutions found</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Showing {filteredSolutions?.length ?? 0} solutions</span>
+              {filteredSolutions?.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openDashboardFeaturedSolutionsDrawer({
+                      q: activeSearch,
+                      industry: industryFilter,
+                    })
+                  }
+                  className="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+                >
+                  Explore all
+                  <ChevronRight size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 4 — YOUR ASSESSMENTS
+          ════════════════════════════════════════════════════════════════════ */}
+      {user ? (
+        <section>
+          <SectionDivider
+            icon={Users}
+            title="Your Assessments"
+            subtitle="Your personal circular economy evaluation history"
+            accent="indigo"
+          />
+
+          {/* Your stats row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <StatCard
+              label="Total Assessments"
+              value={userTotal?.toLocaleString()}
+              icon={Activity}
+              color="indigo"
+              loading={userStatsLoading}
+            />
+            <StatCard
+              label="Average Score"
+              value={userAvg ? `${userAvg}%` : null}
+              icon={Gauge}
+              color="blue"
+              loading={userStatsLoading}
+            />
+            <StatCard
+              label="Median Score"
+              value={userMedian ? `${userMedian}%` : null}
+              icon={Target}
+              color="purple"
+              loading={userStatsLoading}
+            />
+            <StatCard
+              label="Score Range"
+              value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
+              icon={TrendingUp}
+              color="emerald"
+              loading={userStatsLoading}
+            />
+          </div>
+
+          {/* Your charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ChartPanel title="Your Assessments by Industry" icon={Building2} skeleton="h-56">
+              {userIndustryData.length > 0 ? (
+                <BarChart
+                  data={userIndustryData}
+                  xAxisKey="name"
+                  barConfigs={[{ dataKey: 'count', fill: '#a78bfa', name: 'Count' }]}
+                  height={220}
+                  showGrid
+                />
+              ) : (
+                <EmptyChart compact />
+              )}
+            </ChartPanel>
+
+            <ChartPanel title="Your Assessments by Risk" icon={Shield} skeleton="h-56">
+              {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
+            </ChartPanel>
+          </div>
+        </section>
+      ) : (
+        <div className="rounded-xl border border-slate-200 p-6 flex flex-col sm:flex-row items-center gap-4 bg-linear-to-r from-purple-50 via-white to-white">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+            <Users size={18} strokeWidth={2} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-slate-900 mb-0.5">Track Your Progress</h3>
+            <p className="text-xs text-slate-600">
+              Sign in to save assessments, track your evaluation history, and compare with global
+              benchmarks.
             </p>
           </div>
           <button
             type="button"
-            onClick={refetchGlobal}
-            disabled={globalLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all disabled:opacity-40"
+            onClick={() => navigate('/auth')}
+            className="px-4 py-2 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors shrink-0"
           >
-            <RefreshCw
-              size={12}
-              className={cn('transition-transform', globalLoading && 'animate-spin')}
-            />
-            Refresh
+            Sign In
           </button>
         </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 1 — GLOBAL ACTIVITY
-            ══════════════════════════════════════════════════════════════════ */}
-        <section>
-          <SectionDivider
-            icon={Globe}
-            title="Global Activity"
-            subtitle="Aggregate insights from all circular economy assessments"
-            accent="emerald"
-          />
-
-          {/* Row 1: headline trio */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-            <StatCard
-              label="Total Assessments"
-              value={totalScoringCalls?.toLocaleString()}
-              sub="All-time scoring calls"
-              icon={Activity}
-              color="emerald"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="Average Score"
-              value={avgScore ? `${avgScore}%` : null}
-              sub="Across all assessments"
-              icon={Gauge}
-              color="blue"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="Input Quality"
-              value={qualityRate ? `${qualityRate}%` : null}
-              sub="Valid assessments"
-              icon={Shield}
-              color="purple"
-              loading={globalLoading}
-            />
-          </div>
-
-          {/* Row 2: 6 derived metric averages */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-            <StatCard
-              label="Confidence"
-              value={avgConfidence ? `${avgConfidence}%` : null}
-              icon={Target}
-              color="indigo"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="Technical Feasibility"
-              value={avgTechFeas ? `${avgTechFeas}%` : null}
-              icon={Zap}
-              color="amber"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="Economic Viability"
-              value={avgEconViab ? `${avgEconViab}%` : null}
-              icon={TrendingUp}
-              color="emerald"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="Circularity Potential"
-              value={avgCircPot ? `${avgCircPot}%` : null}
-              icon={RefreshCw}
-              color="cyan"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="Parameter Consistency"
-              value={avgParamConsistency ? `${avgParamConsistency}%` : null}
-              icon={Layers}
-              color="purple"
-              loading={globalLoading}
-            />
-            <StatCard
-              label="R-Strategy Alignment"
-              value={avgRAlignment ? `${avgRAlignment}%` : null}
-              icon={Sparkles}
-              color="rose"
-              loading={globalLoading}
-            />
-          </div>
-
-          {/* Row 3: 3 distribution donuts */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-            <ChartPanel
-              title="Score Distribution"
-              icon={Gauge}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {scoreDistData.length > 0 ? (
-                <PieChart
-                  data={scoreDistData}
-                  colors={SCORE_COLORS}
-                  innerRadius={40}
-                  outerRadius={80}
-                  showLabels={false}
-                  showLegend
-                  legendPosition="bottom"
-                  height={200}
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-
-            <ChartPanel
-              title="Circular Economy Tiers"
-              icon={Layers}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {tierDistData.length > 0 ? (
-                <PieChart
-                  data={tierDistData}
-                  colors={TIER_COLORS}
-                  innerRadius={40}
-                  outerRadius={80}
-                  showLabels={false}
-                  showLegend
-                  legendPosition="bottom"
-                  height={200}
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-
-            <ChartPanel
-              title="Risk Levels"
-              icon={Shield}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {riskDistData.length > 0 ? (
-                <PieChart
-                  data={riskDistData}
-                  colors={RISK_COLORS}
-                  innerRadius={40}
-                  outerRadius={80}
-                  showLabels={false}
-                  showLegend
-                  legendPosition="bottom"
-                  height={200}
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-          </div>
-
-          {/* Row 4: Weekly trend + R-strategy */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <ChartPanel
-              title="Assessment Activity (12 weeks)"
-              icon={TrendingUp}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {weeklyData.length > 0 ? (
-                <LineChart
-                  data={weeklyData}
-                  xKey="period"
-                  yKeys={['count']}
-                  colors={['#3b82f6']}
-                  height={200}
-                  showGrid
-                  showDots
-                  yAxisLabel="Assessments"
-                  xAxisLabel="Week"
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-
-            <ChartPanel
-              title="R-Strategy Distribution"
-              icon={Sparkles}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {strategyData.length > 0 ? (
-                <BarChart
-                  data={strategyData}
-                  xKey="name"
-                  yKey="value"
-                  fill={STRATEGY_FILL}
-                  height={200}
-                  showGrid
-                  truncateLabels
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-          </div>
-
-          {/* Row 5: Industry + Material + Geo + Scale */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <ChartPanel
-              title="Industry Distribution (excluding uncategorized)"
-              icon={Building2}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {industryBarData.length > 0 ? (
-                <BarChart
-                  data={industryBarData}
-                  xKey="name"
-                  yKey="count"
-                  fill={INDUSTRY_FILL}
-                  height={200}
-                  showGrid
-                  truncateLabels
-                  horizontal
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-
-            <ChartPanel
-              title="Primary Material"
-              icon={Package}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {materialData.length > 0 ? (
-                <BarChart
-                  data={materialData}
-                  xKey="name"
-                  yKey="value"
-                  fill={MATERIAL_FILL}
-                  height={200}
-                  showGrid
-                  truncateLabels
-                  horizontal
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-
-            <ChartPanel
-              title="Geographic Focus"
-              icon={MapPin}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {geoData.length > 0 ? (
-                <BarChart
-                  data={geoData}
-                  xKey="name"
-                  yKey="value"
-                  fill={GEO_FILL}
-                  height={200}
-                  showGrid
-                  truncateLabels
-                  horizontal
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-
-            <ChartPanel
-              title="Company Scale"
-              icon={Users}
-              iconColor="text-slate-400"
-              loading={globalLoading}
-            >
-              {scaleData.length > 0 ? (
-                <PieChart
-                  data={scaleData}
-                  colors={SCALE_COLORS}
-                  innerRadius={30}
-                  outerRadius={70}
-                  showLabels={false}
-                  showLegend
-                  legendPosition="bottom"
-                  height={200}
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </ChartPanel>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 2 — BENCHMARK INTELLIGENCE
-            ══════════════════════════════════════════════════════════════════ */}
-        {(globalLoading || marketTableRows.length > 0) && (
-          <section>
-            <SectionDivider
-              icon={BarChart3}
-              title="Benchmark Intelligence"
-              subtitle="Industry averages from contributed assessments"
-              accent="blue"
-            />
-
-            <ChartPanel loading={globalLoading} className="overflow-x-auto">
-              {marketTableRows.length > 0 ? (
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-2 px-3 font-semibold text-slate-600">Industry</th>
-                      <th className="text-right py-2 px-3 font-semibold text-slate-600">Count</th>
-                      <th className="text-right py-2 px-3 font-semibold text-slate-600">
-                        Avg Score
-                      </th>
-                      <th className="text-right py-2 px-3 font-semibold text-slate-600">
-                        Market Share
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {marketTableRows.map((row) => (
-                      <tr
-                        key={row.industry}
-                        className="border-b border-slate-100 hover:bg-slate-50"
-                      >
-                        <td className="py-2 px-3 text-slate-900 font-medium">{row.industry}</td>
-                        <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
-                          {row.count?.toLocaleString() ?? 0}
-                        </td>
-                        <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
-                          {row.average_score ? `${row.average_score}%` : '—'}
-                        </td>
-                        <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
-                          {row.market_share ? `${row.market_share}%` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <EmptyState message="No benchmark data available yet" />
-              )}
-            </ChartPanel>
-          </section>
-        )}
-
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 3 — KNOWLEDGE BASE
-            ══════════════════════════════════════════════════════════════════ */}
-        <section>
-          <SectionDivider
-            icon={BookOpen}
-            title="Knowledge Base"
-            subtitle="Featured circular economy solutions and insights"
-            accent="purple"
-          />
-
-          {/* Search bar */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                placeholder="Search solutions..."
-                className="w-full pl-9 pr-9 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={handleSearchClear}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleSearchSubmit}
-              className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Search
-            </button>
-          </div>
-
-          {/* Solutions grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {featuredLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-                  <Skeleton className="h-4 w-3/4 rounded" />
-                  <Skeleton className="h-3 w-full rounded" />
-                  <Skeleton className="h-3 w-2/3 rounded" />
-                </div>
-              ))
-            ) : featuredSolutions?.length > 0 ? (
-              featuredSolutions.map((solution) => (
-                <SolutionCard
-                  key={solution.id || solution.title}
-                  solution={solution}
-                  onOpen={setSelectedSolution}
-                />
-              ))
-            ) : (
-              <div className="col-span-full">
-                <EmptyState message="No solutions found for your search" />
-              </div>
-            )}
-          </div>
-
-          {/* Explore all link */}
-          {featuredSolutions?.length > 0 && (
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => openDashboardFeaturedSolutionsDrawer({ q: activeSearch })}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
-              >
-                <ExternalLink size={14} />
-                Explore all solutions
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            SECTION 4 — YOUR ASSESSMENTS (auth only)
-            ══════════════════════════════════════════════════════════════════ */}
-        {user ? (
-          <section>
-            <SectionDivider
-              icon={Users}
-              title="Your Assessments"
-              subtitle="Your personal circular economy evaluation history"
-              accent="indigo"
-            />
-
-            {/* Your stats row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <StatCard
-                label="Total Assessments"
-                value={userTotal?.toLocaleString()}
-                icon={Activity}
-                color="indigo"
-                loading={userStatsLoading}
-              />
-              <StatCard
-                label="Average Score"
-                value={userAvg ? `${userAvg}%` : null}
-                icon={Gauge}
-                color="blue"
-                loading={userStatsLoading}
-              />
-              <StatCard
-                label="Median Score"
-                value={userMedian ? `${userMedian}%` : null}
-                icon={Target}
-                color="purple"
-                loading={userStatsLoading}
-              />
-              <StatCard
-                label="Score Range"
-                value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
-                icon={TrendingUp}
-                color="emerald"
-                loading={userStatsLoading}
-              />
-            </div>
-
-            {/* Your charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ChartPanel
-                title="Your Assessments by Industry"
-                icon={Building2}
-                iconColor="text-slate-400"
-                loading={userStatsLoading}
-              >
-                {userIndustryData.length > 0 ? (
-                  <BarChart
-                    data={userIndustryData}
-                    xKey="name"
-                    yKey="count"
-                    fill={USER_IND_FILL}
-                    height={200}
-                    showGrid
-                    truncateLabels
-                    horizontal
-                  />
-                ) : (
-                  <EmptyState compact />
-                )}
-              </ChartPanel>
-
-              <ChartPanel
-                title="Your Assessments by Risk"
-                icon={Shield}
-                iconColor="text-slate-400"
-                loading={userStatsLoading}
-              >
-                {userRiskData.length > 0 ? (
-                  <PieChart
-                    data={userRiskData}
-                    colors={RISK_COLORS}
-                    innerRadius={40}
-                    outerRadius={80}
-                    showLabels={false}
-                    showLegend
-                    legendPosition="bottom"
-                    height={200}
-                  />
-                ) : (
-                  <EmptyState compact />
-                )}
-              </ChartPanel>
-            </div>
-          </section>
-        ) : (
-          <div className="rounded-xl border border-slate-200 bg-linear-to-r from-purple-50 via-white to-white p-6 flex flex-col sm:flex-row items-center gap-4">
-            <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 mb-1">Track Your Progress</h3>
-              <p className="text-sm text-slate-600">
-                Sign in to save assessments, track your evaluation history, and compare with global
-                benchmarks.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate('/auth')}
-              className="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors shrink-0"
-            >
-              Sign In
-            </button>
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 }

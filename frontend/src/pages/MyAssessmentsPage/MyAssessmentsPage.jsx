@@ -1,8 +1,8 @@
 import {
-  Button as HeroButton,
   Card,
   Checkbox,
   Chip,
+  Button as HeroButton,
   Input,
   Label,
   ListBox,
@@ -11,9 +11,9 @@ import {
   Select,
   Separator,
   Skeleton,
+  toast,
   Tooltip,
 } from '@heroui/react';
-import { toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -712,6 +712,10 @@ export default function MyAssessmentsPage() {
           next.delete(id);
           return next;
         });
+
+        // Invalidate stats query to update the top two cards
+        queryClient.invalidateQueries({ queryKey: ['assessment-stats'] });
+
         toast.success('Assessment deleted successfully', { timeout: 3000 });
 
         return result;
@@ -722,7 +726,7 @@ export default function MyAssessmentsPage() {
         throw err;
       }
     },
-    [removeAssessmentAsync],
+    [removeAssessmentAsync, queryClient],
   );
 
   const handleConfirmRename = useCallback(
