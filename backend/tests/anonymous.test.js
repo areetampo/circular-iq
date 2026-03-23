@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { enforceAnonymousUsage } from '#controllers/scoring.controller.js';
 import { MAX_FREE_TRIES } from '#utils/anonymousTracking.js';
-import logger from '#utils/logger.js';
+import { logger } from '#utils/logger.js';
 
 // The scoring controller expects `logger` to exist on the global scope.
 // Server startup sets `globalThis.logger`; unit tests run this controller directly.

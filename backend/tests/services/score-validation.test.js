@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { afterAll, before, test } from 'node:test';
+import { before, test } from 'node:test';
 
 import request from 'supertest';
 

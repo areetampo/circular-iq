@@ -9,5 +9,6 @@ backend/datasets/**/*.txt filter=lfs diff=lfs merge=lfs -text
 package-lock.json -diff
 backend/package-lock.json -diff
 frontend/package-lock.json -diff
+
 # Auto detect text files and perform LF normalization
 * text=auto

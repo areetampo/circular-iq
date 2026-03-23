@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterAll, test } from 'node:test';
+import { after, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
@@ -95,7 +95,7 @@ test('GET /api/analytics/enhanced returns volatility, confidence intervals and m
   assert.equal(Number(match.marketShare), Number(res2.body.industryMarketShare));
 });
 
-afterAll(async () => {
+after(async () => {
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
 });

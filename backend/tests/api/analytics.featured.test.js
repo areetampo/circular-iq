@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterAll, test } from 'node:test';
+import { after, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
@@ -221,7 +221,7 @@ test('GET /api/analytics/featured-solutions sanitizes array filters', async () =
   assert.equal(res.status, 200);
 });
 
-afterAll(async () => {
+after(async () => {
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
 });

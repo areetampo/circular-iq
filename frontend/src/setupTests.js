@@ -57,6 +57,14 @@ console.warn = (...args) => {
       'useAuth called outside AuthProvider — wrap with AuthProvider or mock `useAuth` in tests',
     );
   }
+  // Suppress MUI chart and HeroUI event handler warnings in tests
+  if (
+    typeof msg === 'string' &&
+    (msg.includes('React does not recognize the `') ||
+      msg.includes('Unknown event handler property'))
+  ) {
+    return; // Suppress these warnings
+  }
   return _originalConsoleWarn.apply(console, args);
 };
 
@@ -340,9 +348,15 @@ vi.mock('@heroui/react', async (importOriginal) => {
   );
 
   // Minimal AlertDialog mock for dialogs used in tests
+  // Filter out HeroUI-specific props that shouldn't be rendered to DOM
+  const filterHeroUIProps = (props) => {
+    const { isOpen, onOpenChange, isDismissable, isKeyboardDismissDisabled, ...rest } = props;
+    return rest;
+  };
   const AlertDialog = {};
   AlertDialog.displayName = 'AlertDialog';
-  AlertDialog.Backdrop = ({ children, ...props }) => React.createElement('div', props, children);
+  AlertDialog.Backdrop = ({ children, ...props }) =>
+    React.createElement('div', filterHeroUIProps(props), children);
   AlertDialog.Backdrop.displayName = 'AlertDialog.Backdrop';
   AlertDialog.Container = ({ children }) => React.createElement('div', null, children);
   AlertDialog.Container.displayName = 'AlertDialog.Container';
@@ -361,7 +375,8 @@ vi.mock('@heroui/react', async (importOriginal) => {
   AlertDialog.Body.displayName = 'AlertDialog.Body';
   AlertDialog.Footer = ({ children }) => React.createElement('div', null, children);
   AlertDialog.Footer.displayName = 'AlertDialog.Footer';
-  AlertDialog.Icon = ({ children, ...props }) => React.createElement('div', props, children);
+  AlertDialog.Icon = ({ children, ...props }) =>
+    React.createElement('div', filterHeroUIProps(props), children);
   AlertDialog.Icon.displayName = 'AlertDialog.Icon';
 
   // Simple Form wrapper used by Login/Signup components

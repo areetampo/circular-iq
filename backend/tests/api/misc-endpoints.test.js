@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterAll, before, test } from 'node:test';
+import { after, before, test } from 'node:test';
 
 import request from 'supertest';
 
@@ -17,7 +17,7 @@ before(async () => {
   app = mod.default || mod.app || mod;
 });
 
-afterAll(async () => {
+after(async () => {
   // Close any open server instances created by supertest
   if (server) {
     await new Promise((resolve) => server.close(resolve));

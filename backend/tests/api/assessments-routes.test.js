@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { afterAll, before, test } from 'node:test';
+import { after, before, test } from 'node:test';
 
 import request from 'supertest';
 
@@ -15,7 +15,7 @@ before(async () => {
   app = mod.default || mod.app || mod;
 });
 
-afterAll(async () => {
+after(async () => {
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
 });

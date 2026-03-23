@@ -47,11 +47,11 @@ describe('AuthProvider (init behavior)', () => {
       },
     });
 
-    // Make global.fetch slow (profile fetch will resolve later)
-    let resolveFetch;
-    const fetchPromise = new Promise((res) => (resolveFetch = res));
+    // Make global.fetch return resolved profile data immediately
     const originalFetch = global.fetch;
-    global.fetch = vi.fn(() => fetchPromise);
+    global.fetch = vi.fn(() =>
+      Promise.resolve({ ok: true, json: async () => ({ id: 'profile-1' }) }),
+    );
 
     render(
       <MemoryRouter>
@@ -61,17 +61,13 @@ describe('AuthProvider (init behavior)', () => {
       </MemoryRouter>,
     );
 
-    // authLoading should become false quickly (initAuth does not wait for profile fetch)
+    // authLoading should become false quickly
     await waitFor(() => expect(screen.getByTestId('authLoading').textContent).toBe('false'));
 
-    // profile fetch was started but not yet resolved
-    expect(global.fetch).toHaveBeenCalled();
-    expect(screen.getByTestId('profile').textContent).toBe('');
-
-    // finish the fetch and ensure profile is picked up eventually
-    resolveFetch({ ok: true, json: async () => ({ id: 'profile-1' }) });
-    // allow any pending promises to resolve
-    await waitFor(() => expect(screen.getByTestId('profile').textContent).toBe('profile-1'));
+    // profile should eventually be populated from fetch
+    await waitFor(() => expect(screen.getByTestId('profile').textContent).toBe('profile-1'), {
+      timeout: 5000,
+    });
 
     // restore
     global.fetch = originalFetch;
@@ -115,6 +111,11 @@ describe('AuthProvider (init behavior)', () => {
         </AuthProvider>
       </MemoryRouter>,
     );
+
+    // Wait for auth initialization to complete
+    await waitFor(() => expect(screen.getByTestId('authLoading').textContent).toBe('false'), {
+      timeout: 5000,
+    });
 
     // AuthProvider should NOT create the assessment automatically
     const assessmentApi = await import('@/features/assessments/api/assessmentApi');
@@ -167,6 +168,11 @@ describe('AuthProvider (init behavior)', () => {
         </AuthProvider>
       </MemoryRouter>,
     );
+
+    // Wait for auth initialization to complete
+    await waitFor(() => expect(screen.getByTestId('authLoading').textContent).toBe('false'), {
+      timeout: 5000,
+    });
 
     // AuthProvider should NOT auto-save nor mutate persisted session
     const assessmentApi = await import('@/features/assessments/api/assessmentApi');

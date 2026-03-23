@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterAll, test } from 'node:test';
+import { after, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
@@ -43,7 +43,7 @@ test('requests with Bearer token equal to API key are accepted', async () => {
   assert.deepStrictEqual(res.body, { ok: true });
 });
 
-afterAll(async () => {
+after(async () => {
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
 });

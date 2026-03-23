@@ -4,7 +4,7 @@ process.env.API_AUTH_ENABLED = 'true';
 process.env.API_KEY = 'test-key';
 
 import assert from 'node:assert/strict';
-import { afterAll, before, test } from 'node:test';
+import { after, before, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
@@ -28,7 +28,7 @@ before(async () => {
   setOpenAIClient = routesMod.setOpenAIClient;
 });
 
-afterAll(async () => {
+after(async () => {
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
 });
