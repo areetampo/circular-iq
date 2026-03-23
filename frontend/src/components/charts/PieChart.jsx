@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart';
+import PropTypes from 'prop-types';
 
 /**
  * PieChart Component
@@ -39,7 +39,7 @@ export default function PieChart({
     <MuiPieChart
       series={[{ data: seriesData }]}
       height={height}
-      slotProps={{ legend: { hidden: !showLegend } }}
+      slots={{ legend: { hidden: !showLegend } }}
     />
   );
 }

@@ -44,7 +44,7 @@ export default function LineChart({
         xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
         series={series}
         height={height}
-        slotProps={{ legend: { hidden: !showLegend } }}
+        slots={{ legend: { hidden: !showLegend } }}
       />
     </div>
   );

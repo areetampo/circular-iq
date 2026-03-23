@@ -113,8 +113,19 @@ vi.mock('@heroui/react', async (importOriginal) => {
   );
 
   const Button = Object.assign(
-    ({ children, isDisabled, ...props }) =>
-      React.createElement('button', { ...props, disabled: isDisabled }, renderChildren(children)),
+    ({ children, isDisabled, onPress, onClick, ...props }) => {
+      // Handle both onPress (HeroUI) and onClick (standard) props
+      const handleClick = onPress || onClick;
+      return React.createElement(
+        'button',
+        {
+          ...props,
+          disabled: isDisabled,
+          onClick: handleClick,
+        },
+        renderChildren(children),
+      );
+    },
     { displayName: 'Button' },
   );
   const Label = Object.assign(

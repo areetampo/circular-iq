@@ -30,8 +30,25 @@ const { apiKey, apiAuthEnabled } = BACKEND_CONFIG.app;
 
 // Helper to check for public routes (used by apiKeyGuard)
 function isPublicRoute(path) {
-  if (publicRoutes.has(path)) return true;
-  return routeMatchers.some((matcher) => matcher.test(path));
+  console.log('Checking if path is public:', path);
+  console.log('Public routes:', Array.from(publicRoutes));
+  console.log('Route matchers:', routeMatchers);
+
+  // Check exact match first
+  if (publicRoutes.has(path)) {
+    console.log('Path found in publicRoutes:', path);
+    return true;
+  }
+
+  // Then check regex patterns for dynamic routes
+  const isMatched = routeMatchers.some((matcher) => {
+    const matches = matcher.test(path);
+    console.log(`Testing matcher ${matcher} against path ${path}: ${matches}`);
+    return matches;
+  });
+
+  console.log('Final isPublicRoute result:', isMatched);
+  return isMatched;
 }
 
 // ============================================

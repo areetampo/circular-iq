@@ -8,7 +8,7 @@ exports[`PieChart > renders and matches snapshot 1`] = `
     <div
       data-testid="pie-chart"
       height="260"
-      slotprops="[object Object]"
+      slots="[object Object]"
     >
       Mock PieChart
     </div>
