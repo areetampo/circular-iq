@@ -1,12 +1,9 @@
 import assert from 'node:assert';
-import { before, test } from 'node:test';
+import { after, before, test } from 'node:test';
 
 import request from 'supertest';
 
 import { closeAllPools } from '#database/client.js';
-
-process.env.NODE_ENV = 'test';
-process.env.API_AUTH_ENABLED = 'false';
 
 let app;
 
@@ -15,7 +12,7 @@ before(async () => {
   app = mod.default || mod.app || mod;
 });
 
-afterAll(async () => {
+after(async () => {
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
 });

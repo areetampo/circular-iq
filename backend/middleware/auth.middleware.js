@@ -6,6 +6,7 @@
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { logger } from '#utils/logger.js';
 
 /**
  * requireAuth middleware
@@ -28,7 +29,7 @@ export function requireAuth(serviceSupabase) {
         // In test mode, allow unauthenticated access with mock user
         if (IS_TEST) {
           req.user = {
-            id: 'test-user-id',
+            id: '00000000-0000-0000-0000-000000000000',
             email: 'test@example.com',
             user_metadata: {},
           };

@@ -109,6 +109,11 @@ const parseAllowedOrigins = () => {
 const parsePublicRoutes = () => {
   const defaults = ['/health', '/api/search'];
   const routes = env.PUBLIC_ROUTES ?? [];
+
+  if (env.NODE_ENV === 'test') {
+    return ['/health', '/api/search'];
+  }
+
   return [...new Set([...defaults, ...routes])];
 };
 

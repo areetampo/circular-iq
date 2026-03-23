@@ -122,7 +122,6 @@ export function apiKeyGuard(req, res, next) {
   const isValidBearer = safeCompare(bearerToken, apiKey);
 
   if (isValidHeader || isValidBearer) {
-    logger.info({ path: req.path }, 'Valid API key provided for protected route');
     return next();
   }
 

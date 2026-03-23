@@ -6,10 +6,6 @@ import request from 'supertest';
 import { closeAllPools } from '#database/client.js';
 import { stopServer } from '#server/index.js';
 
-process.env.NODE_ENV = 'test';
-// Disable global API key guard so these routes can reach handlers.
-process.env.API_AUTH_ENABLED = 'false';
-
 let app;
 
 before(async () => {

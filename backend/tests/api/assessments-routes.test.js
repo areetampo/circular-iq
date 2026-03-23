@@ -5,9 +5,6 @@ import request from 'supertest';
 
 import { closeAllPools } from '#database/client.js';
 
-process.env.NODE_ENV = 'test';
-process.env.API_AUTH_ENABLED = 'false';
-
 let app;
 
 before(async () => {

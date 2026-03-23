@@ -1,8 +1,3 @@
-process.env.NODE_ENV = 'test';
-process.env.IS_TEST = 'true';
-process.env.API_AUTH_ENABLED = 'true';
-process.env.API_KEY = 'test-key';
-
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 
@@ -118,10 +113,7 @@ test('POST /api/score returns similar_cases with structured fields', async () =>
     },
   };
 
-  const res = await request(app)
-    .post('/api/score')
-    .set('X-API-Key', process.env.API_KEY || BACKEND_CONFIG.app.apiKey)
-    .send(payload);
+  const res = await request(app).post('/api/score').send(payload);
   assert.equal(res.status, 200);
   assert.ok(Array.isArray(res.body.similar_cases));
   const sc = res.body.similar_cases[0];

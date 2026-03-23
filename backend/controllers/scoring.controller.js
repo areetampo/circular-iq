@@ -27,6 +27,7 @@ import {
   getIdentifierFromRequest,
   MAX_FREE_TRIES,
 } from '#utils/anonymousTracking.js';
+import { logger } from '#utils/logger.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 

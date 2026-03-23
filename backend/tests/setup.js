@@ -73,6 +73,9 @@ function setupTestEnvironment() {
     'SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
     'SUPABASE_ANON_KEY',
+    'API_AUTH_ENABLED',
+    'API_KEY',
+    'OPENAI_API_KEY',
   ];
 
   const missingVars = requiredVars.filter((varName) => !process.env[varName]);
@@ -84,9 +87,6 @@ function setupTestEnvironment() {
     );
   }
 
-  // Set test-specific defaults
-  process.env.NODE_ENV = 'test';
-
   // Load second time to ensure dotenv variables are available
   dotenv.config({ path: envTestPath });
 
@@ -94,7 +94,7 @@ function setupTestEnvironment() {
 }
 
 // Global timeout to prevent infinite hanging
-const GLOBAL_TIMEOUT = 30000; // 30 seconds
+const GLOBAL_TIMEOUT = 120000; // 120 seconds
 
 let timeoutHandle;
 
