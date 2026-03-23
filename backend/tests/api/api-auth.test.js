@@ -1,7 +1,9 @@
 import assert from 'node:assert';
-import { before, test } from 'node:test';
+import { afterAll, before, test } from 'node:test';
 
 import request from 'supertest';
+
+import { closeAllPools } from '#database/client.js';
 
 process.env.NODE_ENV = 'test';
 process.env.API_AUTH_ENABLED = 'true';
@@ -12,6 +14,11 @@ let app;
 before(async () => {
   const mod = await import('#server/index.js');
   app = mod.default || mod.app || mod;
+});
+
+afterAll(async () => {
+  // Close all database pools and connections to prevent hanging
+  await closeAllPools();
 });
 
 test('health endpoint remains open when auth is enabled', async () => {

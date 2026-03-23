@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { afterAll, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
 
+import { closeAllPools } from '#database/client.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
 // Minimal mock supabase that returns a few assessments
@@ -92,4 +93,9 @@ test('GET /api/analytics/enhanced returns volatility, confidence intervals and m
   const match = res2.body.industryMetrics.find((m) => m.industry === 'energy');
   assert.ok(match);
   assert.equal(Number(match.marketShare), Number(res2.body.industryMarketShare));
+});
+
+afterAll(async () => {
+  // Close all database pools and connections to prevent hanging
+  await closeAllPools();
 });

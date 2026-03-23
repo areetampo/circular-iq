@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { afterAll, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { setDatabaseClientOverride } from '#database/client.js';
+import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
 import createAnalyticsRouter, { setOpenAIClient } from '#routes/analytics.routes.js';
 
 // Mock Supabase chains used in the featured-solutions endpoint
@@ -219,4 +219,9 @@ test('GET /api/analytics/featured-solutions sanitizes array filters', async () =
     '/api/analytics/featured-solutions?q=test&industry[]=a&category[]=b',
   );
   assert.equal(res.status, 200);
+});
+
+afterAll(async () => {
+  // Close all database pools and connections to prevent hanging
+  await closeAllPools();
 });

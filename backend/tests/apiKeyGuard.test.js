@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { afterAll, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
+
+import { closeAllPools } from '#database/client.js';
 
 // Ensure deterministic test environment by setting environment variables
 process.env.API_AUTH_ENABLED = 'true';
@@ -39,4 +41,9 @@ test('requests with Bearer token equal to API key are accepted', async () => {
   const res = await request(app).get('/protected').set('Authorization', 'Bearer MASTER_TEST_KEY');
   assert.strictEqual(res.status, 200);
   assert.deepStrictEqual(res.body, { ok: true });
+});
+
+afterAll(async () => {
+  // Close all database pools and connections to prevent hanging
+  await closeAllPools();
 });

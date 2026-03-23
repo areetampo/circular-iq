@@ -4,8 +4,8 @@ import { after, before, test } from 'node:test';
 import express from 'express';
 import request from 'supertest';
 
+import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
-import { setDatabaseClientOverride } from '#database/client.js';
 
 function makeMockSupabaseForSummary(assessments) {
   const chain = {
@@ -70,8 +70,10 @@ before(() => {
   setDatabaseClientOverride(makeMockPgClient(), 'postgres');
 });
 
-after(() => {
+after(async () => {
   setDatabaseClientOverride(null);
+  // Close all database pools and connections to prevent hanging
+  await closeAllPools();
 });
 
 test('GET /api/analytics returns aggregate, industryMetrics, timeSeries', async () => {

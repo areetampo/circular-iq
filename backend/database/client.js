@@ -113,3 +113,32 @@ export function getDatabaseType() {
   if (_overrideClient) return _overrideType || 'supabase';
   return BACKEND_CONFIG.useSupabaseDocuments ? 'supabase' : 'postgres';
 }
+
+/**
+ * Close all database connections and pools. Used in test cleanup.
+ * This prevents open handles from hanging the test runner.
+ */
+export async function closeAllPools() {
+  const promises = [];
+
+  if (_aivenPgPool) {
+    promises.push(
+      _aivenPgPool.end().catch((err) => console.error('Error closing Aiven pool:', err)),
+    );
+    _aivenPgPool = null;
+  }
+
+  if (_supabasePgPool) {
+    promises.push(
+      _supabasePgPool.end().catch((err) => console.error('Error closing Supabase pool:', err)),
+    );
+    _supabasePgPool = null;
+  }
+
+  // Supabase client doesn't have a close method, just clear the reference
+  _supabaseClient = null;
+
+  if (promises.length > 0) {
+    await Promise.all(promises);
+  }
+}

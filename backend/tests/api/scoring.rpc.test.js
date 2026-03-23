@@ -4,14 +4,15 @@ process.env.API_AUTH_ENABLED = 'true';
 process.env.API_KEY = 'test-key';
 
 import assert from 'node:assert/strict';
-import { before, test } from 'node:test';
+import { afterAll, before, test } from 'node:test';
 
 import express from 'express';
 import request from 'supertest';
 
+import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
+
 let BACKEND_CONFIG;
 let scoringController;
-let setDatabaseClientOverride;
 let createScoringRouter;
 let setOpenAIClient;
 
@@ -22,11 +23,14 @@ before(async () => {
   BACKEND_CONFIG = configMod.BACKEND_CONFIG;
 
   scoringController = await import('#controllers/scoring.controller.js');
-  const clientMod = await import('#database/client.js');
-  setDatabaseClientOverride = clientMod.setDatabaseClientOverride;
   const routesMod = await import('#routes/scoring.routes.js');
   createScoringRouter = routesMod.default;
   setOpenAIClient = routesMod.setOpenAIClient;
+});
+
+afterAll(async () => {
+  // Close all database pools and connections to prevent hanging
+  await closeAllPools();
 });
 
 // Mock the anonymous usage check to always allow (in case ENV doesn't set test mode)
