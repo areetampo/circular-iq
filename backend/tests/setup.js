@@ -1,13 +1,14 @@
 /**
- * Backend Test Setup
+ * Backend Test Setup Script
  *
- * This file is automatically loaded before running tests via the --loader flag or NODE_OPTIONS.
- * It enforces that env/.env.test exists and contains required environment variables for all backend tests.
+ * This script ensures test environment is properly configured before running tests.
+ * It's automatically loaded by the test runner via NODE_OPTIONS or package.json.
  *
  * Key responsibilities:
  * 1. Locate the monorepo root and load env/.env.test
  * 2. Throw critical errors if .env.test is missing or required vars are not set
  * 3. Ensure consistent test environment across all test runs
+ * 4. Prevent infinite test hanging with global timeout
  *
  * Usage: Run tests with this setup:
  *   NODE_OPTIONS='--require ./backend/tests/setup.js' npm test
@@ -24,13 +25,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Find the monorepo root by looking for .git directory
+ * Find monorepo root by looking for .git directory
  */
-function getMonorepoRoot(startPath) {
-  let currentPath = startPath;
+function getMonorepoRoot(startDir) {
+  let currentPath = path.resolve(startDir);
 
-  while (currentPath !== path.parse(currentPath).root) {
-    if (fs.existsSync(path.join(currentPath, '.git'))) {
+  while (currentPath !== path.dirname(currentPath)) {
+    const gitPath = path.join(currentPath, '.git');
+    if (fs.existsSync(gitPath) || fs.existsSync(gitPath + '/')) {
       return currentPath;
     }
     currentPath = path.dirname(currentPath);
@@ -51,48 +53,101 @@ function setupTestEnvironment() {
   if (!fs.existsSync(envTestPath)) {
     throw new Error(
       `[CRITICAL] env/.env.test not found at ${envTestPath}\n` +
-        'Tests require a .env.test file in the env/ directory at the monorepo root.\n' +
-        'See env/.env.example for reference configuration.\n' +
-        'Create env/.env.test with required environment variables before running tests.',
+        'Create this file with test environment variables.\n' +
+        'Copy env/.env.example to env/.env.test and update values.',
     );
   }
 
-  // Load environment variables from .env.test
+  // Load test environment variables
   const result = dotenv.config({ path: envTestPath });
-  if (result.error && result.error.code !== 'ENOENT') {
-    throw new Error(`Failed to load env/.env.test: ${result.error.message}`);
+
+  if (result.error) {
+    throw new Error(`[CRITICAL] Failed to load env/.env.test: ${result.error.message}`);
   }
 
-  // Validate required backend test environment variables
+  console.log(`✓ Test environment loaded from ${envTestPath}`);
+
+  // Validate required test variables
   const requiredVars = [
     'NODE_ENV',
-    'PORT',
-    'OPENAI_API_KEY',
     'SUPABASE_URL',
-    'SUPABASE_ANON_KEY',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'FRONTEND_URL',
+    'SUPABASE_ANON_KEY',
   ];
 
   const missingVars = requiredVars.filter((varName) => !process.env[varName]);
 
   if (missingVars.length > 0) {
     throw new Error(
-      `[CRITICAL] Missing required environment variables in env/.env.test:\n` +
-        missingVars.map((v) => `  - ${v}`).join('\n') +
-        '\n\nEnsure all required variables are set in env/.env.test before running tests.',
+      `[CRITICAL] Missing required environment variables: ${missingVars.join(', ')}\n` +
+        `Add these to env/.env.test`,
     );
   }
 
-  // Verify we're in test mode
-  if (process.env.NODE_ENV !== 'test') {
-    console.warn(
-      '[WARNING] NODE_ENV is not set to "test" in env/.env.test. Tests should run in test environment.',
-    );
-  }
+  // Set test-specific defaults
+  process.env.NODE_ENV = 'test';
 
-  console.log(`✓ Test environment loaded from ${envTestPath}`);
+  // Load second time to ensure dotenv variables are available
+  dotenv.config({ path: envTestPath });
+
+  console.log('Loaded environment variables from', envTestPath);
 }
 
-// Run setup immediately when this module is imported
+// Global timeout to prevent infinite hanging
+const GLOBAL_TIMEOUT = 30000; // 30 seconds
+
+let timeoutHandle;
+
+function setupGlobalTimeout() {
+  timeoutHandle = setTimeout(() => {
+    console.error('🚨 TEST TIMEOUT: Tests are hanging, forcing exit...');
+    console.error('This usually indicates unclosed connections or hanging promises');
+    process.exit(1);
+  }, GLOBAL_TIMEOUT);
+}
+
+function clearGlobalTimeout() {
+  if (timeoutHandle) {
+    clearTimeout(timeoutHandle);
+    timeoutHandle = null;
+  }
+}
+
+// Setup timeout at start
+setupGlobalTimeout();
+
+// Clear timeout on successful completion
+process.on('exit', () => {
+  clearGlobalTimeout();
+});
+
+// Handle various exit scenarios
+process.on('SIGINT', () => {
+  console.log('📡 Received SIGINT, exiting...');
+  clearGlobalTimeout();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('📡 Received SIGTERM, exiting...');
+  clearGlobalTimeout();
+  process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:', err);
+  clearGlobalTimeout();
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  clearGlobalTimeout();
+  process.exit(1);
+});
+
+// Run setup
 setupTestEnvironment();
+
+export { clearGlobalTimeout };

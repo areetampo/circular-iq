@@ -119,18 +119,25 @@ export function getDatabaseType() {
  * This prevents open handles from hanging the test runner.
  */
 export async function closeAllPools() {
+  console.log('🔌 Closing all database connections...');
   const promises = [];
 
   if (_aivenPgPool) {
     promises.push(
-      _aivenPgPool.end().catch((err) => console.error('Error closing Aiven pool:', err)),
+      _aivenPgPool.end().catch((err) => {
+        console.error('Error closing Aiven pool:', err);
+        return null; // Don't fail the cleanup
+      }),
     );
     _aivenPgPool = null;
   }
 
   if (_supabasePgPool) {
     promises.push(
-      _supabasePgPool.end().catch((err) => console.error('Error closing Supabase pool:', err)),
+      _supabasePgPool.end().catch((err) => {
+        console.error('Error closing Supabase pool:', err);
+        return null; // Don't fail the cleanup
+      }),
     );
     _supabasePgPool = null;
   }
@@ -138,7 +145,20 @@ export async function closeAllPools() {
   // Supabase client doesn't have a close method, just clear the reference
   _supabaseClient = null;
 
+  // Force close with timeout
   if (promises.length > 0) {
-    await Promise.all(promises);
+    try {
+      await Promise.race([
+        Promise.allSettled(promises),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database close timeout')), 3000),
+        ),
+      ]);
+      console.log('✅ Database connections closed');
+    } catch (err) {
+      console.warn('⚠️ Database close timeout/error:', err.message);
+    }
+  } else {
+    console.log('✅ No database connections to close');
   }
 }
