@@ -17,7 +17,7 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
  * @example
  * app.use(requireAuth(supabaseClient));
  */
-export function requireAuth(supabase) {
+export function requireAuth(serviceSupabase) {
   return async (req, res, next) => {
     try {
       const IS_TEST = BACKEND_CONFIG.nodeEnv === 'test';
@@ -52,7 +52,7 @@ export function requireAuth(supabase) {
       }
 
       // Verify token with Supabase
-      const { data, error } = await supabase.auth.getUser(token);
+      const { data, error } = await serviceSupabase.auth.getUser(token);
 
       if (error || !data.user) {
         return res.status(401).json({

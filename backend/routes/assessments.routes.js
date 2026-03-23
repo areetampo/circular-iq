@@ -44,19 +44,19 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
  * @param {Object} supabase - Supabase client instance
  * @returns {express.Router} Express router with assessment endpoints
  */
-export default function createAssessmentsRouter(supabase) {
+export default function createAssessmentsRouter(serviceSupabase) {
   const router = express.Router();
 
   /**
    * POST /
    * Save a completed assessment result
    */
-  router.post('/', requireAuth(supabase), validateAssessment, async (req, res) => {
+  router.post('/', requireAuth(serviceSupabase), validateAssessment, async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.saveAssessment(
-        supabase,
+        serviceSupabase,
         req.user,
         req.validatedBody,
         req.body,
@@ -75,12 +75,12 @@ export default function createAssessmentsRouter(supabase) {
    * GET /
    * Retrieve list of user's assessments with filtering and pagination
    */
-  router.get('/', requireAuth(supabase), async (req, res) => {
+  router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.fetchUserAssessments(
-        supabase,
+        serviceSupabase,
         req.user,
         token,
         req.query,
@@ -98,11 +98,15 @@ export default function createAssessmentsRouter(supabase) {
    * GET /stats
    * Retrieve aggregate statistics for user's assessments
    */
-  router.get('/stats', requireAuth(supabase), async (req, res) => {
+  router.get('/stats', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
-      const stats = await assessmentsController.getAssessmentStats(supabase, req.user, token);
+      const stats = await assessmentsController.getAssessmentStats(
+        serviceSupabase,
+        req.user,
+        token,
+      );
       logRequest('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
     } catch (error) {
@@ -119,7 +123,10 @@ export default function createAssessmentsRouter(supabase) {
   router.get('/public/:publicId', async (req, res) => {
     const startTime = Date.now();
     try {
-      const result = await assessmentsController.getPublicAssessment(supabase, req.params.publicId);
+      const result = await assessmentsController.getPublicAssessment(
+        serviceSupabase,
+        req.params.publicId,
+      );
       logRequest('GET', `/assessments/public/${req.params.publicId}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
@@ -141,7 +148,10 @@ export default function createAssessmentsRouter(supabase) {
   router.get('/validate/:publicId', async (req, res) => {
     const startTime = Date.now();
     try {
-      const result = await assessmentsController.validatePublicId(supabase, req.params.publicId);
+      const result = await assessmentsController.validatePublicId(
+        serviceSupabase,
+        req.params.publicId,
+      );
       logRequest(
         'GET',
         `/assessments/validate/${req.params.publicId}`,
@@ -175,7 +185,7 @@ export default function createAssessmentsRouter(supabase) {
   router.get('/market-analysis', async (req, res) => {
     const startTime = Date.now();
     try {
-      const result = await assessmentsController.getMarketAnalysis(supabase);
+      const result = await assessmentsController.getMarketAnalysis(serviceSupabase);
       logRequest('GET', '/assessments/market-analysis', 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
@@ -190,12 +200,12 @@ export default function createAssessmentsRouter(supabase) {
    * Retrieve a single assessment by publicId (auth required, user-specific)
    * Note: Uses public_id instead of primary key for security
    */
-  router.get('/:publicId', requireAuth(supabase), async (req, res) => {
+  router.get('/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.getAssessmentById(
-        supabase,
+        serviceSupabase,
         req.user,
         token,
         req.params.publicId,
@@ -213,12 +223,12 @@ export default function createAssessmentsRouter(supabase) {
    * PATCH /:id
    * Update assessment fields (e.g., is_public)
    */
-  router.patch('/:id', requireAuth(supabase), async (req, res) => {
+  router.patch('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.updateAssessment(
-        supabase,
+        serviceSupabase,
         req.user,
         token,
         req.params.id,
@@ -237,12 +247,12 @@ export default function createAssessmentsRouter(supabase) {
    * DELETE /:id
    * Delete a saved assessment
    */
-  router.delete('/:id', requireAuth(supabase), async (req, res) => {
+  router.delete('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.deleteAssessment(
-        supabase,
+        serviceSupabase,
         req.user,
         token,
         req.params.id,
@@ -260,11 +270,11 @@ export default function createAssessmentsRouter(supabase) {
    * GET /market-analysis/:publicId
    * Retrieve per-assessment market analysis with user-specific benchmarks
    */
-  router.get('/market-analysis/:publicId', requireAuth(supabase), async (req, res) => {
+  router.get('/market-analysis/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const result = await assessmentsController.getPerAssessmentMarketAnalysis(
-        supabase,
+        serviceSupabase,
         req.user,
         req.params.publicId,
       );
@@ -297,7 +307,7 @@ export default function createAssessmentsRouter(supabase) {
     const startTime = Date.now();
     try {
       const result = await assessmentsController.getPublicPerAssessmentMarketAnalysis(
-        supabase,
+        serviceSupabase,
         req.params.publicId,
       );
       logRequest(
@@ -326,12 +336,12 @@ export default function createAssessmentsRouter(supabase) {
    * Compare two assessments by publicId with visibility rules
    * Supports cross-user comparison with privacy enforcement
    */
-  router.get('/compare/:publicId1/:publicId2', requireAuth(supabase), async (req, res) => {
+  router.get('/compare/:publicId1/:publicId2', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.compareAssessments(
-        supabase,
+        serviceSupabase,
         req.user,
         token,
         req.params.publicId1,

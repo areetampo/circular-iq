@@ -1,65 +1,11 @@
 import { Drawer } from '@heroui/react';
-import {
-  BookCopy,
-  Bot,
-  ChartColumn,
-  ChartSpline,
-  CircleCheck,
-  Search,
-  TriangleAlert,
-} from 'lucide-react';
+import { BookCopy, ChartSpline, TriangleAlert } from 'lucide-react';
 import React from 'react';
 
+import { ASSESSMENT_METHODOLOGY_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 import { cn } from '@/utils/cn';
-
-const METHODOLOGY_ITEMS = [
-  {
-    icon: <Search />,
-    title: 'Semantic Analysis',
-    description:
-      'Uses OpenAI text-embedding-3-small (1536 dimensions) to find the most relevant projects matching your business model and problem space.',
-    accentBorder: 'border-blue-400',
-    gradientFrom: 'from-blue-50',
-    gradientTo: 'to-cyan-50',
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-  },
-  {
-    icon: <Bot />,
-    title: 'AI Reasoning',
-    description:
-      'GPT-4o-mini analyzes your submission against 3 similar cases with strict evidence-based reasoning and integrity checking.',
-    accentBorder: 'border-emerald-400',
-    gradientFrom: 'from-emerald-50',
-    gradientTo: 'to-green-50',
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
-  },
-  {
-    icon: <ChartColumn />,
-    title: 'Multi-Dimensional Scoring',
-    description:
-      'Evaluates across 8 weighted parameters covering material innovation, circularity loops, market viability, and environmental impact.',
-    accentBorder: 'border-orange-400',
-    gradientFrom: 'from-orange-50',
-    gradientTo: 'to-amber-50',
-    iconBg: 'bg-orange-100',
-    iconColor: 'text-orange-600',
-  },
-  {
-    icon: <CircleCheck />,
-    title: 'Integrity Validation',
-    description:
-      'Cross-references your self-assessed scores against real-world benchmarks to identify overestimations and provide honest feedback.',
-    accentBorder: 'border-purple-400',
-    gradientFrom: 'from-purple-50',
-    gradientTo: 'to-pink-50',
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-  },
-];
 
 export default function AssessmentMethodologyDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -118,7 +64,7 @@ export default function AssessmentMethodologyDrawer() {
 
               {/* Methodology cards */}
               <div className="space-y-2.5">
-                {METHODOLOGY_ITEMS.map((item, idx) => (
+                {ASSESSMENT_METHODOLOGY_CONTENT.items.map((item, idx) => (
                   <div
                     key={idx}
                     className={cn(
@@ -144,7 +90,7 @@ export default function AssessmentMethodologyDrawer() {
                         'group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md',
                       )}
                     >
-                      {React.cloneElement(item.icon, {
+                      {React.createElement(item.icon, {
                         className: cn('size-4', item.iconColor),
                         strokeWidth: 1.75,
                       })}

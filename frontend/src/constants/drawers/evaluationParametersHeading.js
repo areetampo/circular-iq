@@ -23,4 +23,5 @@ export const EVALUATION_PARAMETERS_HEADING_CONTENT = {
         'Each parameter is scored from 0-100, with the overall score being a weighted average. Scores above 70 indicate strong circular economy alignment.',
     },
   ],
+  tip: 'Click on each parameter below to learn more about how it is scored and what makes a strong submission.',
 };

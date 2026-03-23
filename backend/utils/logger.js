@@ -1,6 +1,6 @@
 import pino from 'pino';
 
-import { BACKEND_CONFIG } from '#config/backend.config';
+import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const isDev = BACKEND_CONFIG.nodeEnv === 'development';
 
@@ -11,6 +11,9 @@ const logger = pino({
         target: 'pino-pretty',
         options: {
           colorize: true,
+          translateTime: 'SYS:HH:MM:ss.l',
+          ignore: 'pid,hostname',
+          singleLine: false,
         },
       }
     : undefined,

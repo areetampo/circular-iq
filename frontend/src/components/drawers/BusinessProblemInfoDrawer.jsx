@@ -1,52 +1,10 @@
 import { Drawer } from '@heroui/react';
 import { ClipboardMinus } from 'lucide-react';
 
+import { BUSINESS_PROBLEM_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 import { cn } from '@/utils/cn';
-
-const PROBLEM_ELEMENTS = [
-  {
-    title: 'Environmental Impact',
-    description:
-      'Specific waste, pollution, or resource depletion issue (e.g., "8M tons of plastic waste entering oceans annually").',
-  },
-  {
-    title: 'Quantified Scale',
-    description:
-      'Use real numbers, percentages, or measurements to show magnitude (tons, percent of market, number of people affected).',
-  },
-  {
-    title: 'Current Gaps',
-    description:
-      'Why existing solutions fail (cost barriers, infrastructure limits, behavior challenges, regulation issues).',
-  },
-  {
-    title: 'Stakeholders Affected',
-    description:
-      'Who experiences this problem and how (consumers, businesses, communities, ecosystems).',
-  },
-  {
-    title: 'Geographic Context',
-    description: 'Where this problem is most acute (local, regional, national, global).',
-  },
-  {
-    title: 'Urgency Indicators',
-    description:
-      'Why this needs solving now (regulatory pressure, market demand, environmental tipping points).',
-  },
-];
-
-const PROBLEM_WRITING_TIPS = [
-  'Start with a compelling statistic or fact.',
-  'Use specific numbers instead of vague terms.',
-  'Connect the problem to economic or social costs.',
-  'Reference industry standards or regulations when relevant.',
-  'Cite sources if available (e.g., EPA, industry studies).',
-];
-
-const PROBLEM_EXAMPLE =
-  'Single-use plastic packaging creates 8 million tons of ocean waste annually, disrupting marine ecosystems and food chains. Current alternatives are cost-prohibitive (> $2/unit) or require industrial composting infrastructure that 75% of municipalities lack. This leaves a gap between demand for sustainable packaging and practical implementation at scale.';
 
 export default function BusinessProblemInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -99,7 +57,7 @@ export default function BusinessProblemInfoDrawer() {
                 <div className="p-4 border border-emerald-200 bg-emerald-50 rounded-xl">
                   <h4 className="mb-3 text-base font-bold text-emerald-700">Essential Elements</h4>
                   <div className="space-y-2">
-                    {PROBLEM_ELEMENTS.map((item, idx) => (
+                    {BUSINESS_PROBLEM_CONTENT.elements.map((item, idx) => (
                       <div
                         key={idx}
                         className={[
@@ -134,7 +92,7 @@ export default function BusinessProblemInfoDrawer() {
                 <div className="p-4 border border-blue-200 bg-blue-50 rounded-xl">
                   <h4 className="mb-3 text-base font-bold text-blue-700">Writing Tips</h4>
                   <ul className="space-y-1">
-                    {PROBLEM_WRITING_TIPS.map((tip) => (
+                    {BUSINESS_PROBLEM_CONTENT.writingTips.map((tip) => (
                       <li key={tip} className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="font-bold text-blue-500">•</span>
                         <span>{tip}</span>
@@ -146,7 +104,7 @@ export default function BusinessProblemInfoDrawer() {
                 <div>
                   <h4 className="mb-2 text-base font-bold text-indigo-700">Example Statement</h4>
                   <p className="p-3 text-sm italic leading-relaxed text-gray-600 border border-l-4 border-indigo-300 border-l-indigo-500 rounded-lg bg-indigo-50">
-                    {PROBLEM_EXAMPLE}
+                    {BUSINESS_PROBLEM_CONTENT.example}
                   </p>
                 </div>
 

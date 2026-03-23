@@ -267,7 +267,7 @@ export const AUTH_VALIDATION = {
      *   • profiles.username_valid_format CHECK constraint
      */
     PATTERN: /^(?=.*[a-zA-Z])[a-zA-Z0-9_-]+$/,
-    PATTERN_DESC: 'letters, numbers, - and _ only · at least one letter · no spaces',
+    PATTERN_DESC: 'letters, numbers, - and _ only \nat least one letter \nno spaces',
   },
   PASSWORD: {
     MIN_LENGTH: 6,
@@ -278,7 +278,7 @@ export const AUTH_VALIDATION = {
      * \S*$              — no trailing spaces; \S matches any non-whitespace character
      */
     PATTERN: /^\S*(?=.*[!@#$%^&*(),.?":{}|<>])\S*$/,
-    PATTERN_DESC: 'at least one special character (!@#$%^&* etc.) · no spaces',
+    PATTERN_DESC: 'at least one special character (!@#$%^&* etc.) \nno spaces',
   },
 };
 
@@ -297,13 +297,13 @@ export const usernameSchema = z
     AUTH_VALIDATION.USERNAME.MAX_LENGTH,
     `Username must be at most ${AUTH_VALIDATION.USERNAME.MAX_LENGTH} characters`,
   )
+  .regex(AUTH_VALIDATION.USERNAME.PATTERN, {
+    message: `Username: ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`,
+  })
   // Explicitly block @ before the regex so the error message is unambiguous.
   // This also prevents any attempt to inject an @ce.internal email directly.
   .refine((val) => !val.includes('@'), {
     message: 'Username cannot contain @',
-  })
-  .regex(AUTH_VALIDATION.USERNAME.PATTERN, {
-    message: `Username: ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`,
   });
 
 // ============================================
@@ -334,9 +334,26 @@ export const passwordSchema = z
 // "does this malformed username exist?" because it is rejected locally
 // before a network request is ever made.
 
+// Login schema — intentionally minimal.
+// Only enforces that both fields are non-empty and within length bounds.
+// No pattern/character rules: those belong to signup. A wrong-but-syntactically-
+// valid credential just gets a generic 'incorrect username or password' from the server.
 export const loginSchema = z.object({
-  username: usernameSchema,
-  password: passwordSchema,
+  username: z
+    .string()
+    .trim()
+    .min(1, 'Username is required')
+    .max(
+      AUTH_VALIDATION.USERNAME.MAX_LENGTH,
+      `Username must be at most ${AUTH_VALIDATION.USERNAME.MAX_LENGTH} characters`,
+    ),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .max(
+      AUTH_VALIDATION.PASSWORD.MAX_LENGTH,
+      `Password must be at most ${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} characters`,
+    ),
 });
 
 // ============================================

@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { signInWithUsername } from '@/lib/auth';
-import { AUTH_VALIDATION, loginSchema } from '@/lib/validation';
+import { loginSchema } from '@/lib/validation';
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -96,10 +96,8 @@ export function LoginForm({ onSwitchToSignup }) {
                     spellCheck={false}
                     autoCapitalize="none"
                     autoCorrect="off"
+                    maxLength={30}
                   />
-                  <span className="text-xs pl-2 pt-1 opacity-60">
-                    {`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars · ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`}
-                  </span>
                 </TextField>
               )}
             />
@@ -119,14 +117,12 @@ export function LoginForm({ onSwitchToSignup }) {
                   <Input
                     {...field}
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="••••••"
                     disabled={isLoading}
                     className="mt-1.5"
                     autoComplete="current-password"
+                    maxLength={30}
                   />
-                  <span className="text-xs pl-2 pt-1 opacity-60">
-                    {`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars · ${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}
-                  </span>
                 </TextField>
               )}
             />

@@ -50,8 +50,10 @@ if (!IS_PROD) {
 
   if (fs.existsSync(backendPath)) {
     dotenv.config({ path: backendPath, override: false });
-    logger.info({ path: backendPath }, 'Loaded env from');
+    // logger.info({ path: backendPath }, 'Loaded env from');
+    console.log(`Loaded environment variables from ${backendPath}`);
   } else {
-    logger.warn({ envFile, path: backendPath }, 'env file not found');
+    // logger.warn({ envFile, path: backendPath }, 'env file not found');
+    console.warn(`Warning: ${backendPath} not found.`);
   }
 }

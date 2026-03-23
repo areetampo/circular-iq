@@ -2,7 +2,7 @@ import { FRONTEND_CONFIG } from '@/config/frontend.config';
 
 const isDev = !FRONTEND_CONFIG.isProd && FRONTEND_CONFIG.mode !== 'test';
 
-const logger = {
+export const logger = {
   log: (...args) => {
     if (isDev) {
       console.log('[LOG]:', ...args);
@@ -21,5 +21,3 @@ const logger = {
     // if (!isDev) { reportToExternalService(args); }
   },
 };
-
-export default logger;

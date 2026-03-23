@@ -108,6 +108,20 @@ COMMENT ON COLUMN profiles.preferred_industry IS
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);
 
 -- ============================================
+-- 1b. Grants — applied immediately after table creation
+-- ============================================
+-- IMPORTANT: these are placed here (not at the bottom) because the migration
+-- opens with DROP TABLE CASCADE which wipes all prior grants. If the migration
+-- errors partway through, grants at the bottom of the file never execute and
+-- the authenticated role is left with no access — producing error code 42501
+-- "permission denied for table profiles". Granting early ensures the table is
+-- always usable as soon as it exists.
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO authenticated;
+GRANT ALL ON profiles TO service_role;
+REVOKE ALL ON profiles FROM anon;  -- anon must never access profiles directly
+
+-- ============================================
 -- 2. Row Level Security
 -- ============================================
 
@@ -464,14 +478,14 @@ GRANT EXECUTE ON FUNCTION public.supabase_noop_send_email(JSONB) TO supabase_aut
 REVOKE EXECUTE ON FUNCTION public.supabase_noop_send_email(JSONB) FROM PUBLIC, anon, authenticated;
 
 -- ============================================
--- 9. Grants
+-- 9. Grants (re-stated for clarity — also applied in section 1b above)
 -- ============================================
+-- Repeated here so the final grant state is explicit and auditable at a glance.
+-- Section 1b grants are the operative ones (applied before RLS); these confirm them.
 
-GRANT ALL     ON profiles TO authenticated;
--- anon gets no direct table access; RLS now restricts SELECT to own row only.
--- If you later need public profile lookups, expose them via a SECURITY DEFINER function.
-REVOKE ALL    ON profiles FROM anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO authenticated;
 GRANT ALL     ON profiles TO service_role;
+REVOKE ALL    ON profiles FROM anon;  -- anon must use SECURITY DEFINER functions only
 
 -- ============================================
 -- 10. Verification

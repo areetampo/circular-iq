@@ -3,6 +3,7 @@
  */
 
 export const TEST_CASE_DETAIL_CONTENT = {
+  subheading: 'Detailed assessment results and business information',
   headings: {
     overview: 'Case Overview',
     businessProblem: 'Business Problem',
@@ -10,6 +11,23 @@ export const TEST_CASE_DETAIL_CONTENT = {
     evaluationParameters: 'Evaluation Parameters',
     businessContext: 'Business Context',
     results: 'Assessment Results',
+  },
+  sections: {
+    businessProblem: {
+      title: 'Business Problem',
+      subtitle: 'Environmental or circular economy challenge',
+    },
+    businessSolution: {
+      title: 'Business Solution',
+      subtitle: 'How the solution addresses the problem',
+    },
+    businessContext: {
+      title: 'Business Context',
+    },
+    evaluationParameters: {
+      title: 'Evaluation Parameters',
+      subtitle: 'Score breakdown across assessment factors',
+    },
   },
   labels: {
     score: 'Circularity Score',

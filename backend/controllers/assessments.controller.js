@@ -4,11 +4,6 @@
  * public sharing, market analysis per assessment.
  */
 
-import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { createSupabaseClientWithAuth } from '#database/supabase.client.js';
-
-const IS_PROD = BACKEND_CONFIG.isProduction;
-
 /**
  * Log API operation
  * @private
@@ -32,12 +27,6 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
 
 /**
  * Save a new assessment
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {Object} validatedBody - Validated request body from middleware
- * @param {Object} rawBody - Raw request body
- * @param {string} token - Authorization token
- * @returns {Promise<Object>} Assessment data with id
  */
 export async function saveAssessment(supabase, user, validatedBody, rawBody, token) {
   const startTime = Date.now();
@@ -55,15 +44,12 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
     } = validatedBody;
     const { title, result, evaluation_parameters } = rawBody;
 
-    // Check for required result data (either from result_json or result field)
     const resultData = result_json || result;
     if (!resultData || !resultData.overall_score) {
       throw new Error('result with overall_score is required');
     }
 
-    // Ensure assessment stores the case-summary inputs even if the client
-    // provided them inside `result_json` instead of top-level fields.
-    const scoringResult = result_json || result; // full API response
+    const scoringResult = result_json || result;
 
     const assessmentData = {
       user_id: user.id,
@@ -72,18 +58,12 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
         businessProblem || scoringResult?.businessProblem || scoringResult?.problem || '',
       business_solution:
         businessSolution || scoringResult?.businessSolution || scoringResult?.solution || '',
-
-      // ── Scoring scalars ──────────────────────────────────────────────────────
       overall_score: Math.round(scoringResult.overall_score),
       confidence_level: scoringResult.confidence_level ?? null,
-
-      // ── Derived metric scalars ───────────────────────────────────────────────
       technical_feasibility: scoringResult.derived_metrics?.technical_feasibility ?? null,
       economic_viability: scoringResult.derived_metrics?.economic_viability ?? null,
       circularity_potential: scoringResult.derived_metrics?.circularity_potential ?? null,
       risk_level: scoringResult.derived_metrics?.risk_level ?? null,
-
-      // ── Metadata scalars ─────────────────────────────────────────────────────
       industry:
         (typeof industry === 'string' && industry.trim()) ||
         scoringResult.metadata?.industry ||
@@ -92,8 +72,6 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       r_strategy: scoringResult.metadata?.r_strategy ?? null,
       primary_material: scoringResult.metadata?.primary_material ?? null,
       geographic_focus: scoringResult.metadata?.geographic_focus ?? null,
-
-      // ── JSON blobs ───────────────────────────────────────────────────────────
       evaluation_parameters:
         parameters || evaluation_parameters || scoringResult.evaluation_parameters || null,
       sub_scores: scoringResult.sub_scores ?? null,
@@ -103,37 +81,23 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       gap_analysis: scoringResult.gap_analysis ?? null,
       similar_cases: scoringResult.similar_cases ?? null,
       metadata: scoringResult.metadata ?? null,
-
-      // ── Layer 2 enrichment JSONB blobs ───────────────────────────────────────
       weighted_score_card: scoringResult.weighted_score_card ?? null,
       circular_economy_tier: scoringResult.circular_economy_tier ?? null,
       parameter_consistency: scoringResult.parameter_consistency ?? null,
       r_strategy_alignment: scoringResult.r_strategy_alignment ?? null,
-
-      // ── Layer 2 enrichment scalars (promoted for fast analytics) ─────────────
       parameter_consistency_score: scoringResult.parameter_consistency?.score ?? null,
       parameter_consistency_rating: scoringResult.parameter_consistency?.rating ?? null,
       r_strategy_alignment_score: scoringResult.r_strategy_alignment?.alignment_score ?? null,
       r_strategy_alignment_rating: scoringResult.r_strategy_alignment?.rating ?? null,
-
-      // ── Audit quality signals (promoted scalars) ──────────────────────────────
       audit_confidence_score: scoringResult.audit?.confidence_score ?? null,
       audit_is_junk_input: scoringResult.audit?.is_junk_input ?? false,
       audit_integrity_gaps_count: scoringResult.audit?.integrity_gaps?.length ?? 0,
       similar_cases_count: scoringResult.similar_cases?.length ?? 0,
-
-      // ── Layer 3 audit sub-fields (promoted for fast access) ──────────────────
       improvement_roadmap: scoringResult.audit?.improvement_roadmap ?? null,
       sdg_alignment: scoringResult.audit?.sdg_alignment ?? null,
       market_opportunity_summary: scoringResult.audit?.market_opportunity_summary ?? null,
-
-      // ── business_context: API response uses key "business_context" ───────────
       business_context: scoringResult.business_context ?? null,
-
-      // Full snapshot — required NOT NULL
       result_json: scoringResult,
-
-      // ── Sharing ──────────────────────────────────────────────────────────────
       is_public: typeof is_public === 'boolean' ? is_public : true,
       contribute_to_global_benchmarks:
         typeof contribute_to_global_benchmarks === 'boolean'
@@ -141,10 +105,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
           : true,
     };
 
-    // Insert assessment using an authenticated user client to respect RLS
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
-
-    const { data, error } = await userClient
+    const { data, error } = await supabase
       .from('user_assessments')
       .insert([assessmentData])
       .select();
@@ -166,11 +127,6 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
 
 /**
  * Fetch user's assessments with filtering, sorting, pagination
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} token - Authorization token
- * @param {Object} query - Query parameters (industry, sortBy, order, page, pageSize, search, etc.)
- * @returns {Promise<Object>} Assessments array, total count, pagination info
  */
 export async function fetchUserAssessments(supabase, user, token, query) {
   const startTime = Date.now();
@@ -198,12 +154,8 @@ export async function fetchUserAssessments(supabase, user, token, query) {
     const sortBy = allowedSort.has(String(sortByRaw)) ? String(sortByRaw) : 'created_at';
     const orderDirection = String(orderRaw).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
-    // Create authenticated user client to respect RLS policies
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
+    let queryBuilder = supabase.from('user_assessments').select('*', { count: 'exact' });
 
-    let queryBuilder = userClient.from('user_assessments').select('*', { count: 'exact' });
-
-    // Filter by user_id to match the authenticated user (mirrors RLS policy)
     if (user && user.id) {
       queryBuilder = queryBuilder.eq('user_id', user.id);
     }
@@ -223,7 +175,6 @@ export async function fetchUserAssessments(supabase, user, token, query) {
 
     if (search && String(search).trim().length > 0) {
       const term = String(search).trim().toLowerCase();
-      // OR filter across title and industry fields using ilike
       queryBuilder = queryBuilder.or(`title.ilike.%${term}%,industry.ilike.%${term}%`);
     }
 
@@ -265,19 +216,12 @@ export async function fetchUserAssessments(supabase, user, token, query) {
 
 /**
  * Get aggregate statistics for user's assessments
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} token - Authorization token
- * @returns {Promise<Object>} Statistics including average score, top industries
  */
 export async function getAssessmentStats(supabase, user, token) {
   const startTime = Date.now();
 
   try {
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
-
-    // Use the RPC function to get comprehensive statistics including new fields
-    const { data, error } = await userClient.rpc('get_assessment_statistics', {
+    const { data, error } = await supabase.rpc('get_assessment_statistics', {
       user_uuid: user?.id || null,
     });
 
@@ -288,7 +232,6 @@ export async function getAssessmentStats(supabase, user, token) {
 
     const stats = data?.[0] || {};
 
-    // Transform the RPC result to match expected format
     const result = {
       totalAssessments: Number(stats.total_assessments) || 0,
       completedAssessments: Number(stats.completed_assessments) || 0,
@@ -316,9 +259,6 @@ export async function getAssessmentStats(supabase, user, token) {
 
 /**
  * Fetch a public assessment by public_id
- * @param {Object} supabase - Supabase client
- * @param {string} publicId - Public assessment ID
- * @returns {Promise<Object>} Assessment data with readonly flag
  */
 export async function getPublicAssessment(supabase, publicId) {
   const startTime = Date.now();
@@ -350,15 +290,11 @@ export async function getPublicAssessment(supabase, publicId) {
 
 /**
  * Validate a public assessment ID
- * @param {Object} supabase - Supabase client
- * @param {string} publicId - Public assessment ID to validate
- * @returns {Promise<Object>} Validation result
  */
 export async function validatePublicId(supabase, publicId) {
   const startTime = Date.now();
 
   try {
-    // Quick UUID format check (basic)
     const uuidRegex =
       /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
     if (!uuidRegex.test(publicId)) {
@@ -398,8 +334,6 @@ export async function validatePublicId(supabase, publicId) {
 
 /**
  * Fetch market analysis data (aggregate stats)
- * @param {Object} supabase - Supabase client
- * @returns {Promise<Object>} Market data and statistics
  */
 export async function getMarketAnalysis(supabase) {
   const startTime = Date.now();
@@ -409,11 +343,7 @@ export async function getMarketAnalysis(supabase) {
 
     if (marketError) {
       logger.warn({ err: marketError }, 'Market data query warning');
-      // Return empty structure if function not available yet
-      return {
-        market_data: [],
-        stats: null,
-      };
+      return { market_data: [], stats: null };
     }
 
     const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
@@ -436,20 +366,12 @@ export async function getMarketAnalysis(supabase) {
 
 /**
  * Fetch a single assessment by publicId (user-specific)
- * Uses public_id for routing, but still requires user authentication
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} token - Authorization token
- * @param {string} publicId - Assessment public ID
- * @returns {Promise<Object>} Assessment data
  */
 export async function getAssessmentById(supabase, user, token, publicId) {
   const startTime = Date.now();
 
   try {
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
-
-    let queryBuilder = userClient.from('user_assessments').select('*').eq('public_id', publicId);
+    let queryBuilder = supabase.from('user_assessments').select('*').eq('public_id', publicId);
 
     if (user && user.id) {
       queryBuilder = queryBuilder.eq('user_id', user.id);
@@ -476,37 +398,26 @@ export async function getAssessmentById(supabase, user, token, publicId) {
 
 /**
  * Update assessment fields
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} token - Authorization token
- * @param {string} id - Assessment ID
- * @param {Object} updates - Fields to update
- * @returns {Promise<Object>} Updated assessment data
  */
 export async function updateAssessment(supabase, user, token, id, updates) {
   const startTime = Date.now();
 
   try {
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
-
-    // If setting is_public to true and no public_id exists, generate one
     const updateData = { ...updates };
     if (updates.is_public === true) {
-      const { data: current } = await userClient
+      const { data: current } = await supabase
         .from('user_assessments')
         .select('public_id')
         .eq('id', id)
         .eq('user_id', user.id)
         .single();
 
-      // If no public_id exists, generate one using database function
       if (!current?.public_id) {
-        updateData.public_id = null; // Let database generate via DEFAULT
+        updateData.public_id = null;
       }
     }
 
-    // Update only if the assessment belongs to the authenticated user
-    const { data, error } = await userClient
+    const { data, error } = await supabase
       .from('user_assessments')
       .update(updateData)
       .eq('id', id)
@@ -533,11 +444,6 @@ export async function updateAssessment(supabase, user, token, id, updates) {
 
 /**
  * Delete an assessment
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} token - Authorization token
- * @param {string} id - Assessment ID
- * @returns {Promise<Object>} Deletion confirmation
  */
 export async function deleteAssessment(supabase, user, token, id) {
   const startTime = Date.now();
@@ -546,10 +452,7 @@ export async function deleteAssessment(supabase, user, token, id) {
   try {
     logger.info({ id, userId }, 'DELETE request received');
 
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
-
-    // Verify assessment exists and belongs to user before deleting
-    const { data: assessment, error: getError } = await userClient
+    const { data: assessment, error: getError } = await supabase
       .from('user_assessments')
       .select('id')
       .eq('id', id)
@@ -565,8 +468,7 @@ export async function deleteAssessment(supabase, user, token, id) {
       throw notFoundError;
     }
 
-    // Delete the assessment using authenticated client
-    const { error: deleteError } = await userClient
+    const { error: deleteError } = await supabase
       .from('user_assessments')
       .delete()
       .eq('id', id)
@@ -590,27 +492,17 @@ export async function deleteAssessment(supabase, user, token, id) {
 
 /**
  * Get per-assessment market analysis (user-specific)
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} id - Assessment ID
- * @returns {Promise<Object>} Market analysis data including benchmarks
  */
 export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
   const startTime = Date.now();
 
   try {
-    // Fetch market-level aggregates
     const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
-    if (marketError) {
-      logger.warn({ err: marketError }, 'Market data query warning');
-    }
+    if (marketError) logger.warn({ err: marketError }, 'Market data query warning');
 
     const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
-    if (statsError) {
-      logger.warn({ err: statsError }, 'Assessment statistics query warning');
-    }
+    if (statsError) logger.warn({ err: statsError }, 'Assessment statistics query warning');
 
-    // Fetch the assessment using publicId and ownership check (ownership enforced)
     const { data: assessmentRow, error: assessmentError } = await supabase
       .from('user_assessments')
       .select('overall_score, result_json, industry')
@@ -618,14 +510,11 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (assessmentError) {
-      logger.warn({ err: assessmentError }, 'Assessment fetch warning');
-    }
+    if (assessmentError) logger.warn({ err: assessmentError }, 'Assessment fetch warning');
 
     const userScore = assessmentRow?.overall_score ?? null;
-    const userIndustry = assessmentRow?.industry ?? null; // structured column only
+    const userIndustry = assessmentRow?.industry ?? null;
 
-    // Compute percentile if possible
     let userPercentile = null;
     if (typeof userScore === 'number') {
       const { count: lessOrEqualCount } = await supabase
@@ -639,7 +528,6 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
       }
     }
 
-    // Compute industry benchmark for the user's industry
     let industryBenchmark = null;
     if (userIndustry && Array.isArray(marketData)) {
       const match = marketData.find((m) => m.industry === userIndustry);
@@ -654,7 +542,6 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
       }
     }
 
-    // Build strategy breakdown
     const strategyMap = {};
     (marketData || []).forEach((m) => {
       const strat = m.r_strategy || 'unknown';
@@ -669,7 +556,6 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
     });
     const strategyBreakdown = Object.values(strategyMap).sort((a, b) => b.count - a.count);
 
-    // Normalize stats keys for frontend compatibility
     const normalizedStats = stats?.[0]
       ? {
           avg_score: stats[0].avg_score,
@@ -699,22 +585,17 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
 
 /**
  * Get per-assessment market analysis for public assessments
- * @param {Object} supabase - Supabase client
- * @param {string} publicId - Public assessment ID
- * @returns {Promise<Object>} Market analysis data with readonly flag
  */
 export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
   const startTime = Date.now();
 
   try {
-    // Fetch market aggregates
     const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
     if (marketError) logger.warn({ err: marketError }, 'Market data query warning');
 
     const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
     if (statsError) logger.warn({ err: statsError }, 'Assessment statistics query warning');
 
-    // Fetch the assessment by public_id and ensure it is public
     const { data: assessmentRow, error: assessmentError } = await supabase
       .from('user_assessments')
       .select('overall_score, result_json, industry, is_public')
@@ -730,7 +611,6 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
       throw notFoundError;
     }
 
-    // Defensive check: return 403 if the record exists but is not public
     if (!assessmentRow.is_public) {
       const forbiddenError = new Error('Assessment is not public');
       forbiddenError.code = 'FORBIDDEN';
@@ -738,7 +618,7 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
     }
 
     const userScore = assessmentRow?.overall_score ?? null;
-    const userIndustry = assessmentRow?.industry ?? null; // structured column only
+    const userIndustry = assessmentRow?.industry ?? null;
 
     let userPercentile = null;
     if (typeof userScore === 'number') {
@@ -811,32 +691,14 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
 
 /**
  * Compare two assessments with visibility rules
- * Handles cross-user comparisons with proper privacy enforcement
- * @param {Object} supabase - Supabase client
- * @param {Object} user - Authenticated user object
- * @param {string} token - Authorization token
- * @param {string} publicId1 - First assessment public ID
- * @param {string} publicId2 - Second assessment public ID
- * @returns {Promise<Object>} Both assessments with visibility checking
  */
 export async function compareAssessments(supabase, user, token, publicId1, publicId2) {
   const startTime = Date.now();
 
   try {
-    const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
     const userId = user?.id;
 
-    // Fetch both assessments with public_id
-    const [res1, res2] = await Promise.all([
-      userClient.from('user_assessments').select('*').eq('public_id', publicId1).maybeSingle(),
-      userClient.from('user_assessments').select('*').eq('public_id', publicId2).maybeSingle(),
-    ]);
-
-    if (res1.error || res2.error) {
-      throw res1.error || res2.error;
-    }
-
-    // Get basic info (just user_id and is_public) without RLS filtering to check access
+    // Fetch basic info for both to check ownership/visibility
     const [basicRes1, basicRes2] = await Promise.all([
       supabase
         .from('user_assessments')
@@ -850,137 +712,86 @@ export async function compareAssessments(supabase, user, token, publicId1, publi
         .maybeSingle(),
     ]);
 
-    if (basicRes1.error || basicRes2.error) {
-      throw basicRes1.error || basicRes2.error;
-    }
+    if (basicRes1.error || basicRes2.error) throw basicRes1.error || basicRes2.error;
 
     const basic1 = basicRes1.data;
     const basic2 = basicRes2.data;
 
-    // Check if IDs are invalid
     if (!basic1 || !basic2) {
       const error = new Error('one or more ids incorrect');
       error.code = 'INVALID_IDS';
       throw error;
     }
 
-    // Check visibility rules
-    const isOwnAssessment1 = basic1.user_id === userId;
-    const isOwnAssessment2 = basic2.user_id === userId;
+    const isOwn1 = basic1.user_id === userId;
+    const isOwn2 = basic2.user_id === userId;
 
-    // If both belong to user, allow access
-    if (isOwnAssessment1 && isOwnAssessment2) {
-      // Return full data for user's own assessments
-      const data1 = res1.data;
-      const data2 = res2.data;
+    // Helper: fetch full row, optionally requiring is_public
+    const fetchFull = (publicId, requirePublic = false) => {
+      let q = supabase.from('user_assessments').select('*').eq('public_id', publicId);
+      if (requirePublic) q = q.eq('is_public', true);
+      return q.maybeSingle();
+    };
 
-      if (!data1 || !data2) {
+    // Both owned by user — no visibility restriction needed
+    if (isOwn1 && isOwn2) {
+      const [r1, r2] = await Promise.all([fetchFull(publicId1), fetchFull(publicId2)]);
+      if (r1.error || r2.error || !r1.data || !r2.data) {
         const error = new Error('Assessment not found');
         error.code = 'NOT_FOUND';
         throw error;
       }
-
       logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return {
-        assessment1: data1,
-        assessment2: data2,
-      };
+      return { assessment1: r1.data, assessment2: r2.data };
     }
 
-    // If one is user's and one is from another user
-    if (isOwnAssessment1 && !isOwnAssessment2) {
-      // Check if the other user's assessment is public
+    // One owned, one foreign — foreign must be public
+    if (isOwn1 && !isOwn2) {
       if (!basic2.is_public) {
         const error = new Error('one or more assessments isnt public');
         error.code = 'NOT_PUBLIC';
         throw error;
       }
-      // Fetch the public assessment
-      const pubRes2 = await supabase
-        .from('user_assessments')
-        .select('*')
-        .eq('public_id', publicId2)
-        .eq('is_public', true)
-        .maybeSingle();
-
-      if (pubRes2.error || !pubRes2.data) {
+      const [r1, r2] = await Promise.all([fetchFull(publicId1), fetchFull(publicId2, true)]);
+      if (!r1.data || !r2.data) {
         const error = new Error('one or more assessments isnt public');
         error.code = 'NOT_PUBLIC';
         throw error;
       }
-
       logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return {
-        assessment1: res1.data,
-        assessment2: pubRes2.data,
-      };
+      return { assessment1: r1.data, assessment2: r2.data };
     }
 
-    if (!isOwnAssessment1 && isOwnAssessment2) {
-      // Check if the other user's assessment is public
+    if (!isOwn1 && isOwn2) {
       if (!basic1.is_public) {
         const error = new Error('one or more assessments isnt public');
         error.code = 'NOT_PUBLIC';
         throw error;
       }
-      // Fetch the public assessment
-      const pubRes1 = await supabase
-        .from('user_assessments')
-        .select('*')
-        .eq('public_id', publicId1)
-        .eq('is_public', true)
-        .maybeSingle();
-
-      if (pubRes1.error || !pubRes1.data) {
+      const [r1, r2] = await Promise.all([fetchFull(publicId1, true), fetchFull(publicId2)]);
+      if (!r1.data || !r2.data) {
         const error = new Error('one or more assessments isnt public');
         error.code = 'NOT_PUBLIC';
         throw error;
       }
-
       logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return {
-        assessment1: pubRes1.data,
-        assessment2: res2.data,
-      };
+      return { assessment1: r1.data, assessment2: r2.data };
     }
 
-    // Both belong to different users
-    if (!isOwnAssessment1 && !isOwnAssessment2) {
-      // Both must be public
-      if (!basic1.is_public || !basic2.is_public) {
-        const error = new Error('one or more assessments isnt public');
-        error.code = 'NOT_PUBLIC';
-        throw error;
-      }
-
-      // Fetch both public assessments
-      const [pubRes1, pubRes2] = await Promise.all([
-        supabase
-          .from('user_assessments')
-          .select('*')
-          .eq('public_id', publicId1)
-          .eq('is_public', true)
-          .maybeSingle(),
-        supabase
-          .from('user_assessments')
-          .select('*')
-          .eq('public_id', publicId2)
-          .eq('is_public', true)
-          .maybeSingle(),
-      ]);
-
-      if (pubRes1.error || pubRes2.error || !pubRes1.data || !pubRes2.data) {
-        const error = new Error('one or more assessments isnt public');
-        error.code = 'NOT_PUBLIC';
-        throw error;
-      }
-
-      logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return {
-        assessment1: pubRes1.data,
-        assessment2: pubRes2.data,
-      };
+    // Both foreign — both must be public
+    if (!basic1.is_public || !basic2.is_public) {
+      const error = new Error('one or more assessments isnt public');
+      error.code = 'NOT_PUBLIC';
+      throw error;
     }
+    const [r1, r2] = await Promise.all([fetchFull(publicId1, true), fetchFull(publicId2, true)]);
+    if (!r1.data || !r2.data) {
+      const error = new Error('one or more assessments isnt public');
+      error.code = 'NOT_PUBLIC';
+      throw error;
+    }
+    logOperation('compareAssessments', 'success', Date.now() - startTime);
+    return { assessment1: r1.data, assessment2: r2.data };
   } catch (error) {
     logOperation('compareAssessments', 'error', Date.now() - startTime);
     throw error;

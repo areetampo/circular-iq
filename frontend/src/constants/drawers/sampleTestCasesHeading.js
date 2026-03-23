@@ -12,21 +12,27 @@ export const SAMPLE_TEST_CASES_HEADING_CONTENT = {
     'Learn the level of detail expected',
     'Get inspiration for your own circular economy solution',
   ],
-  sections: [
-    {
+  sections: {
+    howTheyWork: {
       title: 'How to Use Test Cases',
-      content:
-        'Click "Load Test Case" to populate the form with a complete example. You can then modify it or use it as a reference for your own submission.',
+      steps: [
+        {
+          num: 1,
+          title: 'Click "Load Test Case"',
+          desc: 'Click "Load Test Case" to populate the form with a complete example.',
+        },
+        {
+          num: 2,
+          title: 'Review and Understand',
+          desc: 'See how different business models are structured and what makes a good submission.',
+        },
+        {
+          num: 3,
+          title: 'Modify or Create Your Own',
+          desc: 'You can modify the example or use it as a reference for your own submission.',
+        },
+      ],
     },
-    {
-      title: 'What Makes a Good Test Case',
-      content:
-        'Each test case demonstrates best practices: specific metrics, clear business models, quantified environmental impact, and realistic scalability plans.',
-    },
-    {
-      title: 'Learning from Examples',
-      content:
-        'Study how successful circular economy businesses structure their problems, solutions, and evaluation parameters. Notice the use of specific numbers and measurable outcomes.',
-    },
-  ],
+    tip: 'Study how successful circular economy businesses structure their problems, solutions, and evaluation parameters. Notice the use of specific numbers and measurable outcomes.',
+  },
 };

@@ -1,69 +1,10 @@
 import { Drawer } from '@heroui/react';
 import { ClipboardMinus } from 'lucide-react';
 
+import { BUSINESS_SOLUTION_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
 import { cn } from '@/utils/cn';
-
-const SOLUTION_COMPONENTS = [
-  {
-    title: 'Materials and Inputs',
-    description:
-      'Exact materials used with specifications (post-consumer PET, agricultural hemp fiber, recycled aluminum).',
-  },
-  {
-    title: 'Process and Technology',
-    description:
-      'Step-by-step transformation process and standards met (e.g., mechanical sorting, washing, pelletizing at 230C).',
-  },
-  {
-    title: 'Business Model and Logistics',
-    description:
-      'How you collect, process, and distribute (hub-and-spoke, delivery-as-a-service, reverse logistics network).',
-  },
-  {
-    title: 'Circularity Loop',
-    description:
-      'How materials return to use (composted material sold to farms, returning to feedstock for your product).',
-  },
-  {
-    title: 'Key Performance Metrics',
-    description:
-      'Quantified results (recovery rate, unit cost, composting time, carbon footprint vs virgin materials).',
-  },
-  {
-    title: 'Partnerships and Infrastructure',
-    description:
-      'Key collaborators (waste management partners, processing facilities, certification bodies, distribution channels).',
-  },
-  {
-    title: 'Scalability Path',
-    description:
-      'How the solution grows (pilot to regional to national; target units per month by year 2).',
-  },
-  {
-    title: 'Economic Viability',
-    description: 'Revenue model, cost structure, and comparison to conventional alternatives.',
-  },
-];
-
-const SOLUTION_PITFALLS = [
-  'Avoid vague descriptions; provide specific materials and processes.',
-  'Avoid missing technical details; include equipment, temperatures, and cycle times.',
-  'Avoid absent metrics; include recovery rates, costs, and carbon impact.',
-  'Avoid unclear loop closure; explain how materials re-enter the system.',
-];
-
-const SOLUTION_PRO_TIPS = [
-  'Use industry-standard terminology and note certifications.',
-  'Include both environmental and economic metrics.',
-  'Mention regulatory compliance (FDA, EPA, ISO, etc.).',
-  'Compare to conventional alternatives (cost, performance, impact).',
-  'Show real-world validation (pilots, customers, third-party testing).',
-];
-
-const SOLUTION_EXAMPLE =
-  'We convert agricultural hemp waste into compostable mailers and run a hub-and-spoke collection model. Customers use prepaid mailers; 15 regional hubs aggregate returns; certified composters process 95% of materials within 90 days into soil amendments. Those amendments are sold back to hemp farms, creating a closed loop. Cost: $0.85 per unit at scale; home-compostable in 180 days.';
 
 export default function BusinessSolutionInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -114,7 +55,7 @@ export default function BusinessSolutionInfoDrawer() {
                 <div className="p-4 bg-teal-50 rounded-xl border border-teal-200">
                   <h4 className="mb-3 text-base font-bold text-teal-700">Critical Components</h4>
                   <div className="space-y-2">
-                    {SOLUTION_COMPONENTS.map((item, idx) => (
+                    {BUSINESS_SOLUTION_CONTENT.components.map((item, idx) => (
                       <div
                         key={idx}
                         className={[
@@ -149,7 +90,7 @@ export default function BusinessSolutionInfoDrawer() {
                 <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
                   <h4 className="mb-3 text-base font-bold text-orange-700">Common Pitfalls</h4>
                   <ul className="space-y-1">
-                    {SOLUTION_PITFALLS.map((pitfall) => (
+                    {BUSINESS_SOLUTION_CONTENT.pitfalls.map((pitfall) => (
                       <li key={pitfall} className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-orange-500 font-bold">×</span>
                         <span>{pitfall}</span>
@@ -161,7 +102,7 @@ export default function BusinessSolutionInfoDrawer() {
                 <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
                   <h4 className="mb-3 text-base font-bold text-emerald-700">Pro Tips</h4>
                   <ul className="space-y-1">
-                    {SOLUTION_PRO_TIPS.map((tip) => (
+                    {BUSINESS_SOLUTION_CONTENT.proTips.map((tip) => (
                       <li key={tip} className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-emerald-500 font-bold">✓</span>
                         <span>{tip}</span>
@@ -173,7 +114,7 @@ export default function BusinessSolutionInfoDrawer() {
                 <div>
                   <h4 className="mb-2 text-base font-bold text-indigo-700">Example Statement</h4>
                   <p className="p-3 italic text-sm leading-relaxed text-gray-600 rounded-lg bg-indigo-50 border border-l-4 border-indigo-300 border-l-indigo-500">
-                    {SOLUTION_EXAMPLE}
+                    {BUSINESS_SOLUTION_CONTENT.example}
                   </p>
                 </div>
 

@@ -94,9 +94,6 @@ export function Button({
         className={clsx(
           customVariantStyles[variant],
           resolvedSize,
-          'transition-all duration-200 ease-out',
-          'active:scale-95',
-          isLoading && 'opacity-70',
           'data-[disabled=true]:cursor-not-allowed',
           className,
         )}
@@ -113,14 +110,7 @@ export function Button({
 
   return (
     <HeroButton
-      className={clsx(
-        resolvedSize,
-        'transition-all duration-200 ease-out',
-        'active:scale-95',
-        isLoading && 'opacity-70',
-        'data-[disabled=true]:cursor-not-allowed',
-        className,
-      )}
+      className={clsx(resolvedSize, 'data-[disabled=true]:cursor-not-allowed', className)}
       variant={variant}
       size={undefined}
       isDisabled={isButtonDisabled}

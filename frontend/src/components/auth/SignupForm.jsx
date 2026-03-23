@@ -120,7 +120,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   <div className="flex gap-2 items-center">
                     <Label className="text-sm font-medium text-gray-900">Username</Label>
                     {errors.username && (
-                      <FieldError className="text-xs">({errors.username.message})</FieldError>
+                      <FieldError className="text-xs">(Incorrect username format)</FieldError>
                     )}
                   </div>
                   <Input
@@ -134,9 +134,12 @@ export function SignupForm({ onSwitchToLogin }) {
                     autoCapitalize="none"
                     autoCorrect="off"
                   />
-                  <span className="text-xs pl-2 pt-1 opacity-60">
-                    {`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars · ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`}
-                  </span>
+                  <div className="text-xs pl-2 pt-1 opacity-60">
+                    <p>{`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}</p>
+                    <div className="whitespace-pre-line">
+                      {AUTH_VALIDATION.USERNAME.PATTERN_DESC}
+                    </div>
+                  </div>
                 </TextField>
               )}
             />
@@ -150,20 +153,21 @@ export function SignupForm({ onSwitchToLogin }) {
                   <div className="flex gap-2 items-center">
                     <Label className="text-sm font-medium text-gray-900">Password</Label>
                     {errors.password && (
-                      <FieldError className="text-xs">({errors.password.message})</FieldError>
+                      <FieldError className="text-xs">(Incorrect password format)</FieldError>
                     )}
                   </div>
                   <Input
                     {...field}
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="••••••"
                     disabled={isLoading}
                     className="mt-1.5"
                     autoComplete="new-password"
                   />
-                  <span className="text-xs pl-2 pt-1 opacity-60">
-                    {`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars · ${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}
-                  </span>
+                  <div className="text-xs pl-2 pt-1 opacity-60">
+                    <p>{`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}</p>
+                    <div className="whitespace-pre-line">{`${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}</div>
+                  </div>
                 </TextField>
               )}
             />

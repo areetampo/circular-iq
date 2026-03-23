@@ -191,11 +191,11 @@ validateConfig();
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/search', createSearchRouter(openai));
-app.use('/api/assessments', createAssessmentsRouter(supabase));
+app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
 
-app.get('/api/profile', requireAuth(supabase), async (req, res) => {
+app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await serviceSupabase
       .from('profiles')
       .select('id, username, created_at, updated_at')
       .eq('id', req.user.id)
