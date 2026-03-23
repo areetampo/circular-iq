@@ -1,10 +1,5 @@
 import {
   Card,
-  Checkbox,
-  Chip,
-  Button as HeroButton,
-  Input,
-  Label,
   ListBox,
   Pagination,
   Popover,
@@ -12,475 +7,26 @@ import {
   Separator,
   Skeleton,
   toast,
-  Tooltip,
 } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  AlertCircle,
-  ArrowLeft,
-  Award,
-  Building,
-  CheckCircle2,
-  Clock,
-  Copy,
-  Edit,
-  Eye,
-  Ghost,
-  GitCompare,
-  Plus,
-  Search,
-  Trash2,
-} from 'lucide-react';
-import PropTypes from 'prop-types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Award, Building, Ghost, Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, ErrorDisplay } from '@/components/common';
-import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
-import CopyButton from '@/components/modern-ui/copy-button';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
-import { getIndustryTheme } from '@/constants/industryThemes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import {
-  getAssessments,
-  useAssessments,
-  useAssessmentStats,
-  usePrefetchAssessment,
-} from '@/features/assessments';
-import { updateAssessment } from '@/features/assessments/api/assessmentApi';
+import { getAssessments, updateAssessment } from '@/features/assessments/api/assessmentApi';
+import { usePrefetchAssessment } from '@/features/assessments/hooks/useAssessment';
+import { useAssessments } from '@/features/assessments/hooks/useAssessments';
+import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useDebounce } from '@/hooks/useDebounce';
-import { formatTimestamp, formatTruncatedList } from '@/lib/formatting';
-import { cn } from '@/utils/cn';
+import { formatTruncatedList } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
 
 import { parseSortBy } from './sortUtils';
 
-// Memoized AssessmentCard Component - Beautiful Redesign with VISIBLE Checkbox
-const AssessmentCard = React.memo(function AssessmentCard({
-  assessment,
-  isSelected,
-  onToggleSelect,
-  onView,
-  onRename,
-  onDelete,
-  onPrefetch,
-  onTogglePublic,
-  onToggleBenchmarks,
-}) {
-  // Status mapping with icons
-  const getStatus = (score) => {
-    if (score >= 80)
-      return {
-        text: 'Excellent',
-        color: 'success',
-        icon: CheckCircle2,
-      };
-    if (score >= 60)
-      return {
-        text: 'Good',
-        color: 'accent',
-        icon: CheckCircle2,
-      };
-    if (score >= 40)
-      return {
-        text: 'Needs Work',
-        color: 'warning',
-        icon: Clock,
-      };
-    return {
-      text: 'Critical',
-      color: 'danger',
-      icon: AlertCircle,
-    };
-  };
-
-  const assessmentCardButtons = [
-    {
-      label: 'View',
-      icon: Eye,
-      variant: 'teal',
-      onClick: () => onView(assessment.public_id),
-      className: '',
-    },
-    {
-      label: 'Rename',
-      icon: Edit,
-      variant: 'info',
-      onClick: () => onRename(assessment.id),
-      className: '',
-    },
-    {
-      label: 'Delete',
-      icon: Trash2,
-      variant: 'danger',
-      onClick: () => onDelete(assessment.id),
-      className: '',
-    },
-  ];
-
-  const status = getStatus(assessment.overall_score);
-  const StatusIcon = status.icon;
-
-  return (
-    <Card
-      className={cn(
-        'group relative overflow-hidden bg-slate-50 transition-all duration-200 ease-out ',
-        isSelected ? 'shadow-lg shadow-blue-100' : 'hover:shadow-lg',
-      )}
-      onMouseEnter={() => onPrefetch(assessment.public_id)}
-    >
-      {/* Subtle gradient overlay on hover */}
-      <div className="absolute inset-0 bg-linear-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-      <div className="relative p-0 xxs:p-3 space-y-5">
-        {/* Header Section */}
-        <div className="flex items-start gap-4">
-          {/* Checkbox - Clean round style */}
-          <div className="pt-0.5 shrink-0">
-            <Checkbox
-              isSelected={isSelected}
-              onChange={() => onToggleSelect(assessment.id)}
-              size="lg"
-              color="primary"
-              className="cursor-pointer"
-            >
-              <Checkbox.Control className="size-6 rounded-full before:rounded-full border">
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-            </Checkbox>
-          </div>
-
-          {/* Content Section */}
-          <div className="flex-1 min-w-0 space-y-3">
-            {/* Title with better typography */}
-            <h3
-              className="font-semibold text-xl text-slate-900 leading-tight truncate group-hover:text-blue-700 transition-colors duration-200 ml-0.5"
-              title={assessment.title}
-            >
-              {assessment.title || 'Untitled Assessment'}
-            </h3>
-
-            {/* Metadata chips with timestamp - responsive layout */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              {/* Industry Badge */}
-              <Chip variant="secondary" color="default" size="lg">
-                <Building size={14} />
-                <Chip.Label className="uppercase">
-                  {(assessment.industry || 'General').replace(/_/g, ' ')}
-                </Chip.Label>
-              </Chip>
-
-              {/* Score Badge - Prominent */}
-              <Chip
-                variant="primary"
-                color={
-                  assessment.overall_score >= 80
-                    ? 'success'
-                    : assessment.overall_score >= 60
-                      ? 'accent'
-                      : assessment.overall_score >= 40
-                        ? 'warning'
-                        : 'danger'
-                }
-                size="lg"
-              >
-                <Chip.Label className="text-white">{assessment.overall_score}%</Chip.Label>
-              </Chip>
-
-              {/* Status Badge */}
-              <Chip variant="soft" color={status.color} size="lg">
-                <StatusIcon size={14} />
-                <Chip.Label>{status.text}</Chip.Label>
-              </Chip>
-
-              {/* Timestamp - Inline on desktop, wraps on mobile */}
-              <div className="flex items-center gap-1.5 text-sm text-slate-500 ml-1">
-                <Clock size={14} />
-                <span className="italic">Created {formatTimestamp(assessment.created_at)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons - Prominent and well-spaced */}
-        <div className="flex flex-wrap gap-2 sm:py-2 px-4">
-          {assessmentCardButtons.map((btn) => {
-            const Icon = btn.icon;
-            return (
-              <Button
-                key={btn.label}
-                size="md"
-                variant={btn.variant}
-                onPress={btn.onClick}
-                className={cn('flex-1 sm:flex-none', btn.className)}
-              >
-                <Icon size={16} />
-                <span className="font-medium hidden xxs:inline">{btn.label}</span>
-              </Button>
-            );
-          })}
-        </div>
-
-        {/* Toggles Section - Enhanced visual design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
-          {/* Global Benchmarks Toggle (choice-card) */}
-          <ChoiceCardSwitch
-            isSelected={assessment.contribute_to_global_benchmarks || false}
-            onChange={() => onToggleBenchmarks(assessment.id)}
-            size="md"
-            variant="blue"
-            title="Global Benchmarks"
-            description="Share anonymously"
-          />
-
-          {/* Public Access Toggle (choice-card) */}
-          <ChoiceCardSwitch
-            isSelected={assessment.is_public || false}
-            onChange={() => onTogglePublic(assessment.id)}
-            size="md"
-            variant="emerald"
-            title="Public Access"
-            description="Share via link"
-            trailing={
-              <CopyButton
-                value={
-                  assessment.public_id
-                    ? `${window.location.origin}/assessments/share/${assessment.public_id}`
-                    : ''
-                }
-                disabled={!assessment.is_public || !assessment.public_id}
-              />
-            }
-          />
-        </div>
-
-        {/* Copy PublicId Button */}
-        {assessment.public_id && (
-          <div className="px-4 pt-2">
-            <Button
-              size="sm"
-              variant="neutral"
-              className="w-full"
-              onPress={() => {
-                navigator.clipboard.writeText(assessment.public_id).catch(() => {});
-                toast.success('Assessment ID copied to clipboard');
-              }}
-            >
-              <Copy size={16} />
-              Copy Assessment ID
-            </Button>
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-});
-
-AssessmentCard.propTypes = {
-  assessment: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    title: PropTypes.string,
-    industry: PropTypes.string,
-    overall_score: PropTypes.number,
-    is_public: PropTypes.bool,
-    public_id: PropTypes.string,
-    contribute_to_global_benchmarks: PropTypes.bool,
-    created_at: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number,
-      PropTypes.instanceOf(Date),
-    ]),
-  }).isRequired,
-  isSelected: PropTypes.bool.isRequired,
-  onToggleSelect: PropTypes.func.isRequired,
-  onView: PropTypes.func.isRequired,
-  onRename: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onPrefetch: PropTypes.func.isRequired,
-  onTogglePublic: PropTypes.func.isRequired,
-  onToggleBenchmarks: PropTypes.func.isRequired,
-};
-
-// Memoized AssessmentCardSkeleton - Matches the actual Assessment Card structure
-const AssessmentCardSkeleton = React.memo(function AssessmentCardSkeleton() {
-  return (
-    <Card className="group relative overflow-hidden bg-white">
-      <div className="relative p-3 space-y-5">
-        {/* Header Section */}
-        <div className="flex items-start gap-4">
-          {/* Checkbox */}
-          <div className="pt-0.5 shrink-0">
-            <Skeleton animationType="shimmer" className="w-6 h-6 rounded-full" />
-          </div>
-
-          {/* Content Section */}
-          <div className="flex-1 min-w-0 space-y-3">
-            {/* Title */}
-            <Skeleton animationType="shimmer" className="h-6 w-3/4 rounded ml-0.5" />
-
-            {/* Metadata chips row */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              {/* Industry Badge */}
-              <Skeleton animationType="shimmer" className="h-7 w-24 rounded-full" />
-
-              {/* Score Badge */}
-              <Skeleton animationType="shimmer" className="h-7 w-16 rounded-full" />
-
-              {/* Status Badge */}
-              <Skeleton animationType="shimmer" className="h-7 w-28 rounded-full" />
-
-              {/* Timestamp */}
-              <Skeleton animationType="shimmer" className="h-4 w-32 rounded ml-1" />
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 sm:py-2 px-4">
-          <Skeleton
-            animationType="shimmer"
-            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-[100px]"
-          />
-          <Skeleton
-            animationType="shimmer"
-            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-[100px]"
-          />
-          <Skeleton
-            animationType="shimmer"
-            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-[100px]"
-          />
-        </div>
-
-        {/* Toggles Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
-          {/* Global Benchmarks Toggle */}
-          <div className="flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border bg-slate-50 border-slate-200 flex-col xxs:flex-row">
-            <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <Skeleton animationType="shimmer" className="w-8 h-8 rounded-lg shrink-0" />
-              <div className="flex-1 min-w-0 space-y-1">
-                <Skeleton animationType="shimmer" className="h-3.5 w-32 rounded" />
-                <Skeleton animationType="shimmer" className="h-3 w-24 rounded" />
-              </div>
-            </div>
-            <Skeleton animationType="shimmer" className="w-11 h-6 rounded-full shrink-0" />
-          </div>
-
-          {/* Public Access Toggle */}
-          <div className="flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border bg-slate-50 border-slate-200 flex-col xxs:flex-row">
-            <div className="flex items-center gap-2.5 flex-1 min-w-0">
-              <Skeleton animationType="shimmer" className="w-8 h-8 rounded-lg shrink-0" />
-              <div className="flex-1 min-w-0 space-y-1">
-                <Skeleton animationType="shimmer" className="h-3.5 w-28 rounded" />
-                <Skeleton animationType="shimmer" className="h-3 w-20 rounded" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Skeleton animationType="shimmer" className="w-11 h-6 rounded-full" />
-              <Skeleton animationType="shimmer" className="w-8 h-8 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-});
-
-// Memoized Assessment List Component - Beautiful spacing
-const AssessmentList = React.memo(function AssessmentList({
-  assessments,
-  selectedIds,
-  onToggleSelect,
-  onView,
-  onRename,
-  onDelete,
-  onPrefetch,
-  onTogglePublic,
-  onToggleBenchmarks,
-}) {
-  return (
-    <>
-      {assessments.map((assessment) => {
-        return (
-          <AssessmentCard
-            key={assessment.id}
-            assessment={assessment}
-            isSelected={selectedIds.has(assessment.id)}
-            onToggleSelect={onToggleSelect}
-            onView={onView}
-            onRename={onRename}
-            onDelete={onDelete}
-            onPrefetch={onPrefetch}
-            onTogglePublic={onTogglePublic}
-            onToggleBenchmarks={onToggleBenchmarks}
-          />
-        );
-      })}
-    </>
-  );
-});
-
-AssessmentList.propTypes = {
-  assessments: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      title: PropTypes.string,
-      industry: PropTypes.string,
-      overall_score: PropTypes.number,
-      created_at: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.instanceOf(Date),
-      ]),
-    }),
-  ).isRequired,
-  selectedIds: PropTypes.instanceOf(Set).isRequired,
-  onToggleSelect: PropTypes.func.isRequired,
-  onView: PropTypes.func.isRequired,
-  onRename: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onPrefetch: PropTypes.func.isRequired,
-  onTogglePublic: PropTypes.func.isRequired,
-  onToggleBenchmarks: PropTypes.func.isRequired,
-};
-
-// Memoized AssessmentListSkeleton - Matches the actual Assessment List structure
-const AssessmentListSkeleton = React.memo(function AssessmentListSkeleton() {
-  return Array.from({ length: 5 }).map((_, idx) => <AssessmentCardSkeleton key={idx} />);
-});
-
-// Memoized Industry Filter Chip Component - Optimized with industry-specific theming
-const IndustryFilterChip = React.memo(function IndustryFilterChip({
-  industry,
-  isSelected,
-  onToggle,
-  label,
-}) {
-  const theme = getIndustryTheme(industry);
-
-  return (
-    <Chip
-      onClick={() => onToggle(industry)}
-      className={cn(
-        'cursor-pointer select-none transition-colors duration-200 ease-in-out',
-        'border font-medium',
-        isSelected
-          ? `${theme.selectedBg} ${theme.selectedText} ${theme.selectedBorder}`
-          : `bg-white ${theme.unselectedText} ${theme.unselectedBorder}`,
-        !isSelected && theme.hoverClasses,
-      )}
-      aria-pressed={isSelected}
-    >
-      <Chip.Label className="px-1">{label}</Chip.Label>
-    </Chip>
-  );
-});
-
-IndustryFilterChip.propTypes = {
-  industry: PropTypes.string.isRequired,
-  isSelected: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
-  label: PropTypes.string.isRequired,
-};
+import { AssessmentList, AssessmentListSkeleton, FilterBar } from './components';
 
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();
@@ -732,9 +278,7 @@ export default function MyAssessmentsPage() {
       }
 
       try {
-        console.log('[DELETE_START]', { id });
         const result = await removeAssessmentAsync(id);
-        console.log('[DELETE_SUCCESS]', { id, result });
 
         setSelectedIds((prev) => {
           const next = new Set(prev);
@@ -749,7 +293,7 @@ export default function MyAssessmentsPage() {
 
         return result;
       } catch (err) {
-        console.error('[DELETE_ERROR]', { id, error: err.message, fullError: err });
+        logger.error('[DELETE_ERROR]', { id, error: err.message });
         const errorMsg = err?.message || 'Please try again.';
         toast.danger(`Delete failed: ${errorMsg}`, { timeout: 4000 });
         throw err;
@@ -862,7 +406,7 @@ export default function MyAssessmentsPage() {
           timeout: 3000,
         });
       } catch (error) {
-        console.error('Error updating public status:', error);
+        logger.error('Error updating public status:', error);
         toast.danger(`Failed to update sharing settings: ${error}`, { timeout: 4000 });
       }
     },
@@ -886,7 +430,7 @@ export default function MyAssessmentsPage() {
           { timeout: 3000 },
         );
       } catch (error) {
-        console.error('Error updating benchmark settings:', error);
+        logger.error('Error updating benchmark settings:', error);
         toast.danger(`Failed to update benchmark settings: ${error}`, { timeout: 4000 });
       }
     },
@@ -1097,142 +641,19 @@ export default function MyAssessmentsPage() {
 
           {/* Filters & Controls Card - STATIC during filter changes - Beautiful spacing */}
           {stats_totalAssessments > 0 && (
-            <Card className="border-2 border-slate-200 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
-              <div className="p-6 space-y-6">
-                {/* Sort and Search Row - compact responsive layout */}
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="w-48">
-                      <Select
-                        className="w-full"
-                        placeholder="Sort by"
-                        value={sortBy}
-                        onChange={(value) => {
-                          setSortBy(value || 'created_at_desc');
-                          setPage(1);
-                        }}
-                        variant="bordered"
-                        size="md"
-                      >
-                        <Label className="text-sm font-semibold text-slate-700">Sort by</Label>
-                        <Select.Trigger>
-                          <Select.Value />
-                          <Select.Indicator />
-                        </Select.Trigger>
-                        <Select.Popover>
-                          <ListBox>
-                            <ListBox.Item id="created_at_asc" textValue="Date Created (Oldest)">
-                              Date Created (Oldest)
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="created_at_desc" textValue="Date Created (Newest)">
-                              Date Created (Newest)
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="title_asc" textValue="Title (A-Z)">
-                              Title (A-Z)
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="title_desc" textValue="Title (Z-A)">
-                              Title (Z-A)
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="overall_score_asc" textValue="Score (Low to High)">
-                              Score (Low to High)
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="overall_score_desc" textValue="Score (High to Low)">
-                              Score (High to Low)
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                          </ListBox>
-                        </Select.Popover>
-                      </Select>
-                    </div>
-
-                    {/* Small helper action to reset sorting quickly */}
-                    <HeroButton
-                      onClick={() => setSortBy('created_at_desc')}
-                      size="md"
-                      variant="ghost"
-                      className="hidden md:inline-flex"
-                    >
-                      Reset
-                    </HeroButton>
-                  </div>
-
-                  {/* Search placed to the right on larger screens, full-width on mobile */}
-                  <div className="flex-1 lg:ml-6">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-sm font-semibold text-slate-700">Search</label>
-                      <div className="relative">
-                        <Search
-                          className="absolute transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10"
-                          size={16}
-                        />
-                        <Input
-                          type="text"
-                          placeholder="Search by title..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          variant="bordered"
-                          size="md"
-                          className="pl-10 w-full"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Industry Filter Chips */}
-                {industryOptions.length > 1 && (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Filter by Industry
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {industryOptions.map((industry) => (
-                        <IndustryFilterChip
-                          key={industry}
-                          industry={industry}
-                          isSelected={selectedIndustries.includes(industry)}
-                          onToggle={handleToggleIndustry}
-                          label={
-                            industry === 'all' ? 'All Industries' : formatIndustryLabel(industry)
-                          }
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <Separator orientation="horizontal" />
-
-                {/* Compare 2 Assessments Button */}
-                <div className="flex justify-center items-center">
-                  <Tooltip delay={0} isDisabled={selectedIds.size === 2}>
-                    <Tooltip.Trigger>
-                      <Button
-                        onPress={handleCompareSelected}
-                        isDisabled={selectedIds.size !== 2}
-                        variant="teal"
-                        size="md"
-                      >
-                        <GitCompare size={16} />
-                        {selectedIds.size}/2 Compare Selected
-                      </Button>
-                    </Tooltip.Trigger>
-                    <Tooltip.Content showArrow placement="top">
-                      <Tooltip.Arrow />
-                      <span>
-                        Select exactly 2 assessments to see how your initiative evolved over time or
-                        compare strategies side-by-side.
-                      </span>
-                    </Tooltip.Content>
-                  </Tooltip>
-                </div>
-              </div>
-            </Card>
+            <FilterBar
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              setPage={setPage}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              industryOptions={industryOptions}
+              selectedIndustries={selectedIndustries}
+              handleToggleIndustry={handleToggleIndustry}
+              formatIndustryLabel={formatIndustryLabel}
+              selectedIds={selectedIds}
+              handleCompareSelected={handleCompareSelected}
+            />
           )}
 
           {/* Assessment List Section - ONLY this shows loading during filter changes */}
@@ -1427,5 +848,3 @@ export default function MyAssessmentsPage() {
     </div>
   );
 }
-
-MyAssessmentsPage.propTypes = {};

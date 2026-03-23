@@ -1,12 +1,13 @@
 export * from './api/assessmentApi';
-export * from './hooks/useAssessment';
-export * from './hooks/useAssessmentComparison';
-export * from './hooks/useAssessments';
-export * from './hooks/useAssessmentStats';
-export * from './hooks/useDocumentStats';
-export * from './hooks/useEnhancedAnalytics';
-export * from './hooks/useFeaturedSolutions';
-export * from './hooks/useGlobalAnalytics';
-export * from './hooks/useGlobalStats';
-export * from './hooks/useMarketAnalysis';
-export * from './hooks/useSearch';
+export {
+  useAssessment,
+  useCreateAssessment,
+  usePrefetchAssessment,
+  usePublicAssessment,
+} from './hooks/useAssessment';
+export { useAssessmentComparison } from './hooks/useAssessmentComparison';
+export { useAssessments } from './hooks/useAssessments';
+export { useAssessmentStats } from './hooks/useAssessmentStats';
+export { useDocumentStats } from './hooks/useDocumentStats';
+export { useFeaturedSolutions } from './hooks/useFeaturedSolutions';
+export { useGlobalStats } from './hooks/useGlobalStats';

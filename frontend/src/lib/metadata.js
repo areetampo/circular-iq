@@ -1,7 +1,4 @@
-/**
- * Metadata helpers
- * Prefer structured top-level columns (industry, category) and fall back to metadata JSONB
- */
+/** Extracts industry, category, and scale from assessment results. */
 
 export function getField(obj, field) {
   if (!obj) return null;

@@ -78,7 +78,7 @@ async function extractTextFromPdf(filePath) {
   try {
     pdfDocument = await loadingTask.promise;
   } catch (err) {
-    console.error(`  PDF parse error: ${err.message}`);
+    logger.error(`  PDF parse error: ${err.message}`);
     return null;
   }
 
@@ -470,18 +470,18 @@ async function main() {
       // item has { filename, detailUrl, pdfUrl }
       metadataMap.set(item.filename, item.detailUrl || '');
     }
-    console.log(`Loaded source URLs for ${metadataMap.size} files from metadata.json.`);
+    logger.info(`Loaded source URLs for ${metadataMap.size} files from metadata.json.`);
   } else {
-    console.warn('‼ metadata.json not found – source_url will be empty.');
+    logger.warn('‼ metadata.json not found – source_url will be empty.');
   }
 
   if (!fs.existsSync(RAW_DIR)) {
-    console.error(`Raw directory not found: ${RAW_DIR}`);
+    logger.error(`Raw directory not found: ${RAW_DIR}`);
     process.exit(1);
   }
 
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.toLowerCase().endsWith('.pdf'));
-  console.log(`Found ${files.length} PDF files in ${RAW_DIR}`);
+  logger.info(`Found ${files.length} PDF files in ${RAW_DIR}`);
 
   let allRows = [];
 
@@ -489,21 +489,21 @@ async function main() {
     const filePath = path.join(RAW_DIR, file);
     const sourceUrl = metadataMap.get(file) || '';
 
-    console.log(`\nProcessing ${file}...`);
+    logger.info(`\nProcessing ${file}...`);
 
     if (!isValidPdf(filePath)) {
-      console.log('  Invalid PDF header – skipping.');
+      logger.info('  Invalid PDF header – skipping.');
       continue;
     }
 
     const text = await extractTextFromPdf(filePath);
     if (!text || text.length < 200) {
-      console.log('  Text too short or empty – skipping.');
+      logger.info('  Text too short or empty – skipping.');
       continue;
     }
 
     const chunks = chunkText(text);
-    console.log(`  Extracted ${chunks.length} candidate chunks.`);
+    logger.info(`  Extracted ${chunks.length} candidate chunks.`);
 
     for (const chunk of chunks) {
       const score = scoreChunk(chunk);
@@ -536,11 +536,11 @@ async function main() {
         _score: score,
       });
 
-      if (allRows.length % 100 === 0) console.log(`  Collected ${allRows.length}+ rows so far...`);
+      if (allRows.length % 100 === 0) logger.info(`  Collected ${allRows.length}+ rows so far...`);
     }
   }
 
-  console.log(`\nTotal raw rows extracted: ${allRows.length}`);
+  logger.info(`\nTotal raw rows extracted: ${allRows.length}`);
 
   // Sort by score and take top FINAL_ROW_LIMIT
   const sorted = allRows.sort((a, b) => b._score - a._score);
@@ -552,14 +552,14 @@ async function main() {
   });
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `✓ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('✕ Fatal error:', err.message);
+    logger.error('✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

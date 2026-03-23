@@ -68,14 +68,16 @@ export function validateRequest(schema) {
         }));
 
         // Log validation failures for debugging "bad actors"
-        console.warn('[VALIDATION_FAILURE]', {
-          timestamp: new Date().toISOString(),
-          endpoint: req.path,
-          method: req.method,
-          ip: req.ip || req.connection.remoteAddress,
-          errors: formattedErrors,
-          receivedFields: Object.keys(req.body),
-        });
+        logger.warn(
+          {
+            endpoint: req.path,
+            method: req.method,
+            ip: req.ip,
+            errors: formattedErrors,
+            receivedFields: Object.keys(req.body),
+          },
+          'Validation failure',
+        );
 
         return res.status(400).json({
           error: 'Validation failed',
@@ -86,13 +88,10 @@ export function validateRequest(schema) {
       }
 
       // Handle non-Zod errors
-      console.warn('[VALIDATION_ERROR]', {
-        timestamp: new Date().toISOString(),
-        endpoint: req.path,
-        method: req.method,
-        ip: req.ip || req.connection.remoteAddress,
-        errorMessage: error.message,
-      });
+      logger.warn(
+        { endpoint: req.path, method: req.method, ip: req.ip, errorMessage: error.message },
+        'Validation error occurred',
+      );
 
       return res.status(400).json({
         error: 'Request validation error',
@@ -137,15 +136,17 @@ export function validateAssessment(req, res, next) {
       }));
 
       // Log validation failures for debugging "bad actors"
-      console.warn('[ASSESSMENT_VALIDATION_FAILURE]', {
-        timestamp: new Date().toISOString(),
-        endpoint: req.path,
-        method: req.method,
-        ip: req.ip || req.connection.remoteAddress,
-        errors: formattedErrors,
-        receivedFields: Object.keys(req.body),
-        bodySize: JSON.stringify(req.body).length,
-      });
+      logger.warn(
+        {
+          endpoint: req.path,
+          method: req.method,
+          ip: req.ip,
+          errors: formattedErrors,
+          receivedFields: Object.keys(req.body),
+          bodySize: JSON.stringify(req.body).length,
+        },
+        'Assessment validation failure',
+      );
 
       return res.status(400).json({
         error: 'Assessment validation failed',
@@ -156,13 +157,10 @@ export function validateAssessment(req, res, next) {
     }
 
     // Handle non-Zod errors
-    console.warn('[ASSESSMENT_VALIDATION_ERROR]', {
-      timestamp: new Date().toISOString(),
-      endpoint: req.path,
-      method: req.method,
-      ip: req.ip || req.connection.remoteAddress,
-      errorMessage: error.message,
-    });
+    logger.warn(
+      { endpoint: req.path, method: req.method, ip: req.ip, errorMessage: error.message },
+      'Assessment validation error occurred',
+    );
 
     return res.status(400).json({
       error: 'Assessment validation error',

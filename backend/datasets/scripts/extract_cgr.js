@@ -259,7 +259,7 @@ async function extractPDFText() {
   const data = new Uint8Array(fileBuffer);
   const pdf = await pdfjsLib.getDocument({ data }).promise;
 
-  console.log(`PDF loaded. Pages: ${pdf.numPages}`);
+  logger.info(`PDF loaded. Pages: ${pdf.numPages}`);
 
   let fullText = '';
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -278,7 +278,7 @@ async function extractPDFText() {
 // MAIN
 // =============================================================================
 async function main() {
-  console.log(`Reading PDF: ${inputFile}`);
+  logger.info(`Reading PDF: ${inputFile}`);
   const text = await extractPDFText();
 
   const sentenceCandidates = text.split(/(?<=[.!?])\s+/);
@@ -319,7 +319,7 @@ async function main() {
     });
   }
 
-  console.log(`Extracted ${rows.length} candidate rows.`);
+  logger.info(`Extracted ${rows.length} candidate rows.`);
 
   // Deduplicate based on problem text
   const unique = [];
@@ -332,18 +332,18 @@ async function main() {
     }
   }
 
-  console.log(`After deduplication: ${unique.length} rows.`);
+  logger.info(`After deduplication: ${unique.length} rows.`);
 
   // Write CSV using the helper (handles unquoted header, quoted data)
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, unique);
-  console.log(
+  logger.info(
     `✓ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

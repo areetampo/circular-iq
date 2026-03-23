@@ -1,10 +1,16 @@
 import { BarChart as MuiBarChart } from '@mui/x-charts/BarChart';
+import PropTypes from 'prop-types';
 
+/**
+ * BarChart Component
+ * Renders a bar chart using MUI X-Charts library
+ * Supports multiple data series with customizable axes and legend
+ */
 export default function BarChart({
   data = [],
   barConfigs = [],
   height = 300,
-  xAxisKey = 'name', // default 'name' preserves all existing callers
+  xAxisKey = 'name',
   xAxisLabel,
   yAxisLabel,
   showLegend = true,
@@ -42,3 +48,27 @@ export default function BarChart({
     />
   );
 }
+
+BarChart.propTypes = {
+  /** Array of data objects for the chart */
+  data: PropTypes.arrayOf(PropTypes.object),
+  /** Array of bar configuration objects with dataKey, name, fill/color properties */
+  barConfigs: PropTypes.arrayOf(
+    PropTypes.shape({
+      dataKey: PropTypes.string.isRequired,
+      name: PropTypes.string,
+      fill: PropTypes.string,
+      color: PropTypes.string,
+    }),
+  ),
+  /** Chart height in pixels */
+  height: PropTypes.number,
+  /** Key in data objects for X-axis labels */
+  xAxisKey: PropTypes.string,
+  /** Label for X-axis */
+  xAxisLabel: PropTypes.string,
+  /** Label for Y-axis */
+  yAxisLabel: PropTypes.string,
+  /** Show/hide legend */
+  showLegend: PropTypes.bool,
+};

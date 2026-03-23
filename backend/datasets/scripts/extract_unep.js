@@ -232,11 +232,11 @@ async function processMaterialFootprint(filePath) {
 // Main: process all files, then filter top TARGET_ROWS by score
 // ----------------------------------------------------------------------
 async function main() {
-  console.log(`🔍 Scanning ${RAW_DIR}...`);
+  logger.info(`🔍 Scanning ${RAW_DIR}...`);
 
   // Ensure raw folder exists
   if (!fs.existsSync(RAW_DIR)) {
-    console.error(`✕ Raw directory not found: ${RAW_DIR}`);
+    logger.error(`✕ Raw directory not found: ${RAW_DIR}`);
     process.exit(1);
   }
 
@@ -248,7 +248,7 @@ async function main() {
   ].filter((fh) => fh.name); // only include defined files
 
   if (fileHandlers.length === 0) {
-    console.error('✕ No file handlers defined – check dataset.raw_folder_contents');
+    logger.error('✕ No file handlers defined – check dataset.raw_folder_contents');
     process.exit(1);
   }
 
@@ -257,22 +257,22 @@ async function main() {
   for (const fh of fileHandlers) {
     const filePath = path.join(RAW_DIR, fh.name);
     if (!fs.existsSync(filePath)) {
-      console.log(`‼ ️  File not found: ${fh.name} – skipping.`);
+      logger.info(`‼ ️  File not found: ${fh.name} – skipping.`);
       continue;
     }
 
-    console.log(`📄 Processing ${fh.name}...`);
+    logger.info(`📄 Processing ${fh.name}...`);
     try {
       const results = await fh.handler(filePath);
-      console.log(`   ✓ Extracted ${results.length} records.`);
+      logger.info(`   ✓ Extracted ${results.length} records.`);
       allResults.push(...results);
     } catch (err) {
-      console.error(`   ✕ Error processing ${fh.name}:`, err.message);
+      logger.error(`   ✕ Error processing ${fh.name}:`, err.message);
     }
   }
 
   if (allResults.length === 0) {
-    console.log('✕ No data extracted.');
+    logger.info('✕ No data extracted.');
     return;
   }
 
@@ -285,21 +285,21 @@ async function main() {
   scored.sort((a, b) => b.score - a.score);
   const topRows = scored.slice(0, TARGET_ROWS);
 
-  console.log(`\n🎯 Selected top ${topRows.length} rows by quality score.`);
+  logger.info(`\n🎯 Selected top ${topRows.length} rows by quality score.`);
 
   // Remove temporary fields
   const final = topRows.map(({ _scoreValue, score, ...rest }) => rest);
 
   // writeCsv handles directory creation, clearing and read-only locking
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
-  console.log(
+  logger.info(
     `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

@@ -19,7 +19,7 @@ test('POST /score rejects missing businessProblem', async () => {
     .post('/api/score')
     .send({
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 50,
         infrastructure: 50,
         market_price: 50,
@@ -41,7 +41,7 @@ test('POST /score rejects businessProblem shorter than 200 chars', async () => {
     .send({
       businessProblem: 'Short problem',
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 50,
         infrastructure: 50,
         market_price: 50,
@@ -62,7 +62,7 @@ test('POST /score rejects businessSolution shorter than 200 chars', async () => 
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'Short solution',
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 50,
         infrastructure: 50,
         market_price: 50,
@@ -94,7 +94,7 @@ test('POST /score rejects parameter value outside 0-100 range', async () => {
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 150,
         infrastructure: 50,
         market_price: 50,
@@ -115,7 +115,7 @@ test('POST /score rejects negative parameter value', async () => {
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: -10,
         infrastructure: 50,
         market_price: 50,
@@ -136,7 +136,7 @@ test('POST /score rejects non-numeric parameter', async () => {
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 'fifty',
         infrastructure: 50,
         market_price: 50,
@@ -157,7 +157,7 @@ test('POST /score requires all 8 parameters', async () => {
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 50,
         infrastructure: 50,
         market_price: 50,
@@ -178,7 +178,7 @@ test('POST /score accepts valid input with all 8 parameters', async () => {
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 50,
         infrastructure: 60,
         market_price: 70,
@@ -209,7 +209,7 @@ test('POST /score accepts boundary values (0 and 100)', async () => {
     .send({
       businessProblem: 'A'.repeat(200),
       businessSolution: 'A'.repeat(200),
-      evaluation_parameters: {
+      evaluationParameters: {
         public_participation: 0,
         infrastructure: 100,
         market_price: 0,

@@ -1,9 +1,4 @@
-/**
- * Formatting Utilities
- * Pure functions for formatting numbers, text, and display values
- *
- * Location: src/lib/formatting.js
- */
+/** Date, number, and string formatting helpers. */
 
 /**
  * Format number as percentage with rounding

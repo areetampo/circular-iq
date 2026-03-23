@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { assertDirExists, DATASETS_SCRIPTS_DIR } from '#utils/datasetsUtils.js';
+import { assertDirExists, DATASETS_SCRIPTS_DIR } from '#pipeline/datasetsUtils.js';
 
 // run_datasets_scripts.js
 // Orchestrator for dataset scripts with flags to control behavior.
@@ -18,7 +18,7 @@ function collectFiles() {
   try {
     assertDirExists(DATASETS_SCRIPTS_DIR, 'datasets/scripts directory');
   } catch (err) {
-    console.error(`✗ ERROR: ${err.message}`);
+    logger.error({ err }, 'Dataset scripts directory missing');
     process.exit(1);
   }
 
@@ -30,11 +30,11 @@ function collectFiles() {
 
 function runScript(file) {
   const fullPath = path.join(DATASETS_SCRIPTS_DIR, file);
-  console.log(`\n>>> Running dataset script: ${file}`);
+  logger.info({ file }, 'Running dataset script');
   try {
     execSync(`node "${fullPath}"`, { stdio: 'inherit' });
   } catch (err) {
-    console.error(`\n✗ FAILURE executing ${file}`);
+    logger.error({ err, file }, 'Failure executing dataset script');
     process.exit(err.status || 1);
   }
 }
@@ -43,7 +43,7 @@ function validateFlags(flags) {
   const allowed = ['--extract', '--scrape', '--all'];
   const active = flags.filter((f) => allowed.includes(f));
   if (active.length > 1) {
-    console.error('✗ ERROR: Only one of --extract, --scrape or --all may be specified');
+    logger.error('✗ ERROR: Only one of --extract, --scrape or --all may be specified');
     process.exit(1);
   }
   return active[0] || null;
@@ -55,7 +55,7 @@ function main() {
 
   const allFiles = collectFiles();
   if (allFiles.length === 0) {
-    console.log('No dataset scripts found, nothing to do.');
+    logger.info('No dataset scripts found, nothing to do');
     return;
   }
 
@@ -66,29 +66,29 @@ function main() {
   let ordered = [];
   if (flag === '--extract') {
     ordered = [...extractFiles];
-    console.log(`Running extract-only: ${ordered.length} script(s)`);
+    logger.info({ count: ordered.length, mode: 'extract-only' }, 'Running extract-only scripts');
   } else if (flag === '--scrape') {
     ordered = [...scrapeFiles];
-    console.log(`Running scrape-only: ${ordered.length} script(s)`);
+    logger.info({ count: ordered.length, mode: 'scrape-only' }, 'Running scrape-only scripts');
   } else if (flag === '--all') {
     ordered = [...extractFiles, ...scrapeFiles, ...otherFiles];
-    console.log(`Running all scripts: ${ordered.length} script(s)`);
+    logger.info({ count: ordered.length, mode: 'all' }, 'Running all scripts');
   } else {
     // default: extract then scrape
     ordered = [...extractFiles, ...scrapeFiles, ...otherFiles];
-    console.log(`Running default (extract then scrape): ${ordered.length} script(s)`);
+    logger.info({ count: ordered.length, mode: 'default' }, 'Running default scripts');
   }
 
-  console.log(`Found ${allFiles.length} total script(s) in ${DATASETS_SCRIPTS_DIR}`);
+  logger.info({ total: allFiles.length, directory: DATASETS_SCRIPTS_DIR }, 'Found dataset scripts');
 
   if (ordered.length === 0) {
-    console.log('No scripts match the requested selection, exiting.');
+    logger.info('No scripts match the requested selection, exiting');
     return;
   }
 
   ordered.forEach(runScript);
 
-  console.log('\n✓ All requested dataset scripts completed successfully');
+  logger.info('All requested dataset scripts completed successfully');
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

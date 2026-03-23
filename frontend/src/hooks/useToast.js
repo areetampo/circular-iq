@@ -1,14 +1,11 @@
 import { toast } from '@heroui/react';
 
 /**
- * Custom wrapper to provide addToast interface with HeroUI Toast
- *
- * @deprecated the codebase now uses `toast` directly from @heroui/react.
- *             This hook remains for backward compatibility but new code
- *             should import { toast } and call `toast.success(...)`,
- *             `toast.danger(...)`, etc., with explicit timeouts.
- *
- * @returns {Object} { addToast, toast }
+ * useToast
+ * Back-compat wrapper mapping legacy addToast calls to HeroUI toasts (deprecated; prefer `toast` from @heroui/react).
+ * @param {Object} options
+ * @returns {Object}
+ * @deprecated Prefer `toast` from `@heroui/react` for new code.
  */
 export function useToast() {
   const addToast = (message, variant = 'default') => {

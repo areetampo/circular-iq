@@ -1,14 +1,51 @@
+/**
+ * Documents Repository
+ *
+ * Database abstraction layer for document search and retrieval.
+ * Supports both Supabase (RPC) and Aiven (raw Postgres) backends.
+ *
+ * All vector operations are performed using halfvec (half-precision vectors)
+ * for efficient similarity search. Queries support filters by industry/category.
+ *
+ * @module documents.repository
+ */
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getDatabaseClient, getDatabaseType, getSupabasePgPool } from '#database/client.js';
 
 const func = BACKEND_CONFIG.db.functions;
 
+/**
+ * Documents Repository
+ *
+ * Provides database-agnostic interface for:
+ * - Vector similarity search (matchDocuments)
+ * - Hybrid search combining vector + full-text (searchHybrid)
+ * - Metadata filtering (industry, category, source)
+ *
+ * Implementation automatically selects Supabase RPC or Aiven SQL based on
+ * current client configuration (setDatabaseClientOverride for testing).
+ */
 export class DocumentsRepository {
   constructor() {
     // constructor intentionally left blank; clients are resolved per-call
     // so that test overrides via setDatabaseClientOverride() work correctly.
   }
 
+  /**
+   * Call database function - either via Supabase RPC or raw Postgres
+   *
+   * Supabase: Uses rpc() method with named parameters
+   * Aiven: Generates SQL with explicit halfvec casts for vector parameters
+   *
+   * @param {string} functionName - Function name in database
+   * @param {Array} params - Positional parameters (for Aiven SQL generation)
+   * @param {Object} rpcParams - Named parameters for Supabase RPC
+   * @returns {Promise<Array>} Function result rows
+   * @throws {Error} If database call fails
+   *
+   * @private
+   */
   async callFunction(functionName, params = [], rpcParams = {}) {
     const client = getDatabaseClient();
     const dbType = getDatabaseType();
@@ -41,6 +78,19 @@ export class DocumentsRepository {
     return rows;
   }
 
+  /**
+   * Vector similarity search
+   *
+   * Finds documents most similar to the query embedding using cosine distance.
+   *
+   * @param {Array<number>} queryEmbedding - Query vector (1536 dims)
+   * @param {number} matchCount - Number of results to return
+   * @returns {Promise<Array>} Matching documents sorted by similarity (descending)
+   *
+   * @example
+   * const results = await repo.matchDocuments(embedding, 5);
+   * // [{id, content, similarity}, ...]
+   */
   async matchDocuments(queryEmbedding, matchCount) {
     const data = await this.callFunction(func.match_documents, [queryEmbedding, matchCount], {
       query_embedding: queryEmbedding,

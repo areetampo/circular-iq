@@ -107,7 +107,7 @@ export default function LandingPage() {
     if (isValid) {
       // Start prefetching the ResultsPage bundle in the background
       import('@/pages/ResultsPage/ResultsPage').catch((err) => {
-        console.warn('Failed to prefetch ResultsPage:', err);
+        logger.warn('Failed to prefetch ResultsPage:', err);
       });
     }
   }, [isValid]);
@@ -360,7 +360,7 @@ export default function LandingPage() {
         };
         lastAppliedSessionRef.current = snapshot;
       } catch (err) {
-        console.warn('Failed to update lastAppliedSessionRef after saving session:', err);
+        logger.warn('Failed to update lastAppliedSessionRef after saving session:', err);
       }
     },
     [saveSession],
@@ -394,7 +394,7 @@ export default function LandingPage() {
       persistInputs(values);
     } catch (err) {
       // swallow - form may be unmounted
-      console.warn('flushAutosave failed', err);
+      logger.warn('flushAutosave failed', err);
     }
   }, [methods, persistInputs]);
 
@@ -628,7 +628,7 @@ export default function LandingPage() {
         try {
           // clearSession();
         } catch (e) {
-          console.error('Failed to clear session after limit reached:', e);
+          logger.error('Failed to clear session after limit reached:', e);
         }
         return;
       }
@@ -1041,3 +1041,5 @@ export default function LandingPage() {
     </FormProvider>
   );
 }
+
+LandingPage.propTypes = {};

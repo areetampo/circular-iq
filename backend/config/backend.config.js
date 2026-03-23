@@ -1,5 +1,33 @@
+/**
+ * Backend Configuration
+ *
+ * Loads and validates environment variables via Zod schemas.
+ * Freezes configuration immutably to prevent runtime changes.
+ * Supports strict mode for CI/CD environments.
+ *
+ * Environment sources (in order):
+ * 1. env/.env.{NODE_ENV} (loaded by loadEnv.js)
+ * 2. env/.env.local (if exists, for development overrides)
+ * 3. Process environment variables
+ *
+ * Exports BACKEND_CONFIG object with sections:
+ * - nodeEnv: NODE_ENV string
+ * - isProduction: Boolean flag
+ * - app: Server settings (port, CORS, API keys, rate limits)
+ * - database: PostgreSQL/Supabase connection details
+ * - openai: OpenAI API configuration
+ * - aiven: Optional Aiven PostgreSQL pool details
+ */
+
 import '#config/loadEnv.js';
 import crypto from 'crypto';
+
+import pino from 'pino';
+
+const logger = pino({
+  name: 'backend.config',
+  level: process.env.LOG_LEVEL || 'info',
+});
 
 import { envSchema, testEnvSchema } from '#config/env.schema.js';
 
@@ -17,12 +45,12 @@ const schema = (process.env.NODE_ENV || '').toLowerCase() === 'test' ? testEnvSc
 const parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('✕ Environment validation failed:\n');
-  console.error(parsed.error.format());
+  logger.error('✕ Environment validation failed');
+  logger.error(parsed.error.format());
 
   // For test environment, fail if validation fails; no fallbacks
   if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
-    console.error(
+    logger.error(
       '✕ Test environment validation failed. Ensure all required variables are set in env/.env.test',
     );
     process.exit(1);
@@ -43,9 +71,7 @@ if (env.STRICT_ENV) {
     .map(([key]) => key);
 
   if (missingExplicit.length > 0) {
-    console.error(
-      `✕ STRICT_ENV enabled. Missing explicit values for:\n» ${missingExplicit.join(', ')}`,
-    );
+    logger.error({ missingExplicit }, 'STRICT_ENV enabled and missing explicit values');
     process.exit(1);
   }
 }
@@ -144,12 +170,103 @@ export const BACKEND_CONFIG = deepFreeze({
   isProduction: env.NODE_ENV === 'production',
 
   api: [
-    { method: 'GET', endpoint: '/health', description: 'System Health' },
-    { method: 'GET', endpoint: '/docs/methodology', description: 'Framework Docs' },
-    { method: 'POST', endpoint: '/api/score', description: 'RAG Analysis' },
-    { method: 'GET', endpoint: '/api/profile', description: 'User Data' },
-    { method: 'GET', endpoint: '/api/analytics', description: 'Doc Stats' },
-    { method: 'CRUD', endpoint: '/api/assessments', description: 'User Results' },
+    // Health & Root
+    { method: 'GET', endpoint: '/health', description: 'System Health Check' },
+    { method: 'GET', endpoint: '/', description: 'Welcome/Root Endpoint' },
+
+    // User Profile
+    { method: 'GET', endpoint: '/api/profile', description: 'User Profile Data (Auth Required)' },
+
+    // Search
+    { method: 'POST', endpoint: '/api/search', description: 'Search Documents' },
+
+    // Scoring/RAG
+    {
+      method: 'POST',
+      endpoint: '/api/score',
+      description: 'RAG Analysis & Scoring (Rate Limited)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/score/test-anonymous-limit-tracking',
+      description: 'Test Anonymous Usage Limits (Testing Only)',
+    },
+
+    // Analytics
+    { method: 'GET', endpoint: '/api/analytics', description: 'Analytics Summary' },
+    { method: 'GET', endpoint: '/api/analytics/enhanced', description: 'Enhanced Analytics' },
+    {
+      method: 'GET',
+      endpoint: '/api/analytics/featured-solutions',
+      description: 'Featured Solutions',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/analytics/documents/summary',
+      description: 'Documents Summary Stats',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/analytics/documents/stats',
+      description: 'Documents Detailed Stats',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/analytics/global-stats',
+      description: 'Global System Statistics',
+    },
+    {
+      method: 'POST',
+      endpoint: '/api/analytics/embeddings/reindex',
+      description: 'Reindex Embeddings',
+    },
+
+    // Assessments
+    {
+      method: 'POST',
+      endpoint: '/api/assessments',
+      description: 'Create Assessment (Auth Required)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments',
+      description: 'List User Assessments (Auth Required)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments/stats',
+      description: 'Assessment Statistics (Auth Required)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments/market-analysis',
+      description: 'Market Analysis Data',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments/:publicId',
+      description: 'Get Assessment by ID (Auth Required)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments/public/:publicId',
+      description: 'Get Public Assessment (No Auth)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments/validate/:publicId',
+      description: 'Validate Public Assessment ID',
+    },
+    {
+      method: 'PATCH',
+      endpoint: '/api/assessments/:id',
+      description: 'Update Assessment (Auth Required)',
+    },
+    {
+      method: 'DELETE',
+      endpoint: '/api/assessments/:id',
+      description: 'Delete Assessment (Auth Required)',
+    },
   ],
 
   openai: {

@@ -1,6 +1,4 @@
-/**
- * Storage and Session Management
- * Handles localStorage operations, session IDs, and evaluation state
+/** LocalStorage helpers with JSON serialisation.
  *
  * Storage Key Naming Convention:
  * All keys use 'ce_' prefix (Circular Economy) for consistency and clarity
@@ -43,7 +41,7 @@ export function getSessionId() {
         localStorage.setItem(SESSION_ID_KEY, oldSid);
         localStorage.removeItem(oldCeKey);
       } catch (e) {
-        console.warn('Failed to migrate old session ID:', e);
+        logger.warn('Failed to migrate old session ID:', e);
       }
       return oldSid;
     }
@@ -55,7 +53,7 @@ export function getSessionId() {
         localStorage.setItem(SESSION_ID_KEY, legacySid);
         localStorage.removeItem(legacyKey);
       } catch (e) {
-        console.warn('Failed to migrate legacy session ID:', e);
+        logger.warn('Failed to migrate legacy session ID:', e);
       }
       return legacySid;
     }
@@ -65,7 +63,7 @@ export function getSessionId() {
     try {
       localStorage.setItem(SESSION_ID_KEY, sid);
     } catch (e) {
-      console.warn('Failed to save session ID:', e);
+      logger.warn('Failed to save session ID:', e);
     }
     return sid;
   } catch {
@@ -183,7 +181,7 @@ export function saveEvaluationState(state) {
     localStorage.setItem(session_evaluation_state_KEY, JSON.stringify(stateToSave));
     return true;
   } catch (error) {
-    console.error('Failed to save evaluation state:', error);
+    logger.error('Failed to save evaluation state:', error);
     return false;
   }
 }
@@ -237,7 +235,7 @@ export function loadEvaluationState() {
 
     return state;
   } catch (error) {
-    console.error('Failed to load evaluation state:', error);
+    logger.error('Failed to load evaluation state:', error);
     return null;
   }
 }
@@ -250,7 +248,7 @@ export function clearEvaluationState() {
     localStorage.removeItem(session_evaluation_state_KEY);
     return true;
   } catch (error) {
-    console.error('Failed to clear evaluation state:', error);
+    logger.error('Failed to clear evaluation state:', error);
     return false;
   }
 }
@@ -301,7 +299,7 @@ export function saveAssessmentLocal(assessment) {
 
     return id;
   } catch (error) {
-    console.error('Failed to save assessment:', error);
+    logger.error('Failed to save assessment:', error);
     throw error;
   }
 }
@@ -328,7 +326,7 @@ export function loadAssessmentsLocal() {
     }
     return raw ? JSON.parse(raw) : {};
   } catch (error) {
-    console.warn('Failed to load assessments:', error);
+    logger.warn('Failed to load assessments:', error);
     return {};
   }
 }
@@ -343,7 +341,7 @@ export function loadAssessmentLocal(id) {
     const assessments = loadAssessmentsLocal();
     return assessments[id] || null;
   } catch (error) {
-    console.warn('Failed to load assessment:', error);
+    logger.warn('Failed to load assessment:', error);
     return null;
   }
 }
@@ -360,7 +358,7 @@ export function deleteAssessmentLocal(id) {
     localStorage.setItem('ce_assessments', JSON.stringify(assessments));
     return true;
   } catch (error) {
-    console.error('Failed to delete assessment:', error);
+    logger.error('Failed to delete assessment:', error);
     return false;
   }
 }
@@ -385,7 +383,7 @@ export function updateAssessmentLocal(id, updates) {
     localStorage.setItem('ce_assessments', JSON.stringify(assessments));
     return assessments[id];
   } catch (error) {
-    console.error('Failed to update assessment:', error);
+    logger.error('Failed to update assessment:', error);
     return null;
   }
 }
@@ -407,7 +405,7 @@ export const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Storage save error:', error);
+      logger.error('Storage save error:', error);
     }
   },
 
@@ -422,7 +420,7 @@ export const storage = {
       const value = localStorage.getItem(key);
       return value ? JSON.parse(value) : defaultValue;
     } catch (error) {
-      console.error('Storage load error:', error);
+      logger.error('Storage load error:', error);
       return defaultValue;
     }
   },
@@ -435,7 +433,7 @@ export const storage = {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('Storage remove error:', error);
+      logger.error('Storage remove error:', error);
     }
   },
 
@@ -446,7 +444,7 @@ export const storage = {
     try {
       localStorage.clear();
     } catch (error) {
-      console.error('Storage clear error:', error);
+      logger.error('Storage clear error:', error);
     }
   },
 

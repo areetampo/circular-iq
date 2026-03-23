@@ -2,10 +2,10 @@ import { toast } from '@heroui/react';
 import { useState } from 'react';
 
 /**
- * Custom hook for managing export operations with loading state and error handling
- * Provides consistent UX for all export functions throughout the app
- *
- * @returns {Object} Export state and handlers
+ * useExportState
+ * Manages export-in-progress state and runs CSV/PDF export handlers with toasts.
+ * @param {Object} options
+ * @returns {Object}
  */
 export function useExportState() {
   const [isExporting, setIsExporting] = useState(false);

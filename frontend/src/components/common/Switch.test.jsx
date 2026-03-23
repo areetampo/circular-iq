@@ -41,8 +41,8 @@ describe('Switch (wrapper)', () => {
     );
 
     const wrapper = screen.getByTestId('variant-switch');
-    console.log('variant-switch outerHTML (off):', wrapper.outerHTML);
-    console.log('variant-switch innerHTML (off):', wrapper.innerHTML);
+    logger.log('variant-switch outerHTML (off):', wrapper.outerHTML);
+    logger.log('variant-switch innerHTML (off):', wrapper.innerHTML);
     // make assertions against the serialized markup instead of querying
     expect(wrapper.outerHTML).toContain('lucide-lock');
     expect(wrapper.outerHTML).toContain('width="10"');
@@ -60,7 +60,7 @@ describe('Switch (wrapper)', () => {
     );
     const all = screen.getAllByTestId('variant-switch');
     const wrapperOn = all[all.length - 1];
-    console.log('variant-switch innerHTML (on):', wrapperOn.innerHTML);
+    logger.log('variant-switch innerHTML (on):', wrapperOn.innerHTML);
     expect(wrapperOn.outerHTML).toContain('text-emerald-600');
   });
 
@@ -75,8 +75,8 @@ describe('Switch (wrapper)', () => {
       </Switch>,
     );
     const wrapper = screen.getByTestId('size-switch');
-    console.log('size-switch outerHTML (md):', wrapper.outerHTML);
-    console.log('size-switch innerHTML (md):', wrapper.innerHTML);
+    logger.log('size-switch outerHTML (md):', wrapper.outerHTML);
+    logger.log('size-switch innerHTML (md):', wrapper.innerHTML);
     expect(wrapper.outerHTML).toContain('width="16"');
     expect(wrapper.outerHTML).toContain('lucide-x');
 
@@ -90,7 +90,7 @@ describe('Switch (wrapper)', () => {
       </Switch>,
     );
     const wrapperLg = screen.getByTestId('size-switch');
-    console.log('size-switch innerHTML (lg):', wrapperLg.innerHTML);
+    logger.log('size-switch innerHTML (lg):', wrapperLg.innerHTML);
     expect(wrapperLg.outerHTML).toContain('width="17"');
   });
 });

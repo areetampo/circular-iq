@@ -17,7 +17,7 @@ class GlobalErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Error caught by GlobalErrorBoundary:', error, errorInfo);
+    logger.error('Error caught by GlobalErrorBoundary:', error, errorInfo);
   }
 
   render() {

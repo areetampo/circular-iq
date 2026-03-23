@@ -26,27 +26,27 @@ import { useNavigate } from 'react-router-dom';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useAssessmentStats, useDocumentStats, useGlobalStats } from '@/features/assessments';
+import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
+import { useDocumentStats } from '@/features/assessments/hooks/useDocumentStats';
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
+import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
+
+import {
+  ChartPanel,
+  EmptyChart,
+  SectionDivider,
+  SingleValueChart,
+  SolutionCard,
+  StatCard,
+} from './components';
 
 // ─── Colours ──────────────────────────────────────────────────────────────────
 const TIER_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 const RISK_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 const SCORE_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
 const SCALE_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
-
-const ICON_CLS = {
-  emerald: 'bg-emerald-50 text-emerald-600',
-  blue: 'bg-blue-50   text-blue-600',
-  purple: 'bg-purple-50 text-purple-600',
-  amber: 'bg-amber-50  text-amber-600',
-  rose: 'bg-rose-50   text-rose-600',
-  indigo: 'bg-indigo-50 text-indigo-600',
-  teal: 'bg-teal-50   text-teal-600',
-  cyan: 'bg-cyan-50   text-cyan-600',
-};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,203 +60,6 @@ function usablePie(data) {
 /** Only show a BarChart when we have ≥ 1 bar with count/value > 0 */
 function usableBar(data, key = 'count') {
   return data && data.length > 0 && data.some((d) => (d[key] ?? 0) > 0);
-}
-
-// ─── StatCard ─────────────────────────────────────────────────────────────────
-function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, wide }) {
-  if (loading) {
-    return (
-      <div
-        className={cn(
-          'rounded-xl border border-slate-200 bg-white p-5 space-y-2.5',
-          wide && 'col-span-2 sm:col-span-1',
-        )}
-      >
-        <Skeleton className="h-2.5 w-14 rounded-full" />
-        <Skeleton className="h-7 w-20 rounded" />
-        {sub !== undefined && <Skeleton className="h-2.5 w-24 rounded-full" />}
-      </div>
-    );
-  }
-  const iconCls = ICON_CLS[color] ?? 'bg-slate-50 text-slate-600';
-  return (
-    <div
-      className={cn(
-        'rounded-xl border border-slate-200 bg-white p-5 hover:border-slate-300 hover:shadow-sm transition-all duration-150',
-        wide && 'col-span-2 sm:col-span-1',
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 leading-tight">
-            {label}
-          </p>
-          <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">
-            {value ?? '—'}
-          </p>
-          {sub && <p className="text-[11px] text-slate-400 mt-1.5 leading-tight">{sub}</p>}
-        </div>
-        {Icon && (
-          <div
-            className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', iconCls)}
-          >
-            <Icon size={16} strokeWidth={2} />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── SectionDivider ───────────────────────────────────────────────────────────
-function SectionDivider({ icon: Icon, title, subtitle, accent = 'emerald' }) {
-  const barColor =
-    {
-      emerald: '#10b981',
-      blue: '#3b82f6',
-      indigo: '#6366f1',
-      purple: '#8b5cf6',
-      amber: '#f59e0b',
-      cyan: '#06b6d4',
-    }[accent] ?? '#94a3b8';
-  const iconCls = ICON_CLS[accent] ?? 'bg-slate-100 text-slate-600';
-  return (
-    <div className="flex items-center gap-4 mb-5">
-      <div className="w-1 h-10 rounded-full shrink-0" style={{ backgroundColor: barColor }} />
-      <div className="flex items-center gap-3">
-        {Icon && (
-          <div
-            className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', iconCls)}
-          >
-            <Icon size={15} strokeWidth={2} />
-          </div>
-        )}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 leading-tight">{title}</h2>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5 leading-tight">{subtitle}</p>}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── ChartPanel ───────────────────────────────────────────────────────────────
-function ChartPanel({
-  title,
-  icon: Icon,
-  iconColor = 'text-slate-400',
-  loading,
-  skeleton = 'h-48',
-  children,
-  className,
-}) {
-  return (
-    <div className={cn('rounded-xl border border-slate-200 bg-white overflow-hidden', className)}>
-      {title && (
-        <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-100">
-          {Icon && <Icon size={13} className={iconColor} strokeWidth={2.5} />}
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide leading-none">
-            {title}
-          </span>
-        </div>
-      )}
-      <div className="p-3">
-        {loading ? <Skeleton className={cn('w-full rounded-lg', skeleton)} /> : children}
-      </div>
-    </div>
-  );
-}
-
-// ─── SingleValueChart (fallback when pie has only 1 data point) ───────────────
-function SingleValueChart({ name, value, color = '#10b981' }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-44 gap-2">
-      <div
-        className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl text-white"
-        style={{ backgroundColor: color }}
-      >
-        {value}
-      </div>
-      <p className="text-xs font-semibold text-slate-600 text-center">{name}</p>
-      <p className="text-[10px] text-slate-400">100% of assessments</p>
-    </div>
-  );
-}
-
-// ─── EmptyChart ───────────────────────────────────────────────────────────────
-function EmptyChart({ message = 'No data yet', compact }) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-center gap-2 text-slate-300',
-        compact ? 'h-24' : 'h-44',
-      )}
-    >
-      <BarChart3 size={24} strokeWidth={1} />
-      <span className="text-xs font-medium">{message}</span>
-    </div>
-  );
-}
-
-// ─── SolutionCard ────────────────────────────────────────────────────────────
-function SolutionCard({ solution, onOpen }) {
-  const preview = solution.solution || solution.problem || '';
-  const initial = (solution.title || 'S').charAt(0).toUpperCase();
-  const bgColors = [
-    'bg-indigo-100 text-indigo-700',
-    'bg-emerald-100 text-emerald-700',
-    'bg-amber-100 text-amber-700',
-    'bg-rose-100 text-rose-700',
-    'bg-purple-100 text-purple-700',
-  ];
-  const colorIdx = initial.charCodeAt(0) % bgColors.length;
-
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(solution)}
-      className="w-full text-left rounded-xl border border-slate-200 bg-white p-4 hover:border-indigo-300 hover:shadow-md transition-all duration-150 group"
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={cn(
-            'w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition-opacity',
-            bgColors[colorIdx],
-          )}
-        >
-          {initial}
-        </div>
-        <div className="min-w-0 flex-1">
-          {/* Title — full text, wraps */}
-          <p className="text-xs font-bold text-slate-900 mb-1 leading-snug group-hover:text-indigo-700 transition-colors">
-            {solution.title || 'Untitled'}
-          </p>
-          {/* Preview — 4 lines */}
-          <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-4">
-            {preview || 'Click to view full details'}
-          </p>
-          {/* Tags */}
-          <div className="flex gap-1 mt-2.5 flex-wrap">
-            {solution.category && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
-                {solution.category}
-              </span>
-            )}
-            {solution.industry && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600">
-                {solution.industry}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-1 mt-3 pt-2.5 border-t border-slate-100 text-slate-400 group-hover:text-indigo-500 transition-colors">
-        <Lightbulb size={11} strokeWidth={2} />
-        <span className="text-[10px] font-semibold">View full details in drawer</span>
-        <ChevronRight size={10} className="ml-auto" />
-      </div>
-    </button>
-  );
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -1048,3 +851,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+DashboardPage.propTypes = {};

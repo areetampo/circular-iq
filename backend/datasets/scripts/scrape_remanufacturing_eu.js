@@ -58,7 +58,7 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true, MAX_CASES)
  * Rebuild from backup (only logs content, no download)
  */
 async function rebuildFromBackup() {
-  console.log(
+  logger.info(
     '♻️ BACKUP RECOVERY MODE: This scraper downloads PDFs. Please run extract_remanufacturing_eu.js to process the downloaded files.',
   );
   await appendLogs(
@@ -73,7 +73,7 @@ async function rebuildFromBackup() {
 async function scrape() {
   await clearLogs(DATASET_KEY);
   await appendLogs(DATASET_KEY, `🚀 Scrape started...`);
-  console.log(
+  logger.info(
     `Scraping Remanufacturing EU case studies. Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`,
   );
 
@@ -98,7 +98,7 @@ async function scrape() {
   try {
     const targetUrl = dataset.urls.case_studies;
 
-    console.log(`Navigating to ${targetUrl}`);
+    logger.info(`Navigating to ${targetUrl}`);
     await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 60000 });
 
     // Wait for the page to load
@@ -147,7 +147,7 @@ async function scrape() {
       return results;
     });
 
-    console.log(`Found ${allCases.length} total case studies across all industries.`);
+    logger.info(`Found ${allCases.length} total case studies across all industries.`);
     await appendLogs(DATASET_KEY, `Found ${allCases.length} total cases.`);
 
     // Deduplicate by PDF filename (some cases might share the same PDF? unlikely but safe)
@@ -162,18 +162,18 @@ async function scrape() {
         seenFilenames.add(filename);
         uniqueCases.push({ ...item, filename });
       } else {
-        console.log(`  Skipping duplicate PDF: ${filename} (${item.title})`);
+        logger.info(`  Skipping duplicate PDF: ${filename} (${item.title})`);
       }
     }
 
-    console.log(`Processing ${uniqueCases.length} unique case studies.`);
+    logger.info(`Processing ${uniqueCases.length} unique case studies.`);
 
     // Download all PDFs
     for (let i = 0; i < uniqueCases.length; i++) {
       const item = uniqueCases[i];
       const localPath = path.join(RAW_DIR, item.filename);
 
-      console.log(`[${i + 1}/${uniqueCases.length}] ${item.title} (${item.industry})`);
+      logger.info(`[${i + 1}/${uniqueCases.length}] ${item.title} (${item.industry})`);
 
       const backupRow = {
         industry: item.industry,
@@ -186,7 +186,7 @@ async function scrape() {
 
       if (!fs.existsSync(localPath)) {
         try {
-          console.log(`  Downloading ${item.pdfUrl} -> ${item.filename}`);
+          logger.info(`  Downloading ${item.pdfUrl} -> ${item.filename}`);
 
           const cookies = await page.cookies();
           const cookieString = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
@@ -208,7 +208,7 @@ async function scrape() {
 
           const contentType = response.headers['content-type'];
           if (!contentType || !contentType.includes('pdf')) {
-            console.warn(`  Content-Type is not PDF: ${contentType}, skipping.`);
+            logger.warn(`  Content-Type is not PDF: ${contentType}, skipping.`);
             backupRow.downloaded = 'failed (not pdf)';
           } else {
             const writer = fs.createWriteStream(localPath);
@@ -217,7 +217,7 @@ async function scrape() {
               writer.on('finish', resolve);
               writer.on('error', reject);
             });
-            console.log(`  Saved PDF (${fs.statSync(localPath).size} bytes)`);
+            logger.info(`  Saved PDF (${fs.statSync(localPath).size} bytes)`);
             await appendLogs(
               DATASET_KEY,
               `  Downloaded: ${item.filename} (${item.title}, ${item.pdfUrl}) - ${contentType}, ${response.headers['content-length']} bytes`,
@@ -225,12 +225,12 @@ async function scrape() {
             backupRow.downloaded = 'yes';
           }
         } catch (err) {
-          console.error(`  Error downloading: ${err.message}`);
+          logger.error(`  Error downloading: ${err.message}`);
           backupRow.downloaded = `failed (${err.message})`;
           await appendLogs(DATASET_KEY, `  Download error for ${item.filename}: ${err.message}`);
         }
       } else {
-        console.log(`  File already exists, skipping download.`);
+        logger.info(`  File already exists, skipping download.`);
         backupRow.downloaded = 'yes';
       }
 
@@ -240,7 +240,7 @@ async function scrape() {
         totalPdfCollected++;
         downloadedCases.push(item);
         if (totalPdfCollected >= TOTAL_PDF_COLLECTED_LIMIT) {
-          console.log(`Reached limit of ${TOTAL_PDF_COLLECTED_LIMIT} PDFs collected. Stopping.`);
+          logger.info(`Reached limit of ${TOTAL_PDF_COLLECTED_LIMIT} PDFs collected. Stopping.`);
           await appendLogs(DATASET_KEY, `Reached limit: ${totalPdfCollected} PDFs collected.`);
           break;
         }
@@ -261,16 +261,16 @@ async function scrape() {
       pdf_url: item.pdfUrl,
     }));
     await fs.promises.writeFile(metadataPath, JSON.stringify(metadataList, null, 2));
-    console.log(`✓ Wrote metadata to ${metadataPath}`);
+    logger.info(`✓ Wrote metadata to ${metadataPath}`);
     await appendLogs(
       DATASET_KEY,
       `Wrote metadata for ${metadataList.length} cases to ${metadataPath}`,
     );
 
-    console.log(`\n✓ Scrape completed. PDFs saved to ${RAW_DIR}`);
+    logger.info(`\n✓ Scrape completed. PDFs saved to ${RAW_DIR}`);
     await appendLogs(DATASET_KEY, `Scrape completed. Total PDFs: ${totalPdfCollected}`);
   } catch (error) {
-    console.error('✕ Fatal error:', error);
+    logger.error('✕ Fatal error:', error);
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
   } finally {
     await browser.close();
@@ -291,7 +291,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

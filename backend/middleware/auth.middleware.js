@@ -71,7 +71,7 @@ export function requireAuth(supabase) {
 
       next();
     } catch (err) {
-      console.error('[AUTH_ERROR]', err.message);
+      logger.error({ err }, 'Authentication failed');
       return res.status(500).json({
         error: 'Authentication failed',
         code: 'AUTH_ERROR',

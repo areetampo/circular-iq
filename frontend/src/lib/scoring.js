@@ -1,9 +1,4 @@
-/**
- * Scoring Utilities
- * Functions for score calculation, categorization, and color coding
- *
- * Location: src/lib/scoring.js
- */
+/** Score classification helpers: colours, labels, formatting. */
 
 import { COLORS, confidenceLevels } from '@/constants/evaluationData.js';
 

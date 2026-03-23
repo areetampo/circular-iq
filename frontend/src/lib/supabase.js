@@ -1,9 +1,4 @@
-/**
- * Supabase Client Configuration
- *
- * Initializes the Supabase client with URL and anon key from environment variables.
- * Used for authentication and real-time updates.
- */
+/** Initialised Supabase client singleton. */
 
 import { createClient } from '@supabase/supabase-js';
 

@@ -41,7 +41,7 @@ export async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
       lastError = error;
       if (i < maxRetries) {
         const delayTime = baseDelay * Math.pow(2, i);
-        console.log(`Retry attempt ${i + 1}/${maxRetries} after ${delayTime}ms`);
+        logger.log(`Retry attempt ${i + 1}/${maxRetries} after ${delayTime}ms`);
         await delay(delayTime);
       }
     }
@@ -80,7 +80,7 @@ export function withTimeout(promise, timeoutMs) {
  *
  * @example
  * const debouncedSearch = debounce((query) => {
- *   console.log('Searching for:', query);
+ *   logger.log('Searching for:', query);
  * }, 300);
  */
 export function debounce(func, wait) {
@@ -104,7 +104,7 @@ export function debounce(func, wait) {
  *
  * @example
  * const throttledScroll = throttle(() => {
- *   console.log('Scroll event');
+ *   logger.log('Scroll event');
  * }, 100);
  */
 export function throttle(func, limit) {
@@ -192,7 +192,7 @@ export async function poll(fn, interval = 1000, timeout = 30000) {
         return true;
       }
     } catch (error) {
-      console.warn('Poll error:', error);
+      logger.warn('Poll error:', error);
     }
 
     await delay(interval);
@@ -212,7 +212,7 @@ export async function poll(fn, interval = 1000, timeout = 30000) {
  *   primary: fetch('/api/primary'),
  *   fallback: fetch('/api/fallback')
  * });
- * console.log(`${result.label} completed first:`, result.result);
+ * logger.log(`${result.label} completed first:`, result.result);
  */
 export async function raceWithLabels(promiseMap) {
   const entries = Object.entries(promiseMap);
@@ -238,7 +238,7 @@ export async function raceWithLabels(promiseMap) {
  *   const result = await promise;
  * } catch (error) {
  *   if (error.message === 'Cancelled') {
- *     console.log('Request was cancelled');
+ *     logger.log('Request was cancelled');
  *   }
  * }
  */

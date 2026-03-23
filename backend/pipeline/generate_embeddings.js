@@ -43,7 +43,6 @@ import {
   isValidEmbedding,
   isValidTextForEmbedding,
   MAX_SAFE_TOKENS,
-  ratePerMillion,
   retryWithBackoff,
 } from '#config/embedding.js';
 import {
@@ -56,7 +55,7 @@ import {
   OUT_EMBEDDED_CHUNKS_JSONL,
   OUT_TEST_CHUNKS_JSON,
   OUT_TEST_EMBEDDED_CHUNKS_JSONL,
-} from '#utils/datasetsUtils.js';
+} from '#pipeline/datasetsUtils.js';
 
 // ================= CONFIGURATION =================
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;
@@ -68,8 +67,7 @@ let tokenEncoder = null;
 try {
   tokenEncoder = encoding_for_model(EMBEDDING_MODEL);
 } catch {
-  console.warn(`‼ No exact tokeniser for model ${EMBEDDING_MODEL}, falling back to cl100k_base`);
-  // fallback: use the base encoder for OpenAI models
+  logger.warn({ model: EMBEDDING_MODEL }, 'No exact tokeniser, falling back to base');
   tokenEncoder = encoding_for_model('gpt-4');
 }
 
@@ -121,7 +119,7 @@ export function loadChunks(chunksFilePath) {
       throw new Error('Chunks file must contain a JSON array');
     }
 
-    console.log(`✓ Loaded ${chunks.length} chunks from ${chunksFilePath}`);
+    logger.info({ path: chunksFilePath, count: chunks.length }, 'Loaded chunks');
     return chunks;
   } catch (error) {
     throw new Error(`Failed to load chunks: ${error.message}`);
@@ -139,10 +137,16 @@ export function loadChunks(chunksFilePath) {
 export async function generateEmbeddings(chunks, opts = {}) {
   const { progressPath = null, resume = false } = opts;
 
-  console.log(`\n========= Generating embeddings for ${chunks.length} chunks... =========`);
-  console.log(`  Model: ${EMBEDDING_MODEL}`);
-  console.log(`  Dimension: ${EMBEDDING_DIMENSION}`);
-  if (SKIP_FIELDS) console.log('  Field‑level embeddings: disabled');
+  logger.info(
+    {
+      chunksCount: chunks.length,
+      model: EMBEDDING_MODEL,
+      dimension: EMBEDDING_DIMENSION,
+      skipFields: SKIP_FIELDS,
+      dryRun: DRY_RUN,
+    },
+    'Starting embedding generation',
+  );
 
   // Prepare output stream
   const writeStream = fs.createWriteStream(progressPath, {
@@ -161,7 +165,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
   const existingEmbeddings = new Map(); // chunkId → { doc?: vector, fields: { [fieldName]: vector } }
 
   if (resume && progressPath && fs.existsSync(progressPath)) {
-    console.log('  Reading existing progress file to load previously generated embeddings...');
+    logger.info('Reading existing progress file to load previously generated embeddings');
     const rl = readline.createInterface({
       input: fs.createReadStream(progressPath),
       crlfDelay: Infinity,
@@ -185,12 +189,10 @@ export async function generateEmbeddings(chunks, opts = {}) {
         }
         existingEmbeddings.set(chunkId, existing);
       } catch (e) {
-        console.warn(`  ‼ Skipping malformed line ${lineCount}: ${e.message}`);
+        logger.warn({ lineNumber: lineCount }, 'Skipping malformed line');
       }
     }
-    console.log(
-      `  Resume mode: loaded embeddings for ${existingEmbeddings.size} chunks from previous run.`,
-    );
+    logger.info({ count: existingEmbeddings.size }, 'Loaded embeddings from previous run');
   }
 
   // Build list of items to embed (only those not already processed)
@@ -209,9 +211,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
     if (isValidTextForEmbedding(chunk.content) && !emb.doc) {
       const tokens = estimateTokens(chunk.content, tokenEncoder);
       if (tokens > MAX_SAFE_TOKENS) {
-        console.warn(
-          `  ‼ Chunk ${c} (${chunk.id}) has ~${tokens} tokens, which may exceed the model limit. Consider shortening.`,
-        );
+        logger.warn({ chunkIndex: c, chunkId: chunk.id, tokens }, 'Chunk may exceed token limit');
       }
       items.push({ chunkIdx: c, fieldName: 'doc', text: chunk.content });
       tokenEstimates.push(estimateTokens(chunk.content, tokenEncoder));
@@ -241,16 +241,19 @@ export async function generateEmbeddings(chunks, opts = {}) {
   }
 
   if (items.length === 0) {
-    console.warn('‼ No new text items to embed (all were already done or below minimum length)');
+    logger.warn('No new text items to embed (all done or below minimum length)');
     writeStream.end();
     return;
   }
 
   const totalTokens = tokenEstimates.reduce((a, b) => a + b, 0);
-  console.log(`  Prepared ${items.length} embedding requests across ${chunks.length} chunks`);
-  console.log(`  Estimated total tokens: ~${totalTokens.toLocaleString()}`);
-  console.log(
-    `  Approximate cost (${EMBEDDING_MODEL} @ $${ratePerMillion}/1M tokens): $${estimatedCost(totalTokens).toFixed(4)}`,
+  logger.info(
+    {
+      itemsCount: items.length,
+      estimatedTokens: totalTokens,
+      estimatedCost: estimatedCost(totalTokens).toFixed(4),
+    },
+    'Prepared embedding requests',
   );
 
   // Track processed counts per chunk
@@ -263,8 +266,9 @@ export async function generateEmbeddings(chunks, opts = {}) {
     const totalBatches = Math.ceil(items.length / EMBEDDING_BATCH_SIZE);
     const batchTokens = tokenEstimates.slice(i, i + batchItems.length).reduce((a, b) => a + b, 0);
 
-    console.log(
-      `  Processing batch ${batchNum}/${totalBatches} (${batchItems.length} items, ~${batchTokens} tokens)...`,
+    logger.info(
+      { batchNum, totalBatches, itemsCount: batchItems.length, estimatedTokens: batchTokens },
+      'Processing batch',
     );
 
     const batchStart = Date.now();
@@ -284,7 +288,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
         processedCounts[chunkIdx]++;
       });
       totalProcessedTokens += batchTokens;
-      console.log(`    ✓ Generated ${batchItems.length} fake embeddings`);
+      logger.info({ count: batchItems.length }, 'Generated fake embeddings');
     } else {
       try {
         // Call OpenAI API with retry logic
@@ -317,9 +321,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
           const embedding = embObj.embedding;
 
           if (!isValidEmbedding(embedding)) {
-            console.error(
-              `    ✗ Invalid embedding at index ${idx}: dimension mismatch or non-numeric values`,
-            );
+            logger.error({ index: idx }, 'Invalid embedding');
             throw new Error(`Invalid embedding returned for item ${idx}`);
           }
 
@@ -338,7 +340,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
         }
 
         totalProcessedTokens += batchTokens;
-        console.log(`    ✓ Generated and validated ${batchItems.length} embeddings`);
+        logger.info({ count: batchItems.length }, 'Generated embeddings');
 
         // Log ETA after first real batch completes (accurate timing)
         if (batchNum === 1 && totalBatches > 1) {
@@ -347,9 +349,9 @@ export async function generateEmbeddings(chunks, opts = {}) {
           const remainingItems = items.length - i - batchItems.length;
           const etaSec = Math.ceil((msPerItem * remainingItems) / 1000);
           const etaMin = Math.floor(etaSec / 60);
-          const etaRemSec = etaSec % 60;
-          console.log(
-            `    Estimated time remaining: ~${etaMin}m ${etaRemSec}s (${batchItems.length} items took ${(batchMs / 1000).toFixed(1)}s)`,
+          logger.info(
+            { etaMinutes: etaMin, batchDurationMs: batchMs },
+            'ETA for remaining batches',
           );
         }
 
@@ -359,7 +361,7 @@ export async function generateEmbeddings(chunks, opts = {}) {
         }
       } catch (error) {
         const errorMsg = error.message || String(error);
-        console.error(`  ✗ Batch ${batchNum} failed: ${errorMsg}`);
+        logger.error({ batchNum }, 'Batch processing failed');
         // Wait for stream to flush before throwing so progress is saved
         await new Promise((resolve) => writeStream.end(resolve));
         throw new Error(`Embedding generation failed at batch ${batchNum}: ${errorMsg}`);
@@ -389,8 +391,13 @@ export async function generateEmbeddings(chunks, opts = {}) {
   // Close the stream
   writeStream.end();
 
-  console.log(`\n✓ Successfully generated embeddings for ${written.filter(Boolean).length} chunks`);
-  console.log(`  Estimated total tokens processed: ~${totalProcessedTokens.toLocaleString()}\n`);
+  logger.info(
+    {
+      chunksWithEmbeddings: written.filter(Boolean).length,
+      totalProcessedTokens: totalProcessedTokens.toLocaleString(),
+    },
+    'Successfully generated embeddings',
+  );
 }
 
 // ================= MAIN EXECUTION PIPELINE =================
@@ -401,16 +408,15 @@ export async function generateEmbeddings(chunks, opts = {}) {
  */
 export async function main() {
   try {
-    console.log('=============== Embedding Generation Pipeline ===============');
-    console.log('  Options:');
-    console.log(`    Model: ${EMBEDDING_MODEL}`);
-    console.log(`    Dimension: ${EMBEDDING_DIMENSION}`);
-    console.log(`    Skip field-level embeddings: ${SKIP_FIELDS}`);
-    console.log(`    Dry run (fake embeddings): ${DRY_RUN}`);
-    console.log(`    Use archives paths: ${useArchive}`);
-    console.log(`    Use test dataset: ${test}`);
-    console.log(`  Input: ${chunksPath}`);
-    console.log(`  Output: ${outputPath}`);
+    logger.info(
+      {
+        model: EMBEDDING_MODEL,
+        dimension: EMBEDDING_DIMENSION,
+        inputPath: chunksPath,
+        outputPath,
+      },
+      'Starting embedding generation pipeline',
+    );
 
     // Step 1: Load chunks
     const chunks = loadChunks(chunksPath);
@@ -422,14 +428,12 @@ export async function main() {
     });
 
     // Success summary
-    console.log('========= ✓ EMBEDDING GENERATION COMPLETE =========');
-    console.log(`  Output: ${path.relative(process.cwd(), outputPath)}`);
-    console.log(
-      '  Next: Check out pipeline/store_embeddings.js for methods to store these embeddings',
+    logger.info(
+      { outputPath: path.relative(process.cwd(), outputPath) },
+      'Embedding generation complete',
     );
   } catch (error) {
-    console.error('\n✗ EMBEDDING GENERATION FAILED');
-    console.error(`✗ ${error.message}\n`);
+    logger.error({ err: error }, 'Embedding generation failed');
     process.exit(1);
   }
 }
@@ -437,7 +441,7 @@ export async function main() {
 // Self-executing module
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✗ Fatal error:', err.message);
+    logger.error({ err }, 'Fatal error');
     process.exit(1);
   });
 }

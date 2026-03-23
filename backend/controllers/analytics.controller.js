@@ -1,3 +1,9 @@
+/**
+ * Analytics Controller
+ * Handles global dashboard stats, enhanced analytics, featured solutions,
+ * document stats, and the global-stats endpoint used by the Dashboard page.
+ */
+
 import { spawn } from 'child_process';
 import path from 'path';
 
@@ -111,7 +117,7 @@ async function ensureOpenAIClient() {
     openaiClient = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
     return openaiClient;
   } catch (e) {
-    console.error('Failed to initialize OpenAI client:', e);
+    logger.error({ err: e }, 'Failed to initialize OpenAI client');
     openaiClient = null;
     return null;
   }
@@ -844,7 +850,7 @@ export function getGlobalStats(serviceSupabase) {
       // ── Process scoring_results_log ────────────────────────────────────────
       const logRows = logResult.status === 'fulfilled' ? logResult.value?.data || [] : [];
       if (logResult.status === 'rejected') {
-        console.error('[getGlobalStats] log query failed:', logResult.reason?.message);
+        logger.error({ reason: logResult.reason }, '[getGlobalStats] log query failed');
       }
 
       const totalScoringCalls = logRows.length;
@@ -1005,7 +1011,7 @@ export function getGlobalStats(serviceSupabase) {
         generated_at: new Date().toISOString(),
       });
     } catch (err) {
-      console.error('[getGlobalStats] unexpected error:', err);
+      logger.error({ err }, '[getGlobalStats] unexpected error');
       res.status(500).json(buildErrorResponse(err, 'Failed to fetch global stats'));
     }
   };

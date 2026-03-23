@@ -1,10 +1,12 @@
-import '#server/bootstrap.js';
+/** Entry point. Starts the HTTP server. */
 
 import boxen from 'boxen';
 import chalk from 'chalk';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import app from '#server/app.js';
+
+global.logger = logger;
 
 let serverInstance = null;
 
@@ -130,23 +132,28 @@ export function startServer() {
     const shutdown = () => {
       if (serverInstance) {
         console.log(theme.warning('\n揪 SIGTERM/SIGINT received. Cleaning up...'));
+        logger.warn('SIGTERM/SIGINT received, initiating shutdown');
 
         // 1. Stop accepting new requests immediately
         serverInstance.close(async () => {
           console.log(theme.dim('  - Server stopped accepting new connections.'));
+          logger.info('Server stopped accepting new connections');
 
           // 2. Give background tasks (like Supabase logging) 2-3 seconds to finish
           // This is crucial for Render redeploys
           console.log(theme.dim('  - Draining background tasks...'));
+          logger.info('Draining background tasks');
           await new Promise((resolve) => setTimeout(resolve, 3000));
 
           console.log(theme.danger('✕ Server Process Terminated.'));
+          logger.info('Server process terminated successfully');
           process.exit(0);
         });
 
         // Forced kill after 10 seconds if it hangs
         setTimeout(() => {
           console.error(theme.danger('! Could not close connections in time, forceful shutdown'));
+          logger.error('Forceful shutdown after timeout');
           process.exit(1);
         }, 10000);
       }
@@ -164,11 +171,13 @@ export function stopServer() {
   serverInstance.close(() => {
     serverInstance = null;
     console.log(theme.dim('Server Instance Stopped.'));
+    logger.info('Server Instance Stopped.');
   });
 }
 
 // Prevent background logging errors from crashing the Render instance
 process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ err: reason }, 'UNHANDLED REJECTION');
   if (BACKEND_CONFIG.nodeEnv !== 'test') {
     console.error(theme.danger('\n‼ UNHANDLED REJECTION:'), reason);
   }

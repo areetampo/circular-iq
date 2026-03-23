@@ -8,11 +8,14 @@ import LoaderComponent from '@/components/common/LoaderComponent';
 import { DIALOGS } from '@/components/dialogs/dialogTypes';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { deleteAssessment, usePublicAssessment } from '@/features/assessments';
+import { deleteAssessment } from '@/features/assessments/api/assessmentApi';
+import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportAssessmentPDF } from '@/features/export';
 import { formatTimestamp } from '@/lib/formatting';
 import { formatFactorName, getRiskBadgeColor, getScoreClass } from '@/lib/scoring';
+
+import { CircularEconomyTierCard, WeightedScoreCard } from '../ResultsPage/components';
 
 export default function AssessmentViewPage() {
   const { publicId } = useParams();
@@ -42,7 +45,7 @@ export default function AssessmentViewPage() {
       toast.success('Assessment deleted');
       navigate('/assessments');
     } catch (err) {
-      console.error('Delete failed', err);
+      logger.error('Delete failed', err);
       toast.danger('Failed to delete assessment');
       throw err;
     }
@@ -242,130 +245,8 @@ export default function AssessmentViewPage() {
         </Card>
       )}
 
-      {/* Circular Economy Tier */}
-      {scoringResult?.circular_economy_tier && (
-        <Card
-          className={`border-2 shadow-sm rounded-xl ${
-            scoringResult.circular_economy_tier.badge_color === 'green'
-              ? 'border-green-300 bg-green-50'
-              : scoringResult.circular_economy_tier.badge_color === 'blue'
-                ? 'border-blue-300 bg-blue-50'
-                : scoringResult.circular_economy_tier.badge_color === 'amber'
-                  ? 'border-amber-300 bg-amber-50'
-                  : 'border-red-300 bg-red-50'
-          }`}
-        >
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Circular Economy Tier
-                </span>
-                <h3
-                  className={`text-2xl font-bold mt-0.5 ${
-                    scoringResult.circular_economy_tier.badge_color === 'green'
-                      ? 'text-green-700'
-                      : scoringResult.circular_economy_tier.badge_color === 'blue'
-                        ? 'text-blue-700'
-                        : scoringResult.circular_economy_tier.badge_color === 'amber'
-                          ? 'text-amber-700'
-                          : 'text-red-700'
-                  }`}
-                >
-                  {scoringResult.circular_economy_tier.tier}
-                </h3>
-                <span className="text-xs text-slate-500">
-                  Score range: {scoringResult.circular_economy_tier.range}
-                  {' · '}
-                  {scoringResult.circular_economy_tier.percentile_estimate}
-                </span>
-              </div>
-            </div>
-            <p className="text-sm text-slate-700 mb-2">
-              {scoringResult.circular_economy_tier.description}
-            </p>
-            <div className="p-3 bg-white/60 rounded-lg border border-current/10">
-              <span className="text-xs font-semibold text-slate-600">Next Milestone: </span>
-              <span className="text-xs text-slate-700">
-                {scoringResult.circular_economy_tier.next_milestone}
-              </span>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Weighted Score Card */}
-      {scoringResult?.weighted_score_card && (
-        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-          <div className="p-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Score Contribution Breakdown</h3>
-            <p className="text-sm text-slate-500 mb-4">
-              How each factor contributed to your overall score of{' '}
-              <span className="font-bold text-slate-800">{scoringResult.overall_score}/100</span>
-            </p>
-            <div className="space-y-2">
-              {Object.entries(scoringResult.weighted_score_card.factors)
-                .sort(([, a], [, b]) => b.contribution - a.contribution)
-                .map(([key, factor]) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <div className="w-36 text-xs font-medium text-slate-600 truncate shrink-0">
-                      {formatFactorName(key)}
-                    </div>
-                    <div className="flex-1 bg-slate-100 rounded-full h-2 relative overflow-hidden">
-                      <div
-                        className={`h-2 rounded-full ${
-                          factor.classification === 'Strong'
-                            ? 'bg-green-500'
-                            : factor.classification === 'Moderate'
-                              ? 'bg-blue-500'
-                              : factor.classification === 'Weak'
-                                ? 'bg-amber-500'
-                                : 'bg-red-500'
-                        }`}
-                        style={{ width: `${factor.raw_score}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-slate-500 w-8 text-right shrink-0">
-                      {factor.raw_score}
-                    </div>
-                    <div className="text-xs text-slate-400 w-10 text-right shrink-0">
-                      +{factor.contribution}
-                    </div>
-                    <Chip
-                      variant="soft"
-                      size="sm"
-                      className={`text-xs shrink-0 ${
-                        factor.classification === 'Strong'
-                          ? 'text-green-700 bg-green-100'
-                          : factor.classification === 'Moderate'
-                            ? 'text-blue-700 bg-blue-100'
-                            : factor.classification === 'Weak'
-                              ? 'text-amber-700 bg-amber-100'
-                              : 'text-red-700 bg-red-100'
-                      }`}
-                    >
-                      {factor.classification}
-                    </Chip>
-                  </div>
-                ))}
-            </div>
-            <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500">
-              <span>
-                Top contributor:{' '}
-                <span className="font-semibold text-slate-700">
-                  {formatFactorName(scoringResult.weighted_score_card.top_contributor)}
-                </span>
-              </span>
-              <span>
-                Needs most attention:{' '}
-                <span className="font-semibold text-slate-700">
-                  {formatFactorName(scoringResult.weighted_score_card.bottom_contributor)}
-                </span>
-              </span>
-            </div>
-          </div>
-        </Card>
-      )}
+      <CircularEconomyTierCard actualResult={scoringResult} />
+      <WeightedScoreCard actualResult={scoringResult} />
 
       {/* Parameter Consistency */}
       {scoringResult?.parameter_consistency && (
@@ -850,3 +731,5 @@ export default function AssessmentViewPage() {
     </div>
   );
 }
+
+AssessmentViewPage.propTypes = {};

@@ -148,3 +148,5 @@ export default function BusinessContextHeadingInfoDrawer() {
     </Drawer>
   );
 }
+
+BusinessContextHeadingInfoDrawer.propTypes = {};

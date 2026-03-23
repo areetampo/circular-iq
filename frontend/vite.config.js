@@ -39,10 +39,20 @@ const rootEnvPath = path.resolve(root, 'env');
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir: rootEnvPath,
+  // esbuild: {
+  //   // 'pure' tells esbuild these functions have no side effects,
+  //   // so it can safely remove them during minification.
+  //   pure: ['console.log'],
+  //   // If you want to remove warnings too, use: pure: ['console.log', 'console.warn']
+  // },
+  define: {
+    // This makes 'logger' globally available in your frontend code
+    // It will point to the file you created
+    logger: 'window.logger',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/api': path.resolve(__dirname, './src/api'),
       '@/app': path.resolve(__dirname, './src/app'),
       '@/components': path.resolve(__dirname, './src/components'),
       '@/config': path.resolve(__dirname, './src/config'),
@@ -57,17 +67,15 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000, // 10KB
+    // kB; vendor-react includes React, MUI, and @mui/x-charts (~1 MB minified)
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks(id) {
           // PDF vendor
           if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('canvg'))
             return 'vendor-pdf';
-          // Charts vendor
-          if (id.includes('recharts') || id.includes('@mui/x-charts') || id.includes('d3'))
-            return 'vendor-charts';
-          // React + MUI + React Aria – all in one chunk
+          // React + MUI (incl. @mui/x-charts) + React Aria — MUI charts must stay with MUI to avoid chunk cycles
           if (
             id.includes('@mui/') ||
             id.includes('react-dom') ||
@@ -77,6 +85,8 @@ export default defineConfig({
             id.includes('react-aria-components')
           )
             return 'vendor-react';
+          // Charts vendor (Recharts/D3 only — not @mui/x-charts)
+          if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
           // supabase
           if (id.includes('@supabase')) return 'vendor-supabase';
           // Split main app pages
@@ -99,7 +109,6 @@ export default defineConfig({
     setupFiles: './src/setupTests.js',
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/api': path.resolve(__dirname, './src/api'),
       '@/app': path.resolve(__dirname, './src/app'),
       '@/components': path.resolve(__dirname, './src/components'),
       '@/constants': path.resolve(__dirname, './src/constants'),

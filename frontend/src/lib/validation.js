@@ -1,9 +1,6 @@
-/**
- * Validation Utilities
- * Input validation and character counting
- *
- * Location: src/lib/validation.js
- */
+/** Input validation and character counting helpers. */
+
+import { z } from 'zod';
 
 /**
  * Count meaningful characters (excluding leading/trailing whitespace)
@@ -235,3 +232,124 @@ export function getWordCount(text) {
     .filter((word) => word.length > 0);
   return words.length;
 }
+
+/**
+ * ============================================
+ * AUTHENTICATION VALIDATION SCHEMAS (Zod)
+ * ============================================
+ * Shared validation for username and password across Login and Signup forms.
+ * Uses zod for runtime validation with automatic trimming.
+ *
+ * SECURITY NOTE:
+ * These schemas mirror the backend trigger (force_internal_email) and the
+ * profiles table CHECK constraint. All three must stay in sync.
+ * Frontend Zod = fast UX feedback.
+ * DB trigger    = enforces rules even if someone bypasses the frontend.
+ * DB constraint = the absolute hard floor — database physically refuses bad data.
+ */
+
+// ============================================
+// Validation Constants
+// ============================================
+// Single source of truth for all length / pattern rules.
+// Referenced in both schemas and in the hint text rendered below each input.
+
+export const AUTH_VALIDATION = {
+  USERNAME: {
+    MIN_LENGTH: 3,
+    MAX_LENGTH: 30,
+    /**
+     * ^(?=.*[a-zA-Z])   — must contain at least one letter (lookahead)
+     * [a-zA-Z0-9_-]+$   — only letters, digits, underscores, hyphens; no spaces
+     *
+     * This mirrors the Postgres regex used in:
+     *   • force_internal_email() BEFORE INSERT trigger
+     *   • profiles.username_valid_format CHECK constraint
+     */
+    PATTERN: /^(?=.*[a-zA-Z])[a-zA-Z0-9_-]+$/,
+    PATTERN_DESC: 'letters, numbers, - and _ only · at least one letter · no spaces',
+  },
+  PASSWORD: {
+    MIN_LENGTH: 6,
+    MAX_LENGTH: 30,
+    /**
+     * ^\S*              — no leading spaces (and combined with the trailing \S* ensures no spaces anywhere)
+     * (?=.*[!@#$%^&*(),.?":{}|<>])  — must include at least one special character
+     * \S*$              — no trailing spaces; \S matches any non-whitespace character
+     */
+    PATTERN: /^\S*(?=.*[!@#$%^&*(),.?":{}|<>])\S*$/,
+    PATTERN_DESC: 'at least one special character (!@#$%^&* etc.) · no spaces',
+  },
+};
+
+// ============================================
+// Username Schema
+// ============================================
+
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(
+    AUTH_VALIDATION.USERNAME.MIN_LENGTH,
+    `Username must be at least ${AUTH_VALIDATION.USERNAME.MIN_LENGTH} characters`,
+  )
+  .max(
+    AUTH_VALIDATION.USERNAME.MAX_LENGTH,
+    `Username must be at most ${AUTH_VALIDATION.USERNAME.MAX_LENGTH} characters`,
+  )
+  // Explicitly block @ before the regex so the error message is unambiguous.
+  // This also prevents any attempt to inject an @ce.internal email directly.
+  .refine((val) => !val.includes('@'), {
+    message: 'Username cannot contain @',
+  })
+  .regex(AUTH_VALIDATION.USERNAME.PATTERN, {
+    message: `Username: ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`,
+  });
+
+// ============================================
+// Password Schema
+// ============================================
+
+export const passwordSchema = z
+  .string()
+  // No .trim() on passwords — a trailing space is a valid mistake to surface,
+  // but we still enforce no-spaces via the regex pattern below.
+  .min(
+    AUTH_VALIDATION.PASSWORD.MIN_LENGTH,
+    `Password must be at least ${AUTH_VALIDATION.PASSWORD.MIN_LENGTH} characters`,
+  )
+  .max(
+    AUTH_VALIDATION.PASSWORD.MAX_LENGTH,
+    `Password must be at most ${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} characters`,
+  )
+  .regex(AUTH_VALIDATION.PASSWORD.PATTERN, {
+    message: `Password: ${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`,
+  });
+
+// ============================================
+// Login Schema
+// ============================================
+// Intentionally uses the same strict username schema as signup.
+// This prevents login-based user enumeration: an attacker cannot probe
+// "does this malformed username exist?" because it is rejected locally
+// before a network request is ever made.
+
+export const loginSchema = z.object({
+  username: usernameSchema,
+  password: passwordSchema,
+});
+
+// ============================================
+// Signup Schema
+// ============================================
+
+export const signupSchema = z
+  .object({
+    username: usernameSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });

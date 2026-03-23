@@ -189,10 +189,10 @@ async function translateBatchFrenchToEnglish(texts) {
     toTranslate.forEach((orig, idx) => {
       translationCache.set(orig.trim(), translated[idx]);
     });
-    console.log(`  ✓ Translated ${translated.length} texts from French to English.`);
+    logger.info(`  ✓ Translated ${translated.length} texts from French to English.`);
     return translated;
   } catch (err) {
-    console.warn(`Batch translation failed: ${err.message}`);
+    logger.warn(`Batch translation failed: ${err.message}`);
     return texts; // fallback to original
   }
 }
@@ -364,7 +364,7 @@ function extractPDFStats(sentence) {
  * Process a PDF and extract indicator‑based rows.
  */
 async function processPDFIndicators(filePath, fileName) {
-  console.log(`  📄 Processing PDF for indicators: ${fileName}`);
+  logger.info(`  📄 Processing PDF for indicators: ${fileName}`);
   const text = await extractPDFText(filePath, 30);
   const sentences = text
     .split(/(?<=[.!?])\s+/)
@@ -419,7 +419,7 @@ async function main() {
 
   for (const file of files) {
     const filePath = path.join(rawDir, file);
-    console.log(`📂 Processing: ${file}`);
+    logger.info(`📂 Processing: ${file}`);
 
     if (file.endsWith('.csv')) {
       const delimiter = await detectDelimiter(filePath);
@@ -437,7 +437,7 @@ async function main() {
         const projectRows = await transformProjectRows(rows);
         allRows = allRows.concat(projectRows);
       } else {
-        console.log('  ⏭️ Skipping unknown CSV');
+        logger.info('  ⏭️ Skipping unknown CSV');
       }
     } else if (file.endsWith('.pdf')) {
       // Process PDFs for indicator rows
@@ -469,15 +469,15 @@ async function main() {
   }));
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(`\n✨ Successfully unified files into ${finalRows.length} high‑quality rows.`);
-  console.log(
+  logger.info(`\n✨ Successfully unified files into ${finalRows.length} high‑quality rows.`);
+  logger.info(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal Error during extraction:', err.message);
+    logger.error('\n✕ Fatal Error during extraction:', err.message);
     process.exit(1);
   });
 }

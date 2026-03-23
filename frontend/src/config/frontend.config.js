@@ -47,7 +47,7 @@ if (isTest) {
 } else {
   if (!result.success) {
     console.error(
-      '\u274c Frontend Environment Validation Failed:',
+      '[ERROR]: \u274c Frontend Environment Validation Failed:',
       result.error.flatten().fieldErrors,
     );
     if (import.meta.env.DEV) {

@@ -1,158 +1,272 @@
-# Frontend: Circular Economy Assessment UI
+﻿# Frontend — Circular Economy Assessor
 
-React + Vite application for assessing circular economy business initiatives with interactive scoring, visualization, and export functionality.
+React 19 + Vite 7 SPA for assessing, visualising, comparing, and managing circular economy evaluations.
 
 ## Overview
 
 The frontend provides:
 
-1. **Assessment Flow** - Guided questionnaires across 8 dimensions
-2. **Results Display** - Interactive charts, tables, and comparisons
-3. **Export Functionality** - PDF reports and CSV data exports
-4. **Market Analysis** - Benchmark against similar projects
-5. **Session Management** - Automatic persistence and sharing
-6. **Anonymous Usage** - 5 free assessments with tracking
+1. **Assessment Flow** — guided questionnaires with optional business context + 8 evaluation parameters
+2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
+3. **Global Dashboard** — live analytics from all scoring calls worldwide
+4. **Export Functionality** — PDF reports and CSV data exports
+5. **Assessment History** — save, rename, delete, compare, and share assessments
+6. **Session Management** — automatic save/restore across browser sessions
+7. **Anonymous Usage** — 5 free assessments with IP-based tracking; unlimited for logged-in users
 
 ## Tech Stack
 
-| Technology                | Purpose                   |
-| ------------------------- | ------------------------- |
-| **React 19**              | UI framework              |
-| **Vite 7**                | Build tool and dev server |
-| **TypeScript**            | Type safety (optional)    |
-| **TypeScript/JavaScript** | Source language           |
-| **Tailwind CSS v4**       | Utility-first styling     |
-| **HeroUI v3**             | Pre-built components      |
-| **MUI X Charts**          | Data visualization        |
-| **React Router v7**       | Client-side routing       |
-| **React Query**           | Server state management   |
-| **Supabase**              | Authentication            |
-| **Vitest**                | Unit testing              |
-| **React Testing Library** | Component testing         |
+| Technology                | Purpose                                    |
+| ------------------------- | ------------------------------------------ |
+| **React 19**              | UI framework                               |
+| **Vite 7**                | Build tool and dev server                  |
+| **TypeScript**            | Type safety (selective — hooks and utils)  |
+| **Tailwind CSS v4**       | Utility-first styling                      |
+| **HeroUI v3**             | Pre-built component library                |
+| **Recharts**              | Data visualisation (Bar, Line, Pie, Radar) |
+| **React Router v7**       | Client-side routing                        |
+| **TanStack React Query**  | Server state management + caching          |
+| **Supabase JS**           | Authentication client                      |
+| **Vitest**                | Unit testing                               |
+| **React Testing Library** | Component testing                          |
 
 ## Directory Structure
 
-```
-frontend/
-├── src/
-│   ├── app/                          # Root configuration
-│   │   ├── App.jsx                   # Main component with routing
-│   │   ├── AppRoutes.jsx             # Route definitions
-│   │   └── AppProvider.jsx           # Global context setup
+```txt
+frontend/src/
+│
+├── app/
+│   ├── App.jsx              # Root component with providers and routing
+│   ├── AppRoutes.jsx        # All route definitions
+│   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
+│
+├── pages/
+│   ├── LandingPage/
+│   │   ├── LandingPage.jsx
+│   │   └── components/
+│   │       ├── BusinessContextContainer.jsx    # Optional context fields (model type, stage, geography, etc.)
+│   │       ├── EvaluationParametersContainer.jsx  # Guided mode toggle + 8-parameter scoring inputs
+│   │       ├── LiveCharacterCounter.jsx
+│   │       └── SampleTestCasesContainer.jsx    # Pre-filled example assessments
 │   │
-│   ├── pages/                        # Page-level components
-│   │   ├── AssessmentPage/           # Questionnaire flow
-│   │   ├── ResultsPage/              # Results & visualization
-│   │   ├── AssessmentComparisonPage/ # Compare two assessments side-by-side
-│   │   ├── DashboardPage/            # Analytics dashboard
-│   │   ├── MarketAnalysisPage/       # Benchmarking
-│   │   ├── MyAssessmentsPage/        # Assessment history
-│   │   ├── SharePage/                # Public shared results
-│   │   ├── LandingPage/              # Marketing homepage
-│   │   └── AuthPage/                 # Login/signup
+│   ├── ResultsPage/
+│   │   ├── ResultsPage.jsx
+│   │   └── components/
+│   │       ├── ScoreOverviewSection.jsx        # Overall score + derived metrics row
+│   │       ├── ScoreCategoryBreakdown.jsx      # Access/Embedded/Processing value category cards
+│   │       ├── WeightedScoreCard.jsx           # Per-factor contribution table (Layer 2)
+│   │       ├── CircularEconomyTierCard.jsx     # Tier badge + milestone guidance (Layer 2)
+│   │       ├── ParameterConsistencyCard.jsx    # Consistency score + detected issues (Layer 2)
+│   │       ├── RStrategyAlignmentCard.jsx      # R-strategy profile alignment (Layer 2)
+│   │       ├── AuditSummaryCard.jsx            # Full LLM audit: verdict, gaps, roadmap, SDGs, market opp.
+│   │       ├── DatabaseEvidenceCard.jsx        # Similar cases with drawer integration
+│   │       ├── GapAnalysisCard.jsx             # Benchmark comparison against similar cases
+│   │       ├── CaseSummary.jsx                 # Individual similar case display
+│   │       └── ResultsSkeleton.jsx             # Loading skeleton
 │   │
-│   ├── features/                     # Feature-specific logic
-│   │   ├── assessments/              # Assessment CRUD
-│   │   │   ├── api/assessmentApi.js  # React Query hooks
-│   │   │   ├── hooks/                # Assessment-specific hooks
-│   │   │   ├── components/           # Assessment components
-│   │   │   └── utils/                # Assessment utilities
+│   ├── AssessmentViewPage/
+│   │   └── AssessmentViewPage.jsx              # Saved assessment view (same result sections as ResultsPage)
+│   │
+│   ├── AssessmentComparisonPage/
+│   │   ├── AssessmentComparisonPage.jsx
+│   │   └── components/
+│   │       ├── ComparisonSkeleton.jsx          # Loading skeleton
+│   │       ├── ChangeIndicator.jsx             # +/- change chip component
+│   │       ├── OverviewTab.jsx                 # Input data, key insights, score snapshot, verdict
+│   │       ├── FactorAnalysisTab.jsx           # Radar chart, bar chart, detailed factor table
+│   │       ├── DetailsTab.jsx                  # Project details, gap analysis, enrichment cards
+│   │       └── DatabaseEvidenceTab.jsx         # Side-by-side similar cases with score grids
+│   │
+│   ├── DashboardPage/
+│   │   ├── DashboardPage.jsx                   # Global Intelligence Dashboard
+│   │   └── components/
+│   │       ├── StatCard.jsx                    # Metric display card with icon + label + value
+│   │       ├── SectionDivider.jsx              # Section header with coloured vertical bar
+│   │       ├── ChartPanel.jsx                  # Chart container with title, icon, loading skeleton
+│   │       ├── SingleValueChart.jsx            # Fallback for single-data-point pie chart scenarios
+│   │       ├── EmptyChart.jsx                  # Empty state placeholder for charts
+│   │       └── SolutionCard.jsx                # Featured solution card with preview + drawer trigger
+│   │
+│   ├── MyAssessmentsPage/
+│   │   ├── MyAssessmentsPage.jsx
+│   │   ├── sortUtils.js                        # Sort helper functions
+│   │   └── components/
+│   │       ├── AssessmentListItem.jsx          # Individual assessment card/row
+│   │       ├── FilterBar.jsx                   # Sort/filter/search controls
+│   │       └── IndustryFilterChip.jsx          # Industry chip filter toggle
+│   │
+│   ├── AuthPage/AuthPage.jsx
+│   ├── ComparePage/ComparePage.jsx             # Route wrapper → AssessmentComparisonPage
+│   ├── GuidePage/GuidePage.jsx
+│   ├── SharePage/SharePage.jsx                 # Public shared assessment view
+│   └── NotFoundPage/NotFoundPage.jsx
+│
+├── components/                                 # Shared, page-agnostic components
+│   ├── auth/
+│   │   ├── LoginForm.jsx
+│   │   └── SignupForm.jsx
+│   │
+│   ├── charts/
+│   │   ├── BarChart.jsx      # Props: barConfigs, xAxisKey, height, showGrid, showLegend
+│   │   ├── LineChart.jsx     # Props: lines, xAxisKey, height, showGrid
+│   │   ├── PieChart.jsx      # Props: dataKey, nameKey, colors, innerRadius, showLegend
+│   │   ├── RadarChart.jsx
+│   │   └── index.js
+│   │
+│   ├── common/
+│   │   ├── Button.jsx, Brand.jsx, Switch.jsx, TipCard.jsx
+│   │   ├── ErrorDisplay.jsx, LoaderComponent.jsx, LoaderIcon.jsx
+│   │   ├── GlobalLoadingBar.jsx, ScrollToTop.jsx, VisuallyHidden.jsx
+│   │   ├── CloseButtonX.jsx, ChartWrapper.jsx
+│   │   └── index.js
+│   │
+│   ├── dialogs/
+│   │   ├── SaveAssessmentDialog.jsx
+│   │   ├── DeleteAssessmentDialog.jsx
+│   │   ├── RenameAssessmentDialog.jsx
+│   │   ├── SessionRestoreDialog.jsx
+│   │   ├── ConfirmDialog.jsx
+│   │   ├── LimitReachedDialog.jsx
+│   │   ├── ReplaceInputsDialog.jsx
+│   │   ├── DialogManager.jsx
+│   │   ├── dialogTypes.js
+│   │   └── index.js
+│   │   └── README.md         # Comprehensive dialog system documentation
+│   │
+│   ├── drawers/
+│   │   ├── DashboardFeaturedSolutionsDrawer.jsx      # Bulk solutions browse grouped by category
+│   │   ├── ResultsDatabaseEvidenceDetailsDrawer.jsx  # Single case full detail view
+│   │   ├── AssessmentMethodologyDrawer.jsx
+│   │   ├── BusinessContextHeadingInfoDrawer.jsx
+│   │   ├── BusinessProblemInfoDrawer.jsx
+│   │   ├── BusinessSolutionInfoDrawer.jsx
+│   │   ├── EvaluationCriteriaDrawer.jsx
+│   │   ├── EvaluationParametersHeadingInfoDrawer.jsx
+│   │   ├── SampleTestCasesHeadingInfoDrawer.jsx
+│   │   ├── SpecificEvaluationParameterInfoDrawer.jsx
+│   │   ├── SpecificSampleTestCaseViewDetailsDrawer.jsx
+│   │   ├── DrawerManager.jsx
+│   │   ├── drawerTypes.js
+│   │   └── index.js
+│   │
+│   ├── error-boundaries/
+│   │   ├── GlobalErrorBoundary.jsx
+│   │   ├── PageErrorBoundary.jsx
+│   │   ├── ResultsErrorBoundary.jsx
+│   │   ├── ErrorBoundary.jsx
+│   │   └── index.js
+│   │
+│   ├── export/
+│   │   ├── ExportActions.jsx
+│   │   └── index.js
+│   │
+│   └── layout/
+│       ├── Navbar.jsx, Header.jsx, Footer.jsx, AppContainer.jsx
+│
+├── features/
+│   ├── assessments/
+│   │   ├── api/
+│   │   │   ├── assessmentApi.js     # All API functions: scoreAssessment, getAssessments, saveAssessment,
+│   │   │   │                        #   compareAssessments, getGlobalStats, getDocumentStats, etc.
+│   │   │   └── assessmentSchema.js  # Zod response validation schemas
 │   │   │
-│   │   ├── export/                   # PDF/CSV export
-│   │   │   ├── components/           # Export UI (export dashboard, comparison)
-│   │   │   └── utils/                # Export generation logic
+│   │   ├── hooks/
+│   │   │   ├── useAssessment.js           # Single assessment fetch (React Query)
+│   │   │   ├── useAssessments.js          # List + delete with optimistic update
+│   │   │   ├── useAssessmentComparison.js # Fetch and compare two assessments
+│   │   │   ├── useAssessmentStats.js      # User aggregate stats (totalAssessments, avgScore, etc.)
+│   │   │   ├── useDocumentStats.js        # Knowledge base stats (byIndustry, byCategory, byRStrategy)
+│   │   │   ├── useFeaturedSolutions.js    # Featured solutions with optional semantic search
+│   │   │   └── useGlobalStats.js          # Global dashboard stats from /api/analytics/global-stats
 │   │   │
-│   │   └── session/                  # Session management
-│   │       ├── hooks/useSession.js   # Session state hook
-│   │       └── utils/                # Session helpers
+│   │   ├── utils.js        # reconstructScoringResult(), getAverageScore(), sort helpers
+│   │   ├── utils.test.js
+│   │   ├── validation.js   # Assessment form Zod schema + defaultValues
+│   │   └── index.js        # Barrel re-exports for all hooks and utils
 │   │
-│   ├── components/                   # Reusable components
-│   │   ├── ui/                       # Base UI (Button, Select, etc.)
-│   │   ├── charts/                   # Chart components (Radar, Bar, Scatter)
-│   │   ├── common/                   # Shared components (Loader, ErrorDisplay)
-│   │   ├── dialogs/                  # Modal dialogs (Confirmation, Save, etc.)
-│   │   ├── drawers/                  # Side panel drawers
-│   │   ├── layout/                   # Layout components (Header, Footer)
-│   │   ├── auth/                     # Auth components (LoginForm, SignupForm)
-│   │   ├── filters/                  # Search/filter components
-│   │   ├── export/                   # Export UI components
-│   │   └── error-boundaries/         # Error handling
+│   ├── export/
+│   │   ├── exportCSV.js    # CSV generation (single assessment + comparison)
+│   │   ├── exportPDF.js    # PDF generation with all enrichment sections
+│   │   └── index.js
 │   │
-│   ├── contexts/                     # React contexts
-│   │   ├── AuthContext.jsx           # Supabase authentication state
-│   │   ├── DialogContext.jsx         # Global dialog state
-│   │   ├── ModalContext.jsx          # Global modal state
-│   │   └── DrawerContext.jsx         # Global drawer state
-│   │
-│   ├── hooks/                        # Custom React hooks
-│   │   ├── useAuth.js                # Auth hook wrapper
-│   │   ├── useDialog.js              # Dialog state consumer
-│   │   ├── useModal.js               # Modal state consumer
-│   │   ├── useDrawer.js              # Drawer state consumer
-│   │   ├── useToast.js               # Toast notifications
-│   │   ├── useDebounce.js            # Debounce helper
-│   │   └── useExportState.js         # Export progress state
-│   │
-│   ├── lib/                          # Utility libraries
-│   │   ├── apiClient.js              # buildApiUrl() & fetch wrapper
-│   │   ├── supabase.js               # Supabase client init
-│   │   ├── metadata.js               # getIndustry(), getCategory() helpers
-│   │   ├── formatting.js             # titleize(), formatTimestamp(), etc.
-│   │   ├── validation.js             # Input validation utilities
-│   │   ├── scoring.js                # Score formatting and calculation
-│   │   ├── storage.js                # localStorage wrapper
-│   │   └── exportDashboard.js        # Export PDF/CSV logic
-│   │
-│   ├── config/                       # Configuration
-│   │   ├── env.schema.js             # Zod environment schema
-│   │   ├── frontend.config.js        # App configuration object
-│   │   └── index.js                  # Config exports
-│   │
-│   ├── constants/                    # Application constants
-│   │   ├── evaluationData.js         # Scoring parameters
-│   │   ├── industries.js             # Industry list
-│   │   ├── industryThemes.js         # Industry UI themes
-│   │   ├── groupStyleConfig.js       # UI styling config
-│   │   └── siteMetadata.js           # SEO metadata
-│   │
-│   ├── utils/                        # Helper utilities
-│   │   ├── content.js                # Content extraction
-│   │   ├── session.js                # Session helpers
-│   │   ├── async.js                  # Async utilities
-│   │   ├── ui.js                     # UI utilities
-│   │   ├── cn.ts                     # className merge
-│   │   └── cx.ts                     # Conditional classes
-│   │
-│   ├── test/                         # Test utilities
-│   │   └── test-utils.jsx            # Testing helpers
-│   │
-│   ├── index.css                     # Global styles
-│   ├── main.jsx                      # React entry point
-│   └── setupTests.js                 # Vitest configuration
+│   └── session/
+│       ├── AppSessionManager.jsx   # Auto-save/restore evaluation state on mount/unmount
+│       ├── hooks/useSession.js     # Session read/write hook (save, restore, clear)
+│       └── index.js
 │
-├── api/
-│   └── proxy.js                      # Vercel serverless proxy (injects x-api-key)
+├── hooks/                          # Cross-feature hooks
+│   ├── useAuth.js           # Thin wrapper over AuthContext
+│   ├── useDialog.js         # Open/close dialogs via DialogContext
+│   ├── useDrawer.js         # Open/close drawers via DrawerContext
+│   ├── useDrawerDirection.ts # Responsive direction (right on desktop, bottom on mobile)
+│   ├── useExportState.js    # Export progress state (isExporting, progress)
+│   ├── useToast.js          # Toast notification wrapper
+│   ├── useDebounce.js       # Debounce helper for input fields
+│   └── index.js
 │
-├── public/
-│   └── robots.txt                    # SEO
+├── contexts/
+│   ├── AuthContext.jsx      # Supabase user session (user, isLoading, isAuthenticated)
+│   ├── DialogContext.jsx    # Global dialog state + typed open functions
+│   ├── DrawerContext.jsx    # Global drawer state + typed open functions per drawer type
+│   └── ModalContext.jsx     # Global modal state
 │
-├── package.json                      # Dependencies & scripts
-├── vite.config.js                    # Vite configuration
-├── vitest.config.js                  # Vitest configuration
-├── vercel.json                       # Vercel deployment config
-├── tsconfig.json                     # TypeScript config (if used)
-├── eslint.config.js                  # ESLint rules
-├── index.html                        # HTML entry point
-└── README.md                          # This file
+├── lib/
+│   ├── apiClient.js         # buildApiUrl() — routes through Vercel proxy in production
+│   ├── supabase.js          # Supabase client singleton
+│   ├── formatting.js        # titleize(), formatTimestamp(), getCurrentTimestampFormatted(), toTitleCase()
+│   ├── metadata.js          # getIndustry(), getCategory() — prefers structured columns over JSONB
+│   ├── scoring.js           # getScoreClass(), getScoreLabel(), formatFactorName(), getSimilarityPercent()
+│   ├── storage.js           # localStorage wrapper with JSON serialisation + error handling
+│   └── validation.js        # Shared Zod schemas and validation helpers
+│
+├── config/
+│   ├── env.schema.js        # Zod schema for VITE_ environment variables
+│   ├── frontend.config.js   # FRONTEND_CONFIG object (apiBaseUrl, supabaseUrl, etc.)
+│   └── index.js
+│
+├── constants/
+│   ├── evaluationData.js    # 8 evaluation parameters with weights, labels, descriptions
+│   ├── industries.js        # Industry list for dropdowns
+│   ├── industryThemes.js    # Industry-to-colour-theme mapping
+│   ├── siteMetadata.js      # SEO metadata (title, description, OG tags)
+│   ├── drawers/             # Drawer content constants (evaluation criteria, parameter info, etc.)
+│   └── index.js
+│
+├── utils/
+│   ├── cn.ts                # classnames merge (clsx + tailwind-merge) — use this, not cx
+│   ├── content.js           # extractProblemSolution() for drawer content parsing
+│   ├── session.js           # Session storage helpers (keys, serialisation)
+│   ├── async.js             # Async utilities (sleep, retry, timeout)
+│   ├── ui.js                # UI helpers (truncate, formatPercentage)
+│   └── logger.js            # Logging utility (respects VITE_LOG_LEVEL)
+│
+├── index.css                # Global styles + Tailwind directives
+├── main.jsx                 # React entry point
+└── setupTests.js            # Vitest global setup
 ```
+
+## Routes
+
+| Path                           | Component            | Auth | Description                               |
+| ------------------------------ | -------------------- | ---- | ----------------------------------------- |
+| `/`                            | `LandingPage`        | No   | Assessment input form with guided mode    |
+| `/auth`                        | `AuthPage`           | No   | Login / signup                            |
+| `/guide`                       | `GuidePage`          | No   | Help & methodology documentation          |
+| `/results`                     | `ResultsPage`        | No   | Results for session-based scoring         |
+| `/assessments`                 | `MyAssessmentsPage`  | Yes  | Saved assessment history                  |
+| `/assessments/:id`             | `AssessmentViewPage` | Yes  | View single saved assessment              |
+| `/assessments/share/:publicId` | `SharePage`          | No   | Public shared assessment view             |
+| `/compare`                     | `ComparePage`        | Yes  | Side-by-side comparison (query: id1, id2) |
+| `/dashboard`                   | `DashboardPage`      | No   | Global analytics dashboard                |
+| `*`                            | `NotFoundPage`       | —    | 404                                       |
 
 ## Setup & Installation
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - npm 8+
-- Backend server running
+- Backend server running (see `backend/README.md`)
 - Supabase account
 
 ### Installation
@@ -162,29 +276,50 @@ frontend/
 npm install
 
 # 2. Create environment file
-cp .env.example .env.frontend
+cp ../env/.env.example .env.frontend
 
 # 3. Configure environment variables
-# Edit .env.frontend with your Supabase and API URL
+# Edit .env.frontend with your Supabase credentials and API URL
 
 # 4. Start development server
-npm run dev
+npm run dev   # http://localhost:5173
 ```
 
 ## Environment Configuration
 
-Create `.env.frontend` with:
-
 ```env
-# Backend API URL
-VITE_API_URL=http://localhost:3001
+# Backend API URL — points to your Express backend
+VITE_API_URL=http://localhost:8000
 
-# Supabase (must match backend)
+# Supabase (must match backend project)
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyxxxxxxxxxxxxx
 
-# Feature flags
-VITE_ALLOW_ANONYMOUS=true
+# Frontend URL (used for share links)
+VITE_FRONTEND_URL=http://localhost:5173
+
+# Optional feature flags
+VITE_LOG_LEVEL=debug
+VITE_ENABLE_ANALYTICS=true
+```
+
+**Important notes:**
+
+1. **No Secret Keys in Frontend** — `INTERNAL_BACKEND_API_KEY` is **never** included in frontend env variables.
+2. **Proxy Pattern** — all API calls in production route through `/api/proxy`, which injects the secret key server-side via Vercel serverless function.
+3. **Anonymous Access** — frontend works without authentication; the backend enforces rate limits.
+
+### Configuration Object
+
+Access configuration via `FRONTEND_CONFIG` anywhere in the app:
+
+```javascript
+import { FRONTEND_CONFIG } from '@/config';
+
+FRONTEND_CONFIG.apiBaseUrl; // Backend URL
+FRONTEND_CONFIG.supabaseUrl; // Supabase URL
+FRONTEND_CONFIG.supabaseAnonKey; // Anon key
+FRONTEND_CONFIG.frontendUrl; // Frontend URL
 ```
 
 ## Development
@@ -192,689 +327,306 @@ VITE_ALLOW_ANONYMOUS=true
 ### Scripts
 
 ```bash
-# Development server (http://localhost:5173)
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run tests
-npm test
-
-# Watch mode testing
-npm run test:watch
-
-# Lint code
-npm run lint
+npm run dev         # Development server at http://localhost:5173 (HMR enabled)
+npm run build       # Production build → dist/
+npm run preview     # Serve dist/ locally for production preview
+npm test            # Run Vitest test suite
+npm run test:watch  # Watch mode
+npm run lint        # ESLint
 ```
-
-### Code Style
-
-- ESLint configuration in `eslint.config.js`
-- Prettier formatting automatically on save
-- Follow existing patterns (components, hooks, utilities)
 
 ## Architecture
 
-### State Management
+### Secure Proxy Architecture
 
-**Global state** (via contexts):
+To keep the backend API key secret, all frontend → backend requests flow through a Vercel serverless proxy:
 
-- `AuthContext` - Supabase user authentication
-- `DialogContext` - Global confirmation dialogs
-- `ModalContext` - Global modals
-- `DrawerContext` - Global side drawers
+Browser → /api/proxy?path=/api/score → Vercel Function → adds x-api-key → Backend
 
-**Local state** (via hooks):
+**How it works:**
 
-- React hooks for component-level state
-- Custom hooks for feature-specific logic
-- React Query for server state
+1. `buildApiUrl()` — returns `/api/proxy?path=...` in production, direct URL in development
+2. Proxy Function (`api/proxy.js`) — Vercel serverless function that:
+   - Reads `INTERNAL_BACKEND_API_KEY` from Vercel environment (server-only)
+   - Forwards all request headers (Authorization, User-Agent, IP)
+   - Adds `x-api-key` header with the secret
+   - Returns backend response to client
+3. Backend (`server/app.js`) — validates `x-api-key` via `apiKeyGuard` middleware
 
-### Page Flow
+### API Client Helper
 
-1. **Landing Page** → Marketing, call-to-action
-2. **Auth Page** → Login/signup
-3. **Dashboard Page** → Start assessment or view past results
-4. **Assessment Page** → Guided questionnaire (8 dimensions)
-5. **Results Page** → Visualization with recommendations
-6. **Market Analysis Page** → Benchmark against similar projects
-7. **Export Page** → Download PDF or CSV
-
-### Component Patterns
-
-**HeroUI Components**:
-
-```jsx
-import { Button, Card, Modal } from '@heroui/react';
-
-<Card>
-  <Card.Header>Title</Card.Header>
-  <Card.Body>Content</Card.Body>
-</Card>;
-```
-
-**Custom Hooks**:
-
-```jsx
-const { isOpen, onOpen, onClose } = useDisclosure();
-const { showToast } = useToast();
-const { user } = useAuth();
-```
-
-**Context Usage**:
-
-```jsx
-const { open: openDialog } = useDialog();
-openDialog({
-  title: 'Delete Assessment?',
-  onConfirm: handleDelete,
-});
-```
-
-## API Integration
-
-### buildApiUrl Helper
-
-All API calls use `buildApiUrl()` to construct URLs:
+Always use `buildApiUrl()` for all backend calls:
 
 ```javascript
 import { buildApiUrl } from '@/lib/apiClient';
 
-const url = buildApiUrl('/scoring/score-problem-solutions');
-// → http://localhost:3001/api/scoring/score-problem-solutions
+// Automatic proxy routing in production, direct URL in development
+const url = buildApiUrl('/api/score');
 
-// With query params
-const url = buildApiUrl('/analytics/documents-summary', {
-  industry: 'textiles',
-  scale: 'medium',
-});
-// → http://localhost:3001/api/analytics/documents-summary?industry=textiles&scale=medium
-```
-
-### Fetch Wrapper
-
-```javascript
-import { apiClient } from '@/lib/apiClient';
-
-const response = await apiClient('POST', '/scoring/score', {
-  businessProblem: 'Plastic waste reduction',
+const response = await fetch(url, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ businessProblem, businessSolution, evaluationParameters }),
 });
 ```
 
-### React Query
+### State Management
+
+**Global state** (React Contexts):
 
 ```javascript
-import { useAssessmentQuery } from '@/features/assessments/api/assessmentApi';
-
-const { data, isLoading, error } = useAssessmentQuery(assessmentId);
+import { useAuth } from '@/hooks/useAuth'; // Supabase user session
+import { useDialog } from '@/hooks/useDialog'; // Global confirmation dialogs
+import { useDrawer } from '@/hooks/useDrawer'; // Global side drawers
+import { useToast } from '@/hooks/useToast'; // Toast notifications
 ```
 
-## Styling
+**Server state** (TanStack React Query):
 
-### Tailwind CSS v4
+```javascript
+import { useAssessment, useAssessments, useGlobalStats } from '@/features/assessments';
 
-Utility-first CSS framework. Use Tailwind classes directly:
+const { assessment, isLoading } = useAssessment(id);
+const { assessments, deleteAssessment } = useAssessments();
+const { totalScoringCalls, avgScore, scoreDistribution } = useGlobalStats();
+```
+
+Benefits of React Query:
+
+- Automatic caching and background refetching
+- Stale-while-revalidate pattern
+- Optimistic updates for delete operations
+- Error boundary integration
+
+### Context Usage
+
+```javascript
+// Open a dialog
+const { openDialog } = useDialog();
+openDialog({ type: 'deleteAssessment', payload: { id } });
+
+// Open a drawer
+const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
+openResultsDatabaseEvidenceDetailsDrawer({
+  title: caseItem.title,
+  content: caseItem.problem || '',
+  caseItem,
+  matchPercentage: 72,
+  matchStrengthLabel: 'Strong Match',
+  matchColor: '#22c55e',
+  sourceCaseId: caseItem.id,
+});
+```
+
+### Component Patterns
+
+**HeroUI components:**
 
 ```jsx
-<div className="flex items-center justify-between p-4 bg-slate-100 rounded-lg">
-  <h2 className="text-2xl font-bold text-slate-900">Title</h2>
-  <Button className="bg-blue-600 hover:bg-blue-700">Action</Button>
-</div>
+import { Card, Skeleton, Chip, Input } from '@heroui/react';
+
+<Card className="border border-slate-200 shadow-sm bg-white">
+  <div className="p-5">
+    <Skeleton className="h-3 w-20 rounded-full" />
+  </div>
+</Card>;
 ```
 
-### HeroUI Theming
+**Custom hooks:**
 
-HeroUI v3 components use Tailwind CSS and support dark mode via `next-themes`:
+```javascript
+const { user, isLoading } = useAuth();
+const { showToast } = useToast();
+const { isDrawerOpen, onClose } = useGlobalDrawer();
+```
+
+### Charts
+
+All chart components use consistent prop patterns — never use `xKey`, `yKey`, or `fill` directly:
 
 ```jsx
-// In AppProvider.jsx
-<ThemeProvider attribute="class" defaultTheme="light">
-  <App />
-</ThemeProvider>;
+// BarChart
+<BarChart
+  data={[{ name: 'Construction', count: 89 }]}
+  barConfigs={[{ dataKey: 'count', name: 'Assessments', fill: '#10b981' }]}
+  xAxisKey="name"
+  height={200}
+  showGrid
+  showLegend={false}
+/>
 
-// In components
-import { useTheme } from 'next-themes';
-const { theme, setTheme } = useTheme();
+// LineChart
+<LineChart
+  data={[{ period: '2026-W10', count: 45 }]}
+  lines={[{ dataKey: 'count', stroke: '#3b82f6', name: 'Assessments' }]}
+  xAxisKey="period"
+  height={200}
+/>
+
+// PieChart
+<PieChart
+  data={[{ name: 'Leader', value: 45 }]}
+  dataKey="value"
+  nameKey="name"
+  height={200}
+  showLegend
+  innerRadius={40}
+  colors={['#22c55e', '#3b82f6', '#f59e0b', '#ef4444']}
+/>
 ```
 
-### Custom Styling
+**Single data point fallback** — when a pie chart has only 1 data point, use `SingleValueChart` from `DashboardPage/components/`:
 
-Add global styles to `index.css`:
+```jsx
+// Check before rendering PieChart:
+const hasEnoughData = data.length >= 2 && data.reduce((s, d) => s + d.value, 0) >= 2;
 
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Custom component styles */
-.assessment-card {
-  @apply flex flex-col rounded-lg border border-slate-200 p-4;
+{hasEnoughData
+  ? <PieChart data={data} ... />
+  : <SingleValueChart name={data[0]?.name} value={data[0]?.value} color="#10b981" />
 }
+```
+
+### Assessment Result Reconstruction
+
+Saved assessments store both promoted scalar columns and a full `result_json` snapshot. Use `reconstructScoringResult()` to get the complete API shape from either source:
+
+```javascript
+import { reconstructScoringResult } from '@/features/assessments/utils';
+
+// Works with both freshly scored results and saved assessment records
+const result = reconstructScoringResult(assessment);
+
+// Access any field:
+result.weighted_score_card;
+result.circular_economy_tier;
+result.parameter_consistency;
+result.r_strategy_alignment;
+result.audit.improvement_roadmap;
+result.similar_cases;
+result.gap_analysis;
+```
+
+### Page Flow
+
+```txt
+/ (LandingPage)
+│
+├── User fills in businessProblem + businessSolution
+├── Optional: businessContext fields (Layer 1)
+├── Optional: guided mode or manual parameter entry
+│
+├── POST /api/score
+│
+└── /results (ResultsPage)
+    │
+    ├── ScoreOverviewSection (overall score + derived metrics)
+    ├── ScoreCategoryBreakdown (value category cards)
+    ├── WeightedScoreCard (Layer 2 — factor contributions)
+    ├── CircularEconomyTierCard (Layer 2 — tier classification)
+    ├── ParameterConsistencyCard (Layer 2 — coherence check)
+    ├── RStrategyAlignmentCard (Layer 2 — strategy validation)
+    ├── AuditSummaryCard (Layer 3 — verdict, roadmap, SDGs, market opp.)
+    ├── DatabaseEvidenceCard (similar cases → drawer for full detail)
+    ├── GapAnalysisCard (benchmark comparison)
+    │
+    ├── Save Assessment → POST /api/assessments
+    ├── Export → exportCSV.js or exportPDF.js
+    └── Share → generates public_id link → /assessments/share/:publicId
+```
+
+### Key Routes (from AppRoutes.jsx)
+
+```javascript
+/                           // LandingPage — assessment input
+/auth                       // AuthPage — login/signup
+/guide                      // GuidePage — help & methodology
+/results                    // ResultsPage — freshly scored result (session-based)
+/assessments                // MyAssessmentsPage — saved history (auth required)
+/assessments/:id            // AssessmentViewPage — view saved assessment
+/assessments/share/:publicId // SharePage — public shared view (no auth)
+/compare?id1=X&id2=Y        // ComparePage → AssessmentComparisonPage
+/dashboard                  // DashboardPage — global analytics
+```
+
+### Session Management
+
+```javascript
+import { useSession } from '@/features/session';
+
+const { restoreEvaluation, saveSession, clearSession } = useSession();
+```
+
+- Auto-saves evaluation inputs to localStorage on every change
+- Restores previous session on page reload (shown via `SessionRestoreDialog`)
+- Clears session on user request or after successful save
+
+### Metadata Helpers
+
+```javascript
+import { getIndustry, getCategory } from '@/lib/metadata';
+
+// Prefers structured top-level columns over JSONB fallback:
+const industry = getIndustry(assessment.result_json);
+const category = getCategory(assessment.result_json);
 ```
 
 ## Testing
 
-### Unit Tests
+### Running Tests
 
 ```bash
-# Run all tests
-npm test
+npm test                                                      # All tests
+npm test -- --watch                                          # Watch mode
+npm test -- --coverage                                       # Coverage report
 
-# Watch mode
-npm run test:watch
-
-# Coverage report
-npm run test:coverage
+# Specific files:
+npm test src/features/assessments/utils.test.js              # reconstructScoringResult (13 tests)
+npm test src/components/common/Button.test.jsx               # Button component
+npm test src/pages/MyAssessmentsPage/sortUtils.test.js       # Sort utilities
 ```
 
-### Test Structure
+### Test Suite Coverage
 
-```javascript
+| Test File                                                        | Tests | Key Coverage                                                                                                                                   |
+| ---------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `features/assessments/utils.test.js`                             | 13    | `reconstructScoringResult` (10 tests: null input, result_json passthrough, column fallback, enrichment fields mapping), sort helpers (3 tests) |
+| `features/assessments/hooks/useFeaturedSolutions.test.jsx`       | —     | Featured solutions hook                                                                                                                        |
+| `features/session/AppSessionManager.test.jsx`                    | —     | Session persistence                                                                                                                            |
+| `components/common/Button.test.jsx`                              | —     | Button rendering and interactions                                                                                                              |
+| `components/common/Switch.test.jsx`                              | —     | Switch toggle                                                                                                                                  |
+| `components/common/ChartWrapper.test.jsx`                        | —     | Chart wrapper                                                                                                                                  |
+| `components/charts/LineChart.test.jsx`                           | —     | LineChart rendering                                                                                                                            |
+| `components/charts/PieChart.test.jsx`                            | —     | PieChart rendering + snapshots                                                                                                                 |
+| `components/dialogs/SessionRestoreDialog.test.jsx`               | —     | Dialog component                                                                                                                               |
+| `components/auth/SignupForm.test.jsx`                            | —     | Sign-up form                                                                                                                                   |
+| `contexts/AuthContext.test.jsx`                                  | —     | Auth context                                                                                                                                   |
+| `hooks/useDrawer.test.jsx`                                       | —     | Drawer hook                                                                                                                                    |
+| `lib/formatting.test.js`                                         | —     | Formatting helpers                                                                                                                             |
+| `lib/storage.test.js`                                            | —     | LocalStorage wrapper                                                                                                                           |
+| `pages/LandingPage/components/SampleTestCasesContainer.test.jsx` | —     | Sample cases                                                                                                                                   |
+| `pages/MyAssessmentsPage/sortUtils.test.js`                      | —     | Sort utilities                                                                                                                                 |
+
+### Writing Tests
+
+**Component test:**
+
+```jsx
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/common/Button';
 
 describe('Button Component', () => {
-  it('renders button with label', () => {
+  it('renders with label', () => {
     render(<Button>Click me</Button>);
     expect(screen.getByText('Click me')).toBeInTheDocument();
   });
 });
 ```
 
-## Components
-
-### Available Components
-
-- **UI**: Button, Select, Input, Checkbox, Radio, Switch, Modal, Dialog
-- **Charts**: Radar, Bar, Scatter, Line, Pie, Combo
-- **Common**: Loader, ErrorDisplay, LoadingBar, Brand, Card
-- **Layout**: Header, Footer, Sidebar, Drawer
-- **Forms**: Input, Select, Checkbox, RadioGroup, DatePicker
-
-### Dialog System
-
-See [dialogs/README.md](./src/components/dialogs/README.md) for comprehensive documentation on the reusable dialog system.
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Connect GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Auto-deploy on push to main branch
-
-### Manual Deployment
-
-```bash
-# Build production bundle
-npm run build
-
-# Deploy output to hosting provider
-# (Netlify, AWS, GCP, Azure, etc.)
-```
-
-### Environment Variables (Production)
-
-```env
-VITE_API_URL=https://your-api-domain.com
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-
-## Troubleshooting
-
-### API Calls Failing
-
-- Verify `VITE_API_URL` in `.env.frontend`
-- Check backend server is running
-- Validate CORS configuration in backend
-
-### Build Errors
-
-```bash
-# Clear caches and reinstall
-npm run clean
-npm install
-npm run build
-```
-
-### HeroUI Component Issues
-
-- Ensure HeroUI v3 is installed (not v2)
-- Check Tailwind CSS v4 is configured
-- Verify Next-UI provider is in AppProvider.jsx
-
-## See Also
-
-- [Root README](../../README.md) - Full-stack overview
-- [Backend README](../../backend/README.md) - API reference
-- [Dialogs README](./src/components/dialogs/README.md) - Dialog system documentation
-
-# Backend API URL - points to your Express backend
-
-VITE_API_URL=http://localhost:3001
-
-# or for production:
-
-# VITE_API_URL=https://api.example.com
-
-# Supabase configuration
-
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-
-# Frontend URL (for sharing)
-
-VITE_FRONTEND_URL=http://localhost:5173
-
-# or for production:
-
-# VITE_FRONTEND_URL=https://app.example.com
-
-# Optional: Feature flags & settings
-
-VITE_LOG_LEVEL=debug
-VITE_ENABLE_ANALYTICS=true
-
-````
-
-#### Important Notes
-
-1. **No Secret Keys in Frontend**: The `INTERNAL_BACKEND_API_KEY` is **never** included in frontend code.
-2. **Proxy Pattern**: All API calls route through `/api/proxy` in production, which injects the secret key server-side via Vercel serverless function.
-3. **Anonymous Access**: Frontend works without authentication; API enforces rate limits per IP.
-
-### Configuration Object
-
-Access configuration via `FRONTEND_CONFIG` in code:
+**Hook test:**
 
 ```javascript
-import { FRONTEND_CONFIG } from '@/config';
-
-console.log(FRONTEND_CONFIG.apiBaseUrl); // Backend URL
-console.log(FRONTEND_CONFIG.supabaseUrl); // Supabase URL
-console.log(FRONTEND_CONFIG.supabaseAnonKey); // Anon key
-console.log(FRONTEND_CONFIG.frontendUrl); // Frontend URL
-````
-
----
-
-## API Integration
-
-### Secure Proxy Architecture
-
-To keep the backend API key secret, all frontend → backend requests flow through a **Vercel serverless proxy**:
-
-```
-Browser → /api/proxy?path=/api/score → Vercel Function → Add x-api-key → Backend
-```
-
-#### How It Works
-
-1. **buildApiUrl()** – Returns `/api/proxy?path=...` in production, direct URL in development
-2. **Proxy Function** (`api/proxy.js`) – Vercel serverless that:
-   - Reads `INTERNAL_BACKEND_API_KEY` from environment
-   - Forwards request headers (Authorization, User-Agent, IP)
-   - Adds `x-api-key` header with the secret key
-   - Returns backend response to client
-3. **Backend (/app.js)** – Trusts `x-api-key` for service-level access
-
-### API Client Helper
-
-Use `buildApiUrl()` for all backend calls:
-
-```javascript
-import { buildApiUrl, apiFetch } from '@/lib/apiClient';
-
-// Automatic proxy routing in production
-const url = buildApiUrl('/api/score');
-
-// Make request with automatic headers
-const response = await apiFetch(url, {
-  method: 'POST',
-  body: JSON.stringify({ businessProblem, businessSolution, parameters }),
-});
-```
-
-### Authentication
-
-#### User Authentication (Optional)
-
-Users can log in with Supabase:
-
-```javascript
-import { useAuth } from '@/hooks/useAuth';
-
-const { user, isLoading, error, login, logout } = useAuth();
-
-if (user) {
-  // Pass Authorization Bearer token for user-specific requests
-  const response = await fetchWithAuth('/api/assessments');
-}
-```
-
-#### Anonymous Access
-
-Requests without `Authorization` header are treated as anonymous:
-
-- Rate-limited to 5 free tries per IP (configurable)
-- Cached anonymously by backend
-
-### Core API Endpoints
-
-| Method | Endpoint                               | Purpose                | Auth                                           |
-| ------ | -------------------------------------- | ---------------------- | ---------------------------------------------- |
-| POST   | `/api/score`                           | Score an assessment    | Optional (anonymous: 5 tries, user: unlimited) |
-| GET    | `/api/assessments`                     | List user assessments  | Required                                       |
-| POST   | `/api/assessments`                     | Save assessment        | Required                                       |
-| GET    | `/api/assessments/:id`                 | Get assessment details | Required                                       |
-| PUT    | `/api/assessments/:id`                 | Update assessment      | Required                                       |
-| DELETE | `/api/assessments/:id`                 | Delete assessment      | Required                                       |
-| GET    | `/api/assessments/public/:publicId`    | Get shared assessment  | None                                           |
-| GET    | `/api/assessments/:id/market-analysis` | Market benchmarks      | Optional                                       |
-
----
-
-## Key Features
-
-### 1. Evaluation Engine
-
-#### Multi-Dimensional Scoring
-
-- 8 key parameters across circular economy dimensions
-- Evidence-based scoring with AI reasoning
-- Confidence scoring & integrity gap analysis
-
-#### Assessment Enrichment Layers
-
-The evaluation engine now supports three enrichment layers:
-
-#### Layer 1 - Business Context (Optional)
-
-- Business Model Type: Classify circular strategy (PaaS, take-back, remanufacturing, recycling, etc.)
-- Operational Stage: Maturity level (idea → mature operation)
-- Target Geography: Market scope (local → global)
-- Annual Volume: Material processing volume
-- Material Complexity: Type of materials handled
-- Supply Chain Partnerships: Existing collection/distribution relationships
-
-These optional context fields improve AI reasoning and enable stage-appropriate scoring.
-
-**Files**: `src/pages/LandingPage/components/BusinessContextContainer.jsx`
-
-#### Layer 2 - Deterministic Outputs
-
-- Weighted Score Card: Per-factor contribution breakdown with classifications
-- Circular Economy Tier: Tier classification (Leader/Established/Developing/Emerging)
-- Parameter Consistency: Score coherence analysis detecting unrealistic inputs
-- R-Strategy Alignment: Validation that scores match the detected circular strategy
-
-These are computed deterministically with no LLM involvement.
-
-#### Layer 3 - Extended LLM Output
-
-- Improvement Roadmap: Prioritized action plan (3 items) with effort/impact estimates
-- SDG Alignment: UN Sustainable Development Goals (2-4 most relevant)
-- Market Opportunity Summary: Realistic market assessment grounded in database evidence
-
-Enhanced LLM analysis providing actionable recommendations.
-
-**Files**:
-
-- `src/constants/evaluationData.js` – Parameter definitions
-- `src/lib/scoring.js` – Score formatting & calculations
-- `src/features/assessments/api/assessmentApi.js` – API calls
-- `src/pages/ResultsPage/ResultsPage.jsx` – Results display with all enrichment fields
-
-### 2. Smart Navigation & Routing
-
-**Key Routes**:
-
-```javascript
-/                           // Home / landing page
-/dashboard                  // Main evaluation dashboard
-/results                    // Results for newly evaluated idea (session-based)
-/results/market-analysis    // Market analysis for session result
-/assessments                // History of saved assessments
-/assessments/:id            // View saved assessment
-/assessments/:id/market-analysis // Market analysis for saved assessment
-/compare?id1=X&id2=Y        // Compare two assessments
-/share/:publicId            // Public shared assessment view
-/guide                      // Help & documentation
-/auth                       // Login/signup
-```
-
-**Related Files**:
-
-- `src/app/AppRoutes.jsx` – Route definitions
-- `src/pages/` – Page components
-- `src/contexts/` – Navigation state (dialogs, drawers)
-
-### 3. Session Management
-
-**Features**:
-
-- Auto-save evaluation inputs to localStorage
-- Restore previous session on page reload
-- Preserve results across navigation
-- Clear session on user request
-
-**Related Files**:
-
-- `src/features/session/hooks/useSession.js` – Session hook
-- `src/utils/session.js` – Session utilities
-- `src/lib/storage.js` – localStorage wrapper
-
-```javascript
-const { restoreEvaluation, saveSession, clearSession } = useSession();
-```
-
-### 4. Data Visualization
-
-**Chart Types**:
-
-- **Radar Chart** – Show multi-dimensional scores vs. market average
-- **Scatter Plot** – Industry distribution vs. score
-- **Line Chart** – Score trends over time
-- **Bar Chart** – Factor comparisons
-
-**Related Files**:
-
-- `src/components/charts/` – Chart components
-- Powered by **Recharts** library
-
-### 5. Export Capabilities
-
-**Formats**:
-
-- **CSV**: Raw data with all metrics (easily importable)
-- **PDF**: Formatted report for stakeholders
-
-**Related Files**:
-
-- `src/features/export/exportDashboard.js`
-- `src/features/export/exportComparison.js`
-- Uses Blob API for client-side generation
-
-```javascript
-export async function exportAssessmentCSV(assessment) {
-  // Generates CSV and triggers download
-}
-```
-
-### 6. Metadata & Structured Data
-
-**Structured Fields** (new):
-
-- `industry` – Top-level industry field (indexed)
-- `category` – Top-level category field (indexed)
-- `metadata` – Fallback for additional data (JSONB)
-
-**Helper Functions**:
-
-- `getIndustry(obj)` – Extract industry preferring structured field
-- `getCategory(obj)` – Extract category preferring structured field
-
-**Related Files**:
-
-- `src/lib/metadata.js` – Helper implementations
-- Used in: `ResultsPage`, `MarketAnalysisPage`, `AssessmentComparisonPage` (including new Database Evidence tab and enrichment comparison panels)
-
-```javascript
-import { getIndustry, getCategory } from '@/lib/metadata';
-
-const industry = getIndustry(assessment.result_json);
-```
-
----
-
-## Development Guide
-
-### Running the Dev Server
-
-```pwsh
-npm run dev
-```
-
-- Vite server starts at `http://localhost:5173`
-- Hot Module Replacement (HMR) enabled
-- API calls route to `VITE_API_URL` (default: `http://localhost:3001`)
-
-### Building for Production
-
-```pwsh
-npm run build
-```
-
-- Optimized build output to `dist/`
-- Code splitting & tree-shaking applied
-- Source maps generated (configurable)
-
-### Preview Production Build
-
-```pwsh
-npm run preview
-```
-
-- Serves `dist/` locally
-- Use to test production behavior before deployment
-
-### Code Organization Best Practices
-
-#### Components
-
-```jsx
-// ✓ Good: Self-contained, focused component
-export default function ResultsPage() {
-  const { id } = useParams();
-  const { assessment, isLoading } = useAssessment(id);
-
-  return <div>{/* Component JSX */}</div>;
-}
-```
-
-#### Hooks
-
-```jsx
-// ✓ Good: Custom hook extracts reusable logic
-export function useMarketAnalysis({ assessmentId, enabled = true }) {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['market-analysis', assessmentId],
-    queryFn: () => getMarketAnalysis(assessmentId),
-    enabled,
-  });
-
-  return { data, isLoading, error };
-}
-```
-
-#### API Calls
-
-```javascript
-// ✓ Good: Use buildApiUrl for automatic proxy routing
-import { buildApiUrl } from '@/lib/apiClient';
-
-const url = buildApiUrl('/api/score');
-
-const response = await fetch(url, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data),
-});
-```
-
-#### Constants
-
-```javascript
-// ✓ Good: Centralized, immutable constants
-export const EVALUATION_PARAMETERS = {
-  resource_efficiency: { min: 0, max: 100, label: 'Resource Efficiency' },
-  // ...
-};
-```
-
----
-
-## Testing
-
-### Running Tests
-
-```pwsh
-# Run all tests
-npm test
-
-# Run specific test file
-npm test src/components/common/Button.test.jsx
-
-# Run assessment utilities tests (including reconstructScoringResult)
-npm test src/features/assessments/utils.test.js
-
-# Watch mode
-npm test -- --watch
-
-# Coverage report
-npm test -- --coverage
-```
-
-### Test Suite Coverage
-
-| Test File                                | Tests | Key Functions                                                                                | Description                                                                          |
-| ---------------------------------------- | ----- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `src/features/assessments/utils.test.js` | 13    | getAverageScore, sortByAverageScoreDesc, sortByAverageScoreAsc, **reconstructScoringResult** | Assessment utility functions and scoring result reconstruction from database columns |
-
-**reconstructScoringResult Tests (10 tests):**
-
-- Null/undefined input handling
-- Direct result_json passthrough
-- Fallback reconstruction from individual columns
-- Metadata precedence (columns > result_json)
-- Enrichment fields mapping (weighted_score_card, circular_economy_tier, parameter_consistency, r_strategy_alignment)
-- Context and processing_info reconstruction
-
-### Writing Tests
-
-**Example: Component Test**
-
-```jsx
-import { test, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import Button from '@/components/common/Button';
-
-test('Button renders with text', () => {
-  render(<Button>Click me</Button>);
-  expect(screen.getByText('Click me')).toBeInTheDocument();
-});
-```
-
-**Example: Hook Test**
-
-```javascript
-import { test, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -882,9 +634,8 @@ test('debounces value', async () => {
   const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
     initialProps: { value: 'initial' },
   });
-
   rerender({ value: 'updated' });
-  // Assert debounce behavior
+  // value is still 'initial' until debounce delay passes
 });
 ```
 
@@ -892,46 +643,38 @@ test('debounces value', async () => {
 
 - **Config**: `vitest.config.js`
 - **Setup**: `src/setupTests.js`
-- **Utilities**: `src/test/test-utils.jsx`
-
----
+- **Utilities**: `src/test/test-utils.jsx` (custom render with providers)
 
 ## Building & Deployment
 
-### Deploy to Vercel
+### Deploy to Vercel (Recommended)
 
-Vercel is the recommended hosting platform (serverless functions + static hosting).
+Vercel is the recommended platform — static SPA + serverless proxy in one deployment.
 
-#### Prerequisites
+**Prerequisites:**
 
-1. Vercel account ([vercel.com](https://vercel.com))
-2. GitHub repo with code
-3. Environment variables configured
+1. Vercel account at [vercel.com](https://vercel.com)
+2. GitHub repo connected
 
-#### Deployment Steps
+**Deployment Steps:**
 
-```pwsh
+```bash
 # 1. Push code to GitHub
 git push origin main
 
-# 2. Import project to Vercel
-# Visit https://vercel.com/new and select GitHub repo
+# 2. Import project to Vercel at https://vercel.com/new
 
-# 3. Configure environment variables
-# In Vercel dashboard → Settings → Environment Variables:
-# VITE_API_URL=https://api.example.com
-# VITE_SUPABASE_URL=https://your-project.supabase.co
-# VITE_SUPABASE_ANON_KEY=your-anon-key
-# VITE_FRONTEND_URL=https://your-app.vercel.app
-# INTERNAL_BACKEND_API_KEY=your-secret-backend-key
+# 3. Configure environment variables in Vercel dashboard:
+#    VITE_API_URL=https://your-backend.render.com
+#    VITE_SUPABASE_URL=https://your-project.supabase.co
+#    VITE_SUPABASE_ANON_KEY=your-anon-key
+#    VITE_FRONTEND_URL=https://your-app.vercel.app
+#    INTERNAL_BACKEND_API_KEY=your-secret-backend-key  ← server-only, never VITE_ prefixed
 
-# 4. Deploy
-# Automatic on every git push, or manual trigger in dashboard
+# 4. Deploy (automatic on every git push to main)
 ```
 
-#### Vercel Configuration
-
-The `vercel.json` file configures:
+**Vercel Configuration** (`vercel.json`):
 
 ```json
 {
@@ -945,65 +688,27 @@ The `vercel.json` file configures:
 }
 ```
 
-**Key Points**:
+Key points:
 
-- `/api/*` routes → serverless functions (NOT SPA rewrite)
-- Other routes → `index.html` (SPA routing)
-
-#### Proxy Function Deployment
-
-The `api/proxy.js` file deploys as a serverless function:
-
-```javascript
-// api/proxy.js
-export default async function handler(req, res) {
-  const { path } = req.query;
-  const backendKey = process.env.INTERNAL_BACKEND_API_KEY;
-
-  // Forward request with secret key injected
-  const response = await fetch(`${process.env.VITE_API_URL}${path}`, {
-    method: req.method,
-    headers: {
-      ...req.headers,
-      'x-api-key': backendKey,
-    },
-    body: req.body,
-  });
-
-  return response;
-}
-```
+- `/api/*` routes → serverless functions (NOT the SPA rewrite)
+- All other routes → `index.html` (SPA client-side routing)
 
 ### Deployment Checklist
 
-- [ ] All environment variables configured in Vercel
-- [ ] `INTERNAL_BACKEND_API_KEY` set securely (not in git)
-- [ ] Backend CORS allows Vercel domains (`.vercel.app`, `.vercel.sh`)
+- [ ] All `VITE_*` variables configured in Vercel
+- [ ] `INTERNAL_BACKEND_API_KEY` set in Vercel (server-only — not in `.env` file, not in git)
+- [ ] Backend CORS `ALLOWED_ORIGINS` includes `*.vercel.app` and your custom domain
 - [ ] `vercel.json` correctly configured
-- [ ] Build completes without errors: `npm run build`
-- [ ] Tests pass: `npm test`
-- [ ] Preview environment tested
+- [ ] `npm run build` completes without errors
+- [ ] `npm test` passes
+- [ ] Preview environment tested before promoting to production
 - [ ] DNS configured for custom domain (if applicable)
-
----
 
 ## Architecture Patterns
 
-### Context API for Global State
-
-State that needs to be accessed across many components uses React Context:
-
-```javascript
-import { useAuth } from '@/hooks/useAuth';
-import { useDialog } from '@/hooks/useDialog';
-import { useDrawer } from '@/hooks/useDrawer';
-import { useModal } from '@/hooks/useModal';
-import { useToast } from '@/hooks/useToast';
-```
-
 ### React Query for Server State
 
-Asynchronous data from the backend uses TanStack React Query:
+Asynchronous backend data uses TanStack React Query for caching, deduplication, and background refresh:
 
 ```javascript
 import { useAssessment } from '@/features/assessments';
@@ -1011,120 +716,455 @@ import { useAssessment } from '@/features/assessments';
 const { assessment, isLoading, error } = useAssessment(id);
 ```
 
-Benefits:
+Configure stale times for different data freshness requirements:
 
-- Automatic caching & background refetching
-- Optimistic updates
-- Pagination & infinite queries
-- Error boundary integration
+```javascript
+useQuery({
+  queryKey: ['global-stats'],
+  queryFn: getGlobalStats,
+  staleTime: 5 * 60 * 1000, // 5 minutes — dashboard data doesn't need to be real-time
+  gcTime: 30 * 60 * 1000, // 30 minutes in cache
+});
+```
 
 ### Custom Hooks for Logic Extraction
 
-Complex logic lives in custom hooks:
+Complex logic lives in custom hooks, not components:
 
 ```javascript
 export function useExportState() {
   const [isExporting, setIsExporting] = useState(false);
-  // Complex export logic...
+  // All export logic...
   return { isExporting, executeExport };
 }
 ```
 
-### Constants & Configuration
-
-Avoid magic strings/numbers:
+### Constants Over Magic Values
 
 ```javascript
 // ✓ Good
 import { EVALUATION_PARAMETERS } from '@/constants/evaluationData';
+if (score >= EVALUATION_PARAMETERS.resource_efficiency.threshold) { ... }
 
-// ✕ Avoid
-if (score > 75) {
-  /* ... */
-}
+// ✗ Avoid
+if (score >= 75) { ... }
 ```
 
----
+### Code Organisation Best Practices
+
+- Page components in `pages/PageName/PageName.jsx`
+- Page-specific subcomponents in `pages/PageName/components/`
+- Shared subcomponents in `components/` (only when used by 2+ pages)
+- Business logic in `features/` hooks, never inline in page components
+- All constants in `constants/`, never hardcoded in components
+
+## Styling
+
+### Tailwind CSS v4
+
+Utility-first styling applied directly in JSX:
+
+```jsx
+<div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
+  <h2 className="text-xl font-bold text-slate-900">Title</h2>
+  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Label</span>
+</div>
+```
+
+### HeroUI v3
+
+Pre-built accessible components styled with Tailwind:
+
+```jsx
+import { Card, Skeleton, Chip, Input, Drawer } from '@heroui/react';
+
+<Skeleton className="h-3 w-20 rounded-full" />
+<Chip size="sm" variant="secondary">Tag</Chip>
+```
+
+### className Merging
+
+Always use `cn()` from `@/utils/cn` when combining conditional classes:
+
+```javascript
+import { cn } from '@/utils/cn';
+
+<div
+  className={cn(
+    'rounded-xl border p-5',
+    isActive && 'border-indigo-500 bg-indigo-50',
+    isDisabled && 'opacity-40 cursor-not-allowed',
+  )}
+/>;
+```
+
+## Security Considerations
+
+### API Key Protection
+
+✓ **Correct:**
+
+- `INTERNAL_BACKEND_API_KEY` lives only in Vercel server-side environment variables
+- Proxy function reads it server-side and injects `x-api-key` header
+- Frontend code and browser DevTools never have access to the secret
+
+✗ **Never:**
+
+- Store the backend API key in any `VITE_` prefixed env variable
+- Hardcode secrets in source code
+- Commit `.env` files with real credentials
+
+### Data Privacy
+
+- Anonymous requests are rate-limited per IP
+- User data requests require Supabase Auth Bearer tokens
+- Shared assessments use opaque `publicId` — not the internal UUID
+- `scoring_results_log` access from frontend requires going through the backend endpoint
+
+### CORS & CSRF
+
+- Backend validates the `Origin` header against `ALLOWED_ORIGINS`
+- Proxy function adds required headers and forwards Authorization
+- Supabase handles auth tokens via secure HTTP-only cookies
 
 ## Troubleshooting
 
-### Common Issues
+### "API calls failing with 401 Unauthorized"
 
-#### "API calls failing with 401 Unauthorized"
+- Verify `INTERNAL_BACKEND_API_KEY` is set in Vercel environment (not `VITE_` prefixed)
+- Check `api/proxy.js` is forwarding the `x-api-key` header
+- Confirm backend `apiKeyGuard` middleware is active
 
-**Cause**: Proxy not injecting API key
+### "CORS errors in browser console"
 
-**Solution**:
+- Backend `ALLOWED_ORIGINS` must include your Vercel domain (`*.vercel.app`)
+- Check whether the route is in `PUBLIC_ROUTES` (CORS-exempt)
+- Verify `vercel.json` routes `/api/*` to serverless functions (not SPA)
 
-1. Verify `INTERNAL_BACKEND_API_KEY` is set in Vercel
-2. Check `api/proxy.js` forwards `x-api-key` header
-3. Confirm backend `apiKeyGuard` is enabled
+### "Session not restoring after reload"
 
-#### "CORS errors in browser console"
+- Check browser localStorage is enabled
+- Verify component is inside `<AppProvider>`
+- Check browser console for storage quota exceeded errors
 
-**Cause**: Backend doesn't allow Vercel origin
+### "Charts show 'No data available' or render incorrectly"
 
-**Solution**:
+Wrong prop names — the most common chart bug. Use these exact props:
 
-1. Backend `app.js` should have wildcard check for `*.vercel.app`
-2. Verify route is not protected (use PUBLIC_ROUTES)
-3. Check `ALLOWED_ORIGINS` env variable
+- `BarChart`: `barConfigs={[{dataKey, fill, name}]}` + `xAxisKey`
+- `LineChart`: `lines={[{dataKey, stroke, name}]}` + `xAxisKey`
+- `PieChart`: `dataKey` + `nameKey` + `colors` array
 
-#### "Session not restoring after reload"
+### "Pie chart renders as a solid circle with '· 1'"
 
-**Cause**: localStorage disabled or cleared
+You have only 1 data point. The `PieChart` component doesn't handle single values gracefully. Use `SingleValueChart` from `DashboardPage/components/` as a fallback when `data.length < 2`.
 
-**Solution**:
+### "Build fails: VITE\_ env variables undefined"
 
-1. Check browser localStorage is enabled
-2. Verify `useSession()` is wrapped in `<AppProvider>`
-3. Check browser console for storage quota errors
+- Only `VITE_*` prefixed variables are exposed to client code
+- Restart the dev server after changing `.env.frontend`
+- In Vercel, add variables in the dashboard — they won't be in `.env` in production
 
-#### "Charts not rendering"
+### "Clear caches and reinstall"
 
-**Cause**: Data format mismatch
+```bash
+npm run clean
+npm install
+npm run build
+```
 
-**Solution**:
+### HeroUI Component Issues
 
-1. Verify data structure matches Recharts expectations
-2. Check console for chart component errors
-3. See [Recharts docs](https://recharts.org)
+- Ensure HeroUI v3 is installed (not v2)
+- Check Tailwind CSS v4 is configured in `vite.config.js`
+- Verify `HeroUIProvider` is present in `AppProvider.jsx`
 
-#### "Build fails: 'VITE\_' env variables undefined"
+## Contributing
 
-**Cause**: Environment variables not prefixed with `VITE_`
+### Code Style
 
-**Solution**:
+- **Formatting**: ESLint + Prettier (configured — runs on save in VS Code)
+- **Naming**: camelCase for variables/functions, PascalCase for components
+- **Components**: functional components with hooks — no class components
 
-1. Prefix all client-side vars with `VITE_`
-2. Only `VITE_*` variables are exposed to client
-3. Restart dev server after changing `.env.frontend`
+### Commit Messages
 
-#### "TypeScript errors (if using TS)"
+```txt
+feat: add SDG alignment section to ResultsPage
+fix: resolve PieChart single data point rendering
+docs: update chart prop patterns in README
+test: add reconstructScoringResult column fallback tests
+refactor: extract SolutionCard into DashboardPage/components
+```
 
-**Cause**: Missing type definitions
+### Pull Request Process
 
-**Solution**:
+1. Fork repo and create a feature branch
+2. Implement changes with tests
+3. Run `npm test` and `npm run build`
+4. Submit PR with description of changes and screenshots if UI changed
+5. Address review feedback
 
-1. Install `@types/react` & related packages
-2. Configure `tsconfig.json` compiler options
-3. Run `npm install -- --legacy-peer-deps` if conflicts
+## Key Features
 
----
+### 1. Evaluation Engine
 
-## Performance Optimization
+#### Multi-Dimensional Scoring
+
+- 8 evaluation parameters across circular economy dimensions
+- Evidence-based scoring with AI reasoning and semantic retrieval
+- Confidence scoring and integrity gap analysis
+
+#### Assessment Enrichment Layers
+
+**Layer 1 — Business Context** (optional, `BusinessContextContainer.jsx`)
+
+- Business Model Type: PaaS, take-back, remanufacturing, recycling, etc.
+- Operational Stage: idea → prototype → pilot → scaling → mature operation
+- Target Geography: local → regional → global
+- Annual Volume: material processing volume
+- Material Complexity: single → multi-material → hazardous → electronics → biological
+- Supply Chain Partnerships: existing collection/distribution relationships
+
+These optional context fields improve AI reasoning and enable stage-appropriate scoring.
+
+**Layer 2 — Deterministic Outputs** (computed without LLM)
+
+- Weighted Score Card: per-factor contribution breakdown with Strong/Moderate/Weak/Critical classifications
+- Circular Economy Tier: Leader/Established/Developing/Emerging with percentile estimates
+- Parameter Consistency: score coherence analysis detecting internally contradictory inputs
+- R-Strategy Alignment: validates scores match the detected circular strategy profile
+
+**Layer 3 — Extended LLM Output** (GPT-4o-mini)
+
+- Improvement Roadmap: 3 prioritised actions with effort/impact/timeframe
+- SDG Alignment: 2–4 UN Sustainable Development Goals with rationale
+- Market Opportunity Summary: grounded in database evidence
+
+**Key files:**
+
+- `src/constants/evaluationData.js` — 8 parameter definitions with weights
+- `src/lib/scoring.js` — score formatting, colour mapping, tier labels
+- `src/features/assessments/api/assessmentApi.js` — API calls
+- `src/pages/ResultsPage/components/` — all result section components
+
+### 2. Smart Navigation & Routing
+
+**Current routes** (from `src/app/AppRoutes.jsx`):
+
+```code
+/                           → LandingPage          (assessment input)
+/auth                       → AuthPage             (login/signup)
+/guide                      → GuidePage            (help & methodology)
+/results                    → ResultsPage          (session-based scoring results)
+/assessments                → MyAssessmentsPage    (saved history, auth required)
+/assessments/:id            → AssessmentViewPage   (view saved assessment, auth required)
+/assessments/share/:publicId → SharePage           (public shared view, no auth)
+/compare                    → ComparePage          (side-by-side comparison, auth required)
+/dashboard                  → DashboardPage        (global analytics)
+*                           → NotFoundPage
+```
+
+**Related files:**
+
+- `src/app/AppRoutes.jsx` — route definitions
+- `src/pages/` — page components, each with their own `components/` subfolder
+- `src/contexts/` — dialog, drawer, and auth state
+
+### 3. Session Management
+
+**Features:**
+
+- Auto-saves evaluation inputs to localStorage on every change
+- `AppSessionManager` detects existing session on app load
+- `SessionRestoreDialog` prompts user to restore or start fresh
+- Clears session on successful save or explicit user request
+
+**Related files:**
+
+- `src/features/session/AppSessionManager.jsx` — orchestrates save/restore lifecycle
+- `src/features/session/hooks/useSession.js` — session read/write hook
+- `src/utils/session.js` — localStorage key helpers
+- `src/lib/storage.js` — JSON-safe localStorage wrapper
+
+```javascript
+const { restoreEvaluation, saveSession, clearSession } = useSession();
+```
+
+### 4. Data Visualisation
+
+**Chart types:**
+
+- **RadarChart** — multi-dimensional score comparison vs market average
+- **BarChart** — factor comparisons, industry volume, R-strategy distribution
+- **LineChart** — weekly trend, score over time
+- **PieChart** — CE tier, risk level, scale distribution (with single-value fallback)
+
+**Related files:**
+
+- `src/components/charts/` — BarChart, LineChart, PieChart, RadarChart
+- Powered by **Recharts** library
+
+All charts use consistent prop APIs — see the [Charts](#charts) section for correct usage.
+
+### 5. Export Capabilities
+
+**Formats:**
+
+- **CSV**: raw data with all metrics — easily importable into spreadsheets
+- **PDF**: formatted full report including SDG alignment, roadmap, similar cases
+
+**Related files:**
+
+- `src/features/export/exportCSV.js` — CSV generation, single + comparison
+- `src/features/export/exportPDF.js` — PDF generation with all enrichment sections
+- `src/components/export/ExportActions.jsx` — export button UI
+- Uses Blob API for client-side generation (no server round-trip)
+
+```javascript
+import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
+
+await exportAssessmentCSV(assessment); // triggers download
+await exportAssessmentPDF(assessment); // triggers download
+```
+
+### 6. Metadata & Structured Data
+
+The `documents` table has `industry` and `category` as first-class indexed columns. Use the helpers that prefer structured columns over JSONB fallback:
+
+```javascript
+import { getIndustry, getCategory } from '@/lib/metadata';
+
+const industry = getIndustry(assessment.result_json);
+// Priority: result_json.metadata.industry → result_json.industry → column value
+
+const category = getCategory(assessment.result_json);
+```
+
+Used in: `ResultsPage`, `AssessmentViewPage`, `AssessmentComparisonPage`.
+
+## Development Guide
+
+### Running the Dev Server
+
+```bash
+npm run dev
+```
+
+- Vite server starts at `http://localhost:5173`
+- Hot Module Replacement (HMR) enabled
+- API calls route to `VITE_API_URL` (default: `http://localhost:8000`)
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+- Optimised build output to `dist/`
+- Code splitting and tree-shaking applied
+- Source maps generated (configurable in `vite.config.js`)
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+Serves `dist/` locally. Use to test production behaviour before deploying.
+
+### Code Organisation Best Practices
+
+#### Components
+
+```jsx
+// ✓ Good — self-contained, focused component
+export default function ResultsPage() {
+  const { id } = useParams();
+  const { assessment, isLoading } = useAssessment(id);
+  const result = reconstructScoringResult(assessment);
+
+  if (isLoading) return <ResultsSkeleton />;
+  return (
+    <>
+      <ScoreOverviewSection result={result} />
+      <WeightedScoreCard data={result.weighted_score_card} />
+    </>
+  );
+}
+```
+
+#### Hooks
+
+```javascript
+// ✓ Good — custom hook extracts reusable logic
+export function useAssessmentStats({ enabled = true } = {}) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['assessment-stats'],
+    queryFn: () => getAssessmentStats(),
+    enabled,
+    staleTime: 0,
+  });
+
+  return { ...data, isLoading, error };
+}
+```
+
+#### API Calls
+
+```javascript
+// ✓ Good — use buildApiUrl for automatic proxy routing
+import { buildApiUrl } from '@/lib/apiClient';
+
+const url = buildApiUrl('/api/score');
+
+const response = await fetch(url, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ businessProblem, businessSolution, evaluationParameters }),
+});
+```
+
+#### Constants
+
+```javascript
+// ✓ Good — centralised, named constants; no magic values
+import { EVALUATION_PARAMETERS } from '@/constants/evaluationData';
+
+const weight = EVALUATION_PARAMETERS.resource_efficiency.weight;
+const label = EVALUATION_PARAMETERS.resource_efficiency.label;
+```
+
+## Components Reference
+
+### Available Components
+
+- **Common**: Button, Brand, Switch, TipCard, ErrorDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, VisuallyHidden, CloseButtonX, ChartWrapper
+- **Charts**: BarChart, LineChart, PieChart, RadarChart
+- **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, SessionRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
+- **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, DashboardFeaturedSolutionsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases
+- **Layout**: Navbar, Header, Footer, AppContainer
+- **Auth**: LoginForm, SignupForm
+- **Export**: ExportActions
+- **Error Boundaries**: GlobalErrorBoundary, PageErrorBoundary, ResultsErrorBoundary
+
+### Dialog System
+
+See [src/components/dialogs/README.md](./src/components/dialogs/README.md) for comprehensive documentation on the reusable dialog system, including how to add new dialog types and use the `DialogContext`.
+
+## Performance Optimisation
 
 ### Code Splitting
 
-Routes are lazy-loaded automatically:
+Routes are lazy-loaded automatically by React Router:
 
 ```javascript
-const ResultsPage = lazy(() => import('@/pages/ResultsPage'));
+const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 ```
 
-### Image Optimization
+### Image Optimisation
 
-Use `<img>` with srcset or consider next-gen formats:
+Use modern formats and lazy loading:
 
 ```jsx
 <img src="/image.webp" alt="Description" loading="lazy" />
@@ -1132,119 +1172,56 @@ Use `<img>` with srcset or consider next-gen formats:
 
 ### Bundle Analysis
 
-Check bundle size:
-
-```pwsh
+```bash
 npm run build -- --analyze
-# or use Vercel Analytics dashboard
+# or view Vercel Analytics dashboard after deployment
 ```
 
 ### Caching Strategy
 
-React Query caches API responses automatically. Configure stale times:
+Configure React Query stale times appropriately:
 
 ```javascript
+// Dashboard global stats — cache for 5 minutes
 useQuery({
-  queryKey: ['assessment', id],
-  queryFn: () => getAssessment(id),
-  staleTime: 5 * 60 * 1000, // 5 minutes
+  queryKey: ['global-stats'],
+  queryFn: getGlobalStats,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 30 * 60 * 1000,
+});
+
+// User assessments — always fetch fresh
+useQuery({
+  queryKey: ['assessments'],
+  queryFn: getAssessments,
+  staleTime: 0,
+  gcTime: 0,
 });
 ```
-
----
-
-## Security Considerations
-
-### API Key Protection
-
-✓ **Good**:
-
-- Secret key in Vercel env variables only
-- Proxy function injects key server-side
-- Frontend never sees the secret
-
-✕ **Avoid**:
-
-- Storing API keys in `.env.frontend` that gets committed
-- Exposing keys in browser DevTools
-- Hardcoding secrets in source code
-
-### Data Privacy
-
-- Anonymous requests are rate-limited per IP
-- User data fetches require authentication
-- Shared assessments use `publicId` (opaque identifier)
-
-### CORS & CSRF
-
-- Backend validates `Origin` header
-- Proxy function adds required headers
-- Credentials sent in secure HTTP-only cookies (via Supabase)
-
----
-
-## Contributing
-
-### Code Style
-
-- **Formatting**: ESLint + Prettier (configured)
-- **Naming**: camelCase for variables/functions, PascalCase for components
-- **Components**: Functional components with hooks
-
-### Commit Messages
-
-```
-feat: add metadata helper for industry field
-fix: resolve CORS issue with Vercel domains
-docs: update README with proxy architecture
-test: add unit tests for useSession hook
-```
-
-### Pull Request Process
-
-1. Fork repo & create feature branch
-2. Implement changes with tests
-3. Run `npm test` & `npm run build`
-4. Submit PR with description of changes
-5. Address review feedback
-6. Merge when approved
-
----
-
-## Additional Resources
-
-### Documentation
-
-- [Vite Docs](https://vitejs.dev)
-- [React Docs](https://react.dev)
-- [React Router Docs](https://reactrouter.com)
-- [HeroUI Component Docs](https://v3.heroui.com)
-- [Recharts Docs](https://recharts.org)
-- [Tailwind CSS Docs](https://tailwindcss.com)
-
-### Related Projects
-
-- **Backend**: `../backend/` – Express API server
-- **Database**: Supabase PostgreSQL with pgvector
-
----
 
 ## Support & Issues
 
 For issues or questions:
 
 1. Check existing issues in GitHub
-2. Review this README & related docs
-3. Check browser DevTools console for errors
-4. Contact the development team
+2. Review this README and the related docs linked in **See Also**
+3. Check browser DevTools console for client-side errors
+4. Check backend server logs for API errors
+5. Contact the development team with relevant logs and reproduction steps
+
+## See Also
+
+- [Root README](../../README.md) — Full-stack architecture and quick start
+- [Backend README](../../backend/README.md) — API reference and scoring pipeline
+- [Dialogs README](./src/components/dialogs/README.md) — Dialog system documentation
+- [Vite Docs](https://vitejs.dev)
+- [React Docs](https://react.dev)
+- [HeroUI v3 Docs](https://www.heroui.com)
+- [Recharts Docs](https://recharts.org)
+- [Tailwind CSS Docs](https://tailwindcss.com)
+- [TanStack Query Docs](https://tanstack.com/query)
 
 ---
 
-## License
-
-UNLICENSED (Internal use only)
-
----
-
-**Last Updated**: March 1, 2026
-**Frontend Version**: React 18+ / Vite / HeroUI v3 Beta
+**Last Updated:** 23 March 2026
+**Frontend Version:** React 19 / Vite 7 / HeroUI v3 / Tailwind v4

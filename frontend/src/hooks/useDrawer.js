@@ -2,6 +2,12 @@ import { useRef, useState } from 'react';
 
 import DRAWERS from '@/components/drawers/drawerTypes';
 
+/**
+ * useDrawer
+ * Local drawer stack: type, payload, open/close with animation timing.
+ * @returns {Object}
+ */
+
 // Match the CSS transition duration used by Drawer (overlay/content)
 // reduced from 320ms to match the faster CSS transitions + small buffer
 const CLOSE_ANIMATION_MS = 200;

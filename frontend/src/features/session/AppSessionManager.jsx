@@ -63,7 +63,7 @@ export function AppSessionManager() {
     try {
       sessionData = getSession();
     } catch (e) {
-      console.error('Failed to read session:', e);
+      logger.error('Failed to read session:', e);
       hasCheckedOnLoad.current = true;
       return;
     }
@@ -141,5 +141,7 @@ export function AppSessionManager() {
 
   return null;
 }
+
+AppSessionManager.propTypes = {};
 
 export default AppSessionManager;

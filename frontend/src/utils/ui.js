@@ -199,7 +199,7 @@ export async function copyToClipboard(text) {
       return success;
     }
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
+    logger.error('Failed to copy to clipboard:', error);
     return false;
   }
 }

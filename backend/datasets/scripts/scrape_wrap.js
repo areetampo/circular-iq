@@ -206,12 +206,12 @@ async function downloadFile(url, destPath, retries = 5) {
       }
 
       await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(destPath));
-      console.log(`-- Successfully downloaded: ${destPath}`);
+      logger.info(`-- Successfully downloaded: ${destPath}`);
       return;
     } catch (err) {
       clearTimeout(timeout);
       if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-      console.warn(`Download attempt ${i + 1} failed for ${url}: ${err.message}`);
+      logger.warn(`Download attempt ${i + 1} failed for ${url}: ${err.message}`);
       if (i === retries - 1)
         throw new Error(`Failed to download after ${retries} attempts: ${err.message}`);
       const delay = 2000 * Math.pow(2, i) + Math.random() * 1000;
@@ -340,7 +340,7 @@ async function extractCaseStudy(page) {
 
   // If primary selectors failed (problem or solution empty), use fallback
   if (!problem || !solution) {
-    console.log('      ‼ Primary selectors failed, attempting fallback extraction...');
+    logger.info('      ‼ Primary selectors failed, attempting fallback extraction...');
     const fallback = await extractCaseStudyFallback(page);
     if (fallback.problem) problem = fallback.problem;
     if (fallback.solution) solution = fallback.solution;
@@ -399,11 +399,11 @@ async function downloadReportOrGuide(page, url, outputDir) {
 
   const destPath = path.join(outputDir, filename);
   if (fs.existsSync(destPath)) {
-    console.log(`      PDF already exists: ${filename}`);
+    logger.info(`      PDF already exists: ${filename}`);
     return { pdfUrl, localPath: destPath };
   }
 
-  console.log(`   -- Downloading PDF: ${filename}`);
+  logger.info(`   -- Downloading PDF: ${filename}`);
   try {
     await downloadFile(pdfUrl, destPath);
     await appendLogs(
@@ -412,7 +412,7 @@ async function downloadReportOrGuide(page, url, outputDir) {
     );
     return { pdfUrl, localPath: destPath };
   } catch (err) {
-    console.error(`      Failed to download PDF: ${err.message}`);
+    logger.error(`      Failed to download PDF: ${err.message}`);
     return null;
   }
 }
@@ -444,7 +444,7 @@ async function processResource(browser, url, category) {
 
       // Validate: must be a meaningful case study
       if (!isValidCaseStudy(row.problem, row.solution)) {
-        console.log(`      ‼ Skipping case study (invalid content): ${url}`);
+        logger.info(`      ‼ Skipping case study (invalid content): ${url}`);
         await appendLogs(
           DATASET_KEY,
           `Skipped case study (invalid): ${url} — problem: "${row.problem.substring(0, 50)}..."`,
@@ -471,18 +471,18 @@ async function processResource(browser, url, category) {
 // ========== BACKUP RECOVERY ==========
 
 async function rebuildFromBackup() {
-  console.log(`♻️ BACKUP RECOVERY MODE: Rebuilding case studies from backup...`);
+  logger.info(`♻️ BACKUP RECOVERY MODE: Rebuilding case studies from backup...`);
   await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding case studies from backup.`);
 
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (backupRows.length === 0) {
-    console.warn('‼ No backup content found. Cannot rebuild output.');
+    logger.warn('‼ No backup content found. Cannot rebuild output.');
     await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
     return;
   }
 
-  console.log(`📖 Processing ${backupRows.length} backup rows...`);
+  logger.info(`📖 Processing ${backupRows.length} backup rows...`);
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows from case studies.`);
 
   // Apply same validation during recovery
@@ -492,7 +492,7 @@ async function rebuildFromBackup() {
   const skippedCount = backupRows.length - validRows.length;
 
   if (skippedCount > 0) {
-    console.log(`   Filtered out ${skippedCount} invalid rows during recovery.`);
+    logger.info(`   Filtered out ${skippedCount} invalid rows during recovery.`);
     await appendLogs(DATASET_KEY, `Filtered out ${skippedCount} invalid rows during recovery.`);
   }
 
@@ -507,11 +507,11 @@ async function rebuildFromBackup() {
     metadata_json: row.metadata_json || '{}',
   }));
 
-  console.log(`\n✨ Rebuilt ${finalRows.length} case study rows from backup`);
+  logger.info(`\n✨ Rebuilt ${finalRows.length} case study rows from backup`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
-  console.log(
+  logger.info(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
   await appendLogs(
@@ -519,7 +519,7 @@ async function rebuildFromBackup() {
     `✓ Case studies recovered. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 
-  console.log(`\n📝 NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js`);
+  logger.info(`\n📝 NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js`);
   await appendLogs(
     DATASET_KEY,
     `📝 For PDF extraction from guides/reports, run: node extract_wrap.js`,
@@ -532,7 +532,7 @@ async function rebuildFromBackup() {
 async function scrapeCategory(browser, category) {
   const { name, listUrl, START_PAGE, END_PAGE, MAX_PAGES_TO_FETCH, outputDir } = category;
   const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
-  console.log(`\n=== Scraping category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE} ===`);
+  logger.info(`\n=== Scraping category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE} ===`);
   await appendLogs(
     DATASET_KEY,
     `Starting category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}`,
@@ -543,7 +543,7 @@ async function scrapeCategory(browser, category) {
 
   for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
     const pageUrl = listUrl + pageNum;
-    console.log(`  Page ${pageNum}/${FINAL_FETCH_PAGE}: ${pageUrl}`);
+    logger.info(`  Page ${pageNum}/${FINAL_FETCH_PAGE}: ${pageUrl}`);
     await appendLogs(DATASET_KEY, `Page ${pageNum}: ${pageUrl}`);
 
     let retries = 3;
@@ -559,18 +559,18 @@ async function scrapeCategory(browser, category) {
           anchors.map((a) => a.href),
         );
         if (links.length === 0) {
-          console.log('    No more resources found. Stopping pagination.');
+          logger.info('    No more resources found. Stopping pagination.');
           await appendLogs(DATASET_KEY, `  No resources found on page ${pageNum}.`);
           break;
         }
-        console.log(`    Found ${links.length} resources.`);
+        logger.info(`    Found ${links.length} resources.`);
         success = true;
       } catch (err) {
         retries--;
-        console.warn(`  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`);
+        logger.warn(`  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`);
         await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${err.message}`);
         if (retries === 0) {
-          console.warn(`  ‼ Skipping page ${pageNum} after 3 failed attempts.`);
+          logger.warn(`  ‼ Skipping page ${pageNum} after 3 failed attempts.`);
           await appendLogs(DATASET_KEY, `Skipping page ${pageNum} after 3 failed attempts.`);
         } else {
           await sleep(5000 * (3 - retries));
@@ -585,7 +585,7 @@ async function scrapeCategory(browser, category) {
     const pageRows = [];
 
     for (const link of links) {
-      console.log(`    Fetching: ${link}`);
+      logger.info(`    Fetching: ${link}`);
       let resourceRetries = 2;
       let resourceSuccess = false;
 
@@ -618,12 +618,12 @@ async function scrapeCategory(browser, category) {
           resourceSuccess = true;
         } catch (err) {
           resourceRetries--;
-          console.warn(
+          logger.warn(
             `      ‼ Resource error (retries left: ${resourceRetries}): ${err.message}`,
           );
           await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
           if (resourceRetries === 0) {
-            console.warn(`      ‼ Skipping resource after 2 failed attempts.`);
+            logger.warn(`      ‼ Skipping resource after 2 failed attempts.`);
             await appendLogs(DATASET_KEY, `Skipping resource ${link} after 2 failed attempts.`);
           } else {
             await sleep(3000);
@@ -641,7 +641,7 @@ async function scrapeCategory(browser, category) {
           `Page ${pageNum}: backed up ${pageRows.length} case study rows.`,
         );
       } catch (e) {
-        console.warn(`  ‼ Backup add failed: ${e.message}`);
+        logger.warn(`  ‼ Backup add failed: ${e.message}`);
         await appendLogs(DATASET_KEY, `  ‼ Backup add failed: ${e.message}`);
       }
     } else if (name !== 'case-studies') {
@@ -652,9 +652,9 @@ async function scrapeCategory(browser, category) {
   }
 
   if (name === 'case-studies') {
-    console.log(`  → Collected ${allRows.length} rows from ${name}`);
+    logger.info(`  → Collected ${allRows.length} rows from ${name}`);
   } else {
-    console.log(`  → Downloaded ${pdfCount} PDFs to ${outputDir}`);
+    logger.info(`  → Downloaded ${pdfCount} PDFs to ${outputDir}`);
   }
   return { rows: allRows, pdfCount };
 }
@@ -670,7 +670,7 @@ async function scrape_wrap() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  console.log(`Scraping WRAP resources. Detailed logs: ${logFilePath}`);
+  logger.info(`Scraping WRAP resources. Detailed logs: ${logFilePath}`);
   await appendLogs(
     DATASET_KEY,
     `🚀 Scrape started. Categories: ${ACTIVE_CATEGORIES.map((c) => c.name).join(', ')}`,
@@ -700,7 +700,7 @@ async function scrape_wrap() {
       const validRows = allRows.filter((row) => isValidCaseStudy(row.problem, row.solution));
       const skipped = allRows.length - validRows.length;
       if (skipped > 0) {
-        console.log(`\n‼ Filtered out ${skipped} invalid rows during final assembly.`);
+        logger.info(`\n‼ Filtered out ${skipped} invalid rows during final assembly.`);
         await appendLogs(
           DATASET_KEY,
           `Filtered out ${skipped} invalid rows during final assembly.`,
@@ -718,11 +718,11 @@ async function scrape_wrap() {
         metadata_json: row.metadata_json,
       }));
 
-      console.log(`\n✓ Scraped ${finalRows.length} valid case study rows.`);
+      logger.info(`\n✓ Scraped ${finalRows.length} valid case study rows.`);
       const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
         append: APPEND_PROCESSED,
       });
-      console.log(
+      logger.info(
         `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
       );
 
@@ -737,25 +737,25 @@ async function scrape_wrap() {
         );
       }
     } else {
-      console.log(`\n※ No case study rows scraped.`);
+      logger.info(`\n※ No case study rows scraped.`);
     }
 
     if (totalPdfs > 0) {
-      console.log(`✓ Downloaded ${totalPdfs} PDFs into:`);
-      console.log(`   - Reports: ${REPORTS_DIR}`);
-      console.log(`   - Guides: ${GUIDES_DIR}`);
+      logger.info(`✓ Downloaded ${totalPdfs} PDFs into:`);
+      logger.info(`   - Reports: ${REPORTS_DIR}`);
+      logger.info(`   - Guides: ${GUIDES_DIR}`);
       await appendLogs(
         DATASET_KEY,
         `✓ Downloaded ${totalPdfs} PDFs into: Reports: ${REPORTS_DIR}, Guides: ${GUIDES_DIR}`,
       );
     }
   } catch (err) {
-    console.error('✕ Fatal error:', err);
+    logger.error('✕ Fatal error:', err);
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
     if (browser) await browser.close();
-    console.log('✓ Browser closed.');
+    logger.info('✓ Browser closed.');
   }
 }
 
@@ -773,7 +773,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       await appendLogs(DATASET_KEY, '✓ Run completed successfully.');
     })
     .catch(async (err) => {
-      console.error('✕ Fatal error:', err.message);
+      logger.error('✕ Fatal error:', err.message);
       await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
       process.exit(1);
     });

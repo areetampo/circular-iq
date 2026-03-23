@@ -1,5 +1,7 @@
 # Vector Infrastructure: pgvector Configuration and Optimization
 
+Updated for current pgvector storage and hybrid search architecture.
+
 Production-grade vector database infrastructure using PostgreSQL with pgvector extension.
 
 ## Architecture Overview

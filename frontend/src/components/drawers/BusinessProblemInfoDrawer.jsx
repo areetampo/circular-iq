@@ -161,3 +161,5 @@ export default function BusinessProblemInfoDrawer() {
     </Drawer>
   );
 }
+
+BusinessProblemInfoDrawer.propTypes = {};

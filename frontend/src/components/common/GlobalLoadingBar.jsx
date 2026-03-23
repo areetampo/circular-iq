@@ -64,3 +64,5 @@ export default function GlobalLoadingBar() {
     </div>
   );
 }
+
+GlobalLoadingBar.propTypes = {};

@@ -133,11 +133,11 @@ function scoreRow(row) {
 
 // -------------------- Processors --------------------
 function processMaskLCA() {
-  console.log('📄 Processing Mask LCA ...');
+  logger.info('📄 Processing Mask LCA ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.mask_lca);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('‼ ️  Mask LCA file not found, skipping.');
+    logger.warn('‼ ️  Mask LCA file not found, skipping.');
     return rows;
   }
 
@@ -147,7 +147,7 @@ function processMaskLCA() {
   const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
   if (data.length < 3) {
-    console.warn('‼ ️  Mask LCA sheet has insufficient rows.');
+    logger.warn('‼ ️  Mask LCA sheet has insufficient rows.');
     return rows;
   }
 
@@ -168,11 +168,11 @@ function processMaskLCA() {
   }
 
   if (headerRowIndex === -1) {
-    console.warn('‼ ️  Could not find header row containing "Material flows".');
+    logger.warn('‼ ️  Could not find header row containing "Material flows".');
     return rows;
   }
 
-  console.log(`✓ Found header at row ${headerRowIndex}, material column index ${materialColIdx}`);
+  logger.info(`✓ Found header at row ${headerRowIndex}, material column index ${materialColIdx}`);
   const headers = data[headerRowIndex];
 
   // Data rows start after header
@@ -212,16 +212,16 @@ function processMaskLCA() {
     });
   }
 
-  console.log(`✓ Extracted ${rows.length} rows from Mask LCA`);
+  logger.info(`✓ Extracted ${rows.length} rows from Mask LCA`);
   return rows;
 }
 
 function processSMESurvey() {
-  console.log('📄 Processing SME Survey (keeping only score = 5) ...');
+  logger.info('📄 Processing SME Survey (keeping only score = 5) ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.sme_practices);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('‼ ️  SME Survey file not found, skipping.');
+    logger.warn('‼ ️  SME Survey file not found, skipping.');
     return rows;
   }
 
@@ -280,18 +280,18 @@ function processSMESurvey() {
     });
   }
 
-  console.log(`✓ Extracted ${rows.length} raw rows from SME Survey`);
+  logger.info(`✓ Extracted ${rows.length} raw rows from SME Survey`);
   const sampled = randomSample(rows, SME_SAMPLE_SIZE);
-  console.log(`   → Sampled ${sampled.length} rows`);
+  logger.info(`   → Sampled ${sampled.length} rows`);
   return sampled;
 }
 
 function processSWARA() {
-  console.log('📄 Processing SWARA Challenges ...');
+  logger.info('📄 Processing SWARA Challenges ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.bwm_scores);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('‼ ️  SWARA file not found, skipping.');
+    logger.warn('‼ ️  SWARA file not found, skipping.');
     return rows;
   }
 
@@ -315,7 +315,7 @@ function processSWARA() {
     }
   }
   if (startRow === -1) {
-    console.warn('‼ ️  Could not find "Drivers Means by SWARA" table.');
+    logger.warn('‼ ️  Could not find "Drivers Means by SWARA" table.');
     return rows;
   }
 
@@ -353,21 +353,21 @@ function processSWARA() {
         geometric_mean: bestGeoMean,
       }),
     });
-    console.log(
+    logger.info(
       `✓ Extracted top challenge: ${bestChallenge} (geo mean = ${bestGeoMean.toFixed(4)})`,
     );
   } else {
-    console.warn('‼ ️  No valid challenge data found.');
+    logger.warn('‼ ️  No valid challenge data found.');
   }
   return rows;
 }
 
 function processNetworkCentrality() {
-  console.log('📄 Processing Network Centrality Scores ...');
+  logger.info('📄 Processing Network Centrality Scores ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.network_scores);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('‼ ️  Network Centrality file not found, skipping.');
+    logger.warn('‼ ️  Network Centrality file not found, skipping.');
     return rows;
   }
 
@@ -376,7 +376,7 @@ function processNetworkCentrality() {
     (name) => /network|scenario/i.test(name) && !/flow|figure/i.test(name),
   );
   if (!targetSheetName) {
-    console.warn('‼ ️  No suitable data sheet found in Network Centrality file.');
+    logger.warn('‼ ️  No suitable data sheet found in Network Centrality file.');
     return rows;
   }
   const sheet = workbook.Sheets[targetSheetName];
@@ -400,7 +400,7 @@ function processNetworkCentrality() {
   }
 
   if (headerRowIndex === -1) {
-    console.warn('‼ ️  Could not find header row containing "Name".');
+    logger.warn('‼ ️  Could not find header row containing "Name".');
     return rows;
   }
 
@@ -436,18 +436,18 @@ function processNetworkCentrality() {
     });
   }
 
-  console.log(`✓ Extracted ${rows.length} rows from Network Centrality`);
+  logger.info(`✓ Extracted ${rows.length} rows from Network Centrality`);
   return rows;
 }
 
 function processSustainableBusinessModel() {
-  console.log(
+  logger.info(
     `📄 Processing Sustainable Business Model CSV (sampling ${SBM_SAMPLE_SIZE} rows) ...`,
   );
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.business_model);
   if (!filePath || !fs.existsSync(filePath)) {
-    console.warn('‼ ️  Sustainable Business Model CSV file not found, skipping.');
+    logger.warn('‼ ️  Sustainable Business Model CSV file not found, skipping.');
     return rows;
   }
 
@@ -496,13 +496,13 @@ function processSustainableBusinessModel() {
   }
 
   const sampled = randomSample(allRows, SBM_SAMPLE_SIZE);
-  console.log(`✓ Extracted ${sampled.length} rows (out of ${allRows.length} total)`);
+  logger.info(`✓ Extracted ${sampled.length} rows (out of ${allRows.length} total)`);
   return sampled;
 }
 
 // -------------------- Main --------------------
 async function main() {
-  console.log('🚀 Starting Mendeley Excel extraction...\n');
+  logger.info('🚀 Starting Mendeley Excel extraction...\n');
   await ensureDir(path.dirname(OUTPUT_PATH));
 
   const maskRows = processMaskLCA();
@@ -513,18 +513,18 @@ async function main() {
 
   let allRows = [...maskRows, ...smeRows, ...swaraRows, ...networkRows, ...sbmRows];
 
-  console.log(`\n📊 Summary:`);
-  console.log(`  - Mask LCA rows: ${maskRows.length}`);
-  console.log(`  - SME Survey rows: ${smeRows.length}`);
-  console.log(`  - SWARA rows: ${swaraRows.length}`);
-  console.log(`  - Network Centrality rows: ${networkRows.length}`);
-  console.log(`  - Sustainable Business Model rows: ${sbmRows.length}`);
-  console.log(`  - Total: ${allRows.length}`);
+  logger.info(`\n📊 Summary:`);
+  logger.info(`  - Mask LCA rows: ${maskRows.length}`);
+  logger.info(`  - SME Survey rows: ${smeRows.length}`);
+  logger.info(`  - SWARA rows: ${swaraRows.length}`);
+  logger.info(`  - Network Centrality rows: ${networkRows.length}`);
+  logger.info(`  - Sustainable Business Model rows: ${sbmRows.length}`);
+  logger.info(`  - Total: ${allRows.length}`);
 
   // --- Intelligent selection ---
 
   if (allRows.length > MAX_ROWS) {
-    console.log(`\n🔍 Applying intelligent filtering to keep the ${MAX_ROWS} best rows...`);
+    logger.info(`\n🔍 Applying intelligent filtering to keep the ${MAX_ROWS} best rows...`);
 
     // 1. Identify rows from small, high‑value sources (keep all of them)
     //    We detect them by metadata fields rather than category, because category can be ambiguous.
@@ -556,15 +556,15 @@ async function main() {
     // 6. Final set
     allRows = [...highValueRows, ...bestRemaining];
 
-    console.log(
+    logger.info(
       `   - Kept all ${highValueRows.length} high‑value rows (SWARA + Network Centrality)`,
     );
-    console.log(`   - Selected ${bestRemaining.length} top rows from other sources`);
-    console.log(`   → Final row count: ${allRows.length}`);
+    logger.info(`   - Selected ${bestRemaining.length} top rows from other sources`);
+    logger.info(`   → Final row count: ${allRows.length}`);
   }
 
   if (allRows.length === 0) {
-    console.warn('\n‼ ️  No rows extracted. Check Excel file paths and structure.');
+    logger.warn('\n‼ ️  No rows extracted. Check Excel file paths and structure.');
     return;
   }
 
@@ -580,14 +580,14 @@ async function main() {
   }));
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `\n✓ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

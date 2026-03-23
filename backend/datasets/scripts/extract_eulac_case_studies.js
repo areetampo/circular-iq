@@ -261,12 +261,12 @@ async function main() {
   const rows = [];
 
   for (const range of CASE_RANGES) {
-    console.log(`Extracting case study ${range.id} (pages ${range.start}–${range.end})...`);
+    logger.info(`Extracting case study ${range.id} (pages ${range.start}–${range.end})...`);
     let text;
     try {
       text = await extractPagesText(RAW_PDF, range.start, range.end);
     } catch (err) {
-      console.error(`✕ Failed to extract pages for case ${range.id}: ${err.message}`);
+      logger.error(`✕ Failed to extract pages for case ${range.id}: ${err.message}`);
       continue; // skip this case study and move to next
     }
 
@@ -306,14 +306,14 @@ async function main() {
   }
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rows);
-  console.log(
+  logger.info(
     `✓ Saved ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('✕ Error:', err.message);
+    logger.error('✕ Error:', err.message);
     process.exit(1);
   });
 }

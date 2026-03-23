@@ -104,7 +104,7 @@ function parseCSVFile(filePath, expectedColumns, options = {}) {
     });
     return records.filter((row) => expectedColumns.every((col) => col in row));
   } catch (err) {
-    console.warn(`Warning: Could not parse ${filePath}: ${err.message}`);
+    logger.warn(`Warning: Could not parse ${filePath}: ${err.message}`);
     return [];
   }
 }
@@ -128,7 +128,7 @@ function parseInputCSV(filePath) {
     const metric = stripMetricPrefix(row.Metric);
     return relevantMetrics.includes(metric) && ['Yes', 'No'].includes(row.Value);
   });
-  console.log(`  Raw granular rows: ${rows.length}, matched: ${matched.length}`);
+  logger.info(`  Raw granular rows: ${rows.length}, matched: ${matched.length}`);
   return matched
     .map((row) => ({
       metric: stripMetricPrefix(row.Metric),
@@ -248,7 +248,7 @@ async function extractPDFInsights(filePath) {
 async function main() {
   // <-- fixed duplicate async
   if (!fs.existsSync(rawDir)) {
-    console.error(`✕ Raw folder not found: ${rawDir}`);
+    logger.error(`✕ Raw folder not found: ${rawDir}`);
     process.exit(1);
   }
 
@@ -257,11 +257,11 @@ async function main() {
   const scorePath = path.join(rawDir, scoreFile);
   let scoreRows = [];
   if (fs.existsSync(scorePath)) {
-    console.log(`Reading overall scores from ${scoreFile}`);
+    logger.info(`Reading overall scores from ${scoreFile}`);
     scoreRows = parseScoreCSV(scorePath);
-    console.log(`  Found ${scoreRows.length} rows.`);
+    logger.info(`  Found ${scoreRows.length} rows.`);
   } else {
-    console.warn(`Score file not found: ${scorePath}`);
+    logger.warn(`Score file not found: ${scorePath}`);
   }
 
   // ---- 2. Granular indicators ----
@@ -269,11 +269,11 @@ async function main() {
   const inputPath = path.join(rawDir, inputFile);
   let inputRows = [];
   if (fs.existsSync(inputPath)) {
-    console.log(`Reading granular indicators from ${inputFile}`);
+    logger.info(`Reading granular indicators from ${inputFile}`);
     inputRows = parseInputCSV(inputPath);
-    console.log(`  Found ${inputRows.length} relevant granular indicator records.`);
+    logger.info(`  Found ${inputRows.length} relevant granular indicator records.`);
   } else {
-    console.warn(`Granular file not found, skipping.`);
+    logger.warn(`Granular file not found, skipping.`);
   }
 
   // ---- 3. PDF insights ----
@@ -281,15 +281,15 @@ async function main() {
   const pdfPath = path.join(rawDir, pdfFile);
   let pdfInsights = [];
   if (fs.existsSync(pdfPath)) {
-    console.log(`Extracting insights from PDF...`);
+    logger.info(`Extracting insights from PDF...`);
     try {
       pdfInsights = await extractPDFInsights(pdfPath);
-      console.log(`  Found ${pdfInsights.length} PDF insights.`);
+      logger.info(`  Found ${pdfInsights.length} PDF insights.`);
     } catch (err) {
-      console.error(`  Error extracting PDF: ${err.message}`);
+      logger.error(`  Error extracting PDF: ${err.message}`);
     }
   } else {
-    console.warn(`PDF file not found, skipping.`);
+    logger.warn(`PDF file not found, skipping.`);
   }
 
   // ---- 4. Build output rows (without custom IDs) ----
@@ -406,18 +406,18 @@ async function main() {
   });
 
   const finalRows = allOutputRows.slice(0, MAX_ROWS);
-  console.log(`Selected ${finalRows.length} rows for output (limit: ${MAX_ROWS}).`);
+  logger.info(`Selected ${finalRows.length} rows for output (limit: ${MAX_ROWS}).`);
 
   // ---- 6. Write CSV ----
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `✓ ${writeResult.writtenCount} rows Written to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

@@ -89,7 +89,7 @@ const GHG_FILES = [
 ].filter(Boolean);
 
 if (GHG_FILES.length === 0) {
-  console.error('✕ No GHG files defined in dataset.raw_folder_contents');
+  logger.error('✕ No GHG files defined in dataset.raw_folder_contents');
   process.exit(1);
 }
 
@@ -101,17 +101,17 @@ async function main() {
     try {
       await fs.access(filePath);
     } catch {
-      console.warn(`File not found, skipping: ${file}`);
+      logger.warn(`File not found, skipping: ${file}`);
       continue;
     }
 
-    console.log(`Processing ${file}...`);
+    logger.info(`Processing ${file}...`);
     const content = await fs.readFile(filePath, 'utf-8');
     const records = parse(content, { columns: true, skip_empty_lines: true });
-    console.log(`  Total records: ${records.length}`);
+    logger.info(`  Total records: ${records.length}`);
 
     if (records.length === 0) {
-      console.warn(`  File is empty, skipping.`);
+      logger.warn(`  File is empty, skipping.`);
       continue;
     }
 
@@ -129,7 +129,7 @@ async function main() {
 
     // Quick check: if these columns are missing, skip
     if (!records[0][countryCol] || !records[0][sectorCol] || !records[0][fossilBioCol]) {
-      console.warn(`  Required columns not found, skipping file.`);
+      logger.warn(`  Required columns not found, skipping file.`);
       continue;
     }
 
@@ -158,7 +158,7 @@ async function main() {
       return country && topCountries.includes(country) && SECTOR_MAP[sector];
     });
 
-    console.log(`  Filtered to ${filtered.length} records (top 20 countries, relevant sectors).`);
+    logger.info(`  Filtered to ${filtered.length} records (top 20 countries, relevant sectors).`);
 
     // Aggregate by country, sector, year, and gas (summing fossil_bio)
     const aggregated = new Map(); // key: country|sector|year
@@ -226,17 +226,17 @@ async function main() {
   });
 
   const finalRows = allRows.slice(0, MAX_ROWS);
-  console.log(`Selected ${finalRows.length} rows.`);
+  logger.info(`Selected ${finalRows.length} rows.`);
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `✓ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Error in main execution:', err.message);
+    logger.error('\n✕ Error in main execution:', err.message);
     process.exit(1);
   });
 }

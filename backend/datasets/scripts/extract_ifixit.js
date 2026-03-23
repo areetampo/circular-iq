@@ -154,10 +154,10 @@ function computeScore(row, bulletType, repairabilityScore) {
 }
 
 async function main() {
-  console.log(`Reading CSV files from: ${RAW_DIR}`);
+  logger.info(`Reading CSV files from: ${RAW_DIR}`);
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.endsWith('.csv'));
   if (files.length === 0) {
-    console.warn('No CSV files found.');
+    logger.warn('No CSV files found.');
     return;
   }
 
@@ -169,7 +169,7 @@ async function main() {
       .replace(/_/g, ' ')
       .replace(/\b\w/g, (l) => l.toUpperCase());
     const filePath = path.join(RAW_DIR, file);
-    console.log(`Processing ${file} (category: ${category})`);
+    logger.info(`Processing ${file} (category: ${category})`);
 
     const content = fs.readFileSync(filePath, 'utf-8');
     const records = parse(content, {
@@ -267,25 +267,25 @@ async function main() {
     }
   }
 
-  console.log(`Total raw rows generated: ${allRows.length}`);
+  logger.info(`Total raw rows generated: ${allRows.length}`);
 
   // Sort by score descending and keep top MAX_ROWS
   allRows.sort((a, b) => b.score - a.score);
   const topRows = allRows.slice(0, MAX_ROWS).map((item) => item.row);
 
-  console.log(
+  logger.info(
     `Keeping top ${topRows.length} rows (score range: ${allRows[0].score.toFixed(2)} – ${allRows[MAX_ROWS - 1]?.score.toFixed(2)})`,
   );
 
   const writeResult = await writeCsv(DATASET_KEY, outputPath, topRows);
-  console.log(
+  logger.info(
     `✓ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('Error processing iFixit dataset:', err);
+    logger.error('Error processing iFixit dataset:', err);
     process.exit(1);
   });
 }

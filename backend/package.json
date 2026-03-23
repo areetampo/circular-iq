@@ -31,15 +31,8 @@
     "embed": "node pipeline/generate_embeddings.js",
     "store": "node pipeline/store_embeddings.js",
     "populate": "npm run merge && npm run chunk && npm run embed && npm run store",
-    "validate": "node pipeline/validate_pipeline.js",
-    "verify": "node pipeline/validate_pipeline.js",
-    "test:validate": "node pipeline/test_validate_input.js",
-    "test:score-fetch": "node pipeline/test_score_fetch.js",
-    "poll:supabase": "node pipeline/poll_supabase.js",
-    "test": "node --test",
-    "clean": "npx rimraf node_modules package-lock.json",
-    "pip:install": "py -m pip install -r requirements-dev.txt",
-    "pip:save": "pip freeze > requirements-dev.txt"
+    "test": "node tests/run-tests.js",
+    "clean": "npx rimraf node_modules package-lock.json"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
@@ -55,6 +48,7 @@
     "helmet": "^6.0.1",
     "openai": "^4.28.4",
     "pg": "^8.20.0",
+    "pino": "^10.3.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -69,6 +63,7 @@
     "nodemon": "^3.1.11",
     "pdfjs-dist": "^5.4.624",
     "pg-copy-streams": "^7.0.0",
+    "pino-pretty": "^13.1.3",
     "puppeteer": "^24.37.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

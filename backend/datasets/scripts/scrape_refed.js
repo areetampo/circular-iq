@@ -97,7 +97,7 @@ async function fetchAllSolutions() {
   const pageSize = 100; // API likely supports pagination via query params
 
   while (hasMore && allSolutions.length < MAX_SOLUTIONS) {
-    console.log(`Fetching solutions page ${page}...`);
+    logger.info(`Fetching solutions page ${page}...`);
     await appendLogs(DATASET_KEY, `Fetching solutions page ${page}...`);
     // The API might support pagination with ?page= or ?offset=
     // Adjust the params based on actual behavior – if not, this will just fetch the same first page repeatedly
@@ -214,13 +214,13 @@ function transformSolution(solution, lookups) {
  * Rebuild final CSV from backup (recovery mode).
  */
 async function rebuildFromBackup() {
-  console.log('♻️ BACKUP RECOVERY MODE: Rebuilding final CSV from backup...');
+  logger.info('♻️ BACKUP RECOVERY MODE: Rebuilding final CSV from backup...');
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows.length) {
-    console.warn('No backup found.');
+    logger.warn('No backup found.');
     return;
   }
-  console.log(`📖 Processing ${backupRows.length} backup rows...`);
+  logger.info(`📖 Processing ${backupRows.length} backup rows...`);
 
   // Optional: deduplicate backup rows by content (in case backup itself has duplicates)
   const seenKeys = new Set();
@@ -237,18 +237,18 @@ async function rebuildFromBackup() {
   }
 
   if (uniqueRows.length !== backupRows.length) {
-    console.log(`Removed ${backupRows.length - uniqueRows.length} duplicate rows from backup.`);
+    logger.info(`Removed ${backupRows.length - uniqueRows.length} duplicate rows from backup.`);
     await appendLogs(
       DATASET_KEY,
       `Removed ${backupRows.length - uniqueRows.length} duplicates from backup.`,
     );
   }
 
-  console.log(`✓ Rebuilt ${uniqueRows.length} rows from backup.`);
+  logger.info(`✓ Rebuilt ${uniqueRows.length} rows from backup.`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, uniqueRows, {
     append: APPEND_PROCESSED,
   });
-  console.log(
+  logger.info(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
@@ -257,18 +257,18 @@ async function rebuildFromBackup() {
  * Main fetching and transformation routine.
  */
 async function fetchAndTransform() {
-  console.log('Fetching lookup data...');
+  logger.info('Fetching lookup data...');
   const lookups = await fetchLookups();
   await appendLogs(DATASET_KEY, 'Lookup data fetched');
 
-  console.log('Fetching solutions...');
+  logger.info('Fetching solutions...');
   const solutions = await fetchAllSolutions();
-  console.log(`Fetched ${solutions.length} total solutions`);
+  logger.info(`Fetched ${solutions.length} total solutions`);
   await appendLogs(DATASET_KEY, `Fetched ${solutions.length} solutions`);
 
   // Filter to only include solutions that are included in the model
   const validSolutions = solutions.filter((s) => s.attributes?.include_in_model === true);
-  console.log(`${validSolutions.length} solutions are included in the model`);
+  logger.info(`${validSolutions.length} solutions are included in the model`);
   await appendLogs(DATASET_KEY, `${validSolutions.length} solutions marked include_in_model=true`);
 
   // Transform and deduplicate by content
@@ -292,7 +292,7 @@ async function fetchAndTransform() {
 
   const duplicatesSkipped = validSolutions.length - rowsWithoutIds.length;
   if (duplicatesSkipped > 0) {
-    console.log(`Skipped ${duplicatesSkipped} duplicate solutions based on content.`);
+    logger.info(`Skipped ${duplicatesSkipped} duplicate solutions based on content.`);
     await appendLogs(
       DATASET_KEY,
       `Skipped ${duplicatesSkipped} duplicate solutions based on content.`,
@@ -306,8 +306,8 @@ async function fetchAndTransform() {
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rowsWithoutIds, {
     append: APPEND_PROCESSED,
   });
-  console.log(`✓ Successfully transformed ${rowsWithoutIds.length} unique solutions.`);
-  console.log(
+  logger.info(`✓ Successfully transformed ${rowsWithoutIds.length} unique solutions.`);
+  logger.info(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 
@@ -324,7 +324,7 @@ async function main() {
   await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
-    console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+    logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
     await rebuildFromBackup();
     return;
   }
@@ -334,7 +334,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

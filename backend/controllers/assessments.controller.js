@@ -1,11 +1,7 @@
 /**
  * Assessments Controller
- * Handles all business logic for assessment operations
- * - Save new assessments
- * - Fetch assessments (user and public)
- * - Retrieve statistics
- * - Market analysis
- * - Assessment updates and deletion
+ * CRUD operations for user assessments: save, fetch, update, delete,
+ * public sharing, market analysis per assessment.
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
@@ -18,9 +14,7 @@ const IS_PROD = BACKEND_CONFIG.isProduction;
  * @private
  */
 function logOperation(operation, status, duration) {
-  if (!IS_PROD) {
-    console.log(`[${new Date().toISOString()}] ${operation} - ${status} (${duration}ms)`);
-  }
+  logger.logOperation(operation, status, duration);
 }
 
 /**
@@ -28,6 +22,7 @@ function logOperation(operation, status, duration) {
  * @private
  */
 function errorResponse(error, defaultMessage = 'Internal server error') {
+  logger.error({ err: error }, 'API error occurred');
   return {
     error: error.message || defaultMessage,
     timestamp: new Date().toISOString(),
@@ -250,7 +245,7 @@ export async function fetchUserAssessments(supabase, user, token, query) {
       .range(from, to);
 
     if (error) {
-      console.error('Query error:', error);
+      logger.error({ err: error }, 'User assessments query error');
       throw error;
     }
 
@@ -287,7 +282,7 @@ export async function getAssessmentStats(supabase, user, token) {
     });
 
     if (error) {
-      console.error('RPC error:', error);
+      logger.error({ err: error }, 'RPC error in get_assessment_statistics');
       throw error;
     }
 
@@ -413,7 +408,7 @@ export async function getMarketAnalysis(supabase) {
     const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
 
     if (marketError) {
-      console.warn('Market data query warning:', marketError.message);
+      logger.warn({ err: marketError }, 'Market data query warning');
       // Return empty structure if function not available yet
       return {
         market_data: [],
@@ -424,7 +419,7 @@ export async function getMarketAnalysis(supabase) {
     const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
 
     if (statsError) {
-      console.warn('Assessment statistics query warning:', statsError.message);
+      logger.warn({ err: statsError }, 'Assessment statistics query warning');
     }
 
     logOperation('getMarketAnalysis', 'success', Date.now() - startTime);
@@ -549,7 +544,7 @@ export async function deleteAssessment(supabase, user, token, id) {
   const userId = user.id;
 
   try {
-    console.log('[DELETE_REQUEST]', { id, userId });
+    logger.info({ id, userId }, 'DELETE request received');
 
     const userClient = token ? createSupabaseClientWithAuth(token) : supabase;
 
@@ -562,7 +557,7 @@ export async function deleteAssessment(supabase, user, token, id) {
       .single();
 
     if (getError || !assessment) {
-      console.log('[DELETE_NOT_FOUND]', { id, userId, getError });
+      logger.info({ id, userId, err: getError }, 'Assessment not found for deletion');
       const notFoundError = new Error(
         'Assessment not found or you do not have permission to delete it',
       );
@@ -578,16 +573,16 @@ export async function deleteAssessment(supabase, user, token, id) {
       .eq('user_id', userId);
 
     if (deleteError) {
-      console.error('[DELETE_ERROR]', { id, userId, deleteError });
+      logger.error({ id, userId, err: deleteError }, 'Error deleting assessment');
       throw new Error(`Deletion failed: ${deleteError.message}`);
     }
 
-    console.log('[DELETE_SUCCESS]', { id, userId });
+    logger.info({ id, userId }, 'Assessment deleted successfully');
     logOperation('deleteAssessment', 'success', Date.now() - startTime);
 
     return { message: 'Assessment deleted successfully', id };
   } catch (error) {
-    console.error('Error deleting assessment:', error);
+    logger.error({ err: error }, 'Error during deleteAssessment operation');
     logOperation('deleteAssessment', 'error', Date.now() - startTime);
     throw error;
   }
@@ -607,12 +602,12 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
     // Fetch market-level aggregates
     const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
     if (marketError) {
-      console.warn('Market data query warning:', marketError.message);
+      logger.warn({ err: marketError }, 'Market data query warning');
     }
 
     const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
     if (statsError) {
-      console.warn('Assessment statistics query warning:', statsError.message);
+      logger.warn({ err: statsError }, 'Assessment statistics query warning');
     }
 
     // Fetch the assessment using publicId and ownership check (ownership enforced)
@@ -624,7 +619,7 @@ export async function getPerAssessmentMarketAnalysis(supabase, user, publicId) {
       .maybeSingle();
 
     if (assessmentError) {
-      console.warn('Assessment fetch warning:', assessmentError.message);
+      logger.warn({ err: assessmentError }, 'Assessment fetch warning');
     }
 
     const userScore = assessmentRow?.overall_score ?? null;
@@ -714,10 +709,10 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
   try {
     // Fetch market aggregates
     const { data: marketData, error: marketError } = await supabase.rpc('get_market_data');
-    if (marketError) console.warn('Market data query warning:', marketError.message);
+    if (marketError) logger.warn({ err: marketError }, 'Market data query warning');
 
     const { data: stats, error: statsError } = await supabase.rpc('get_assessment_statistics');
-    if (statsError) console.warn('Assessment statistics query warning:', statsError.message);
+    if (statsError) logger.warn({ err: statsError }, 'Assessment statistics query warning');
 
     // Fetch the assessment by public_id and ensure it is public
     const { data: assessmentRow, error: assessmentError } = await supabase
@@ -727,7 +722,7 @@ export async function getPublicPerAssessmentMarketAnalysis(supabase, publicId) {
       .eq('is_public', true)
       .maybeSingle();
 
-    if (assessmentError) console.warn('Assessment fetch warning:', assessmentError.message);
+    if (assessmentError) logger.warn({ err: assessmentError }, 'Assessment fetch warning');
 
     if (!assessmentRow) {
       const notFoundError = new Error('Assessment not found or not public');

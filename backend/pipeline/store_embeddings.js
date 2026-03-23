@@ -57,7 +57,7 @@ import {
   OUT_TEST_STORED_DOCUMENTS_JSONL,
   prepareWrite,
   writeJsonl,
-} from '#utils/datasetsUtils.js';
+} from '#pipeline/datasetsUtils.js';
 
 const useArchive = process.argv.includes('--archives');
 const test = process.argv.includes('--test');
@@ -155,21 +155,17 @@ export async function createInsertAdapter() {
 
       const skipped = docs.length - docsToInsert.length;
       if (skipped > 0) {
-        console.log(
-          `  [insertAdapter] Skipping ${skipped} doc(s) already in DB (idx_unique_chunk_field check)`,
-        );
+        logger.info({ skipped }, 'Skipping docs already in DB');
       }
 
       if (docsToInsert.length === 0) {
-        console.log(
-          `  [insertAdapter] Nothing new to insert — all ${docs.length} docs already exist`,
-        );
+        logger.info({ total: docs.length }, 'Nothing new to insert: all docs already exist');
         client.release();
         return 0;
       }
 
       // ── Step 2: COPY the clean set directly into documents ───────────────────
-      console.log(`  [insertAdapter] COPY ${docsToInsert.length} new docs into documents...`);
+      logger.info({ count: docsToInsert.length }, 'COPY new docs into documents');
 
       const stream = client.query(
         copyFrom(
@@ -186,9 +182,7 @@ export async function createInsertAdapter() {
           .map((doc, i) => {
             rowsWritten = i + 1;
             if (rowsWritten % PROGRESS_INTERVAL === 0 || rowsWritten === docsToInsert.length) {
-              console.log(
-                `  [insertAdapter] Prepared ${rowsWritten}/${docsToInsert.length} rows...`,
-              );
+              logger.info({ prepared: rowsWritten, total: docsToInsert.length }, 'Rows prepared');
             }
             const embeddingStr = `[${doc.embedding.join(',')}]`;
             return [
@@ -210,7 +204,7 @@ export async function createInsertAdapter() {
 
       await new Promise((resolve, reject) => {
         stream.on('finish', () => {
-          console.log(`  [insertAdapter] COPY stream finished — ${docsToInsert.length} rows sent`);
+          logger.info({ rows: docsToInsert.length }, 'COPY stream finished');
           resolve();
         });
         stream.on('error', reject);
@@ -218,12 +212,10 @@ export async function createInsertAdapter() {
         readable.pipe(stream);
       });
 
-      console.log(
-        `  [insertAdapter] ✓ Inserted ${docsToInsert.length}/${docs.length} docs (${skipped} skipped as duplicates)`,
-      );
+      logger.info({ inserted: docsToInsert.length, total: docs.length, skipped }, 'Docs inserted');
       return docsToInsert.length;
     } catch (error) {
-      console.error(`  [insertAdapter] ERROR:`, error.message);
+      logger.error({ err: error }, 'insertAdapter error');
       throw error;
     } finally {
       client.release();
@@ -253,14 +245,14 @@ export async function* streamEmbeddedChunks(filePath) {
       line++;
 
       if (line % 1000 === 0) {
-        console.log(`  Loaded ${line} embedded chunks...`);
+        logger.info({ loaded: line }, 'Embedded chunks loaded');
       }
     } catch (err) {
       throw new Error(`Invalid JSON at line ${line + 1}: ${err.message}`);
     }
   }
 
-  console.log(`✓ Finished streaming embeddings`);
+  logger.info({}, 'Finished streaming embeddings');
 }
 
 /**
@@ -272,7 +264,7 @@ export async function* streamEmbeddedChunks(filePath) {
  * @throws {Error} If dimension mismatch or query fails
  */
 async function verifyEmbeddingDimension(pgPool, expectedDim) {
-  console.log('Verifying embedding dimension in database...');
+  logger.info({}, 'Verifying embedding dimension in database');
 
   const { rows } = await pgPool.query(`
     SELECT
@@ -298,7 +290,7 @@ async function verifyEmbeddingDimension(pgPool, expectedDim) {
     );
   }
 
-  console.log(`✓ Embedding dimension verified: ${dbDim}`);
+  logger.info({ dimension: dbDim }, 'Embedding dimension verified');
 }
 
 /**
@@ -352,7 +344,7 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
           metadata: { ...baseMeta, field_name: 'doc' },
         });
       } else {
-        console.log(`Skipping duplicate identifier (already seen): ${identifier}`);
+        logger.info({ identifier }, 'Skipping duplicate identifier');
       }
     }
 
@@ -376,13 +368,13 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
           metadata: { ...baseMeta, field_name: fname },
         });
       } else {
-        console.log(`Skipping duplicate identifier (already seen): ${identifier}`);
+        logger.info({ identifier }, 'Skipping duplicate identifier');
       }
     }
   }
 
   if (documentsToInsert.length === 0) {
-    console.log(`Batch ${batchNum}: nothing to insert`);
+    logger.info({ batchNum }, 'Batch: nothing to insert');
     return { inserted: 0, batchNum };
   }
 
@@ -390,7 +382,7 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
   const initialIdentifiers = documentsToInsert.map(
     (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
   );
-  // console.log(
+  // logger.info(
   //   `Batch ${batchNum} initial identifiers (including possible duplicates):`,
   //   JSON.stringify(initialIdentifiers),
   // );
@@ -400,9 +392,9 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
     (id, index) => initialIdentifiers.indexOf(id) !== index,
   );
   if (duplicateIds.length > 0) {
-    console.warn(
-      `Deduplicating ${duplicateIds.length} duplicate identifier(s) in batch ${batchNum}:`,
-      duplicateIds,
+    logger.warn(
+      { batchNum, duplicateCount: duplicateIds.length, duplicateIds },
+      'Deduplicating duplicates in batch',
     );
     const seen = new Set();
     const before = documentsToInsert.length;
@@ -417,41 +409,44 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
       }),
     );
     const removedCount = before - documentsToInsert.length;
-    console.warn(`  Removed ${removedCount} duplicate document(s) from batch ${batchNum}`);
+    logger.warn({ batchNum, removed: removedCount }, 'Removed duplicate documents from batch');
   }
 
   // --- Final identifiers after deduplication ---
   const finalIdentifiers = documentsToInsert.map(
     (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
   );
-  // console.log(
+  // logger.info(
   //   `Batch ${batchNum} final identifiers (after dedup):`,
   //   JSON.stringify(finalIdentifiers),
   // );
 
   // --- Explicitly show which identifiers were removed (if any) ---
   if (duplicateIds.length > 0) {
-    console.log(`Batch ${batchNum} removed identifiers:`, JSON.stringify(duplicateIds));
+    logger.info({ batchNum, removed: duplicateIds }, 'Batch removed identifiers');
   }
 
   if (documentsToInsert.length === 0) {
-    console.log(`Batch ${batchNum}: all documents were duplicates, nothing to insert`);
+    logger.info({ batchNum }, 'Batch: all documents were duplicates, nothing to insert');
     return { inserted: 0, batchNum };
   }
 
   // --- Proceed to insert ---
   try {
     const inserted = await insertDocuments(documentsToInsert);
-    // console.log(`✓ Batch ${batchNum}: inserted ${inserted}/${documentsToInsert.length} documents`); <- logged in insert adapter for more accurate count after intra-batch deduplication
+    // logger.info(`✓ Batch ${batchNum}: inserted ${inserted}/${documentsToInsert.length} documents`); <- logged in insert adapter for more accurate count after intra-batch deduplication
     return { inserted, batchNum };
   } catch (error) {
-    console.error(`✗ Batch ${batchNum} failed:`, error.message);
-    console.error(
-      'Documents in this batch:',
-      documentsToInsert.map((d) => ({
-        id: `${d.metadata.chunk_id}:${d.metadata.field_name}`,
-        content_preview: d.content.substring(0, 50),
-      })),
+    logger.error(
+      {
+        err: error,
+        batchNum,
+        documents: documentsToInsert.map((d) => ({
+          id: `${d.metadata.chunk_id}:${d.metadata.field_name}`,
+          content_preview: d.content.substring(0, 50),
+        })),
+      },
+      'Batch failed',
     );
     throw error; // rethrow to be caught by main error handler
   }
@@ -465,20 +460,20 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
  * @throws {Error} If storage fails after retries
  */
 export async function storeDocuments(chunkStream) {
-  console.log(`\nStoring documents with resume=${RESUME} in ${storageDest}`);
+  logger.info({ resume: RESUME, destination: storageDest }, 'Storing documents');
 
   // Clear target storage only when not in resume mode
   if (!DRY_RUN && !RESUME) {
-    console.log(`Truncating existing documents table in ${dbDest}...`);
+    logger.info({ destination: dbDest }, 'Truncating existing documents table');
 
     const client = await pgPool.connect();
     try {
       await client.query('SET transaction_read_only = off');
       await client.query('TRUNCATE TABLE documents');
 
-      console.log('✓ documents table cleared.\n');
+      logger.info({}, 'Documents table cleared');
     } catch (error) {
-      console.error('✗ documents table clear failed:', error.message);
+      logger.error({ err: error }, 'Documents table clear failed');
       throw error;
     } finally {
       client.release();
@@ -486,15 +481,16 @@ export async function storeDocuments(chunkStream) {
   }
 
   if (RESUME) {
-    console.log(
-      `Resume mode enabled: existing documents will be preserved, and duplicates will be skipped during insertion in ${storageDest}\n`,
+    logger.info(
+      { destination: storageDest },
+      'Resume mode enabled: existing documents will be preserved',
     );
   }
 
   // ========== RESUME: gather already stored document identifiers ==========
   let existingIdentifiers = new Set();
   if (RESUME) {
-    console.log('Resume mode: checking already stored documents...');
+    logger.info({}, 'Resume mode: checking already stored documents');
     if (DRY_RUN) {
       // Read existing JSONL file
       if (fs.existsSync(dryRunOutputPath)) {
@@ -530,7 +526,7 @@ export async function storeDocuments(chunkStream) {
         }
       }
     }
-    console.log(`  Found ${existingIdentifiers.size} already stored documents.`);
+    logger.info({ count: existingIdentifiers.size }, 'Found already stored documents');
   }
 
   // Track identifiers we've already processed in this run to avoid duplicates within the same run
@@ -551,7 +547,7 @@ export async function storeDocuments(chunkStream) {
   for await (const chunk of chunkStream) {
     // Skip duplicate chunk entries (same chunk_id appearing more than once in the JSONL)
     if (seenChunkIds.has(chunk.id)) {
-      console.warn(`Skipping duplicate chunk in JSONL stream: ${chunk.id}`);
+      logger.warn({ chunkId: chunk.id }, 'Skipping duplicate chunk in JSONL stream');
       continue;
     }
     seenChunkIds.add(chunk.id);
@@ -572,8 +568,9 @@ export async function storeDocuments(chunkStream) {
       const results = await Promise.all(queue.splice(0));
       for (const res of results) {
         totalStored += res.inserted;
-        console.log(
-          `✓ Batch ${res.batchNum}: inserted ${res.inserted} documents (total stored so far: ${totalStored})`,
+        logger.info(
+          { batchNum: res.batchNum, inserted: res.inserted, totalStored },
+          'Batch complete',
         );
       }
     }
@@ -588,13 +585,14 @@ export async function storeDocuments(chunkStream) {
     const results = await Promise.all(queue);
     for (const res of results) {
       totalStored += res.inserted;
-      console.log(
-        `✓ Batch ${res.batchNum}: inserted ${res.inserted} documents (total stored so far: ${totalStored})`,
+      logger.info(
+        { batchNum: res.batchNum, inserted: res.inserted, totalStored },
+        'Batch complete',
       );
     }
   }
 
-  console.log(`\n✓ Successfully stored ${totalStored} documents\n`);
+  logger.info({ totalStored }, 'Successfully stored documents');
   return totalStored;
 }
 
@@ -604,15 +602,15 @@ export async function storeDocuments(chunkStream) {
  * @returns {Promise<void>}
  */
 async function validateStorage() {
-  console.log('\n========= Validating and optimizing storage =========');
+  logger.info({}, 'Validating and optimizing storage');
 
   // 1. VACUUM and Count Check
   const client = await pgPool.connect();
   try {
-    console.log('  Running VACUUM ANALYZE...');
+    logger.info({}, 'Running VACUUM ANALYZE');
     await client.query('VACUUM ANALYZE documents');
   } catch (vacErr) {
-    console.warn('  ‼ VACUUM ANALYZE failed (non‑critical):', vacErr.message);
+    logger.warn({ err: vacErr }, 'VACUUM ANALYZE failed (non-critical)');
   } finally {
     client.release();
   }
@@ -621,9 +619,9 @@ async function validateStorage() {
   try {
     const { rows } = await pgPool.query('SELECT COUNT(*) AS count FROM documents');
     const count = parseInt(rows[0].count, 10);
-    console.log(`  ✓ Document count in ${dbDest}: ${count}`);
+    logger.info({ destination: dbDest, count }, 'Document count');
   } catch (countErr) {
-    console.error('  ✗ Failed to count documents:', countErr.message);
+    logger.error({ err: countErr }, 'Failed to count documents');
   }
 
   // 3. Test vector search function with a dummy embedding
@@ -644,18 +642,16 @@ async function validateStorage() {
       throw new Error('Unexpected response: search result rows not an array');
     }
 
-    console.log('  ✓ Test vector search executed successfully. Top 3 results:');
-    console.table(
-      rows.map((row, i) => ({
-        '#': i + 1,
-        'ID (short)': row.id.substring(0, 8) + '…',
-        'Content Preview':
-          row.content.length > 80 ? row.content.substring(0, 80) + '…' : row.content,
-        Distance: row.distance.toFixed(4),
-      })),
-    );
+    const topResults = rows.map((row, i) => ({
+      rank: i + 1,
+      id: row.id.substring(0, 8) + '…',
+      contentPreview: row.content.length > 80 ? row.content.substring(0, 80) + '…' : row.content,
+      distance: row.distance.toFixed(4),
+    }));
+
+    logger.info({ rowCount: rows.length, topResults }, 'Test vector search executed successfully');
   } catch (searchErr) {
-    console.error('  ✗ Failed to test vector search:', searchErr.message);
+    logger.error({ err: searchErr }, 'Failed to test vector search');
   }
 }
 
@@ -665,14 +661,19 @@ async function validateStorage() {
  */
 export async function main() {
   try {
-    console.log('=============== Embedding Storage Pipeline ===============');
-    console.log(`  Resume mode: ${RESUME ? 'enabled' : 'disabled'}`);
-    console.log(`  Dry-run mode: ${DRY_RUN ? 'enabled' : 'disabled'}`);
-    console.log(`  Archives mode: ${useArchive ? 'enabled' : 'disabled'}`);
-    console.log(`  Use test dataset: ${test}`);
-    console.log(`  Workers: ${WORKERS}`);
-    console.log(`  Input embeddings: ${embeddedChunksPath}`);
-    console.log(`  Storage destination: ${storageDest}\n`);
+    logger.info(
+      {
+        pipeline: 'Embedding Storage',
+        resume: RESUME,
+        dryRun: DRY_RUN,
+        archive: useArchive,
+        testMode: test,
+        workers: WORKERS,
+        inputPath: embeddedChunksPath,
+        destination: storageDest,
+      },
+      'Embedding storage pipeline started',
+    );
 
     // Verify embedding dimension in database matches expected dimension from model configuration (skip in dry-run)
     if (!DRY_RUN) {
@@ -686,15 +687,13 @@ export async function main() {
     if (!DRY_RUN) {
       await validateStorage();
     } else {
-      console.log(`Dry-run mode: skipped ${useArchive ? 'Supabase' : 'Aiven'} validation.\n`);
+      logger.info({ archive: useArchive }, 'Dry-run mode: skipped validation');
     }
 
     // Success summary
-    console.log('=============== Storage Complete ===============');
-    console.log(`Streaming embedded chunks → ${storedCount} stored documents in ${storageDest}`);
+    logger.info({ storedCount, destination: storageDest }, 'Embedding storage complete');
   } catch (error) {
-    console.error('\n✗ STORAGE FAILED');
-    console.error(`✗ ${error.message}\n`);
+    logger.error({ err: error }, 'STORAGE FAILED');
     process.exit(1);
   }
 }
@@ -703,14 +702,14 @@ export async function main() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main()
     .catch((err) => {
-      console.error('\n✕ Fatal error:', err.message);
+      logger.error({ err }, 'Fatal error in embedding storage pipeline');
       process.exit(1);
     })
     .finally(async () => {
       if (pgPool) {
-        console.log('Closing database connection pool...');
+        logger.info('Closing database connection pool');
         await pgPool.end();
-        console.log('Database connection pool closed.');
+        logger.info('Database connection pool closed');
       }
     });
 }

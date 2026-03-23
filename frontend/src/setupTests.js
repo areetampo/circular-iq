@@ -30,12 +30,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../env/.env.test') });
 
-// console.log('=== ENV DEBUG ===');
-// console.log('VITE_API_URL:', process.env.VITE_API_URL);
-// console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
-// console.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY);
-// console.log('INTERNAL_BACKEND_API_KEY:', process.env.INTERNAL_BACKEND_API_KEY);
-// console.log('=================');
+// logger.log('=== ENV DEBUG ===');
+// logger.log('VITE_API_URL:', process.env.VITE_API_URL);
+// logger.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
+// logger.log('VITE_SUPABASE_ANON_KEY:', process.env.VITE_SUPABASE_ANON_KEY);
+// logger.log('INTERNAL_BACKEND_API_KEY:', process.env.INTERNAL_BACKEND_API_KEY);
+// logger.log('=================');
 
 // Stub environment variables for tests
 if (!process.env.VITE_API_URL) throw new Error('VITE_API_URL is required in env/.env.test');
@@ -48,9 +48,9 @@ if (!process.env.INTERNAL_BACKEND_API_KEY)
 
 // Fail tests if `useAuth` is called outside `AuthProvider` so missing provider
 // usage is caught by CI instead of silently falling back. This converts the
-// specific console.warn into a thrown error during tests.
-const _originalConsoleWarn = console.warn;
-console.warn = (...args) => {
+// specific logger.warn into a thrown error during tests.
+const _originalConsoleWarn = logger.warn;
+logger.warn = (...args) => {
   const msg = args[0] || '';
   if (typeof msg === 'string' && msg.includes('useAuth called outside AuthProvider')) {
     throw new Error(

@@ -24,7 +24,10 @@ const IS_PROD = BACKEND_CONFIG.isProduction;
 
 function logRequest(method, path, status, duration) {
   if (!IS_PROD) {
-    console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
+    logger.info(
+      { method, path, status, duration, timestamp: new Date().toISOString() },
+      'Route request complete',
+    );
   }
 }
 
@@ -56,7 +59,7 @@ async function extractUserId(req, supabase) {
       return data.user.id;
     }
   } catch (err) {
-    console.warn('extractUserId failed:', err.message);
+    logger.warn({ err }, 'extractUserId failed');
   }
   return null;
 }

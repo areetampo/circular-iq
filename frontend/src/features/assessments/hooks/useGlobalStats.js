@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { getGlobalStats } from '@/features/assessments/api/assessmentApi';
 
 /**
- * Hook for the global dashboard stats endpoint.
- * Single cached call combining:
- *   - scoring_results_log aggregates (all calls, widest coverage)
- *   - get_market_data RPC (contributed assessments benchmark data)
- *   - get_assessment_statistics RPC (saved assessments global stats)
+ * useGlobalStats
+ * Fetches combined global dashboard stats (log aggregates, market data RPC, assessment stats RPC).
+ * @param {Object} options
+ * @param {boolean} [options.enabled]
+ * @returns {Object}
  */
 export function useGlobalStats({ enabled = true } = {}) {
   const { data, isLoading, isError, error, refetch } = useQuery({

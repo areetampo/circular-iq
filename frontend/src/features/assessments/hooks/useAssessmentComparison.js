@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getComparisonAssessments } from '@/features/assessments';
+import { getComparisonAssessments } from '@/features/assessments/api/assessmentApi';
 
+/**
+ * useAssessmentComparison
+ * Loads two assessments for side-by-side comparison via the comparison API.
+ * @param {string|number} id1
+ * @param {string|number} id2
+ * @returns {Object}
+ */
 export function useAssessmentComparison(id1, id2) {
   // Fetch both assessments using the comparison endpoint with visibility checking
   const { data, isLoading, isError, error } = useQuery({

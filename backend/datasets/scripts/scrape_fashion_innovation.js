@@ -159,7 +159,7 @@ async function extractDetailLinks(page) {
 
   // If still none, log warning and return empty
   if (!links.length) {
-    console.warn('  ‼ No innovator links found on this page');
+    logger.warn('  ‼ No innovator links found on this page');
     await appendLogs(DATASET_KEY, '  ‼ No innovator links found on page');
   }
 
@@ -406,7 +406,7 @@ async function extractInnovatorData(page, url) {
 
     return { item, backupRow };
   } catch (err) {
-    console.warn(`Error extracting ${url}: ${err.message}`);
+    logger.warn(`Error extracting ${url}: ${err.message}`);
     await appendLogs(DATASET_KEY, `ERROR: ${url} – ${err.message}`);
     return null;
   }
@@ -416,17 +416,17 @@ async function extractInnovatorData(page, url) {
  * Rebuild final CSV from backup (recovery mode)
  */
 async function rebuildFromBackup() {
-  console.log('♻️ RECOVERY MODE: Rebuilding from backup...');
+  logger.info('♻️ RECOVERY MODE: Rebuilding from backup...');
   await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
 
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
-    console.warn('No backup found or backup is empty.');
+    logger.warn('No backup found or backup is empty.');
     await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     return;
   }
 
-  console.log(`Found ${backupRows.length} rows in backup`);
+  logger.info(`Found ${backupRows.length} rows in backup`);
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
   const items = backupRows
@@ -456,11 +456,11 @@ async function rebuildFromBackup() {
 
   const topItems = items.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, MAX_ROWS);
 
-  console.log(`Selected ${topItems.length} high‑quality innovators after scoring/filtering`);
+  logger.info(`Selected ${topItems.length} high‑quality innovators after scoring/filtering`);
   await appendLogs(DATASET_KEY, `Selected ${topItems.length} items after scoring/filtering.`);
 
   if (topItems.length === 0) {
-    console.warn('No valid innovators could be reconstructed from backup.');
+    logger.warn('No valid innovators could be reconstructed from backup.');
     await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
     return;
   }
@@ -476,7 +476,7 @@ async function rebuildFromBackup() {
     metadata_json: JSON.stringify(row.metadata),
   }));
 
-  console.log(`✓ Rebuilt ${finalRows.length} rows from backup`);
+  logger.info(`✓ Rebuilt ${finalRows.length} rows from backup`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
@@ -493,8 +493,8 @@ async function scrape() {
   await clearLogs(DATASET_KEY);
   await appendLogs(DATASET_KEY, `🚀 Scrape started...`);
 
-  console.log(`Scraping Fashion for Good innovators from ${LISTING_URL}`);
-  console.log(`Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`);
+  logger.info(`Scraping Fashion for Good innovators from ${LISTING_URL}`);
+  logger.info(`Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`);
 
   const browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
   const page = await browser.newPage();
@@ -524,9 +524,9 @@ async function scrape() {
       await page.screenshot({ path: screenshotPath });
       const html = await page.content();
       fs.writeFileSync(htmlPath, html);
-      console.error(`✕ Error: ${err.message}`);
-      console.error(`✕ Tile selector not found. Screenshot saved to ${screenshotPath}`);
-      console.error(`   HTML saved to ${htmlPath}`);
+      logger.error(`✕ Error: ${err.message}`);
+      logger.error(`✕ Tile selector not found. Screenshot saved to ${screenshotPath}`);
+      logger.error(`   HTML saved to ${htmlPath}`);
       await appendLogs(DATASET_KEY, `✕ Fatal: Tile selector not found. Debug files saved.`);
       throw new Error(`Tile selector not found after timeout. Check debug files.`);
     }
@@ -543,19 +543,19 @@ async function scrape() {
 
     while (currentPage <= FINAL_FETCH_PAGE && hasNextPage) {
       const pagesScraped = currentPage - START_PAGE + 1;
-      console.log(`\n📄 Page ${currentPage} (fetch ${pagesScraped}/${MAX_PAGES_TO_FETCH})`);
+      logger.info(`\n📄 Page ${currentPage} (fetch ${pagesScraped}/${MAX_PAGES_TO_FETCH})`);
       await appendLogs(DATASET_KEY, `Fetching page ${currentPage}...`);
 
       // Get all detail links on current page using flexible method
       const links = await extractDetailLinks(page);
-      console.log(`  Found ${links.length} innovator links`);
+      logger.info(`  Found ${links.length} innovator links`);
       await appendLogs(DATASET_KEY, `  Found ${links.length} links`);
 
       // Process each link
       const pageRows = [];
       for (let i = 0; i < links.length; i++) {
         const link = links[i];
-        console.log(`    [${i + 1}/${links.length}] Visiting: ${link}`);
+        logger.info(`    [${i + 1}/${links.length}] Visiting: ${link}`);
         await appendLogs(DATASET_KEY, `    Visiting: ${link}`);
 
         const detailPage = await browser.newPage();
@@ -567,12 +567,12 @@ async function scrape() {
           if (result) {
             allItems.push(result.item);
             pageRows.push(result.backupRow);
-            console.log(`      → Extracted: ${result.item.problem.substring(0, 60)}...`);
+            logger.info(`      → Extracted: ${result.item.problem.substring(0, 60)}...`);
           } else {
-            console.log(`      → No data extracted`);
+            logger.info(`      → No data extracted`);
           }
         } catch (err) {
-          console.warn(`      ‼ Error on detail page: ${err.message}`);
+          logger.warn(`      ‼ Error on detail page: ${err.message}`);
           await appendLogs(DATASET_KEY, `      ERROR: ${link} – ${err.message}`);
         } finally {
           await detailPage.close();
@@ -605,7 +605,7 @@ async function scrape() {
       }
 
       if (!nextLink) {
-        console.log(`  ‼ No next page found. Ending at page ${currentPage}.`);
+        logger.info(`  ‼ No next page found. Ending at page ${currentPage}.`);
         await appendLogs(DATASET_KEY, `  ‼ No next page found. Ending at page ${currentPage}.`);
         hasNextPage = false;
         break;
@@ -618,7 +618,7 @@ async function scrape() {
         ),
       );
 
-      console.log(`  Clicking to go to page ${currentPageNum ? currentPageNum + 1 : 'next'}`);
+      logger.info(`  Clicking to go to page ${currentPageNum ? currentPageNum + 1 : 'next'}`);
       await nextLink.click();
 
       // Wait for loader if present
@@ -641,9 +641,9 @@ async function scrape() {
           { timeout: 15000 },
           oldTileHrefs,
         );
-        console.log('  New tiles loaded successfully');
+        logger.info('  New tiles loaded successfully');
       } catch (err) {
-        console.warn(
+        logger.warn(
           `  ‼ Timed out waiting for new tiles, but continuing..., Error: ${err.message}`,
         );
       }
@@ -654,7 +654,7 @@ async function scrape() {
 
     // Check if we stopped due to MAX_PAGES_TO_FETCH
     if (hasNextPage && currentPage > FINAL_FETCH_PAGE) {
-      console.warn(
+      logger.warn(
         `‼ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
       );
       await appendLogs(
@@ -666,7 +666,7 @@ async function scrape() {
     // Flush backup buffer
     await backup.flush();
 
-    console.log(`\n📊 Total raw innovators collected: ${allItems.length}`);
+    logger.info(`\n📊 Total raw innovators collected: ${allItems.length}`);
     await appendLogs(DATASET_KEY, `Total raw items collected: ${allItems.length}`);
 
     // Score all items
@@ -680,11 +680,11 @@ async function scrape() {
     valid.sort((a, b) => b._qualityScore - a._qualityScore);
     const top = valid.slice(0, MAX_ROWS);
 
-    console.log(`  Valid (score>20): ${valid.length}`);
-    console.log(`  Keeping top ${top.length} (best score: ${top[0]?._qualityScore})`);
+    logger.info(`  Valid (score>20): ${valid.length}`);
+    logger.info(`  Keeping top ${top.length} (best score: ${top[0]?._qualityScore})`);
 
     if (top.length === 0) {
-      console.warn('‼ No valid innovators found.');
+      logger.warn('‼ No valid innovators found.');
       await appendLogs(DATASET_KEY, `‼ No valid items – skipping CSV write.`);
       return;
     }
@@ -707,9 +707,9 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    console.log('\n✓ Scraping complete!');
-    console.log(`   Final rows kept: ${finalRows.length}`);
-    console.log(
+    logger.info('\n✓ Scraping complete!');
+    logger.info(`   Final rows kept: ${finalRows.length}`);
+    logger.info(
       `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
 
@@ -729,7 +729,7 @@ async function scrape() {
     );
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
   } catch (err) {
-    console.error('✕ Fatal error:', err);
+    logger.error('✕ Fatal error:', err);
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
@@ -747,7 +747,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

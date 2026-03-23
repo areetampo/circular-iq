@@ -310,13 +310,13 @@ async function fetchAllForKeyWord({
       await backup.add(transformed);
     } catch (e) {
       const errMsg = `‼ Backup add failed for ${keyword} page ${page}: ${e.message}`;
-      console.warn(errMsg);
+      logger.warn(errMsg);
       await appendLogs(DATASET_KEY, errMsg);
     }
 
     if (page === keywordFallback) {
       const limitMsg = `‼ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`;
-      console.warn(limitMsg);
+      logger.warn(limitMsg);
       await appendLogs(DATASET_KEY, limitMsg);
     }
 
@@ -326,7 +326,7 @@ async function fetchAllForKeyWord({
 }
 
 async function rebuildFromBackup() {
-  console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -334,20 +334,20 @@ async function rebuildFromBackup() {
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `‼ No backup content found. Cannot rebuild output.`;
-      console.warn(msg);
+      logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
       return;
     }
 
-    console.log(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Apply the same filter as live scrape
     let filtered = backupRows.filter((row) => row.problem && (row.materials || row.category));
 
     if (filtered.length === 0) {
-      console.warn(`‼ No valid rows after filtering.`);
+      logger.warn(`‼ No valid rows after filtering.`);
       await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -366,7 +366,7 @@ async function rebuildFromBackup() {
       uniqueRows = uniqueRows.slice(0, TARGET_ROWS);
     }
 
-    console.log(`✓ Selected ${uniqueRows.length} high-quality rows from backup`);
+    logger.info(`✓ Selected ${uniqueRows.length} high-quality rows from backup`);
     await appendLogs(
       DATASET_KEY,
       `Selected ${uniqueRows.length} rows after filtering and deduplication.`,
@@ -387,11 +387,11 @@ async function rebuildFromBackup() {
       };
     });
 
-    console.log(`\n✨ Rebuilt ${finalRows.length} Open Beauty Facts products from backup`);
+    logger.info(`\n✨ Rebuilt ${finalRows.length} Open Beauty Facts products from backup`);
     const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
       append: APPEND_PROCESSED,
     });
-    console.log(
+    logger.info(
       `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
@@ -400,7 +400,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('✕ Error rebuilding from backup:', error.message);
+    logger.error('✕ Error rebuilding from backup:', error.message);
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -416,7 +416,7 @@ async function main() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  console.log(`Scraping OBF. Detailed logs: ${logFilePath}`);
+  logger.info(`Scraping OBF. Detailed logs: ${logFilePath}`);
 
   await appendLogs(
     DATASET_KEY,
@@ -428,29 +428,29 @@ async function main() {
   const productMap = new Map(); // deduplicate by source_url across all keywords
 
   // Fetch each keyword with its individual paging parameters
-  console.log('🔍 Fetching per keyword with individual parameters...');
+  logger.info('🔍 Fetching per keyword with individual parameters...');
   for (const kw of KEYWORDS) {
     const FINAL_FETCH_PAGE = Math.min(kw.END_PAGE, kw.START_PAGE + kw.MAX_PAGES_TO_FETCH - 1);
-    console.log(`\n📦 Keyword: "${kw.keyword}" (PAGES: ${kw.START_PAGE}-${FINAL_FETCH_PAGE})`);
+    logger.info(`\n📦 Keyword: "${kw.keyword}" (PAGES: ${kw.START_PAGE}-${FINAL_FETCH_PAGE})`);
     const products = await fetchAllForKeyWord(kw);
     for (const p of products) {
       if (!productMap.has(p.source_url)) {
         productMap.set(p.source_url, p);
       }
     }
-    console.log(`   → Unique total so far: ${productMap.size}`);
+    logger.info(`   → Unique total so far: ${productMap.size}`);
     pagesProcessed.push(kw.keyword);
   }
   allProducts = Array.from(productMap.values());
 
   if (allProducts.length === 0) {
-    console.log('✕ No products fetched. Exiting.');
+    logger.info('✕ No products fetched. Exiting.');
     await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
 
-  console.log(`\n📊 Total unique products fetched: ${allProducts.length}`);
+  logger.info(`\n📊 Total unique products fetched: ${allProducts.length}`);
   await appendLogs(DATASET_KEY, `Total raw products collected: ${allProducts.length}`);
 
   let transformed = allProducts.filter((p) => p.problem && (p.materials || p.category));
@@ -459,7 +459,7 @@ async function main() {
     transformed = transformed.slice(0, TARGET_ROWS);
   }
 
-  console.log(`✨ Kept ${transformed.length} high‑quality rows.`);
+  logger.info(`✨ Kept ${transformed.length} high‑quality rows.`);
   await appendLogs(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
 
   const finalRows = transformed.map((row, idx) => ({
@@ -479,7 +479,7 @@ async function main() {
   await backup.flush();
 
   const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
-  console.log(summary);
+  logger.info(summary);
 
   const firstRow = finalRows[0];
   const lastRow = finalRows[finalRows.length - 1];
@@ -495,7 +495,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

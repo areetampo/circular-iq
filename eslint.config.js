@@ -137,9 +137,15 @@ export default [
     },
   },
 
-  // Relaxed Rules for Controllers
+  // Relaxed Rules for Controllers / Backend
   {
-    files: ['backend/controllers/**/*.js', 'backend/routes/**/*.js'],
+    files: ['backend/controllers/**/*.js', 'backend/routes/**/*.js', 'backend/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        logger: 'readonly', // <--- backend logger
+      },
+    },
     rules: {
       'unused-imports/no-unused-vars': 'off',
       // [
@@ -157,6 +163,10 @@ export default [
     files: ['frontend/**/*.{js,jsx,ts,tsx,mjs,cjs}'],
     plugins: { react: pluginReact },
     languageOptions: {
+      globals: {
+        ...globals.browser, // ensures window/document are known
+        logger: 'readonly', // <--- FIXES ERROR SQUIGGLES on accessing logger in frontend
+      },
       parserOptions: {
         ecmaFeatures: { jsx: true },
         // This helps the parser understand TSX

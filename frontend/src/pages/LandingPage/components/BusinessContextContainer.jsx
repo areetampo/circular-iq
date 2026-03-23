@@ -1,4 +1,5 @@
 import { Label, ListBox, Select, Switch } from '@heroui/react';
+import PropTypes from 'prop-types';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { cn } from '@/utils/cn';
@@ -51,7 +52,7 @@ const MATERIAL_OPTIONS = [
   { value: 'biological', label: 'Biological / Organic' },
 ];
 
-export default function BusinessContextContainer({ loading }) {
+function BusinessContextContainer({ loading = false }) {
   const { control } = useFormContext();
 
   const renderSelect = (name, label, options, description) => (
@@ -167,3 +168,9 @@ export default function BusinessContextContainer({ loading }) {
     </div>
   );
 }
+
+BusinessContextContainer.propTypes = {
+  loading: PropTypes.bool,
+};
+
+export default BusinessContextContainer;

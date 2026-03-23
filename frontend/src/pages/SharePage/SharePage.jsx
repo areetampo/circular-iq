@@ -59,7 +59,7 @@ export default function SharePage() {
       sessionStorage.removeItem(STORAGE_KEY);
       navigate(`/assessments/share/${id}`);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       setError('Invalid Public ID');
     } finally {
       setLoading(false);
@@ -107,3 +107,5 @@ export default function SharePage() {
     </div>
   );
 }
+
+SharePage.propTypes = {};

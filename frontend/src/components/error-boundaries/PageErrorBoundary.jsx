@@ -21,7 +21,7 @@ class PageErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Error caught by PageErrorBoundary:', error, errorInfo);
+    logger.error('Error caught by PageErrorBoundary:', error, errorInfo);
     // You could send to error tracking service here (e.g., Sentry)
   }
 

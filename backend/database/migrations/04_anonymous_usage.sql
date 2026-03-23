@@ -190,3 +190,10 @@ REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, te
 
 GRANT EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text)
   TO service_role;
+
+-- ============================================================================
+-- VERIFICATION
+-- ============================================================================
+
+SELECT tablename, rowsecurity FROM pg_tables WHERE tablename = 'anonymous_usage';
+SELECT policyname, tablename  FROM pg_policies WHERE tablename = 'anonymous_usage';

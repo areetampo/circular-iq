@@ -306,7 +306,7 @@ function computeQualityScore(problem, solution, impact) {
 async function callOpenAI(prompt, content) {
   const apiKey = BACKEND_CONFIG.openai.apiKey;
   if (!apiKey) {
-    console.warn('‼ OpenAI API key not found – skipping AI refinement.');
+    logger.warn('‼ OpenAI API key not found – skipping AI refinement.');
     return null;
   }
 
@@ -367,7 +367,7 @@ async function extractMultipleFromOverview(text) {
  * Used when --use-backup flag is passed to script.
  */
 async function rebuildFromBackup() {
-  console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -375,13 +375,13 @@ async function rebuildFromBackup() {
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `‼ No backup content found. Cannot rebuild output.`;
-      console.warn(msg);
+      logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
       return;
     }
 
-    console.log(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     const items = backupRows
@@ -407,14 +407,14 @@ async function rebuildFromBackup() {
             qualityScore,
           };
         } catch (e) {
-          console.warn(`‼ Skipping invalid backup row: ${e.message}`);
+          logger.warn(`‼ Skipping invalid backup row: ${e.message}`);
           return null;
         }
       })
       .filter((item) => item !== null);
 
     if (items.length === 0) {
-      console.warn(`‼ No valid items could be reconstructed from backup.`);
+      logger.warn(`‼ No valid items could be reconstructed from backup.`);
       await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -437,17 +437,17 @@ async function rebuildFromBackup() {
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
-    console.log(
+    logger.info(
       `\n✨ Successfully rebuilt ${writeResult.writtenCount} EMF case studies from backup (${writeResult.duplicateCount} duplicate rows removed)`,
     );
-    console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+    logger.info(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
       DATASET_KEY,
       `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('✕ Error rebuilding from backup:', error.message);
+    logger.error('✕ Error rebuilding from backup:', error.message);
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -463,7 +463,7 @@ async function scrape_emf() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  console.log(`Scraping EMF. Detailed logs: ${logFilePath}`);
+  logger.info(`Scraping EMF. Detailed logs: ${logFilePath}`);
 
   let browser;
   try {
@@ -519,7 +519,7 @@ async function scrape_emf() {
           await appendLogs(DATASET_KEY, `Initial load: collected ${pageRows.length} items.`);
         } catch (e) {
           const backupErr = `‼ Backup add failed for initial load: ${e.message}`;
-          console.warn(backupErr);
+          logger.warn(backupErr);
           await appendLogs(DATASET_KEY, backupErr);
         }
         pagesCollected.push(0);
@@ -570,7 +570,7 @@ async function scrape_emf() {
               );
             } catch (e) {
               const backupErr = `‼ Backup add failed for click ${loadCount}: ${e.message}`;
-              console.warn(backupErr);
+              logger.warn(backupErr);
               await appendLogs(DATASET_KEY, backupErr);
             }
             pagesCollected.push(loadCount);
@@ -586,7 +586,7 @@ async function scrape_emf() {
         previousUrls = new Set(currentUrls);
       } catch (e) {
         const clickErr = `  ‼ Load More click failed at count ${loadCount}: ${e.message}`;
-        console.warn(clickErr);
+        logger.warn(clickErr);
         await appendLogs(DATASET_KEY, clickErr);
         break;
       }
@@ -596,7 +596,7 @@ async function scrape_emf() {
       await appendLogs(DATASET_KEY, `✓ Reached target end click count (${FINAL_FETCH_LOADS}).`);
     } else if (loadCount === MAX_LOADS_TO_FETCH) {
       const limitMsg = `‼ Reached fallback max clicks (${MAX_LOADS_TO_FETCH}) – stopping.`;
-      console.warn(limitMsg);
+      logger.warn(limitMsg);
       await appendLogs(DATASET_KEY, limitMsg);
     }
 
@@ -606,7 +606,7 @@ async function scrape_emf() {
     await appendLogs(DATASET_KEY, `Total raw items collected: ${collected.length}`);
 
     if (collected.length === 0) {
-      console.log('✕ No items collected. Exiting.');
+      logger.info('✕ No items collected. Exiting.');
       await appendLogs(DATASET_KEY, `‼ No items collected.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
@@ -624,11 +624,11 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    console.log(`\n✓ Scraped ${finalRows.length} EMF case studies.`);
+    logger.info(`\n✓ Scraped ${finalRows.length} EMF case studies.`);
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
-    console.log(
+    logger.info(
       `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
 
@@ -649,7 +649,7 @@ async function scrape_emf() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
   } catch (error) {
-    console.error('✕ Fatal error in scrape_emf:', error);
+    logger.error('✕ Fatal error in scrape_emf:', error);
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
@@ -1056,7 +1056,7 @@ async function fetchDetail(browser, link) {
     }
   } catch (err) {
     const errMsg = `‼ Error on ${link}: ${err.message}`;
-    console.warn(errMsg);
+    logger.warn(errMsg);
     await appendLogs(DATASET_KEY, errMsg);
     return [];
   } finally {
@@ -1075,7 +1075,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

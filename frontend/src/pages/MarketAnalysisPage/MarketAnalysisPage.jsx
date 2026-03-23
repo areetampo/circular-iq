@@ -12,3 +12,5 @@ export default function MarketAnalysisPage() {
   }, [navigate]);
   return null;
 }
+
+MarketAnalysisPage.propTypes = {};

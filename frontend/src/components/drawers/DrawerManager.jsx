@@ -58,7 +58,9 @@ export default function DrawerManager() {
       return <DashboardFeaturedSolutionsDrawer data={data || {}} />;
 
     default:
-      console.warn('Unknown drawer type:', type);
+      logger.warn('Unknown drawer type:', type);
       return null;
   }
 }
+
+DrawerManager.propTypes = {};

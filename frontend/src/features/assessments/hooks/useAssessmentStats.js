@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getAssessmentStats } from '@/features/assessments';
+import { getAssessmentStats } from '@/features/assessments/api/assessmentApi';
 
 /**
- * Hook for fetching aggregate statistics for all user assessments
+ * useAssessmentStats
+ * Fetches aggregate statistics for the current user’s assessments (scores, industries, risk).
  * @param {Object} options
- * @param {boolean} options.enabled - Whether to enable the query
- * @returns {Object} Stats and query state
+ * @param {boolean} [options.enabled]
+ * @returns {Object}
  */
 export function useAssessmentStats({ enabled = true } = {}) {
   const {
@@ -38,7 +39,7 @@ export function useAssessmentStats({ enabled = true } = {}) {
   });
 
   // Debug log
-  // console.log('[useAssessmentStats]', { data, topIndustries: data.topIndustries });
+  // logger.log('[useAssessmentStats]', { data, topIndustries: data.topIndustries });
 
   return {
     totalAssessments: data.totalAssessments || 0,

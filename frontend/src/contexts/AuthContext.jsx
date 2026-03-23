@@ -6,7 +6,7 @@
  */
 
 import PropTypes from 'prop-types';
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { FRONTEND_CONFIG } from '@/config';
 import { supabase } from '@/lib/supabase';
@@ -42,7 +42,7 @@ async function fetchUserProfile(token, timeoutMs = 5000) {
 
     if (!response.ok) {
       if (response.status === 404) return null;
-      console.warn('[PROFILE_FETCH_FAILED]', response.status);
+      logger.warn('[PROFILE_FETCH_FAILED]', response.status);
       return null;
     }
 
@@ -50,9 +50,9 @@ async function fetchUserProfile(token, timeoutMs = 5000) {
   } catch (error) {
     clearTimeout(timer);
     if (error.name === 'AbortError') {
-      console.warn('[PROFILE_FETCH_TIMEOUT]');
+      logger.warn('[PROFILE_FETCH_TIMEOUT]');
     } else {
-      console.error('[PROFILE_FETCH_ERROR]', error);
+      logger.error('[PROFILE_FETCH_ERROR]', error);
     }
     return null;
   }
@@ -79,7 +79,7 @@ export function AuthProvider({ children }) {
       await supabase.auth.signOut();
       // State will be cleared by onAuthStateChange listener
     } catch (error) {
-      console.error('[SIGN_OUT_ERROR]', error);
+      logger.error('[SIGN_OUT_ERROR]', error);
     }
   }, []);
 
@@ -132,7 +132,7 @@ export function AuthProvider({ children }) {
             // but it also performs longer-running tasks (profile fetch, pending save).
             // Calling without await prevents the initial "Authenticating..." stall.
             handleAuthChange(data.session).catch((err) =>
-              console.warn('[HANDLE_AUTH_CHANGE_ERROR]', err),
+              logger.warn('[HANDLE_AUTH_CHANGE_ERROR]', err),
             );
           } else {
             setSession(null);
@@ -145,7 +145,7 @@ export function AuthProvider({ children }) {
           setAuthLoading(false);
         }
       } catch (error) {
-        console.error('[AUTH_INIT_ERROR]', error);
+        logger.error('[AUTH_INIT_ERROR]', error);
         if (isMounted) {
           setAuthLoading(false);
         }
@@ -159,9 +159,7 @@ export function AuthProvider({ children }) {
       if (isMounted) {
         // handleAuthChange will update immediate auth state synchronously and
         // perform follow-ups (profile fetch / pending save) asynchronously.
-        handleAuthChange(newSession).catch((err) =>
-          console.warn('[HANDLE_AUTH_CHANGE_ERROR]', err),
-        );
+        handleAuthChange(newSession).catch((err) => logger.warn('[HANDLE_AUTH_CHANGE_ERROR]', err));
       }
     });
 
@@ -204,7 +202,7 @@ export function useAuth() {
   // This preserves previous behavior for normal usage while making the hook
   // resilient in environments where the provider is not mounted.
   if (context === undefined) {
-    console.warn('useAuth called outside AuthProvider — returning unauthenticated fallback');
+    logger.warn('useAuth called outside AuthProvider — returning unauthenticated fallback');
     return {
       user: null,
       profile: null,

@@ -1,7 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { deleteAssessment, getAssessmentById, getAssessments } from '@/features/assessments';
+import {
+  deleteAssessment,
+  getAssessmentById,
+  getAssessments,
+} from '@/features/assessments/api/assessmentApi';
 
+/**
+ * useAssessments
+ * Paginated, filtered list of the current user’s assessments (React Query).
+ * @param {Object} [options]
+ * @returns {Object}
+ */
 export function useAssessments({
   sessionId,
   page,
@@ -33,13 +43,13 @@ export function useAssessments({
   // Use mutation for deleting assessments
   const deleteMutation = useMutation({
     mutationFn: async (deletedId) => {
-      console.log('[MUTATION_START]', { deletedId });
+      logger.log('[MUTATION_START]', { deletedId });
       try {
         const result = await deleteAssessment(deletedId);
-        console.log('[MUTATION_SUCCESS]', { deletedId, result });
+        logger.log('[MUTATION_SUCCESS]', { deletedId, result });
         return result;
       } catch (error) {
-        console.error('[MUTATION_FAIL]', {
+        logger.error('[MUTATION_FAIL]', {
           deletedId,
           error: error.message,
           stack: error.stack,
@@ -49,7 +59,7 @@ export function useAssessments({
       }
     },
     onMutate: async (deletedId) => {
-      console.log('[ON_MUTATE]', { deletedId });
+      logger.log('[ON_MUTATE]', { deletedId });
       // Cancel any outgoing refetches to prevent race conditions
       await queryClient.cancelQueries({ queryKey: ['assessments'] });
 
@@ -69,7 +79,7 @@ export function useAssessments({
             assessments: old.assessments.filter((assessment) => assessment.id !== deletedId),
             total: Math.max(0, (old.total || 0) - 1),
           };
-          console.log('[OPTIMISTIC_UPDATE]', { deletedId, newTotal: updated.total });
+          logger.log('[OPTIMISTIC_UPDATE]', { deletedId, newTotal: updated.total });
           return updated;
         });
       }
@@ -78,15 +88,15 @@ export function useAssessments({
       return { previousAssessments, cacheKey };
     },
     onError: (err, deletedId, context) => {
-      console.error('[ON_ERROR]', { deletedId, error: err.message, context });
+      logger.error('[ON_ERROR]', { deletedId, error: err.message, context });
       // Roll back to the snapshot if the mutation fails
       if (context?.previousAssessments && context?.cacheKey) {
         queryClient.setQueryData(context.cacheKey, context.previousAssessments);
-        console.log('[ROLLBACK_COMPLETE]', { deletedId });
+        logger.log('[ROLLBACK_COMPLETE]', { deletedId });
       }
     },
     onSuccess: (data, deletedId, context) => {
-      console.log('[ON_SUCCESS]', { deletedId, context });
+      logger.log('[ON_SUCCESS]', { deletedId, context });
 
       // Always invalidate all assessment queries to ensure UI is in sync
       if (context?.cacheKey) {

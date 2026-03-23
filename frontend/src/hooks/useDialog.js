@@ -1,7 +1,7 @@
 /**
  * useDialog Hook
  * Central state management for dialogs
- * Follows same pattern as useModal.js for consistency
+ * Same pattern as other modal/dialog hooks in this codebase
  *
  * Location: src/hooks/useDialog.js
  *
@@ -20,6 +20,9 @@
  *
  * // Close dialog
  * onClose();
+ *
+ * @param {Object} options
+ * @returns {Object}
  */
 
 import { useCallback, useState } from 'react';
@@ -46,7 +49,7 @@ export default function useDialog() {
   const openDialogWithPriority = useCallback((type, data = null, priority = 0) => {
     setDialogState((prev) => {
       const currentPriority = prev?.priority || 0;
-      // console.log(
+      // logger.log(
       //   'Attempting to open dialog:',
       //   type,
       //   'with priority',

@@ -178,9 +178,9 @@ async function main() {
   let allScoredRows = [];
 
   for (const meta of PDF_METADATA) {
-    console.log(`Extracting: ${meta.sector}...`);
+    logger.info(`Extracting: ${meta.sector}...`);
     const rows = await processFile(meta);
-    console.log(`  → ${rows.length} rows.`);
+    logger.info(`  → ${rows.length} rows.`);
     allScoredRows.push(...rows);
   }
 
@@ -194,17 +194,17 @@ async function main() {
     });
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `✓ Extraction Complete. Processed ${allScoredRows.length} total, saved top ${finalRows.length} high-quality rows.`,
   );
-  console.log(
+  logger.info(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('Error during extraction:', err);
+    logger.error('Error during extraction:', err);
     process.exit(1);
   });
 }

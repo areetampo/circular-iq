@@ -1,412 +1,446 @@
-# Circular Economy Evaluator
+﻿# Circular Economy Assessor
 
-AI-powered platform for assessing circular economy business initiatives against real-world benchmarks using semantic search and evidence-based scoring.
+AI-powered platform for evaluating circular economy business initiatives against a knowledge base of 40,000+ real-world case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
 ## Overview
 
-The Circular Economy Evaluator helps businesses evaluate their circular economy initiatives across 8 key dimensions by:
+The platform guides users through a structured assessment and returns a complete evaluation:
 
-1. **Evaluating** initiatives through guided questionnaires (8 dimensions: materials, design, manufacturing, distribution, consumption, end-of-life, business model, policy)
-2. **Scoring** using AI-powered evidence matching (semantic search + GPT-4o-mini reasoning)
-3. **Comparing** against 34+ real-world datasets and case studies from authoritative sources
-4. **Recommending** improvements with actionable gap analysis and priority roadmaps
-5. **Exporting** results as PDF reports or CSV data with SDG alignment
-6. **Tracking** assessment history to measure progress over time
+1. **Describe** your business problem and proposed solution
+2. **Score** across 8 evaluation parameters (manual or guided mode)
+3. **Enrich** with 3 deterministic and LLM-powered analysis layers
+4. **Compare** against similar real-world projects from the knowledge base
+5. **Export** as PDF or CSV with full SDG alignment and improvement roadmap
+6. **Track** assessment history and benchmark against global data on the Dashboard
 
-### Core Architecture
+## Core Architecture
 
-```mermaid
-flowchart TD
-    subgraph "Full-Stack Architecture"
-        subgraph "Frontend Layer (React/Vite)"
-            A1["Assessment Flow - Guided evaluation questionnaires"]
-            A2["Results Visualization - Charts, tables, and export options"]
-            A3["State Management - React Query + custom hooks"]
-            A4["UI Components - HeroUI v3 (Beta) + MUI X Charts"]
-            A5["Session Persistence - Local storage + anonymous tracking"]
-        end
-
-        subgraph "API Layer (Express.js)"
-            B1[/scoring - Business problem scoring & hybrid search\]
-            B2[/analytics - Data analytics & filtering\]
-            B3[/assessments - User assessment CRUD operations\]
-            B4[/search - Semantic search across documents\]
-        end
-
-        subgraph "Business Logic Layer (Services)"
-            C1["scoring.service.js - RPC calls + hybrid search"]
-            C2["embedding.service.js - OpenAI API integration"]
-            C3["chunking.service.js - Semantic text splitting"]
-            C4["assessment.service.js - CRUD operations"]
-            C5["scoring.logic.js - Pure scoring algorithms"]
-        end
-
-        subgraph "Data Processing Pipeline"
-            D1["Extraction Layer (34 dataset extraction scripts)"]
-            D11["scrape_*.js (Puppeteer web automation)"]
-            D12["extract_*.js (PDF/CSV/JSON/API parsing)"]
-            D2["Ingestion (merge_datasets.js)"]
-            D3["Chunking (generate_chunks.js)"]
-            D4["Embedding (generate_embeddings.js)"]
-            D5["Storage (store_embeddings.js)"]
-        end
-
-        subgraph "Orchestration"
-            E1["run_datasets_scripts.js - Automate dataset processing"]
-        end
-
-        subgraph "Database Layer (Supabase PostgreSQL + pgvector)"
-            F1["documents - Primary vector-searchable document store"]
-            F2["user_assessments - Evaluation result persistence"]
-            F3["user_profiles - Anonymous usage tracking"]
-            F4["RPC Functions - Hybrid search logic (embeddings + BM25)"]
-        end
-    end
-
-    A1 --> B1
-    A2 --> B2
-    A3 --> B3
-    A4 --> B4
-    B1 --> C1
-    B2 --> C2
-    B3 --> C3
-    B4 --> C4
-    C5 --> D1
-    D1 --> D11
-    D1 --> D12
-    D11 --> D2
-    D12 --> D2
-    D2 --> D3
-    D3 --> D4
-    D4 --> D5
-    D5 --> E1
-    E1 --> F1
-    E1 --> F2
-    E1 --> F3
-    E1 --> F4
+```txt
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Full-Stack Architecture                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Frontend Layer (React 19 / Vite 7)                                 │
+│  ├─ Assessment Flow — guided questionnaires + business context      │
+│  ├─ Results Visualisation — charts, tables, export, drawers         │
+│  ├─ Global Dashboard — live analytics from scoring_results_log      │
+│  ├─ State Management — React Query + custom hooks                   │
+│  ├─ UI Components — HeroUI v3 + Tailwind CSS v4 + Recharts          │
+│  └─ Session Persistence — localStorage + anonymous tracking         │
+│                                                                     │
+│  API Layer (Express.js — ESM)                                       │
+│  ├─ /api/score — full scoring + enrichment pipeline                 │
+│  ├─ /api/analytics — global stats, featured solutions, doc stats    │
+│  ├─ /api/assessments — assessment CRUD + comparison                 │
+│  └─ /api/search — semantic search over knowledge base               │
+│                                                                     │
+│  Business Logic Layer (Services)                                    │
+│  ├─ scoring.service.js — hybrid search + LLM audit orchestration    │
+│  ├─ scoring.logic.js — pure deterministic enrichment (Layer 2)      │
+│  ├─ embedding.service.js — OpenAI API integration + batching        │
+│  └─ chunking.service.js — semantic text splitting from CSV          │
+│                                                                     │
+│  Data Processing Pipeline                                           │
+│  ├─ Extraction Layer (34+ dataset scripts)                          │
+│  │  ├─ scrape_*.js (Puppeteer web automation)                       │
+│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)                      │
+│  ├─ Merge (merge_datasets.js)                                       │
+│  ├─ Chunking (generate_chunks.js)                                   │
+│  ├─ Embedding (generate_embeddings.js)                              │
+│  └─ Storage (store_embeddings.js)                                   │
+│                                                                     │
+│  Database Layer (Supabase PostgreSQL + pgvector / Aiven)            │
+│  ├─ documents — vector-searchable knowledge base (40k+ chunks)      │
+│  ├─ assessments — user-saved results with all enrichment columns    │
+│  ├─ scoring_results_log — immutable log of every scoring call       │
+│  ├─ user_profiles — user preferences                                │
+│  ├─ anonymous_usage — rate limiting + session tracking              │
+│  └─ RPC functions — hybrid search, market data, assessment stats    │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Tech Stack
 
-| Category          | Technology                     | Purpose                                    |
-| ----------------- | ------------------------------ | ------------------------------------------ |
-| **Runtime**       | Node.js 18+                    | Modern JavaScript support                  |
-| **Backend**       | Express.js                     | REST API server                            |
-| **Frontend**      | React 18+ + Vite               | UI framework and build tool                |
-| **UI Library**    | HeroUI v3 (Beta)               | Component library                          |
-| **Charts**        | MUI X Charts                   | Data visualization                         |
-| **Database**      | Supabase PostgreSQL + pgvector | Vector database for embeddings             |
-| **AI/Embeddings** | OpenAI text-embedding-3-small  | Semantic search and embeddings             |
-| **AI/Reasoning**  | GPT-4o-mini                    | Evidence-based scoring and recommendations |
-| **State Mgmt**    | React Query + Custom Hooks     | Client-side state and API integration      |
-| **Deployment**    | Vercel                         | Serverless deployment platform             |
+| Category            | Technology                                     | Purpose                                            |
+| ------------------- | ---------------------------------------------- | -------------------------------------------------- |
+| **Runtime**         | Node.js 20+                                    | Server runtime                                     |
+| **Backend**         | Express.js (ESM)                               | REST API server                                    |
+| **Frontend**        | React 19 + Vite 7                              | UI framework and build tool                        |
+| **UI Library**      | HeroUI v3                                      | Component library                                  |
+| **Styling**         | Tailwind CSS v4                                | Utility-first CSS                                  |
+| **Charts**          | Recharts                                       | Data visualisation                                 |
+| **Database**        | Supabase PostgreSQL + pgvector                 | Primary vector store + relational data             |
+| **Alt DB**          | Aiven PostgreSQL                               | Alternative vector store (switchable via env flag) |
+| **AI — Embeddings** | OpenAI text-embedding-3-small                  | Semantic similarity search (1536 dims)             |
+| **AI — Reasoning**  | GPT-4o-mini                                    | LLM audit, enrichment, metadata extraction         |
+| **State**           | TanStack React Query                           | Server state, caching, background refetch          |
+| **Auth**            | Supabase Auth                                  | User authentication + Row Level Security           |
+| **Deployment**      | Vercel (frontend) + Render (backend)           | Hosting platforms                                  |
+| **Testing**         | Vitest (frontend) · Node test runner (backend) | Test frameworks                                    |
 
 ## Key Features
 
-### Assessment Engine
+### Assessment Engine — Three Enrichment Layers
 
-- **8-Dimensional Scoring**: Evaluates across Materials, Design, Manufacturing, Distribution, Consumption, End-of-Life, Business Model, and Policy dimensions
-- **AI-Powered Evidence Matching**: Uses semantic search to find relevant real-world examples
-- **GPT-4o-mini Reasoning**: Provides evidence-based scoring with detailed explanations
-- **Gap Analysis**: Identifies strengths and improvement areas with actionable recommendations
+**Layer 1 — Business Context** (optional structured inputs)
 
-### Data Pipeline
+- Business model type: classify circular strategy (PaaS, take-back, remanufacturing, recycling, etc.)
+- Operational stage: maturity level (idea → prototype → pilot → scaling → mature operation)
+- Target geography: market scope (local → global)
+- Annual volume estimate (< 1 tonne → > 100 tonnes)
+- Material complexity (single → multi-material → hazardous → electronics → biological)
+- Existing supply chain partnerships (boolean)
 
-- **34+ Dataset Sources**: Curated collection of circular economy case studies, research, and benchmarks
-- **Automated Processing**: Web scraping, PDF extraction, API ingestion, and data normalization
-- **Semantic Chunking**: Intelligent text splitting with metadata preservation
-- **Vector Embeddings**: OpenAI embeddings stored in pgvector for fast similarity search
-- **Hybrid Search**: Combines vector similarity with BM25 keyword matching
+These inputs improve LLM calibration and enable stage-appropriate scoring.
 
-### User Experience
+**Layer 2 — Deterministic Computed Outputs** (no LLM, fully reproducible)
 
-- **Guided Assessment Flow**: Step-by-step questionnaire with contextual help
-- **Interactive Results**: Charts, tables, and detailed case comparisons
-- **Export Options**: PDF reports and CSV data exports
-- **Public Sharing**: Shareable result links for stakeholders
-- **Session Persistence**: Automatic save/restore across browser sessions
-- **Anonymous Usage**: 5 free assessments for anonymous users
+- **Weighted Score Card** — per-factor contribution breakdown with Strong/Moderate/Weak/Critical classifications and top/bottom contributors
+- **Circular Economy Tier** — Leader / Established / Developing / Emerging with percentile estimate, badge colour, description, and next-milestone guidance
+- **Parameter Consistency** — internal coherence analysis (0–100) detecting unrealistic score combinations across 8 validation rules
+- **R-Strategy Alignment** — validates that factor scores match the detected circular strategy across 9 profile types; identifies well-aligned and misaligned factors
 
-### Analytics & Insights
+**Layer 3 — Extended LLM Output** (GPT-4o-mini)
 
-- **Dataset Statistics**: Industry distribution, R-strategy analysis, scale metrics
-- **Benchmarking**: Compare against similar projects and market averages
-- **Trend Analysis**: Track improvement over time with assessment history
-- **Custom Filtering**: Search and filter across all processed documents
+- **Improvement Roadmap** — 3 prioritised actions with effort/impact/timeframe estimates and target evaluation factor
+- **SDG Alignment** — 2–4 most relevant UN Sustainable Development Goals with rationale
+- **Market Opportunity Summary** — grounded in database evidence, calibrated to score level
+- **Audit Verdict** — comparative analysis, integrity gap list, strengths, technical recommendations
+- **Similar Cases Summaries** — one cleaned summary per matched case (LLM OCR artifact cleanup)
+
+### Knowledge Base
+
+- **40,000+ document chunks** from 34+ curated datasets
+- Sources: Ellen MacArthur Foundation, WBCSD, Eurostat, academic papers, government reports, corporate sustainability reports
+- Hybrid search: vector cosine similarity (pgvector HNSW) + BM25 keyword matching
+- Per-field chunking: problem, solution, impact, materials, circular_strategy
+- Structured metadata: industry, R-strategy, scale, geographic focus, primary material
+
+### Global Intelligence Dashboard
+
+Live analytics from the `scoring_results_log` table (all scoring calls — authenticated and anonymous):
+
+- Top-line metrics: total scored, avg score, input quality rate
+- Derived metric averages: confidence, technical feasibility, economic viability, circularity, consistency, R-alignment
+- Distributions: score bands, CE tier, risk level, R-strategy, primary material, geographic focus, company scale
+- Weekly volume trend (12-week rolling window)
+- Industry benchmark table from `get_market_data()` RPC (opted-in contributions only)
+- Knowledge base statistics and featured solutions search with category chip filtering
+
+### Assessment Management
+
+- Save, rename, delete, and share assessments (public links via opaque `public_id`)
+- Side-by-side comparison of two assessments with 4-tab layout (Overview, Factor Analysis, Details, Database Evidence)
+- Export individual or comparison results as PDF or CSV
+- Session persistence for anonymous users (auto-save/restore via localStorage)
+- 5 free anonymous assessments; unlimited for authenticated users
 
 ## Project Structure
 
-```
-├── backend/                          # Node.js/Express API server
-│   ├── controllers/                  # Route handlers (analytics, scoring, assessments)
-│   ├── services/                     # Business logic (embedding, chunking, scoring)
-│   ├── database/                     # DB schema, migrations, and client setup
-│   │   ├── migrations/               # Database schema evolution
-│   │   └── repositories/             # Data access layer
-│   ├── pipeline/                     # Data processing scripts
-│   │   ├── create_samples.js         # Generate test data
-│   │   ├── generate_chunks.js        # Semantic text chunking
-│   │   ├── generate_embeddings.js    # OpenAI embedding generation
-│   │   ├── merge_datasets.js         # Dataset consolidation
-│   │   ├── run_datasets_scripts.js   # Pipeline orchestration
-│   │   └── store_embeddings.js       # Vector database storage
-│   ├── datasets/                     # Raw and processed data
-│   │   ├── raw/                      # Original dataset files
-│   │   ├── processed/                # Cleaned and normalized data
-│   │   └── scripts/                  # Dataset-specific extraction logic
-│   ├── middleware/                   # Express middleware (auth, validation)
-│   ├── routes/                       # API route definitions
-│   ├── server/                       # Server bootstrap and configuration
-│   ├── utils/                        # Shared utilities
-│   └── tests/                        # Backend test suite
+```txt
+├── backend/
+│   ├── config/                      # Centralised config, env schema, embedding constants, chunk config
+│   ├── controllers/                 # Route handlers (analytics, scoring, assessments, search)
+│   ├── database/
+│   │   ├── migrations/              # SQL migration files 01–06 (run in Supabase SQL editor)
+│   │   ├── repositories/            # Data access layer (documents.repository.js)
+│   │   ├── client.js                # Dual-backend DB client factory (Supabase or Aiven)
+│   │   └── supabase.client.js       # Supabase client factory (anon + service-role)
+│   ├── middleware/                  # Auth guard (API key + JWT) + Zod validation
+│   ├── pipeline/                    # Data processing stages + datasetsUtils.js
+│   ├── routes/                      # Express route definitions (thin HTTP wrappers)
+│   ├── server/                      # Entry point (index.js), app factory (app.js), bootstrap
+│   ├── services/                    # Business logic: scoring.service, scoring.logic, embedding, chunking
+│   ├── tests/                       # Backend test suite (api/, database/, services/)
+│   └── utils/                       # anonymousTracking.js
 │
-├── frontend/                         # React/Vite application
-│   ├── src/
-│   │   ├── app/                      # App-level configuration
-│   │   │   ├── App.jsx               # Root component
-│   │   │   ├── AppRoutes.jsx         # Route definitions
-│   │   │   └── AppProvider.jsx       # Global context providers
-│   │   ├── components/               # Reusable UI components
-│   │   │   ├── ui/                   # Base UI components
-│   │   │   ├── charts/               # Chart components
-│   │   │   ├── drawers/              # Modal drawer components
-│   │   │   └── common/               # Shared components
-│   │   ├── pages/                    # Page-level components
-│   │   │   ├── AssessmentPage/       # Assessment questionnaire
-│   │   │   ├── ResultsPage/          # Results visualization
-│   │   │   ├── DashboardPage/        # Analytics dashboard
-│   │   │   └── MarketAnalysisPage/   # Market benchmarking
-│   │   ├── features/                 # Feature-specific logic
-│   │   │   ├── assessments/          # Assessment CRUD operations
-│   │   │   ├── export/               # PDF/CSV export functionality
-│   │   │   ├── search/               # Search components
-│   │   │   └── session/              # Session management
-│   │   ├── contexts/                 # React contexts
-│   │   ├── hooks/                    # Custom React hooks
-│   │   ├── lib/                      # Utility libraries
-│   │   ├── constants/                # Application constants
-│   │   └── utils/                    # Helper functions
-│   ├── public/                       # Static assets
-│   ├── api/                          # Vercel serverless functions
-│   └── tests/                        # Frontend test suite
+├── frontend/
+│   ├── api/proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
+│   └── src/
+│       ├── app/                     # Root component, routes, global providers
+│       ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout
+│       ├── contexts/                # Auth, Dialog, Drawer, Modal React contexts
+│       ├── features/
+│       │   ├── assessments/         # API client, all hooks (useAssessment, useGlobalStats, etc.), validation, utils
+│       │   ├── export/              # exportCSV.js, exportPDF.js
+│       │   └── session/             # AppSessionManager, useSession
+│       ├── hooks/                   # useAuth, useDialog, useDrawer, useDrawerDirection, useExportState, useToast
+│       ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
+│       ├── pages/
+│       │   ├── AssessmentComparisonPage/components/   # Tab components + ComparisonSkeleton + ChangeIndicator
+│       │   ├── DashboardPage/components/              # StatCard, ChartPanel, SectionDivider, SolutionCard, etc.
+│       │   ├── LandingPage/components/                # BusinessContextContainer, EvaluationParametersContainer, etc.
+│       │   ├── MyAssessmentsPage/components/          # AssessmentListItem, FilterBar, IndustryFilterChip
+│       │   └── ResultsPage/components/                # ScoreOverview, WeightedScoreCard, AuditSummary, DatabaseEvidence, etc.
+│       ├── constants/               # evaluationData, industries, industryThemes, drawer constants
+│       └── utils/                   # cn, content, session, async, ui, logger
 │
-├── env/                              # Environment configuration
-│   ├── backend.env.example           # Backend environment template
-│   └── frontend.env.example          # Frontend environment template
+├── env/
+│   └── .env.example                 # Environment variable template for both backend and frontend
 │
-└── package.json                      # Root package.json for scripts
+└── package.json                     # Root workspace scripts (dev:backend, dev:frontend, etc.)
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- **Node.js 18+** - Runtime environment
-- **npm or yarn** - Package manager
-- **Supabase Account** - Database and authentication
-- **OpenAI API Key** - For embeddings and AI reasoning
-- **Git** - Version control
+- Node.js 20+
+- npm 8+
+- Supabase project with pgvector extension enabled
+- OpenAI API key
 
 ### Installation
 
-1. **Clone the repository**
+```bash
+# 1. Clone
+git clone <repo-url>
+cd circular-economy-assessor
 
-   ```bash
-   git clone <repository-url>
-   cd circular-economy-evaluator
-   ```
+# 2. Install dependencies
+npm install
+cd backend && npm install
+cd ../frontend && npm install
 
-2. **Install dependencies**
+# 3. Environment setup
+cp env/.env.example env/.env.backend
+cp env/.env.example env/.env.frontend
+# Edit both files — see Environment Variables section below
 
-   ```bash
-   # Install root dependencies
-   npm install
+# 4. Database migrations
+# Open Supabase SQL editor and run in order:
+#   backend/database/migrations/01_vector_infrastructure.sql
+#   backend/database/migrations/02_user_assessments.sql
+#   backend/database/migrations/03_user_profiles.sql
+#   backend/database/migrations/04_anonymous_usage.sql
+#   backend/database/migrations/05_results_logs.sql
+# Run 06_after_ingestion.sql once after bulk data load
 
-   # Install backend dependencies
-   cd backend && npm install
+# 5. Start development servers (two terminals)
+npm run dev:backend    # http://localhost:8000
+npm run dev:frontend   # http://localhost:5173
+```
 
-   # Install frontend dependencies
-   cd ../frontend && npm install
-   ```
+### Environment Variables
 
-3. **Environment Setup**
+**Backend** (`env/.env.backend`):
 
-   ```bash
-   # Copy environment templates
-   cp env/backend.env.example env/backend.env
-   cp env/frontend.env.example env/frontend.env
+```env
+# Required
+OPENAI_API_KEY=sk-...
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+INTERNAL_BACKEND_API_KEY=your-secret-key
+PORT=8000
+NODE_ENV=development
 
-   # Edit environment files with your credentials
-   # - Supabase URL and service role key
-   # - OpenAI API key
-   # - Other configuration values
-   ```
+# Database backend switch
+USE_SUPABASE_DOCUMENTS_TABLE=true   # false = use Aiven PostgreSQL
 
-4. **Database Setup**
+# Aiven (only if USE_SUPABASE_DOCUMENTS_TABLE=false)
+AIVEN_HOST=
+AIVEN_PORT=22335
+AIVEN_DATABASE=defaultdb
+AIVEN_USER=avnadmin
+AIVEN_PASSWORD=
+AIVEN_SSL_MODE=require
+AIVEN_CONNECTION_LIMIT=20
+```
 
-   ```bash
-   cd backend
+**Frontend** (`env/.env.frontend`):
 
-   # Run database migrations
-   npm run db:migrate
+```env
+VITE_API_URL=http://localhost:8000
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_FRONTEND_URL=http://localhost:5173
+VITE_LOG_LEVEL=debug          # optional
+VITE_ENABLE_ANALYTICS=true    # optional
+```
 
-   # Process and ingest datasets
-   npm run pipeline:run
-   ```
-
-5. **Start Development Servers**
-
-   ```bash
-   # Terminal 1: Backend server
-   npm run dev:backend
-
-   # Terminal 2: Frontend development server
-   npm run dev:frontend
-   ```
-
-6. **Access the Application**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:3001
+**Important:** `INTERNAL_BACKEND_API_KEY` is **never** a `VITE_` prefixed variable. It lives only in Vercel server-side environment and is injected by `api/proxy.js`.
 
 ## API Reference
 
-### Core Endpoints
+### Scoring
 
-#### Assessment & Scoring
+| Method | Endpoint                                   | Auth     | Description                                                                       |
+| ------ | ------------------------------------------ | -------- | --------------------------------------------------------------------------------- |
+| `POST` | `/api/score`                               | Optional | Full scoring pipeline: validation → vector search → Layer 2 → LLM audit → Layer 3 |
+| `GET`  | `/api/score/test-anonymous-limit-tracking` | Optional | Anonymous usage guard check (internal/testing)                                    |
 
-- `POST /api/scoring/score` - Score assessment and find similar cases
-- `GET /api/scoring/parameters` - Get evaluation parameters and weights
+### Analytics
 
-#### Analytics
+| Method | Endpoint                            | Auth     | Description                                     |
+| ------ | ----------------------------------- | -------- | ----------------------------------------------- |
+| `GET`  | `/api/analytics`                    | Optional | Summary analytics                               |
+| `GET`  | `/api/analytics/enhanced`           | Optional | Enhanced analytics with time series             |
+| `GET`  | `/api/analytics/featured-solutions` | Optional | Featured solutions from knowledge base          |
+| `POST` | `/api/analytics/embeddings/reindex` | Optional | Reindex embeddings (maintenance)                |
+| `GET`  | `/api/analytics/documents/summary`  | Optional | Documents data summary                          |
+| `GET`  | `/api/analytics/documents/stats`    | Optional | Knowledge base statistics                       |
+| `GET`  | `/api/analytics/global-stats`       | Optional | Global dashboard stats from scoring_results_log |
 
-- `GET /api/analytics/documents-summary` - Dataset statistics and metrics
-- `GET /api/analytics/filter-options` - Available filter values
+### Assessments
 
-#### Search
+| Method   | Endpoint                                            | Auth     | Description                                      |
+| -------- | --------------------------------------------------- | -------- | ------------------------------------------------ |
+| `POST`   | `/api/assessments`                                  | Required | Save completed assessment                        |
+| `GET`    | `/api/assessments`                                  | Required | List user's assessments                          |
+| `GET`    | `/api/assessments/stats`                            | Required | User aggregate statistics                        |
+| `GET`    | `/api/assessments/public/:publicId`                 | None     | Retrieve public/shared assessment                |
+| `GET`    | `/api/assessments/validate/:publicId`               | None     | Validate shared assessment id                    |
+| `GET`    | `/api/assessments/:id`                              | Required | Fetch specific assessment                        |
+| `PATCH`  | `/api/assessments/:id`                              | Required | Update (rename, set is_public)                   |
+| `DELETE` | `/api/assessments/:id`                              | Required | Delete assessment                                |
+| `GET`    | `/api/assessments/market-analysis`                  | Optional | Global market analysis metrics                   |
+| `GET`    | `/api/assessments/market-analysis/:id`              | Required | Per-assessment market report                     |
+| `GET`    | `/api/assessments/market-analysis/public/:publicId` | None     | Public per-assessment market report              |
+| `GET`    | `/api/assessments/compare`                          | Required | Compare two assessments (query params: id1, id2) |
 
-- `POST /api/search` - Semantic search across documents
-- `GET /api/search/suggestions` - Search suggestions
+### Search & Utility
 
-#### Assessments
+| Method | Endpoint            | Auth     | Description                                     |
+| ------ | ------------------- | -------- | ----------------------------------------------- |
+| `POST` | `/api/search`       | Optional | Hybrid semantic + keyword search over documents |
+| `GET`  | `/health`           | None     | Health check                                    |
+| `GET`  | `/docs/methodology` | None     | Methodology and scoring framework metadata      |
+| `GET`  | `/api/profile`      | Required | Authenticated user profile                      |
 
-- `GET /api/assessments` - List user assessments
-- `POST /api/assessments` - Create new assessment
-- `GET /api/assessments/:id` - Get specific assessment
-- `PUT /api/assessments/:id` - Update assessment
-- `DELETE /api/assessments/:id` - Delete assessment
-- `GET /api/assessments/:id/public` - Get public assessment
+## Authentication
 
-### Authentication
-
-The application supports both authenticated and anonymous usage:
-
-- **Anonymous Users**: 5 free assessments with usage tracking
-- **Authenticated Users**: Unlimited access via Supabase Auth
-- **Session Management**: Automatic persistence across page reloads
-- **Public Sharing**: Assessment results can be shared via public links
+- **Anonymous Users** — 5 free assessments with IP-based usage tracking
+- **Authenticated Users** — Unlimited access via Supabase Auth (JWT Bearer token)
+- **Session Management** — Automatic persistence across page reloads via localStorage
+- **Public Sharing** — Assessment results shareable via opaque `public_id` links
+- **Service Role** — Used server-side for `scoring_results_log` writes and analytics queries; never exposed to client
 
 ## Data Pipeline
 
-### Dataset Sources
+### Complete Data Lifecycle
 
-The system processes 34+ datasets from diverse sources:
+```txt
+1️⃣  RAW SOURCE DATA (datasets/raw/*)
+    ↓ extract_*.js (CSV/PDF/JSON/API) or scrape_*.js (Puppeteer)
 
-- **Research Papers**: Academic studies on circular economy practices
-- **Case Studies**: Real-world implementation examples
-- **Industry Reports**: Sector-specific circular economy analysis
-- **Policy Documents**: Government and EU circular economy policies
-- **Company Data**: Corporate sustainability reports and initiatives
+2️⃣  PROCESSED DATASETS (datasets/processed/*.csv)
+    Standard columns: id, problem, solution, materials, circular_strategy,
+    category, impact, source_url, metadata_json — 34 total datasets
 
-### Processing Workflow
+3️⃣  MANUAL ENTRIES (datasets/manual_entries/manual_entries.csv)
+    User-contributed problem/solution pairs (same column format)
 
-1. **Extraction**: Web scraping, PDF parsing, API calls, CSV processing
-2. **Normalization**: Data cleaning and standardization
-3. **Merging**: Consolidate related datasets
-4. **Chunking**: Semantic text splitting with metadata
-5. **Embedding**: Generate vector representations
-6. **Storage**: Index in vector database with full-text search
+4️⃣  MERGED INPUT → npm run merge
+    Concatenates all CSVs + manual_entries, dedupes, validates
+    Output: datasets/out/combined_input.csv (50,000+ rows)
 
-### Search Architecture
+5️⃣  SEMANTIC CHUNKS → npm run chunk
+    Per-field chunking: problem_solution, problem, solution, impact, materials
+    Metadata extraction: industry, category, r_strategy, scale, primary_material, geographic_focus
+    Output: datasets/out/chunks.json (14,000–19,000 chunks)
 
-- **Vector Search**: Cosine similarity on OpenAI embeddings
-- **Keyword Search**: BM25 algorithm for exact matches
-- **Hybrid Search**: Weighted combination of vector + keyword scores
-- **Metadata Filtering**: Industry, scale, R-strategy filtering
-- **Re-ranking**: AI-powered result relevance scoring
+6️⃣  VECTOR EMBEDDINGS → npm run embed
+    OpenAI text-embedding-3-small, 1536 dims
+    Batch: 20 chunks/call, 500ms delay, exponential backoff on rate limits
+    Output: datasets/out/embedded_chunks.json
 
-## Development Guide
+7️⃣  DATABASE STORAGE → npm run store
+    Inserts into documents table via configured backend (Supabase or Aiven)
+    Creates/maintains HNSW index for fast similarity search
+    Resume mode (--resume): skips already-stored documents by chunk_id
 
-### Backend Development
+8️⃣  QUERY & SCORING (Live API)
+    POST /api/score → hybrid search RPC → scoring → Layer 2 → LLM audit → Layer 3
+```
+
+### Pipeline Commands
 
 ```bash
 cd backend
 
-# Development server with hot reload
-npm run dev
+npm run populate  # All four stages: merge → chunk → embed → store
 
-# Run tests
-npm test
+npm run merge     # Stage 1 only → datasets/out/combined_input.csv
+npm run chunk     # Stage 2 only → datasets/out/chunks.json
+npm run embed     # Stage 3 only → datasets/out/embedded_chunks.json
+npm run store     # Stage 4 only → documents table
 
-# Lint code
-npm run lint
+# Dry-run (writes locally, no DB)
+npm run embed -- --dry-run
+npm run store -- --dry-run
 
-# Build for production
-npm run build
+# Archive outputs (write to datasets/archives/ instead of out/)
+npm run merge -- --archives
+npm run chunk -- --archives
+npm run embed -- --archives
+npm run store -- --archives   # also forces Supabase backend
 ```
 
-### Frontend Development
+### Search Architecture
+
+- **Vector Search** — cosine similarity on OpenAI embeddings (HNSW index, < 100ms)
+- **Keyword Search** — BM25 algorithm for exact term matches (< 50ms)
+- **Hybrid Search** — RRF (Reciprocal Rank Fusion) combining both scores
+- **Metadata Filtering** — industry, scale, R-strategy filtering via B-tree indexes
+- **Re-ranking** — AI-powered relevance scoring on top results
+
+## Development Guide
+
+### Backend
+
+```bash
+cd backend
+
+npm run dev     # Development server with watch mode (http://localhost:8000)
+npm run start   # Production server
+npm test        # Full test suite
+npm run lint    # ESLint
+```
+
+Test mode is automatically enabled when `NODE_ENV=test`. The server will:
+
+- Skip `.env` file loading (preserves test env vars)
+- Use fallback test defaults for missing credentials
+- Not auto-listen (allowing test frameworks to control startup)
+- Provide stub Supabase clients for offline testing
+
+### Frontend
 
 ```bash
 cd frontend
 
-# Development server with hot reload
-npm run dev
-
-# Run tests
-npm test
-
-# Lint code
-npm run lint
-
-# Build for production
-npm run build
+npm run dev       # Development server with HMR (http://localhost:5173)
+npm run build     # Production build → dist/
+npm run preview   # Preview production build locally
+npm test          # Run Vitest test suite
+npm run lint      # ESLint
 ```
 
-### Database Operations
+### Code Style
 
-```bash
-cd backend
+- **Backend**: ESLint with project config
+- **Frontend**: ESLint with React recommended rules
+- **Formatting**: Prettier (configured, runs on save via VS Code settings)
+- **Commits**: Conventional commit format (`feat:`, `fix:`, `docs:`, `test:`)
 
-# Create new migration
-npm run db:create-migration -- migration-name
+### Development Workflow
 
-# Run migrations
-npm run db:migrate
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Write tests for new functionality
+3. Implement following existing patterns and architecture
+4. Update relevant README sections
+5. Run tests: `npm test` (both backend and frontend)
+6. Submit PR with description of changes
 
-# Rollback migration
-npm run db:rollback
+### Architecture Principles
 
-# Seed database
-npm run db:seed
-```
-
-### Pipeline Operations
-
-```bash
-cd backend
-
-# Run full pipeline
-npm run pipeline:run
-
-# Run specific dataset
-npm run pipeline:dataset -- dataset-name
-
-# Generate embeddings only
-npm run pipeline:embeddings
-
-# Store embeddings in database
-npm run pipeline:store
-```
+- **Separation of concerns** — clear boundaries between routes, controllers, services, utils
+- **No business logic in routes** — routes are thin HTTP wrappers only
+- **No HTTP context in services** — services are pure business logic with no req/res
+- **Repository pattern** — all documents table access via `DocumentsRepository`, never direct client
+- **Canonical imports** — backend uses `#`-prefixed aliases; frontend uses `@/` aliases
 
 ## Testing
 
@@ -415,14 +449,10 @@ npm run pipeline:store
 ```bash
 cd backend
 
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test -- tests/controllers/scoring.controller.test.js
+node --test                                                     # All tests
+node --test tests/services/scoring-logic-enrichment.test.js    # Layer 2 enrichment (33 tests)
+node --test tests/api/assessments-routes.test.js               # Assessment API integration
+node --test tests/api/scoring.rpc.test.js                      # Scoring pipeline
 ```
 
 ### Frontend Tests
@@ -430,124 +460,255 @@ npm test -- tests/controllers/scoring.controller.test.js
 ```bash
 cd frontend
 
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run with coverage
-npm run test:coverage
+npx vitest run                                                  # All tests
+npx vitest run src/features/assessments/utils.test.js          # reconstructScoringResult (13 tests)
+npx vitest run --coverage                                       # Coverage report
+npx vitest --watch                                             # Watch mode
 ```
+
+**Backend Test Suite:**
+
+| Test File                          | Tests | Description                                                                                                        |
+| ---------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------ |
+| `scoring-logic-enrichment.test.js` | 33    | WeightedScoreCard, CE Tier (4 tiers + boundaries), ParameterConsistency (8 rules), RStrategyAlignment (9 profiles) |
+| `assessments-routes.test.js`       | —     | CRUD endpoints, auth guards                                                                                        |
+| `scoring.rpc.test.js`              | —     | Scoring pipeline integration                                                                                       |
+| `analytics.enhanced.test.js`       | —     | Analytics endpoints                                                                                                |
+| `analytics.featured.test.js`       | —     | Featured solutions                                                                                                 |
+| `api-auth.test.js`                 | —     | API key guard                                                                                                      |
+| `anonymous.test.js`                | —     | Anonymous tracking middleware                                                                                      |
+| `apiKeyGuard.test.js`              | —     | Auth middleware unit tests                                                                                         |
+| `documents.repository.test.js`     | —     | Repository layer                                                                                                   |
+| `score-validation.test.js`         | —     | Input validation                                                                                                   |
 
 ## Deployment
 
-### Vercel Deployment
+### Frontend — Vercel
 
-The application is optimized for Vercel serverless deployment:
+The frontend deploys as a static SPA with a serverless proxy function:
 
-1. **Connect Repository**: Link GitHub repository to Vercel
-2. **Environment Variables**: Configure secrets in Vercel dashboard
-3. **Build Settings**:
-   - Frontend: `cd frontend && npm run build`
-   - Backend: Serverless functions in `api/` directory
-4. **Database**: Supabase handles database operations
-5. **Domain**: Configure custom domain if needed
-
-### Environment Variables
-
-#### Backend (.env)
-
-```env
-# Database
-SUPABASE_URL=your-supabase-url
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-DATABASE_URL=your-database-url
-
-# AI Services
-OPENAI_API_KEY=your-openai-key
-
-# Server
-PORT=3001
-NODE_ENV=production
-
-# Security
-JWT_SECRET=your-jwt-secret
+```txt
+Browser → /api/proxy?path=/api/score → Vercel Function → injects x-api-key → Backend
 ```
 
-#### Frontend (.env)
+1. Connect GitHub repo to Vercel
+2. Set environment variables in Vercel dashboard:
+   - All `VITE_*` variables (client-visible)
+   - `INTERNAL_BACKEND_API_KEY` (server-only, never `VITE_` prefixed)
+3. Verify `vercel.json`: `/api/*` → serverless functions; all other routes → `index.html`
+4. Deploy — automatic on push to main, or manual trigger in dashboard
 
-```env
-# API Configuration
-VITE_API_BASE_URL=https://your-app.vercel.app/api
+### Backend — Render / any Node host
 
-# Analytics
-VITE_ANALYTICS_ID=your-analytics-id
+```bash
+cd backend
+npm run start   # Requires NODE_ENV=production and all env vars set
 ```
 
-## Contributing
+Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and any custom domain.
 
-### Code Style
+### Deployment Checklist
 
-- **Backend**: ESLint with Airbnb config
-- **Frontend**: ESLint with React recommended rules
-- **Formatting**: Prettier for consistent code style
-- **Commits**: Conventional commit format
+- [ ] All `VITE_*` variables set in Vercel
+- [ ] `INTERNAL_BACKEND_API_KEY` set in Vercel (server-only, not in git)
+- [ ] Backend `ALLOWED_ORIGINS` includes Vercel domains and custom domain
+- [ ] Database migrations 01–05 applied to production Supabase
+- [ ] `npm run build` succeeds without errors
+- [ ] `npm test` passes for both backend and frontend
+- [ ] Preview environment tested before promoting to production
+- [ ] DNS configured for custom domain (if applicable)
 
-### Development Workflow
+## Architecture Decisions
 
-1. **Create Feature Branch**: `git checkout -b feature/your-feature`
-2. **Write Tests**: Add tests for new functionality
-3. **Implement Feature**: Follow existing patterns and architecture
-4. **Update Documentation**: Keep READMEs and code comments current
-5. **Run Tests**: Ensure all tests pass
-6. **Submit PR**: Create pull request with detailed description
+### PostgreSQL + pgvector over a dedicated vector DB
 
-### Architecture Principles
+- Native vector type — no separate database to manage or sync
+- Structured and unstructured data in one place enables join queries
+- B-tree indexes on `industry`, `category`, `source` make SQL filtering fast
+- HNSW index on `embedding` gives < 100ms similarity search
+- Cost-effective on Supabase free/pro tier
 
-- **Separation of Concerns**: Clear boundaries between layers
-- **Test-Driven Development**: Tests written before implementation
-- **API-First Design**: Backend APIs designed for frontend consumption
-- **Component Composition**: Reusable, composable UI components
-- **Error Boundaries**: Graceful error handling and user feedback
+### Dual-backend document store (Supabase + Aiven)
 
-## Troubleshooting
+- `USE_SUPABASE_DOCUMENTS_TABLE=true` → Supabase (default, simpler)
+- `false` → Aiven PostgreSQL (higher connection limits, geographic isolation)
+- All access goes through `DocumentsRepository` — switching backends requires zero application code changes
+- `getDatabaseClient()` returns the correct client based on the flag
+
+### `scoring_results_log` for analytics over `assessments` table
+
+- `assessments` only captures user-saved evaluations (a subset)
+- `scoring_results_log` captures every API call including anonymous and unsaved — far wider coverage
+- Dashboard `GET /api/analytics/global-stats` uses service-role access to `scoring_results_log`
+- Identical column promotion strategy across both tables makes analytics queries portable
+
+### Hybrid search (vector + BM25)
+
+- Vector search alone misses exact matches (product names, specific metrics, acronyms)
+- Keyword search alone misses semantic similarity (synonyms, paraphrases, domain concepts)
+- RRF (Reciprocal Rank Fusion) combination is robust across diverse query types
+- Structured metadata filtering (industry, R-strategy, scale) narrows candidates before re-ranking
+
+### Vercel proxy for API key security
+
+- `INTERNAL_BACKEND_API_KEY` lives only in Vercel server-side environment
+- `api/proxy.js` serverless function reads it and injects `x-api-key` on every request
+- Frontend code and browser DevTools can never expose the secret
+- All production API calls route through the proxy transparently via `buildApiUrl()`
+
+### Batch embedding with resume mode
+
+- Batch size 20, 500ms delay between batches — reduces rate limit hits
+- Exponential backoff on 429 errors — handles transient API overload
+- `--resume` flag identifies already-stored documents by `chunk_id:field_name` — safe to re-run without duplicates
+- Dimension validation before insert prevents malformed vectors from entering the index
+
+## Extending the System
+
+### Adding a New Dataset
+
+1. Create extraction script in `backend/datasets/scripts/`
+2. Output standardised CSV to `backend/datasets/processed/`
+3. Register in `backend/pipeline/datasetsUtils.js` DATASETS array
+4. Run: `npm run populate`
+5. Update `backend/DATASETS_REFERENCE.md`
+
+See [PIPELINE_ADDING_DATASETS.md](./backend/PIPELINE_ADDING_DATASETS.md) for full guide including JSDoc requirements and backup/recovery implementation.
+
+### Adding a New API Endpoint
+
+1. Define route in `backend/routes/` (HTTP method + path only — no logic)
+2. Add handler in `backend/controllers/` (validate → delegate to service → format response)
+3. Add business logic in `backend/services/` if needed
+4. Register route in `backend/server/app.js`
+5. Add test in `backend/tests/api/`
+
+### Adding a New Frontend Page
+
+1. Create `frontend/src/pages/MyPage/MyPage.jsx`
+2. Add route in `frontend/src/app/AppRoutes.jsx`
+3. Extract subcomponents into `frontend/src/pages/MyPage/components/`
+4. Create `frontend/src/pages/MyPage/components/index.js` barrel
+
+### Adding a New Database Migration
+
+1. Create SQL file in `backend/database/migrations/` with next number prefix (e.g. `07_*.sql`)
+2. Apply in Supabase SQL editor
+3. Document any new RPC functions in `backend/README.md`
+
+## Performance Characteristics
+
+### Pipeline Execution Times
+
+| Stage             | Typical Duration   |
+| ----------------- | ------------------ |
+| Merge             | 1–2 seconds        |
+| Chunking          | 5–10 seconds       |
+| Embedding         | 3–5 minutes        |
+| Storage           | 2–4 minutes        |
+| **Full pipeline** | **~10–12 minutes** |
+
+### Pipeline Costs (per full run)
+
+| Resource              | Typical Cost              |
+| --------------------- | ------------------------- |
+| OpenAI embeddings     | ~$0.02–$0.10              |
+| Supabase reads/writes | Free tier (within limits) |
+
+### Query Performance
+
+| Operation                 | Typical Latency            |
+| ------------------------- | -------------------------- |
+| Vector search (HNSW)      | < 100ms                    |
+| Keyword + filter (B-tree) | < 50ms                     |
+| Hybrid search             | < 150ms                    |
+| Full scoring pipeline     | 3–8 seconds (includes LLM) |
+
+## Security & Access Control
+
+### Authentication
+
+- RLS policies on all Supabase tables — users can only read/write their own data
+- Service role key used only server-side for admin operations (writes to `scoring_results_log`, analytics aggregation)
+- Anon key for frontend read-only access where public data is appropriate
+
+### Rate Limiting
+
+- Scoring endpoint: rate limited; anonymous users limited to 5 assessments per IP
+- OpenAI API: auto-retry with exponential backoff
+
+### Input Validation
+
+- All request bodies validated with Zod schemas at API boundary
+- Query parameters sanitised against allowed values before any DB query
+- Junk detection on scoring inputs before LLM calls
+
+### No PII in Logs
+
+- Raw IP addresses never stored
+- `ip_hash` and `identifier_hash` are SHA-256 hashes — irreversible
+- `user_agent_snippet` is truncated to first 100 chars only
+
+## Debugging
 
 ### Common Issues
 
-#### Backend
+**Pipeline hangs on embedding:**
 
-- **Database Connection**: Verify Supabase credentials and network access
-- **OpenAI API**: Check API key validity and rate limits
-- **Pipeline Failures**: Check dataset source availability and parsing logic
+```bash
+echo $OPENAI_API_KEY        # verify key is set
+ping api.openai.com         # test network connectivity
+npm run embed -- --dry-run  # test locally without API calls
+```
 
-#### Frontend
+**Supabase "401 Unauthorized" on storage:**
 
-- **API Calls Failing**: Verify backend server is running and accessible
-- **Build Errors**: Clear node_modules and reinstall dependencies
-- **Environment Variables**: Ensure all required variables are set
+- Use `SUPABASE_SERVICE_ROLE_KEY` (not anon key)
+- Check key hasn't expired in Supabase project settings
 
-#### Database
+**Wrong chunk count:**
 
-- **Migration Issues**: Check migration files for syntax errors
-- **Vector Search**: Ensure pgvector extension is installed
-- **Performance**: Monitor query performance and add indexes as needed
+- Check `MIN_PROBLEM/SOLUTION_LENGTH` thresholds in `config/chunk.js`
+- Review console for "Skipping record" warnings
 
-### Logs and Debugging
+**API calls failing with 401 from frontend:**
 
-- **Backend Logs**: Check server console output and error logs
-- **Frontend Logs**: Use browser dev tools for client-side debugging
-- **Database Logs**: Monitor Supabase dashboard for query insights
-- **API Debugging**: Use tools like Postman for API testing
+- Verify `INTERNAL_BACKEND_API_KEY` is set in Vercel environment
+- Check `api/proxy.js` is forwarding the `x-api-key` header
+- Confirm backend `apiKeyGuard` middleware is enabled
+
+**CORS errors in browser console:**
+
+- Backend `ALLOWED_ORIGINS` must include `*.vercel.app` and your custom domain
+- Check `PUBLIC_ROUTES` list if a route should be accessible without the header
+
+### Debug Logging
+
+```bash
+DEBUG=* npm run embed            # verbose embedding logs
+DEBUG=* npm run store            # verbose storage logs
+DEBUG=backend:* npm run dev      # verbose backend server logs
+```
+
+## Datasets Included
+
+**34 processed datasets** from diverse authoritative sources:
+
+- GreenTechGuardians: 2,286 case studies
+- Ellen MacArthur Foundation: 3,825+ case studies
+- Eurostat: 501+ environmental records
+- Open Food / Beauty / Products Facts: 1,000+ product records
+- Academic & government datasets: 6,000+ records
+
+See [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERENCE.md) for complete inventory.
+For running the pipeline: [backend/PIPELINE_RUNNING.md](./backend/PIPELINE_RUNNING.md)
+For adding new datasets: [backend/PIPELINE_ADDING_DATASETS.md](./backend/PIPELINE_ADDING_DATASETS.md)
+For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERENCE.md)
 
 ## License
 
-This project is proprietary software. See LICENSE file for details.
+UNLICENSED — proprietary software.
+**Author:** Areeb Ahmed Zahoori
+**Last Updated:** 23 March 2026
 
-## Support
-
-For technical support or questions:
-
-- Review the detailed backend and frontend READMEs for specific guidance
-- Check existing issues and documentation before opening new ones
-- Include relevant logs, error messages, and reproduction steps when reporting bugs
+---

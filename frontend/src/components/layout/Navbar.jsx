@@ -1,5 +1,5 @@
 import { Avatar, Dropdown, Separator } from '@heroui/react';
-import { HelpCircle, LogOut, Mail, Menu, Settings, User, X } from 'lucide-react';
+import { HelpCircle, LogOut, Menu, Settings, User, X } from 'lucide-react';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -11,7 +11,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
-  // console.log('Auth state in Navbar:', { user, profile, isAuthenticated });
+  // logger.log('Auth state in Navbar:', { user, profile, isAuthenticated });
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -27,7 +27,7 @@ export default function Navbar() {
       await signOut?.();
       navigate('/auth');
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.error('Sign out error:', error);
     }
   };
 
@@ -207,10 +207,6 @@ export default function Navbar() {
                       <p className="text-sm font-semibold text-foreground truncate">
                         {profile?.username || user?.username || 'User'}
                       </p>
-                      <p className="flex items-center gap-1.5 text-xs text-default-500 truncate mt-0.5">
-                        <Mail size={12} className="shrink-0" />
-                        <span className="truncate">{user?.email || 'user@example.com'}</span>
-                      </p>
                     </div>
                   </div>
                 </Dropdown.Item>
@@ -244,3 +240,5 @@ export default function Navbar() {
     </nav>
   );
 }
+
+Navbar.propTypes = {};

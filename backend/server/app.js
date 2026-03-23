@@ -1,5 +1,5 @@
+/** Express app factory. Mounts routes and middleware. */
 // Express application instance separated from start logic for testing and layering
-
 import '#server/bootstrap.js';
 
 import { Buffer } from 'buffer';
@@ -46,27 +46,17 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
   };
 }
 
-function logRequest(method, path, status, duration) {
-  if (!IS_PROD) {
-    console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
-  }
-}
-
-function debugLog(...args) {
-  if (!IS_PROD) console.log(...args);
-}
-
 function validateConfig() {
   if (!apiKey && apiAuthEnabled) {
     const message = 'API_AUTH_ENABLED=true but API_KEY is not set';
     if (IS_PROD) {
       throw new Error(message);
     }
-    console.warn(message);
+    logger.warn({}, message);
   }
 
   if (!BACKEND_CONFIG.supabase.url || !BACKEND_CONFIG.supabase.anonKey) {
-    console.warn('Supabase URL or ANON_KEY is missing; database calls will fail.');
+    logger.warn({}, 'Supabase URL or ANON_KEY is missing; database calls will fail.');
   }
 }
 
@@ -88,23 +78,26 @@ export function apiKeyGuard(req, res, next) {
   const isPublic = isPublicRoute(req.path);
 
   if (apiAuthEnabled) {
-    debugLog('[apiKeyGuard] incoming', {
-      path: req.path,
-      method: req.method,
-      isPublicRoute: isPublic,
-      hasAuthorizationHeader: !!req.headers.authorization,
-      hasXApiKey: !!req.headers['x-api-key'],
-    });
+    logger.info(
+      {
+        path: req.path,
+        method: req.method,
+        isPublicRoute: isPublic,
+        hasAuthorizationHeader: !!req.headers.authorization,
+        hasXApiKey: !!req.headers['x-api-key'],
+      },
+      'API key guard incoming request',
+    );
   }
 
   if (!apiAuthEnabled) return next();
   if (isPublic) {
-    debugLog(`[apiKeyGuard] ✓ Public route allowed: ${req.path}`);
+    logger.info({ path: req.path }, 'Public route allowed');
     return next();
   }
 
   if (!apiKey) {
-    debugLog(`[apiKeyGuard] ✗ API auth enabled but API_KEY not configured`);
+    logger.warn({}, 'API auth enabled but API_KEY not configured');
     return res
       .status(500)
       .json(
@@ -123,11 +116,11 @@ export function apiKeyGuard(req, res, next) {
   const isValidBearer = safeCompare(bearerToken, apiKey);
 
   if (isValidHeader || isValidBearer) {
-    debugLog(`[apiKeyGuard] ✓ Valid API key provided for protected route: ${req.path}`);
+    logger.info({ path: req.path }, 'Valid API key provided for protected route');
     return next();
   }
 
-  debugLog(`[apiKeyGuard] ✗ Invalid or missing API key for protected route: ${req.path}`);
+  logger.warn({ path: req.path }, 'Invalid or missing API key for protected route');
   return res
     .status(401)
     .json(
@@ -178,7 +171,7 @@ app.use(
       }
 
       // 4. Fail if none of the above match
-      console.error(`CORS Error: Origin ${origin} not allowed`);
+      logger.warn({ origin }, 'CORS error: origin not allowed');
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true, // Recommended for Supabase Auth cookies/headers
@@ -226,7 +219,7 @@ app.get('/api/profile', requireAuth(supabase), async (req, res) => {
       updated_at: data.updated_at,
     });
   } catch (error) {
-    console.error('[PROFILE_FETCH_ERROR]', error);
+    logger.error({ err: error }, 'Failed to fetch profile');
     res.status(500).json({
       error: 'Failed to fetch profile',
       code: 'INTERNAL_ERROR',
@@ -335,17 +328,19 @@ app.use((err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
   const isServerError = statusCode >= 500;
   if (isServerError) {
-    console.error(`[${requestId}] ERROR:`, {
-      method: req.method,
-      path: req.path,
-      status: statusCode,
-      message: err.message,
-      code: err.code || 'UNKNOWN',
-      stack: err.stack,
-      timestamp: new Date().toISOString(),
-    });
+    logger.error(
+      {
+        err,
+        requestId,
+        method: req.method,
+        path: req.path,
+        status: statusCode,
+        code: err.code || 'UNKNOWN',
+      },
+      'Request error',
+    );
   } else if (!IS_PROD) {
-    console.warn(`[${requestId}] WARNING [${statusCode}]:`, err.message);
+    logger.warn({ requestId, statusCode }, err.message);
   }
 
   res.status(statusCode).json({

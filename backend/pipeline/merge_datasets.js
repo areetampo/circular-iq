@@ -19,7 +19,7 @@ import {
   OUT_COMBINED_INPUT_CSV,
   OUT_TEST_COMBINED_INPUT_CSV,
   prepareWrite,
-} from '#utils/datasetsUtils.js';
+} from '#pipeline/datasetsUtils.js';
 
 // merge datasets already has a combined_input.csv so --archives flag isnt present for merge_datasets.js
 const test = process.argv.includes('--test');
@@ -56,22 +56,20 @@ function readCsvFile(filePath) {
  * Main merge function
  */
 async function mergeCsvFiles() {
-  console.log('\n' + '='.repeat(20));
-  console.log('Merging CSV files from processed/ and manual_entries/ folders');
-  console.log('='.repeat(20));
+  logger.info('starting CSV merge from processed and manual_entries folders');
 
   // Verify directories exist
   try {
     assertDirExists(INPUT_PROCESSED_DIR, 'processed datasets directory');
   } catch (err) {
-    console.error(`✗ ERROR: ${err.message}`);
+    logger.error({ err }, 'Processed directory missing');
     process.exit(1);
   }
 
   try {
     assertDirExists(INPUT_MANUAL_ENTRIES_DIR, 'manual entries directory');
   } catch (err) {
-    console.error(`✗ ERROR: ${err.message}`);
+    logger.error({ err }, 'Manual entries directory missing');
     process.exit(1);
   }
 
@@ -90,22 +88,19 @@ async function mergeCsvFiles() {
 
     csvFiles = [...processedFiles, ...manualFiles];
   } catch (error) {
-    console.error(`✗ ERROR: Failed to list CSV files: ${error.message}`);
+    logger.error({ err: error }, 'Failed to list CSV files');
     process.exit(1);
   }
 
   if (csvFiles.length === 0) {
-    console.error('✗ ERROR: No CSV files found in processed/ or manual_entries/');
+    logger.error('No CSV files found in processed or manual_entries');
     process.exit(1);
   }
 
-  console.log(`\n✓ Found ${csvFiles.length} CSV files to merge:`);
-  csvFiles.forEach((f) => {
-    console.log(`  - ${path.relative(process.cwd(), f)}`);
-  });
+  logger.info({ count: csvFiles.length }, 'Found CSV files for merge');
 
   // Merge files
-  console.log('\nMerging files...');
+  logger.info('Starting CSV file merge');
 
   const mergedRows = [];
   let expectedHeader = null;
@@ -118,14 +113,14 @@ async function mergeCsvFiles() {
       const { header, rows } = readCsvFile(filePath);
 
       if (!header) {
-        console.log(`  ‼ ${fileName} - Empty file, skipping`);
+        logger.warn({ fileName }, 'Empty file, skipping');
         continue;
       }
 
       // Verify header consistency (first file sets the expected header)
       if (!expectedHeader) {
         expectedHeader = header;
-        console.log(`  ✓ Header: ${header.substring(0, 80)}...`);
+        logger.info({ fileName }, 'Set CSV header');
       }
 
       // Add all data rows
@@ -133,14 +128,14 @@ async function mergeCsvFiles() {
       mergedRows.push(...rows);
       totalRecords += fileRecordCount;
 
-      console.log(`  ✓ ${fileName} - Added ${fileRecordCount} records`);
+      logger.info({ fileName, recordCount: fileRecordCount }, 'Added records from file');
     } catch (error) {
-      console.error(`  ✗ ERROR processing ${fileName}: ${error.message}`);
+      logger.error({ err: error, fileName }, 'Error processing file');
       process.exit(1);
     }
   }
 
-  console.log(`\nTotal records collected: ${totalRecords}`);
+  logger.info({ totalRecords }, 'Total records collected');
 
   // Remove duplicates based on row content (excluding ID) and renumber IDs within each dataset prefix
   const groupedByPrefix = new Map();
@@ -189,9 +184,7 @@ async function mergeCsvFiles() {
   }
 
   if (totalDuplicatesRemoved > 0) {
-    console.log(
-      `✓ Removed ${totalDuplicatesRemoved} duplicate row${totalDuplicatesRemoved === 1 ? '' : 's'} based on content (excluding ID) and renumbered IDs within each dataset prefix`,
-    );
+    logger.info({ count: totalDuplicatesRemoved }, 'Duplicates removed');
   }
 
   mergedRows.length = 0;
@@ -200,7 +193,7 @@ async function mergeCsvFiles() {
 
   // Write output
   if (totalRecords === 0) {
-    console.error('\n✗ ERROR: No records were merged!');
+    logger.error('No records were merged');
     process.exit(1);
   }
 
@@ -214,48 +207,30 @@ async function mergeCsvFiles() {
     } catch {
       // ignore chmod errors on some platforms
     }
-    console.log(`\n✓ Merged file created: ${path.relative(process.cwd(), OUTPUT_FILE)}`);
+    logger.info({ file: path.relative(process.cwd(), OUTPUT_FILE) }, 'Merged file created');
   } catch (error) {
-    console.error(`✗ ERROR: Failed to write output: ${error.message}`);
+    logger.error({ err: error }, 'Failed to write output');
     process.exit(1);
   }
 
   // Validation
-  console.log('\nValidating output...');
+  logger.info('Validating output');
 
   try {
     const content = fs.readFileSync(OUTPUT_FILE, 'utf-8');
     const lines = content.split('\n').filter((line) => line.trim());
 
     if (lines.length < 2) {
-      console.warn('‼ WARNING: Output file has less than 2 lines (header + data)');
+      logger.warn('Output file has fewer than 2 lines');
     }
 
-    const headerLine = lines[0];
-    const sampleLine = lines[1] || 'No data rows';
-
-    console.log(`✓ Header: ${headerLine.substring(0, 80)}${headerLine.length > 80 ? '...' : ''}`);
-    console.log(`✓ Sample:  ${sampleLine.substring(0, 80)}${sampleLine.length > 80 ? '...' : ''}`);
-    console.log(`✓ Total lines: ${lines.length}`);
+    logger.info({ totalLines: lines.length }, 'Validation complete');
   } catch (error) {
-    console.warn(`‼ Validation warning: ${error.message}`);
+    logger.warn({ err: error }, 'Validation error');
   }
 
   // Summary
-  console.log('\n' + '='.repeat(30));
-  console.log('MERGE COMPLETE');
-  console.log('='.repeat(30));
-  console.log(`Output file: ${OUTPUT_FILE}`);
-  console.log(`Total records: ${totalRecords}`);
-  console.log('\nNext steps:');
-  console.log('  1. Review combined_input.csv for quality');
-  console.log('  2. Run: npm run chunk');
-  console.log('  3. Run: npm run embed');
-  console.log('  4. Run: npm run store');
-  console.log(
-    '  5. use --archives flag to write to archives/ instead of datasets/out/ for a "run archives" variant',
-  );
-  console.log('='.repeat(30) + '\n');
+  logger.info({ outputFile: OUTPUT_FILE, totalRecords }, 'merge complete');
 }
 
 // Execute if run directly
@@ -264,7 +239,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     try {
       await mergeCsvFiles();
     } catch (error) {
-      console.error('\n✕ Fatal error:', error.message);
+      logger.error({ err: error }, 'Fatal error');
       process.exit(1);
     }
   })();

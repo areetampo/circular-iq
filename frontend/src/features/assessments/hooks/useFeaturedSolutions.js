@@ -2,6 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getFeaturedSolutions } from '../api/assessmentApi';
 
+/**
+ * useFeaturedSolutions
+ * Fetches featured solutions for the dashboard (optional industry and search query).
+ * @param {Object} [options]
+ * @returns {Object}
+ */
 export function useFeaturedSolutions({ limit = 3, industry, q = undefined, enabled = true } = {}) {
   const query = useQuery({
     queryKey: ['featured-solutions', { limit, industry, q }],

@@ -1,3 +1,9 @@
+/**
+ * Search Controller
+ * Semantic and hybrid search over the documents knowledge base.
+ * Used by /api/search route.
+ */
+
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
 import { documentsRepository } from '#database/index.js';
 
@@ -45,7 +51,7 @@ export function searchDocuments(openai) {
 
       res.json({ results: formatted, count: formatted.length });
     } catch (err) {
-      console.error('[search] Error:', err.message);
+      logger.error({ err }, 'Search request error');
       res.status(500).json({ error: err.message });
     }
   };

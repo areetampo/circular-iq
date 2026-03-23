@@ -168,3 +168,5 @@ export default function EvaluationCriteriaDrawer() {
     </Drawer>
   );
 }
+
+EvaluationCriteriaDrawer.propTypes = {};

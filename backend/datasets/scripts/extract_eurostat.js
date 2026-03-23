@@ -55,7 +55,7 @@ const MIN_YEAR = 2019;
 const MAX_ROWS_PER_DATASET = 100;
 
 if (!dataset.raw_folder_contents) {
-  console.error('✕ dataset.raw_folder_contents is missing – check your dataset definition.');
+  logger.error('✕ dataset.raw_folder_contents is missing – check your dataset definition.');
   process.exit(1);
 }
 
@@ -262,27 +262,27 @@ async function main() {
 
   for (const ds of datasets) {
     if (!ds.file) {
-      console.warn(`‼ ️ No file defined for dataset key "${ds.key}" – skipping.`);
+      logger.warn(`‼ ️ No file defined for dataset key "${ds.key}" – skipping.`);
       continue;
     }
 
     const filePath = path.join(rawDir, ds.file);
     if (!fs.existsSync(filePath)) {
-      console.warn(`‼ ️ File not found: ${filePath} – skipping.`);
+      logger.warn(`‼ ️ File not found: ${filePath} – skipping.`);
       continue;
     }
 
-    console.log(`📄 Processing ${ds.file}`);
+    logger.info(`📄 Processing ${ds.file}`);
     let rows;
     try {
       rows = parseEurostatCSV(filePath);
     } catch (err) {
-      console.error(`✕ Error parsing ${ds.file}: ${err.message}`);
+      logger.error(`✕ Error parsing ${ds.file}: ${err.message}`);
       continue;
     }
 
     if (rows.length === 0) {
-      console.warn(`‼ ️ No valid rows extracted from ${ds.file}`);
+      logger.warn(`‼ ️ No valid rows extracted from ${ds.file}`);
       continue;
     }
 
@@ -329,14 +329,14 @@ async function main() {
   }
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, allRows);
-  console.log(
+  logger.info(
     `✓ Written ${writeResult.writtenCount} curated rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

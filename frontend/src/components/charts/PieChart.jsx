@@ -1,5 +1,11 @@
+import PropTypes from 'prop-types';
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart';
 
+/**
+ * PieChart Component
+ * Renders a pie chart using MUI X-Charts library
+ * Extracts values and labels from data objects
+ */
 export default function PieChart({
   data = [],
   dataKey = 'value',
@@ -37,3 +43,16 @@ export default function PieChart({
     />
   );
 }
+
+PieChart.propTypes = {
+  /** Array of data objects for the chart */
+  data: PropTypes.arrayOf(PropTypes.object),
+  /** Key in data objects containing numeric values */
+  dataKey: PropTypes.string,
+  /** Key in data objects containing label/name values */
+  nameKey: PropTypes.string,
+  /** Chart height in pixels */
+  height: PropTypes.number,
+  /** Show/hide legend */
+  showLegend: PropTypes.bool,
+};

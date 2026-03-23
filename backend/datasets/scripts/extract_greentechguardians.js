@@ -93,7 +93,7 @@ function computeQualityScore(record) {
 async function main() {
   // Read all JSONL files
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.endsWith('.jsonl'));
-  console.log(`Found ${files.length} JSONL files:`, files);
+  logger.info(`Found ${files.length} JSONL files:`, files);
 
   // Map to store unique records by (problem + solution) – deduplicates across files
   const records = new Map();
@@ -104,7 +104,7 @@ async function main() {
     const cleaned = content.replace(/:\s*NaN\b/g, ': null'); // clean NaN
     const lines = cleaned.split('\n').filter((line) => line.trim());
 
-    console.log(`Processing ${file} (${lines.length} lines)`);
+    logger.info(`Processing ${file} (${lines.length} lines)`);
 
     for (const line of lines) {
       try {
@@ -118,17 +118,17 @@ async function main() {
           records.set(key, { record: data, priority: PRIORITY[file] || 0 });
         }
       } catch (e) {
-        console.warn(`Skipping invalid JSON in ${file}: ${e.message}`);
+        logger.warn(`Skipping invalid JSON in ${file}: ${e.message}`);
       }
     }
   }
 
-  console.log(`Unique JSONL records after deduplication: ${records.size}`);
+  logger.info(`Unique JSONL records after deduplication: ${records.size}`);
 
   // --- Read and merge AI_EarthHack_Dataset.csv ---
   const csvContent = fs.readFileSync(ai_earthhack_dataset, 'utf-8');
   const rows = parse(csvContent, { columns: true, skip_empty_lines: true, trim: true });
-  console.log(`EarthHack CSV has ${rows.length} rows`);
+  logger.info(`EarthHack CSV has ${rows.length} rows`);
 
   for (const row of rows) {
     const problem = row.problem?.trim();
@@ -151,7 +151,7 @@ async function main() {
     }
   }
 
-  console.log(`Total unique records after merging CSV: ${records.size}`);
+  logger.info(`Total unique records after merging CSV: ${records.size}`);
 
   // Build final rows array with quality scores
   const finalRowsWithScore = [];
@@ -189,7 +189,7 @@ async function main() {
   const sortedRows = finalRowsWithScore.sort((a, b) => b.score - a.score);
   const topRows = sortedRows.slice(0, MAX_ROWS).map((item) => item.row);
 
-  console.log(
+  logger.info(
     `Selected ${topRows.length} highest‑quality rows (out of ${finalRowsWithScore.length})`,
   );
 
@@ -206,14 +206,14 @@ async function main() {
   }));
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalMapped);
-  console.log(
+  logger.info(
     `✓ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('✕ Fatal error:', err.message);
+    logger.error('✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

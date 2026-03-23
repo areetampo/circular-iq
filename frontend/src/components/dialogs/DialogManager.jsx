@@ -80,13 +80,15 @@ function DialogManagerContent() {
       return <SessionRestoreDialog sessionData={data?.sessionData} onDismiss={data?.onDismiss} />;
 
     default:
-      console.warn('Unknown dialog type:', type);
+      logger.warn('Unknown dialog type:', type);
       return null;
   }
 }
 
 // Memoize the entire manager - now works properly since it gets state from context directly
 const DialogManager = React.memo(DialogManagerContent);
+
+DialogManager.propTypes = {};
 
 export default DialogManager;
 

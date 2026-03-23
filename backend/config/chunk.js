@@ -1,3 +1,5 @@
+/** Chunking constants and dataset field maps — used only by `pipeline/generate_chunks.js`. */
+
 // ===== Constants =====
 export const CHUNK_SIZE_TOKENS = 350; // Target ~300-500 tokens per chunk
 export const MAX_METADATA_FIELD_LENGTH = 500; // Truncate long strings to avoid bloating chunks
@@ -206,7 +208,7 @@ export function formatMetadataFromJson(metadataJson, datasetKey) {
 
     return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
   } catch (e) {
-    console.warn(`‼ Could not parse metadata_json: ${e.message}`);
+    logger.warn({ err: e }, 'Could not parse metadata_json');
     return '';
   }
 }

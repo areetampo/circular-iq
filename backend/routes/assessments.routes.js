@@ -20,7 +20,10 @@ const IS_PROD = BACKEND_CONFIG.isProduction;
  */
 function logRequest(method, path, status, duration) {
   if (!IS_PROD) {
-    console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
+    logger.info(
+      { method, path, status, duration, ts: new Date().toISOString() },
+      'Route request complete',
+    );
   }
 }
 
@@ -62,7 +65,7 @@ export default function createAssessmentsRouter(supabase) {
       logRequest('POST', '/assessments', 201, Date.now() - startTime);
       res.status(201).json(result);
     } catch (error) {
-      console.error('Error saving assessment:', error);
+      logger.error({ err: error }, 'Error saving assessment');
       logRequest('POST', '/assessments', 500, Date.now() - startTime);
       res.status(500).json(errorResponse(error, 'Failed to save assessment'));
     }
@@ -85,7 +88,7 @@ export default function createAssessmentsRouter(supabase) {
       logRequest('GET', '/assessments', 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
-      console.error('Error fetching assessments:', error);
+      logger.error({ err: error }, 'Error fetching assessments');
       logRequest('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json(errorResponse(error, 'Failed to fetch assessments'));
     }
@@ -103,7 +106,7 @@ export default function createAssessmentsRouter(supabase) {
       logRequest('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
     } catch (error) {
-      console.error('Error fetching assessment stats:', error);
+      logger.error({ err: error }, 'Error fetching assessment stats');
       logRequest('GET', '/assessments/stats', 500, Date.now() - startTime);
       res.status(500).json(errorResponse(error, 'Failed to fetch assessment statistics'));
     }
@@ -176,7 +179,7 @@ export default function createAssessmentsRouter(supabase) {
       logRequest('GET', '/assessments/market-analysis', 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
-      console.error('Error fetching market data:', error);
+      logger.error({ err: error }, 'Error fetching market data');
       logRequest('GET', '/assessments/market-analysis', 500, Date.now() - startTime);
       res.status(500).json(errorResponse(error, 'Failed to fetch market data'));
     }

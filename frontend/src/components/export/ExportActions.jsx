@@ -98,8 +98,3 @@ ExportActions.propTypes = {
   isExportingCSV: PropTypes.bool,
   isExportingPDF: PropTypes.bool,
 };
-
-ExportActions.defaultProps = {
-  isExportingCSV: false,
-  isExportingPDF: false,
-};

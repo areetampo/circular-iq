@@ -338,7 +338,7 @@ function scoreItem(description, results) {
 // Backup recovery (unchanged except for using new extraction in rebuild)
 // ============================================================================
 async function rebuildFromBackup() {
-  console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -346,13 +346,13 @@ async function rebuildFromBackup() {
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `‼ No backup content found. Cannot rebuild output.`;
-      console.warn(msg);
+      logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
       return;
     }
 
-    console.log(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Reconstruct items from the stored metadata_json
@@ -376,7 +376,7 @@ async function rebuildFromBackup() {
             metadata,
           };
         } catch (e) {
-          console.warn(`‼ Skipping invalid backup row: ${e.message}`);
+          logger.warn(`‼ Skipping invalid backup row: ${e.message}`);
           return null;
         }
       })
@@ -400,11 +400,11 @@ async function rebuildFromBackup() {
     // Take top BEST_LIMIT
     const bestItems = uniqueItems.slice(0, BEST_LIMIT);
 
-    console.log(`✓ Selected ${bestItems.length} best items from backup`);
+    logger.info(`✓ Selected ${bestItems.length} best items from backup`);
     await appendLogs(DATASET_KEY, `Selected ${bestItems.length} items after scoring/filtering.`);
 
     if (bestItems.length === 0) {
-      console.warn(`‼ No valid items could be reconstructed from backup.`);
+      logger.warn(`‼ No valid items could be reconstructed from backup.`);
       await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -425,17 +425,17 @@ async function rebuildFromBackup() {
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
-    console.log(
+    logger.info(
       `\n✨ Successfully rebuilt ${writeResult.writtenCount} ECESP items from backup (${writeResult.duplicateCount} duplicate rows removed)`,
     );
-    console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+    logger.info(`📁 Saved to: ${OUTPUT_PATH}`);
     await appendLogs(
       DATASET_KEY,
       `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('✕ Error rebuilding from backup:', error.message);
+    logger.error('✕ Error rebuilding from backup:', error.message);
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -454,7 +454,7 @@ async function scrape_ecesp() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  console.log(`Scraping ECESP. Detailed logs: ${logFilePath}`);
+  logger.info(`Scraping ECESP. Detailed logs: ${logFilePath}`);
 
   let browser;
   try {
@@ -507,11 +507,11 @@ async function scrape_ecesp() {
         } catch (err) {
           retries--;
           const msg = `  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
-          console.warn(msg);
+          logger.warn(msg);
           await appendLogs(DATASET_KEY, msg);
           if (retries === 0) {
             const skipMsg = `  ‼ Skipping page ${pageNum} after 3 failed attempts.`;
-            console.warn(skipMsg);
+            logger.warn(skipMsg);
             await appendLogs(DATASET_KEY, skipMsg);
             break;
           } else {
@@ -775,7 +775,7 @@ async function scrape_ecesp() {
     await appendLogs(DATASET_KEY, `Total raw practices collected: ${allItems.length}`);
 
     if (allItems.length === 0) {
-      console.log('✕ No items scraped. Exiting.');
+      logger.info('✕ No items scraped. Exiting.');
       await appendLogs(DATASET_KEY, `‼ No items scraped.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
@@ -822,10 +822,10 @@ async function scrape_ecesp() {
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
-    console.log(
+    logger.info(
       `\n✓ Scraped ${writeResult.writtenCount} ECESP items (${writeResult.duplicateCount} duplicate rows removed).`,
     );
-    console.log(`📁 Saved to: ${OUTPUT_PATH}`);
+    logger.info(`📁 Saved to: ${OUTPUT_PATH}`);
 
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];
@@ -844,13 +844,13 @@ async function scrape_ecesp() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
   } catch (error) {
-    console.error('✕ Fatal error in scrape_ecesp:', error);
+    logger.error('✕ Fatal error in scrape_ecesp:', error);
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
   } finally {
     if (browser) await browser.close();
-    console.log('✓ Browser closed.');
+    logger.info('✓ Browser closed.');
   }
 }
 
@@ -865,7 +865,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

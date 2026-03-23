@@ -2,7 +2,14 @@ import { Card, ProgressCircle } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
 
-function RadarChartComponent({ data, radarConfigs, height, showLegend, showTooltip, isLoading }) {
+function RadarChartComponent({
+  data,
+  radarConfigs,
+  height = 400,
+  showLegend = true,
+  showTooltip = true,
+  isLoading = false,
+}) {
   // Default color palette for charts
   const defaultColors = [
     '#3b82f6', // blue
@@ -268,13 +275,6 @@ RadarChartComponent.propTypes = {
   showLegend: PropTypes.bool,
   showTooltip: PropTypes.bool,
   isLoading: PropTypes.bool,
-};
-
-RadarChartComponent.defaultProps = {
-  height: 400,
-  showLegend: true,
-  showTooltip: true,
-  isLoading: false,
 };
 
 export default RadarChartComponent;

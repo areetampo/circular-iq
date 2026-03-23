@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Returns the vaul `direction` for the global drawer.
- *   "bottom"  — screens < 640px  (<=sm)
- *   "right"   — screens >= 640px (>sm)
+ * useDrawerDirection
+ * Returns drawer slide direction (`bottom` on narrow viewports, `right` on wider).
+ * @param {Object} options
+ * @returns {'bottom' | 'right'}
  */
 export function useDrawerDirection(): 'bottom' | 'right' {
   // Switch from bottom → right at md breakpoint (768px) instead of sm (640px)

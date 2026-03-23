@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 
@@ -17,7 +17,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('ErrorBoundary caught an error', error, info);
+    logger.error('ErrorBoundary caught an error', error, info);
   }
 
   render() {

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
+import PropTypes from 'prop-types';
 import { MemoryRouter } from 'react-router-dom';
 
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -26,6 +27,11 @@ export function Providers({ children, initialEntries = ['/'] }) {
     </QueryClientProvider>
   );
 }
+
+Providers.propTypes = {
+  children: PropTypes.node.isRequired,
+  initialEntries: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string), PropTypes.string]),
+};
 
 export function renderWithProviders(ui, options = {}) {
   const { wrapperProps, ...renderOptions } = options;

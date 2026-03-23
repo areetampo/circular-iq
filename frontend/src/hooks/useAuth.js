@@ -1,9 +1,8 @@
 /**
- * Re-export useAuth from AuthContext
- *
- * This maintains backward compatibility - all existing imports still work.
- * Components continue to import from '@/hooks/useAuth', but now they get
- * the context-based implementation instead of creating duplicate state.
+ * useAuth
+ * Re-exports the current user and auth actions from AuthContext (single source of truth).
+ * @param {Object} options
+ * @returns {Object}
  */
 
 export { useAuth } from '@/contexts/AuthContext';

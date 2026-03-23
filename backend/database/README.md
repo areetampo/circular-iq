@@ -1,5 +1,7 @@
 # Database Schema and Setup
 
+Updated for the current refactor and Supabase/Aiven flexibility.
+
 PostgreSQL database hosted on Supabase with pgvector extension for semantic search.
 
 ## Overview

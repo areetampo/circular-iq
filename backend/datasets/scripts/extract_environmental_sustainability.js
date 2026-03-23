@@ -64,16 +64,16 @@ async function main() {
   try {
     raw = await fs.readFile(INPUT_FILE, 'utf-8');
   } catch (err) {
-    console.error(`✕ Input file not found: ${INPUT_FILE}`);
+    logger.error(`✕ Input file not found: ${INPUT_FILE}`);
     throw err;
   }
 
   const records = parse(raw, { columns: true, skip_empty_lines: true });
-  console.log(`📄 Raw records: ${records.length}`);
+  logger.info(`📄 Raw records: ${records.length}`);
 
   // 2. Filter out aggregate regions
   const filteredRecords = records.filter((r) => r.Location && !aggregateNames.has(r.Location));
-  console.log(`📍 After removing aggregates: ${filteredRecords.length}`);
+  logger.info(`📍 After removing aggregates: ${filteredRecords.length}`);
 
   // 3. Score by completeness and pick top 50
   const scoredRows = filteredRecords
@@ -84,7 +84,7 @@ async function main() {
     .sort((a, b) => b.score - a.score)
     .slice(0, MAX_RECORDS);
 
-  console.log(`🏆 Selected top ${scoredRows.length} rows (by completeness).`);
+  logger.info(`🏆 Selected top ${scoredRows.length} rows (by completeness).`);
 
   // 4. Transform to standard format
   const processed = scoredRows.map(({ data: r }) => {
@@ -107,14 +107,14 @@ async function main() {
 
   // 6. Write output (helper creates directory, handles locking)
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
-  console.log(
+  logger.info(
     `✓ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('✕ Fatal error:', err.message);
+    logger.error('✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

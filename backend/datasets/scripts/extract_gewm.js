@@ -100,7 +100,7 @@ function parseEuropeanNumber(str) {
 // Run the embedded Python extraction using a cross‑platform command
 // ----------------------------------------------------------------------
 async function runPythonExtraction() {
-  console.log('Running embedded Python extraction...');
+  logger.info('Running embedded Python extraction...');
 
   // Check if python is available
   try {
@@ -115,7 +115,7 @@ async function runPythonExtraction() {
   try {
     await execPromise('py -c "import camelot"');
   } catch {
-    console.warn(
+    logger.warn(
       '‼ ️ Camelot is not installed. Attempting to install it (this may take a moment)...',
     );
     try {
@@ -135,11 +135,11 @@ async function runPythonExtraction() {
 
   try {
     const { stdout, stderr } = await execPromise(command);
-    if (stderr) console.error('Python stderr:', stderr);
-    console.log('Python stdout:', stdout);
-    console.log('✓ Python extraction completed.');
+    if (stderr) logger.error('Python stderr:', stderr);
+    logger.info('Python stdout:', stdout);
+    logger.info('✓ Python extraction completed.');
   } catch (error) {
-    console.error('✕ Error running Python script:', error.message);
+    logger.error('✕ Error running Python script:', error.message);
     throw error;
   }
 }
@@ -148,7 +148,7 @@ async function runPythonExtraction() {
 // Clean the raw CSV into the final format (now async)
 // ----------------------------------------------------------------------
 async function cleanData() {
-  console.log('Reading raw CSV...');
+  logger.info('Reading raw CSV...');
   const raw = fs.readFileSync(RAW_CSV, 'utf8');
   const rows = parse(raw, {
     skip_empty_lines: false,
@@ -215,7 +215,7 @@ async function cleanData() {
     countries.push(current);
   }
 
-  console.log(`Parsed ${countries.length} raw country entries.`);
+  logger.info(`Parsed ${countries.length} raw country entries.`);
 
   // Deduplicate by country name
   const countryMap = new Map();
@@ -223,10 +223,10 @@ async function cleanData() {
     countryMap.set(c.country, c);
   }
   const uniqueCountries = Array.from(countryMap.values());
-  console.log(`After deduplication: ${uniqueCountries.length} unique countries.`);
+  logger.info(`After deduplication: ${uniqueCountries.length} unique countries.`);
 
   if (uniqueCountries.length === 0) {
-    console.warn('‼ ️ No countries found. The CSV might be empty or misparsed.');
+    logger.warn('‼ ️ No countries found. The CSV might be empty or misparsed.');
     return;
   }
 
@@ -267,7 +267,7 @@ async function cleanData() {
   });
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, mapped); // now allowed inside async function
-  console.log(
+  logger.info(
     `✓ Final cleaned CSV written to ${OUTPUT_PATH} with ${writeResult.writtenCount} rows (${writeResult.duplicateCount} duplicate rows removed).`,
   );
 }
@@ -288,6 +288,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Unhandled error:', err);
+  logger.error('Unhandled error:', err);
   process.exit(1);
 });

@@ -12,7 +12,10 @@ const IS_PROD = BACKEND_CONFIG.isProduction;
 
 function logRequest(method, path, status, duration) {
   if (!IS_PROD) {
-    console.log(`[${new Date().toISOString()}] ${method} ${path} - ${status} (${duration}ms)`);
+    logger.info(
+      { method, path, status, duration, timestamp: new Date().toISOString() },
+      'Route request complete',
+    );
   }
 }
 
@@ -41,7 +44,7 @@ export default function createAnalyticsRouter(supabase, serviceSupabase) {
 
   // fallback error handler for unexpected errors
   router.use((err, req, res, next) => {
-    console.error('Analytics route error:', err);
+    logger.error({ err }, 'Analytics route error');
     res.status(500).json(errorResponse(err));
   });
 

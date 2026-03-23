@@ -25,7 +25,7 @@ import {
   OUT_TEST_COMBINED_INPUT_CSV,
   OUT_TEST_COMBINED_INPUT_FINAL_CSV,
   STRINGIFY_OPTIONS,
-} from '#utils/datasetsUtils.js';
+} from '#pipeline/datasetsUtils.js';
 
 // ===== Configuration =====
 const archives = process.argv.includes('--archives');
@@ -132,11 +132,12 @@ function sampleRecordsByDataset(records) {
 (async () => {
   try {
     if (TAKE_ALL)
-      console.log(
-        '‼ TAKE_ALL is enabled. Ignoring limits and extracting all rows from all datasets...',
+      logger.info(
+        {},
+        'TAKE_ALL is enabled. Ignoring limits and extracting all rows from all datasets',
       );
 
-    console.log(`Reading ${INPUT_FILE}...`);
+    logger.info({}, `Reading ${INPUT_FILE}`);
     const fileContent = fs.readFileSync(INPUT_FILE, 'utf-8');
 
     const records = parse(fileContent, {
@@ -155,10 +156,11 @@ function sampleRecordsByDataset(records) {
 
     fs.writeFileSync(OUTPUT_FILE, csvOutput);
 
-    console.log(`\nExtraction Complete!`);
-    console.log('Breakdown by dataset:', datasetCounters);
-    console.log(`Saved ${sampledRecords.length} rows to ${OUTPUT_FILE}`);
+    logger.info(
+      { datasetCounters, outputFile: OUTPUT_FILE, rowCount: sampledRecords.length },
+      'Sample extraction complete',
+    );
   } catch (error) {
-    console.error('Error during sample extraction:', error, error.message, error.stack);
+    logger.error({ err: error }, 'Error during sample extraction');
   }
 })();

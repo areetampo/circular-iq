@@ -80,7 +80,7 @@ export default function ComparePage() {
       sessionStorage.removeItem(STORAGE_KEY);
       navigate(`/assessments/compare/${id1}/${id2}`);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       setError('One or more ids incorrect');
     } finally {
       setLoading(false);
@@ -172,3 +172,5 @@ export default function ComparePage() {
     </div>
   );
 }
+
+ComparePage.propTypes = {};

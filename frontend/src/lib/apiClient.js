@@ -1,10 +1,4 @@
-/**
- * API Client Helper
- * Handles routing requests through the Vercel proxy in production
- * and directly to the backend in development
- *
- * Location: src/lib/apiClient.js
- */
+/** Builds proxied API URLs for backend requests. */
 
 import { FRONTEND_CONFIG } from '@/config';
 

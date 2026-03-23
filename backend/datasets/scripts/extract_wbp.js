@@ -111,7 +111,7 @@ async function extractTextFromPDF(filePath) {
 // ----------------------------------------------------------------------
 async function parseTaxonomyPDF(filePath) {
   if (!fs.existsSync(filePath)) {
-    console.warn('‼ Taxonomy PDF not found, using hard‑coded sector mapping.');
+    logger.warn('‼ Taxonomy PDF not found, using hard‑coded sector mapping.');
     return FALLBACK_SECTOR_MAP;
   }
 
@@ -129,7 +129,7 @@ async function parseTaxonomyPDF(filePath) {
       }
     }
     if (startIdx === -1) {
-      console.warn('‼ Could not find the sector table in PDF, using hard‑coded mapping.');
+      logger.warn('‼ Could not find the sector table in PDF, using hard‑coded mapping.');
       return FALLBACK_SECTOR_MAP;
     }
 
@@ -158,14 +158,14 @@ async function parseTaxonomyPDF(filePath) {
     }
 
     if (sectorMap.size === 0) {
-      console.warn('‼ PDF parsing returned 0 codes, using hard‑coded mapping.');
+      logger.warn('‼ PDF parsing returned 0 codes, using hard‑coded mapping.');
       return FALLBACK_SECTOR_MAP;
     }
 
-    console.log(`📚 Sector taxonomy loaded from PDF: ${sectorMap.size} codes.`);
+    logger.info(`📚 Sector taxonomy loaded from PDF: ${sectorMap.size} codes.`);
     return sectorMap;
   } catch (err) {
-    console.warn('‼ Error parsing taxonomy PDF, using hard‑coded mapping:', err.message);
+    logger.warn('‼ Error parsing taxonomy PDF, using hard‑coded mapping:', err.message);
     return FALLBACK_SECTOR_MAP;
   }
 }
@@ -419,7 +419,7 @@ function buildSolution(project, reportSections) {
 // Main
 // ----------------------------------------------------------------------
 async function main() {
-  console.log('🚀 Starting extraction for World Bank projects (final version)...');
+  logger.info('🚀 Starting extraction for World Bank projects (final version)...');
 
   // 1. Load the local JSON files
   const basicData = JSON.parse(await fs.promises.readFile(BASIC_JSON, 'utf8'));
@@ -430,7 +430,7 @@ async function main() {
 
   // 3. Load and merge projects
   const allProjects = loadProjects(basicData, detailedData);
-  console.log(`📦 Loaded ${allProjects.length} projects.`);
+  logger.info(`📦 Loaded ${allProjects.length} projects.`);
 
   // 4. Parse report PDFs
   const reports = [];
@@ -444,10 +444,10 @@ async function main() {
       const countryMatch = file.match(/report_([a-z_]+)\.pdf/i);
       const country = countryMatch ? countryMatch[1].replace(/_/g, ' ') : '';
       reports.push({ file, country: country.toLowerCase(), ...parsed });
-      console.log(`📄 Parsed report: ${file} (country: ${country})`);
+      logger.info(`📄 Parsed report: ${file} (country: ${country})`);
     }
   } else {
-    console.log('‼ Reports folder not found, skipping report extraction.');
+    logger.info('‼ Reports folder not found, skipping report extraction.');
   }
 
   // Build report lookup by country
@@ -479,7 +479,7 @@ async function main() {
     const solution = buildSolution(proj, reportSections);
 
     if (!solution.endsWith('.') && !solution.endsWith('"') && solution.length > 0) {
-      console.warn(
+      logger.warn(
         `‼ Solution for ${proj.id} (${proj.project_name}) may be truncated: ends with "${solution.slice(-20)}"`,
       );
     }
@@ -561,19 +561,19 @@ async function main() {
 
   rows.sort((a, b) => b._scoreValue - a._scoreValue);
   const topRows = rows.slice(0, MAX_OUTPUT_ROWS);
-  console.log(`🎯 Selected top ${topRows.length} rows (max ${MAX_OUTPUT_ROWS}) by quality score.`);
+  logger.info(`🎯 Selected top ${topRows.length} rows (max ${MAX_OUTPUT_ROWS}) by quality score.`);
 
   const finalRows = topRows.map(({ _scoreValue, ...rest }) => rest);
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

@@ -599,10 +599,10 @@ function extractSection(text, startHeading, endHeading) {
 // Main processing
 // ----------------------------------------------------------------------
 async function main() {
-  console.log(`🔍 Scanning ${RAW_DIR} for PDF files...`);
+  logger.info(`🔍 Scanning ${RAW_DIR} for PDF files...`);
 
   if (!fs.existsSync(RAW_DIR)) {
-    console.error(`✕ Raw directory not found: ${RAW_DIR}`);
+    logger.error(`✕ Raw directory not found: ${RAW_DIR}`);
     process.exit(1);
   }
 
@@ -610,7 +610,7 @@ async function main() {
   const pdfFiles = files.filter((f) => f.toLowerCase().endsWith('.pdf'));
 
   if (pdfFiles.length === 0) {
-    console.log('✕ No PDF files found.');
+    logger.info('✕ No PDF files found.');
     return;
   }
 
@@ -618,7 +618,7 @@ async function main() {
 
   for (const file of pdfFiles) {
     const filePath = path.join(RAW_DIR, file);
-    console.log(`📄 Processing ${file}...`);
+    logger.info(`📄 Processing ${file}...`);
 
     try {
       const text = await extractTextFromPDF(filePath);
@@ -640,14 +640,14 @@ async function main() {
       }
 
       allRows.push(...rows);
-      console.log(`   ✓ Extracted ${rows.length} record(s).`);
+      logger.info(`   ✓ Extracted ${rows.length} record(s).`);
     } catch (err) {
-      console.error(`   ✕ Error processing ${file}:`, err.message);
+      logger.error(`   ✕ Error processing ${file}:`, err.message);
     }
   }
 
   if (allRows.length === 0) {
-    console.log('✕ No data extracted.');
+    logger.info('✕ No data extracted.');
     return;
   }
 
@@ -660,20 +660,20 @@ async function main() {
   // Sort by score descending (optional)
   scored.sort((a, b) => b.score - a.score);
 
-  console.log(`\n🎯 Total extracted rows: ${scored.length}`);
+  logger.info(`\n🎯 Total extracted rows: ${scored.length}`);
 
   // Remove temporary fields
   const final = scored.map(({ _scoreValue, score, ...rest }) => rest);
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
-  console.log(
+  logger.info(
     `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

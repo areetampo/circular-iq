@@ -87,7 +87,7 @@ function scoreCaseQuality(data) {
  */
 async function extractCaseData(page, url, title) {
   try {
-    console.log(`    Visiting detail page: ${url}`);
+    logger.info(`    Visiting detail page: ${url}`);
     await appendLogs(DATASET_KEY, `Visiting detail page: ${url}`);
 
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
@@ -114,23 +114,23 @@ async function extractCaseData(page, url, title) {
         containerFound = true;
         content = await page.$eval(selector, (el) => el.innerText);
         if (content && content.trim().length > 0) {
-          console.log(`    Found content using selector: ${selector}`);
+          logger.info(`    Found content using selector: ${selector}`);
           break;
         }
       } catch (err) {
-        console.error(`Error occurred while waiting for selector ${selector}: ${err.message}`);
+        logger.error(`Error occurred while waiting for selector ${selector}: ${err.message}`);
         // selector not found or empty, try next
       }
     }
 
     // If no content found with specific selectors, fallback to body text
     if (!content || content.trim().length === 0) {
-      console.log('    Falling back to body text');
+      logger.info('    Falling back to body text');
       content = await page.$eval('body', (el) => el.innerText);
     }
 
     if (!content || content.trim().length === 0) {
-      console.log('    No content extracted at all');
+      logger.info('    No content extracted at all');
       return null;
     }
 
@@ -269,7 +269,7 @@ async function extractCaseData(page, url, title) {
     rowData._qualityScore = scoreCaseQuality(rowData);
 
     // Log a preview of what we got
-    console.log(
+    logger.info(
       `    Extracted ${content.length} chars, ${paragraphs.length} paragraphs, ${materials.length} materials`,
     );
     await appendLogs(
@@ -279,7 +279,7 @@ async function extractCaseData(page, url, title) {
 
     return rowData;
   } catch (error) {
-    console.error(`Error extracting ${url}:`, error.message);
+    logger.error(`Error extracting ${url}:`, error.message);
     await appendLogs(DATASET_KEY, `ERROR: ${url} - ${error.message}`);
     return null;
   }
@@ -289,17 +289,17 @@ async function extractCaseData(page, url, title) {
  * Rebuild final CSV from backup (recovery mode)
  */
 async function rebuildFromBackup() {
-  console.log('Recovery mode: rebuilding from backup...');
+  logger.info('Recovery mode: rebuilding from backup...');
   await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
 
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
-    console.warn('No backup found or backup is empty.');
+    logger.warn('No backup found or backup is empty.');
     await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
     return;
   }
 
-  console.log(`Found ${backupRows.length} rows in backup`);
+  logger.info(`Found ${backupRows.length} rows in backup`);
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
   // Parse metadata and restore quality scores
@@ -317,7 +317,7 @@ async function rebuildFromBackup() {
           qualityScore,
         };
       } catch (e) {
-        console.error(`Error parsing backup row: ${e.message}`);
+        logger.error(`Error parsing backup row: ${e.message}`);
         return null;
       }
     })
@@ -326,11 +326,11 @@ async function rebuildFromBackup() {
   // Sort by quality and take top MAX_ROWS
   const topCases = cases.sort((a, b) => b.qualityScore - a.qualityScore).slice(0, MAX_ROWS);
 
-  console.log(`Selected ${topCases.length} high‑quality cases after scoring/filtering`);
+  logger.info(`Selected ${topCases.length} high‑quality cases after scoring/filtering`);
   await appendLogs(DATASET_KEY, `Selected ${topCases.length} cases after scoring/filtering.`);
 
   if (topCases.length === 0) {
-    console.warn('No valid cases could be reconstructed from backup.');
+    logger.warn('No valid cases could be reconstructed from backup.');
     await appendLogs(DATASET_KEY, `‼ No valid cases – output file unchanged.`);
     return;
   }
@@ -341,7 +341,7 @@ async function rebuildFromBackup() {
     return cleanRow;
   });
 
-  console.log(`✓ Rebuilt ${finalRows.length} rows from backup`);
+  logger.info(`✓ Rebuilt ${finalRows.length} rows from backup`);
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
@@ -359,8 +359,8 @@ async function scrape() {
 
   await appendLogs(DATASET_KEY, `🚀 Scrape started...`);
 
-  console.log(`Scraping Kalundborg Symbiosis cases from ${LISTING_URL}`);
-  console.log(`Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`);
+  logger.info(`Scraping Kalundborg Symbiosis cases from ${LISTING_URL}`);
+  logger.info(`Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`);
 
   const browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
   const page = await browser.newPage();
@@ -370,7 +370,7 @@ async function scrape() {
 
   try {
     // Go to listing page
-    console.log('Navigating to listing page...');
+    logger.info('Navigating to listing page...');
     await page.goto(LISTING_URL, { waitUntil: 'networkidle2', timeout: 30000 });
 
     // Extract all case links and titles
@@ -387,7 +387,7 @@ async function scrape() {
         .filter((c) => c.url && c.title);
     });
 
-    console.log(`Found ${cases.length} cases on listing page`);
+    logger.info(`Found ${cases.length} cases on listing page`);
     await appendLogs(DATASET_KEY, `Found ${cases.length} cases`);
 
     const allRows = [];
@@ -395,7 +395,7 @@ async function scrape() {
     // Process each case
     for (let i = 0; i < cases.length; i++) {
       const caseItem = cases[i];
-      console.log(`[${i + 1}/${cases.length}] Processing: ${caseItem.title}`);
+      logger.info(`[${i + 1}/${cases.length}] Processing: ${caseItem.title}`);
       await appendLogs(
         DATASET_KEY,
         `Processing [${i + 1}/${cases.length}]: ${caseItem.title} - ${caseItem.url}`,
@@ -425,7 +425,7 @@ async function scrape() {
     // Sort by quality score (already computed) and take top MAX_ROWS
     const topRows = validRows.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, MAX_ROWS);
 
-    console.log(`Valid rows: ${validRows.length}, keeping top ${topRows.length} by quality score`);
+    logger.info(`Valid rows: ${validRows.length}, keeping top ${topRows.length} by quality score`);
     await appendLogs(DATASET_KEY, `Valid rows: ${validRows.length}, keeping top ${topRows.length}`);
 
     // Prepare final rows (strip temporary fields)
@@ -438,9 +438,9 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    console.log('\n✓ Scraping complete!');
-    console.log(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);
-    console.log(
+    logger.info('\n✓ Scraping complete!');
+    logger.info(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);
+    logger.info(
       `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
 
@@ -460,7 +460,7 @@ async function scrape() {
       `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
     );
   } catch (error) {
-    console.error('✕ Fatal error:', error);
+    logger.error('✕ Fatal error:', error);
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {
@@ -479,7 +479,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

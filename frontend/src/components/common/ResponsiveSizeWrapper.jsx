@@ -1,4 +1,12 @@
+import PropTypes from 'prop-types';
 import React, { useEffect, useMemo, useState } from 'react';
+
+/**
+ * ResponsiveSizeWrapper Component
+ * Dynamically updates child components based on viewport breakpoints
+ * Supports responsive size declarations like "sm md:lg lg:xl"
+ * For function children, passes currentSize as parameter for render-prop pattern
+ */
 
 const BREAKPOINTS = {
   xxs: 400,
@@ -73,3 +81,10 @@ export default function ResponsiveSizeWrapper({ size = 'md', children }) {
 
   return React.cloneElement(children, { size: currentSize });
 }
+
+ResponsiveSizeWrapper.propTypes = {
+  /** Responsive size string (e.g., "md" or "sm md:lg lg:xl") */
+  size: PropTypes.string,
+  /** Child components or render function */
+  children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
+};

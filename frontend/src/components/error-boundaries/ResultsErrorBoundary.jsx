@@ -18,7 +18,7 @@ class ResultsErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Error caught by ResultsErrorBoundary:', error, errorInfo);
+    logger.error('Error caught by ResultsErrorBoundary:', error, errorInfo);
   }
 
   render() {

@@ -3,7 +3,6 @@ PIPELINE_ADDING_DATASETS.md
 PIPELINE_RUNNING.md
 README.md
 database/README.md
-requirements-dev.txt
 tests/
 datasets/
 pipeline/

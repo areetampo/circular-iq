@@ -1,8 +1,14 @@
 import { Check, Copy } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import PropTypes from 'prop-types';
 import { useCallback, useState } from 'react';
 
-export default function CopyButton({ value, disabled = false, className = '', ...props }) {
+/**
+ * CopyButton Component
+ * Animated copy-to-clipboard button with feedback animation
+ * Shows check icon briefly after successful copy
+ */
+export default function CopyButton({ value = '', disabled = false, className = '', ...props }) {
   const [hasCopied, setHasCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -63,3 +69,12 @@ export default function CopyButton({ value, disabled = false, className = '', ..
     </motion.button>
   );
 }
+
+CopyButton.propTypes = {
+  /** Text value to copy to clipboard */
+  value: PropTypes.string,
+  /** Disable the button */
+  disabled: PropTypes.bool,
+  /** Additional CSS classes */
+  className: PropTypes.string,
+};

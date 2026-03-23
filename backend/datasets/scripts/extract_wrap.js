@@ -318,15 +318,15 @@ async function main() {
   walkDir(RAW_DIR);
 
   if (pdfFiles.length === 0) {
-    console.warn('No PDF files found in', RAW_DIR);
+    logger.warn('No PDF files found in', RAW_DIR);
     return;
   }
-  console.log(`Found ${pdfFiles.length} PDFs.`);
+  logger.info(`Found ${pdfFiles.length} PDFs.`);
 
   const allCandidates = [];
 
   for (const { fullPath, relPath } of pdfFiles) {
-    console.log(`Processing ${relPath}...`);
+    logger.info(`Processing ${relPath}...`);
     try {
       const text = await extractPdfText(fullPath);
       const paragraphs = text
@@ -353,11 +353,11 @@ async function main() {
         }
       });
     } catch (err) {
-      console.error(`✕ Failed to extract text from ${relPath}: ${err.message}`);
+      logger.error(`✕ Failed to extract text from ${relPath}: ${err.message}`);
     }
   }
 
-  console.log(`Collected ${allCandidates.length} candidate paragraphs.`);
+  logger.info(`Collected ${allCandidates.length} candidate paragraphs.`);
   if (allCandidates.length === 0) return;
 
   const rows = allCandidates.map((cand) => {
@@ -389,16 +389,16 @@ async function main() {
 
   const limitedRows = rows.slice(0, MAX_ROWS);
 
-  console.log(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
+  logger.info(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
   const writeResult = await writeCsv(DATASET_KEY, outputPath, limitedRows);
-  console.log(
+  logger.info(
     `✓ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('Fatal error:', err);
+    logger.error('Fatal error:', err);
     process.exit(1);
   });
 }

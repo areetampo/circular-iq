@@ -13,7 +13,6 @@ function ResultsToAssessmentsMarketAnalysisRedirect() {
   return <Navigate to={`/assessments/${id}/market-analysis`} replace />;
 }
 
-// Lazy-load page components for performance
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
@@ -30,18 +29,11 @@ const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
 /**
- * ProtectedRoute - Wrapper component for routes that require authentication
- *
- * Checks if user is authenticated using the useAuth hook.
- * If not authenticated, redirects to /auth.
- * If authenticated, renders the children components.
- *
- * @param {React.ReactNode} children - The protected content to render
+ * ProtectedRoute — requires Supabase session (see useAuth).
  */
 function ProtectedRoute({ children }) {
   const { isAuthenticated, authLoading } = useAuth();
 
-  // Show loader while checking authentication status
   if (authLoading) {
     return (
       <LoaderComponent
@@ -51,12 +43,10 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  // Redirect to auth page if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
-  // User is authenticated, render the protected content
   return children;
 }
 
@@ -70,21 +60,17 @@ function ShareRedirect() {
 }
 
 /**
- * AppRoutes defines all application routes.
- * Pages are lazy-loaded and wrapped in Suspense for better performance.
- * The entire routing tree is wrapped in GlobalErrorBoundary for graceful error handling.
- * Complex pages (ResultsPage, AssessmentComparisonPage) are wrapped in PageErrorBoundary
- * to catch rendering, chart, or data processing errors without breaking navigation.
+ * Application routes.
  *
- * Protected routes (require authentication):
- * - / (LandingPage)
- * - /results (ResultsPage)
- * - /assessments (MyAssessmentsPage)
- * - /assessments/:id (ResultsPage detail view)
- * - /assessments/compare (AssessmentComparisonPage)
+ * Order matters (React Router v6: first match wins):
+ * - Static path segments before dynamic (`/assessments/compare` before `/assessments/:publicId`).
+ * - Deeper share routes before shallower ones where relevant.
  *
- * Public routes:
- * - /auth (AuthPage)
+ * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/results/market-analysis`,
+ * `/results/:id/market-analysis` (redirect), `/share/:publicId`, `/assessments/share/*`.
+ *
+ * Protected: `/dashboard`, `/assessments`, `/assessments/compare`, `/assessments/compare/:a/:b`,
+ * `/assessments/:publicId`, `/assessments/:publicId/market-analysis`.
  */
 export default function AppRoutes() {
   return (
@@ -100,11 +86,11 @@ export default function AppRoutes() {
         <AppContainer>
           <ScrollToTop />
           <Routes>
-            {/* Public Route - Authentication */}
+            {/* ─── Public: auth & landing ─── */}
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/" element={<LandingPage />} />
 
-            {/* Public Route - Shared Assessment (DEPRECATED: redirecting to new share path) */}
+            {/* ─── Public: legacy share URL → canonical path ─── */}
             <Route
               path="/share/:publicId"
               element={
@@ -113,6 +99,8 @@ export default function AppRoutes() {
                 </PageErrorBoundary>
               }
             />
+
+            {/* ─── Public: share gateway & shared assessment view ─── */}
             <Route
               path="/assessments/share"
               element={
@@ -137,6 +125,7 @@ export default function AppRoutes() {
                 </PageErrorBoundary>
               }
             />
+
             <Route
               path="/guide"
               element={
@@ -146,21 +135,35 @@ export default function AppRoutes() {
               }
             />
 
-            {/* Protected Routes - Require Authentication */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
+            {/* ─── Public: session results (unsaved) & legacy redirects ─── */}
             <Route
               path="/results"
               element={
                 <PageErrorBoundary pageName="Results">
                   <ResultsPage />
                 </PageErrorBoundary>
+              }
+            />
+            <Route
+              path="/results/market-analysis"
+              element={
+                <PageErrorBoundary pageName="Session Market Analysis">
+                  <MarketAnalysisPage />
+                </PageErrorBoundary>
+              }
+            />
+            <Route
+              path="/results/:id/market-analysis"
+              element={<ResultsToAssessmentsMarketAnalysisRedirect />}
+            />
+
+            {/* ─── Protected ─── */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
               }
             />
             <Route
@@ -212,23 +215,6 @@ export default function AppRoutes() {
               }
             />
 
-            {/* Session-based market analysis for unsaved results (public) */}
-            <Route
-              path="/results/market-analysis"
-              element={
-                <PageErrorBoundary pageName="Session Market Analysis">
-                  <MarketAnalysisPage />
-                </PageErrorBoundary>
-              }
-            />
-
-            {/* optional backward-compat redirect from old results/:id path to new assessments path */}
-            <Route
-              path="/results/:id/market-analysis"
-              element={<ResultsToAssessmentsMarketAnalysisRedirect />}
-            />
-
-            {/* 404 Not Found */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AppContainer>

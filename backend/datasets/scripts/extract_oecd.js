@@ -242,18 +242,18 @@ function processDataset(datasetKey) {
   const cfg = datasets[datasetKey];
   if (!cfg) return [];
 
-  console.log(`\nProcessing ${datasetKey} dataset...`);
-  console.log(`Input: ${cfg.input}`);
+  logger.info(`\nProcessing ${datasetKey} dataset...`);
+  logger.info(`Input: ${cfg.input}`);
 
   if (!fs.existsSync(cfg.input)) {
-    console.error(`Input file not found: ${cfg.input}`);
+    logger.error(`Input file not found: ${cfg.input}`);
     return [];
   }
 
   const content = fs.readFileSync(cfg.input, 'utf8');
   const records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ',' });
 
-  console.log(`Total rows in file: ${records.length}`);
+  logger.info(`Total rows in file: ${records.length}`);
 
   const processed = [];
   const skipped = [];
@@ -316,21 +316,21 @@ function processDataset(datasetKey) {
     else skipped.push({ row, reason: 'Mapping returned null' });
   }
 
-  console.log(`Processed: ${processed.length} rows`);
-  console.log(`Skipped: ${skipped.length} rows`);
+  logger.info(`Processed: ${processed.length} rows`);
+  logger.info(`Skipped: ${skipped.length} rows`);
 
   return processed;
 }
 
 async function writeCombined(rows) {
   if (rows.length === 0) {
-    console.log('No rows to write.');
+    logger.info('No rows to write.');
     return;
   }
 
   // --- NEW: Sort by quality score and keep top MAX_ROWS ---
-  console.log(`Total rows after processing: ${rows.length}`);
-  console.log(`Selecting top ${MAX_ROWS} rows based on quality score...`);
+  logger.info(`Total rows after processing: ${rows.length}`);
+  logger.info(`Selecting top ${MAX_ROWS} rows based on quality score...`);
 
   // Compute scores
   const withScores = rows.map((row) => ({ row, score: scoreRow(row) }));
@@ -339,7 +339,7 @@ async function writeCombined(rows) {
   // Take top MAX_ROWS
   const topRows = withScores.slice(0, MAX_ROWS).map((item) => item.row);
 
-  console.log(`Selected ${topRows.length} rows.`);
+  logger.info(`Selected ${topRows.length} rows.`);
 
   const finalRows = topRows.map((row) => ({
     problem: row.problem || '',
@@ -353,7 +353,7 @@ async function writeCombined(rows) {
   }));
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `\n✓ Combined output written to ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
@@ -365,12 +365,12 @@ async function main() {
 
   if (args.length === 0 || args[0].toLowerCase() === 'all') {
     datasetsToProcess = Object.keys(datasets);
-    console.log('Processing all OECD datasets...');
+    logger.info('Processing all OECD datasets...');
   } else {
     const key = args[0].toLowerCase();
     if (datasets[key]) datasetsToProcess = [key];
     else {
-      console.error(
+      logger.error(
         `Unknown dataset: ${key}. Available: ${Object.keys(datasets).join(', ')} or 'all'`,
       );
       process.exit(1);
@@ -388,7 +388,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

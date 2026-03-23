@@ -244,19 +244,19 @@ function transformProduct(product) {
  * Rebuild final CSV from backup content (recovery mode).
  */
 async function rebuildFromBackup() {
-  console.log(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup...`);
+  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup...`);
   await appendLogs(DATASET_KEY, `♻️ Recovery mode started.`);
 
   try {
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
       const msg = `‼ No backup found.`;
-      console.warn(msg);
+      logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       return;
     }
 
-    console.log(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Apply the same quality filter as live scrape
@@ -265,7 +265,7 @@ async function rebuildFromBackup() {
     });
 
     if (transformed.length === 0) {
-      console.warn(`‼ No rows passed the filter.`);
+      logger.warn(`‼ No rows passed the filter.`);
       await appendLogs(DATASET_KEY, `‼ No rows passed the filter.`);
       return;
     }
@@ -286,11 +286,11 @@ async function rebuildFromBackup() {
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row),
     }));
 
-    console.log(`\n✨ Rebuilt ${finalRows.length} products from backup`);
+    logger.info(`\n✨ Rebuilt ${finalRows.length} products from backup`);
     const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
       append: APPEND_PROCESSED,
     });
-    console.log(
+    logger.info(
       `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
     );
     await appendLogs(
@@ -299,7 +299,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    console.error('✕ Error rebuilding from backup:', error.message);
+    logger.error('✕ Error rebuilding from backup:', error.message);
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     throw error;
   }
@@ -314,7 +314,7 @@ async function main() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  console.log(`Scraping Open Food Facts. Detailed logs: ${logFilePath}`);
+  logger.info(`Scraping Open Food Facts. Detailed logs: ${logFilePath}`);
 
   const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
   await appendLogs(
@@ -349,7 +349,7 @@ async function main() {
 
       if (page === FINAL_FETCH_PAGE) {
         const limitMsg = `‼ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
-        console.warn(limitMsg);
+        logger.warn(limitMsg);
         await appendLogs(DATASET_KEY, limitMsg);
         break;
       }
@@ -358,14 +358,14 @@ async function main() {
       await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (err) {
       const errMsg = `✕ Failed to fetch page ${page}: ${err.message}`;
-      console.error(errMsg);
+      logger.error(errMsg);
       await appendLogs(DATASET_KEY, errMsg);
       break;
     }
   }
 
   if (allProducts.length === 0) {
-    console.log('✕ No products fetched. Exiting.');
+    logger.info('✕ No products fetched. Exiting.');
     await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     return;
   }
@@ -401,7 +401,7 @@ async function main() {
   await backup.flush(); // ensure any remaining buffer is written
 
   const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`;
-  console.log(summary);
+  logger.info(summary);
 
   if (finalRows.length > 0) {
     const firstRow = finalRows[0];
@@ -421,7 +421,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

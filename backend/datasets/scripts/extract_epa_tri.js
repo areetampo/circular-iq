@@ -76,7 +76,7 @@ async function main() {
   try {
     raw = await fs.readFile(inputFile, 'utf-8');
   } catch (err) {
-    console.error(`✕ Input file not found: ${inputFile}`);
+    logger.error(`✕ Input file not found: ${inputFile}`);
     throw err;
   }
 
@@ -87,7 +87,7 @@ async function main() {
     trim: true,
   });
 
-  console.log(`📄 Parsed ${records.length} TRI records`);
+  logger.info(`📄 Parsed ${records.length} TRI records`);
 
   // 2. Detect key columns dynamically
   const keys = Object.keys(records[0] || {});
@@ -139,7 +139,7 @@ async function main() {
     })
     .filter((r) => r.chemical && r.totalRelease > 0); // basic quality filter
 
-  console.log(`✓ Usable rows (chemical + release > 0): ${enriched.length}`);
+  logger.info(`✓ Usable rows (chemical + release > 0): ${enriched.length}`);
 
   // 4. Compute normalized scores for each dimension
   const maxTotalRelease = Math.max(...enriched.map((r) => r.totalRelease));
@@ -162,7 +162,7 @@ async function main() {
   // 5. Sort by combined score descending and take top TARGET_ROWS
   const topRows = scored.sort((a, b) => b.combinedScore - a.combinedScore).slice(0, TARGET_ROWS);
 
-  console.log(`🏆 Selected top ${topRows.length} rows by combined score.`);
+  logger.info(`🏆 Selected top ${topRows.length} rows by combined score.`);
 
   // 6. Transform to standard format
   const processed = topRows.map((r) => {
@@ -194,14 +194,14 @@ async function main() {
 
   // 8. Write output
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
-  console.log(
+  logger.info(
     `✓ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Fatal error:', err.message);
+    logger.error('\n✕ Fatal error:', err.message);
     process.exit(1);
   });
 }

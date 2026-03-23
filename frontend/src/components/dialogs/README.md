@@ -1,5 +1,7 @@
 # Dialogs System
 
+Updated to align with current dialog components and global context APIs.
+
 Centralized, reusable dialog components based on HeroUI v3 AlertDialog and Modal patterns.
 
 ## Overview

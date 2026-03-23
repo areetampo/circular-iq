@@ -1,12 +1,10 @@
 import {
   Accordion,
-  Alert,
   Card,
   Chip,
   Input,
   Label,
   ListBox,
-  ProgressBar,
   Select,
   Tabs,
   toast,
@@ -21,14 +19,11 @@ import {
   CircleX,
   ClipboardList,
   Download,
-  ExternalLink,
   FileText,
   FolderPen,
-  Frown,
   Globe,
   Lightbulb,
   Link2,
-  Lock,
   MonitorDown,
   RefreshCw,
   Save,
@@ -43,29 +38,40 @@ import RadarChart from '@/components/charts/RadarChart';
 import { Button, Switch } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import CopyButton from '@/components/modern-ui/copy-button';
-import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import {
   deleteAssessment,
   getAssessments,
+  updateAssessment,
+} from '@/features/assessments/api/assessmentApi';
+import {
   useAssessment,
   useCreateAssessment,
   usePublicAssessment,
-} from '@/features/assessments';
-import { updateAssessment } from '@/features/assessments/api/assessmentApi';
+} from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
 import { titleize } from '@/lib/formatting';
-import { formatFactorName, getRiskBadgeColor, getScoreClass } from '@/lib/scoring';
-import { categorizeIntegrityGaps, extractProblemSolution, getMatchStrength } from '@/utils/content';
+import { formatFactorName } from '@/lib/scoring';
+import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
 import { getSession, saveSession } from '@/utils/session';
 
-import ResultsSkeleton from './components/ResultsSkeleton';
+import {
+  AuditSummaryCard,
+  CircularEconomyTierCard,
+  DatabaseEvidenceCard,
+  GapAnalysisCard,
+  ParameterConsistencyCard,
+  ResultsSkeleton,
+  RStrategyAlignmentCard,
+  ScoreCategoryBreakdown,
+  ScoreOverviewSection,
+  WeightedScoreCard,
+} from './components';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
@@ -79,7 +85,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const { isExporting, executeExport } = useExportState();
   const { restoreEvaluation } = useSession();
   const { createAssessmentAsync } = useCreateAssessment();
-  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   const reportTips = useMemo(
     () => [
@@ -278,7 +283,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
       saveSession(stateToSave);
     } catch (e) {
-      console.error('Failed to save results to session:', e);
+      logger.error('Failed to save results to session:', e);
     }
   }, [navigationResult, isViewFromMyAssessments, isPublicShare, saveSession, resolvedFormData]);
 
@@ -326,7 +331,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }
 
   // Save assessment handler
-  console.log();
   const handleSave = useCallback(
     async ({
       name,
@@ -406,7 +410,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         } catch (errCheck) {
           // If the check itself failed due to network/auth, allow create to proceed
           if (errCheck.message === 'You already have an assessment with that name') throw errCheck;
-          console.warn('Duplicate name check failed, proceeding to create:', errCheck?.message);
+          logger.warn('Duplicate name check failed, proceeding to create:', errCheck?.message);
         }
 
         const result = await createAssessmentAsync(saveData);
@@ -426,7 +430,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             results: null, // Clear results
           });
         } catch (e) {
-          console.warn('Failed to update session after save:', e);
+          logger.warn('Failed to update session after save:', e);
         }
 
         // Redirect to the saved assessment if id available, otherwise list
@@ -438,7 +442,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           setTimeout(() => navigate('/assessments'), 800);
         }
       } catch (error) {
-        console.warn('Save error:', error);
+        logger.warn('Save error:', error);
         // Rethrow so callers (SaveAssessmentDialog) can display the error in-dialog
         throw error;
       }
@@ -648,7 +652,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           timeout: 3000,
         });
       } catch (error) {
-        console.error('Failed to update sharing settings:', error);
+        logger.error('Failed to update sharing settings:', error);
         toast.danger('Failed to update sharing settings', {
           description: error.message || 'Please try again.',
           timeout: 4000,
@@ -683,14 +687,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           if (dup) throw new Error('You already have an assessment with that name');
         } catch (checkErr) {
           if (checkErr.message === 'You already have an assessment with that name') throw checkErr;
-          console.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
+          logger.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
         }
 
         await updateAssessment(id, { title: newTitle });
         await refetch();
         toast.success('Assessment renamed successfully');
       } catch (err) {
-        console.error('Rename failed', err);
+        logger.error('Rename failed', err);
         throw err;
       } finally {
         setIsRenaming(false);
@@ -707,7 +711,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       toast.success('Assessment deleted');
       navigate('/assessments');
     } catch (err) {
-      console.error('Delete failed', err);
+      logger.error('Delete failed', err);
       toast.danger('Failed to delete assessment');
       throw err;
     } finally {
@@ -972,7 +976,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         results: pendingResults,
                       });
                     } catch (e) {
-                      console.warn('Failed to persist session for pending save:', e);
+                      logger.warn('Failed to persist session for pending save:', e);
                     }
 
                     toast.info('Redirecting to sign in', {
@@ -986,7 +990,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                     return;
                   } catch (e) {
-                    console.error('Failed to prepare pending save', e);
+                    logger.error('Failed to prepare pending save', e);
                     toast.error('Failed to prepare save');
                     return;
                   }
@@ -1359,591 +1363,28 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           </Tabs.ListContainer>
 
           <Tabs.Panel id="summary" className="space-y-6">
-            {/* Executive Summary */}
-            <Card className="border border-slate-300 shadow-sm rounded-xl bg-white">
-              <div className="p-1 sm:p-3">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                        Executive Summary
-                      </h2>
-                      {isViewFromMyAssessments && currentData && (
-                        <Chip variant="secondary" size="sm" className="gap-1 ml-1">
-                          {(optimisticIsPublic !== null
-                            ? optimisticIsPublic
-                            : currentData.is_public) === false ? (
-                            <>
-                              <Lock size={12} />
-                              Private
-                            </>
-                          ) : (
-                            <>
-                              <Globe size={12} />
-                              Contributing
-                            </>
-                          )}
-                        </Chip>
-                      )}
-                    </div>
-                    {actualResult.metadata?.short_description && (
-                      <p className="text-sm text-slate-600 mb-2">
-                        {actualResult.metadata.short_description}
-                      </p>
-                    )}
-                    <p className="text-sm text-slate-600">
-                      AI-powered circularity assessment and recommendations
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Chip
-                      variant="soft"
-                      color="warning"
-                      size="sm"
-                      className="font-semibold text-xs px-3 py-1"
-                    >
-                      Confidence: {actualResult.confidence_level || 0}%
-                    </Chip>
-                    {actualResult.processing_info?.processing_time_ms && (
-                      <Chip variant="secondary" size="sm" className="text-xs">
-                        Analysed in{' '}
-                        {(actualResult.processing_info.processing_time_ms / 1000).toFixed(1)}s
-                      </Chip>
-                    )}
-                  </div>
-                </div>
+            <ScoreOverviewSection
+              actualResult={actualResult}
+              overallScore={overallScore}
+              casesSummaries={casesSummaries}
+              strengths={strengths}
+              gaps={gaps}
+              isViewFromMyAssessments={isViewFromMyAssessments}
+              currentData={currentData}
+              optimisticIsPublic={optimisticIsPublic}
+              topFactor={topFactor}
+              focusFactor={focusFactor}
+              avgFactorScore={avgFactorScore}
+              resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
+              reportTips={reportTips}
+            />
 
-                {actualResult.audit?.audit_verdict && (
-                  <div className="mb-4 pl-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 pr-3 rounded-r">
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      {actualResult.audit.audit_verdict}
-                    </p>
-                  </div>
-                )}
-
-                {actualResult.audit?.comparative_analysis && (
-                  <div className="mb-4 pl-4 border-l-4 border-blue-500 bg-blue-50 py-3 pr-3 rounded-r">
-                    <p className="text-xs font-semibold text-blue-900 uppercase mb-1">
-                      Key Finding
-                    </p>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      {actualResult.audit.comparative_analysis}
-                    </p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="p-4 bg-linear-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-lg">
-                    <p className="text-xs text-slate-600 mb-1">Overall Score</p>
-                    <p className={`text-3xl font-bold ${getScoreClass(overallScore)}`}>
-                      {overallScore}
-                      <span className="text-lg text-slate-500">/100</span>
-                    </p>
-                  </div>
-
-                  <div className="p-4 bg-linear-to-br from-blue-50 to-white border-2 border-blue-200 rounded-lg">
-                    <p className="text-xs text-slate-600 mb-1">Database Cases Analyzed</p>
-                    <p className="text-3xl font-bold text-blue-700">{casesSummaries.length || 0}</p>
-                  </div>
-
-                  <div className="p-4 bg-linear-to-br from-green-50 to-white border-2 border-green-200 rounded-lg">
-                    <p className="text-xs text-slate-600 mb-1">Strengths Identified</p>
-                    <p className="text-3xl font-bold text-green-700">{strengths.length || 0}</p>
-                  </div>
-
-                  <div className="p-4 bg-linear-to-br from-orange-50 to-white border-2 border-orange-200 rounded-lg">
-                    <p className="text-xs text-slate-600 mb-1">Improvement Areas</p>
-                    <p className="text-3xl font-bold text-orange-700">{gaps.length || 0}</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Score Highlights */}
-            <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-              <div className="p-1 sm:p-3">
-                <h3 className="text-lg font-bold text-slate-900 mb-1">Score Highlights</h3>
-                <p className="text-sm text-slate-600 mb-4">Key performance indicators</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-5 bg-linear-to-br from-green-50 via-green-50 to-green-100 border-l-4 border-green-600 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-bold text-green-900 uppercase tracking-wide">
-                        Strongest Factor
-                      </p>
-                      <TrendingUp className="text-green-600" size={16} />
-                    </div>
-                    <p className="text-xl font-bold text-green-900 mb-1">
-                      {topFactor ? titleize(topFactor[0]) : 'N/A'}
-                    </p>
-                    <p className="text-sm font-semibold text-green-700">
-                      {topFactor ? `${topFactor[1]}/100` : '—'}
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-linear-to-br from-orange-50 via-orange-50 to-orange-100 border-l-4 border-orange-600 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-bold text-orange-900 uppercase tracking-wide">
-                        Focus Area
-                      </p>
-                      <Target className="text-orange-600" size={16} />
-                    </div>
-                    <p className="text-xl font-bold text-orange-900 mb-1">
-                      {focusFactor ? titleize(focusFactor[0]) : 'N/A'}
-                    </p>
-                    <p className="text-sm font-semibold text-orange-700">
-                      {focusFactor ? `${focusFactor[1]}/100` : '—'}
-                    </p>
-                  </div>
-
-                  <div className="p-5 bg-linear-to-br from-blue-50 via-blue-50 to-blue-100 border-l-4 border-blue-600 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-bold text-blue-900 uppercase tracking-wide">
-                        Average Score
-                      </p>
-                      <BarChart3 className="text-blue-600" size={16} />
-                    </div>
-                    <p className="text-xl font-bold text-blue-900 mb-1">
-                      {avgFactorScore}
-                      <span className="text-sm text-slate-600">/100</span>
-                    </p>
-                    <p className="text-xs text-blue-700">
-                      Business: {resolvedBusinessViabilityScore}/100
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Quick Tips for New Users */}
-            <Card className="border-2 border-dashed border-blue-400/80 bg-blue-50/60 shadow-sm rounded-xl">
-              <div className="p-1 sm:p-3">
-                <Card.Header className="px-0 pb-4 pt-0 flex items-center gap-3">
-                  <div className="mt-0.5 rounded-lg bg-blue-100/70 p-2">
-                    <Lightbulb className="text-blue-700" size={20} />
-                  </div>
-                  <div>
-                    <Card.Title className="text-lg text-blue-900 text-center">
-                      How to Use This Report
-                    </Card.Title>
-                    <Card.Description className="text-sm text-center text-slate-600 mt-1">
-                      Your guide to understanding and acting on these insights
-                    </Card.Description>
-                  </div>
-                </Card.Header>
-                <Card.Content className="px-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {reportTips.map((tip) => (
-                      <Card
-                        key={tip.title}
-                        className="border border-blue-200/80 bg-white/90 rounded-xl shadow-sm"
-                        variant="secondary"
-                      >
-                        <Card.Header className="">
-                          <Card.Title className="text-sm text-blue-900 flex items-center gap-2">
-                            <tip.Icon className={tip.iconClassName} size={16} />
-                            {tip.title}
-                          </Card.Title>
-                        </Card.Header>
-                        <Card.Content className="-mt-1">
-                          <p className="text-xs text-slate-700 leading-relaxed">
-                            {tip.description}
-                          </p>
-                        </Card.Content>
-                      </Card>
-                    ))}
-                  </div>
-                </Card.Content>
-              </div>
-            </Card>
-
-            {/* Derived Metrics */}
-            {actualResult.derived_metrics && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <BarChart3 className="text-blue-600" size={20} /> Derived Metrics
-                  </h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Additional consolidated metrics derived from your factor scores.
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    {[
-                      { key: 'technical_feasibility', label: 'Technical Feasibility' },
-                      { key: 'economic_viability', label: 'Economic Viability' },
-                      { key: 'circularity_potential', label: 'Circularity Potential' },
-                    ].map(({ key, label }) => {
-                      const value = actualResult.derived_metrics[key];
-                      const numeric = typeof value === 'number' ? value : 0;
-                      const color = numeric >= 70 ? 'success' : numeric >= 40 ? 'warning' : 'error';
-                      return (
-                        <div key={key} className="p-4 bg-white border border-slate-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="text-xs font-bold text-slate-900">{label}</div>
-                            <div className="text-sm font-bold text-slate-900">{numeric}</div>
-                          </div>
-                          <ProgressBar
-                            value={Math.min(100, Math.max(0, numeric))}
-                            color={
-                              color === 'success'
-                                ? 'success'
-                                : color === 'warning'
-                                  ? 'warning'
-                                  : 'danger'
-                            }
-                            className="h-2 rounded"
-                          />
-                        </div>
-                      );
-                    })}
-                    <div className="p-4 bg-white border border-slate-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-xs font-bold text-slate-900">Risk Level</div>
-                        <Chip
-                          variant="soft"
-                          className={`text-xs font-bold ${getRiskBadgeColor(actualResult.derived_metrics.risk_level)}`}
-                        >
-                          {actualResult.derived_metrics.risk_level?.toUpperCase() || 'UNKNOWN'}
-                        </Chip>
-                      </div>
-                      <div className="text-sm text-slate-600 mt-2">
-                        Overall project risk assessment
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Circular Economy Tier */}
-            {actualResult?.circular_economy_tier && (
-              <Card
-                className={`border-2 shadow-sm rounded-xl ${
-                  actualResult.circular_economy_tier.badge_color === 'green'
-                    ? 'border-green-300 bg-green-50'
-                    : actualResult.circular_economy_tier.badge_color === 'blue'
-                      ? 'border-blue-300 bg-blue-50'
-                      : actualResult.circular_economy_tier.badge_color === 'amber'
-                        ? 'border-amber-300 bg-amber-50'
-                        : 'border-red-300 bg-red-50'
-                }`}
-              >
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                        Circular Economy Tier
-                      </span>
-                      <h3
-                        className={`text-2xl font-bold mt-0.5 ${
-                          actualResult.circular_economy_tier.badge_color === 'green'
-                            ? 'text-green-700'
-                            : actualResult.circular_economy_tier.badge_color === 'blue'
-                              ? 'text-blue-700'
-                              : actualResult.circular_economy_tier.badge_color === 'amber'
-                                ? 'text-amber-700'
-                                : 'text-red-700'
-                        }`}
-                      >
-                        {actualResult.circular_economy_tier.tier}
-                      </h3>
-                      <span className="text-xs text-slate-500">
-                        Score range: {actualResult.circular_economy_tier.range}
-                        {' · '}
-                        {actualResult.circular_economy_tier.percentile_estimate}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-700 mb-2">
-                    {actualResult.circular_economy_tier.description}
-                  </p>
-                  <div className="p-3 bg-white/60 rounded-lg border border-current/10">
-                    <span className="text-xs font-semibold text-slate-600">Next Milestone: </span>
-                    <span className="text-xs text-slate-700">
-                      {actualResult.circular_economy_tier.next_milestone}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Weighted Score Card */}
-            {actualResult?.weighted_score_card && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">
-                    Score Contribution Breakdown
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-4">
-                    How each factor contributed to your overall score of{' '}
-                    <span className="font-bold text-slate-800">
-                      {actualResult.overall_score}/100
-                    </span>
-                  </p>
-                  <div className="space-y-2">
-                    {Object.entries(actualResult.weighted_score_card.factors)
-                      .sort(([, a], [, b]) => b.contribution - a.contribution)
-                      .map(([key, factor]) => (
-                        <div key={key} className="flex items-center gap-3">
-                          <div className="w-36 text-xs font-medium text-slate-600 truncate shrink-0">
-                            {formatFactorName(key)}
-                          </div>
-                          <div className="flex-1 bg-slate-100 rounded-full h-2 relative overflow-hidden">
-                            <div
-                              className={`h-2 rounded-full ${
-                                factor.classification === 'Strong'
-                                  ? 'bg-green-500'
-                                  : factor.classification === 'Moderate'
-                                    ? 'bg-blue-500'
-                                    : factor.classification === 'Weak'
-                                      ? 'bg-amber-500'
-                                      : 'bg-red-500'
-                              }`}
-                              style={{ width: `${factor.raw_score}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-slate-500 w-8 text-right shrink-0">
-                            {factor.raw_score}
-                          </div>
-                          <div className="text-xs text-slate-400 w-10 text-right shrink-0">
-                            +{factor.contribution}
-                          </div>
-                          <Chip
-                            variant="soft"
-                            size="sm"
-                            className={`text-xs shrink-0 ${
-                              factor.classification === 'Strong'
-                                ? 'text-green-700 bg-green-100'
-                                : factor.classification === 'Moderate'
-                                  ? 'text-blue-700 bg-blue-100'
-                                  : factor.classification === 'Weak'
-                                    ? 'text-amber-700 bg-amber-100'
-                                    : 'text-red-700 bg-red-100'
-                            }`}
-                          >
-                            {factor.classification}
-                          </Chip>
-                        </div>
-                      ))}
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between text-xs text-slate-500">
-                    <span>
-                      Top contributor:{' '}
-                      <span className="font-semibold text-slate-700">
-                        {formatFactorName(actualResult.weighted_score_card.top_contributor)}
-                      </span>
-                    </span>
-                    <span>
-                      Needs most attention:{' '}
-                      <span className="font-semibold text-slate-700">
-                        {formatFactorName(actualResult.weighted_score_card.bottom_contributor)}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Parameter Consistency */}
-            {actualResult?.parameter_consistency && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900">
-                        Self-Assessment Reliability
-                      </h3>
-                      <p className="text-sm text-slate-500">
-                        Internal consistency of your 8 parameter scores
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div
-                        className={`text-3xl font-bold ${
-                          actualResult.parameter_consistency.score >= 85
-                            ? 'text-green-600'
-                            : actualResult.parameter_consistency.score >= 65
-                              ? 'text-blue-600'
-                              : actualResult.parameter_consistency.score >= 40
-                                ? 'text-amber-600'
-                                : 'text-red-600'
-                        }`}
-                      >
-                        {actualResult.parameter_consistency.score}
-                        <span className="text-sm text-slate-400">/100</span>
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {actualResult.parameter_consistency.rating} Consistency
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-600 mb-3">
-                    {actualResult.parameter_consistency.interpretation}
-                  </p>
-                  {actualResult.parameter_consistency.issues.length > 0 && (
-                    <div className="space-y-2">
-                      {actualResult.parameter_consistency.issues.map((issue, i) => (
-                        <div key={i} className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
-                          <p className="text-xs text-amber-800">{issue.issue}</p>
-                          <div className="flex gap-1 mt-1">
-                            {issue.factors.map((f) => (
-                              <Chip
-                                key={f}
-                                size="sm"
-                                variant="soft"
-                                className="text-xs text-amber-700 bg-amber-100"
-                              >
-                                {formatFactorName(f)}
-                              </Chip>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Card>
-            )}
-
-            {/* R-Strategy Alignment */}
-            {actualResult?.r_strategy_alignment?.alignment_score != null && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900">R-Strategy Alignment</h3>
-                      <p className="text-sm text-slate-500">
-                        How well your scores support the detected{' '}
-                        <span className="font-semibold">
-                          {actualResult.r_strategy_alignment.strategy}
-                        </span>{' '}
-                        strategy
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div
-                        className={`text-3xl font-bold ${
-                          actualResult.r_strategy_alignment.alignment_score >= 75
-                            ? 'text-green-600'
-                            : actualResult.r_strategy_alignment.alignment_score >= 55
-                              ? 'text-blue-600'
-                              : actualResult.r_strategy_alignment.alignment_score >= 35
-                                ? 'text-amber-600'
-                                : 'text-red-600'
-                        }`}
-                      >
-                        {actualResult.r_strategy_alignment.alignment_score}
-                        <span className="text-sm text-slate-400">/100</span>
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {actualResult.r_strategy_alignment.rating}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-700 mb-3">
-                    {actualResult.r_strategy_alignment.message}
-                  </p>
-                  {actualResult.r_strategy_alignment.misaligned_factors.length > 0 && (
-                    <div className="mb-2">
-                      <span className="text-xs font-semibold text-red-600">
-                        Critical factors below threshold:
-                      </span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {actualResult.r_strategy_alignment.misaligned_factors.map((f) => (
-                          <Chip
-                            key={f}
-                            size="sm"
-                            variant="soft"
-                            className="text-xs text-red-700 bg-red-100"
-                          >
-                            {formatFactorName(f)}
-                          </Chip>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {actualResult.r_strategy_alignment.well_aligned_factors.length > 0 && (
-                    <div>
-                      <span className="text-xs font-semibold text-green-600">Well aligned:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {actualResult.r_strategy_alignment.well_aligned_factors.map((f) => (
-                          <Chip
-                            key={f}
-                            size="sm"
-                            variant="soft"
-                            className="text-xs text-green-700 bg-green-100"
-                          >
-                            {formatFactorName(f)}
-                          </Chip>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            )}
-
-            {/* Score Breakdown Section */}
-            {actualResult?.score_breakdown && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">Score Breakdown</h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Detailed breakdown by value category
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {Object.entries(actualResult.score_breakdown).map(([category, data]) => (
-                      <div
-                        key={category}
-                        className="p-4 bg-white border border-slate-200 rounded-lg"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-sm font-bold text-slate-900">{category}</div>
-                          <div className="text-sm font-bold text-slate-900">{data.score}</div>
-                        </div>
-                        <div className="text-xs text-slate-600 mb-2">{data.weight}</div>
-                        <p className="text-xs text-slate-700 mb-3">{data.description}</p>
-                        <div className="space-y-1">
-                          {data.factors?.map((factor, i) => (
-                            <Chip key={i} variant="secondary" size="sm" className="text-xs">
-                              {factor.name}: {factor.score}
-                            </Chip>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Gap Analysis & Benchmarks Section */}
-            {actualResult.gap_analysis ? (
-              actualResult.gap_analysis.has_benchmarks ? (
-                <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                  <div className="p-1 sm:p-3">
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                      <BarChart3 className="text-blue-600" size={20} /> Gap Analysis
-                    </h3>
-                    <p className="text-sm text-slate-600 mb-4">
-                      {actualResult.gap_analysis.message}
-                    </p>
-
-                    <BenchmarkTable
-                      comparisons={actualResult.gap_analysis.comparisons}
-                      opportunities={actualResult.gap_analysis.opportunities}
-                      strengths={actualResult.gap_analysis.strengths}
-                    />
-                  </div>
-                </Card>
-              ) : (
-                <Alert severity="info" className="mb-6">
-                  {actualResult.gap_analysis.message || 'No benchmark data available.'}
-                </Alert>
-              )
-            ) : null}
+            <CircularEconomyTierCard actualResult={actualResult} />
+            <WeightedScoreCard actualResult={actualResult} />
+            <ParameterConsistencyCard actualResult={actualResult} />
+            <RStrategyAlignmentCard actualResult={actualResult} />
+            <ScoreCategoryBreakdown actualResult={actualResult} />
+            <GapAnalysisCard actualResult={actualResult} />
 
             {/* Industry & Metadata Section */}
             {actualResult.metadata && (
@@ -2307,463 +1748,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               </Card>
             )}
 
-            {/* Audit Section */}
-            {actualResult?.audit && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
-                <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">AI Audit Summary</h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Comprehensive analysis and recommendations
-                  </p>
+            <AuditSummaryCard actualResult={actualResult} />
 
-                  {actualResult.audit.integrity_gaps &&
-                    actualResult.audit.integrity_gaps.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-bold text-slate-900 mb-2">Integrity Gaps</h4>
-                        <ul className="space-y-2">
-                          {actualResult.audit.integrity_gaps.map((gap, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <Chip
-                                variant="soft"
-                                className={`text-xs ${gap.severity === 'high' ? 'text-red-700 bg-red-100' : gap.severity === 'medium' ? 'text-amber-700 bg-amber-100' : 'text-blue-700 bg-blue-100'}`}
-                              >
-                                {gap.severity || 'medium'}
-                              </Chip>
-                              <span className="text-sm text-slate-700">{gap.issue}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                  {actualResult.audit.strengths && actualResult.audit.strengths.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-slate-900 mb-2">Strengths</h4>
-                      <ul className="space-y-1">
-                        {actualResult.audit.strengths.map((strength, i) => (
-                          <li key={i} className="text-sm text-slate-700">
-                            • {strength.aspect}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {actualResult.audit.technical_recommendations &&
-                    actualResult.audit.technical_recommendations.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-bold text-slate-900 mb-2">
-                          Technical Recommendations
-                        </h4>
-                        <ul className="space-y-1">
-                          {actualResult.audit.technical_recommendations.map((rec, i) => (
-                            <li key={i} className="text-sm text-slate-700">
-                              • {rec}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                  {actualResult.audit.improvement_roadmap &&
-                    actualResult.audit.improvement_roadmap.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-bold text-slate-900 mb-3">
-                          Improvement Roadmap
-                        </h4>
-                        <div className="space-y-3">
-                          {actualResult.audit.improvement_roadmap.map((item, i) => (
-                            <div
-                              key={i}
-                              className="p-3 bg-white border border-slate-200 rounded-lg flex gap-3"
-                            >
-                              <div
-                                className={`w-7 h-7 rounded-full flex items-center justify-center
-                                text-xs font-bold shrink-0 ${
-                                  i === 0
-                                    ? 'bg-red-100 text-red-700'
-                                    : i === 1
-                                      ? 'bg-amber-100 text-amber-700'
-                                      : 'bg-blue-100 text-blue-700'
-                                }`}
-                              >
-                                {item.priority}
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-slate-800">
-                                  {item.action}
-                                </p>
-                                <div className="flex flex-wrap gap-2 mt-1.5">
-                                  {item.target_factor && (
-                                    <Chip
-                                      size="sm"
-                                      variant="soft"
-                                      className="text-xs text-slate-600 bg-slate-100"
-                                    >
-                                      {formatFactorName(item.target_factor)}
-                                    </Chip>
-                                  )}
-                                  <Chip
-                                    size="sm"
-                                    variant="soft"
-                                    className={`text-xs ${
-                                      item.impact === 'high'
-                                        ? 'text-green-700 bg-green-100'
-                                        : item.impact === 'medium'
-                                          ? 'text-blue-700 bg-blue-100'
-                                          : 'text-slate-600 bg-slate-100'
-                                    }`}
-                                  >
-                                    {item.impact} impact
-                                  </Chip>
-                                  <Chip
-                                    size="sm"
-                                    variant="soft"
-                                    className={`text-xs ${
-                                      item.effort === 'low'
-                                        ? 'text-green-700 bg-green-100'
-                                        : item.effort === 'high'
-                                          ? 'text-red-700 bg-red-100'
-                                          : 'text-amber-700 bg-amber-100'
-                                    }`}
-                                  >
-                                    {item.effort} effort
-                                  </Chip>
-                                  <Chip
-                                    size="sm"
-                                    variant="soft"
-                                    className="text-xs text-slate-500 bg-slate-50"
-                                  >
-                                    {item.timeframe}
-                                  </Chip>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {actualResult.audit.sdg_alignment &&
-                    actualResult.audit.sdg_alignment.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-bold text-slate-900 mb-3">
-                          UN Sustainable Development Goals
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {actualResult.audit.sdg_alignment.map((sdg, i) => (
-                            <div
-                              key={i}
-                              className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex gap-2"
-                            >
-                              <div
-                                className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center
-                                justify-center text-xs font-bold shrink-0"
-                              >
-                                {sdg.sdg_number}
-                              </div>
-                              <div>
-                                <div className="text-xs font-semibold text-slate-800">
-                                  {sdg.sdg_name}
-                                </div>
-                                <div className="text-xs text-slate-500 mt-0.5">{sdg.rationale}</div>
-                                <Chip
-                                  size="sm"
-                                  variant="soft"
-                                  className={`text-xs mt-1 ${
-                                    sdg.relevance === 'high'
-                                      ? 'text-green-700 bg-green-100'
-                                      : sdg.relevance === 'medium'
-                                        ? 'text-blue-700 bg-blue-100'
-                                        : 'text-slate-500 bg-slate-100'
-                                  }`}
-                                >
-                                  {sdg.relevance} relevance
-                                </Chip>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {actualResult.audit.market_opportunity_summary && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <h4 className="text-xs font-bold text-blue-800 mb-1 uppercase tracking-wide">
-                        Market Opportunity
-                      </h4>
-                      <p className="text-sm text-blue-900">
-                        {actualResult.audit.market_opportunity_summary}
-                      </p>
-                    </div>
-                  )}
-
-                  {actualResult.audit.similar_cases_summaries &&
-                    actualResult.audit.similar_cases_summaries.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-bold text-slate-900 mb-2">
-                          Similar Cases Summaries
-                        </h4>
-                        <ul className="space-y-1">
-                          {actualResult.audit.similar_cases_summaries.map((summary, i) => (
-                            <li key={i} className="text-sm text-slate-700">
-                              • {summary}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                  {actualResult.audit.key_metrics_comparison && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-slate-900 mb-2">
-                        Key Metrics Comparison
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Object.entries(actualResult.audit.key_metrics_comparison).map(
-                          ([key, value]) => (
-                            <div key={key} className="p-3 bg-slate-50 rounded-lg">
-                              <div className="text-xs font-bold text-slate-900 capitalize">
-                                {key.replace(/_/g, ' ')}
-                              </div>
-                              <div className="text-sm text-slate-700">{value}</div>
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            )}
-
-            {/* Database Evidence - Modern Card */}
-            <Card
-              data-export-section="database-evidence"
-              className="border border-slate-300 shadow-sm rounded-xl bg-white"
-            >
-              <div className="p-1 sm:p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="text-emerald-600" size={20} />
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">Database Evidence</h3>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-600 mb-4">
-                  Similar cases and benchmark comparisons from the dataset
-                </p>
-
-                <div>
-                  {actualResult.similar_cases && actualResult.similar_cases.length > 0 ? (
-                    <div className="space-y-6">
-                      {actualResult.similar_cases.map((caseItem, index) => {
-                        const matchPercentage = Math.round((caseItem.similarity || 0) * 100);
-                        const sourceCaseId = caseItem.id || `case-${index}`;
-                        const caseTitle =
-                          caseItem.title || casesSummaries[index] || `Related Case ${index + 1}`;
-                        const problemText =
-                          caseItem.problem ||
-                          casesSummaries[index] ||
-                          'No problem description available.';
-                        const solutionText =
-                          caseItem.solution || 'No solution description available.';
-                        const { label: matchStrengthLabel, color: matchStrengthColor } =
-                          getMatchStrength(caseItem.similarity || 0);
-
-                        return (
-                          <div key={index} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex flex-col gap-1 mb-3">
-                              <div className="flex items-start justify-between gap-2">
-                                <div>
-                                  <h4 className="text-lg font-semibold text-gray-900">
-                                    {caseTitle}
-                                  </h4>
-                                  {/* Year + Location + Use type */}
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {caseItem.year && (
-                                      <Chip size="sm" variant="secondary" className="text-xs">
-                                        {caseItem.year}
-                                      </Chip>
-                                    )}
-                                    {caseItem.location && (
-                                      <Chip size="sm" variant="secondary" className="text-xs">
-                                        {caseItem.location}
-                                      </Chip>
-                                    )}
-                                    {caseItem.use_type && (
-                                      <Chip size="sm" variant="secondary" className="text-xs">
-                                        {caseItem.use_type}
-                                      </Chip>
-                                    )}
-                                    {caseItem.source_display && (
-                                      <a
-                                        href={caseItem.source_url || '#'}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                                      >
-                                        <ExternalLink size={10} />
-                                        {caseItem.source_display}
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <Chip size="sm" variant="flat" color="secondary">
-                                    {matchPercentage}% similar
-                                  </Chip>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="mb-3">
-                              <ProgressBar
-                                value={matchPercentage}
-                                color={
-                                  matchPercentage >= 80
-                                    ? 'success'
-                                    : matchPercentage >= 60
-                                      ? 'primary'
-                                      : matchPercentage >= 40
-                                        ? 'warning'
-                                        : 'danger'
-                                }
-                                className="mb-1"
-                              />
-                              <span className={`text-sm font-medium ${matchStrengthColor}`}>
-                                {matchStrengthLabel}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                              <div className="p-3 border-l-4 border-emerald-600 rounded bg-gray-50">
-                                <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                  <Target className="text-emerald-600" size={16} />
-                                  Problem Addressed
-                                </h5>
-                                <p className="text-sm text-gray-600">{problemText}</p>
-                              </div>
-                              <div className="p-3 border-l-4 border-emerald-600 rounded bg-gray-50">
-                                <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                  <Lightbulb className="text-emerald-600" size={16} />
-                                  Solution Approach
-                                </h5>
-                                <p className="text-sm text-gray-600">{solutionText}</p>
-                              </div>
-                            </div>
-                            {caseItem.case_scores && (
-                              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                                <p className="text-xs font-semibold text-purple-700 mb-2">
-                                  Their scores (from database) — compare with yours
-                                </p>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                  {Object.entries(caseItem.case_scores).map(([factor, score]) => {
-                                    const label = factor
-                                      .split('_')
-                                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                                      .join(' ');
-                                    const userScore = actualResult?.sub_scores?.[factor];
-                                    const diff = userScore != null ? userScore - score : null;
-                                    const scoreColor =
-                                      score >= 75
-                                        ? 'text-green-700'
-                                        : score >= 50
-                                          ? 'text-blue-700'
-                                          : 'text-amber-700';
-                                    return (
-                                      <div key={factor} className="text-center">
-                                        <div className="text-[10px] text-slate-500 truncate">
-                                          {label}
-                                        </div>
-                                        <div className={`text-sm font-bold ${scoreColor}`}>
-                                          {score}
-                                        </div>
-                                        {diff != null && (
-                                          <div
-                                            className={`text-[10px] font-semibold ${
-                                              diff > 0
-                                                ? 'text-green-600'
-                                                : diff < 0
-                                                  ? 'text-red-500'
-                                                  : 'text-slate-400'
-                                            }`}
-                                          >
-                                            {diff > 0 ? `+${diff}` : diff === 0 ? '=' : diff}
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                                <p className="text-[10px] text-slate-400 mt-1 italic">
-                                  Diff = your score − their score
-                                </p>
-                              </div>
-                            )}
-                            {/* Impact / outcomes row */}
-                            {caseItem.impact && (
-                              <div className="p-3 border-l-4 border-blue-500 rounded bg-blue-50 mb-3">
-                                <h5 className="text-sm font-semibold text-gray-700 mb-1">
-                                  Impact & Outcomes
-                                </h5>
-                                <p className="text-sm text-gray-600">{caseItem.impact}</p>
-                              </div>
-                            )}
-
-                            {/* Metadata chips row */}
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              {caseItem.circular_strategy && (
-                                <Chip size="sm" variant="flat" color="success">
-                                  {caseItem.circular_strategy}
-                                </Chip>
-                              )}
-                              {caseItem.materials && (
-                                <Chip size="sm" variant="flat" color="default">
-                                  {caseItem.materials}
-                                </Chip>
-                              )}
-                              {caseItem.industry && (
-                                <Chip size="sm" variant="flat" color="primary">
-                                  {caseItem.industry}
-                                </Chip>
-                              )}
-                            </div>
-                            <div className="flex justify-end">
-                              <Button
-                                size="sm"
-                                variant="light"
-                                onPress={() =>
-                                  openResultsDatabaseEvidenceDetailsDrawer({
-                                    caseItem,
-                                    content: caseItem.summary || caseItem.problem || '',
-                                    title: caseTitle,
-                                    matchPercentage,
-                                    matchStrengthLabel,
-                                    matchColor: matchStrengthColor,
-                                    sourceCaseId,
-                                  })
-                                }
-                                className="text-emerald-600"
-                              >
-                                View Full Details <ArrowRight className="ml-1" size={14} />
-                              </Button>
-                            </div>
-                            {index < actualResult.similar_cases.length - 1 && (
-                              <hr className="mt-4 border-gray-300" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-4 py-10 text-center text-gray-600">
-                      <Frown size={40} />
-                      <p className="">
-                        No similar cases were found in the database for this assessment.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
+            <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
           </Tabs.Panel>
 
           <Tabs.Panel id="recommendations" className="space-y-6">

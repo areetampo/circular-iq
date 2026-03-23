@@ -77,7 +77,7 @@ function ReplaceInputsDialogContent() {
         await result;
       }
     } catch (error) {
-      console.error('Replace action failed:', error);
+      logger.error('Replace action failed:', error);
       // Keep dialog open on error
       isClosingRef.current = false;
     }
@@ -93,7 +93,7 @@ function ReplaceInputsDialogContent() {
       isClosingRef.current = true;
       onClose();
     } catch (error) {
-      console.error('Cancel action failed:', error);
+      logger.error('Cancel action failed:', error);
       isClosingRef.current = true;
       onClose();
     }
@@ -165,3 +165,5 @@ export const ReplaceInputsDialog = React.memo(function ReplaceInputsDialog() {
 
   return <MemoizedContent key="replace-inputs-dialog" />;
 });
+
+ReplaceInputsDialog.propTypes = {};

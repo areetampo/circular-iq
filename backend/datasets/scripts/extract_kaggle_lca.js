@@ -230,7 +230,7 @@ async function main() {
   const requiredKeys = ['product_lca', 'livestock', 'supply_chain'];
   for (const key of requiredKeys) {
     if (!dataset.raw_folder_contents?.[key]) {
-      console.warn(`‼ Missing raw_folder_contents.${key} – check dataset definition.`);
+      logger.warn(`‼ Missing raw_folder_contents.${key} – check dataset definition.`);
     }
   }
 
@@ -246,15 +246,15 @@ async function main() {
 
   for (const file of files) {
     if (!file.name) {
-      console.warn(`‼ Skipping undefined file.`);
+      logger.warn(`‼ Skipping undefined file.`);
       continue;
     }
     const filePath = path.join(rawDir, file.name);
     if (!fs.existsSync(filePath)) {
-      console.warn(`‼ File not found: ${filePath} – skipping.`);
+      logger.warn(`‼ File not found: ${filePath} – skipping.`);
       continue;
     }
-    console.log(`📄 Processing ${file.name} ...`);
+    logger.info(`📄 Processing ${file.name} ...`);
     try {
       const rows = await file.handler(filePath);
       // Compute quality score for each row and add to collection
@@ -262,36 +262,36 @@ async function main() {
         row._qualityScore = computeQualityScoreFromMetadata(row);
         allRows.push(row);
       }
-      console.log(`   → ${rows.length} high‑quality rows.`);
+      logger.info(`   → ${rows.length} high‑quality rows.`);
     } catch (err) {
-      console.error(`✕ Error processing ${file.name}:`, err);
+      logger.error(`✕ Error processing ${file.name}:`, err);
     }
   }
 
-  console.log(`\n📊 Total rows collected: ${allRows.length}`);
+  logger.info(`\n📊 Total rows collected: ${allRows.length}`);
 
   if (allRows.length === 0) {
-    console.log('✕ No data processed. Exiting.');
+    logger.info('✕ No data processed. Exiting.');
     return;
   }
 
   // Sort by quality score (descending) and select top TARGET_ROWS
   const finalRows = allRows.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, TARGET_ROWS);
 
-  console.log(`🎯 Selected ${finalRows.length} highest‑quality rows (target: ${TARGET_ROWS}).`);
-  console.log(
+  logger.info(`🎯 Selected ${finalRows.length} highest‑quality rows (target: ${TARGET_ROWS}).`);
+  logger.info(
     `   Quality score range: ${Math.min(...finalRows.map((r) => r._qualityScore))} – ${Math.max(...finalRows.map((r) => r._qualityScore))}`,
   );
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  console.log(
+  logger.info(
     `✓ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    console.error('\n✕ Error in main execution:', err.message, err.stack);
+    logger.error('\n✕ Error in main execution:', err.message, err.stack);
     process.exit(1);
   });
 }

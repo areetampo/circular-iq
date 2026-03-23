@@ -1,5 +1,11 @@
 import { LineChart as MuiLineChart } from '@mui/x-charts/LineChart';
+import PropTypes from 'prop-types';
 
+/**
+ * LineChart Component
+ * Renders a line chart using MUI X-Charts library
+ * Supports multiple data series with customizable axes and legend
+ */
 export default function LineChart({
   data = [],
   lines = [],
@@ -43,3 +49,26 @@ export default function LineChart({
     </div>
   );
 }
+
+LineChart.propTypes = {
+  /** Array of data objects for the chart */
+  data: PropTypes.arrayOf(PropTypes.object),
+  /** Array of line configuration objects with dataKey, name, stroke/color properties */
+  lines: PropTypes.arrayOf(
+    PropTypes.shape({
+      dataKey: PropTypes.string,
+      id: PropTypes.string,
+      name: PropTypes.string,
+      stroke: PropTypes.string,
+      color: PropTypes.string,
+    }),
+  ),
+  /** Chart height in pixels */
+  height: PropTypes.number,
+  /** Key in data objects for X-axis labels */
+  xAxisKey: PropTypes.string,
+  /** Show/hide legend */
+  showLegend: PropTypes.bool,
+  /** Accessibility label for the chart */
+  ariaLabel: PropTypes.string,
+};

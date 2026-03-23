@@ -64,7 +64,7 @@ import {
   OUT_TEST_COMBINED_INPUT_CSV,
   OUT_TEST_COMBINED_INPUT_FINAL_CSV,
   writeJson,
-} from '#utils/datasetsUtils.js';
+} from '#pipeline/datasetsUtils.js';
 
 const ENRICH_SCORES = process.argv.includes('--enrich-scores');
 const useArchive = process.argv.includes('--archives');
@@ -131,7 +131,7 @@ export function loadDataset(csvFilePath) {
     relax_column_count: true,
   });
 
-  console.log(`✓ Loaded ${records.length} records from dataset`);
+  logger.info({ recordCount: records.length }, 'Loaded records from dataset');
   return records;
 }
 
@@ -202,7 +202,7 @@ Return ONLY a JSON object with keys exactly as above and values between 0 and 10
     }
     return scores;
   } catch (error) {
-    console.warn(`‼ Failed to enrich scores: ${error.message}`);
+    logger.warn({ err: error }, 'Failed to enrich scores');
     return null;
   }
 }
@@ -224,8 +224,9 @@ export async function createChunks(records) {
   // In normal mode this is skipped entirely (ENRICH_SCORES=false).
   const precomputedScores = new Array(records.length).fill(null);
   if (ENRICH_SCORES) {
-    console.log(
-      `  Pre-enriching scores for ${records.length} records with concurrency=${ENRICH_CONCURRENCY}...`,
+    logger.info(
+      { recordCount: records.length, concurrency: ENRICH_CONCURRENCY },
+      'Pre-enriching scores for records',
     );
 
     let enrichedCount = 0;
@@ -261,10 +262,10 @@ export async function createChunks(records) {
 
       // Log progress every few batches or at the end
       if (enrichedCount % (ENRICH_CONCURRENCY * 10) === 0 || enrichedCount === records.length) {
-        console.log(`  Enriched ${enrichedCount}/${records.length} records...`);
+        logger.info({ enrichedCount, totalRecords: records.length }, 'Enrichment progress');
       }
     }
-    console.log(`  ✓ Score enrichment complete.`);
+    logger.info({}, 'Score enrichment complete');
   }
 
   for (let i = 0; i < records.length; i++) {
@@ -300,7 +301,7 @@ export async function createChunks(records) {
 
     // Validate minimum content - be strict about quality
     if (!problemText || !solutionText) {
-      console.warn(`Skipping record ${i}: Missing problem or solution`);
+      logger.warn({ recordIndex: i }, 'Skipping record: missing problem or solution');
       continue;
     }
 
@@ -309,15 +310,17 @@ export async function createChunks(records) {
     const MIN_SOLUTION_LENGTH = 20;
 
     if (problemText.length < MIN_PROBLEM_LENGTH) {
-      console.warn(
-        `Skipping record ${i}: Problem too short (${problemText.length} chars, need ${MIN_PROBLEM_LENGTH})`,
+      logger.warn(
+        { recordIndex: i, problemLength: problemText.length, required: MIN_PROBLEM_LENGTH },
+        'Skipping record: problem too short',
       );
       continue;
     }
 
     if (solutionText.length < MIN_SOLUTION_LENGTH) {
-      console.warn(
-        `Skipping record ${i}: Solution too short (${solutionText.length} chars, need ${MIN_SOLUTION_LENGTH})`,
+      logger.warn(
+        { recordIndex: i, solutionLength: solutionText.length, required: MIN_SOLUTION_LENGTH },
+        'Skipping record: solution too short',
       );
       continue;
     }
@@ -325,13 +328,13 @@ export async function createChunks(records) {
     // Check for low-quality content (all caps, repetitive, etc)
     const allCaps = (problemText.match(/[A-Z]/g) || []).length;
     if (allCaps / problemText.length > 0.8) {
-      console.warn(`Skipping record ${i}: Problem appears to be mostly uppercase`);
+      logger.warn({ recordIndex: i }, 'Skipping record: problem appears to be mostly uppercase');
       continue;
     }
 
     // Progress for large non-enrich datasets (enrich has its own counter)
     if (!ENRICH_SCORES && records.length > 500 && (i + 1) % 500 === 0) {
-      console.log(`  Chunking record ${i + 1}/${records.length}...`);
+      logger.info({ current: i + 1, total: records.length }, 'Chunking progress');
     }
 
     // Use pre-enriched scores from the concurrent batch above (null if not enriching)
@@ -455,8 +458,9 @@ export async function createChunks(records) {
       const wordCount = countWords(secondaryContent);
 
       if (seenSecondaryHashes.has(secondaryContent)) {
-        console.warn(
-          `Skipping duplicate secondary chunk for row_${i} (identical content already seen)`,
+        logger.warn(
+          { rowIndex: i },
+          'Skipping duplicate secondary chunk: identical content already seen',
         );
       } else {
         seenSecondaryHashes.add(secondaryContent);
@@ -511,7 +515,10 @@ export async function createChunks(records) {
     }
   }
 
-  console.log(`✓ Created ${chunks.length} semantic chunks from ${records.length} records`);
+  logger.info(
+    { chunkCount: chunks.length, recordCount: records.length },
+    'Created semantic chunks',
+  );
   return chunks;
 }
 
@@ -527,8 +534,6 @@ export async function saveChunksToFile(chunks, outputPath) {
     throw new Error(`Failed to write chunks file: ${err.message}`);
   }
 
-  console.log(`✓ Saved ${chunks.length} chunks to ${outputPath}`);
-
   // Log statistics
   const stats = {
     total_chunks: chunks.length,
@@ -541,13 +546,8 @@ export async function saveChunksToFile(chunks, outputPath) {
     categories: [...new Set(chunks.map((c) => c.metadata.category))],
   };
 
-  console.log('\nChunking Statistics:');
-  console.log(`  Total chunks: ${stats.total_chunks}`);
-  console.log(`  Total words: ${stats.total_words}`);
-  console.log(`  Avg words/chunk: ${stats.avg_words_per_chunk}`);
-  console.log(`  Primary chunks: ${stats.primary_chunks}`);
-  console.log(`  Secondary chunks: ${stats.secondary_chunks}`);
-  // console.log(`  Categories: ${stats.categories.join(', ')}`);
+  logger.info({ outputPath, chunkCount: chunks.length }, 'Chunks saved to file');
+  logger.info(stats, 'Chunking statistics');
 }
 
 /**
@@ -555,27 +555,31 @@ export async function saveChunksToFile(chunks, outputPath) {
  * Loads dataset, creates chunks, and saves to file
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  console.log('Starting chunk generation with the following options:');
-  console.log(`  Enrich scores with OpenAI: ${ENRICH_SCORES}`);
-  console.log(`  Use archives folder: ${useArchive}`);
-  console.log(`  Use final dataset: ${final}`);
-  console.log(`  Use test dataset: ${test}`);
-  console.log(`  Input dataset: ${datasetPath}`);
-  console.log(`  Output chunks file: ${outputPath}`);
+  logger.info(
+    {
+      enrichScores: ENRICH_SCORES,
+      useArchive,
+      final,
+      test,
+      datasetPath,
+      outputPath,
+    },
+    'Starting chunk generation',
+  );
 
   (async () => {
     try {
       const records = loadDataset(datasetPath);
       const chunks = await createChunks(records);
       await saveChunksToFile(chunks, outputPath);
-      console.log('\n✓ Chunking complete!');
+      logger.info({}, 'Chunking complete');
       process.exit(0);
     } catch (error) {
-      console.error('\n✕ Fatal error:', error.message);
+      logger.error({ err: error }, 'Fatal error during chunking');
       process.exit(1);
     }
   })().catch((err) => {
-    console.error('Unhandled rejection:', err.message);
+    logger.error({ err }, 'Unhandled rejection');
     process.exit(1);
   });
 }

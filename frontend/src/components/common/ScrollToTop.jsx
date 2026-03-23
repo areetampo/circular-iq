@@ -57,3 +57,5 @@ export default function ScrollToTop() {
   // This component doesn't render anything
   return null;
 }
+
+ScrollToTop.propTypes = {};

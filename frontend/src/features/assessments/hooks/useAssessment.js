@@ -1,8 +1,19 @@
 import { toast } from '@heroui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { createAssessment, getAssessmentById, getPublicAssessment } from '@/features/assessments';
+import {
+  createAssessment,
+  getAssessmentById,
+  getPublicAssessment,
+} from '@/features/assessments/api/assessmentApi';
 
+/**
+ * useAssessment
+ * Fetches a single saved assessment by id with React Query (private API).
+ * @param {string|number} id
+ * @param {Object} [options]
+ * @returns {Object}
+ */
 export function useAssessment(id, options = {}) {
   const { enabled = true, placeholderData } = options;
 
@@ -42,9 +53,11 @@ export function useAssessment(id, options = {}) {
 }
 
 /**
- * Hook for fetching a publicly shared assessment (no authentication required)
- * @param {string} publicId - The public ID of the shared assessment
- * @param {Object} options - Query options
+ * usePublicAssessment
+ * Fetches a publicly shared assessment by public id (no authentication).
+ * @param {string} publicId
+ * @param {Object} [options]
+ * @returns {Object}
  */
 export function usePublicAssessment(publicId, options = {}) {
   const { enabled = true } = options;
@@ -74,8 +87,9 @@ export function usePublicAssessment(publicId, options = {}) {
 }
 
 /**
- * Hook for prefetching assessment data on hover to enable instant navigation
- * @returns {Function} prefetch function that takes an assessment ID
+ * usePrefetchAssessment
+ * Returns a function to prefetch an assessment by id into the React Query cache.
+ * @returns {Function}
  */
 export function usePrefetchAssessment() {
   const queryClient = useQueryClient();
@@ -92,7 +106,10 @@ export function usePrefetchAssessment() {
 }
 
 /**
- * Hook for creating a new assessment with automatic cache invalidation
+ * useCreateAssessment
+ * Mutation hook to create an assessment and invalidate the assessments list cache.
+ * @param {Object} options
+ * @returns {Object}
  */
 export function useCreateAssessment() {
   const queryClient = useQueryClient();

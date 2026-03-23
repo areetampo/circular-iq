@@ -1,10 +1,7 @@
 /**
  * Scoring Controller
- * Handles all business logic for scoring and audit operations
- * - Calculate scores using 8-factor framework
- * - Vector search for similar cases
- * - Generate AI-powered audit
- * - Anonymous usage tracking
+ * Handles /api/score — validates input, runs scoring pipeline,
+ * calls LLM audit, vector search, enrichment layers, and logs results.
  */
 
 import crypto from 'crypto';
@@ -38,6 +35,7 @@ const IS_PROD = BACKEND_CONFIG.isProduction;
  * @private
  */
 function errorResponse(error, defaultMessage = 'Internal server error') {
+  logger.error({ err: error }, 'API error occurred');
   return {
     error: error.message || defaultMessage,
     timestamp: new Date().toISOString(),
@@ -50,9 +48,7 @@ function errorResponse(error, defaultMessage = 'Internal server error') {
  * @private
  */
 function logOperation(operation, status, duration) {
-  if (!IS_PROD) {
-    console.log(`[${new Date().toISOString()}] ${operation} - ${status} (${duration}ms)`);
-  }
+  logger.logOperation(operation, status, duration);
 }
 
 /**
@@ -74,7 +70,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // If there's no Bearer header but we're running tests, treat as authenticated
     if (!authHeader.startsWith('Bearer ')) {
       if (IS_TEST) {
-        console.log('IS_TEST: treating request as authenticated (skip anonymous check)');
+        logger.info({ isTest: true }, 'Treating request as authenticated (skip anonymous check)');
         return null;
       }
     } else {
@@ -83,7 +79,10 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
       // If the provided bearer token is the master API key, treat as authenticated
       if (token && MASTER_API_KEY && token === MASTER_API_KEY) {
-        console.log('Master API key provided in Authorization header — treating as authenticated');
+        logger.info(
+          { authenticated: true },
+          'Master API key provided in Authorization header — treating as authenticated',
+        );
         return null;
       }
 
@@ -91,27 +90,29 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
         try {
           const { data, error } = await supabase.auth.getUser(token);
           if (!error && data?.user) {
-            console.log('User token verified via Supabase, skipping anonymous usage check');
+            logger.info(
+              { userId: data.user.id },
+              'User token verified via Supabase, skipping anonymous usage check',
+            );
             return null; // Authenticated user — skip anonymous limits
           }
           // If token is invalid or expired, proceed as anonymous user
-          console.log(
+          logger.info(
+            { authenticated: false },
             'Bearer token present but not a valid authenticated user — treating as anonymous',
           );
         } catch (authErr) {
           // If Supabase call fails, log and continue as anonymous (do not block here)
-          console.warn(
-            'Supabase auth.getUser failed when verifying token:',
-            authErr?.message || authErr,
-          );
+          logger.warn({ err: authErr }, 'Supabase auth.getUser failed when verifying token');
         }
       }
     }
 
     // 2. Check if serviceSupabase is available for tracking
     if (!serviceSupabase) {
-      console.warn(
-        '‼ ️ serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
+      logger.warn(
+        { tracking: false },
+        'serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
       );
       // Allow when tracking is not configured
       return null;
@@ -119,16 +120,18 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 3. Get anonymous user identifier
     const { hash, ip, userAgent } = getIdentifierFromRequest(req);
-    console.log(
-      `Anonymous request from IP: ${ip.substring(0, 10)}..., UA: ${userAgent.substring(0, 30)}...`,
+    logger.info(
+      { ipPrefix: ip.substring(0, 10), uaPrefix: userAgent.substring(0, 30) },
+      'Anonymous request received',
     );
 
     const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
     const uaSnippet = (userAgent || '').substring(0, 100);
 
     // 4. Call the atomic database function
-    console.log(
-      `Calling check_and_increment_anonymous_usage for hash: ${hash.substring(0, 10)}...`,
+    logger.info(
+      { hashPrefix: hash.substring(0, 10) },
+      'Calling check_and_increment_anonymous_usage',
     );
 
     const { data, error } = await serviceSupabase.rpc('check_and_increment_anonymous_usage', {
@@ -140,8 +143,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 5. Handle database errors — FAIL CLOSED: block if tracking is unavailable
     if (error) {
-      console.error('✕ Error in atomic usage check:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      logger.error({ err: error }, 'Error in atomic usage check');
       return {
         blocked: true,
         status: 503,
@@ -156,8 +158,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // 6. Validate response
     const result = data?.[0];
     if (!result) {
-      console.error('✕ Unexpected empty result from usage check');
-      console.error('Response data:', data);
+      logger.error({ data }, 'Unexpected empty result from usage check');
       // Treat as blocked to be conservative (tracking inconsistency)
       return {
         blocked: true,
@@ -172,11 +173,14 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     const { current_count, is_allowed } = result;
 
-    console.log(`✓ Usage check result: count=${current_count}, allowed=${is_allowed}`);
+    logger.info({ currentCount: current_count, isAllowed: is_allowed }, 'Usage check result');
 
     // 7. Check if limit reached
     if (!is_allowed) {
-      console.log(`✕ Anonymous user limit reached: ${current_count}/${MAX_FREE_TRIES}`);
+      logger.info(
+        { currentCount: current_count, limit: MAX_FREE_TRIES },
+        'Anonymous user limit reached',
+      );
       return {
         blocked: true,
         status: 403,
@@ -192,11 +196,10 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     }
 
     // 8. Allow request
-    console.log(`✓ Anonymous user allowed: ${current_count}/${MAX_FREE_TRIES} tries used`);
+    logger.info({ currentCount: current_count, limit: MAX_FREE_TRIES }, 'Anonymous user allowed');
     return null;
   } catch (e) {
-    console.error('✕ Anonymous usage check failed:', e?.message || e);
-    console.error('Stack trace:', e?.stack);
+    logger.error({ err: e }, 'Anonymous usage check failed');
     // Fail-closed on unexpected exceptions related to tracking
     return {
       blocked: true,
@@ -237,11 +240,14 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
   let stepStart = Date.now();
 
-  console.log('='.repeat(20));
-  console.log(`📥 NEW SCORING REQUEST - ${requestId}`);
-  console.log('Authorization header:', req.headers.authorization ? 'PRESENT ‼ ️' : 'MISSING ✓');
-  console.log('IP:', extractIPAddress(req));
-  console.log('='.repeat(20));
+  logger.info(
+    {
+      requestId,
+      authHeader: req.headers.authorization ? 'PRESENT' : 'MISSING',
+      ip: extractIPAddress(req),
+    },
+    'NEW SCORING REQUEST',
+  );
 
   try {
     const { businessProblem, businessSolution, evaluationParameters, businessContext } = req.body;
@@ -326,11 +332,11 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
     timings.validation = Date.now() - stepStart;
     stepStart = Date.now();
 
-    console.log(`[${requestId}] Starting score calculation...`);
+    logger.info({ requestId }, 'Starting score calculation');
 
     // ========== STEP 1: CALCULATE DETERMINISTIC SCORES ==========
     const scores = calculateScores(evaluationParameters);
-    console.log(`[${requestId}] Scores calculated: ${scores.overall_score} / 100`);
+    logger.info({ requestId, overallScore: scores.overall_score }, 'Scores calculated');
 
     timings.scoring = Date.now() - stepStart;
     stepStart = Date.now();
@@ -341,7 +347,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     try {
       // Create separate embeddings for problem and solution to query respective vectors
-      console.log(`[${requestId}] Generating problem + solution embeddings...`);
+      logger.info({ requestId }, 'Generating problem + solution embeddings');
       const problemEmbedRes = await openai.embeddings.create({
         model: 'text-embedding-3-small',
         input: `Problem: ${businessProblem}`,
@@ -359,13 +365,19 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
       // Extract metadata to enable industry-filtered search
       try {
-        console.log(`[${requestId}] Extracting metadata (industry, scale, strategy)...`);
+        logger.info({ requestId }, 'Extracting metadata (industry, scale, strategy)');
         metadata = await extractMetadata(businessProblem, businessSolution);
-        console.log(
-          `[${requestId}] Metadata extracted: ${metadata.industry}, ${metadata.scale}, ${metadata.r_strategy}`,
+        logger.info(
+          {
+            requestId,
+            industry: metadata.industry,
+            scale: metadata.scale,
+            rStrategy: metadata.r_strategy,
+          },
+          'Metadata extracted',
         );
       } catch (error) {
-        console.warn(`[${requestId}] Metadata extraction warning:`, error.message);
+        logger.warn({ requestId, err: error }, 'Metadata extraction warning');
         metadata = null;
       }
 
@@ -373,7 +385,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       stepStart = Date.now();
 
       // Use hybrid search for problem and solution separately
-      console.log(`[${requestId}] Running hybrid searches for problem and solution...`);
+      logger.info({ requestId }, 'Running hybrid searches for problem and solution');
 
       const keywordForProblem = metadata?.primary_material || '';
       const keywordForSolution = metadata?.primary_material || '';
@@ -413,25 +425,26 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
         industryResults.status === 'fulfilled' ? industryResults.value || [] : [];
 
       if (searchResults.status === 'rejected') {
-        console.error(`[${requestId}] Hybrid search failed:`, searchResults.reason);
+        logger.error({ requestId, err: searchResults.reason }, 'Hybrid search failed');
       }
       if (industryResults.status === 'rejected') {
-        console.error(`[${requestId}] Industry search failed:`, industryResults.reason);
+        logger.error({ requestId, err: industryResults.reason }, 'Industry search failed');
       }
 
       // Combine and deduplicate using weighted multi-vector approach
       const combinedRows = [...problemRows, ...solutionRows, ...industryRows];
 
       if (combinedRows.length === 0) {
-        console.log(`[${requestId}] No similar cases found in database`);
+        logger.info({ requestId }, 'No similar cases found in database');
       } else {
         // Filter by minimum similarity threshold
         const MIN_SIMILARITY = 0.3;
         const filtered = combinedRows.filter((row) => (row.similarity || 0) >= MIN_SIMILARITY);
 
         if (filtered.length === 0) {
-          console.log(
-            `[${requestId}] No cases met minimum similarity threshold (${MIN_SIMILARITY})`,
+          logger.info(
+            { requestId, minSimilarity: MIN_SIMILARITY },
+            'No cases met minimum similarity threshold',
           );
           similarCases = [];
         } else {
@@ -462,7 +475,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
               )
                 multiplier += 0.06;
             } catch (e) {
-              console.warn(`[${requestId}] Similar case metadata parsing warning:`, e.message);
+              logger.warn({ requestId, err: e }, 'Similar case metadata parsing warning');
             }
             return { ...c, similarity: (c.similarity || 0) * multiplier };
           });
@@ -480,8 +493,9 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
           async function ensureAtLeastFour(dedupedList, problemVector, solutionVector, metadata) {
             if (dedupedList.length >= 4) return dedupedList;
 
-            console.log(
-              `[${requestId}] Only ${dedupedList.length} cases above threshold — running fallback search without threshold`,
+            logger.info(
+              { requestId, caseCount: dedupedList.length },
+              'Only cases above threshold — running fallback search',
             );
 
             const [fallbackProblem, fallbackSolution] = await Promise.all([
@@ -526,8 +540,14 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
           // Sort and limit
           deduped.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
           similarCases = deduped.slice(0, 4);
-          console.log(
-            `[${requestId}] Found ${combinedRows.length} vector rows -> ${filtered.length} above threshold -> ${similarCases.length} unique similar cases`,
+          logger.info(
+            {
+              requestId,
+              totalRows: combinedRows.length,
+              aboveThreshold: filtered.length,
+              uniqueCases: similarCases.length,
+            },
+            'Similar cases identified',
           );
         }
       }
@@ -535,7 +555,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       timings.vectorSearch = Date.now() - stepStart;
       stepStart = Date.now();
     } catch (error) {
-      console.error(`[${requestId}] Vector search error:`, error.message);
+      logger.error({ requestId, err: error }, 'Vector search error');
       timings.vectorSearch = Date.now() - stepStart;
       stepStart = Date.now();
       // Continue without database context - don't fail the request
@@ -549,13 +569,16 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 
     // ========== STEP 3: IDENTIFY INTEGRITY GAPS ==========
     const integrityGaps = identifyIntegrityGaps(scores.sub_scores);
-    console.log(`[${requestId}] Identified ${integrityGaps.length} potential integrity gaps`);
+    logger.info(
+      { requestId, gapCount: integrityGaps.length },
+      'Identified potential integrity gaps',
+    );
 
     timings.integrityGaps = Date.now() - stepStart;
     stepStart = Date.now();
 
     // ========== STEP 4: GENERATE AI-POWERED AUDIT ==========
-    console.log(`[${requestId}] Generating audit analysis...`);
+    logger.info({ requestId }, 'Generating audit analysis');
 
     const auditResult = await generateReasoning(
       businessProblem,
@@ -577,7 +600,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
     stepStart = Date.now();
 
     // ========== STEP 5: CALCULATE GAP ANALYSIS ==========
-    console.log(`[${requestId}] Calculating gap analysis and benchmarks...`);
+    logger.info({ requestId }, 'Calculating gap analysis and benchmarks');
     const gapAnalysis = calculateGapAnalysis(scores, similarCases);
 
     timings.gapAnalysis = Date.now() - stepStart;
@@ -809,20 +832,20 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       .insert(logData)
       .then(({ error }) => {
         if (error) {
-          console.error(`[${requestId}] Database Error:`, error.message);
+          logger.error({ requestId, err: error }, 'Database error during result logging');
         } else {
-          console.log(`[${requestId}] Result logged successfully to database.`);
+          logger.info({ requestId }, 'Result logged successfully to database');
         }
       })
       .catch((err) => {
-        console.error(`[${requestId}] Result logging critical failure:`, err.message);
+        logger.error({ requestId, err }, 'Result logging critical failure');
       });
 
     // --- RETURN TO CONTROLLER ---
     logOperation('performScoring', 'success', Date.now() - startTime);
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
-    console.error(`[${requestId}] Request error:`, error);
+    logger.error({ requestId, err: error }, 'Scoring request error');
     logOperation('performScoring', 'error', Date.now() - startTime);
     throw error;
   }

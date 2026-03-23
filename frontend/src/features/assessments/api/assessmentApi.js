@@ -11,7 +11,6 @@
 import { FRONTEND_CONFIG } from '@/config';
 import {
   safeValidateAssessmentsList,
-  safeValidateGlobalAnalytics,
   validateAssessment,
 } from '@/features/assessments/api/assessmentSchema';
 import { buildApiUrl } from '@/lib/apiClient';
@@ -32,7 +31,7 @@ async function getAuthHeaders() {
       headers.Authorization = `Bearer ${data.session.access_token}`;
     }
   } catch (error) {
-    console.error('[AUTH_HEADER_ERROR]', error);
+    logger.error('[AUTH_HEADER_ERROR]', error);
   }
 
   return headers;
@@ -203,18 +202,18 @@ export async function deleteAssessment(id) {
     throw new Error('Assessment id is required');
   }
 
-  console.log('[DELETE_ASSESSMENT_API]', { id });
+  logger.log('[DELETE_ASSESSMENT_API]', { id });
 
   try {
     const response = await requestJson(`/api/assessments/${id}`, { method: 'DELETE' });
-    console.log('[DELETE_ASSESSMENT_RESPONSE]', { id, response });
+    logger.log('[DELETE_ASSESSMENT_RESPONSE]', { id, response });
 
     if (!response) {
       throw new Error('Failed to delete assessment: No response from server');
     }
     return response;
   } catch (error) {
-    console.error('[DELETE_ASSESSMENT_FAILED]', {
+    logger.error('[DELETE_ASSESSMENT_FAILED]', {
       id,
       errorMessage: error.message,
       errorStatus: error.status,
@@ -281,31 +280,6 @@ export async function getMarketAnalysisPublic(publicId) {
   return data;
 }
 
-export async function getGlobalAnalytics(filters = {}) {
-  const params = new URLSearchParams();
-  if (filters?.industry) params.set('industry', filters.industry);
-  if (filters?.timeRange && filters.timeRange !== 'all') {
-    params.set('timeRange', filters.timeRange);
-  }
-  const path = params.toString() ? `/api/analytics?${params}` : '/api/analytics';
-  const data = await requestJson(path);
-  return safeValidateGlobalAnalytics(data) || data;
-}
-
-export async function getEnhancedAnalytics(filters = {}) {
-  const params = new URLSearchParams();
-  if (filters?.industry) params.set('industry', filters.industry);
-  if (filters?.timeRange && filters.timeRange !== 'all') {
-    params.set('timeRange', filters.timeRange);
-  }
-  if (filters?.granularity) {
-    params.set('granularity', filters.granularity);
-  }
-  const path = params.toString() ? `/api/analytics/enhanced?${params}` : '/api/analytics/enhanced';
-  const data = await requestJson(path);
-  return data;
-}
-
 /**
  * Fetch a small set of featured solutions (uses the `documents` table on the server)
  * Useful for surfacing curated problem→solution examples on the dashboard.
@@ -322,14 +296,6 @@ export async function getFeaturedSolutions({ limit = 3, industry, q } = {}) {
     count: data?.count || 0,
     solutions: Array.isArray(data?.solutions) ? data.solutions : [],
   };
-}
-
-export async function compareAssessments(id1, id2) {
-  if (!id1 || !id2) {
-    throw new Error('Both assessment ids are required');
-  }
-  const query = new URLSearchParams({ id1, id2 });
-  return requestJson(`/api/assessments/compare?${query}`);
 }
 
 /**
