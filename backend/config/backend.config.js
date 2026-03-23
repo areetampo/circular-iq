@@ -186,11 +186,6 @@ export const BACKEND_CONFIG = deepFreeze({
       endpoint: '/api/score',
       description: 'RAG Analysis & Scoring (Rate Limited)',
     },
-    {
-      method: 'GET',
-      endpoint: '/api/score/test-anonymous-limit-tracking',
-      description: 'Test Anonymous Usage Limits (Testing Only)',
-    },
 
     // Analytics
     { method: 'GET', endpoint: '/api/analytics', description: 'Analytics Summary' },

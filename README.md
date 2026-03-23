@@ -266,10 +266,9 @@ VITE_ENABLE_ANALYTICS=true    # optional
 
 ### Scoring
 
-| Method | Endpoint                                   | Auth     | Description                                                                       |
-| ------ | ------------------------------------------ | -------- | --------------------------------------------------------------------------------- |
-| `POST` | `/api/score`                               | Optional | Full scoring pipeline: validation → vector search → Layer 2 → LLM audit → Layer 3 |
-| `GET`  | `/api/score/test-anonymous-limit-tracking` | Optional | Anonymous usage guard check (internal/testing)                                    |
+| Method | Endpoint     | Auth     | Description                                                                       |
+| ------ | ------------ | -------- | --------------------------------------------------------------------------------- |
+| `POST` | `/api/score` | Optional | Full scoring pipeline: validation → vector search → Layer 2 → LLM audit → Layer 3 |
 
 ### Analytics
 
