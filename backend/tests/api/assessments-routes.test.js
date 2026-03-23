@@ -138,25 +138,45 @@ test('DELETE /assessments/:id endpoint is routable', async () => {
   assert(res.status >= 200 && res.status < 600, 'Endpoint should be routable');
 });
 
-// GET /market-analysis/:id routing test
-test('GET /market-analysis/:id endpoint returns market data and user comparisons', async () => {
-  const res = await request(app).get('/api/assessments/market-analysis/123');
+// GET /compare with query parameters test
+test('GET /assessments/compare rejects missing query parameters', async () => {
+  const res = await request(app).get('/api/assessments/compare');
 
-  // Accept 200 (happy path) or 500 (DB not available in test env)
-  assert(res.status === 200 || res.status === 500, 'Should respond');
+  // Should reject due to missing id1 and id2
+  assert(res.status === 400, 'Should reject missing query parameters');
+});
 
-  if (res.status === 200) {
-    assert(Array.isArray(res.body.market_data), 'Should include market_data array');
-    assert(
-      typeof res.body.stats === 'object' || res.body.stats === null,
-      'Should include stats object',
-    );
-    // userScore may be null if assessment not found
-    assert('userScore' in res.body, 'Should include userScore (may be null)');
-    assert(
-      'user_percentile' in res.body || 'userPercentile' in res.body,
-      'Should include a percentile field',
-    );
-    assert(Array.isArray(res.body.strategy_breakdown), 'Should include strategy_breakdown array');
-  }
+test('GET /assessments/compare rejects missing id2 parameter', async () => {
+  const res = await request(app).get('/api/assessments/compare').query({ id1: 'abc123' });
+
+  // Should reject due to missing id2
+  assert(res.status === 400, 'Should reject missing id2 parameter');
+});
+
+test('GET /assessments/compare accepts id1 and id2 query parameters', async () => {
+  const res = await request(app)
+    .get('/api/assessments/compare')
+    .query({ id1: 'abc123', id2: 'def456' });
+
+  // Should route successfully (may return 401 if auth required, 404 if not found, or 200/500 based on DB)
+  assert(res.status >= 200 && res.status < 600, 'Should route with query parameters');
+});
+
+test('GET /api/assessments/validate rejects invalid UUID format', async () => {
+  const res = await request(app).get('/api/assessments/validate/not-a-uuid');
+  assert.strictEqual(res.status, 400, 'Should reject invalid publicId format');
+});
+
+test('PATCH /api/assessments/:id endpoint is routable', async () => {
+  const res = await request(app).patch('/api/assessments/123').send({ is_public: true });
+  assert(res.status >= 200 && res.status < 600, 'Endpoint should be routable');
+});
+
+test('GET /api/assessments/compare accepts id1 and id2 query parameters', async () => {
+  const res = await request(app)
+    .get('/api/assessments/compare')
+    .query({ id1: 'abc123', id2: 'def456' });
+
+  // Should route successfully (may return 401 if auth required, 404 if not found, or 200/500 based on DB)
+  assert(res.status >= 200 && res.status < 600, 'Should route with query parameters');
 });

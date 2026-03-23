@@ -232,7 +232,8 @@ export async function getComparisonAssessments(id1, id2) {
     throw new Error('Both assessment ids are required');
   }
 
-  const data = await requestJson(`/api/assessments/compare/${id1}/${id2}`);
+  const query = new URLSearchParams({ id1, id2 });
+  const data = await requestJson(`/api/assessments/compare?${query}`);
 
   // Validate response data for both assessments
   try {
@@ -249,35 +250,6 @@ export async function getComparisonAssessments(id1, id2) {
     validationError.data = data;
     throw validationError;
   }
-}
-
-export async function getMarketAnalysis(id) {
-  const path = id ? `/api/assessments/market-analysis/${id}` : '/api/assessments/market-analysis';
-  const data = await requestJson(path);
-
-  // Normalize keys and validate market analysis data structure
-  if (data && typeof data === 'object') {
-    return {
-      marketData: data.market_data || data.marketData || [],
-      stats: data.stats || null,
-      userScore: data.userScore ?? data.user_score ?? null,
-      userPercentile: data.user_percentile ?? data.userPercentile ?? null,
-      userIndustry: data.userIndustry || data.user_industry || null,
-      industryBenchmark: data.industry_benchmark || null,
-      strategyBreakdown: data.strategy_breakdown || data.strategyBreakdown || [],
-    };
-  }
-  return data;
-}
-
-/**
- * Fetch market analysis for a publicly shared assessment by publicId
- */
-export async function getMarketAnalysisPublic(publicId) {
-  if (!publicId) throw new Error('Public id is required');
-  const path = `/api/assessments/market-analysis/public/${publicId}`;
-  const data = await requestJson(path);
-  return data;
 }
 
 /**

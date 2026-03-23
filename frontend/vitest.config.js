@@ -59,6 +59,7 @@ export default defineConfig({
     globals: true,
     css: true,
     testTimeout: 10000,
+    include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
     envDir: rootEnvPath,
     logHeapUsage: true,
     reporters: ['default', 'verbose'],

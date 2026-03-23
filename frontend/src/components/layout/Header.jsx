@@ -111,24 +111,6 @@ const ROUTE_CONFIGS = [
     bgAnimation: { duration1: 6, duration2: 8 },
   },
   {
-    path: '/assessments/',
-    // Accept both legacy `/results/:id/market-analysis` and new `/assessments/:id/market-analysis`
-    regex: /^\/(?:results|assessments)\/[^/]+\/market-analysis$/,
-    title: 'Market Analysis',
-    subtitle: 'Competitive benchmarking and market positioning insights',
-    titleSize: 'text-xl sm:text-2xl md:text-3xl', // Smaller
-    subtitleSize: 'text-xs md:text-sm',
-    titleColor: 'from-blue-600 via-indigo-500 to-purple-500',
-    showTitle: true,
-    showSubtitle: true,
-    padding: 'py-3 sm:py-4 lg:py-6',
-    showAnimatedBg: false, // Minimal distraction for data-heavy page
-    bgBlob1Color: '',
-    bgBlob2Color: '',
-    bgOpacity: 'opacity-20',
-    bgAnimation: { duration1: 5, duration2: 7 },
-  },
-  {
     path: '/auth',
     title: 'Welcome Back',
     subtitle: 'Sign in to access your circular economy assessments',

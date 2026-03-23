@@ -26,16 +26,29 @@ build/
 
 out/
 
+.next/
+.vite/
+
+################################
+# Datasets
+################################
 !backend/datasets/out/
+
 backend/datasets/out/chunks.json
 backend/datasets/out/embedded_chunks.jsonl
 backend/datasets/out/stored_documents.jsonl
+
+backend/datasets/out/test_files/chunks_test.json
+backend/datasets/out/test_files/embedded_chunks_test.jsonl
+backend/datasets/out/test_files/stored_documents_test.jsonl
+
 backend/datasets/archives/chunks.json
 backend/datasets/archives/embedded_chunks.jsonl
 backend/datasets/archives/stored_documents.jsonl
 
-.next/
-.vite/
+backend/datasets/archives/test_files/chunks_test.json
+backend/datasets/archives/test_files/embedded_chunks_test.jsonl
+backend/datasets/archives/test_files/stored_documents_test.jsonl
 
 ################################
 # Logs

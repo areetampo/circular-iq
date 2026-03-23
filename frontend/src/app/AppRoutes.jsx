@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 
 import LoaderComponent from '@/components/common/LoaderComponent';
@@ -8,16 +8,10 @@ import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-bound
 import AppContainer from '@/components/layout/AppContainer';
 import { useAuth } from '@/hooks/useAuth';
 
-function ResultsToAssessmentsMarketAnalysisRedirect() {
-  const { id } = useParams();
-  return <Navigate to={`/assessments/${id}/market-analysis`} replace />;
-}
-
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
-const MarketAnalysisPage = lazy(() => import('@/pages/MarketAnalysisPage/MarketAnalysisPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
 const SharePage = lazy(() => import('@/pages/SharePage/SharePage'));
 const AssessmentViewPage = lazy(() => import('@/pages/AssessmentViewPage/AssessmentViewPage'));
@@ -66,11 +60,10 @@ function ShareRedirect() {
  * - Static path segments before dynamic (`/assessments/compare` before `/assessments/:publicId`).
  * - Deeper share routes before shallower ones where relevant.
  *
- * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/results/market-analysis`,
- * `/results/:id/market-analysis` (redirect), `/share/:publicId`, `/assessments/share/*`.
+ * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/share/:publicId`, `/assessments/share/*`.
  *
- * Protected: `/dashboard`, `/assessments`, `/assessments/compare`, `/assessments/compare/:a/:b`,
- * `/assessments/:publicId`, `/assessments/:publicId/market-analysis`.
+ * Protected: `/dashboard`, `/assessments`, `/assessments/compare`, `/assessments/compare/:publicId1/:publicId2`,
+ * `/assessments/:publicId`.
  */
 export default function AppRoutes() {
   return (
@@ -117,14 +110,6 @@ export default function AppRoutes() {
                 </PageErrorBoundary>
               }
             />
-            <Route
-              path="/assessments/share/:publicId/market-analysis"
-              element={
-                <PageErrorBoundary pageName="Shared Market Analysis">
-                  <MarketAnalysisPage isPublicShare={true} isViewFromMyAssessments={true} />
-                </PageErrorBoundary>
-              }
-            />
 
             <Route
               path="/guide"
@@ -143,18 +128,6 @@ export default function AppRoutes() {
                   <ResultsPage />
                 </PageErrorBoundary>
               }
-            />
-            <Route
-              path="/results/market-analysis"
-              element={
-                <PageErrorBoundary pageName="Session Market Analysis">
-                  <MarketAnalysisPage />
-                </PageErrorBoundary>
-              }
-            />
-            <Route
-              path="/results/:id/market-analysis"
-              element={<ResultsToAssessmentsMarketAnalysisRedirect />}
             />
 
             {/* ─── Protected ─── */}
@@ -200,16 +173,6 @@ export default function AppRoutes() {
                 <ProtectedRoute>
                   <PageErrorBoundary pageName="Assessment Results">
                     <ResultsPage isViewFromMyAssessments={true} />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/:publicId/market-analysis"
-              element={
-                <ProtectedRoute>
-                  <PageErrorBoundary pageName="Market Analysis">
-                    <MarketAnalysisPage isViewFromMyAssessments={true} />
                   </PageErrorBoundary>
                 </ProtectedRoute>
               }

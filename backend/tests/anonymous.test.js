@@ -3,6 +3,11 @@ import test from 'node:test';
 
 import { enforceAnonymousUsage } from '#controllers/scoring.controller.js';
 import { MAX_FREE_TRIES } from '#utils/anonymousTracking.js';
+import logger from '#utils/logger.js';
+
+// The scoring controller expects `logger` to exist on the global scope.
+// Server startup sets `globalThis.logger`; unit tests run this controller directly.
+globalThis.logger = logger;
 
 // Mock request factory
 function makeReq({ ip = '127.0.0.1', ua = 'test-agent', authorization } = {}) {
@@ -29,7 +34,9 @@ test('anonymous usage allows up to MAX_FREE_TRIES then blocks', async (t) => {
     },
   };
 
-  const req = makeReq();
+  // Provide a Bearer header (with a non-master token) so enforceAnonymousUsage
+  // does not "skip anonymous check" in NODE_ENV=test.
+  const req = makeReq({ authorization: 'Bearer anonymous-token' });
 
   // Call MAX_FREE_TRIES times and expect null (allowed)
   for (let i = 1; i <= MAX_FREE_TRIES; i++) {
@@ -68,7 +75,9 @@ test('authenticated users bypass anonymous usage tracking', async (t) => {
 });
 
 test('tracking service error returns fail-closed response', async (t) => {
-  const req = makeReq();
+  // Provide a Bearer header (with a non-master token) so enforceAnonymousUsage
+  // does not "skip anonymous check" in NODE_ENV=test.
+  const req = makeReq({ authorization: 'Bearer anonymous-token' });
   const serviceSupabase = {
     rpc: async () => ({ data: null, error: { message: 'db error' } }),
   };

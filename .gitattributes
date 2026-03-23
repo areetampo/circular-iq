@@ -3,6 +3,7 @@ backend/datasets/**/*.csv filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.json filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.pdf filter=lfs diff=lfs merge=lfs -text
+backend/datasets/**/*.txt filter=lfs diff=lfs merge=lfs -text
 
 # Lockfile noise reduction
 package-lock.json -diff
@@ -10,4 +11,3 @@ backend/package-lock.json -diff
 frontend/package-lock.json -diff
 # Auto detect text files and perform LF normalization
 * text=auto
-backend/datasets/**/*.txt filter=lfs diff=lfs merge=lfs -text

@@ -177,18 +177,6 @@ const CONTAINER_CONFIGS = [
     ],
   },
   {
-    path: '/assessments/',
-    // accept both legacy /results/:id/market-analysis and new /assessments/:id/market-analysis
-    regex: /^\/(?:results|assessments)\/[^/]+\/market-analysis$/,
-    background: 'from-blue-200/20 via-indigo-200/20 to-purple-200/20',
-    showNavbar: true,
-    showHeader: true,
-    showFooter: true,
-    mainPadding: 'p-4 sm:p-6',
-    showAnimatedBg: false, // Minimal distraction for data-heavy page
-    blobs: [],
-  },
-  {
     path: '/auth',
     background: 'from-emerald-300/25 via-green-300/25 to-teal-300/25',
     showNavbar: true, // Hide navbar on auth page

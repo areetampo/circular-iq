@@ -4,7 +4,7 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const isDev = BACKEND_CONFIG.nodeEnv === 'development';
 
-const logger = pino({
+export const logger = pino({
   level: 'info',
   transport: isDev
     ? {
@@ -20,5 +20,3 @@ const logger = pino({
 });
 
 logger.logOperation = (op, stat, dur) => logger.info({ op, stat, dur }, 'API Op');
-
-export default logger;

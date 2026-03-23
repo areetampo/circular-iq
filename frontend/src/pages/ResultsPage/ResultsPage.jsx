@@ -203,21 +203,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     navigate('/assessments');
   }, [navigate]);
 
-  // Market analysis navigation:
-  // - Saved assessment view  -> `/assessments/:publicId/market-analysis` (protected)
-  // - Unsaved/session result -> `/results/market-analysis` (public, uses session_evaluation_state.results)
-  // NOTE: avoid referencing `currentData` here because it is declared later.
-  const handleMarketAnalysis = useCallback(() => {
-    // Treat as saved when viewing from My Assessments or when URL provides a publicId
-    if (isViewFromMyAssessments || publicId) {
-      if (publicId) navigate(`/assessments/${publicId}/market-analysis`);
-      return;
-    }
-
-    // Otherwise use the session-based Market Analysis for unsaved results
-    navigate('/results/market-analysis');
-  }, [isViewFromMyAssessments, publicId, navigate]);
-
   const sessionSnapshot = useMemo(() => {
     if (isViewFromMyAssessments) return null;
     return restoreEvaluation();

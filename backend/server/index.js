@@ -5,7 +5,7 @@ import chalk from 'chalk';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import app from '#server/app.js';
-import logger from '#utils/logger.js';
+import { logger } from '#utils/logger.js';
 
 globalThis.logger = logger;
 

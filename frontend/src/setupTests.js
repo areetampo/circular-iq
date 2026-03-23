@@ -48,9 +48,9 @@ if (!process.env.INTERNAL_BACKEND_API_KEY)
 
 // Fail tests if `useAuth` is called outside `AuthProvider` so missing provider
 // usage is caught by CI instead of silently falling back. This converts the
-// specific logger.warn into a thrown error during tests.
-const _originalConsoleWarn = logger.warn;
-logger.warn = (...args) => {
+// specific console.warn into a thrown error during tests.
+const _originalConsoleWarn = console.warn;
+console.warn = (...args) => {
   const msg = args[0] || '';
   if (typeof msg === 'string' && msg.includes('useAuth called outside AuthProvider')) {
     throw new Error(
@@ -58,6 +58,16 @@ logger.warn = (...args) => {
     );
   }
   return _originalConsoleWarn.apply(console, args);
+};
+
+// Some unit tests reference a global `logger` identifier directly.
+// The app sets up a logger at runtime; in tests we provide a minimal stub.
+globalThis.logger = {
+  log: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  logOperation: vi.fn(),
 };
 
 const renderChildren = (children, props = {}) =>

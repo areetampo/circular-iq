@@ -239,11 +239,6 @@ export const BACKEND_CONFIG = deepFreeze({
     },
     {
       method: 'GET',
-      endpoint: '/api/assessments/market-analysis',
-      description: 'Market Analysis Data',
-    },
-    {
-      method: 'GET',
       endpoint: '/api/assessments/:publicId',
       description: 'Get Assessment by ID (Auth Required)',
     },

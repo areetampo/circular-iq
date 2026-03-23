@@ -18,7 +18,6 @@ import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
-import logger from '#utils/logger.js';
 
 const app = express();
 app.set('trust proxy', 1);

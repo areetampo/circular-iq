@@ -420,18 +420,6 @@ Validate that a `publicId` exists and is publicly accessible. Returns `{ valid: 
 
 Compare two assessments. Query params: `id1`, `id2`. Returns both assessments plus computed `factorDiffs`, `comparisonData`, and `overallDiff`.
 
-#### GET `/api/assessments/market-analysis`
-
-Global market analysis metrics across all opted-in assessments. Returns industry averages, score distributions, and benchmarks.
-
-#### GET `/api/assessments/market-analysis/:id`
-
-Per-assessment market report comparing the assessment against similar industry benchmarks. Requires authentication.
-
-#### GET `/api/assessments/market-analysis/public/:publicId`
-
-Public version of the per-assessment market report.
-
 ### Search Endpoint
 
 #### POST `/api/search`

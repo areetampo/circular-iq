@@ -285,20 +285,17 @@ VITE_ENABLE_ANALYTICS=true    # optional
 
 ### Assessments
 
-| Method   | Endpoint                                            | Auth     | Description                                      |
-| -------- | --------------------------------------------------- | -------- | ------------------------------------------------ |
-| `POST`   | `/api/assessments`                                  | Required | Save completed assessment                        |
-| `GET`    | `/api/assessments`                                  | Required | List user's assessments                          |
-| `GET`    | `/api/assessments/stats`                            | Required | User aggregate statistics                        |
-| `GET`    | `/api/assessments/public/:publicId`                 | None     | Retrieve public/shared assessment                |
-| `GET`    | `/api/assessments/validate/:publicId`               | None     | Validate shared assessment id                    |
-| `GET`    | `/api/assessments/:id`                              | Required | Fetch specific assessment                        |
-| `PATCH`  | `/api/assessments/:id`                              | Required | Update (rename, set is_public)                   |
-| `DELETE` | `/api/assessments/:id`                              | Required | Delete assessment                                |
-| `GET`    | `/api/assessments/market-analysis`                  | Optional | Global market analysis metrics                   |
-| `GET`    | `/api/assessments/market-analysis/:id`              | Required | Per-assessment market report                     |
-| `GET`    | `/api/assessments/market-analysis/public/:publicId` | None     | Public per-assessment market report              |
-| `GET`    | `/api/assessments/compare`                          | Required | Compare two assessments (query params: id1, id2) |
+| Method   | Endpoint                              | Auth     | Description                                      |
+| -------- | ------------------------------------- | -------- | ------------------------------------------------ |
+| `POST`   | `/api/assessments`                    | Required | Save completed assessment                        |
+| `GET`    | `/api/assessments`                    | Required | List user's assessments                          |
+| `GET`    | `/api/assessments/stats`              | Required | User aggregate statistics                        |
+| `GET`    | `/api/assessments/public/:publicId`   | None     | Retrieve public/shared assessment                |
+| `GET`    | `/api/assessments/validate/:publicId` | None     | Validate shared assessment id                    |
+| `GET`    | `/api/assessments/:id`                | Required | Fetch specific assessment                        |
+| `PATCH`  | `/api/assessments/:id`                | Required | Update (rename, set is_public)                   |
+| `DELETE` | `/api/assessments/:id`                | Required | Delete assessment                                |
+| `GET`    | `/api/assessments/compare`            | Required | Compare two assessments (query params: id1, id2) |
 
 ### Search & Utility
 
