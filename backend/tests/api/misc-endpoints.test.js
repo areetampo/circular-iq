@@ -19,7 +19,7 @@ before(async () => {
 
 after(async () => {
   // Stop the server instance if it was started
-  stopServer();
+  await stopServer();
   // Close all database pools and connections
   await closeAllPools();
 });

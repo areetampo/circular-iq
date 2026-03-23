@@ -168,11 +168,15 @@ export function startServer() {
 }
 
 export function stopServer() {
-  if (!serverInstance) return;
-  serverInstance.close(() => {
-    serverInstance = null;
-    console.log(theme.dim('Server Instance Stopped.'));
-    logger.info('Server Instance Stopped.');
+  if (!serverInstance) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    serverInstance.close(() => {
+      serverInstance = null;
+      console.log(theme.dim('Server Instance Stopped.'));
+      logger.info('Server Instance Stopped.');
+      resolve();
+    });
   });
 }
 
