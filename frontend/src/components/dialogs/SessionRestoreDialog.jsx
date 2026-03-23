@@ -113,7 +113,6 @@ export function SessionRestoreDialog(props) {
           // in Restore action only.
         }
       }}
-      variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled={true}
     >

@@ -57,7 +57,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // If there's no Bearer header but we're running tests, treat as authenticated
     if (!authHeader.startsWith('Bearer ')) {
       if (IS_TEST) {
-        logger.info({ isTest: true }, 'Treating request as authenticated (skip anonymous check)');
+        logger.info({ isTest: true }, 'Test environment detected - skipping anonymous usage check');
         return null;
       }
     } else {
@@ -97,6 +97,13 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 2. Check if serviceSupabase is available for tracking
     if (!serviceSupabase) {
+      if (IS_TEST) {
+        logger.info(
+          { tracking: false, isTest: true },
+          'Test environment - serviceSupabase not available, skipping usage tracking',
+        );
+        return null;
+      }
       logger.warn(
         { tracking: false },
         'serviceSupabase client not initialized! Usage tracking will be skipped. Check SUPABASE_SERVICE_ROLE_KEY',
@@ -115,17 +122,33 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
     const uaSnippet = (userAgent || '').substring(0, 100);
 
-    // 4. Call the atomic database function
+    // 4. Call the atomic database function with timeout
     logger.info(
       { hashPrefix: hash.substring(0, 10) },
       'Calling check_and_increment_anonymous_usage',
     );
 
-    const { data, error } = await serviceSupabase.rpc('check_and_increment_anonymous_usage', {
+    // Create a timeout promise that rejects after 3 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Database RPC call timeout'));
+      }, 3000);
+    });
+
+    // Race the database call against the timeout
+    const rpcPromise = serviceSupabase.rpc('check_and_increment_anonymous_usage', {
       p_identifier_hash: hash,
       p_max_tries: MAX_FREE_TRIES,
       p_ip_hash: ipHash,
       p_user_agent_snippet: uaSnippet,
+    });
+
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]).catch((err) => {
+      if (err.message === 'Database RPC call timeout') {
+        logger.error({ err }, 'Database RPC call timed out');
+        return { data: null, error: { message: 'RPC_TIMEOUT', code: 'TIMEOUT' } };
+      }
+      return { data: null, error: { message: err.message, code: 'RPC_ERROR' } };
     });
 
     // 5. Handle database errors — FAIL CLOSED: block if tracking is unavailable
