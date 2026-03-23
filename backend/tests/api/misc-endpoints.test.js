@@ -39,8 +39,12 @@ test('POST /api/search rejects missing query', async () => {
   assert.ok(res.body.error);
 });
 
-test('GET /api/score/test-anonymous-limit-tracking is routable', async () => {
-  const res = await request(app).get('/api/score/test-anonymous-limit-tracking');
-  // May return 200 (happy path) or 500/503 if DB/RPC not available in test env.
-  assert.ok(res.status >= 200 && res.status < 600);
-});
+test(
+  'GET /api/score/test-anonymous-limit-tracking is routable',
+  async () => {
+    const res = await request(app).get('/api/score/test-anonymous-limit-tracking').timeout(5000); // 5 second timeout to prevent hanging on RPC calls
+    // May return 200 (happy path) or 500/503 if DB/RPC not available in test env.
+    assert.ok(res.status >= 200 && res.status < 600);
+  },
+  { timeout: 6000 },
+);
