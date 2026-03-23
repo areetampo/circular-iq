@@ -379,7 +379,7 @@ export default function AssessmentComparisonPage() {
             <Label className="text-xs font-semibold text-slate-600">View Section</Label>
             <Select.Trigger className="mt-2">
               <Select.Value />
-              <Select.Icon />
+              <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
               <ListBox>

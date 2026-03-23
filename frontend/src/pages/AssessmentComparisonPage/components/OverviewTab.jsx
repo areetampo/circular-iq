@@ -37,43 +37,40 @@ export function OverviewTab({
               </Card.Header>
               <Card.Content className="p-0">
                 <Table>
-                  <Table
-                    aria-label="Business problem comparison"
-                    removeWrapper
-                    classNames={{
-                      th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-                      td: 'align-top py-4',
-                    }}
-                  >
-                    <Table.Header>
-                      <Table.Column className="w-1/2">Assessment 1</Table.Column>
-                      <Table.Column className="w-1/2">Assessment 2</Table.Column>
-                    </Table.Header>
-                    <Table.Body>
-                      <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                        <Table.Cell>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900 mb-2">
-                              {assessment1?.title || 'Assessment 1'}
-                            </p>
-                            <p className="text-sm text-slate-700 leading-relaxed">
-                              {assessment1?.business_problem || 'N/A'}
-                            </p>
-                          </div>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900 mb-2">
-                              {assessment2?.title || 'Assessment 2'}
-                            </p>
-                            <p className="text-sm text-slate-700 leading-relaxed">
-                              {assessment2?.business_problem || 'N/A'}
-                            </p>
-                          </div>
-                        </Table.Cell>
-                      </Table.Row>
-                    </Table.Body>
-                  </Table>
+                  <Table.ScrollContainer>
+                    <Table.Content aria-label="Business problem comparison" className="min-w-150">
+                      <Table.Header>
+                        <Table.Column className="w-1/2" isRowHeader>
+                          Assessment 1
+                        </Table.Column>
+                        <Table.Column className="w-1/2">Assessment 2</Table.Column>
+                      </Table.Header>
+                      <Table.Body>
+                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                          <Table.Cell>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                                {assessment1?.title || 'Assessment 1'}
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                {assessment1?.business_problem || 'N/A'}
+                              </p>
+                            </div>
+                          </Table.Cell>
+                          <Table.Cell>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                                {assessment2?.title || 'Assessment 2'}
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                {assessment2?.business_problem || 'N/A'}
+                              </p>
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      </Table.Body>
+                    </Table.Content>
+                  </Table.ScrollContainer>
                 </Table>
               </Card.Content>
             </Card>
@@ -86,42 +83,41 @@ export function OverviewTab({
                 </Card.Title>
               </Card.Header>
               <Card.Content className="p-0">
-                <Table
-                  aria-label="Business solution comparison"
-                  removeWrapper
-                  classNames={{
-                    th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-                    td: 'py-4',
-                  }}
-                >
-                  <Table.Header>
-                    <Table.Column className="w-1/2">Assessment 1</Table.Column>
-                    <Table.Column className="w-1/2">Assessment 2</Table.Column>
-                  </Table.Header>
-                  <Table.Body>
-                    <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                      <Table.Cell className="align-top">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900 mb-2">
-                            {assessment1?.title || 'Assessment 1'}
-                          </p>
-                          <p className="text-sm text-slate-700 leading-relaxed">
-                            {assessment1?.business_solution || 'N/A'}
-                          </p>
-                        </div>
-                      </Table.Cell>
-                      <Table.Cell className="align-top">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900 mb-2">
-                            {assessment2?.title || 'Assessment 2'}
-                          </p>
-                          <p className="text-sm text-slate-700 leading-relaxed">
-                            {assessment2?.business_solution || 'N/A'}
-                          </p>
-                        </div>
-                      </Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
+                <Table>
+                  <Table.ScrollContainer>
+                    <Table.Content aria-label="Business solution comparison" className="min-w-150">
+                      <Table.Header>
+                        <Table.Column className="w-1/2" isRowHeader>
+                          Assessment 1
+                        </Table.Column>
+                        <Table.Column className="w-1/2">Assessment 2</Table.Column>
+                      </Table.Header>
+                      <Table.Body>
+                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                          <Table.Cell className="align-top">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                                {assessment1?.title || 'Assessment 1'}
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                {assessment1?.business_solution || 'N/A'}
+                              </p>
+                            </div>
+                          </Table.Cell>
+                          <Table.Cell className="align-top">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                                {assessment2?.title || 'Assessment 2'}
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                {assessment2?.business_solution || 'N/A'}
+                              </p>
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      </Table.Body>
+                    </Table.Content>
+                  </Table.ScrollContainer>
                 </Table>
               </Card.Content>
             </Card>
@@ -189,52 +185,54 @@ export function OverviewTab({
               </Card.Title>
             </Card.Header>
             <Card.Content className="p-0 overflow-x-auto">
-              <Table
-                aria-label="Evaluation parameters comparison"
-                removeWrapper
-                classNames={{
-                  th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-                  td: 'py-3',
-                }}
-              >
-                <Table.Header>
-                  <Table.Column className="w-2/5">PARAMETER</Table.Column>
-                  <Table.Column className="text-center w-1.5/5">
-                    {assessment1?.title || 'Assessment 1'}
-                  </Table.Column>
-                  <Table.Column className="text-center w-1.5/5">
-                    {assessment2?.title || 'Assessment 2'}
-                  </Table.Column>
-                </Table.Header>
-                <Table.Body>
-                  {Object.entries(
-                    assessment1?.evaluation_parameters ||
-                      assessment1?.result_json?.evaluation_parameters ||
-                      {},
-                  ).map(([key, value1]) => {
-                    const value2 =
-                      assessment2?.evaluation_parameters?.[key] ||
-                      assessment2?.result_json?.evaluation_parameters?.[key];
-                    return (
-                      <Table.Row
-                        key={key}
-                        className="hover:bg-slate-50/50 transition-colors duration-150"
-                      >
-                        <Table.Cell className="font-medium text-slate-900 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </Table.Cell>
-                        <Table.Cell className="text-center text-slate-600">
-                          {String(value1).substring(0, 30)}
-                          {String(value1).length > 30 ? '...' : ''}
-                        </Table.Cell>
-                        <Table.Cell className="text-center text-slate-600">
-                          {String(value2 || '').substring(0, 30)}
-                          {String(value2 || '').length > 30 ? '...' : ''}
-                        </Table.Cell>
-                      </Table.Row>
-                    );
-                  })}
-                </Table.Body>
+              <Table>
+                <Table.ScrollContainer>
+                  <Table.Content
+                    aria-label="Evaluation parameters comparison"
+                    className="min-w-150"
+                  >
+                    <Table.Header>
+                      <Table.Column className="w-2/5" isRowHeader>
+                        PARAMETER
+                      </Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
+                        {assessment1?.title || 'Assessment 1'}
+                      </Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
+                        {assessment2?.title || 'Assessment 2'}
+                      </Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {Object.entries(
+                        assessment1?.evaluation_parameters ||
+                          assessment1?.result_json?.evaluation_parameters ||
+                          {},
+                      ).map(([key, value1]) => {
+                        const value2 =
+                          assessment2?.evaluation_parameters?.[key] ||
+                          assessment2?.result_json?.evaluation_parameters?.[key];
+                        return (
+                          <Table.Row
+                            key={key}
+                            className="hover:bg-slate-50/50 transition-colors duration-150"
+                          >
+                            <Table.Cell className="font-medium text-slate-900 capitalize">
+                              {key.replace(/_/g, ' ')}
+                            </Table.Cell>
+                            <Table.Cell className="text-center text-slate-600">
+                              {String(value1).substring(0, 30)}
+                              {String(value1).length > 30 ? '...' : ''}
+                            </Table.Cell>
+                            <Table.Cell className="text-center text-slate-600">
+                              {String(value2 || '').substring(0, 30)}
+                              {String(value2 || '').length > 30 ? '...' : ''}
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
               </Table>
             </Card.Content>
           </Card>
@@ -245,92 +243,91 @@ export function OverviewTab({
               <Card.Title className="font-bold text-lg text-slate-900">Business Context</Card.Title>
             </Card.Header>
             <Card.Content className="p-0 overflow-x-auto">
-              <Table
-                aria-label="Business context comparison"
-                removeWrapper
-                classNames={{
-                  th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-                  td: 'py-3',
-                }}
-              >
-                <Table.Header>
-                  <Table.Column className="w-2/5">CONTEXT FIELD</Table.Column>
-                  <Table.Column className="text-center w-1.5/5">
-                    {assessment1?.title || 'Assessment 1'}
-                  </Table.Column>
-                  <Table.Column className="text-center w-1.5/5">
-                    {assessment2?.title || 'Assessment 2'}
-                  </Table.Column>
-                </Table.Header>
-                <Table.Body>
-                  {(() => {
-                    const ctx1 =
-                      assessment1?.result_json?.business_context ||
-                      assessment1?.business_context ||
-                      {};
-                    const ctx2 =
-                      assessment2?.result_json?.business_context ||
-                      assessment2?.business_context ||
-                      {};
-                    const allKeys = new Set([...Object.keys(ctx1), ...Object.keys(ctx2)]);
+              <Table>
+                <Table.ScrollContainer>
+                  <Table.Content aria-label="Business context comparison" className="min-w-150">
+                    <Table.Header>
+                      <Table.Column className="w-2/5" isRowHeader>
+                        CONTEXT FIELD
+                      </Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
+                        {assessment1?.title || 'Assessment 1'}
+                      </Table.Column>
+                      <Table.Column className="text-center w-1.5/5">
+                        {assessment2?.title || 'Assessment 2'}
+                      </Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {(() => {
+                        const ctx1 =
+                          assessment1?.result_json?.business_context ||
+                          assessment1?.business_context ||
+                          {};
+                        const ctx2 =
+                          assessment2?.result_json?.business_context ||
+                          assessment2?.business_context ||
+                          {};
+                        const allKeys = new Set([...Object.keys(ctx1), ...Object.keys(ctx2)]);
 
-                    if (allKeys.size === 0) {
-                      return (
-                        <Table.Row>
-                          <Table.Cell colSpan={3} className="text-center text-slate-500 py-6">
-                            No business context data available
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    }
+                        if (allKeys.size === 0) {
+                          return (
+                            <Table.Row>
+                              <Table.Cell colSpan={3} className="text-center text-slate-500 py-6">
+                                No business context data available
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        }
 
-                    return Array.from(allKeys).map((key) => {
-                      const value1 = ctx1[key];
-                      const value2 = ctx2[key];
-                      const val1Str =
-                        value1 === null || value1 === undefined
-                          ? 'Not specified'
-                          : typeof value1 === 'boolean'
-                            ? value1
-                              ? 'Yes'
-                              : 'No'
-                            : String(value1);
-                      const val2Str =
-                        value2 === null || value2 === undefined
-                          ? 'Not specified'
-                          : typeof value2 === 'boolean'
-                            ? value2
-                              ? 'Yes'
-                              : 'No'
-                            : String(value2);
+                        return Array.from(allKeys).map((key) => {
+                          const value1 = ctx1[key];
+                          const value2 = ctx2[key];
+                          const val1Str =
+                            value1 === null || value1 === undefined
+                              ? 'Not specified'
+                              : typeof value1 === 'boolean'
+                                ? value1
+                                  ? 'Yes'
+                                  : 'No'
+                                : String(value1);
+                          const val2Str =
+                            value2 === null || value2 === undefined
+                              ? 'Not specified'
+                              : typeof value2 === 'boolean'
+                                ? value2
+                                  ? 'Yes'
+                                  : 'No'
+                                : String(value2);
 
-                      return (
-                        <Table.Row
-                          key={key}
-                          className={`hover:bg-slate-50/50 transition-colors duration-150 ${
-                            val1Str === val2Str ? '' : 'bg-yellow-50/30'
-                          }`}
-                        >
-                          <Table.Cell className="font-medium text-slate-900 capitalize">
-                            {key.replace(/_/g, ' ')}
-                          </Table.Cell>
-                          <Table.Cell
-                            className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
-                          >
-                            {val1Str.substring(0, 30)}
-                            {val1Str.length > 30 ? '...' : ''}
-                          </Table.Cell>
-                          <Table.Cell
-                            className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
-                          >
-                            {val2Str.substring(0, 30)}
-                            {val2Str.length > 30 ? '...' : ''}
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    });
-                  })()}
-                </Table.Body>
+                          return (
+                            <Table.Row
+                              key={key}
+                              className={`hover:bg-slate-50/50 transition-colors duration-150 ${
+                                val1Str === val2Str ? '' : 'bg-yellow-50/30'
+                              }`}
+                            >
+                              <Table.Cell className="font-medium text-slate-900 capitalize">
+                                {key.replace(/_/g, ' ')}
+                              </Table.Cell>
+                              <Table.Cell
+                                className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
+                              >
+                                {val1Str.substring(0, 30)}
+                                {val1Str.length > 30 ? '...' : ''}
+                              </Table.Cell>
+                              <Table.Cell
+                                className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
+                              >
+                                {val2Str.substring(0, 30)}
+                                {val2Str.length > 30 ? '...' : ''}
+                              </Table.Cell>
+                            </Table.Row>
+                          );
+                        });
+                      })()}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
               </Table>
             </Card.Content>
           </Card>

@@ -31,14 +31,6 @@ function logRequest(method, path, status, duration) {
   }
 }
 
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  return {
-    error: error.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error.code || 'INTERNAL_ERROR',
-  };
-}
-
 /**
  * Extract user ID from authorization header
  * @param {Object} req - Express request object
@@ -96,7 +88,12 @@ export default function createScoringRouter(openai, supabase) {
       const result = await scoringController.enforceAnonymousUsage(req, supabase, serviceSupabase);
       res.json({ allowed: result === null, result });
     } catch (err) {
-      res.status(500).json(errorResponse(err));
+      logger.error({ err }, 'Failed to test anonymous limit tracking');
+      res.status(500).json({
+        error: err.message || 'Internal server error',
+        code: err.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -131,7 +128,12 @@ export default function createScoringRouter(openai, supabase) {
     } catch (err) {
       const status = err.status || (err.code === 'INPUT_TOO_LONG' ? 400 : 500);
       logRequest('POST', '/score', status, Date.now() - start);
-      res.status(status).json(errorResponse(err, 'Failed to generate scoring audit'));
+      logger.error({ err }, 'Failed to generate scoring audit');
+      res.status(status).json({
+        error: err.message || 'Failed to generate scoring audit',
+        code: err.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 

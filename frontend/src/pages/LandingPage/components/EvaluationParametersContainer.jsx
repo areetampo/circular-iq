@@ -88,7 +88,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   className="flex items-center gap-1 h-8 my-0.5"
                   style={{ '--field-focus': '#4b5563' }}
                 >
-                  <NumberField.DecrementButton className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
+                  <NumberField.DecrementButton
+                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none"
+                    aria-label="Decrease value"
+                  />
                   <NumberField.Input
                     onChange={(e) => {
                       let value = e.target.value;
@@ -139,7 +142,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                     }}
                     className="w-17 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
                   />
-                  <NumberField.IncrementButton className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none" />
+                  <NumberField.IncrementButton
+                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none"
+                    aria-label="Increase value"
+                  />
                 </NumberField.Group>
               </NumberField>
 

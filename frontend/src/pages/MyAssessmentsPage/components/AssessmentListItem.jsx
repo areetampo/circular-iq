@@ -76,22 +76,27 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden bg-slate-50 transition-all duration-200 ease-out ',
+        'group relative overflow-hidden bg-slate-50 transition-all duration-200 ease-out cursor-pointer',
         isSelected ? 'shadow-lg shadow-blue-100' : 'hover:shadow-lg',
       )}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
+      onClick={() => onView(assessment.public_id)}
     >
       <div className="absolute inset-0 bg-linear-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="relative p-0 xxs:p-3 space-y-5">
         <div className="flex items-start gap-4">
-          <div className="pt-0.5 shrink-0">
+          <div className="pt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
             <Checkbox
               isSelected={isSelected}
-              onChange={() => onToggleSelect(assessment.id)}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggleSelect(assessment.id);
+              }}
               size="lg"
               color="primary"
               className="cursor-pointer"
+              aria-label={`Select assessment: ${assessment.title || 'Untitled Assessment'}`}
             >
               <Checkbox.Control className="size-6 rounded-full before:rounded-full border">
                 <Checkbox.Indicator />
@@ -144,7 +149,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 sm:py-2 px-4">
+        <div className="flex flex-wrap gap-2 sm:py-2 px-4" onClick={(e) => e.stopPropagation()}>
           {assessmentCardButtons.map((btn) => {
             const Icon = btn.icon;
             return (
@@ -152,7 +157,11 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 key={btn.label}
                 size="md"
                 variant={btn.variant}
-                onPress={btn.onClick}
+                onPress={(e) => {
+                  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+                  btn.onClick();
+                }}
+                onClick={(e) => e.stopPropagation()}
                 className={cn('flex-1 sm:flex-none', btn.className)}
               >
                 <Icon size={16} />
@@ -165,7 +174,11 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
           <ChoiceCardSwitch
             isSelected={assessment.contribute_to_global_benchmarks || false}
-            onChange={() => onToggleBenchmarks(assessment.id)}
+            onChange={(e) => {
+              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+              onToggleBenchmarks(assessment.id);
+            }}
+            onClick={(e) => e.stopPropagation()}
             size="md"
             variant="blue"
             title="Global Benchmarks"
@@ -174,7 +187,11 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 
           <ChoiceCardSwitch
             isSelected={assessment.is_public || false}
-            onChange={() => onTogglePublic(assessment.id)}
+            onChange={(e) => {
+              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+              onTogglePublic(assessment.id);
+            }}
+            onClick={(e) => e.stopPropagation()}
             size="md"
             variant="emerald"
             title="Public Access"
@@ -198,10 +215,12 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               size="sm"
               variant="neutral"
               className="w-full"
-              onPress={() => {
+              onPress={(e) => {
+                if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
                 navigator.clipboard.writeText(assessment.public_id).catch(() => {});
                 toast.success('Assessment ID copied to clipboard');
               }}
+              onClick={(e) => e.stopPropagation()}
             >
               <Copy size={16} />
               Copy Assessment ID

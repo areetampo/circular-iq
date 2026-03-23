@@ -25,77 +25,84 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
           <Card.Title className="font-bold text-lg text-slate-900">Project Details</Card.Title>
         </Card.Header>
         <Card.Content className="p-0">
-          <Table
-            aria-label="Project details table"
-            removeWrapper
-            classNames={{
-              th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-              td: 'py-4',
-            }}
-          >
-            <Table.Header>
-              <Table.Column className="w-[35%]">ATTRIBUTE</Table.Column>
-              <Table.Column className="text-center">{assessment1.title}</Table.Column>
-              <Table.Column className="text-center">{assessment2.title}</Table.Column>
-            </Table.Header>
-            <Table.Body>
-              <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                <Table.Cell className="font-semibold text-slate-900">Industry</Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>
-                      {titleize(scoringResult1?.metadata?.industry || assessment1.industry || '')}
-                    </Chip.Label>
-                  </Chip>
-                </Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>
-                      {titleize(scoringResult2?.metadata?.industry || assessment2.industry || '')}
-                    </Chip.Label>
-                  </Chip>
-                </Table.Cell>
-              </Table.Row>
-              <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                <Table.Cell className="font-semibold text-slate-900">Scale</Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>{titleize(scoringResult1?.metadata?.scale)}</Chip.Label>
-                  </Chip>
-                </Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>{titleize(scoringResult2?.metadata?.scale)}</Chip.Label>
-                  </Chip>
-                </Table.Cell>
-              </Table.Row>
-              <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                <Table.Cell className="font-semibold text-slate-900">Strategy</Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>{titleize(scoringResult1?.metadata?.r_strategy)}</Chip.Label>
-                  </Chip>
-                </Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>{titleize(scoringResult2?.metadata?.r_strategy)}</Chip.Label>
-                  </Chip>
-                </Table.Cell>
-              </Table.Row>
-              <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                <Table.Cell className="font-semibold text-slate-900">Material</Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>{titleize(scoringResult1?.metadata?.primary_material)}</Chip.Label>
-                  </Chip>
-                </Table.Cell>
-                <Table.Cell className="text-center">
-                  <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                    <Chip.Label>{titleize(scoringResult2?.metadata?.primary_material)}</Chip.Label>
-                  </Chip>
-                </Table.Cell>
-              </Table.Row>
-            </Table.Body>
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Project details table" className="min-w-[600px]">
+                <Table.Header>
+                  <Table.Column className="w-[35%]" isRowHeader>
+                    ATTRIBUTE
+                  </Table.Column>
+                  <Table.Column className="text-center">{assessment1.title}</Table.Column>
+                  <Table.Column className="text-center">{assessment2.title}</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Industry</Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>
+                          {titleize(
+                            scoringResult1?.metadata?.industry || assessment1.industry || '',
+                          )}
+                        </Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>
+                          {titleize(
+                            scoringResult2?.metadata?.industry || assessment2.industry || '',
+                          )}
+                        </Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Scale</Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>{titleize(scoringResult1?.metadata?.scale)}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>{titleize(scoringResult2?.metadata?.scale)}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Strategy</Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>{titleize(scoringResult1?.metadata?.r_strategy)}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>{titleize(scoringResult2?.metadata?.r_strategy)}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                  </Table.Row>
+                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                    <Table.Cell className="font-semibold text-slate-900">Material</Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>
+                          {titleize(scoringResult1?.metadata?.primary_material)}
+                        </Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
+                        <Chip.Label>
+                          {titleize(scoringResult2?.metadata?.primary_material)}
+                        </Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                  </Table.Row>
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
           </Table>
         </Card.Content>
       </Card>
@@ -113,73 +120,71 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
             </Card.Title>
           </Card.Header>
           <Card.Content className="p-0 overflow-x-auto">
-            <Table
-              aria-label="Gap analysis comparison"
-              removeWrapper
-              classNames={{
-                th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-                td: 'py-3 px-3',
-              }}
-              isCompact
-            >
-              <Table.Header>
-                <Table.Column className="w-[35%]">FACTOR</Table.Column>
-                <Table.Column className="text-center">{assessment1.title}</Table.Column>
-                <Table.Column className="text-center">{assessment2.title}</Table.Column>
-              </Table.Header>
-              <Table.Body>
-                {Object.keys(scoringResult1?.sub_scores || scoringResult2?.sub_scores || {}).map(
-                  (factor) => {
-                    const comp1 = scoringResult1?.gap_analysis?.comparisons?.[factor];
-                    const comp2 = scoringResult2?.gap_analysis?.comparisons?.[factor];
-                    const statusCls = (s) =>
-                      s === 'above_average'
-                        ? 'text-green-700 bg-green-100'
-                        : s === 'below_average'
-                          ? 'text-red-700 bg-red-100'
-                          : 'text-blue-700 bg-blue-100';
-                    return (
-                      <Table.Row key={factor}>
-                        <Table.Cell className="font-medium text-slate-900">
-                          {formatFactorName(factor)}
-                        </Table.Cell>
-                        <Table.Cell className="text-center">
-                          {comp1 ? (
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-sm font-bold text-slate-800">
-                                {comp1.userScore}
-                              </span>
-                              <span
-                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls(comp1.status)}`}
-                              >
-                                {comp1.status?.replace(/_/g, ' ') || '—'}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 text-xs">—</span>
-                          )}
-                        </Table.Cell>
-                        <Table.Cell className="text-center">
-                          {comp2 ? (
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-sm font-bold text-slate-800">
-                                {comp2.userScore}
-                              </span>
-                              <span
-                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls(comp2.status)}`}
-                              >
-                                {comp2.status?.replace(/_/g, ' ') || '—'}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 text-xs">—</span>
-                          )}
-                        </Table.Cell>
-                      </Table.Row>
-                    );
-                  },
-                )}
-              </Table.Body>
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Gap analysis comparison" className="min-w-[600px]">
+                  <Table.Header>
+                    <Table.Column className="w-[35%]" isRowHeader>
+                      FACTOR
+                    </Table.Column>
+                    <Table.Column className="text-center">{assessment1.title}</Table.Column>
+                    <Table.Column className="text-center">{assessment2.title}</Table.Column>
+                  </Table.Header>
+                  <Table.Body>
+                    {Object.keys(
+                      scoringResult1?.sub_scores || scoringResult2?.sub_scores || {},
+                    ).map((factor) => {
+                      const comp1 = scoringResult1?.gap_analysis?.comparisons?.[factor];
+                      const comp2 = scoringResult2?.gap_analysis?.comparisons?.[factor];
+                      const statusCls = (s) =>
+                        s === 'above_average'
+                          ? 'text-green-700 bg-green-100'
+                          : s === 'below_average'
+                            ? 'text-red-700 bg-red-100'
+                            : 'text-blue-700 bg-blue-100';
+                      return (
+                        <Table.Row key={factor}>
+                          <Table.Cell className="font-medium text-slate-900">
+                            {formatFactorName(factor)}
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
+                            {comp1 ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="text-sm font-bold text-slate-800">
+                                  {comp1.userScore}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls(comp1.status)}`}
+                                >
+                                  {comp1.status?.replace(/_/g, ' ') || '—'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-xs">—</span>
+                            )}
+                          </Table.Cell>
+                          <Table.Cell className="text-center">
+                            {comp2 ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="text-sm font-bold text-slate-800">
+                                  {comp2.userScore}
+                                </span>
+                                <span
+                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls(comp2.status)}`}
+                                >
+                                  {comp2.status?.replace(/_/g, ' ') || '—'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 text-xs">—</span>
+                            )}
+                          </Table.Cell>
+                        </Table.Row>
+                      );
+                    })}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
             </Table>
           </Card.Content>
         </Card>

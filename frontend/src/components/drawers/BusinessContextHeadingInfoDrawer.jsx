@@ -21,7 +21,7 @@ export default function BusinessContextHeadingInfoDrawer() {
         <Drawer.Content placement={direction}>
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger />}
+            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">

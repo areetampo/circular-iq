@@ -164,59 +164,58 @@ export function FactorAnalysisTab({
           </Card.Title>
         </Card.Header>
         <Card.Content className="p-0">
-          <Table
-            aria-label="Factor comparison table"
-            removeWrapper
-            classNames={{
-              th: 'bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-700',
-              td: 'py-4',
-            }}
-          >
-            <Table.Header>
-              <Table.Column className="w-[35%]">FACTOR</Table.Column>
-              <Table.Column className="text-center">{assessment1.title}</Table.Column>
-              <Table.Column className="text-center">{assessment2.title}</Table.Column>
-              <Table.Column className="text-center">CHANGE</Table.Column>
-            </Table.Header>
-            <Table.Body>
-              {Object.entries(scoringResult1?.sub_scores || {}).map(([factor, val1]) => {
-                const val2 = scoringResult2?.sub_scores?.[factor] || 0;
-                const diff = val2 - val1;
-                return (
-                  <Table.Row
-                    key={factor}
-                    className="hover:bg-slate-50/50 transition-colors duration-150"
-                  >
-                    <Table.Cell className="font-semibold text-slate-900">
-                      {titleize(factor)}
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip
-                        color={getScoreColor(val1)}
-                        variant="soft"
-                        size="md"
-                        className="transition-all duration-200"
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Factor comparison table" className="min-w-[600px]">
+                <Table.Header>
+                  <Table.Column className="w-[35%]" isRowHeader>
+                    FACTOR
+                  </Table.Column>
+                  <Table.Column className="text-center">{assessment1.title}</Table.Column>
+                  <Table.Column className="text-center">{assessment2.title}</Table.Column>
+                  <Table.Column className="text-center">CHANGE</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  {Object.entries(scoringResult1?.sub_scores || {}).map(([factor, val1]) => {
+                    const val2 = scoringResult2?.sub_scores?.[factor] || 0;
+                    const diff = val2 - val1;
+                    return (
+                      <Table.Row
+                        key={factor}
+                        className="hover:bg-slate-50/50 transition-colors duration-150"
                       >
-                        <Chip.Label className="font-bold">{val1}</Chip.Label>
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip
-                        color={getScoreColor(val2)}
-                        variant="soft"
-                        size="md"
-                        className="transition-all duration-200"
-                      >
-                        <Chip.Label className="font-bold">{val2}</Chip.Label>
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <ChangeIndicator diff={diff} />
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
+                        <Table.Cell className="font-semibold text-slate-900">
+                          {titleize(factor)}
+                        </Table.Cell>
+                        <Table.Cell className="text-center">
+                          <Chip
+                            color={getScoreColor(val1)}
+                            variant="soft"
+                            size="md"
+                            className="transition-all duration-200"
+                          >
+                            <Chip.Label className="font-bold">{val1}</Chip.Label>
+                          </Chip>
+                        </Table.Cell>
+                        <Table.Cell className="text-center">
+                          <Chip
+                            color={getScoreColor(val2)}
+                            variant="soft"
+                            size="md"
+                            className="transition-all duration-200"
+                          >
+                            <Chip.Label className="font-bold">{val2}</Chip.Label>
+                          </Chip>
+                        </Table.Cell>
+                        <Table.Cell className="text-center">
+                          <ChangeIndicator diff={diff} />
+                        </Table.Cell>
+                      </Table.Row>
+                    );
+                  })}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
           </Table>
         </Card.Content>
       </Card>

@@ -3,7 +3,7 @@ import { HelpCircle, LogOut, Menu, Settings, User, X } from 'lucide-react';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, SiteLogo, SiteName } from '@/components/common';
+import { Button, SITE_NAME, SiteLogo, SiteName } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -18,6 +18,7 @@ export default function Navbar() {
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
+    { id: 'compare', name: 'Compare Assessments', path: '/assessments/compare' },
     { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
     { id: 'guide', name: 'Guide', path: '/guide' },
   ];
@@ -55,7 +56,26 @@ export default function Navbar() {
     },
   ];
 
-  const isActivePath = (path) => location.pathname.startsWith(path);
+  const isActivePath = (path) => {
+    const currentPath = location.pathname;
+
+    // 1. If we are checking the 'Compare' link
+    if (path === '/assessments/compare') {
+      return currentPath.startsWith('/assessments/compare');
+    }
+
+    // 2. If we are checking the 'My Assessments' link
+    if (path === '/assessments') {
+      // Highlight if it starts with /assessments
+      // BUT NOT if it's moving into the /compare section
+      return (
+        currentPath.startsWith('/assessments') && !currentPath.startsWith('/assessments/compare')
+      );
+    }
+
+    // 3. Default for everything else (Dashboard, Guide, etc.)
+    return currentPath.startsWith(path);
+  };
 
   const getUserInitials = () => {
     const username = profile?.username || user?.username;
@@ -206,6 +226,9 @@ export default function Navbar() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">
                         {profile?.username || user?.username || 'User'}
+                      </p>
+                      <p className="text-xs text-foreground truncate">
+                        {profile?.username || user?.username || 'User'}@{SITE_NAME}
                       </p>
                     </div>
                   </div>

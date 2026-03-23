@@ -22,7 +22,7 @@ export default function AssessmentMethodologyDrawer() {
         <Drawer.Content placement={direction}>
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger />}
+            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">

@@ -264,8 +264,9 @@ export default function MyAssessmentsPage() {
   }, [selectedIds, assessments, navigate]);
 
   const handleViewDetail = useCallback(
-    (id) => {
-      navigate(`/assessments/${id}`);
+    (publicId) => {
+      if (!publicId) return;
+      navigate(`/assessments/${publicId}`);
     },
     [navigate],
   );

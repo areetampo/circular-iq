@@ -433,11 +433,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           logger.warn('Failed to update session after save:', e);
         }
 
-        // Redirect to the saved assessment if id available, otherwise list
-        const newId = result?.id || result?.assessment?.id;
-        if (newId) {
+        // Redirect to the saved assessment by public_id, not internal id
+        const newPublicId = result?.assessment?.public_id || result?.public_id;
+        if (newPublicId) {
           // Give a brief moment for cache invalidation, then navigate to the detail
-          setTimeout(() => navigate(`/assessments/${newId}`), 800);
+          setTimeout(() => navigate(`/assessments/${newPublicId}`), 800);
         } else {
           setTimeout(() => navigate('/assessments'), 800);
         }
@@ -461,7 +461,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }, [currentData]);
 
   const actualResult = scoringResult || currentData || null;
-  const caseId = actualResult?.case_id || currentData?.id || id;
+
   let caseIndustry = '';
   try {
     const { getIndustry } = require('@/lib/metadata');
@@ -1120,15 +1120,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         <Card className="border border-slate-300 shadow-sm bg-white rounded-xl mb-3">
           <div className="p-1 sm:p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Case Summary</h3>
-                <p className="text-sm text-slate-600">
-                  Problem, solution, parameters, and industry context
-                </p>
-              </div>
-              {caseId && (
-                <div className="text-xs font-semibold text-slate-600">Case ID: #{caseId}</div>
-              )}
+              <h3 className="text-lg font-bold text-slate-900">Case Summary</h3>
             </div>
 
             <div className="w-full">

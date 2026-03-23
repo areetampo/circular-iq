@@ -28,18 +28,6 @@ function logRequest(method, path, status, duration) {
 }
 
 /**
- * Error response formatter
- * @private
- */
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  return {
-    error: error.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error.code || 'INTERNAL_ERROR',
-  };
-}
-
-/**
  * Create assessments router
  * @param {Object} supabase - Supabase client instance
  * @returns {express.Router} Express router with assessment endpoints
@@ -67,7 +55,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       logger.error({ err: error }, 'Error saving assessment');
       logRequest('POST', '/assessments', 500, Date.now() - startTime);
-      res.status(500).json(errorResponse(error, 'Failed to save assessment'));
+      res.status(500).json({
+        error: error.message || 'Failed to save assessment',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -90,7 +82,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       logger.error({ err: error }, 'Error fetching assessments');
       logRequest('GET', '/assessments', 500, Date.now() - startTime);
-      res.status(500).json(errorResponse(error, 'Failed to fetch assessments'));
+      res.status(500).json({
+        error: error.message || 'Failed to fetch assessments',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -112,7 +108,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       logger.error({ err: error }, 'Error fetching assessment stats');
       logRequest('GET', '/assessments/stats', 500, Date.now() - startTime);
-      res.status(500).json(errorResponse(error, 'Failed to fetch assessment statistics'));
+      res.status(500).json({
+        error: error.message || 'Failed to fetch assessment statistics',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -137,7 +137,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         statusCode,
         Date.now() - startTime,
       );
-      res.status(statusCode).json(errorResponse(error, 'Failed to fetch assessment'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to fetch assessment',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -191,7 +195,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       logger.error({ err: error }, 'Error fetching market data');
       logRequest('GET', '/assessments/market-analysis', 500, Date.now() - startTime);
-      res.status(500).json(errorResponse(error, 'Failed to fetch market data'));
+      res.status(500).json({
+        error: error.message || 'Failed to fetch market data',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -215,7 +223,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
       logRequest('GET', `/assessments/${req.params.publicId}`, statusCode, Date.now() - startTime);
-      res.status(statusCode).json(errorResponse(error, 'Failed to fetch assessment'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to fetch assessment',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -239,7 +251,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
       logRequest('PATCH', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
-      res.status(statusCode).json(errorResponse(error, 'Failed to update assessment'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to update assessment',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -262,7 +278,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
       logRequest('DELETE', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
-      res.status(statusCode).json(errorResponse(error, 'Failed to delete assessment'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to delete assessment',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -293,9 +313,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         statusCode,
         Date.now() - startTime,
       );
-      res
-        .status(statusCode)
-        .json(errorResponse(error, 'Failed to fetch per-assessment market data'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to fetch per-assessment market data',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -325,9 +347,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         statusCode,
         Date.now() - startTime,
       );
-      res
-        .status(statusCode)
-        .json(errorResponse(error, 'Failed to fetch per-assessment market data'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to fetch per-assessment market data',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
@@ -371,7 +395,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         statusCode,
         Date.now() - startTime,
       );
-      res.status(statusCode).json(errorResponse(error, 'Failed to compare assessments'));
+      res.status(statusCode).json({
+        error: error.message || 'Failed to compare assessments',
+        code: error.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 

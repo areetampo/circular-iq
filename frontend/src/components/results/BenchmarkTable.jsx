@@ -38,7 +38,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
         <Table.ScrollContainer>
           <Table.Content aria-label="Benchmark comparisons">
             <Table.Header>
-              <Table.Column>Factor</Table.Column>
+              <Table.Column isRowHeader>Factor</Table.Column>
               <Table.Column>Your Score</Table.Column>
               <Table.Column>25th %ile</Table.Column>
               <Table.Column>50th %ile</Table.Column>

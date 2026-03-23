@@ -13,19 +13,6 @@ function logOperation(operation, status, duration) {
 }
 
 /**
- * Format error response
- * @private
- */
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  logger.error({ err: error }, 'API error occurred');
-  return {
-    error: error.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error.code || 'INTERNAL_ERROR',
-  };
-}
-
-/**
  * Save a new assessment
  */
 export async function saveAssessment(supabase, user, validatedBody, rawBody, token) {

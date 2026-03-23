@@ -95,14 +95,6 @@ function getISOWeekKey(date) {
   return `${year}-W${String(weekNo).padStart(2, '0')}`;
 }
 
-function buildErrorResponse(error, defaultMessage = 'Internal server error') {
-  return {
-    error: error?.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error?.code || 'INTERNAL_ERROR',
-  };
-}
-
 // OpenAI client helpers (used for featured solutions)
 let openaiClient = null;
 export function setOpenAIClient(client) {
@@ -210,7 +202,12 @@ export function getSummary(supabase) {
         timeSeries,
       });
     } catch (err) {
-      res.status(500).json(buildErrorResponse(err, 'Failed to fetch analytics'));
+      logger.error({ err }, 'Failed to fetch analytics');
+      res.status(500).json({
+        error: err?.message || 'Failed to fetch analytics',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }
@@ -531,7 +528,12 @@ export function getEnhanced(supabase) {
         },
       });
     } catch (err) {
-      res.status(500).json(buildErrorResponse(err, 'Failed to fetch enhanced analytics'));
+      logger.error({ err }, 'Failed to fetch enhanced analytics');
+      res.status(500).json({
+        error: err?.message || 'Failed to fetch enhanced analytics',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }
@@ -564,9 +566,12 @@ export function getFeaturedSolutions(supabase) {
         // Create query embedding via OpenAI
         const openai = await ensureOpenAIClient();
         if (!openai) {
-          return res
-            .status(500)
-            .json(buildErrorResponse({ message: 'OpenAI client not available' }));
+          logger.error({}, 'OpenAI client not available');
+          return res.status(500).json({
+            error: 'OpenAI client not available',
+            code: 'INTERNAL_ERROR',
+            timestamp: new Date().toISOString(),
+          });
         }
         const embeddingResp = await openai.embeddings.create({
           model: 'text-embedding-3-small',
@@ -576,9 +581,12 @@ export function getFeaturedSolutions(supabase) {
         const queryEmbedding = embeddingResp.data?.[0]?.embedding || null;
 
         if (!queryEmbedding) {
-          return res
-            .status(500)
-            .json(buildErrorResponse({ message: 'Failed to create query embedding' }));
+          logger.error({}, 'Failed to create query embedding');
+          return res.status(500).json({
+            error: 'Failed to create query embedding',
+            code: 'INTERNAL_ERROR',
+            timestamp: new Date().toISOString(),
+          });
         }
 
         // Use hybrid search that combines vector and keyword matching (server-side RPC)
@@ -736,7 +744,12 @@ export function getFeaturedSolutions(supabase) {
         solutions: solutions.slice(0, limit),
       });
     } catch (err) {
-      res.status(500).json(buildErrorResponse(err, 'Failed to fetch featured solutions'));
+      logger.error({ err }, 'Failed to fetch featured solutions');
+      res.status(500).json({
+        error: err?.message || 'Failed to fetch featured solutions',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }
@@ -754,7 +767,12 @@ export function postEmbeddingsReindex() {
 
       res.json({ started: true, pid: child.pid });
     } catch (err) {
-      res.status(500).json(buildErrorResponse(err, 'Failed to start embedding pipeline'));
+      logger.error({ err }, 'Failed to start embedding pipeline');
+      res.status(500).json({
+        error: err?.message || 'Failed to start embedding pipeline',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }
@@ -771,7 +789,12 @@ export function getDocumentsSummary() {
       ]);
       res.json({ byIndustry, byCategory, byRStrategy, byScale, bySource });
     } catch (err) {
-      res.status(500).json(buildErrorResponse(err, 'Failed to fetch document summary'));
+      logger.error({ err }, 'Failed to fetch document summary');
+      res.status(500).json({
+        error: err?.message || 'Failed to fetch document summary',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }
@@ -782,7 +805,12 @@ export function getDocumentsStats(/*supabase*/) {
       const data = await documentsRepository.getStatistics();
       res.json({ stats: data });
     } catch (err) {
-      res.status(500).json(buildErrorResponse(err, 'Failed to fetch document stats'));
+      logger.error({ err }, 'Failed to fetch document stats');
+      res.status(500).json({
+        error: err?.message || 'Failed to fetch document stats',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }
@@ -803,11 +831,12 @@ export function getDocumentsStats(/*supabase*/) {
 export function getGlobalStats(serviceSupabase) {
   return async (req, res) => {
     if (!serviceSupabase) {
-      return res
-        .status(503)
-        .json(
-          buildErrorResponse({ message: 'Service client not available' }, 'Service unavailable'),
-        );
+      logger.error({}, 'Service client not available');
+      return res.status(503).json({
+        error: 'Service client not available',
+        code: 'SERVICE_UNAVAILABLE',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     try {
@@ -1012,7 +1041,11 @@ export function getGlobalStats(serviceSupabase) {
       });
     } catch (err) {
       logger.error({ err }, '[getGlobalStats] unexpected error');
-      res.status(500).json(buildErrorResponse(err, 'Failed to fetch global stats'));
+      res.status(500).json({
+        error: err?.message || 'Failed to fetch global stats',
+        code: err?.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
     }
   };
 }

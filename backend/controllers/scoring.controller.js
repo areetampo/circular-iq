@@ -31,19 +31,6 @@ import {
 const IS_PROD = BACKEND_CONFIG.isProduction;
 
 /**
- * Format error response
- * @private
- */
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  logger.error({ err: error }, 'API error occurred');
-  return {
-    error: error.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error.code || 'INTERNAL_ERROR',
-  };
-}
-
-/**
  * Log API operation
  * @private
  */

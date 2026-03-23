@@ -19,14 +19,6 @@ function logRequest(method, path, status, duration) {
   }
 }
 
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  return {
-    error: error?.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error?.code || 'INTERNAL_ERROR',
-  };
-}
-
 export function setOpenAIClient(client) {
   analyticsController.setOpenAIClient(client);
 }
@@ -45,7 +37,11 @@ export default function createAnalyticsRouter(supabase, serviceSupabase) {
   // fallback error handler for unexpected errors
   router.use((err, req, res, next) => {
     logger.error({ err }, 'Analytics route error');
-    res.status(500).json(errorResponse(err));
+    res.status(500).json({
+      error: err?.message || 'Internal server error',
+      code: err?.code || 'INTERNAL_ERROR',
+      timestamp: new Date().toISOString(),
+    });
   });
 
   return router;

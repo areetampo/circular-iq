@@ -18,6 +18,7 @@ import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
+import logger from '#utils/logger.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -38,12 +39,18 @@ function isPublicRoute(path) {
 // COMMON UTILITIES
 // ============================================
 
-function errorResponse(error, defaultMessage = 'Internal server error') {
-  return {
-    error: error.message || defaultMessage,
-    timestamp: new Date().toISOString(),
-    code: error.code || 'INTERNAL_ERROR',
-  };
+function safeCompare(providedKey, storedKey) {
+  if (!providedKey || !storedKey) return false;
+
+  const providedBuffer = Buffer.from(providedKey);
+  const storedBuffer = Buffer.from(storedKey);
+
+  if (providedBuffer.length !== storedBuffer.length) {
+    crypto.timingSafeEqual(storedBuffer, storedBuffer);
+    return false;
+  }
+
+  return crypto.timingSafeEqual(providedBuffer, storedBuffer);
 }
 
 function validateConfig() {
@@ -58,20 +65,6 @@ function validateConfig() {
   if (!BACKEND_CONFIG.supabase.url || !BACKEND_CONFIG.supabase.anonKey) {
     logger.warn({}, 'Supabase URL or ANON_KEY is missing; database calls will fail.');
   }
-}
-
-function safeCompare(providedKey, storedKey) {
-  if (!providedKey || !storedKey) return false;
-
-  const providedBuffer = Buffer.from(providedKey);
-  const storedBuffer = Buffer.from(storedKey);
-
-  if (providedBuffer.length !== storedBuffer.length) {
-    crypto.timingSafeEqual(storedBuffer, storedBuffer);
-    return false;
-  }
-
-  return crypto.timingSafeEqual(providedBuffer, storedBuffer);
 }
 
 export function apiKeyGuard(req, res, next) {
@@ -97,15 +90,12 @@ export function apiKeyGuard(req, res, next) {
   }
 
   if (!apiKey) {
-    logger.warn({}, 'API auth enabled but API_KEY not configured');
-    return res
-      .status(500)
-      .json(
-        errorResponse(
-          { message: 'API auth enabled but API_KEY is not configured', code: 'API_KEY_MISSING' },
-          'API auth misconfigured',
-        ),
-      );
+    logger.error({}, 'API auth enabled but API_KEY not configured');
+    return res.status(500).json({
+      error: 'API auth enabled but API_KEY is not configured',
+      code: 'API_KEY_MISSING',
+      timestamp: new Date().toISOString(),
+    });
   }
 
   const authHeader = req.headers.authorization || '';
@@ -120,15 +110,12 @@ export function apiKeyGuard(req, res, next) {
     return next();
   }
 
-  logger.warn({ path: req.path }, 'Invalid or missing API key for protected route');
-  return res
-    .status(401)
-    .json(
-      errorResponse(
-        { message: 'Invalid or missing API key', code: 'UNAUTHORIZED' },
-        'Unauthorized',
-      ),
-    );
+  logger.error({ path: req.path }, 'Invalid or missing API key for protected route');
+  return res.status(401).json({
+    error: 'Invalid or missing API key',
+    code: 'UNAUTHORIZED',
+    timestamp: new Date().toISOString(),
+  });
 }
 
 // apply middleware
@@ -314,12 +301,12 @@ app.get('/docs/methodology', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json(
-    errorResponse({
-      message: 'Endpoint not found',
-      code: 'NOT_FOUND',
-    }),
-  );
+  logger.error({ path: req.path, method: req.method }, 'Endpoint not found');
+  res.status(404).json({
+    error: 'Endpoint not found',
+    code: 'NOT_FOUND',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // global error handler

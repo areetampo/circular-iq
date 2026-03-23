@@ -94,12 +94,12 @@ export function usePublicAssessment(publicId, options = {}) {
 export function usePrefetchAssessment() {
   const queryClient = useQueryClient();
 
-  return (id) => {
-    if (!id) return;
+  return (publicId) => {
+    if (!publicId) return;
 
     queryClient.prefetchQuery({
-      queryKey: ['assessment', id],
-      queryFn: () => getAssessmentById(id),
+      queryKey: ['assessment', publicId],
+      queryFn: () => getAssessmentById(publicId),
       staleTime: 1000 * 60 * 5, // Cache for 5 minutes - ensures hover-to-click transition is instant
     });
   };
