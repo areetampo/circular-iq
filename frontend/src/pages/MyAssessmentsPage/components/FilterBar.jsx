@@ -1,5 +1,4 @@
 import {
-  Card,
   Button as HeroButton,
   Input,
   Label,
@@ -29,7 +28,13 @@ export function FilterBar({
   handleCompareSelected,
 }) {
   return (
-    <Card className="border-2 border-slate-200 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+    <div
+      className="border-2 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl"
+      style={{
+        backgroundColor: 'var(--surface)',
+        borderColor: 'var(--border)',
+      }}
+    >
       <div className="p-6 space-y-6">
         {/* Sort and Search Row - compact responsive layout */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -46,7 +51,9 @@ export function FilterBar({
                 variant="bordered"
                 size="md"
               >
-                <Label className="text-sm font-semibold text-slate-700">Sort by</Label>
+                <Label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Sort by
+                </Label>
                 <Select.Trigger>
                   <Select.Value />
                   <Select.Indicator />
@@ -96,11 +103,14 @@ export function FilterBar({
           {/* Search placed to the right on larger screens, full-width on mobile */}
           <div className="flex-1 lg:ml-6">
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-slate-700">Search</label>
+              <label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                Search
+              </label>
               <div className="relative">
                 <Search
-                  className="absolute transform -translate-y-1/2 left-3 top-1/2 text-slate-400 pointer-events-none z-10"
+                  className="absolute transform -translate-y-1/2 left-3 top-1/2 pointer-events-none z-10"
                   size={16}
+                  style={{ color: 'var(--muted)' }}
                 />
                 <Input
                   type="text"
@@ -110,6 +120,11 @@ export function FilterBar({
                   variant="bordered"
                   size="md"
                   className="pl-10 w-full"
+                  style={{
+                    backgroundColor: 'var(--field-bg)',
+                    borderColor: 'var(--field-border)',
+                    color: 'var(--foreground)',
+                  }}
                 />
               </div>
             </div>
@@ -119,7 +134,9 @@ export function FilterBar({
         {/* Industry Filter Chips */}
         {industryOptions.length > 1 && (
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-slate-700">Filter by Industry</label>
+            <label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+              Filter by Industry
+            </label>
             <div className="flex flex-wrap gap-2">
               {industryOptions.map((industry) => (
                 <IndustryFilterChip
@@ -134,7 +151,7 @@ export function FilterBar({
           </div>
         )}
 
-        <Separator orientation="horizontal" />
+        <Separator orientation="horizontal" style={{ backgroundColor: 'var(--border)' }} />
 
         {/* Compare 2 Assessments Button */}
         <div className="flex justify-center items-center">
@@ -160,7 +177,7 @@ export function FilterBar({
           </Tooltip>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 

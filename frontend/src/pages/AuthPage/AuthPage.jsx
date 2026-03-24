@@ -7,8 +7,8 @@ export default function AuthPage() {
   const [view, setView] = useState('login');
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="relative z-10 px-4 w-full flex justify-center">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
         {view === 'login' ? (
           <LoginForm onSwitchToSignup={() => setView('signup')} />
         ) : (

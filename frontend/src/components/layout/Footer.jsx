@@ -1,18 +1,15 @@
-import { Copyright } from 'lucide-react';
-
-import { SITE_NAME, SiteLogo } from '@/components/common';
-
 export default function Footer() {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 m-6">
-      <SiteLogo />
-      <span className="text-xs text-center text-zinc-500">
-        <Copyright size={14} className="inline mb-0.5 mr-1" />
-        {new Date().getFullYear()} {SITE_NAME}. All rights reserved. <br />
-        Based on a research synthesis of AI applications in circular economy domains.
-      </span>
+    <div
+      className="w-full border-t py-6 text-center"
+      style={{
+        borderTopColor: 'var(--border)',
+        fontFamily: 'Inter, system-ui, sans-serif',
+      }}
+    >
+      <p className="text-xs" style={{ color: 'var(--muted)' }}>
+        © 2026 CE Assessor · AI-powered circular economy evaluation
+      </p>
     </div>
   );
 }
-
-Footer.propTypes = {};

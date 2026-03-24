@@ -310,11 +310,23 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="pt-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Globe size={20} className="text-emerald-500" strokeWidth={2.5} />
+          <h1
+            className="text-xl font-bold flex items-center gap-2"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
+            <Globe size={20} style={{ color: 'var(--success)' }} strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p
+            className="text-xs mt-0.5"
+            style={{
+              color: 'var(--muted)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -322,7 +334,22 @@ export default function DashboardPage() {
           type="button"
           onClick={refetchGlobal}
           disabled={globalLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40"
+          style={{
+            borderColor: 'var(--border)',
+            backgroundColor: 'var(--surface)',
+            color: 'var(--muted)',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.borderColor = 'var(--accent)';
+            e.target.style.backgroundColor = 'var(--accent-soft)';
+            e.target.style.color = 'var(--foreground)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.borderColor = 'var(--border)';
+            e.target.style.backgroundColor = 'var(--surface)';
+            e.target.style.color = 'var(--muted)';
+          }}
         >
           <RefreshCw size={12} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
@@ -716,7 +743,11 @@ export default function DashboardPage() {
                 Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
+                    className="rounded-xl border p-4 space-y-3"
+                    style={{
+                      borderColor: 'var(--border)',
+                      backgroundColor: 'var(--surface)',
+                    }}
                   >
                     <Skeleton className="h-4 w-3/4 rounded" />
                     <Skeleton className="h-3 w-full rounded" />
@@ -732,7 +763,10 @@ export default function DashboardPage() {
                   />
                 ))
               ) : (
-                <div className="col-span-full flex flex-col items-center justify-center h-40 text-slate-400">
+                <div
+                  className="col-span-full flex flex-col items-center justify-center h-40"
+                  style={{ color: 'var(--muted)' }}
+                >
                   <BarChart3 size={32} strokeWidth={1} />
                   <p className="text-sm font-medium mt-2">No solutions found</p>
                 </div>
@@ -740,8 +774,13 @@ export default function DashboardPage() {
             </div>
 
             {/* Footer */}
-            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Showing {filteredSolutions?.length ?? 0} solutions</span>
+            <div
+              className="mt-4 pt-4 border-t flex items-center justify-between text-xs"
+              style={{ borderColor: 'var(--border)' }}
+            >
+              <span style={{ color: 'var(--muted)' }}>
+                Showing {filteredSolutions?.length ?? 0} solutions
+              </span>
               {filteredSolutions?.length > 0 && (
                 <button
                   type="button"
@@ -751,7 +790,17 @@ export default function DashboardPage() {
                       industry: industryFilter,
                     })
                   }
-                  className="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+                  className="font-medium flex items-center gap-1"
+                  style={{
+                    color: 'var(--accent)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = 'var(--foreground)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = 'var(--accent)';
+                  }}
                 >
                   Explore all
                   <ChevronRight size={12} />
@@ -828,13 +877,36 @@ export default function DashboardPage() {
           </div>
         </section>
       ) : (
-        <div className="rounded-xl border border-slate-200 p-6 flex flex-col sm:flex-row items-center gap-4 bg-linear-to-r from-purple-50 via-white to-white">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-            <Users size={18} strokeWidth={2} />
+        <div
+          className="rounded-xl border p-6 flex flex-col sm:flex-row items-center gap-4"
+          style={{
+            background: 'linear-gradient(to right, var(--accent-soft), var(--surface))',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: 'var(--accent-soft)' }}
+          >
+            <Users size={18} strokeWidth={2} style={{ color: 'var(--accent)' }} />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-slate-900 mb-0.5">Track Your Progress</h3>
-            <p className="text-xs text-slate-600">
+            <h3
+              className="font-semibold mb-0.5"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'Lora, Georgia, serif',
+              }}
+            >
+              Track Your Progress
+            </h3>
+            <p
+              className="text-xs"
+              style={{
+                color: 'var(--muted)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
               Sign in to save assessments, track your evaluation history, and compare with global
               benchmarks.
             </p>
@@ -842,7 +914,17 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/auth')}
-            className="px-4 py-2 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition-colors shrink-0"
+            className="px-4 py-2 text-xs font-medium rounded-lg transition-colors shrink-0"
+            style={{
+              backgroundColor: 'var(--accent)',
+              color: 'var(--surface)',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'var(--foreground)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'var(--accent)';
+            }}
           >
             Sign In
           </button>

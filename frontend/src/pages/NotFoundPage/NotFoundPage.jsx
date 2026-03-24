@@ -1,4 +1,3 @@
-import { Card } from '@heroui/react';
 import { ArrowLeft, BarChart3, Compass, Leaf } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,62 +8,152 @@ export default function NotFoundPage() {
 
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-6 py-12">
-      <Card className="w-full border-2 border-emerald-100 bg-linear-to-br from-white to-emerald-50">
-        <div className="px-6 py-8 border-b text-center">
-          <div className="flex items-center justify-center gap-3 text-emerald-600">
-            <span className="text-sm font-semibold uppercase tracking-[0.35em]">
+      <div
+        className="w-full border-2 rounded-xl"
+        style={{
+          borderColor: 'var(--success)',
+          background: 'linear-gradient(to bottom right, var(--surface), var(--success-soft))',
+        }}
+      >
+        <div className="px-6 py-8 border-b text-center" style={{ borderColor: 'var(--border)' }}>
+          <div
+            className="flex items-center justify-center gap-3"
+            style={{ color: 'var(--success)' }}
+          >
+            <span
+              className="text-sm font-semibold uppercase tracking-[0.35em]"
+              style={{
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
               Circular Economy Auditor
             </span>
             <Leaf size={32} />
           </div>
-          <h1 className="mt-6 text-5xl font-bold text-slate-900">404</h1>
-          <p className="text-lg text-gray-600 mt-2">Page Not Found</p>
+          <h1
+            className="mt-6 text-5xl font-bold"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
+            404
+          </h1>
+          <p
+            className="text-lg mt-2"
+            style={{
+              color: 'var(--muted)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
+            Page Not Found
+          </p>
         </div>
         <div className="px-6 py-8 space-y-6 text-center">
-          <p className="mx-auto text-base text-slate-600">
+          <p
+            className="mx-auto text-base"
+            style={{
+              color: 'var(--muted)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
             The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
             deleted. Let&apos;s get you back on track.
           </p>
 
-          <div className="grid gap-4 p-4 text-left border rounded-xl bg-white/80 sm:grid-cols-2">
+          <div
+            className="grid gap-4 p-4 text-left border rounded-xl sm:grid-cols-2"
+            style={{
+              borderColor: 'var(--border)',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            }}
+          >
             <div className="flex items-start gap-3">
-              <div className="p-2 mt-1 rounded-full bg-emerald-100 text-emerald-700">
+              <div
+                className="p-2 mt-1 rounded-full"
+                style={{
+                  backgroundColor: 'var(--success-soft)',
+                  color: 'var(--success)',
+                }}
+              >
                 <Compass size={16} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">Need guidance?</p>
-                <p className="text-xs text-slate-600">
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Lora, Georgia, serif',
+                  }}
+                >
+                  Need guidance?
+                </p>
+                <p
+                  className="text-xs"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
                   Visit the dashboard to evaluate a new business idea.
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="p-2 mt-1 text-blue-700 bg-blue-100 rounded-full">
-                <BarChart3 className="text-blue-700" size={16} />
+              <div
+                className="p-2 mt-1 rounded-full"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  color: 'var(--accent)',
+                }}
+              >
+                <BarChart3 size={16} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">Review past work</p>
-                <p className="text-xs text-slate-600">
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Lora, Georgia, serif',
+                  }}
+                >
+                  Review past work
+                </p>
+                <p
+                  className="text-xs"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
                   Jump to your saved assessments and comparisons.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="w-full h-px bg-gray-200 my-4" />
+          <div className="w-full h-px my-4" style={{ backgroundColor: 'var(--border)' }} />
 
           <div className="flex flex-wrap justify-center gap-3">
-            <Button onPress={() => navigate('/')} variant="tertiary">
+            <Button
+              onPress={() => navigate('/')}
+              variant="tertiary"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+            >
               <ArrowLeft size={16} />
               Return Home
             </Button>
-            <Button variant="tertiary" onPress={() => navigate('/assessments')}>
+            <Button
+              variant="tertiary"
+              onPress={() => navigate('/assessments')}
+              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+            >
               <BarChart3 size={16} />
               My Assessments
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

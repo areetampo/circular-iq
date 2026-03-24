@@ -71,15 +71,39 @@ export default function AssessmentViewPage() {
         <div className="flex flex-col gap-1">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 transition-colors w-fit"
+            className="flex items-center gap-1 text-sm w-fit transition-colors"
+            style={{
+              color: 'var(--muted)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.color = 'var(--foreground)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.color = 'var(--muted)';
+            }}
           >
             ← Back
           </button>
-          <h1 className="text-2xl font-bold text-slate-900 leading-tight">
+          <h1
+            className="text-2xl font-bold leading-tight"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
             {assessment?.title || 'Assessment'}
           </h1>
           {assessment?.created_at && (
-            <p className="text-xs text-slate-500">Saved {formatTimestamp(assessment.created_at)}</p>
+            <p
+              className="text-xs"
+              style={{
+                color: 'var(--muted)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
+              Saved {formatTimestamp(assessment.created_at)}
+            </p>
           )}
         </div>
 
@@ -124,17 +148,44 @@ export default function AssessmentViewPage() {
       </div>
 
       {/* Score header + metadata */}
-      <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+      <div
+        className="shadow-sm rounded-xl"
+        style={{
+          border: '1px solid var(--border)',
+          backgroundColor: 'var(--surface)',
+        }}
+      >
         <div className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs text-slate-600">Overall Score</p>
-              <p className={`text-4xl font-bold ${getScoreClass(scoringResult.overall_score)}`}>
+              <p
+                className="text-xs"
+                style={{
+                  color: 'var(--muted)',
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
+              >
+                Overall Score
+              </p>
+              <p
+                className={`text-4xl font-bold ${getScoreClass(scoringResult.overall_score)}`}
+                style={{
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
+              >
                 {scoringResult.overall_score ?? 'N/A'}
-                <span className="text-lg text-slate-500">/100</span>
+                <span className="text-lg" style={{ color: 'var(--muted)' }}>
+                  /100
+                </span>
               </p>
               {scoringResult?.metadata?.short_description && (
-                <p className="text-sm text-slate-600 mt-1">
+                <p
+                  className="text-sm mt-1"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
                   {scoringResult.metadata.short_description}
                 </p>
               )}
@@ -181,28 +232,77 @@ export default function AssessmentViewPage() {
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Derived Metrics */}
       {scoringResult?.derived_metrics && (
-        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+        <div
+          className="shadow-sm rounded-xl"
+          style={{
+            border: '1px solid var(--border)',
+            backgroundColor: 'var(--surface)',
+          }}
+        >
           <div className="p-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Derived Metrics</h3>
+            <h3
+              className="text-lg font-bold mb-4"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'Lora, Georgia, serif',
+              }}
+            >
+              Derived Metrics
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
                 { key: 'technical_feasibility', label: 'Technical Feasibility' },
                 { key: 'economic_viability', label: 'Economic Viability' },
                 { key: 'circularity_potential', label: 'Circularity Potential' },
               ].map(({ key, label }) => (
-                <div key={key} className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                  <p className="text-xs text-slate-600 mb-1">{label}</p>
-                  <p className="text-2xl font-bold text-slate-900">
+                <div
+                  key={key}
+                  className="p-4 rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <p
+                    className="text-xs mb-1"
+                    style={{
+                      color: 'var(--muted)',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                    }}
+                  >
+                    {label}
+                  </p>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                    }}
+                  >
                     {scoringResult.derived_metrics[key] ?? 'N/A'}
                   </p>
                 </div>
               ))}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <p className="text-xs text-slate-600 mb-1">Risk Level</p>
+              <div
+                className="p-4 rounded-lg"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <p
+                  className="text-xs mb-1"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
+                  Risk Level
+                </p>
                 <Chip
                   variant="soft"
                   className={`text-xs font-bold ${getRiskBadgeColor(
@@ -214,7 +314,7 @@ export default function AssessmentViewPage() {
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Score Breakdown */}

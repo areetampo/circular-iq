@@ -1,6 +1,5 @@
 import {
   Accordion,
-  Card,
   Chip,
   Input,
   Label,
@@ -93,42 +92,42 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         description:
           'The overall circularity rating out of 100. Compare this with similar projects to identify your competitive position.',
         Icon: BarChart3,
-        iconClassName: 'text-blue-600',
+        iconClassName: 'var(--accent)',
       },
       {
         title: 'Strengths',
         description:
           'Areas where your initiative excels. Leverage these as competitive advantages and marketing points.',
         Icon: CheckCircle2,
-        iconClassName: 'text-green-600',
+        iconClassName: 'var(--success)',
       },
       {
         title: 'Focus Areas',
         description:
           'Priority improvements that could boost your score. Start with high-impact, low-effort changes first.',
         Icon: Target,
-        iconClassName: 'text-orange-600',
+        iconClassName: 'var(--warning)',
       },
       {
         title: 'Benchmarking',
         description:
           'See how you compare to similar projects. Use this to set realistic improvement targets.',
         Icon: TrendingUp,
-        iconClassName: 'text-purple-600',
+        iconClassName: 'var(--info)',
       },
       {
         title: 'Export Options',
         description:
           'Save this assessment and download a PDF report to share with stakeholders or track changes over time.',
         Icon: Download,
-        iconClassName: 'text-blue-600',
+        iconClassName: 'var(--accent)',
       },
       {
         title: 'Next Steps',
         description:
           'Address the identified improvement areas and reassess after implementing changes to track progress.',
         Icon: RefreshCw,
-        iconClassName: 'text-emerald-600',
+        iconClassName: 'var(--success)',
       },
     ],
     [],
@@ -850,13 +849,25 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       {/* Action Buttons & Share Section */}
       <div className="mb-6 mt-4 px-4 sm:px-6 space-y-4">
         {isViewFromMyAssessments && currentData?.title && (
-          <div className="text-center mb-3 text-2xl font-bold text-slate-900 truncate">
+          <div
+            className="text-center mb-3 text-2xl font-semibold truncate"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
             {currentData.title}
           </div>
         )}
 
         {/* Buttons Bar */}
-        <div className="flex flex-wrap items-center gap-3 p-4 bg-linear-to-r from-slate-50 to-white rounded-2xl shadow-md border border-slate-200">
+        <div
+          className="flex flex-wrap items-center gap-3 p-4 rounded-lg border"
+          style={{
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+          }}
+        >
           {/* Show public share notice for public viewers */}
           {isPublicShare && (
             <Chip variant="soft" color="accent" size="lg" className="gap-1">
@@ -1019,11 +1030,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           !isPublicShare && (
             <Tooltip delay={0} isDisabled={!isResultsRoute}>
               <Tooltip.Trigger>
-                <Card
-                  className={`border border-slate-300 shadow-sm bg-white rounded-xl ${isResultsRoute ? 'opacity-95' : ''}`}
+                <div
+                  className={`border rounded-lg ${isResultsRoute ? 'opacity-95' : ''}`}
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    borderColor: 'var(--border)',
+                  }}
                 >
                   {/* disable interactive controls when route is /results (unsaved session) */}
-                  <div className={`${isResultsRoute ? 'pointer-events-none' : ''}`}>
+                  <div className={`${isResultsRoute ? 'pointer-events-none' : ''} p-4`}>
                     <Switch
                       id="public-toggle"
                       variant="public"
@@ -1043,12 +1058,20 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           <div className="">
                             <Label
                               htmlFor="public-toggle"
-                              className="font-semibold text-slate-900 flex items-center gap-2 justify-start"
+                              className="font-semibold flex items-center gap-2 justify-start"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
                             >
                               <span>Public Access</span>
-                              <Link2 className="text-emerald-600" size={20} />
+                              <Link2
+                                className="flex-shrink-0"
+                                size={20}
+                                style={{ color: 'var(--success)' }}
+                              />
                             </Label>
-                            <p className="text-sm text-slate-600">
+                            <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
                               Allow anyone with the link to view this assessment
                             </p>
                           </div>
@@ -1075,7 +1098,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 ? `${window.location.origin}/assessments/share/${currentData.public_id}`
                                 : ''
                             }
-                            className="text-xs flex-1 bg-white"
+                            className="text-xs flex-1"
+                            style={{
+                              backgroundColor: 'var(--field-bg)',
+                              borderColor: 'var(--field-border)',
+                              color: 'var(--foreground)',
+                            }}
                           />
                           <CopyButton
                             value={
@@ -1088,7 +1116,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         </div>
                       )}
                   </div>
-                </Card>
+                </div>
               </Tooltip.Trigger>
 
               <Tooltip.Content showArrow placement="top">
@@ -1102,10 +1130,24 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
       {/* Case Summary */}
       <div data-export-section="case-summary">
-        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl mb-3">
+        <div
+          className="border rounded-lg mb-3"
+          style={{
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+          }}
+        >
           <div className="p-1 sm:p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <h3 className="text-lg font-bold text-slate-900">Case Summary</h3>
+              <h3
+                className="text-lg font-semibold"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'Lora, Georgia, serif',
+                }}
+              >
+                Case Summary
+              </h3>
             </div>
 
             <div className="w-full">
@@ -1113,26 +1155,43 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Problem Item --- */}
                 <Accordion.Item id="problem" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
                       <div className="flex items-center gap-3">
                         <Target
-                          className="text-emerald-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
+                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
                           size={20}
+                          style={{ color: 'var(--success)' }}
                         />
                         <div>
-                          <h4 className="font-bold text-slate-900">Problem</h4>
-                          <p className="text-sm text-slate-600">
+                          <h4
+                            className="font-semibold"
+                            style={{
+                              color: 'var(--foreground)',
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                            }}
+                          >
+                            Problem
+                          </h4>
+                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
                             What the assessment identifies as the problem
                           </p>
                         </div>
                       </div>
-                      <Accordion.Indicator />
+                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
                     </Accordion.Trigger>
                   </Accordion.Heading>
                   <Accordion.Panel>
                     <Accordion.Body>
                       <div className="py-2">
-                        <p className="text-sm text-slate-700 leading-relaxed">{problemText}</p>
+                        <p
+                          className="text-sm leading-relaxed"
+                          style={{
+                            color: 'var(--foreground)',
+                            fontFamily: 'Inter, system-ui, sans-serif',
+                          }}
+                        >
+                          {problemText}
+                        </p>
                       </div>
                     </Accordion.Body>
                   </Accordion.Panel>
@@ -1141,24 +1200,43 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Solution Item --- */}
                 <Accordion.Item id="solution" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
                       <div className="flex items-center gap-3">
                         <Lightbulb
-                          className="text-orange-500 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
+                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
                           size={20}
+                          style={{ color: 'var(--warning)' }}
                         />
                         <div>
-                          <h4 className="font-bold text-slate-900">Solution</h4>
-                          <p className="text-sm text-slate-600">Proposed solution summary</p>
+                          <h4
+                            className="font-semibold"
+                            style={{
+                              color: 'var(--foreground)',
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                            }}
+                          >
+                            Solution
+                          </h4>
+                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                            Proposed solution summary
+                          </p>
                         </div>
                       </div>
-                      <Accordion.Indicator />
+                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
                     </Accordion.Trigger>
                   </Accordion.Heading>
                   <Accordion.Panel>
                     <Accordion.Body>
                       <div className="py-2">
-                        <p className="text-sm text-slate-700 leading-relaxed">{solutionText}</p>
+                        <p
+                          className="text-sm leading-relaxed"
+                          style={{
+                            color: 'var(--foreground)',
+                            fontFamily: 'Inter, system-ui, sans-serif',
+                          }}
+                        >
+                          {solutionText}
+                        </p>
                       </div>
                     </Accordion.Body>
                   </Accordion.Panel>
@@ -1167,20 +1245,29 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Business Context Item --- */}
                 <Accordion.Item id="context" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
                       <div className="flex items-center gap-3">
                         <Globe
-                          className="text-blue-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
+                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
                           size={20}
+                          style={{ color: 'var(--info)' }}
                         />
                         <div>
-                          <h4 className="font-bold text-slate-900">Business Context</h4>
-                          <p className="text-sm text-slate-600">
+                          <h4
+                            className="font-semibold"
+                            style={{
+                              color: 'var(--foreground)',
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                            }}
+                          >
+                            Business Context
+                          </h4>
+                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
                             Operational and contextual details
                           </p>
                         </div>
                       </div>
-                      <Accordion.Indicator />
+                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
                     </Accordion.Trigger>
                   </Accordion.Heading>
                   <Accordion.Panel>
@@ -1207,12 +1294,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               return (
                                 <div
                                   key={key}
-                                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                                  className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                  style={{
+                                    backgroundColor: 'var(--accent-soft)',
+                                    borderColor: 'var(--border)',
+                                  }}
                                 >
-                                  <span className="text-xs font-semibold text-slate-700">
+                                  <span
+                                    className="text-xs font-semibold"
+                                    style={{ color: 'var(--foreground)' }}
+                                  >
                                     {labelKey}
                                   </span>
-                                  <span className="text-xs font-bold text-blue-700">
+                                  <span
+                                    className="text-xs font-bold"
+                                    style={{ color: 'var(--accent)' }}
+                                  >
                                     {displayValue}
                                   </span>
                                 </div>
@@ -1220,7 +1317,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             })}
                           </div>
                         ) : (
-                          <p className="text-sm text-slate-600">
+                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
                             No business context data available.
                           </p>
                         )}
@@ -1232,18 +1329,29 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Evaluation Parameters Item --- */}
                 <Accordion.Item id="parameters" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
                       <div className="flex items-center gap-3">
                         <BarChart3
-                          className="text-slate-600 transition-[scale,rotate] duration-300 ease-out group-hover/case:scale-[1.2] group-hover/case:-rotate-10 group-hover/case:drop-shadow-md mr-1.5"
+                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
                           size={20}
+                          style={{ color: 'var(--foreground)' }}
                         />
                         <div>
-                          <h4 className="font-bold text-slate-900">Evaluation Parameters</h4>
-                          <p className="text-sm text-slate-600">Input parameters and values</p>
+                          <h4
+                            className="font-semibold"
+                            style={{
+                              color: 'var(--foreground)',
+                              fontFamily: 'Inter, system-ui, sans-serif',
+                            }}
+                          >
+                            Evaluation Parameters
+                          </h4>
+                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                            Input parameters and values
+                          </p>
                         </div>
                       </div>
-                      <Accordion.Indicator />
+                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
                     </Accordion.Trigger>
                   </Accordion.Heading>
                   <Accordion.Panel>
@@ -1255,20 +1363,32 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             {parameterEntries.map((item) => (
                               <div
                                 key={item.key}
-                                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                                className="flex items-center justify-between rounded-lg border px-3 py-2"
+                                style={{
+                                  backgroundColor: 'var(--accent-soft)',
+                                  borderColor: 'var(--border)',
+                                }}
                               >
-                                <span className="text-xs font-semibold text-slate-700">
+                                <span
+                                  className="text-xs font-semibold"
+                                  style={{ color: 'var(--foreground)' }}
+                                >
                                   {item.label}
                                 </span>
 
-                                <span className="text-xs font-bold text-emerald-700">
+                                <span
+                                  className="text-xs font-bold"
+                                  style={{ color: 'var(--success)' }}
+                                >
                                   {item.value}
                                 </span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-slate-600">No parameter values available.</p>
+                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                            No parameter values available.
+                          </p>
                         )}
                       </div>
                     </Accordion.Body>
@@ -1277,7 +1397,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               </Accordion>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Results Content */}
@@ -1322,19 +1442,56 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           <Tabs.ListContainer className="my-4 hidden md:flex justify-center">
             <Tabs.List
               aria-label="Assessment Sections"
-              className="bg-green-100/50 border-2 border-emerald-300/50"
+              className="border-2 rounded-lg"
+              style={{
+                backgroundColor: 'var(--accent-soft)',
+                borderColor: 'var(--accent)',
+              }}
             >
               <Tabs.Tab id="summary">
-                Summary
-                <Tabs.Indicator className="bg-green-50" />
+                <span
+                  className="font-medium"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
+                  Summary
+                </span>
+                <Tabs.Indicator
+                  className="rounded-md"
+                  style={{ backgroundColor: 'var(--surface)' }}
+                />
               </Tabs.Tab>
               <Tabs.Tab id="analysis">
-                Detailed Analysis
-                <Tabs.Indicator className="bg-green-50" />
+                <span
+                  className="font-medium"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
+                  Detailed Analysis
+                </span>
+                <Tabs.Indicator
+                  className="rounded-md"
+                  style={{ backgroundColor: 'var(--surface)' }}
+                />
               </Tabs.Tab>
               <Tabs.Tab id="recommendations">
-                Recommendations
-                <Tabs.Indicator className="bg-green-50" />
+                <span
+                  className="font-medium"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
+                  Recommendations
+                </span>
+                <Tabs.Indicator
+                  className="rounded-md"
+                  style={{ backgroundColor: 'var(--surface)' }}
+                />
               </Tabs.Tab>
             </Tabs.List>
           </Tabs.ListContainer>
@@ -1365,77 +1522,156 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
             {/* Industry & Metadata Section */}
             {actualResult.metadata && (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+              <div
+                className="border rounded-lg"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <ClipboardList className="text-emerald-600" size={20} />
+                  <h3
+                    className="text-lg font-semibold flex items-center gap-2 mb-1"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    <ClipboardList
+                      className="flex-shrink-0"
+                      size={20}
+                      style={{ color: 'var(--success)' }}
+                    />
                     Project Classification
                   </h3>
-                  <p className="text-sm text-slate-600 mb-4">
+                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                     Your project details and assessment context
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <div className="p-4 bg-white rounded-lg border border-emerald-200">
-                      <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">
+                    <div
+                      className="p-4 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                      }}
+                    >
+                      <div
+                        className="text-xs font-bold uppercase tracking-wide mb-1"
+                        style={{ color: 'var(--accent)' }}
+                      >
                         Industry
                       </div>
-                      <div className="text-sm font-bold text-slate-900">
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
                         {titleize(actualResult.industry || '')}
                       </div>
-                      <div className="text-xs text-slate-600 mt-1 italic">{fieldHelp.industry}</div>
+                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                        {fieldHelp.industry}
+                      </div>
                     </div>
-                    <div className="p-4 bg-white rounded-lg border border-emerald-200">
-                      <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">
+                    <div
+                      className="p-4 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                      }}
+                    >
+                      <div
+                        className="text-xs font-bold uppercase tracking-wide mb-1"
+                        style={{ color: 'var(--accent)' }}
+                      >
                         Scale
                       </div>
-                      <div className="text-sm font-bold text-slate-900">
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
                         {titleize(actualResult.metadata.scale)}
                       </div>
-                      <div className="text-xs text-slate-600 mt-1 italic">{fieldHelp.scale}</div>
+                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                        {fieldHelp.scale}
+                      </div>
                     </div>
-                    <div className="p-4 bg-white rounded-lg border border-emerald-200">
-                      <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">
+                    <div
+                      className="p-4 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                      }}
+                    >
+                      <div
+                        className="text-xs font-bold uppercase tracking-wide mb-1"
+                        style={{ color: 'var(--accent)' }}
+                      >
                         Strategy
                       </div>
-                      <div className="text-sm font-bold text-slate-900">
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
                         {titleize(actualResult.metadata.r_strategy)}
                       </div>
-                      <div className="text-xs text-slate-600 mt-1 italic">
+                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
                         {fieldHelp.r_strategy}
                       </div>
                     </div>
-                    <div className="p-4 bg-white rounded-lg border border-emerald-200">
-                      <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">
+                    <div
+                      className="p-4 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                      }}
+                    >
+                      <div
+                        className="text-xs font-bold uppercase tracking-wide mb-1"
+                        style={{ color: 'var(--accent)' }}
+                      >
                         Material
                       </div>
-                      <div className="text-sm font-bold text-slate-900">
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
                         {titleize(actualResult.metadata.primary_material)}
                       </div>
-                      <div className="text-xs text-slate-600 mt-1 italic">
+                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
                         {fieldHelp.primary_material}
                       </div>
                     </div>
-                    <div className="p-4 bg-white rounded-lg border border-emerald-200">
-                      <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">
+                    <div
+                      className="p-4 rounded-lg border"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'var(--accent)',
+                      }}
+                    >
+                      <div
+                        className="text-xs font-bold uppercase tracking-wide mb-1"
+                        style={{ color: 'var(--accent)' }}
+                      >
                         Geography
                       </div>
-                      <div className="text-sm font-bold text-slate-900">
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
                         {titleize(actualResult.metadata.geographic_focus)}
                       </div>
-                      <div className="text-xs text-slate-600 mt-1 italic">
+                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
                         {fieldHelp.geographic_focus}
                       </div>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* Category Analysis */}
-            <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+            <div
+              className="border rounded-lg"
+              style={{
+                backgroundColor: 'var(--surface)',
+                borderColor: 'var(--border)',
+              }}
+            >
               <div className="p-1 sm:p-3">
-                <h3 className="text-lg font-bold text-slate-900 mb-1">Category Analysis</h3>
-                <p className="text-sm text-slate-600 mb-4">
+                <h3
+                  className="text-lg font-semibold mb-1"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Lora, Georgia, serif',
+                  }}
+                >
+                  Category Analysis
+                </h3>
+                <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                   Detailed breakdown across all evaluation criteria
                 </p>
                 <div className="space-y-3">
@@ -1449,109 +1685,160 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     const numValue = value != null && !isNaN(value) ? Number(value) : 0;
                     const barColor =
                       numValue >= 75
-                        ? 'bg-emerald-500'
+                        ? 'var(--success)'
                         : numValue >= 50
-                          ? 'bg-blue-500'
-                          : 'bg-orange-500';
+                          ? 'var(--accent)'
+                          : 'var(--warning)';
                     const badgeColor =
                       numValue >= 75
-                        ? 'bg-emerald-500 text-white'
+                        ? 'var(--success)'
                         : numValue >= 50
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-orange-500 text-white';
+                          ? 'var(--accent)'
+                          : 'var(--warning)';
 
                     return (
-                      <div key={key} className="p-4 bg-white rounded-lg border border-slate-200">
+                      <div
+                        key={key}
+                        className="p-4 rounded-lg border"
+                        style={{
+                          backgroundColor: 'var(--accent-soft)',
+                          borderColor: 'var(--border)',
+                        }}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex-1">
-                            <h4 className="text-sm font-bold text-slate-900">{category.name}</h4>
-                            <p className="text-xs text-slate-600 mt-0.5">{category.desc}</p>
+                            <h4
+                              className="text-sm font-semibold"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
+                              {category.name}
+                            </h4>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                              {category.desc}
+                            </p>
                           </div>
                           <div
-                            className={`ml-4 px-3 py-1 rounded-full font-bold text-sm ${badgeColor}`}
+                            className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
+                            style={{
+                              backgroundColor: badgeColor,
+                              color: 'var(--accent-foreground)',
+                            }}
                           >
                             {numValue}
                           </div>
                         </div>
 
-                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="w-full rounded-full h-2 overflow-hidden"
+                          style={{ backgroundColor: 'var(--border)' }}
+                        >
                           <div
-                            className={`h-full ${barColor} transition-all duration-500 rounded-full`}
-                            style={{ width: `${Math.min(100, Math.max(0, numValue))}%` }}
+                            className="h-full transition-all duration-500 rounded-full"
+                            style={{
+                              width: `${Math.min(100, Math.max(0, numValue))}%`,
+                              backgroundColor: barColor,
+                            }}
                           />
                         </div>
                       </div>
                     );
                   })}
                   {/* Business Viability Category */}
-                  <div className="p-4 bg-white rounded-lg border border-slate-200">
+                  <div
+                    className="p-4 rounded-lg border"
+                    style={{
+                      backgroundColor: 'var(--accent-soft)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
-                        <h4 className="text-sm font-bold text-slate-900">Business Viability</h4>
-                        <p className="text-xs text-slate-600 mt-0.5">
+                        <h4
+                          className="text-sm font-semibold"
+                          style={{
+                            color: 'var(--foreground)',
+                            fontFamily: 'Inter, system-ui, sans-serif',
+                          }}
+                        >
+                          Business Viability
+                        </h4>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                           Economic feasibility and scalability
                         </p>
                       </div>
                       <div
-                        className={`ml-4 px-3 py-1 rounded-full font-bold text-sm ${
-                          resolvedBusinessViabilityScore >= 75
-                            ? 'bg-emerald-500 text-white'
-                            : resolvedBusinessViabilityScore >= 50
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-orange-500 text-white'
-                        }`}
+                        className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
+                        style={{
+                          backgroundColor:
+                            resolvedBusinessViabilityScore >= 75
+                              ? 'var(--success)'
+                              : resolvedBusinessViabilityScore >= 50
+                                ? 'var(--accent)'
+                                : 'var(--warning)',
+                          color: 'var(--accent-foreground)',
+                        }}
                       >
                         {resolvedBusinessViabilityScore}
                       </div>
                     </div>
 
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="w-full rounded-full h-2 overflow-hidden"
+                      style={{ backgroundColor: 'var(--border)' }}
+                    >
                       <div
-                        className={`h-full transition-all duration-500 rounded-full ${
-                          resolvedBusinessViabilityScore >= 75
-                            ? 'bg-emerald-500'
-                            : resolvedBusinessViabilityScore >= 50
-                              ? 'bg-blue-500'
-                              : 'bg-orange-500'
-                        }`}
-                        style={{ width: `${resolvedBusinessViabilityScore}%` }}
+                        className="h-full transition-all duration-500 rounded-full"
+                        style={{
+                          width: `${resolvedBusinessViabilityScore}%`,
+                          backgroundColor:
+                            resolvedBusinessViabilityScore >= 75
+                              ? 'var(--success)'
+                              : resolvedBusinessViabilityScore >= 50
+                                ? 'var(--accent)'
+                                : 'var(--warning)',
+                        }}
                       />
                     </div>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Performance Comparison */}
             {resolvedRadarData && resolvedRadarData.length > 0 ? (
-              <Card className="shadow-sm bg-white rounded-xl">
+              <div
+                className="rounded-lg"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-1 sm:p-3">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900 mb-1">
+                      <h3
+                        className="text-lg font-semibold mb-1"
+                        style={{
+                          color: 'var(--foreground)',
+                          fontFamily: 'Lora, Georgia, serif',
+                        }}
+                      >
                         Performance Comparison
                       </h3>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm" style={{ color: 'var(--muted)' }}>
                         How your idea compares to similar projects in the database
                       </p>
                     </div>
-                    {/* <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
-                      <span className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                        Your Idea
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-full bg-blue-500" />
-                        Market Average
-                      </span>
-                    </div> */}
                   </div>
 
                   <div
                     className="w-full rounded-xl p-4"
                     style={{
-                      '--color-userValue': '#10b981',
-                      '--color-marketAvg': '#3b82f6',
+                      '--color-userValue': 'var(--success)',
+                      '--color-marketAvg': 'var(--accent)',
                     }}
                   >
                     <RadarChart
@@ -1564,32 +1851,66 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     />
                   </div>
                 </div>
-              </Card>
+              </div>
             ) : (
-              <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+              <div
+                className="border rounded-lg"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-5 sm:p-6">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">Performance Comparison</h3>
-                  <p className="text-sm text-slate-600 mb-4">
+                  <h3
+                    className="text-lg font-semibold mb-1"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    Performance Comparison
+                  </h3>
+                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                     How your idea compares to similar projects in the database
                   </p>
-                  <div className="p-6 bg-slate-50 rounded-lg border border-slate-200 text-center">
-                    <p className="text-sm text-slate-600">
+                  <div
+                    className="p-6 rounded-lg border text-center"
+                    style={{
+                      backgroundColor: 'var(--accent-soft)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
                       No comparison data available. Check that sub-scores are present in the
                       assessment result.
                     </p>
                   </div>
                 </div>
-              </Card>
+              </div>
             )}
           </Tabs.Panel>
 
           <Tabs.Panel id="analysis" className="space-y-6">
             {/* Integrity Analysis - Beautiful Accordion Design (same as Summary tab) */}
             {(gaps.length > 0 || strengths.length > 0) && (
-              <Card className="border border-slate-300 shadow-sm rounded-xl bg-white">
+              <div
+                className="border rounded-lg"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">Integrity Analysis</h3>
-                  <p className="text-sm text-slate-600 mb-4">
+                  <h3
+                    className="text-lg font-semibold mb-1"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    Integrity Analysis
+                  </h3>
+                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                     We compare your self-assessed scores against real-world projects in our database
                     to identify potential overestimations or underestimations.
                   </p>
@@ -1599,12 +1920,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     {strengths.length > 0 && (
                       <Accordion.Item
                         value="strengths"
-                        className="bg-green-50 border border-green-200 rounded-lg overflow-hidden"
+                        className="rounded-lg overflow-hidden"
+                        style={{
+                          backgroundColor: 'var(--success-soft)',
+                          borderColor: 'var(--success)',
+                        }}
                       >
-                        <Accordion.Trigger className="px-4 py-3 hover:bg-green-100 transition-colors">
+                        <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--success-soft)] transition-colors">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="text-green-600" size={20} />
-                            <span className="text-base font-bold text-green-900">
+                            <CheckCircle2 size={20} style={{ color: 'var(--success)' }} />
+                            <span
+                              className="text-base font-semibold"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
                               Strengths Validated
                             </span>
                             <Chip
@@ -1622,14 +1953,25 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             {strengths.map((strength, i) => (
                               <div
                                 key={i}
-                                className="flex gap-2 p-3 bg-white border border-green-200 rounded-lg"
+                                className="flex gap-2 p-3 rounded-lg border"
+                                style={{
+                                  backgroundColor: 'var(--surface)',
+                                  borderColor: 'var(--success)',
+                                }}
                               >
                                 <CheckCircle2
-                                  className="text-green-600 shrink-0 mt-0.5"
+                                  className="shrink-0 mt-0.5"
                                   size={16}
+                                  style={{ color: 'var(--success)' }}
                                 />
                                 <div className="flex-1">
-                                  <p className="text-sm text-slate-700">
+                                  <p
+                                    className="text-sm"
+                                    style={{
+                                      color: 'var(--foreground)',
+                                      fontFamily: 'Inter, system-ui, sans-serif',
+                                    }}
+                                  >
                                     {strength.issue || strength}
                                   </p>
                                   {strength.evidence_source_id && (
@@ -1649,12 +1991,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     {gaps.length > 0 && (
                       <Accordion.Item
                         value="gaps"
-                        className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden"
+                        className="rounded-lg overflow-hidden"
+                        style={{
+                          backgroundColor: 'var(--warning-soft)',
+                          borderColor: 'var(--warning)',
+                        }}
                       >
-                        <Accordion.Trigger className="px-4 py-3 hover:bg-orange-100 transition-colors">
+                        <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--warning-soft)] transition-colors">
                           <div className="flex items-center gap-2">
-                            <AlertCircle className="text-orange-600" size={20} />
-                            <span className="text-base font-bold text-orange-900">
+                            <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
+                            <span
+                              className="text-base font-semibold"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
                               Areas for Improvement
                             </span>
                             <Chip
@@ -1672,22 +2024,33 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             {gaps.map((gap, i) => {
                               const severity = gap.severity || 'medium';
                               const severityColors = {
-                                high: 'bg-red-50 border-red-300',
-                                medium: 'bg-orange-50 border-orange-300',
-                                low: 'bg-yellow-50 border-yellow-300',
+                                high: 'var(--danger-soft)',
+                                medium: 'var(--warning-soft)',
+                                low: 'var(--info-soft)',
                               };
 
                               return (
                                 <div
                                   key={i}
-                                  className={`flex gap-2 p-3 rounded-lg border bg-white ${severityColors[severity]}`}
+                                  className={`flex gap-2 p-3 rounded-lg border bg-white`}
+                                  style={{
+                                    backgroundColor: 'var(--surface)',
+                                    borderColor: severityColors[severity],
+                                  }}
                                 >
                                   <AlertCircle
-                                    className="text-orange-600 shrink-0 mt-0.5"
+                                    className="shrink-0 mt-0.5"
                                     size={16}
+                                    style={{ color: 'var(--warning)' }}
                                   />
                                   <div className="flex-1">
-                                    <p className="text-sm text-slate-700">
+                                    <p
+                                      className="text-sm"
+                                      style={{
+                                        color: 'var(--foreground)',
+                                        fontFamily: 'Inter, system-ui, sans-serif',
+                                      }}
+                                    >
                                       {(gap.issue || gap).replace(/_/g, ' ')}
                                     </p>
                                     <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -1722,7 +2085,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     )}
                   </Accordion>
                 </div>
-              </Card>
+              </div>
             )}
 
             <AuditSummaryCard actualResult={actualResult} />
@@ -1733,24 +2096,57 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           <Tabs.Panel id="recommendations" className="space-y-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Strengths & Gaps Card - Modern Design */}
-              <Card className="border border-slate-300 shadow-sm rounded-xl bg-white">
+              <div
+                className="border rounded-lg"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">Strengths & Gaps</h3>
-                  <p className="text-sm text-slate-600 mb-4">
+                  <h3
+                    className="text-lg font-semibold mb-1"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    Strengths & Gaps
+                  </h3>
+                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                     Highlights from your assessment and improvement areas
                   </p>
                   <div className="space-y-4">
-                    <div className="p-4 bg-linear-to-br from-green-50 to-green-100 border border-green-300 rounded-xl">
+                    <div
+                      className="p-4 rounded-xl border"
+                      style={{
+                        background:
+                          'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
+                        borderColor: 'var(--success)',
+                      }}
+                    >
                       <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 className="text-green-600" size={16} />
-                        <p className="text-sm font-bold text-green-900">Strengths</p>
+                        <CheckCircle2 size={16} style={{ color: 'var(--success)' }} />
+                        <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                          Strengths
+                        </p>
                       </div>
-                      <ul className="space-y-2 text-sm text-slate-700">
+                      <ul className="space-y-2 text-sm">
                         {strengths.length > 0 ? (
                           strengths.map((strength, i) => (
                             <li key={i} className="flex items-start gap-2 leading-relaxed">
-                              <span className="font-bold mt-0.5">•</span>
-                              <span>
+                              <span
+                                className="font-semibold mt-0.5"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                •
+                              </span>
+                              <span
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
                                 {strength.issue || strength}
                                 {strength.evidence_source_id && (
                                   <Chip size="sm" variant="secondary" className="ml-2 text-xs">
@@ -1763,16 +2159,52 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         ) : (
                           <>
                             <li className="flex items-start gap-2 leading-relaxed">
-                              <span className="font-bold mt-0.5">•</span>
-                              <span>Strong focus on material reuse and recycling</span>
+                              <span
+                                className="font-semibold mt-0.5"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                •
+                              </span>
+                              <span
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
+                                Strong focus on material reuse and recycling
+                              </span>
                             </li>
                             <li className="flex items-start gap-2 leading-relaxed">
-                              <span className="font-bold mt-0.5">•</span>
-                              <span>Clear value proposition for sustainability</span>
+                              <span
+                                className="font-semibold mt-0.5"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                •
+                              </span>
+                              <span
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
+                                Clear value proposition for sustainability
+                              </span>
                             </li>
                             <li className="flex items-start gap-2 leading-relaxed">
-                              <span className="font-bold mt-0.5">•</span>
-                              <span>Potential for scalable implementation</span>
+                              <span
+                                className="font-semibold mt-0.5"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                •
+                              </span>
+                              <span
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
+                                Potential for scalable implementation
+                              </span>
                             </li>
                           </>
                         )}
@@ -1780,16 +2212,38 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     </div>
 
                     {gaps.length > 0 && (
-                      <div className="p-4 bg-linear-to-br from-orange-50 to-orange-100 border border-orange-300 rounded-xl">
+                      <div
+                        className="p-4 rounded-xl border"
+                        style={{
+                          background:
+                            'linear-gradient(to bottom right, var(--warning-soft), var(--warning-soft))',
+                          borderColor: 'var(--warning)',
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle className="text-orange-600" size={16} />
-                          <p className="text-sm font-bold text-orange-900">Areas for Improvement</p>
+                          <AlertCircle size={16} style={{ color: 'var(--warning)' }} />
+                          <p
+                            className="text-sm font-semibold"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            Areas for Improvement
+                          </p>
                         </div>
-                        <ul className="space-y-2 text-sm text-slate-700">
+                        <ul className="space-y-2 text-sm">
                           {gaps.map((gap, i) => (
                             <li key={i} className="flex items-start gap-2 leading-relaxed">
-                              <span className="font-bold mt-0.5">•</span>
-                              <span>
+                              <span
+                                className="font-semibold mt-0.5"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                •
+                              </span>
+                              <span
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
                                 {gap.issue || gap}
                                 {gap.evidence_source_id && (
                                   <Chip size="sm" variant="secondary" className="ml-2 text-xs">
@@ -1804,45 +2258,114 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     )}
                   </div>
                 </div>
-              </Card>
+              </div>
 
               {/* Recommendations Card - Modern Design */}
-              <Card className="border border-slate-300 shadow-sm rounded-xl bg-white">
+              <div
+                className="border rounded-lg"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-1 sm:p-3">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1">Recommendations</h3>
-                  <p className="text-sm text-slate-600 mb-4">
+                  <h3
+                    className="text-lg font-semibold mb-1"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    Recommendations
+                  </h3>
+                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                     Targeted steps to improve your circularity score
                   </p>
 
-                  <div className="p-4 bg-linear-to-br from-blue-50 to-blue-100 border border-blue-300 rounded-xl">
-                    <ul className="space-y-3 text-sm text-slate-700">
+                  <div
+                    className="p-4 rounded-xl border"
+                    style={{
+                      background:
+                        'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
+                      borderColor: 'var(--accent)',
+                    }}
+                  >
+                    <ul className="space-y-3 text-sm">
                       {actualResult.audit?.technical_recommendations?.length > 0 ? (
                         actualResult.audit.technical_recommendations.map((rec, i) => (
                           <li key={i} className="flex items-start gap-2 leading-relaxed">
-                            <span className="font-bold mt-0.5 text-blue-600">•</span>
-                            <span>{rec}</span>
+                            <span
+                              className="font-semibold mt-0.5"
+                              style={{ color: 'var(--accent)' }}
+                            >
+                              •
+                            </span>
+                            <span
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
+                              {rec}
+                            </span>
                           </li>
                         ))
                       ) : (
                         <>
                           <li className="flex items-start gap-2 leading-relaxed">
-                            <span className="font-bold mt-0.5 text-blue-600">•</span>
-                            <span>Consider incorporating predictive maintenance strategies</span>
+                            <span
+                              className="font-semibold mt-0.5"
+                              style={{ color: 'var(--accent)' }}
+                            >
+                              •
+                            </span>
+                            <span
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
+                              Consider incorporating predictive maintenance strategies
+                            </span>
                           </li>
                           <li className="flex items-start gap-2 leading-relaxed">
-                            <span className="font-bold mt-0.5 text-blue-600">•</span>
-                            <span>Explore partnerships with recycling facilities</span>
+                            <span
+                              className="font-semibold mt-0.5"
+                              style={{ color: 'var(--accent)' }}
+                            >
+                              •
+                            </span>
+                            <span
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
+                              Explore partnerships with recycling facilities
+                            </span>
                           </li>
                           <li className="flex items-start gap-2 leading-relaxed">
-                            <span className="font-bold mt-0.5 text-blue-600">•</span>
-                            <span>Develop metrics for tracking circularity performance</span>
+                            <span
+                              className="font-semibold mt-0.5"
+                              style={{ color: 'var(--accent)' }}
+                            >
+                              •
+                            </span>
+                            <span
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
+                              Develop metrics for tracking circularity performance
+                            </span>
                           </li>
                         </>
                       )}
                     </ul>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
           </Tabs.Panel>
         </Tabs>

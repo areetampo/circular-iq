@@ -435,15 +435,30 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
               onSectionClick(section.id);
               if (isMobile) setIsMobileMenuOpen(false);
             }}
-            className={`group flex items-center gap-3 w-full py-2 text-left transition-all duration-200 relative ${
-              isActive ? 'text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-900'
-            }`}
+            className={`group flex items-center gap-3 w-full py-2 text-left transition-all duration-200 relative`}
+            style={{
+              color: isActive ? 'var(--foreground)' : 'var(--muted)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontWeight: isActive ? '500' : 'normal',
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.target.style.color = 'var(--foreground)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.target.style.color = 'var(--muted)';
+              }
+            }}
           >
             {/* Active indicator line */}
             <div
-              className={`absolute left-0 top-0 bottom-0 w-0.5 bg-emerald-500 transition-all duration-200 ${
-                isActive ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute left-0 top-0 bottom-0 w-0.5 transition-all duration-200`}
+              style={{
+                backgroundColor: 'var(--success)',
+                opacity: isActive ? '1' : '0',
+              }}
             />
 
             <span
@@ -466,65 +481,108 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
         <div className="sticky top-6">
           <div className="flex items-center gap-2 mb-6">
             <div className="flex items-center justify-center w-1 h-1">
-              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--muted)' }} />
             </div>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <span
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{
+                color: 'var(--muted)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
               On this page
             </span>
           </div>
-          <div className="space-y-0.5 border-l border-gray-200">
+          <div className="space-y-0.5 border-l" style={{ borderColor: 'var(--border)' }}>
             <NavContent />
           </div>
         </div>
       </nav>
 
       {/* Mobile Dropdown Navigation */}
-      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200 mb-8">
+      <div
+        className="lg:hidden sticky top-0 z-40 border-b mb-8"
+        style={{
+          backgroundColor: 'var(--surface)',
+          borderColor: 'var(--border)',
+        }}
+      >
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors"
+          style={{
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'var(--accent-soft)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+          }}
         >
           <div className="flex items-center gap-3">
             <div className="relative w-6 h-6 shrink-0">
               {/* Circular progress indicator */}
               <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="#e5e7eb" strokeWidth="2" />
                 <circle
                   cx="12"
                   cy="12"
                   r="10"
                   fill="none"
-                  stroke="#10b981"
+                  strokeWidth="2"
+                  style={{ stroke: 'var(--border)' }}
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  fill="none"
                   strokeWidth="2"
                   strokeDasharray={`${2 * Math.PI * 10}`}
                   strokeDashoffset={`${2 * Math.PI * 10 * (1 - getProgress(activeSection) / 100)}`}
                   strokeLinecap="round"
                   className="transition-all duration-300"
+                  style={{ stroke: 'var(--success)' }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 {SECTIONS.find((s) => s.id === activeSection) &&
                   React.createElement(SECTIONS.find((s) => s.id === activeSection).icon, {
-                    className: 'text-emerald-600',
+                    style: { color: 'var(--success)' },
                     size: 12,
                   })}
               </div>
             </div>
-            <span className="text-sm font-medium text-gray-900">
+            <span
+              className="text-sm font-medium"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
               {SECTIONS.find((s) => s.id === activeSection)?.title}
             </span>
           </div>
           {isMobileMenuOpen ? (
-            <ChevronUp className="text-gray-400" size={20} />
+            <ChevronUp size={20} style={{ color: 'var(--muted)' }} />
           ) : (
-            <ChevronDown className="text-gray-400" size={20} />
+            <ChevronDown size={20} style={{ color: 'var(--muted)' }} />
           )}
         </button>
 
         {/* Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="border-t border-gray-200 bg-white shadow-lg">
-            <div className="py-2 px-4 space-y-0.5 max-h-[60vh] overflow-y-auto border-l border-gray-200 ml-4">
+          <div
+            className="border-t shadow-lg"
+            style={{
+              borderColor: 'var(--border)',
+              backgroundColor: 'var(--surface)',
+            }}
+          >
+            <div
+              className="py-2 px-4 space-y-0.5 max-h-[60vh] overflow-y-auto border-l ml-4"
+              style={{ borderColor: 'var(--border)' }}
+            >
               <NavContent isMobile={true} />
             </div>
           </div>
@@ -1380,14 +1438,32 @@ export default function Guide() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
+      <div
+        className="border-b"
+        style={{
+          borderColor: 'var(--border)',
+          backgroundColor: 'var(--surface)',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-3">
+          <h1
+            className="text-4xl lg:text-5xl font-bold mb-3"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
             Circular Economy Assessment Guide
           </h1>
-          <p className="text-lg text-gray-600 max-w-3xl">
+          <p
+            className="text-lg max-w-3xl"
+            style={{
+              color: 'var(--muted)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
             Comprehensive guide to understanding our evaluation methodology and criteria
           </p>
         </div>

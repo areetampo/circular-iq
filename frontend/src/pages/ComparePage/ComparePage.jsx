@@ -96,8 +96,22 @@ export default function ComparePage() {
   return (
     <div className="max-w-4xl mx-auto py-16">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Compare Assessments</h1>
-        <p className="text-sm text-slate-600">
+        <h1
+          className="text-3xl font-bold mb-2"
+          style={{
+            color: 'var(--foreground)',
+            fontFamily: 'Lora, Georgia, serif',
+          }}
+        >
+          Compare Assessments
+        </h1>
+        <p
+          className="text-sm"
+          style={{
+            color: 'var(--muted)',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+        >
           Enter the public IDs of two assessments you want to compare side by side.
         </p>
       </div>
@@ -106,7 +120,14 @@ export default function ComparePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Assessment ID 1 */}
           <div>
-            <Label htmlFor="public-id-1" className="text-sm font-semibold mb-2 block">
+            <Label
+              htmlFor="public-id-1"
+              className="text-sm font-semibold mb-2 block"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
               First Assessment ID
             </Label>
             <Input
@@ -116,12 +137,24 @@ export default function ComparePage() {
               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
               className="mt-2"
+              style={{
+                backgroundColor: 'var(--field-bg)',
+                borderColor: 'var(--field-border)',
+                color: 'var(--foreground)',
+              }}
             />
           </div>
 
           {/* Assessment ID 2 */}
           <div>
-            <Label htmlFor="public-id-2" className="text-sm font-semibold mb-2 block">
+            <Label
+              htmlFor="public-id-2"
+              className="text-sm font-semibold mb-2 block"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
               Second Assessment ID
             </Label>
             <Input
@@ -131,14 +164,34 @@ export default function ComparePage() {
               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
               className="mt-2"
+              style={{
+                backgroundColor: 'var(--field-bg)',
+                borderColor: 'var(--field-border)',
+                color: 'var(--foreground)',
+              }}
             />
           </div>
         </div>
 
         {error && (
-          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <Frown size={20} className="text-red-600 mt-0.5 shrink-0" />
-            <span className="text-red-600 text-sm">{error}</span>
+          <div
+            className="flex items-start gap-3 p-4 rounded-lg"
+            style={{
+              backgroundColor: 'var(--danger-soft)',
+              borderColor: 'var(--danger)',
+              borderWidth: '1px',
+            }}
+          >
+            <Frown size={20} className="mt-0.5 shrink-0" style={{ color: 'var(--danger)' }} />
+            <span
+              className="text-sm"
+              style={{
+                color: 'var(--danger)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+            >
+              {error}
+            </span>
           </div>
         )}
 
@@ -156,10 +209,23 @@ export default function ComparePage() {
       </form>
 
       {/* Info Box */}
-      <div className="mt-12 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+      <div
+        className="mt-12 p-6 rounded-lg"
+        style={{
+          backgroundColor: 'var(--info-soft)',
+          borderColor: 'var(--info)',
+          borderWidth: '1px',
+        }}
+      >
         <div className="flex gap-3">
-          <AlertCircle size={20} className="text-blue-600 mt-0.5 shrink-0" />
-          <div className="text-sm text-blue-800">
+          <AlertCircle size={20} className="mt-0.5 shrink-0" style={{ color: 'var(--info)' }} />
+          <div
+            className="text-sm"
+            style={{
+              color: 'var(--info)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
             <p className="font-semibold mb-2">About Comparison</p>
             <ul className="space-y-1 list-disc list-inside">
               <li>You can compare any of your own assessments</li>

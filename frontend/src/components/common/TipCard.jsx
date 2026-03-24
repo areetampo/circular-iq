@@ -11,10 +11,24 @@ import PropTypes from 'prop-types';
 export default function TipCard({ icon, title, description }) {
   return (
     <div>
-      <strong className="text-blue-600">
+      <strong
+        className="text-blue-600"
+        style={{
+          color: 'var(--accent)',
+          fontFamily: 'Inter, system-ui, sans-serif',
+        }}
+      >
         {icon} {title}
       </strong>
-      <p className="mt-2 text-sm text-gray-700">{description}</p>
+      <p
+        className="mt-2 text-sm"
+        style={{
+          color: 'var(--muted)',
+          fontFamily: 'Inter, system-ui, sans-serif',
+        }}
+      >
+        {description}
+      </p>
     </div>
   );
 }

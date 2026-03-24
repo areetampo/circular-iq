@@ -26,7 +26,11 @@ import './index.css';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <div id="app-root" className="app-bg">
+        <div className="app-content">
+          <App />
+        </div>
+      </div>
     </BrowserRouter>
   </StrictMode>,
 );

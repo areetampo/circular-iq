@@ -1,13 +1,4 @@
-import {
-  Card,
-  ListBox,
-  Pagination,
-  Popover,
-  Select,
-  Separator,
-  Skeleton,
-  toast,
-} from '@heroui/react';
+import { ListBox, Pagination, Popover, Select, Separator, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Award, Building, Ghost, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -24,9 +15,8 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { formatTruncatedList } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
 
-import { parseSortBy } from './sortUtils';
-
 import { AssessmentList, AssessmentListSkeleton, FilterBar } from './components';
+import { parseSortBy } from './sortUtils';
 
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();
@@ -445,7 +435,13 @@ export default function MyAssessmentsPage() {
     // SummaryCardSkeleton - Matches the actual Summary Card structure
     function SummaryCardSkeleton() {
       return (
-        <div className="bg-linear-to-br from-slate-50 to-slate-100/50 border border-slate-200/60 rounded-2xl px-6 py-5 shadow-sm">
+        <div
+          className="border rounded-xl px-6 py-5 shadow-sm"
+          style={{
+            background: 'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
+            borderColor: 'var(--border)',
+          }}
+        >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               {/* Label */}
@@ -471,7 +467,13 @@ export default function MyAssessmentsPage() {
     // FiltersCardSkeleton - Matches the actual Filters Card structure
     function FiltersCardSkeleton() {
       return (
-        <Card className="border-2 border-slate-200 shadow-sm bg-white">
+        <div
+          className="border-2 shadow-sm rounded-xl"
+          style={{
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+          }}
+        >
           <div className="p-6 space-y-6">
             {/* Filter inputs */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -490,12 +492,15 @@ export default function MyAssessmentsPage() {
             </div>
 
             {/* Compare section */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t-2 border-slate-100">
+            <div
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t-2"
+              style={{ borderColor: 'var(--border)' }}
+            >
               <Skeleton animationType="shimmer" className="h-4 w-64 rounded" />
               <Skeleton animationType="shimmer" className="h-10 w-44 rounded-lg" />
             </div>
           </div>
-        </Card>
+        </div>
       );
     }
 
@@ -555,44 +560,106 @@ export default function MyAssessmentsPage() {
           {stats_totalAssessments > 0 && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Average Score Card */}
-              <div className="bg-linear-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/60 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:border-emerald-300/60 transition-all duration-200">
+              <div
+                className="border rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200"
+                style={{
+                  background:
+                    'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
+                  borderColor: 'var(--success)',
+                  borderWidth: '1px',
+                }}
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-2">
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--success)' }}
+                    >
                       Average Score
                     </p>
                     <div className="flex items-baseline gap-3">
-                      <h3 className="text-4xl font-black text-emerald-900">{averageScore}</h3>
+                      <h3
+                        className="text-4xl font-black"
+                        style={{
+                          color: 'var(--foreground)',
+                          fontFamily: 'Lora, Georgia, serif',
+                        }}
+                      >
+                        {averageScore}
+                      </h3>
                     </div>
-                    <p className="text-sm font-medium text-emerald-700/80 mt-2">
+                    <p className="text-sm font-medium mt-2" style={{ color: 'var(--success)' }}>
                       Across {stats_totalAssessments} assessment
                       {stats_totalAssessments !== 1 ? 's' : ''}
                     </p>
                     <div className="flex items-center gap-6 mt-3">
                       <div>
-                        <p className="text-xs text-emerald-600/75 font-medium">High</p>
-                        <p className="text-lg font-bold text-emerald-900">{highestScore}</p>
+                        <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+                          High
+                        </p>
+                        <p
+                          className="text-lg font-bold"
+                          style={{
+                            color: 'var(--foreground)',
+                            fontFamily: 'Inter, system-ui, sans-serif',
+                          }}
+                        >
+                          {highestScore}
+                        </p>
                       </div>
-                      <Separator orientation="vertical" className="bg-emerald-400/50" />
+                      <Separator
+                        orientation="vertical"
+                        style={{ backgroundColor: 'var(--border)' }}
+                      />
                       <div>
-                        <p className="text-xs text-emerald-600/75 font-medium">Low</p>
-                        <p className="text-lg font-bold text-emerald-900">{lowestScore}</p>
+                        <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+                          Low
+                        </p>
+                        <p
+                          className="text-lg font-bold"
+                          style={{
+                            color: 'var(--foreground)',
+                            fontFamily: 'Inter, system-ui, sans-serif',
+                          }}
+                        >
+                          {lowestScore}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-emerald-100/80 shrink-0">
-                    <Award className="text-emerald-700" size={24} />
+                  <div
+                    className="p-3 rounded-xl shrink-0"
+                    style={{ backgroundColor: 'var(--success-soft)' }}
+                  >
+                    <Award size={24} style={{ color: 'var(--success)' }} />
                   </div>
                 </div>
               </div>
               {/* Primary Focus Card */}
-              <div className="bg-linear-to-br from-indigo-50 to-indigo-100/50 border border-indigo-200/60 rounded-2xl px-6 py-5 shadow-sm hover:shadow-md hover:border-indigo-300/60 transition-all duration-200">
+              <div
+                className="border rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200"
+                style={{
+                  background:
+                    'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
+                  borderColor: 'var(--accent)',
+                  borderWidth: '1px',
+                }}
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wider mb-2">
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--accent)' }}
+                    >
                       Primary Focus
                     </p>
-                    <h3 className="text-2xl font-bold text-indigo-900 leading-tight">
+                    <h3
+                      className="text-2xl font-bold leading-tight"
+                      style={{
+                        color: 'var(--foreground)',
+                        fontFamily: 'Lora, Georgia, serif',
+                      }}
+                    >
                       {topIndustries && topIndustries.length > 0
                         ? (() => {
                             const { display } = formatTruncatedList(topIndustries, 3);
@@ -610,12 +677,13 @@ export default function MyAssessmentsPage() {
                         </Popover.Trigger>
                         <Popover.Content className="max-w-xs">
                           <Popover.Dialog>
-                            {/* <Popover.Heading className="text-indigo-900 font-bold">
-                              All Industries
-                            </Popover.Heading> */}
                             <div className="space-y-0.5">
                               {topIndustries.map((industry, idx) => (
-                                <p key={idx} className="text-sm text-indigo-700 italic">
+                                <p
+                                  key={idx}
+                                  className="text-sm italic"
+                                  style={{ color: 'var(--accent)' }}
+                                >
                                   {industry.industry
                                     .replace(/_/g, ' ')
                                     .replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -626,14 +694,17 @@ export default function MyAssessmentsPage() {
                         </Popover.Content>
                       </Popover>
                     )}
-                    <p className="text-sm font-medium text-indigo-700/80 mt-2">
+                    <p className="text-sm font-medium mt-2" style={{ color: 'var(--accent)' }}>
                       {topIndustries && topIndustries.length > 0
                         ? `${topIndustries[0].count} assessment${topIndustries[0].count !== 1 ? 's' : ''} ${topIndustries.length > 1 ? 'each' : ''}`
                         : 'No data available'}
                     </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-indigo-100/80 shrink-0">
-                    <Building className="text-indigo-700" size={24} />
+                  <div
+                    className="p-3 rounded-xl shrink-0"
+                    style={{ backgroundColor: 'var(--accent-soft)' }}
+                  >
+                    <Building size={24} style={{ color: 'var(--accent)' }} />
                   </div>
                 </div>
               </div>
@@ -684,15 +755,38 @@ export default function MyAssessmentsPage() {
                 showDefaultActions={false}
               />
             ) : stats_totalAssessments === 0 ? (
-              <Card className="border-2 border-dashed border-slate-300 bg-slate-50/60 shadow-sm">
+              <div
+                className="border-2 border-dashed shadow-sm rounded-xl"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-6 text-center">
                   <div className="flex justify-center mb-8">
-                    <div className="p-5 rounded-2xl bg-linear-to-br from-slate-100 to-slate-200 shadow-inner">
-                      <Ghost className="text-slate-500" strokeWidth={1.5} size={48} />
+                    <div
+                      className="p-5 rounded-2xl shadow-inner"
+                      style={{
+                        background:
+                          'linear-gradient(to bottom right, var(--surface), var(--border))',
+                      }}
+                    >
+                      <Ghost strokeWidth={1.5} size={48} style={{ color: 'var(--muted)' }} />
                     </div>
                   </div>
-                  <h3 className="font-bold text-2xl text-slate-900 mb-3">No assessments yet</h3>
-                  <p className="text-base text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+                  <h3
+                    className="font-bold text-2xl mb-3"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    No assessments yet
+                  </h3>
+                  <p
+                    className="text-base mb-8 max-w-md mx-auto leading-relaxed"
+                    style={{ color: 'var(--muted)' }}
+                  >
                     Start your first assessment to track your circular economy progress and get
                     personalized recommendations.
                   </p>
@@ -701,17 +795,40 @@ export default function MyAssessmentsPage() {
                     Start Your First Assessment
                   </Button>
                 </div>
-              </Card>
+              </div>
             ) : assessments.length === 0 ? (
-              <Card className="border-2 border-dashed border-slate-300 bg-slate-50/40 shadow-sm">
+              <div
+                className="border-2 border-dashed shadow-sm rounded-xl"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="p-6 text-center">
                   <div className="flex justify-center mb-8">
-                    <div className="p-5 rounded-2xl bg-linear-to-br from-slate-100 to-slate-200 shadow-inner">
-                      <Ghost className="text-slate-500" strokeWidth={1.5} size={48} />
+                    <div
+                      className="p-5 rounded-2xl shadow-inner"
+                      style={{
+                        background:
+                          'linear-gradient(to bottom right, var(--surface), var(--border))',
+                      }}
+                    >
+                      <Ghost strokeWidth={1.5} size={48} style={{ color: 'var(--muted)' }} />
                     </div>
                   </div>
-                  <h3 className="font-bold text-2xl text-slate-900 mb-3">No assessments found</h3>
-                  <p className="text-base text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+                  <h3
+                    className="font-bold text-2xl mb-3"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    No assessments found
+                  </h3>
+                  <p
+                    className="text-base mb-8 max-w-md mx-auto leading-relaxed"
+                    style={{ color: 'var(--muted)' }}
+                  >
                     Your current filters didn&apos;t match any assessments. Try selecting a
                     different industry or adjusting your search.
                   </p>
@@ -727,7 +844,7 @@ export default function MyAssessmentsPage() {
                     Clear Filters
                   </Button>
                 </div>
-              </Card>
+              </div>
             ) : (
               <>
                 <AssessmentList
@@ -744,13 +861,19 @@ export default function MyAssessmentsPage() {
 
                 <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
                   {/* Pagination info text */}
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm" style={{ color: 'var(--muted)' }}>
                     Showing{' '}
-                    <span className="font-semibold text-slate-900 inline-block text-center">
+                    <span
+                      className="font-semibold inline-block text-center"
+                      style={{ color: 'var(--foreground)' }}
+                    >
                       {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
                     </span>{' '}
                     of{' '}
-                    <span className="font-semibold text-slate-900 inline-block text-center">
+                    <span
+                      className="font-semibold inline-block text-center"
+                      style={{ color: 'var(--foreground)' }}
+                    >
                       {total}
                     </span>{' '}
                     results
@@ -790,7 +913,12 @@ export default function MyAssessmentsPage() {
 
                     {/* HeroUI v3 Select for page size */}
                     <div className="flex items-center gap-2">
-                      <label className="text-sm text-slate-600 whitespace-nowrap">Per page:</label>
+                      <label
+                        className="text-sm whitespace-nowrap"
+                        style={{ color: 'var(--muted)' }}
+                      >
+                        Per page:
+                      </label>
                       <Select
                         className="w-20"
                         placeholder="5"

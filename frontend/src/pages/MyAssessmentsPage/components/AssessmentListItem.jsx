@@ -1,4 +1,4 @@
-import { Card, Checkbox, Chip, Skeleton, toast } from '@heroui/react';
+import { Checkbox, Chip, Skeleton, toast } from '@heroui/react';
 import { AlertCircle, Building, CheckCircle2, Clock, Copy, Edit, Eye, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -74,15 +74,26 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   const StatusIcon = status.icon;
 
   return (
-    <Card
+    <div
       className={cn(
-        'group relative overflow-hidden bg-slate-50 transition-all duration-200 ease-out cursor-pointer',
-        isSelected ? 'shadow-lg shadow-blue-100' : 'hover:shadow-lg',
+        'group relative overflow-hidden transition-all duration-200 ease-out cursor-pointer rounded-xl',
+        isSelected ? 'shadow-lg' : 'hover:shadow-lg',
       )}
+      style={{
+        backgroundColor: 'var(--surface)',
+        borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+        borderWidth: '1px',
+      }}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
       onClick={() => onView(assessment.public_id)}
     >
-      <div className="absolute inset-0 bg-linear-to-br from-slate-50/0 via-transparent to-slate-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to bottom right, var(--accent-soft), transparent, var(--accent-soft))',
+        }}
+      />
 
       <div className="relative p-0 xxs:p-3 space-y-5">
         <div className="flex items-start gap-4">
@@ -98,15 +109,22 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               className="cursor-pointer"
               aria-label={`Select assessment: ${assessment.title || 'Untitled Assessment'}`}
             >
-              <Checkbox.Control className="size-6 rounded-full before:rounded-full border">
-                <Checkbox.Indicator />
+              <Checkbox.Control
+                className="size-6 rounded-full before:rounded-full border"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <Checkbox.Indicator style={{ backgroundColor: 'var(--accent)' }} />
               </Checkbox.Control>
             </Checkbox>
           </div>
 
           <div className="flex-1 min-w-0 space-y-3">
             <h3
-              className="font-semibold text-xl text-slate-900 leading-tight truncate group-hover:text-blue-700 transition-colors duration-200 ml-0.5"
+              className="font-semibold text-xl leading-tight truncate transition-colors duration-200 ml-0.5"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'Lora, Georgia, serif',
+              }}
               title={assessment.title}
             >
               {assessment.title || 'Untitled Assessment'}
@@ -141,9 +159,11 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 <Chip.Label>{status.text}</Chip.Label>
               </Chip>
 
-              <div className="flex items-center gap-1.5 text-sm text-slate-500 ml-1">
+              <div className="flex items-center gap-1.5 text-sm ml-1">
                 <Clock size={14} />
-                <span className="italic">Created {formatTimestamp(assessment.created_at)}</span>
+                <span className="italic" style={{ color: 'var(--muted)' }}>
+                  Created {formatTimestamp(assessment.created_at)}
+                </span>
               </div>
             </div>
           </div>
@@ -228,7 +248,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 });
 
@@ -259,7 +279,10 @@ AssessmentListItem.propTypes = {
 
 const AssessmentCardSkeleton = React.memo(function AssessmentCardSkeleton() {
   return (
-    <Card className="group relative overflow-hidden bg-white">
+    <div
+      className="group relative overflow-hidden rounded-xl"
+      style={{ backgroundColor: 'var(--surface)' }}
+    >
       <div className="relative p-3 space-y-5">
         <div className="flex items-start gap-4">
           <div className="pt-0.5 shrink-0">
@@ -281,20 +304,23 @@ const AssessmentCardSkeleton = React.memo(function AssessmentCardSkeleton() {
         <div className="flex flex-wrap gap-2 sm:py-2 px-4">
           <Skeleton
             animationType="shimmer"
-            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-[100px]"
+            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-25"
           />
           <Skeleton
             animationType="shimmer"
-            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-[100px]"
+            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-25"
           />
           <Skeleton
             animationType="shimmer"
-            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-[100px]"
+            className="h-9 w-24 rounded-lg flex-1 sm:flex-none min-w-25"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
-          <div className="flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border bg-slate-50 border-slate-200 flex-col xxs:flex-row">
+          <div
+            className="flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border flex-col xxs:flex-row"
+            style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--border)' }}
+          >
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
               <Skeleton animationType="shimmer" className="w-8 h-8 rounded-lg shrink-0" />
               <div className="flex-1 min-w-0 space-y-1">
@@ -305,7 +331,10 @@ const AssessmentCardSkeleton = React.memo(function AssessmentCardSkeleton() {
             <Skeleton animationType="shimmer" className="w-11 h-6 rounded-full shrink-0" />
           </div>
 
-          <div className="flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border bg-slate-50 border-slate-200 flex-col xxs:flex-row">
+          <div
+            className="flex items-center justify-between gap-3 p-2 xxs:p-4 rounded-xl border flex-col xxs:flex-row"
+            style={{ backgroundColor: 'var(--accent-soft)', borderColor: 'var(--border)' }}
+          >
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
               <Skeleton animationType="shimmer" className="w-8 h-8 rounded-lg shrink-0" />
               <div className="flex-1 min-w-0 space-y-1">
@@ -320,7 +349,7 @@ const AssessmentCardSkeleton = React.memo(function AssessmentCardSkeleton() {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 });
 

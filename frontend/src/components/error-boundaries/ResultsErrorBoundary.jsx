@@ -24,22 +24,65 @@ class ResultsErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center p-8 border border-red-200 rounded-lg bg-red-50 w-max h-max">
-          <h2 className="mb-2 text-xl font-bold text-red-800">Unable to Display Results</h2>
-          <p className="mb-4 text-red-700">
+        <div
+          className="flex items-center justify-center p-8 border rounded-lg w-max h-max"
+          style={{
+            borderColor: 'var(--danger)',
+            backgroundColor: 'var(--danger-soft)',
+          }}
+        >
+          <h2
+            className="mb-2 text-xl font-bold"
+            style={{
+              color: 'var(--danger)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
+            Unable to Display Results
+          </h2>
+          <p
+            className="mb-4"
+            style={{
+              color: 'var(--danger)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
             There was an error displaying this assessment. Please try refreshing the page or return
             to your assessments.
           </p>
           <div className="flex gap-3">
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 font-semibold text-white transition-colors bg-red-600 rounded-md cursor-pointer hover:bg-red-700"
+              className="px-4 py-2 font-semibold rounded-md cursor-pointer transition-colors"
+              style={{
+                backgroundColor: 'var(--danger)',
+                color: 'var(--surface)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'var(--foreground)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'var(--danger)';
+              }}
             >
               Refresh Page
             </button>
             <button
               onClick={() => (window.location.href = '/assessments')}
-              className="px-4 py-2 font-semibold transition-colors rounded-md cursor-pointer bg-slate-200 text-slate-800 hover:bg-slate-300"
+              className="px-4 py-2 font-semibold rounded-md cursor-pointer transition-colors"
+              style={{
+                backgroundColor: 'var(--surface)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                fontFamily: 'Inter, system-ui, sans-serif',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'var(--accent-soft)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'var(--surface)';
+              }}
             >
               Back to Assessments
             </button>

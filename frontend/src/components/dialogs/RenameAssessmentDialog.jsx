@@ -19,7 +19,7 @@
 import { AlertDialog, Input, Label } from '@heroui/react';
 import { Edit } from 'lucide-react';
 import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -106,7 +106,14 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
               </AlertDialog.Header>
 
               <AlertDialog.Body>
-                <Label htmlFor="assessment-name" className="text-sm text-slate-500 font-medium">
+                <Label
+                  htmlFor="assessment-name"
+                  className="text-sm font-medium"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
                   Update the assessment name to make it easier to find later.
                 </Label>
                 <div className="flex flex-col items-center gap-2 mt-2.5 px-2">
@@ -127,7 +134,11 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                     fullWidth
                   />
 
-                  {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+                  {error && (
+                    <p className="text-sm mt-2" style={{ color: 'var(--danger)' }}>
+                      {error}
+                    </p>
+                  )}
                 </div>
               </AlertDialog.Body>
 

@@ -68,14 +68,35 @@ export default function SharePage() {
 
   return (
     <div className="max-w-2xl mx-auto py-16">
-      <h1 className="text-2xl font-bold mb-4">Open a Shared Assessment</h1>
-      <p className="text-sm text-slate-600 mb-6">
+      <h1
+        className="text-2xl font-bold mb-4"
+        style={{
+          color: 'var(--foreground)',
+          fontFamily: 'Lora, Georgia, serif',
+        }}
+      >
+        Open a Shared Assessment
+      </h1>
+      <p
+        className="text-sm mb-6"
+        style={{
+          color: 'var(--muted)',
+          fontFamily: 'Inter, system-ui, sans-serif',
+        }}
+      >
         Enter the public ID for the assessment you want to view.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="public-id" className="text-sm font-semibold">
+          <Label
+            htmlFor="public-id"
+            className="text-sm font-semibold"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
             Public ID
           </Label>
           <Input
@@ -89,17 +110,27 @@ export default function SharePage() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 text-red-600">
+          <div className="flex items-center gap-2" style={{ color: 'var(--danger)' }}>
             <Frown size={20} />
-            <span>{error}</span>
+            <span style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>{error}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2">
-          <Button type="submit" variant="teal" isLoading={loading}>
+          <Button
+            type="submit"
+            variant="teal"
+            isLoading={loading}
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
             Open
           </Button>
-          <Button type="button" variant="neutral" onPress={() => setPublicId('')}>
+          <Button
+            type="button"
+            variant="neutral"
+            onPress={() => setPublicId('')}
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
             Clear
           </Button>
         </div>

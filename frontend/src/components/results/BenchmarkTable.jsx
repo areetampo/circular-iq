@@ -74,7 +74,15 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
         <div className="mt-4">
           {opportunities?.length > 0 && (
             <div className="mb-3">
-              <div className="text-sm font-bold text-slate-900 mb-1">Opportunities to Improve</div>
+              <div
+                className="text-sm font-bold mb-1"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'Lora, Georgia, serif',
+                }}
+              >
+                Opportunities to Improve
+              </div>
               <div className="flex flex-wrap gap-2">
                 {opportunities.map((text) => (
                   <Chip key={text} color="warning" size="sm">
@@ -87,7 +95,15 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
 
           {strengths?.length > 0 && (
             <div>
-              <div className="text-sm font-bold text-slate-900 mb-1">Strengths</div>
+              <div
+                className="text-sm font-bold mb-1"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'Lora, Georgia, serif',
+                }}
+              >
+                Strengths
+              </div>
               <div className="flex flex-wrap gap-2">
                 {strengths.map((text) => (
                   <Chip key={text} color="success" size="sm">

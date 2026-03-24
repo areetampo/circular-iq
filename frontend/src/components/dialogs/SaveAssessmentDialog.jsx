@@ -130,7 +130,14 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
               </AlertDialog.Header>
 
               <AlertDialog.Body>
-                <Label htmlFor="name" className="text-sm text-slate-500 font-medium">
+                <Label
+                  htmlFor="name"
+                  className="text-sm font-medium"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
                   Give your assessment a memorable name and choose your privacy settings
                 </Label>
                 <div className="flex flex-col items-center gap-2 mt-2 mb-3 px-2">
@@ -151,7 +158,11 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     fullWidth
                   />
 
-                  {error && <p className="text-sm text-red-600">{error}</p>}
+                  {error && (
+                    <p className="text-sm" style={{ color: 'var(--danger)' }}>
+                      {error}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-3">

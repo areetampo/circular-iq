@@ -29,20 +29,39 @@ export default function AssessmentMethodologyDrawer() {
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      'p-2 rounded-xl bg-indigo-50 shrink-0',
+                      'p-2 rounded-xl shrink-0',
                       'transition-[transform,box-shadow] duration-300 ease-out',
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
                     )}
+                    style={{
+                      backgroundColor: 'var(--accent-soft)',
+                    }}
                   >
-                    <ChartSpline className="size-5 text-indigo-600" strokeWidth={1.75} />
+                    <ChartSpline
+                      className="size-5"
+                      style={{ color: 'var(--accent)' }}
+                      strokeWidth={1.75}
+                    />
                   </div>
                   <div>
-                    <Drawer.Heading className="text-base font-semibold text-gray-900">
+                    <Drawer.Heading
+                      className="text-base font-semibold"
+                      style={{
+                        color: 'var(--foreground)',
+                        fontFamily: 'Lora, Georgia, serif',
+                      }}
+                    >
                       Assessment Methodology
                     </Drawer.Heading>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{
+                        color: 'var(--muted)',
+                        fontFamily: 'Inter, system-ui, sans-serif',
+                      }}
+                    >
                       Our AI-powered evaluation framework
                     </p>
                   </div>
@@ -53,10 +72,16 @@ export default function AssessmentMethodologyDrawer() {
             {/* ── BODY ───────────────────────────────────────────────── */}
             <Drawer.Body className="space-y-5">
               {/* Intro */}
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p
+                className="text-sm leading-relaxed"
+                style={{
+                  color: 'var(--muted)',
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
+              >
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
-                <strong className="text-gray-800">
+                <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
                   6,000+ high-quality circular economy projects
                 </strong>
                 .
@@ -98,10 +123,22 @@ export default function AssessmentMethodologyDrawer() {
 
                     {/* Text */}
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-sm font-bold text-gray-800 leading-snug">
+                      <span
+                        className="text-sm font-bold leading-snug"
+                        style={{
+                          color: 'var(--foreground)',
+                          fontFamily: 'Lora, Georgia, serif',
+                        }}
+                      >
                         {item.title}
                       </span>
-                      <span className="text-xs text-gray-500 leading-relaxed">
+                      <span
+                        className="text-xs leading-relaxed"
+                        style={{
+                          color: 'var(--muted)',
+                          fontFamily: 'Inter, system-ui, sans-serif',
+                        }}
+                      >
                         {item.description}
                       </span>
                     </div>
@@ -125,32 +162,65 @@ export default function AssessmentMethodologyDrawer() {
                   <BookCopy className="size-4 text-teal-600" strokeWidth={1.75} />
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
-                  <span className="text-sm font-bold text-teal-800 leading-snug">Data Source</span>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    <strong>GreenTechGuardians AI EarthHack Dataset:</strong> A curated collection
-                    of <strong>4,000+ high-quality</strong> circular economy solutions (filtered
-                    from 1,300) spanning waste reduction, resource optimization, renewable energy,
-                    sustainable materials, and regenerative agriculture across multiple industries
-                    and geographic regions.
+                  <span
+                    className="text-sm font-bold leading-snug"
+                    style={{
+                      color: 'var(--success)',
+                      fontFamily: 'Lora, Georgia, serif',
+                    }}
+                  >
+                    Data Source
+                  </span>
+                  <p
+                    className="text-xs leading-relaxed"
+                    style={{
+                      color: 'var(--muted)',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                    }}
+                  >
+                    <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      GreenTechGuardians AI EarthHack Dataset:
+                    </strong>{' '}
+                    A curated collection of{' '}
+                    <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      4,000+ high-quality
+                    </strong>{' '}
+                    circular economy solutions (filtered from 1,300) spanning waste reduction,
+                    resource optimization, renewable energy, sustainable materials, and regenerative
+                    agriculture across multiple industries and geographic regions.
                   </p>
                 </div>
               </div>
 
               {/* Disclaimer */}
               <div
-                className="flex items-start gap-3 p-4 rounded-xl
-                          bg-amber-50 border-l-4 border-amber-400"
+                className="flex items-start gap-3 p-4 rounded-xl border-l-4"
+                style={{
+                  backgroundColor: 'var(--danger-soft)',
+                  borderColor: 'var(--danger)',
+                }}
               >
                 <TriangleAlert
-                  className="size-4 text-amber-500 shrink-0 mt-0.5"
+                  className="size-4 shrink-0 mt-0.5"
+                  style={{ color: 'var(--danger)' }}
                   strokeWidth={1.75}
                 />
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  <strong className="text-gray-700">Disclaimer: </strong>
+                <p
+                  className="text-xs leading-relaxed"
+                  style={{
+                    color: 'var(--muted)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
+                  <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                    Disclaimer:{' '}
+                  </strong>
                   This assessment is designed to provide{' '}
-                  <strong>constructive feedback for early-stage ideation</strong>. Scores reflect
-                  alignment with established circular economy principles and should be used as
-                  guidance, not as definitive validation of commercial viability.
+                  <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                    constructive feedback for early-stage ideation
+                  </strong>
+                  . Scores reflect alignment with established circular economy principles and should
+                  be used as guidance, not as definitive validation of commercial viability.
                 </p>
               </div>
             </Drawer.Body>

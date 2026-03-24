@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 /* HeroUI v3 styles - Essential for Modal/AlertDialog/Form components */
 @import '@heroui/styles';
 
@@ -444,5 +447,466 @@
   input:disabled {
     pointer-events: none;
     touch-action: none;
+  }
+}
+
+/* ===== NEW DESIGN SYSTEM ===== */
+
+/* Design Tokens */
+:root,
+[data-theme='light'] {
+  /* ── Palette ── */
+  --background: oklch(0.97 0.012 80); /* warm cream  #F6F2EB */
+  --foreground: oklch(0.18 0.015 60); /* deep warm brown #2B2318 */
+  --surface: oklch(1 0 0); /* white cards */
+  --surface-raised: oklch(0.99 0.006 80); /* cards on cards */
+
+  /* ── Accent — warm tan/gold, primary actions ── */
+  --accent: oklch(0.68 0.08 68); /* #C89B6D */
+  --accent-hover: oklch(0.63 0.09 68);
+  --accent-foreground: oklch(1 0 0);
+  --accent-soft: oklch(0.94 0.022 75); /* very light tint */
+  --accent-soft-fg: oklch(0.35 0.05 68);
+
+  /* ── Borders & chrome ── */
+  --border: oklch(0.89 0.016 75); /* near-invisible warm border */
+  --border-strong: oklch(0.78 0.025 72);
+
+  /* ── Text ── */
+  --muted: oklch(0.55 0.015 75); /* secondary/helper text */
+  --subtle: oklch(0.72 0.012 75); /* tertiary text */
+
+  /* ── Form fields ── */
+  --field-bg: oklch(0.99 0.006 80);
+  --field-border: oklch(0.86 0.018 75);
+  --field-placeholder: oklch(0.65 0.012 75);
+
+  /* ── Status ── */
+  --success: oklch(0.52 0.14 155);
+  --success-soft: oklch(0.95 0.05 155 / 0.3);
+  --warning: oklch(0.68 0.14 55);
+  --warning-soft: oklch(0.96 0.05 68 / 0.3);
+  --danger: oklch(0.55 0.18 25);
+  --danger-soft: oklch(0.96 0.04 25 / 0.3);
+
+  /* ── Scoring colours (for score badges/values) ── */
+  --score-high: oklch(0.52 0.14 155); /* green ≥ 75 */
+  --score-mid: oklch(0.65 0.14 68); /* amber 50–74 */
+  --score-low: oklch(0.55 0.18 25); /* rose < 50 */
+
+  /* ── Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* ── Shadows ── */
+  --shadow-card: 0 1px 3px oklch(0.18 0.015 60 / 0.06), 0 4px 16px oklch(0.18 0.015 60 / 0.04);
+  --shadow-card-hover: 0 2px 8px oklch(0.18 0.015 60 / 0.1), 0 8px 32px oklch(0.18 0.015 60 / 0.08);
+  --shadow-modal: 0 20px 60px oklch(0.18 0.015 60 / 0.2);
+}
+
+/* Make tokens available to Tailwind utilities */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-serif: 'Lora', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Base Styles */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-serif {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  code,
+  pre,
+  .font-mono,
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Scrollbar — warm and minimal */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+
+  /* Selection */
+  ::selection {
+    background: oklch(0.68 0.08 68 / 0.18);
+  }
+}
+
+/* Animated Diagonal Dotted Grid Background */
+@layer base {
+  /* Applied to #app-root — see Section 2A */
+  .app-bg {
+    min-height: 100vh;
+    background-color: var(--background);
+    position: relative;
+    overflow: hidden; /* clip the rotated pseudo-element */
+  }
+
+  /* The grid layer — fixed behind all content */
+  .app-bg::before {
+    content: '';
+    position: fixed;
+    inset: -60%;
+    width: 220%;
+    height: 220%;
+    background-image: radial-gradient(circle, oklch(0.68 0.08 68 / 0.13) 1.2px, transparent 1.2px);
+    background-size: 26px 26px;
+    transform: rotate(45deg) translate(0, 0);
+    animation: drift-grid 32s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes drift-grid {
+    from {
+      transform: rotate(45deg) translate(0, 0);
+    }
+    to {
+      transform: rotate(45deg) translate(26px, 26px);
+    }
+  }
+
+  /* All actual page content must sit above the grid */
+  .app-content {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* HeroUI Component Overrides */
+@layer components {
+  /* ── Skeleton — warm cream shimmer, not cold grey ── */
+  [data-slot='skeleton'],
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      oklch(0.92 0.018 75) 25%,
+      oklch(0.96 0.025 78) 50%,
+      oklch(0.92 0.018 75) 75%
+    ) !important;
+    background-size: 200% 100% !important;
+    animation: warm-shimmer 1.8s ease-in-out infinite !important;
+    border-radius: var(--radius-md) !important;
+  }
+  @keyframes warm-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* ── Buttons ── */
+  /* Verify HeroUI v3 slot name via MCP: might be [data-slot='base'] */
+  .button,
+  [data-slot='button'] {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    border-radius: var(--radius-md);
+    transition: all 0.15s ease;
+  }
+  /* Solid/primary variant */
+  .button[data-variant='solid'],
+  .button--primary {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+  }
+  .button[data-variant='solid']:hover,
+  .button--primary:hover {
+    background-color: var(--accent-hover) !important;
+    box-shadow: 0 2px 8px oklch(0.68 0.08 68 / 0.28) !important;
+    transform: translateY(-1px);
+  }
+  /* Bordered/secondary variant */
+  .button[data-variant='bordered'],
+  .button--secondary {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--foreground) !important;
+  }
+  .button[data-variant='bordered']:hover,
+  .button--secondary:hover {
+    background: var(--accent-soft) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent-soft-fg) !important;
+  }
+  /* Light/ghost variant */
+  .button[data-variant='light'] {
+    background: transparent !important;
+    color: var(--muted) !important;
+  }
+  .button[data-variant='light']:hover {
+    background: var(--accent-soft) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* ── Input fields ── */
+  /* Verify exact HeroUI v3 slot names from MCP docs */
+  [data-slot='input-wrapper'],
+  [data-slot='main-wrapper'],
+  .input__input-wrapper {
+    background-color: var(--field-bg) !important;
+    border: 1px solid var(--field-border) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: none !important;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  [data-slot='input-wrapper']:focus-within,
+  [data-slot='main-wrapper']:focus-within {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px oklch(0.68 0.08 68 / 0.14) !important;
+  }
+  [data-slot='input'] {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    color: var(--foreground) !important;
+  }
+
+  /* ── Textarea ── (same warm treatment as input) */
+  [data-slot='input-wrapper']:has(textarea) {
+    align-items: flex-start !important;
+  }
+
+  /* ── Card ── */
+  [data-slot='base'].card,
+  .card {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  /* ── Accordion ── */
+  [data-slot='base'].accordion,
+  .accordion__base {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  [data-slot='trigger'],
+  .accordion__trigger {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 15px !important;
+    color: var(--foreground) !important;
+    padding: 16px 20px !important;
+    background: transparent !important;
+  }
+  [data-slot='trigger']:hover {
+    background: var(--accent-soft) !important;
+  }
+  [data-slot='content'],
+  .accordion__content {
+    padding: 4px 20px 20px !important;
+    font-size: 14px !important;
+  }
+
+  /* ── Chip / Badge ── */
+  [data-slot='base'].chip {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    border-radius: 5px !important;
+  }
+
+  /* ── Select ── */
+  [data-slot='trigger'].select__trigger {
+    background-color: var(--field-bg) !important;
+    border: 1px solid var(--field-border) !important;
+    border-radius: var(--radius-md) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+  }
+
+  /* ── Popover / Listbox ── */
+  [data-slot='base'].popover-content,
+  [data-slot='base'].listbox {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-modal) !important;
+  }
+
+  /* ── Modal ── */
+  [data-slot='wrapper'].modal-wrapper,
+  .modal__wrapper {
+    background-color: oklch(0.18 0.015 60 / 0.35) !important;
+    backdrop-filter: blur(6px) !important;
+  }
+  [data-slot='base'].modal,
+  .modal__base {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-modal) !important;
+  }
+
+  /* ── Drawer ── */
+  [data-slot='base'].drawer,
+  .drawer__base {
+    background-color: var(--surface) !important;
+    border-left: 1px solid var(--border) !important;
+  }
+  [data-slot='header'].drawer__header {
+    border-bottom: 1px solid var(--border) !important;
+    padding: 24px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+  }
+  [data-slot='body'].drawer__body {
+    padding: 24px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.75 !important;
+  }
+
+  /* ── Switch / Toggle ── */
+  [data-slot='wrapper'].switch {
+    background-color: var(--border) !important;
+  }
+  [data-slot='wrapper'].switch[data-selected='true'] {
+    background-color: var(--accent) !important;
+  }
+
+  /* ── Progress / Slider ── */
+  [data-slot='track'].slider__track {
+    background-color: var(--accent-soft) !important;
+  }
+  [data-slot='filler'].slider__filler {
+    background-color: var(--accent) !important;
+  }
+  [data-slot='thumb'].slider__thumb {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  /* Section overline label */
+  .label-overline {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Display heading (editorial hero text) */
+  .heading-display {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: var(--foreground);
+  }
+
+  /* Metric/score number */
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  /* Warm thin divider */
+  .divider-warm {
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Card hover lift */
+  .card-lift {
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Insight boxes — stocktaper "strengths/concerns" style */
+  .insight-box-positive {
+    background: oklch(0.95 0.04 155 / 0.22);
+    border: 1px solid oklch(0.52 0.14 155 / 0.22);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+  }
+  .insight-box-warning {
+    background: oklch(0.97 0.04 55 / 0.22);
+    border: 1px solid oklch(0.65 0.14 55 / 0.25);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+  }
+  .insight-box-neutral {
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+  }
+
+  /* Score colour helpers */
+  .score-high {
+    color: var(--score-high);
+  }
+  .score-mid {
+    color: var(--score-mid);
+  }
+  .score-low {
+    color: var(--score-low);
   }
 }

@@ -1,4 +1,4 @@
-import { Button, Card, Chip, Label, ListBox, Select, Tabs } from '@heroui/react';
+import { Button, Chip, Label, ListBox, Select, Tabs } from '@heroui/react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -268,12 +268,24 @@ export default function AssessmentComparisonPage() {
       {/* Assessment Headers */}
       <div className="w-full px-4 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-          <Card className="border-2 border-emerald-200 shadow-md rounded-xl bg-linear-to-br from-emerald-50/50 to-white hover:shadow-lg transition-all duration-300">
-            <Card.Content className="gap-3 p-0">
-              <h2 className="text-lg font-bold text-slate-900 wrap-break-word">
+          <div
+            className="border-2 shadow-md rounded-xl hover:shadow-lg transition-all duration-300"
+            style={{
+              background: 'linear-gradient(to bottom right, var(--success-soft), var(--surface))',
+              borderColor: 'var(--success)',
+            }}
+          >
+            <div className="gap-3 p-4">
+              <h2
+                className="text-lg font-bold wrap-break-word"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'Lora, Georgia, serif',
+                }}
+              >
                 {assessment1.title}
               </h2>
-              <p className="text-xs text-slate-600 font-medium italic">
+              <p className="text-xs font-medium italic" style={{ color: 'var(--muted)' }}>
                 {formatTimestamp(assessment1.created_at)}
               </p>
               <div className="flex items-center gap-2 mt-2">
@@ -304,8 +316,8 @@ export default function AssessmentComparisonPage() {
               <Chip color="success" variant="soft" size="sm" className="w-fit mt-1">
                 <Chip.Label className="font-semibold">Assessment 1</Chip.Label>
               </Chip>
-            </Card.Content>
-          </Card>
+            </div>
+          </div>
 
           <div className="hidden md:flex items-center justify-center px-4">
             <div className="text-center">
@@ -313,19 +325,36 @@ export default function AssessmentComparisonPage() {
                 color="default"
                 variant="secondary"
                 size="lg"
-                className="text-lg font-bold px-5 py-3 bg-linear-to-r from-emerald-100 via-teal-100 to-cyan-100 text-slate-900 shadow-md"
+                className="text-lg font-bold px-5 py-3 shadow-md"
+                style={{
+                  background:
+                    'linear-gradient(to right, var(--success-soft), var(--accent-soft), var(--info-soft))',
+                  color: 'var(--foreground)',
+                }}
               >
                 <Chip.Label>VS</Chip.Label>
               </Chip>
             </div>
           </div>
 
-          <Card className="border-2 border-blue-200 shadow-md rounded-xl bg-linear-to-br from-blue-50/50 to-white hover:shadow-lg transition-all duration-300">
-            <Card.Content className="gap-3 p-0">
-              <h2 className="text-lg font-bold text-slate-900 wrap-break-word">
+          <div
+            className="border-2 shadow-md rounded-xl hover:shadow-lg transition-all duration-300"
+            style={{
+              background: 'linear-gradient(to bottom right, var(--accent-soft), var(--surface))',
+              borderColor: 'var(--accent)',
+            }}
+          >
+            <div className="gap-3 p-4">
+              <h2
+                className="text-lg font-bold wrap-break-word"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'Lora, Georgia, serif',
+                }}
+              >
                 {assessment2.title}
               </h2>
-              <p className="text-xs text-slate-600 font-medium italic">
+              <p className="text-xs font-medium italic" style={{ color: 'var(--muted)' }}>
                 {formatTimestamp(assessment2.created_at)}
               </p>
               <div className="flex items-center gap-2 mt-2">
@@ -356,8 +385,8 @@ export default function AssessmentComparisonPage() {
               <Chip color="primary" variant="soft" size="sm" className="w-fit mt-1">
                 <Chip.Label className="font-semibold">Assessment 2</Chip.Label>
               </Chip>
-            </Card.Content>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -376,7 +405,9 @@ export default function AssessmentComparisonPage() {
             className="w-2/5"
             placeholder="View Section"
           >
-            <Label className="text-xs font-semibold text-slate-600">View Section</Label>
+            <Label className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+              View Section
+            </Label>
             <Select.Trigger className="mt-2">
               <Select.Value />
               <Select.Indicator />
@@ -404,7 +435,11 @@ export default function AssessmentComparisonPage() {
         <div className="my-4 hidden md:flex justify-center">
           <Tabs.List
             aria-label="Comparison sections"
-            className="bg-linear-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-full shadow-sm *:font-semibold"
+            className="border-2 rounded-full shadow-sm font-semibold"
+            style={{
+              background: 'linear-gradient(to right, var(--success-soft), var(--accent-soft))',
+              borderColor: 'var(--border)',
+            }}
           >
             <Tabs.Tab id="overview">Overview</Tabs.Tab>
             <Tabs.Tab id="analysis">Factor Analysis</Tabs.Tab>
@@ -467,8 +502,11 @@ export default function AssessmentComparisonPage() {
       </Tabs>
 
       {/* Footer */}
-      <div className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2 border-slate-200">
-        <p className="text-xs text-slate-600 font-medium">
+      <div
+        className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2"
+        style={{ borderColor: 'var(--border)' }}
+      >
+        <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
           Last updated: {getCurrentTimestampFormatted()}
         </p>
         <div className="flex gap-2">

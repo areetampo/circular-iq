@@ -19,23 +19,54 @@ export function OverviewTab({
   return (
     <>
       {/* Input Data Comparison */}
-      <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-linear-to-br from-indigo-50/30 to-white">
-        <Card.Header className="flex items-center gap-3 pb-4">
-          <div className="p-2.5 rounded-lg bg-linear-to-br from-indigo-100 to-indigo-200">
-            <Lightbulb className="text-indigo-700" size={20} />
+      <div
+        className="border-2 shadow-md rounded-xl"
+        style={{
+          background: 'linear-gradient(to bottom right, var(--accent-soft), var(--surface))',
+          borderColor: 'var(--accent)',
+        }}
+      >
+        <div className="flex items-center gap-3 pb-4 p-6">
+          <div
+            className="p-2.5 rounded-lg"
+            style={{
+              background: 'linear-gradient(to bottom right, var(--accent-soft), var(--accent))',
+            }}
+          >
+            <Lightbulb size={20} style={{ color: 'var(--accent)' }} />
           </div>
-          <Card.Title className="font-bold text-lg text-slate-900">Input Data & Context</Card.Title>
-        </Card.Header>
-        <Card.Content className="space-y-6">
+          <h3
+            className="font-bold text-lg"
+            style={{
+              color: 'var(--foreground)',
+              fontFamily: 'Lora, Georgia, serif',
+            }}
+          >
+            Input Data & Context
+          </h3>
+        </div>
+        <div className="space-y-6 p-6 pt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Business Problem */}
-            <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-white">
-              <Card.Header className="flex items-center gap-3 pb-4">
-                <Card.Title className="font-bold text-lg text-slate-900">
+            <div
+              className="border-2 shadow-md rounded-xl"
+              style={{
+                backgroundColor: 'var(--surface)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              <div className="flex items-center gap-3 pb-4 p-6">
+                <h3
+                  className="font-bold text-lg"
+                  style={{
+                    color: 'var(--foreground)',
+                    fontFamily: 'Lora, Georgia, serif',
+                  }}
+                >
                   Business Problem
-                </Card.Title>
-              </Card.Header>
-              <Card.Content className="p-0">
+                </h3>
+              </div>
+              <div className="p-0">
                 <Table>
                   <Table.ScrollContainer>
                     <Table.Content aria-label="Business problem comparison" className="min-w-150">
@@ -46,23 +77,50 @@ export function OverviewTab({
                         <Table.Column className="w-1/2">Assessment 2</Table.Column>
                       </Table.Header>
                       <Table.Body>
-                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                        <Table.Row
+                          className="transition-colors duration-150"
+                          style={{ backgroundColor: 'var(--accent-soft)' }}
+                        >
                           <Table.Cell>
                             <div>
-                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                              <p
+                                className="text-sm font-semibold mb-2"
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
                                 {assessment1?.title || 'Assessment 1'}
                               </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
+                              <p
+                                className="text-sm leading-relaxed"
+                                style={{
+                                  color: 'var(--muted)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
                                 {assessment1?.business_problem || 'N/A'}
                               </p>
                             </div>
                           </Table.Cell>
                           <Table.Cell>
                             <div>
-                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                              <p
+                                className="text-sm font-semibold mb-2"
+                                style={{
+                                  color: 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
                                 {assessment2?.title || 'Assessment 2'}
                               </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
+                              <p
+                                className="text-sm leading-relaxed"
+                                style={{
+                                  color: 'var(--muted)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
                                 {assessment2?.business_problem || 'N/A'}
                               </p>
                             </div>
@@ -72,8 +130,8 @@ export function OverviewTab({
                     </Table.Content>
                   </Table.ScrollContainer>
                 </Table>
-              </Card.Content>
-            </Card>
+              </div>
+            </div>
 
             {/* Business Solution */}
             <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-white">
@@ -331,8 +389,8 @@ export function OverviewTab({
               </Table>
             </Card.Content>
           </Card>
-        </Card.Content>
-      </Card>
+        </div>
+      </div>
 
       {/* Key Insights */}
       {insights && insights.length > 0 && (

@@ -1,9 +1,9 @@
-import { Avatar, Dropdown, Separator } from '@heroui/react';
+import { Button, Dropdown } from '@heroui/react';
 import { HelpCircle, LogOut, Menu, Settings, User, X } from 'lucide-react';
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, SITE_NAME, SiteLogo, SiteName } from '@/components/common';
+import { SITE_NAME } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
 
@@ -11,69 +11,79 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
-  // logger.log('Auth state in Navbar:', { user, profile, isAuthenticated });
 
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
-    { id: 'compare', name: 'Compare Assessments', path: '/assessments/compare' },
+    { id: 'compare', name: 'Compare', path: '/assessments/compare' },
     { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
-    { id: 'guide', name: 'Guide', path: '/guide' },
   ];
+
+  const userDropdownItems = [
+    {
+      id: 'assessments',
+      name: 'My Assessments',
+      icon: User,
+      onClick: () => navigate('/assessments'),
+    },
+    {
+      id: 'dashboard',
+      name: 'Dashboard',
+      icon: Settings,
+      onClick: () => navigate('/dashboard'),
+    },
+    {
+      id: 'compare',
+      name: 'Compare',
+      icon: Settings,
+      onClick: () => navigate('/assessments/compare'),
+    },
+    {
+      id: 'help',
+      name: 'Help & Support',
+      icon: HelpCircle,
+      onClick: () => navigate('/guide'),
+    },
+    {
+      id: 'signout',
+      name: 'Sign Out',
+      icon: LogOut,
+      onClick: handleSignOut,
+      variant: 'danger',
+    },
+  ];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSignOut = async () => {
     try {
       await signOut?.();
       navigate('/auth');
     } catch (error) {
-      logger.error('Sign out error:', error);
+      console.error('Sign out error:', error);
     }
   };
 
-  const userDropdownItems = [
-    {
-      id: 'profile',
-      name: 'My Profile',
-      icon: User,
-      path: '/profile',
-      onClick: () => navigate('/profile'),
-    },
-    {
-      id: 'settings',
-      name: 'Settings',
-      icon: Settings,
-      path: '/settings',
-      onClick: () => navigate('/settings'),
-    },
-    {
-      id: 'help',
-      name: 'Help & Support',
-      icon: HelpCircle,
-      path: '/help',
-      onClick: () => navigate('/help'),
-    },
-  ];
-
   const isActivePath = (path) => {
     const currentPath = location.pathname;
-
-    // 1. If we are checking the 'Compare' link
     if (path === '/assessments/compare') {
       return currentPath.startsWith('/assessments/compare');
     }
-
-    // 2. If we are checking the 'My Assessments' link
     if (path === '/assessments') {
-      // Highlight if it starts with /assessments
-      // BUT NOT if it's moving into the /compare section
       return (
         currentPath.startsWith('/assessments') && !currentPath.startsWith('/assessments/compare')
       );
     }
-
-    // 3. Default for everything else (Dashboard, Guide, etc.)
     return currentPath.startsWith(path);
   };
 
@@ -88,86 +98,47 @@ export default function Navbar() {
       .toUpperCase();
   };
 
-  const getUsername = () => {
-    const username = profile?.username || user?.username || 'User';
-    return username.length > 12 ? username.slice(0, 12) + '...' : username;
-  };
-
   const handleNavigation = (item) => {
     navigate(item.path);
     setIsMenuOpen(false);
-
-    // No special-case toast here; comparison is initiated from My Assessments page
   };
-
-  // Navbar background constant
-  const NAVBAR_BG = 'bg-background/70 backdrop-blur-md backdrop-saturate-150';
 
   return (
     <nav
       className={cn(
-        'sticky top-0 z-50 border-b border-default-200',
-        NAVBAR_BG,
-        'h-16 px-3 xs:px-6 flex items-center justify-between',
+        'sticky top-0 z-50 w-full border-b transition-all duration-200',
+        isScrolled
+          ? 'bg-[oklch(0.97_0.012_80/0.95)] shadow-sm'
+          : 'bg-[oklch(0.97_0.012_80/0.82)] backdrop-blur-md',
       )}
+      style={{ borderBottomColor: 'var(--border)' }}
     >
-      {/* LEFT: Caret Toggle + SiteLogo + Name + Nav Items */}
-      <div className="flex items-center gap-3">
-        {/* Caret Toggle - Only visible on mobile */}
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden cursor-pointer text-foreground"
-          aria-label="Toggle navigation menu"
-        >
-          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-
-        <div className="grow-0">
-          <button
-            onClick={() => {
-              navigate('/');
-              setIsMenuOpen(false);
-            }}
-            className="flex items-center gap-2 cursor-pointer"
-            aria-label="Go to home"
-          >
-            <SiteLogo />
-            <SiteName className="font-bold text-xl text-foreground" />
-          </button>
-        </div>
-
-        {/* Desktop Nav Items */}
-        <div className="hidden md:flex justify-start items-start gap-2 ml-4">
-          {navigationItems.map((item) => {
-            const isActive = isActivePath(item.path);
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(item)}
-                className={cn(
-                  'text-md font-semibold transition-colors cursor-pointer px-2 py-1 rounded-lg',
-                  isActive
-                    ? 'text-black bg-default-100'
-                    : 'text-foreground/50 hover:text-slate-700/90',
-                )}
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14">
+          {/* LEFT: Logo */}
+          <div className="flex items-center">
+            <button
+              onClick={() => {
+                navigate('/');
+                setIsMenuOpen(false);
+              }}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              aria-label="Go to home"
+            >
+              <div className="w-6 h-6 rounded-full bg-[var(--accent)] flex items-center justify-center">
+                <span className="text-white text-xs font-bold">⟳</span>
+              </div>
+              <span
+                className="font-serif text-[16px] font-semibold"
+                style={{ fontFamily: 'Lora, Georgia, serif', color: 'var(--foreground)' }}
               >
-                {item.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                {SITE_NAME}
+              </span>
+            </button>
+          </div>
 
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div
-          className={cn(
-            'md:hidden absolute top-16 left-0 right-0',
-            NAVBAR_BG,
-            'border-b border-default-200 pt-0 pb-4 px-4',
-          )}
-        >
-          <div className="flex flex-col">
+          {/* CENTER: Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
             {navigationItems.map((item) => {
               const isActive = isActivePath(item.path);
               return (
@@ -175,93 +146,186 @@ export default function Navbar() {
                   key={item.id}
                   onClick={() => handleNavigation(item)}
                   className={cn(
-                    'w-full px-4 py-3 text-left text-xl font-semibold transition-colors rounded-lg cursor-pointer uppercase',
+                    'text-sm font-medium transition-colors duration-150',
                     isActive
-                      ? 'text-black bg-default-100'
-                      : 'text-foreground/50 hover:text-slate-700/90 hover:bg-default-50',
+                      ? 'text-[var(--foreground)]'
+                      : 'text-[var(--muted)] hover:text-[var(--foreground)]',
                   )}
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                 >
                   {item.name}
                 </button>
               );
             })}
           </div>
-        </div>
-      )}
 
-      {/* RIGHT: Profile Dropdown */}
-      <div>
-        {isAuthenticated ? (
-          <Dropdown isOpen={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-            <Dropdown.Trigger
-              className={cn(
-                'flex items-center gap-2.5 bg-transparent border-0 focus:outline-none cursor-pointer transition-all duration-200',
-              )}
-              onClick={() => setIsDropdownOpen((prev) => !prev)}
-            >
-              <Avatar color="success" size="md" variant="soft">
-                <Avatar.Image src={profile?.avatar_url || user?.avatar_url} alt="User avatar" />
-                <Avatar.Fallback className="text-lg font-semibold">
-                  {getUserInitials()}
-                </Avatar.Fallback>
-              </Avatar>
-              <span className="hidden xxs:inline text-lg font-medium text-foreground">
-                {getUsername()}
-              </span>
-            </Dropdown.Trigger>
-            <Dropdown.Popover>
-              <Dropdown.Menu aria-label="User menu">
-                {/* User Info Header */}
-                <Dropdown.Item className="h-auto p-3 cursor-default">
-                  <div className="flex items-center gap-3">
-                    <Avatar color="success" size="md" variant="soft">
-                      <Avatar.Image
-                        src={profile?.avatar_url || user?.avatar_url}
-                        alt="User avatar"
-                      />
-                      <Avatar.Fallback className="text-lg font-semibold">
+          {/* RIGHT: Auth state */}
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <>
+                {/* Desktop User Dropdown */}
+                <div className="hidden md:block">
+                  <Dropdown isOpen={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                    <Dropdown.Trigger
+                      className="flex items-center gap-2 cursor-pointer transition-colors duration-150"
+                      onClick={() => setIsDropdownOpen((prev) => !prev)}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                        style={{
+                          backgroundColor: 'var(--accent-soft)',
+                          color: 'var(--accent-soft-fg)',
+                          fontFamily: 'Lora, Georgia, serif',
+                        }}
+                      >
                         {getUserInitials()}
-                      </Avatar.Fallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {profile?.username || user?.username || 'User'}
-                      </p>
-                      <p className="text-xs text-foreground truncate">
-                        {profile?.username || user?.username || 'User'}@{SITE_NAME}
-                      </p>
-                    </div>
-                  </div>
-                </Dropdown.Item>
-                <Separator className="my-0" />
-                {/* Menu Items */}
-                {userDropdownItems.map((item) => (
-                  <Dropdown.Item key={item.id} textValue={item.name} onClick={item.onClick}>
-                    <div className="flex items-center gap-3">
-                      <item.icon className="text-default-500" size={16} />
-                      <span className="font-medium text-foreground">{item.name}</span>
-                    </div>
-                  </Dropdown.Item>
-                ))}
-                <Separator className="my-0" />
-                {/* Sign Out */}
-                <Dropdown.Item textValue="Sign Out" onClick={handleSignOut} variant="danger">
-                  <div className="flex items-center gap-3">
-                    <LogOut size={16} />
-                    <span className="font-semibold">Sign Out</span>
-                  </div>
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
-        ) : (
-          <Button onClick={() => navigate('/auth')} variant="success" className="cursor-pointer">
-            Sign In
-          </Button>
+                      </div>
+                    </Dropdown.Trigger>
+                    <Dropdown.Popover>
+                      <Dropdown.Menu
+                        aria-label="User menu"
+                        classNames={{
+                          base: 'min-w-[200px]',
+                          content: 'p-1',
+                        }}
+                      >
+                        {userDropdownItems.map((item) => (
+                          <Dropdown.Item
+                            key={item.id}
+                            textValue={item.name}
+                            onClick={item.onClick}
+                            variant={item.variant}
+                            classNames={{
+                              base: 'gap-3 px-3 py-2',
+                              title: 'text-sm font-medium',
+                              description: 'text-xs',
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <item.icon
+                                size={16}
+                                className={
+                                  item.variant === 'danger'
+                                    ? 'text-[var(--danger)]'
+                                    : 'text-[var(--muted)]'
+                                }
+                              />
+                              <span
+                                className="font-medium"
+                                style={{
+                                  color:
+                                    item.variant === 'danger'
+                                      ? 'var(--danger)'
+                                      : 'var(--foreground)',
+                                  fontFamily: 'Inter, system-ui, sans-serif',
+                                }}
+                              >
+                                {item.name}
+                              </span>
+                            </div>
+                          </Dropdown.Item>
+                        ))}
+                      </Dropdown.Menu>
+                    </Dropdown.Popover>
+                  </Dropdown>
+                </div>
+
+                {/* Mobile Menu Toggle */}
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="md:hidden p-2 hover:bg-[var(--accent-soft)] rounded-md transition-colors"
+                  aria-label="Toggle navigation menu"
+                >
+                  {isMenuOpen ? (
+                    <X className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                  ) : (
+                    <Menu className="w-5 h-5" style={{ color: 'var(--foreground)' }} />
+                  )}
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                >
+                  Sign In
+                </button>
+                <Button
+                  onClick={() => navigate('/auth')}
+                  size="sm"
+                  className="text-xs font-medium"
+                  style={{
+                    backgroundColor: 'var(--accent)',
+                    color: 'var(--accent-foreground)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
+                >
+                  Get Started
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div
+            className="md:hidden border-t"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="px-4 py-3 space-y-1">
+              {navigationItems.map((item) => {
+                const isActive = isActivePath(item.path);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigation(item)}
+                    className={cn(
+                      'w-full text-left px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150',
+                      isActive
+                        ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-fg)]'
+                        : 'text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-fg)]',
+                    )}
+                    style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                  >
+                    {item.name}
+                  </button>
+                );
+              })}
+
+              {isAuthenticated && (
+                <>
+                  <div className="my-2" style={{ borderTop: '1px solid var(--border)' }} />
+                  {userDropdownItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        item.onClick();
+                        setIsMenuOpen(false);
+                      }}
+                      className={cn(
+                        'w-full text-left px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 flex items-center gap-3',
+                        item.variant === 'danger'
+                          ? 'text-[var(--danger)] hover:bg-[var(--danger-soft)]'
+                          : 'text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-fg)]',
+                      )}
+                      style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                    >
+                      <item.icon size={16} />
+                      {item.name}
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </nav>
   );
 }
-
-Navbar.propTypes = {};

@@ -1,4 +1,4 @@
-import { Accordion, Card, Label, TextArea as Textarea, toast, Tooltip } from '@heroui/react';
+import { Accordion, Label, TextArea as Textarea, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import {
@@ -7,7 +7,6 @@ import {
   Bot,
   BriefcaseBusiness,
   ChevronDown,
-  CircleCheck,
   ClipboardList,
   LayersPlus,
   NotebookPen,
@@ -34,7 +33,6 @@ import BusinessContextContainer from '@/pages/LandingPage/components/BusinessCon
 import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
 import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
-import { cn } from '@/utils/cn';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -650,27 +648,27 @@ export default function LandingPage() {
       title: 'AI-Powered',
       desc: 'Machine learning analysis grounded in circular economy principles.',
       Icon: Bot,
-      bg: 'bg-cyan-50',
-      borderClass: 'border-cyan-200/60',
-      iconColor: 'text-sky-600',
+      bg: 'var(--accent-soft)',
+      borderClass: 'var(--border)',
+      iconColor: 'var(--accent)',
     },
     {
       key: 'multi-dimensional',
       title: 'Multi-Dimensional',
       desc: 'Evaluates across key domains for clarity and depth.',
       Icon: LayersPlus,
-      bg: 'bg-emerald-50',
-      borderClass: 'border-emerald-200/60',
-      iconColor: 'text-emerald-600',
+      bg: 'var(--success-soft)',
+      borderClass: 'var(--border)',
+      iconColor: 'var(--success)',
     },
     {
       key: 'actionable',
       title: 'Actionable',
       desc: 'Clear recommendations you can apply immediately to improve outcomes.',
       Icon: Pickaxe,
-      bg: 'bg-amber-50',
-      borderClass: 'border-amber-200/60',
-      iconColor: 'text-amber-600',
+      bg: 'var(--warning-soft)',
+      borderClass: 'var(--border)',
+      iconColor: 'var(--warning)',
     },
   ];
 
@@ -708,31 +706,37 @@ export default function LandingPage() {
                 key={card.key}
                 role="article"
                 aria-label={card.title}
-                className={cn(
-                  'rounded-2xl p-1 group transform-gpu transition-transform duration-200 hover:-translate-y-1 shadow-sm',
-                  card.bg,
-                  card.borderClass,
-                  'ring-1 ring-white/60',
-                )}
+                className="rounded-lg border p-6 card-lift group"
+                style={{
+                  backgroundColor: card.bg,
+                  borderColor: card.borderClass,
+                }}
               >
-                <div className="p-6">
-                  <div className="flex flex-col items-center justify-center">
-                    <Icon
-                      className={cn(
-                        card.iconColor,
-                        'h-8 w-8 shrink-0 transition-[scale,rotate] duration-300 ease-out',
-                        'group-hover:scale-[1.2] group-hover:-rotate-10 group-hover:drop-shadow-md',
-                      )}
-                      strokeWidth={1.75}
-                    />
+                <div className="flex flex-col items-center justify-center text-center">
+                  <Icon
+                    className="h-8 w-8 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110"
+                    style={{ color: card.iconColor }}
+                    strokeWidth={1.75}
+                  />
 
-                    <h3 className="font-semibold text-slate-900 text-lg text-center mt-4">
-                      {card.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-center text-slate-700 leading-relaxed max-w-xs">
-                      {card.desc}
-                    </p>
-                  </div>
+                  <h3
+                    className="font-semibold text-lg mt-4"
+                    style={{
+                      color: 'var(--foreground)',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                    }}
+                  >
+                    {card.title}
+                  </h3>
+                  <p
+                    className="mt-2 text-sm leading-relaxed"
+                    style={{
+                      color: 'var(--muted)',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                    }}
+                  >
+                    {card.desc}
+                  </p>
                 </div>
               </div>
             );
@@ -745,34 +749,56 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          <Card ref={businessProblemSectionRef} className="transition-shadow border shadow-md">
-            <div className="pb-8 px-2 sm:px-6 pt-6">
-              <h2 className="inline-flex items-center gap-3 text-2xl font-bold text-teal-700">
+          <div
+            ref={businessProblemSectionRef}
+            className="border rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-6 sm:p-8">
+              <h2
+                className="text-2xl font-semibold mb-2"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'Lora, Georgia, serif',
+                }}
+              >
                 Evaluate Your Circular Economy Business
-                <CircleCheck />
               </h2>
-              <p className="text-gray-600 mt-2">
+              <p
+                className="text-sm mb-6"
+                style={{
+                  color: 'var(--muted)',
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
+              >
                 Describe your business idea using the same structure as real circular economy
                 projects: what problem you solve, and how your solution addresses it.
               </p>
             </div>
-            <div className="space-y-6 px-0 xxs:px-2 sm:px-6 pb-6">
+            <div className="space-y-6 px-6 sm:px-8 pb-8">
               {/* Problem Input */}
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                  <div className="ml-2 space-y-1">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-start gap-2">
-                      <Label htmlFor="business-problem" className="text-base font-bold">
+                      <Label
+                        htmlFor="business-problem"
+                        className="text-base font-semibold"
+                        style={{ color: 'var(--foreground)' }}
+                      >
                         Business Problem
                       </Label>
                       <BadgeInfo
-                        className="info-icon"
+                        className="info-icon cursor-pointer"
                         size={22}
-                        color="green"
+                        style={{ color: 'var(--accent)' }}
                         onClick={openBusinessProblemInfoDrawer}
                       />
                     </div>
-                    <p className="text-sm text-gray-600 font-semibold">
+                    <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
                       What environmental or circular economy challenge does your business address?
                     </p>
                   </div>
@@ -785,7 +811,13 @@ export default function LandingPage() {
                     onBlur: () => flushAutosave(),
                   })}
                   disabled={loading}
-                  className="w-full border border-gray-300 placeholder:opacity-60 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 dark:border-gray-600 dark:focus:ring-green-900/40 rounded-lg transition-all duration-200 font-semibold"
+                  className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
+                  style={{
+                    borderColor: 'var(--field-border)',
+                    backgroundColor: 'var(--field-bg)',
+                    color: 'var(--foreground)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
                 />
                 <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
               </div>
@@ -793,19 +825,23 @@ export default function LandingPage() {
               {/* Solution Input */}
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
-                  <div className="ml-2 space-y-1">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-start gap-3">
-                      <Label htmlFor="business-solution" className="text-base font-bold">
+                      <Label
+                        htmlFor="business-solution"
+                        className="text-base font-semibold"
+                        style={{ color: 'var(--foreground)' }}
+                      >
                         Business Solution
                       </Label>
                       <BadgeInfo
-                        className="info-icon"
+                        className="info-icon cursor-pointer"
                         size={22}
-                        color="green"
+                        style={{ color: 'var(--accent)' }}
                         onClick={openBusinessSolutionInfoDrawer}
                       />
                     </div>
-                    <p className="text-sm text-gray-600 font-semibold">
+                    <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
                       How does your business solve this problem? Include materials, processes, and
                       circularity strategy.
                     </p>
@@ -819,13 +855,25 @@ export default function LandingPage() {
                     onBlur: () => flushAutosave(),
                   })}
                   disabled={loading}
-                  className="w-full border border-gray-300 placeholder:opacity-60 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 dark:border-gray-600 dark:focus:ring-green-900/40 rounded-lg transition-all duration-200 font-semibold"
+                  className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
+                  style={{
+                    borderColor: 'var(--field-border)',
+                    backgroundColor: 'var(--field-bg)',
+                    color: 'var(--foreground)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                  }}
                 />
                 <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
               </div>
 
               {/* Business Context Section */}
-              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
+              <div
+                className="w-full rounded-lg border overflow-hidden"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <Accordion
                   className="w-full"
                   variant="default"
@@ -834,37 +882,43 @@ export default function LandingPage() {
                 >
                   <Accordion.Item id="business-context-heading">
                     <Accordion.Heading>
-                      <Accordion.Trigger className="hover:bg-slate-50/80 group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                      <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
                         <BriefcaseBusiness
-                          className={cn(
-                            'h-6 w-6 shrink-0 text-rose-800',
-                            'transition-[scale,rotate] duration-300 ease-out',
-                            'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-10 group-hover/parent:drop-shadow-md mr-1',
-                          )}
+                          className="h-6 w-6 shrink-0 transition-transform duration-300 ease-out group-hover/parent:scale-110 mr-1"
+                          style={{ color: 'var(--accent)' }}
                           strokeWidth={1.75}
                         />
 
                         <div className="flex flex-col gap-1 text-left">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg leading-6 text-slate-800">
+                            <span
+                              className="font-semibold text-lg leading-6"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
                               Business Context
                             </span>
                             <BadgeInfo
-                              className="info-icon"
+                              className="info-icon cursor-pointer"
                               size={22}
-                              color="brown"
+                              style={{ color: 'var(--accent)' }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openBusinessContextHeadingInfoDrawer();
                               }}
                             />
                           </div>
-                          <span className="text-xs font-normal leading-4 text-slate-400">
+                          <span
+                            className="text-xs font-normal leading-4"
+                            style={{ color: 'var(--muted)' }}
+                          >
                             Optional — improves analysis quality
                           </span>
                         </div>
 
-                        <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                        <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
                           <ChevronDown />
                         </Accordion.Indicator>
                       </Accordion.Trigger>
@@ -880,7 +934,13 @@ export default function LandingPage() {
               </div>
 
               {/* EvaluationParameters Parameters Section */}
-              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden">
+              <div
+                className="w-full rounded-lg border overflow-hidden"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <Accordion
                   className="w-full"
                   variant="default"
@@ -890,37 +950,43 @@ export default function LandingPage() {
                 >
                   <Accordion.Item id="evaluation-parameters-heading">
                     <Accordion.Heading>
-                      <Accordion.Trigger className="hover:bg-slate-50/80 group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                      <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
                         <SlidersHorizontal
-                          className={cn(
-                            'h-6 w-6 shrink-0 text-emerald-500',
-                            'transition-[scale,rotate] duration-300 ease-out',
-                            'group-hover/parent:scale-[1.2] group-hover/parent:-rotate-10 group-hover/parent:drop-shadow-md mr-1',
-                          )}
+                          className="h-6 w-6 shrink-0 transition-transform duration-300 ease-out group-hover/parent:scale-110 mr-1"
+                          style={{ color: 'var(--success)' }}
                           strokeWidth={1.75}
                         />
 
                         <div className="flex flex-col gap-1 text-left">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg leading-6 text-slate-800">
+                            <span
+                              className="font-semibold text-lg leading-6"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
                               Evaluation Parameters
                             </span>
                             <BadgeInfo
-                              className="info-icon"
+                              className="info-icon cursor-pointer"
                               size={22}
-                              color="green"
+                              style={{ color: 'var(--accent)' }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openEvaluationParametersHeadingInfoDrawer();
                               }}
                             />
                           </div>
-                          <span className="text-sm font-normal leading-4 text-slate-400">
+                          <span
+                            className="text-sm font-normal leading-4"
+                            style={{ color: 'var(--muted)' }}
+                          >
                             Score each dimension of circular value
                           </span>
                         </div>
 
-                        <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                        <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
                           <ChevronDown />
                         </Accordion.Indicator>
                       </Accordion.Trigger>
@@ -940,12 +1006,27 @@ export default function LandingPage() {
               </div>
 
               {error && (
-                <div className="p-1 sm:p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div
+                  className="p-3 sm:p-4 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--danger-soft)',
+                    borderColor: 'var(--danger-border)',
+                  }}
+                >
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="text-red-600" strokeWidth={2.5} size={16} />
-                    <strong className="text-red-700">Validation Error:</strong>
+                    <AlertTriangle
+                      className="flex-shrink-0"
+                      style={{ color: 'var(--danger)' }}
+                      strokeWidth={2.5}
+                      size={16}
+                    />
+                    <strong className="font-semibold" style={{ color: 'var(--danger)' }}>
+                      Validation Error:
+                    </strong>
                   </div>
-                  <p className="text-red-600 text-sm font-semibold">{error}, please try again.</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--danger)' }}>
+                    {error}, please try again.
+                  </p>
                 </div>
               )}
 
@@ -957,9 +1038,16 @@ export default function LandingPage() {
                       size="lg"
                       onPress={handleSubmit(handleFormSubmit)}
                       isDisabled={loading || !isValid}
-                      variant="teal"
                       fullWidth
-                      className="h-12"
+                      className="h-12 text-sm font-medium"
+                      style={{
+                        backgroundColor: loading || !isValid ? 'var(--muted)' : 'var(--accent)',
+                        color:
+                          loading || !isValid
+                            ? 'var(--muted-foreground)'
+                            : 'var(--accent-foreground)',
+                        fontFamily: 'Inter, system-ui, sans-serif',
+                      }}
                     >
                       {loading ? (
                         <LoaderIcon isButton={true} color="#ffffff" />
@@ -978,7 +1066,13 @@ export default function LandingPage() {
               </div>
 
               {/* Test Case Selector */}
-              <div className="w-full rounded-2xl bg-white shadow-sm overflow-hidden group/tc">
+              <div
+                className="w-full rounded-lg border overflow-hidden group/tc"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <Accordion
                   className="w-full"
                   variant="default"
@@ -986,37 +1080,43 @@ export default function LandingPage() {
                 >
                   <Accordion.Item id="test-cases" defaultExpanded={true}>
                     <Accordion.Heading>
-                      <Accordion.Trigger className="hover:bg-slate-50/80 flex items-center gap-3 px-5 py-3 transition-colors duration-150">
+                      <Accordion.Trigger className="group/tc flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
                         <ClipboardList
-                          className={cn(
-                            'h-6 w-6 shrink-0 text-teal-500',
-                            'transition-[scale,rotate] duration-300 ease-out',
-                            'group-hover/tc:scale-[1.2] group-hover/tc:-rotate-10 group-hover/tc:drop-shadow-md mr-1',
-                          )}
+                          className="h-6 w-6 shrink-0 transition-transform duration-300 ease-out group-hover/tc:scale-110 mr-1"
+                          style={{ color: 'var(--success)' }}
                           strokeWidth={1.75}
                         />
 
                         <div className="flex flex-col gap-1 text-left">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-[16px] leading-6 text-slate-800">
+                            <span
+                              className="font-semibold text-base leading-6"
+                              style={{
+                                color: 'var(--foreground)',
+                                fontFamily: 'Inter, system-ui, sans-serif',
+                              }}
+                            >
                               Sample Test Cases
                             </span>
                             <BadgeInfo
-                              className="info-icon"
+                              className="info-icon cursor-pointer"
                               size={22}
-                              color="green"
+                              style={{ color: 'var(--accent)' }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openSampleTestCasesHeadingInfoDrawer();
                               }}
                             />
                           </div>
-                          <span className="text-xs font-normal leading-4 text-slate-400 italic">
+                          <span
+                            className="text-xs font-normal leading-4 italic"
+                            style={{ color: 'var(--muted)' }}
+                          >
                             Auto-fill the form with curated examples for quick testing
                           </span>
                         </div>
 
-                        <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                        <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
                           <ChevronDown />
                         </Accordion.Indicator>
                       </Accordion.Trigger>
@@ -1035,7 +1135,7 @@ export default function LandingPage() {
                 </Accordion>
               </div>
             </div>
-          </Card>
+          </div>
         </motion.div>
       </div>
     </FormProvider>
