@@ -314,7 +314,6 @@ export default function DashboardPage() {
             className="text-xl font-bold flex items-center gap-2"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             <Globe size={20} style={{ color: 'var(--success)' }} strokeWidth={2.5} />
@@ -324,7 +323,6 @@ export default function DashboardPage() {
             className="text-xs mt-0.5"
             style={{
               color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Live insights from all circular economy assessments worldwide
@@ -334,21 +332,11 @@ export default function DashboardPage() {
           type="button"
           onClick={refetchGlobal}
           disabled={globalLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--foreground)]"
           style={{
             borderColor: 'var(--border)',
             backgroundColor: 'var(--surface)',
             color: 'var(--muted)',
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.borderColor = 'var(--accent)';
-            e.target.style.backgroundColor = 'var(--accent-soft)';
-            e.target.style.color = 'var(--foreground)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.borderColor = 'var(--border)';
-            e.target.style.backgroundColor = 'var(--surface)';
-            e.target.style.color = 'var(--muted)';
           }}
         >
           <RefreshCw size={12} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
@@ -790,16 +778,9 @@ export default function DashboardPage() {
                       industry: industryFilter,
                     })
                   }
-                  className="font-medium flex items-center gap-1"
+                  className="font-medium flex items-center gap-1 hover:text-[var(--foreground)]"
                   style={{
                     color: 'var(--accent)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = 'var(--foreground)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color = 'var(--accent)';
                   }}
                 >
                   Explore all
@@ -895,7 +876,6 @@ export default function DashboardPage() {
               className="font-semibold mb-0.5"
               style={{
                 color: 'var(--foreground)',
-                fontFamily: 'Lora, Georgia, serif',
               }}
             >
               Track Your Progress
@@ -904,7 +884,6 @@ export default function DashboardPage() {
               className="text-xs"
               style={{
                 color: 'var(--muted)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               Sign in to save assessments, track your evaluation history, and compare with global
@@ -914,16 +893,10 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/auth')}
-            className="px-4 py-2 text-xs font-medium rounded-lg transition-colors shrink-0"
+            className="px-4 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 hover:bg-[var(--foreground)]"
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--surface)',
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'var(--foreground)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'var(--accent)';
             }}
           >
             Sign In

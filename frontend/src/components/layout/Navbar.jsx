@@ -130,7 +130,7 @@ export default function Navbar() {
               </div>
               <span
                 className="font-serif text-[16px] font-semibold"
-                style={{ fontFamily: 'Lora, Georgia, serif', color: 'var(--foreground)' }}
+                style={{ color: 'var(--foreground)' }}
               >
                 {SITE_NAME}
               </span>
@@ -151,7 +151,6 @@ export default function Navbar() {
                       ? 'text-[var(--foreground)]'
                       : 'text-[var(--muted)] hover:text-[var(--foreground)]',
                   )}
-                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                 >
                   {item.name}
                 </button>
@@ -175,7 +174,6 @@ export default function Navbar() {
                         style={{
                           backgroundColor: 'var(--accent-soft)',
                           color: 'var(--accent-soft-fg)',
-                          fontFamily: 'Lora, Georgia, serif',
                         }}
                       >
                         {getUserInitials()}
@@ -217,7 +215,6 @@ export default function Navbar() {
                                     item.variant === 'danger'
                                       ? 'var(--danger)'
                                       : 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
                                 }}
                               >
                                 {item.name}
@@ -248,7 +245,6 @@ export default function Navbar() {
                 <button
                   onClick={() => navigate('/auth')}
                   className="text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150"
-                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                 >
                   Sign In
                 </button>
@@ -259,7 +255,6 @@ export default function Navbar() {
                   style={{
                     backgroundColor: 'var(--accent)',
                     color: 'var(--accent-foreground)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   Get Started
@@ -291,7 +286,6 @@ export default function Navbar() {
                         ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-fg)]'
                         : 'text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-fg)]',
                     )}
-                    style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                   >
                     {item.name}
                   </button>
@@ -314,7 +308,6 @@ export default function Navbar() {
                           ? 'text-[var(--danger)] hover:bg-[var(--danger-soft)]'
                           : 'text-[var(--muted)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-fg)]',
                       )}
-                      style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                     >
                       <item.icon size={16} />
                       {item.name}

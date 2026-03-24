@@ -46,7 +46,7 @@ describe('Switch (wrapper)', () => {
     // make assertions against the serialized markup instead of querying
     expect(wrapper.outerHTML).toContain('lucide-lock');
     expect(wrapper.outerHTML).toContain('width="10"');
-    expect(wrapper.outerHTML).toContain('text-slate-500');
+    expect(wrapper.outerHTML).toContain('text-[var(--muted)]');
 
     // second render (mount new element), pick the new node
     render(
@@ -61,7 +61,7 @@ describe('Switch (wrapper)', () => {
     const all = screen.getAllByTestId('variant-switch');
     const wrapperOn = all[all.length - 1];
     logger.log('variant-switch innerHTML (on):', wrapperOn.innerHTML);
-    expect(wrapperOn.outerHTML).toContain('text-emerald-600');
+    expect(wrapperOn.outerHTML).toContain('text-[var(--success-soft-fg)]');
   });
 
   it('computes different icon sizes for md and lg', () => {

@@ -100,7 +100,6 @@ export default function ComparePage() {
           className="text-3xl font-bold mb-2"
           style={{
             color: 'var(--foreground)',
-            fontFamily: 'Lora, Georgia, serif',
           }}
         >
           Compare Assessments
@@ -109,7 +108,6 @@ export default function ComparePage() {
           className="text-sm"
           style={{
             color: 'var(--muted)',
-            fontFamily: 'Inter, system-ui, sans-serif',
           }}
         >
           Enter the public IDs of two assessments you want to compare side by side.
@@ -125,7 +123,6 @@ export default function ComparePage() {
               className="text-sm font-semibold mb-2 block"
               style={{
                 color: 'var(--foreground)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               First Assessment ID
@@ -152,7 +149,6 @@ export default function ComparePage() {
               className="text-sm font-semibold mb-2 block"
               style={{
                 color: 'var(--foreground)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               Second Assessment ID
@@ -187,7 +183,6 @@ export default function ComparePage() {
               className="text-sm"
               style={{
                 color: 'var(--danger)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               {error}
@@ -223,7 +218,6 @@ export default function ComparePage() {
             className="text-sm"
             style={{
               color: 'var(--info)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             <p className="font-semibold mb-2">About Comparison</p>

@@ -10,6 +10,7 @@ import Button from '@/components/common/Button';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
+import { logger } from '@/utils/logger';
 
 export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,17 +31,20 @@ export function SignupForm({ onSwitchToLogin }) {
     setIsLoading(true);
 
     try {
+      // Attempt to create new user account
       const { data: signupData, error: signupError } = await signUpWithUsername(
         data.username,
         data.password,
       );
 
       if (signupError) {
-        console.error('[SignupForm] sign up error:', {
+        // Log signup error for debugging
+        logger.error('[SignupForm] sign up error:', {
           status: signupError.status,
         });
 
         const msg = signupError.message ?? '';
+        // Handle specific error cases with user-friendly messages
         if (
           msg.includes('already registered') ||
           msg.includes('already exists') ||
@@ -55,6 +59,7 @@ export function SignupForm({ onSwitchToLogin }) {
           return;
         }
 
+        // Handle other signup errors with generic message
         toast.danger('Sign up failed', {
           description: 'Unable to create account. Please try again.',
           timeout: 3000,
@@ -62,18 +67,20 @@ export function SignupForm({ onSwitchToLogin }) {
         return;
       }
 
+      // Verify that signup created proper user data
       if (!signupData?.user?.id) {
         throw new Error('Sign up succeeded but no user data was returned.');
       }
 
-      // Auto-login immediately after successful signup
+      // Auto-login immediately after successful signup for better UX
       const { data: loginData, error: loginError } = await signInWithUsername(
         data.username,
         data.password,
       );
 
       if (loginError) {
-        console.error('[SignupForm] auto-login failed:', { status: loginError.status });
+        // Log auto-login failure for debugging
+        logger.error('[SignupForm] auto-login failed:', { status: loginError.status });
         toast.danger('Sign up failed', {
           description: 'Unable to create account. Please try again.',
           timeout: 3000,
@@ -85,6 +92,7 @@ export function SignupForm({ onSwitchToLogin }) {
         throw new Error('Auto-login succeeded but no session was created.');
       }
 
+      // Show success message to user
       toast.success('Account created!', {
         description: `Welcome to ${SITE_NAME}.`,
         timeout: 3000,
@@ -92,16 +100,19 @@ export function SignupForm({ onSwitchToLogin }) {
 
       reset();
 
+      // Redirect user to their intended destination or default to home
       const returnTo = location.state?.from || '/';
       navigate(returnTo, { replace: true });
     } catch (err) {
-      console.error('[SignupForm] Unexpected error during sign up:', err?.message ?? err);
+      // Handle unexpected errors during signup process
+      logger.error('[SignupForm] Unexpected error during sign up:', err?.message ?? err);
 
       toast.danger('Sign up failed', {
         description: 'Unable to create account. Please try again.',
         timeout: 3000,
       });
     } finally {
+      // Ensure loading state is reset regardless of outcome
       setIsLoading(false);
     }
   };
@@ -120,7 +131,6 @@ export function SignupForm({ onSwitchToLogin }) {
           <h1
             className="text-2xl font-semibold"
             style={{
-              fontFamily: 'Lora, Georgia, serif',
               color: 'var(--foreground)',
             }}
           >
@@ -235,7 +245,6 @@ export function SignupForm({ onSwitchToLogin }) {
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-foreground)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             <span className="flex items-center justify-center gap-2">
@@ -253,7 +262,6 @@ export function SignupForm({ onSwitchToLogin }) {
             className="font-medium transition-colors hover:opacity-80 cursor-pointer"
             style={{
               color: 'var(--accent)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Sign in

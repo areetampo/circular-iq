@@ -488,6 +488,8 @@
   --warning-soft: oklch(0.96 0.05 68 / 0.3);
   --danger: oklch(0.55 0.18 25);
   --danger-soft: oklch(0.96 0.04 25 / 0.3);
+  --info: oklch(0.58 0.13 240); /* calm blue */
+  --info-soft: oklch(0.95 0.04 240 / 0.25);
 
   /* ── Scoring colours (for score badges/values) ── */
   --score-high: oklch(0.52 0.14 155); /* green ≥ 75 */
@@ -518,6 +520,7 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-info: var(--info);
   --font-serif: 'Lora', Georgia, serif;
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
@@ -908,5 +911,20 @@
   }
   .score-low {
     color: var(--score-low);
+  }
+}
+
+/* Additional component rules */
+@layer components {
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px oklch(0.68 0.08 68 / 0.14) !important;
+  }
+}
+
+@layer components {
+  nav[data-scrolled='true'] {
+    box-shadow: 0 1px 12px oklch(0.18 0.015 60 / 0.06);
   }
 }

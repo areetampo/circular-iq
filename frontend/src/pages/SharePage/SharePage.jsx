@@ -72,7 +72,6 @@ export default function SharePage() {
         className="text-2xl font-bold mb-4"
         style={{
           color: 'var(--foreground)',
-          fontFamily: 'Lora, Georgia, serif',
         }}
       >
         Open a Shared Assessment
@@ -81,7 +80,6 @@ export default function SharePage() {
         className="text-sm mb-6"
         style={{
           color: 'var(--muted)',
-          fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
         Enter the public ID for the assessment you want to view.
@@ -94,7 +92,6 @@ export default function SharePage() {
             className="text-sm font-semibold"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Public ID
@@ -112,25 +109,15 @@ export default function SharePage() {
         {error && (
           <div className="flex items-center gap-2" style={{ color: 'var(--danger)' }}>
             <Frown size={20} />
-            <span style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>{error}</span>
+            <span>{error}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2">
-          <Button
-            type="submit"
-            variant="teal"
-            isLoading={loading}
-            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
-          >
+          <Button type="submit" variant="teal" isLoading={loading}>
             Open
           </Button>
-          <Button
-            type="button"
-            variant="neutral"
-            onPress={() => setPublicId('')}
-            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
-          >
+          <Button type="button" variant="neutral" onPress={() => setPublicId('')}>
             Clear
           </Button>
         </div>

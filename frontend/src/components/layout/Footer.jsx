@@ -4,11 +4,10 @@ export default function Footer() {
       className="w-full border-t py-6 text-center"
       style={{
         borderTopColor: 'var(--border)',
-        fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
       <p className="text-xs" style={{ color: 'var(--muted)' }}>
-        © 2026 CE Assessor · AI-powered circular economy evaluation
+        2026 CE Assessor · AI-powered circular economy evaluation
       </p>
     </div>
   );

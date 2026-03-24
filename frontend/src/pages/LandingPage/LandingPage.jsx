@@ -675,6 +675,25 @@ export default function LandingPage() {
   return (
     <FormProvider {...methods}>
       <div ref={formContainerRef} className="w-full max-w-4xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1
+            className="text-4xl md:text-5xl font-bold mb-4"
+            style={{ color: 'var(--foreground)' }}
+          >
+            Where circular economy
+            <br />
+            meets <em style={{ fontStyle: 'italic' }}>evidence.</em>
+          </h1>
+          <p
+            className="text-lg md:text-xl max-w-3xl mx-auto mb-8"
+            style={{ color: 'var(--muted)' }}
+          >
+            AI-powered evaluation grounded in 40,000+ real circular economy case studies and
+            projects.
+          </p>
+        </div>
+
         {/* Assessment Methodology & Evaluation Criteria Buttons */}
         <motion.div
           className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row"
@@ -723,7 +742,6 @@ export default function LandingPage() {
                     className="font-semibold text-lg mt-4"
                     style={{
                       color: 'var(--foreground)',
-                      fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
                     {card.title}
@@ -732,7 +750,6 @@ export default function LandingPage() {
                     className="mt-2 text-sm leading-relaxed"
                     style={{
                       color: 'var(--muted)',
-                      fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
                     {card.desc}
@@ -762,7 +779,6 @@ export default function LandingPage() {
                 className="text-2xl font-semibold mb-2"
                 style={{
                   color: 'var(--foreground)',
-                  fontFamily: 'Lora, Georgia, serif',
                 }}
               >
                 Evaluate Your Circular Economy Business
@@ -771,7 +787,6 @@ export default function LandingPage() {
                 className="text-sm mb-6"
                 style={{
                   color: 'var(--muted)',
-                  fontFamily: 'Inter, system-ui, sans-serif',
                 }}
               >
                 Describe your business idea using the same structure as real circular economy
@@ -779,91 +794,92 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="space-y-6 px-6 sm:px-8 pb-8">
-              {/* Problem Input */}
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-start gap-2">
-                      <Label
-                        htmlFor="business-problem"
-                        className="text-base font-semibold"
-                        style={{ color: 'var(--foreground)' }}
-                      >
-                        Business Problem
-                      </Label>
-                      <BadgeInfo
-                        className="info-icon cursor-pointer"
-                        size={22}
-                        style={{ color: 'var(--accent)' }}
-                        onClick={openBusinessProblemInfoDrawer}
-                      />
+              {/* Business Problem and Solution - Two columns on desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Problem Input */}
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-start gap-2">
+                        <Label
+                          htmlFor="business-problem"
+                          className="text-base font-semibold"
+                          style={{ color: 'var(--foreground)' }}
+                        >
+                          Business Problem
+                        </Label>
+                        <BadgeInfo
+                          className="info-icon cursor-pointer"
+                          size={22}
+                          style={{ color: 'var(--accent)' }}
+                          onClick={openBusinessProblemInfoDrawer}
+                        />
+                      </div>
+                      <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
+                        What environmental or circular economy challenge does your business address?
+                      </p>
                     </div>
-                    <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-                      What environmental or circular economy challenge does your business address?
-                    </p>
                   </div>
+                  <Textarea
+                    id="business-problem"
+                    rows={4}
+                    placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
+                    {...register('businessProblem', {
+                      onBlur: () => flushAutosave(),
+                    })}
+                    disabled={loading}
+                    className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
+                    style={{
+                      borderColor: 'var(--field-border)',
+                      backgroundColor: 'var(--field-bg)',
+                      color: 'var(--foreground)',
+                    }}
+                  />
+                  <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
                 </div>
-                <Textarea
-                  id="business-problem"
-                  rows={4}
-                  placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
-                  {...register('businessProblem', {
-                    onBlur: () => flushAutosave(),
-                  })}
-                  disabled={loading}
-                  className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
-                  style={{
-                    borderColor: 'var(--field-border)',
-                    backgroundColor: 'var(--field-bg)',
-                    color: 'var(--foreground)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  }}
-                />
-                <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
-              </div>
 
-              {/* Solution Input */}
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-start gap-3">
-                      <Label
-                        htmlFor="business-solution"
-                        className="text-base font-semibold"
-                        style={{ color: 'var(--foreground)' }}
-                      >
-                        Business Solution
-                      </Label>
-                      <BadgeInfo
-                        className="info-icon cursor-pointer"
-                        size={22}
-                        style={{ color: 'var(--accent)' }}
-                        onClick={openBusinessSolutionInfoDrawer}
-                      />
+                {/* Solution Input */}
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-start gap-3">
+                        <Label
+                          htmlFor="business-solution"
+                          className="text-base font-semibold"
+                          style={{ color: 'var(--foreground)' }}
+                        >
+                          Business Solution
+                        </Label>
+                        <BadgeInfo
+                          className="info-icon cursor-pointer"
+                          size={22}
+                          style={{ color: 'var(--accent)' }}
+                          onClick={openBusinessSolutionInfoDrawer}
+                        />
+                      </div>
+                      <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
+                        How does your business solve this problem? Include materials, processes, and
+                        circularity strategy.
+                      </p>
                     </div>
-                    <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-                      How does your business solve this problem? Include materials, processes, and
-                      circularity strategy.
-                    </p>
                   </div>
+                  <Textarea
+                    id="business-solution"
+                    rows={5}
+                    placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
+                    {...register('businessSolution', {
+                      onBlur: () => flushAutosave(),
+                    })}
+                    disabled={loading}
+                    className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
+                    style={{
+                      borderColor: 'var(--field-border)',
+                      backgroundColor: 'var(--field-bg)',
+                      color: 'var(--foreground)',
+                    }}
+                  />
+                  <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
                 </div>
-                <Textarea
-                  id="business-solution"
-                  rows={5}
-                  placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
-                  {...register('businessSolution', {
-                    onBlur: () => flushAutosave(),
-                  })}
-                  disabled={loading}
-                  className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
-                  style={{
-                    borderColor: 'var(--field-border)',
-                    backgroundColor: 'var(--field-bg)',
-                    color: 'var(--foreground)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  }}
-                />
-                <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
               </div>
 
               {/* Business Context Section */}
@@ -895,7 +911,6 @@ export default function LandingPage() {
                               className="font-semibold text-lg leading-6"
                               style={{
                                 color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
                               }}
                             >
                               Business Context
@@ -963,7 +978,6 @@ export default function LandingPage() {
                               className="font-semibold text-lg leading-6"
                               style={{
                                 color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
                               }}
                             >
                               Evaluation Parameters
@@ -1046,7 +1060,6 @@ export default function LandingPage() {
                           loading || !isValid
                             ? 'var(--muted-foreground)'
                             : 'var(--accent-foreground)',
-                        fontFamily: 'Inter, system-ui, sans-serif',
                       }}
                     >
                       {loading ? (
@@ -1093,7 +1106,6 @@ export default function LandingPage() {
                               className="font-semibold text-base leading-6"
                               style={{
                                 color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
                               }}
                             >
                               Sample Test Cases

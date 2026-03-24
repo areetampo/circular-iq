@@ -135,7 +135,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                   className="text-sm font-medium"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   Give your assessment a memorable name and choose your privacy settings

@@ -16,7 +16,6 @@ export default function LoaderComponent({
           className="text-2xl font-semibold text-center"
           style={{
             color: 'var(--success)',
-            fontFamily: 'Lora, Georgia, serif',
           }}
         >
           {heading || '\u00A0'}
@@ -29,7 +28,6 @@ export default function LoaderComponent({
           className="mx-8 text-base text-center text-wrap"
           style={{
             color: 'var(--accent)',
-            fontFamily: 'Inter, system-ui, sans-serif',
           }}
         >
           {message || '\u00A0'}

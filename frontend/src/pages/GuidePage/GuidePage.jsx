@@ -435,22 +435,11 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
               onSectionClick(section.id);
               if (isMobile) setIsMobileMenuOpen(false);
             }}
-            className={`group flex items-center gap-3 w-full py-2 text-left transition-all duration-200 relative`}
-            style={{
-              color: isActive ? 'var(--foreground)' : 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
-              fontWeight: isActive ? '500' : 'normal',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.target.style.color = 'var(--foreground)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.target.style.color = 'var(--muted)';
-              }
-            }}
+            className={`group flex items-center gap-3 w-full py-2 text-left transition-all duration-200 relative ${
+              isActive
+                ? 'text-[var(--foreground)] font-medium'
+                : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+            }`}
           >
             {/* Active indicator line */}
             <div
@@ -487,7 +476,6 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
               className="text-xs font-semibold uppercase tracking-wider"
               style={{
                 color: 'var(--muted)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               On this page
@@ -509,16 +497,7 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
       >
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors"
-          style={{
-            fontFamily: 'Inter, system-ui, sans-serif',
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'var(--accent-soft)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-          }}
+          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-[var(--accent-soft)]"
         >
           <div className="flex items-center gap-3">
             <div className="relative w-6 h-6 shrink-0">
@@ -557,7 +536,6 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
               className="text-sm font-medium"
               style={{
                 color: 'var(--foreground)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               {SECTIONS.find((s) => s.id === activeSection)?.title}
@@ -1452,7 +1430,6 @@ export default function Guide() {
             className="text-4xl lg:text-5xl font-bold mb-3"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             Circular Economy Assessment Guide
@@ -1461,7 +1438,6 @@ export default function Guide() {
             className="text-lg max-w-3xl"
             style={{
               color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Comprehensive guide to understanding our evaluation methodology and criteria

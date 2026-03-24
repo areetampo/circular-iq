@@ -9,6 +9,7 @@ import Button from '@/components/common/Button';
 import LoaderIcon from '@/components/common/LoaderIcon';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
+import { logger } from '@/utils/logger';
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,18 +23,21 @@ export function LoginForm({ onSwitchToSignup }) {
     reset,
   } = useForm({
     resolver: zodResolver(loginSchema),
-    mode: 'onBlur',
+    mode: 'onBlur', // Validate as soon as user leaves a field
   });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
 
     try {
+      // Attempt to sign in with provided credentials
       const { data: authData, error } = await signInWithUsername(data.username, data.password);
 
       if (error) {
-        console.error('[LoginForm] sign in error:', { status: error.status });
+        // Log authentication error for debugging
+        logger.error('[LoginForm] sign in error:', { status: error.status });
 
+        // Show user-friendly error message
         toast.danger('Sign in failed', {
           description: 'Incorrect username or password.',
           timeout: 3000,
@@ -41,10 +45,12 @@ export function LoginForm({ onSwitchToSignup }) {
         return;
       }
 
+      // Verify that authentication created a proper user session
       if (!authData?.user?.id) {
         throw new Error('Authentication succeeded but no user session was created.');
       }
 
+      // Show success message to user
       toast.success('Welcome back!', {
         description: 'You have successfully signed in.',
         timeout: 3000,
@@ -52,16 +58,19 @@ export function LoginForm({ onSwitchToSignup }) {
 
       reset();
 
+      // Redirect user to their intended destination or default to home
       const returnTo = location.state?.from || '/';
       navigate(returnTo, { replace: true });
     } catch (err) {
-      console.error('[LoginForm] Unexpected error during sign in:', err?.message ?? err);
+      // Handle unexpected errors during authentication
+      logger.error('[LoginForm] unexpected error:', err);
 
-      toast.danger('Sign in failed', {
+      toast.danger('Authentication failed', {
         description: 'An unexpected error occurred. Please try again.',
         timeout: 3000,
       });
     } finally {
+      // Ensure loading state is reset regardless of outcome
       setIsLoading(false);
     }
   };
@@ -80,7 +89,6 @@ export function LoginForm({ onSwitchToSignup }) {
           <h1
             className="text-2xl font-semibold"
             style={{
-              fontFamily: 'Lora, Georgia, serif',
               color: 'var(--foreground)',
             }}
           >
@@ -161,7 +169,6 @@ export function LoginForm({ onSwitchToSignup }) {
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-foreground)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             <span className="flex items-center justify-center gap-2">
@@ -179,7 +186,6 @@ export function LoginForm({ onSwitchToSignup }) {
             className="font-medium transition-colors hover:opacity-80 cursor-pointer"
             style={{
               color: 'var(--accent)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Sign up

@@ -71,17 +71,7 @@ export default function AssessmentViewPage() {
         <div className="flex flex-col gap-1">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1 text-sm w-fit transition-colors"
-            style={{
-              color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.color = 'var(--foreground)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.color = 'var(--muted)';
-            }}
+            className="flex items-center gap-1 text-sm w-fit text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150"
           >
             ← Back
           </button>
@@ -89,7 +79,6 @@ export default function AssessmentViewPage() {
             className="text-2xl font-bold leading-tight"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             {assessment?.title || 'Assessment'}
@@ -99,7 +88,6 @@ export default function AssessmentViewPage() {
               className="text-xs"
               style={{
                 color: 'var(--muted)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               Saved {formatTimestamp(assessment.created_at)}
@@ -162,16 +150,13 @@ export default function AssessmentViewPage() {
                 className="text-xs"
                 style={{
                   color: 'var(--muted)',
-                  fontFamily: 'Inter, system-ui, sans-serif',
                 }}
               >
                 Overall Score
               </p>
               <p
                 className={`text-4xl font-bold ${getScoreClass(scoringResult.overall_score)}`}
-                style={{
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                }}
+                style={{}}
               >
                 {scoringResult.overall_score ?? 'N/A'}
                 <span className="text-lg" style={{ color: 'var(--muted)' }}>
@@ -183,7 +168,6 @@ export default function AssessmentViewPage() {
                   className="text-sm mt-1"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   {scoringResult.metadata.short_description}
@@ -248,7 +232,6 @@ export default function AssessmentViewPage() {
               className="text-lg font-bold mb-4"
               style={{
                 color: 'var(--foreground)',
-                fontFamily: 'Lora, Georgia, serif',
               }}
             >
               Derived Metrics
@@ -271,7 +254,6 @@ export default function AssessmentViewPage() {
                     className="text-xs mb-1"
                     style={{
                       color: 'var(--muted)',
-                      fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
                     {label}
@@ -280,7 +262,6 @@ export default function AssessmentViewPage() {
                     className="text-2xl font-bold"
                     style={{
                       color: 'var(--foreground)',
-                      fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
                     {scoringResult.derived_metrics[key] ?? 'N/A'}
@@ -298,7 +279,6 @@ export default function AssessmentViewPage() {
                   className="text-xs mb-1"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   Risk Level

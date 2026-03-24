@@ -1,5 +1,6 @@
-import { cn } from '@/utils/cn';
 import PropTypes from 'prop-types';
+
+import { cn } from '@/utils/cn';
 
 const ICON_CLS = {
   emerald: 'bg-emerald-50 text-emerald-600',

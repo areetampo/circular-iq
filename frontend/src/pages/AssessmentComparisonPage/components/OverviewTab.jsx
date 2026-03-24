@@ -39,7 +39,6 @@ export function OverviewTab({
             className="font-bold text-lg"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             Input Data & Context
@@ -60,7 +59,6 @@ export function OverviewTab({
                   className="font-bold text-lg"
                   style={{
                     color: 'var(--foreground)',
-                    fontFamily: 'Lora, Georgia, serif',
                   }}
                 >
                   Business Problem
@@ -87,7 +85,6 @@ export function OverviewTab({
                                 className="text-sm font-semibold mb-2"
                                 style={{
                                   color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
                                 }}
                               >
                                 {assessment1?.title || 'Assessment 1'}
@@ -96,7 +93,6 @@ export function OverviewTab({
                                 className="text-sm leading-relaxed"
                                 style={{
                                   color: 'var(--muted)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
                                 }}
                               >
                                 {assessment1?.business_problem || 'N/A'}
@@ -109,7 +105,6 @@ export function OverviewTab({
                                 className="text-sm font-semibold mb-2"
                                 style={{
                                   color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
                                 }}
                               >
                                 {assessment2?.title || 'Assessment 2'}
@@ -118,7 +113,6 @@ export function OverviewTab({
                                 className="text-sm leading-relaxed"
                                 style={{
                                   color: 'var(--muted)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
                                 }}
                               >
                                 {assessment2?.business_problem || 'N/A'}

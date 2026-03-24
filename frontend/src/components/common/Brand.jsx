@@ -42,3 +42,44 @@ export const SiteLogo = ({ className = '' }) => {
 SiteLogo.propTypes = {
   className: PropTypes.string,
 };
+
+export default function Brand() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="inline-flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        style={{ color: 'var(--accent)' }}
+      >
+        <path
+          d="M12 2L2 7L12 12L22 7L12 2Z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M2 17L12 22L22 17"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M2 12L12 17L22 12"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span style={{ color: 'var(--foreground)' }} className="text-base font-semibold">
+        CE
+      </span>
+    </div>
+  );
+}

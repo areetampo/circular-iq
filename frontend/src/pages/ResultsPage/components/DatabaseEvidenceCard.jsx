@@ -1,9 +1,8 @@
 import { Card, Chip, ProgressBar } from '@heroui/react';
-
-import { Button } from '@/components/common';
 import { ArrowRight, ExternalLink, FileText, Frown, Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import { Button } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 

@@ -14,7 +14,7 @@ const ICON_CLS = {
   cyan: 'bg-cyan-50   text-cyan-600',
 };
 
-function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, wide }) {
+function StatCard({ label, value, sub, loading, wide }) {
   if (loading) {
     return (
       <div
@@ -30,7 +30,6 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, w
       </div>
     );
   }
-  const iconCls = ICON_CLS[color] ?? 'bg-slate-50 text-slate-600';
   return (
     <div
       className={cn(
@@ -41,12 +40,6 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, w
         borderColor: 'var(--border)',
         backgroundColor: 'var(--surface)',
       }}
-      onMouseEnter={(e) => {
-        e.target.style.borderColor = 'var(--accent)';
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.borderColor = 'var(--border)';
-      }}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -54,7 +47,6 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, w
             className="text-[10px] font-bold uppercase tracking-widest mb-2 leading-tight"
             style={{
               color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             {label}
@@ -63,7 +55,6 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, w
             className="text-2xl font-bold leading-none tabular-nums"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             {value ?? '—'}
@@ -73,20 +64,12 @@ function StatCard({ label, value, sub, icon: Icon, color = 'emerald', loading, w
               className="text-[11px] mt-1.5 leading-tight"
               style={{
                 color: 'var(--muted)',
-                fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
               {sub}
             </p>
           )}
         </div>
-        {Icon && (
-          <div
-            className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', iconCls)}
-          >
-            <Icon size={16} strokeWidth={2} />
-          </div>
-        )}
       </div>
     </div>
   );
@@ -99,10 +82,6 @@ StatCard.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   /** Secondary text displayed below the value */
   sub: PropTypes.string,
-  /** Icon component to display in the top right */
-  icon: PropTypes.elementType,
-  /** Color theme: 'emerald', 'blue', 'purple', 'amber', 'rose', 'indigo', 'teal', 'cyan' */
-  color: PropTypes.string,
   /** Whether to show skeleton loading state */
   loading: PropTypes.bool,
   /** Whether the card should span 2 columns (on small screens) */

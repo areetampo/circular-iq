@@ -12,10 +12,8 @@ export default function TipCard({ icon, title, description }) {
   return (
     <div>
       <strong
-        className="text-blue-600"
         style={{
           color: 'var(--accent)',
-          fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
         {icon} {title}
@@ -24,7 +22,6 @@ export default function TipCard({ icon, title, description }) {
         className="mt-2 text-sm"
         style={{
           color: 'var(--muted)',
-          fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
         {description}

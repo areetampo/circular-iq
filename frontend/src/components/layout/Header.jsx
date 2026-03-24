@@ -14,7 +14,6 @@ export default function Header({ title, subtitle }) {
             className="text-lg font-medium mb-2"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             {title}
@@ -25,7 +24,6 @@ export default function Header({ title, subtitle }) {
             className="text-sm"
             style={{
               color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             {subtitle}

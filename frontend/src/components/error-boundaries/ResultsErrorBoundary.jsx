@@ -35,7 +35,6 @@ class ResultsErrorBoundary extends React.Component {
             className="mb-2 text-xl font-bold"
             style={{
               color: 'var(--danger)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             Unable to Display Results
@@ -44,7 +43,6 @@ class ResultsErrorBoundary extends React.Component {
             className="mb-4"
             style={{
               color: 'var(--danger)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             There was an error displaying this assessment. Please try refreshing the page or return
@@ -53,36 +51,13 @@ class ResultsErrorBoundary extends React.Component {
           <div className="flex gap-3">
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 font-semibold rounded-md cursor-pointer transition-colors"
-              style={{
-                backgroundColor: 'var(--danger)',
-                color: 'var(--surface)',
-                fontFamily: 'Inter, system-ui, sans-serif',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'var(--foreground)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'var(--danger)';
-              }}
+              className="px-4 py-2 font-semibold rounded-md cursor-pointer transition-colors bg-[var(--danger)] text-[var(--surface)] hover:bg-[var(--foreground)]"
             >
               Refresh Page
             </button>
             <button
               onClick={() => (window.location.href = '/assessments')}
-              className="px-4 py-2 font-semibold rounded-md cursor-pointer transition-colors"
-              style={{
-                backgroundColor: 'var(--surface)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-                fontFamily: 'Inter, system-ui, sans-serif',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'var(--accent-soft)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'var(--surface)';
-              }}
+              className="px-4 py-2 font-semibold rounded-md cursor-pointer transition-colors bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--accent-soft)]"
             >
               Back to Assessments
             </button>

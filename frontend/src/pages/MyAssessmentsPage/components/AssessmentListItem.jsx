@@ -123,7 +123,6 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               className="font-semibold text-xl leading-tight truncate transition-colors duration-200 ml-0.5"
               style={{
                 color: 'var(--foreground)',
-                fontFamily: 'Lora, Georgia, serif',
               }}
               title={assessment.title}
             >
@@ -151,7 +150,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 }
                 size="lg"
               >
-                <Chip.Label className="text-white">{assessment.overall_score}%</Chip.Label>
+                <Chip.Label style={{ color: 'var(--accent-foreground)' }}>
+                  {assessment.overall_score}%
+                </Chip.Label>
               </Chip>
 
               <Chip variant="soft" color={status.color} size="lg">

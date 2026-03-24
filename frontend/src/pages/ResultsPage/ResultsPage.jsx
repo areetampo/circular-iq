@@ -1,14 +1,4 @@
-import {
-  Accordion,
-  Chip,
-  Input,
-  Label,
-  ListBox,
-  Select,
-  Tabs,
-  toast,
-  Tooltip,
-} from '@heroui/react';
+import { Accordion, Chip, Input, Label, toast, Tooltip } from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -850,10 +840,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <div className="mb-6 mt-4 px-4 sm:px-6 space-y-4">
         {isViewFromMyAssessments && currentData?.title && (
           <div
-            className="text-center mb-3 text-2xl font-semibold truncate"
+            className="text-[var(--muted)]r mb-3 text-2xl font-semibold truncate"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             {currentData.title}
@@ -1061,7 +1050,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               className="font-semibold flex items-center gap-2 justify-start"
                               style={{
                                 color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
                               }}
                             >
                               <span>Public Access</span>
@@ -1143,7 +1131,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 className="text-lg font-semibold"
                 style={{
                   color: 'var(--foreground)',
-                  fontFamily: 'Lora, Georgia, serif',
                 }}
               >
                 Case Summary
@@ -1167,7 +1154,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             className="font-semibold"
                             style={{
                               color: 'var(--foreground)',
-                              fontFamily: 'Inter, system-ui, sans-serif',
                             }}
                           >
                             Problem
@@ -1187,7 +1173,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           className="text-sm leading-relaxed"
                           style={{
                             color: 'var(--foreground)',
-                            fontFamily: 'Inter, system-ui, sans-serif',
                           }}
                         >
                           {problemText}
@@ -1212,7 +1197,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             className="font-semibold"
                             style={{
                               color: 'var(--foreground)',
-                              fontFamily: 'Inter, system-ui, sans-serif',
                             }}
                           >
                             Solution
@@ -1232,7 +1216,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           className="text-sm leading-relaxed"
                           style={{
                             color: 'var(--foreground)',
-                            fontFamily: 'Inter, system-ui, sans-serif',
                           }}
                         >
                           {solutionText}
@@ -1257,7 +1240,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             className="font-semibold"
                             style={{
                               color: 'var(--foreground)',
-                              fontFamily: 'Inter, system-ui, sans-serif',
                             }}
                           >
                             Business Context
@@ -1341,7 +1323,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             className="font-semibold"
                             style={{
                               color: 'var(--foreground)',
-                              fontFamily: 'Inter, system-ui, sans-serif',
                             }}
                           >
                             Evaluation Parameters
@@ -1403,351 +1384,299 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       {/* Results Content */}
       {/* <ScrollShadow className="h-[calc(100vh-16rem)]"> */}
       <div id="results-content" className="max-w-7xl mx-auto px-0 sm:px-6 space-y-6">
-        <Tabs
-          selectedKey={selectedTab}
-          onSelectionChange={setSelectedTab}
-          className="w-full"
-          variant="primary"
-        >
-          {/* Mobile: Use Select */}
-          <div className="md:hidden my-2 w-full flex items-center justify-center">
-            <Select
-              selectedKey={selectedTab}
-              onSelectionChange={setSelectedTab}
-              variant="primary"
-              className="w-2/5"
-            >
-              <Label className="text-xs font-semibold text-slate-600">View Section</Label>
-              <Select.Trigger className="mt-2">
-                <Select.Value />
-                <Select.Indicator />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  <ListBox.Item textValue="summary" id="summary">
-                    Summary
-                  </ListBox.Item>
-                  <ListBox.Item textValue="analysis" id="analysis">
-                    Detailed Analysis
-                  </ListBox.Item>
-                  <ListBox.Item textValue="recommendations" id="recommendations">
-                    Recommendations
-                  </ListBox.Item>
-                </ListBox>
-              </Select.Popover>
-            </Select>
-          </div>
+        {/* Page Header row: overline + Lora heading + export actions right */}
+        <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3 mb-6">
+          <span className="label-overline">ASSESSMENT RESULTS</span>
+          <div className="flex items-center gap-2">{/* Export actions will go here */}</div>
+        </div>
 
-          {/* Desktop: Use Tabs */}
-          <Tabs.ListContainer className="my-4 hidden md:flex justify-center">
-            <Tabs.List
-              aria-label="Assessment Sections"
-              className="border-2 rounded-lg"
+        {/* Score hero block — white card, border, rounded-2xl, p-8 */}
+        <div
+          className="border rounded-2xl p-6 sm:p-8 mb-2"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
+          {/* CE tier badge */}
+          <span className="chip chip-accent-soft inline-block mb-4">
+            {actualResult?.metadata?.circularity_tier || 'UNRATED'}
+          </span>
+
+          {/* Big score */}
+          <div className="flex items-end gap-2 mb-6">
+            <span
+              className="metric-value text-[72px] leading-none"
               style={{
-                backgroundColor: 'var(--accent-soft)',
-                borderColor: 'var(--accent)',
+                color:
+                  overallScore >= 75
+                    ? 'var(--success)'
+                    : overallScore >= 50
+                      ? 'var(--warning)'
+                      : 'var(--danger)',
               }}
             >
-              <Tabs.Tab id="summary">
-                <span
-                  className="font-medium"
-                  style={{
-                    color: 'var(--foreground)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  }}
-                >
-                  Summary
-                </span>
-                <Tabs.Indicator
-                  className="rounded-md"
-                  style={{ backgroundColor: 'var(--surface)' }}
-                />
-              </Tabs.Tab>
-              <Tabs.Tab id="analysis">
-                <span
-                  className="font-medium"
-                  style={{
-                    color: 'var(--foreground)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  }}
-                >
-                  Detailed Analysis
-                </span>
-                <Tabs.Indicator
-                  className="rounded-md"
-                  style={{ backgroundColor: 'var(--surface)' }}
-                />
-              </Tabs.Tab>
-              <Tabs.Tab id="recommendations">
-                <span
-                  className="font-medium"
-                  style={{
-                    color: 'var(--foreground)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                  }}
-                >
-                  Recommendations
-                </span>
-                <Tabs.Indicator
-                  className="rounded-md"
-                  style={{ backgroundColor: 'var(--surface)' }}
-                />
-              </Tabs.Tab>
-            </Tabs.List>
-          </Tabs.ListContainer>
+              {overallScore}
+            </span>
+            <span className="text-[20px] mb-2" style={{ color: 'var(--muted)' }}>
+              / 100
+            </span>
+          </div>
 
-          <Tabs.Panel id="summary" className="space-y-6">
-            <ScoreOverviewSection
-              actualResult={actualResult}
-              overallScore={overallScore}
-              casesSummaries={casesSummaries}
-              strengths={strengths}
-              gaps={gaps}
-              isViewFromMyAssessments={isViewFromMyAssessments}
-              currentData={currentData}
-              optimisticIsPublic={optimisticIsPublic}
-              topFactor={topFactor}
-              focusFactor={focusFactor}
-              avgFactorScore={avgFactorScore}
-              resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
-              reportTips={reportTips}
-            />
-
-            <CircularEconomyTierCard actualResult={actualResult} />
-            <WeightedScoreCard actualResult={actualResult} />
-            <ParameterConsistencyCard actualResult={actualResult} />
-            <RStrategyAlignmentCard actualResult={actualResult} />
-            <ScoreCategoryBreakdown actualResult={actualResult} />
-            <GapAnalysisCard actualResult={actualResult} />
-
-            {/* Industry & Metadata Section */}
-            {actualResult.metadata && (
+          {/* 4 stat pills */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'Confidence', value: actualResult?.confidence_level },
+              {
+                label: 'Tech Feasibility',
+                value: actualResult?.derived_metrics?.technical_feasibility,
+              },
+              {
+                label: 'Economic Viability',
+                value: actualResult?.derived_metrics?.economic_viability,
+              },
+              { label: 'Circularity', value: actualResult?.derived_metrics?.circularity_potential },
+            ].map(({ label, value }) => (
               <div
-                className="border rounded-lg"
+                key={label}
+                className="border rounded-xl p-3 text-[var(--muted)]r"
+                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-raised)' }}
+              >
+                <div className="metric-value text-[18px]">{value ?? '—'}</div>
+                <div className="label-overline mt-1">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action buttons row: Save · Compare → · Export PDF/CSV */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => {
+              /* Save functionality */
+            }}
+          >
+            Save
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              /* Compare functionality */
+            }}
+          >
+            Compare →
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => exportAssessmentPDF(actualResult)}>
+            Export PDF
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => exportAssessmentCSV(actualResult)}>
+            Export CSV
+          </Button>
+        </div>
+
+        {/* Divider */}
+        <div className="divider-warm my-8" />
+
+        <ScoreOverviewSection
+          actualResult={actualResult}
+          overallScore={overallScore}
+          casesSummaries={casesSummaries}
+          strengths={strengths}
+          gaps={gaps}
+          isViewFromMyAssessments={isViewFromMyAssessments}
+          currentData={currentData}
+          optimisticIsPublic={optimisticIsPublic}
+          topFactor={topFactor}
+          focusFactor={focusFactor}
+          avgFactorScore={avgFactorScore}
+          resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
+          reportTips={reportTips}
+        />
+
+        <CircularEconomyTierCard actualResult={actualResult} />
+        <WeightedScoreCard actualResult={actualResult} />
+        <ParameterConsistencyCard actualResult={actualResult} />
+        <RStrategyAlignmentCard actualResult={actualResult} />
+        <ScoreCategoryBreakdown actualResult={actualResult} />
+        <GapAnalysisCard actualResult={actualResult} />
+
+        {/* Industry & Metadata Section */}
+        {actualResult.metadata && (
+          <div
+            className="border rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-1 sm:p-3">
+              <h3
+                className="text-lg font-semibold flex items-center gap-2 mb-1"
                 style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
+                  color: 'var(--foreground)',
                 }}
               >
-                <div className="p-1 sm:p-3">
-                  <h3
-                    className="text-lg font-semibold flex items-center gap-2 mb-1"
-                    style={{
-                      color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
-                    }}
+                <ClipboardList
+                  className="flex-shrink-0"
+                  size={20}
+                  style={{ color: 'var(--success)' }}
+                />
+                Project Classification
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+                Your project details and assessment context
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div
+                  className="p-4 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: 'var(--accent)' }}
                   >
-                    <ClipboardList
-                      className="flex-shrink-0"
-                      size={20}
-                      style={{ color: 'var(--success)' }}
-                    />
-                    Project Classification
-                  </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                    Your project details and assessment context
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <div
-                      className="p-4 rounded-lg border"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                        borderColor: 'var(--accent)',
-                      }}
-                    >
-                      <div
-                        className="text-xs font-bold uppercase tracking-wide mb-1"
-                        style={{ color: 'var(--accent)' }}
-                      >
-                        Industry
-                      </div>
-                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                        {titleize(actualResult.industry || '')}
-                      </div>
-                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                        {fieldHelp.industry}
-                      </div>
-                    </div>
-                    <div
-                      className="p-4 rounded-lg border"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                        borderColor: 'var(--accent)',
-                      }}
-                    >
-                      <div
-                        className="text-xs font-bold uppercase tracking-wide mb-1"
-                        style={{ color: 'var(--accent)' }}
-                      >
-                        Scale
-                      </div>
-                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                        {titleize(actualResult.metadata.scale)}
-                      </div>
-                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                        {fieldHelp.scale}
-                      </div>
-                    </div>
-                    <div
-                      className="p-4 rounded-lg border"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                        borderColor: 'var(--accent)',
-                      }}
-                    >
-                      <div
-                        className="text-xs font-bold uppercase tracking-wide mb-1"
-                        style={{ color: 'var(--accent)' }}
-                      >
-                        Strategy
-                      </div>
-                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                        {titleize(actualResult.metadata.r_strategy)}
-                      </div>
-                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                        {fieldHelp.r_strategy}
-                      </div>
-                    </div>
-                    <div
-                      className="p-4 rounded-lg border"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                        borderColor: 'var(--accent)',
-                      }}
-                    >
-                      <div
-                        className="text-xs font-bold uppercase tracking-wide mb-1"
-                        style={{ color: 'var(--accent)' }}
-                      >
-                        Material
-                      </div>
-                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                        {titleize(actualResult.metadata.primary_material)}
-                      </div>
-                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                        {fieldHelp.primary_material}
-                      </div>
-                    </div>
-                    <div
-                      className="p-4 rounded-lg border"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                        borderColor: 'var(--accent)',
-                      }}
-                    >
-                      <div
-                        className="text-xs font-bold uppercase tracking-wide mb-1"
-                        style={{ color: 'var(--accent)' }}
-                      >
-                        Geography
-                      </div>
-                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                        {titleize(actualResult.metadata.geographic_focus)}
-                      </div>
-                      <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                        {fieldHelp.geographic_focus}
-                      </div>
-                    </div>
+                    Industry
+                  </div>
+                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                    {titleize(actualResult.industry || '')}
+                  </div>
+                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                    {fieldHelp.industry}
+                  </div>
+                </div>
+                <div
+                  className="p-4 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Scale
+                  </div>
+                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                    {titleize(actualResult.metadata.scale)}
+                  </div>
+                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                    {fieldHelp.scale}
+                  </div>
+                </div>
+                <div
+                  className="p-4 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Strategy
+                  </div>
+                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                    {titleize(actualResult.metadata.r_strategy)}
+                  </div>
+                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                    {fieldHelp.r_strategy}
+                  </div>
+                </div>
+                <div
+                  className="p-4 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Material
+                  </div>
+                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                    {titleize(actualResult.metadata.primary_material)}
+                  </div>
+                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                    {fieldHelp.primary_material}
+                  </div>
+                </div>
+                <div
+                  className="p-4 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  <div
+                    className="text-xs font-bold uppercase tracking-wide mb-1"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    Geography
+                  </div>
+                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                    {titleize(actualResult.metadata.geographic_focus)}
+                  </div>
+                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
+                    {fieldHelp.geographic_focus}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+        )}
 
-            {/* Category Analysis */}
-            <div
-              className="border rounded-lg"
+        {/* Category Analysis */}
+        <div
+          className="border rounded-lg"
+          style={{
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+          }}
+        >
+          <div className="p-1 sm:p-3">
+            <h3
+              className="text-lg font-semibold mb-1"
               style={{
-                backgroundColor: 'var(--surface)',
-                borderColor: 'var(--border)',
+                color: 'var(--foreground)',
               }}
             >
-              <div className="p-1 sm:p-3">
-                <h3
-                  className="text-lg font-semibold mb-1"
-                  style={{
-                    color: 'var(--foreground)',
-                    fontFamily: 'Lora, Georgia, serif',
-                  }}
-                >
-                  Category Analysis
-                </h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                  Detailed breakdown across all evaluation criteria
-                </p>
-                <div className="space-y-3">
-                  {validKeys.map((key) => {
-                    const value = actualResult.sub_scores?.[key];
-                    if (!(actualResult.sub_scores && key in actualResult.sub_scores)) return null;
+              Category Analysis
+            </h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+              Detailed breakdown across all evaluation criteria
+            </p>
+            <div className="space-y-3">
+              {validKeys.map((key) => {
+                const value = actualResult.sub_scores?.[key];
+                if (!(actualResult.sub_scores && key in actualResult.sub_scores)) return null;
 
-                    const category = categoryMapping[key];
-                    if (!category) return null;
+                const category = categoryMapping[key];
+                if (!category) return null;
 
-                    const numValue = value != null && !isNaN(value) ? Number(value) : 0;
-                    const barColor =
-                      numValue >= 75
-                        ? 'var(--success)'
-                        : numValue >= 50
-                          ? 'var(--accent)'
-                          : 'var(--warning)';
-                    const badgeColor =
-                      numValue >= 75
-                        ? 'var(--success)'
-                        : numValue >= 50
-                          ? 'var(--accent)'
-                          : 'var(--warning)';
+                const numValue = value != null && !isNaN(value) ? Number(value) : 0;
+                const barColor =
+                  numValue >= 75
+                    ? 'var(--success)'
+                    : numValue >= 50
+                      ? 'var(--accent)'
+                      : 'var(--warning)';
+                const badgeColor =
+                  numValue >= 75
+                    ? 'var(--success)'
+                    : numValue >= 50
+                      ? 'var(--accent)'
+                      : 'var(--warning)';
 
-                    return (
-                      <div
-                        key={key}
-                        className="p-4 rounded-lg border"
-                        style={{
-                          backgroundColor: 'var(--accent-soft)',
-                          borderColor: 'var(--border)',
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex-1">
-                            <h4
-                              className="text-sm font-semibold"
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              {category.name}
-                            </h4>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                              {category.desc}
-                            </p>
-                          </div>
-                          <div
-                            className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
-                            style={{
-                              backgroundColor: badgeColor,
-                              color: 'var(--accent-foreground)',
-                            }}
-                          >
-                            {numValue}
-                          </div>
-                        </div>
-
-                        <div
-                          className="w-full rounded-full h-2 overflow-hidden"
-                          style={{ backgroundColor: 'var(--border)' }}
-                        >
-                          <div
-                            className="h-full transition-all duration-500 rounded-full"
-                            style={{
-                              width: `${Math.min(100, Math.max(0, numValue))}%`,
-                              backgroundColor: barColor,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {/* Business Viability Category */}
+                return (
                   <div
+                    key={key}
                     className="p-4 rounded-lg border"
                     style={{
                       backgroundColor: 'var(--accent-soft)',
@@ -1760,28 +1689,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           className="text-sm font-semibold"
                           style={{
                             color: 'var(--foreground)',
-                            fontFamily: 'Inter, system-ui, sans-serif',
                           }}
                         >
-                          Business Viability
+                          {category.name}
                         </h4>
                         <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                          Economic feasibility and scalability
+                          {category.desc}
                         </p>
                       </div>
                       <div
                         className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
                         style={{
-                          backgroundColor:
-                            resolvedBusinessViabilityScore >= 75
-                              ? 'var(--success)'
-                              : resolvedBusinessViabilityScore >= 50
-                                ? 'var(--accent)'
-                                : 'var(--warning)',
+                          backgroundColor: badgeColor,
                           color: 'var(--accent-foreground)',
                         }}
                       >
-                        {resolvedBusinessViabilityScore}
+                        {numValue}
                       </div>
                     </div>
 
@@ -1792,583 +1715,594 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       <div
                         className="h-full transition-all duration-500 rounded-full"
                         style={{
-                          width: `${resolvedBusinessViabilityScore}%`,
-                          backgroundColor:
-                            resolvedBusinessViabilityScore >= 75
-                              ? 'var(--success)'
-                              : resolvedBusinessViabilityScore >= 50
-                                ? 'var(--accent)'
-                                : 'var(--warning)',
+                          width: `${Math.min(100, Math.max(0, numValue))}%`,
+                          backgroundColor: barColor,
                         }}
                       />
                     </div>
                   </div>
+                );
+              })}
+              {/* Business Viability Category */}
+              <div
+                className="p-4 rounded-lg border"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  borderColor: 'var(--border)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1">
+                    <h4
+                      className="text-sm font-semibold"
+                      style={{
+                        color: 'var(--foreground)',
+                      }}
+                    >
+                      Business Viability
+                    </h4>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                      Economic feasibility and scalability
+                    </p>
+                  </div>
+                  <div
+                    className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
+                    style={{
+                      backgroundColor:
+                        resolvedBusinessViabilityScore >= 75
+                          ? 'var(--success)'
+                          : resolvedBusinessViabilityScore >= 50
+                            ? 'var(--accent)'
+                            : 'var(--warning)',
+                      color: 'var(--accent-foreground)',
+                    }}
+                  >
+                    {resolvedBusinessViabilityScore}
+                  </div>
+                </div>
+
+                <div
+                  className="w-full rounded-full h-2 overflow-hidden"
+                  style={{ backgroundColor: 'var(--border)' }}
+                >
+                  <div
+                    className="h-full transition-all duration-500 rounded-full"
+                    style={{
+                      width: `${resolvedBusinessViabilityScore}%`,
+                      backgroundColor:
+                        resolvedBusinessViabilityScore >= 75
+                          ? 'var(--success)'
+                          : resolvedBusinessViabilityScore >= 50
+                            ? 'var(--accent)'
+                            : 'var(--warning)',
+                    }}
+                  />
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Performance Comparison */}
-            {resolvedRadarData && resolvedRadarData.length > 0 ? (
-              <div
-                className="rounded-lg"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div className="p-1 sm:p-3">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
-                    <div>
-                      <h3
-                        className="text-lg font-semibold mb-1"
-                        style={{
-                          color: 'var(--foreground)',
-                          fontFamily: 'Lora, Georgia, serif',
-                        }}
-                      >
-                        Performance Comparison
-                      </h3>
-                      <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                        How your idea compares to similar projects in the database
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className="w-full rounded-xl p-4"
-                    style={{
-                      '--color-userValue': 'var(--success)',
-                      '--color-marketAvg': 'var(--accent)',
-                    }}
-                  >
-                    <RadarChart
-                      data={resolvedRadarData}
-                      radarConfigs={radarConfigs}
-                      height={380}
-                      showLegend={true}
-                      showTooltip={true}
-                      isLoading={detailLoading}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                className="border rounded-lg"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div className="p-5 sm:p-6">
+        {/* Performance Comparison */}
+        {resolvedRadarData && resolvedRadarData.length > 0 ? (
+          <div
+            className="rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-1 sm:p-3">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+                <div>
                   <h3
                     className="text-lg font-semibold mb-1"
                     style={{
                       color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
                     }}
                   >
                     Performance Comparison
                   </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+                  <p className="text-sm" style={{ color: 'var(--muted)' }}>
                     How your idea compares to similar projects in the database
                   </p>
-                  <div
-                    className="p-6 rounded-lg border text-center"
-                    style={{
-                      backgroundColor: 'var(--accent-soft)',
-                      borderColor: 'var(--border)',
-                    }}
-                  >
-                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                      No comparison data available. Check that sub-scores are present in the
-                      assessment result.
-                    </p>
-                  </div>
                 </div>
               </div>
-            )}
-          </Tabs.Panel>
 
-          <Tabs.Panel id="analysis" className="space-y-6">
-            {/* Integrity Analysis - Beautiful Accordion Design (same as Summary tab) */}
-            {(gaps.length > 0 || strengths.length > 0) && (
               <div
-                className="border rounded-lg"
+                className="w-full rounded-xl p-4"
                 style={{
-                  backgroundColor: 'var(--surface)',
+                  '--color-userValue': 'var(--success)',
+                  '--color-marketAvg': 'var(--accent)',
+                }}
+              >
+                <RadarChart
+                  data={resolvedRadarData}
+                  radarConfigs={radarConfigs}
+                  height={380}
+                  showLegend={true}
+                  showTooltip={true}
+                  isLoading={detailLoading}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="border rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-5 sm:p-6">
+              <h3
+                className="text-lg font-semibold mb-1"
+                style={{
+                  color: 'var(--foreground)',
+                }}
+              >
+                Performance Comparison
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+                How your idea compares to similar projects in the database
+              </p>
+              <div
+                className="p-6 rounded-lg border text-[var(--muted)]r"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
                   borderColor: 'var(--border)',
                 }}
               >
-                <div className="p-1 sm:p-3">
-                  <h3
-                    className="text-lg font-semibold mb-1"
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                  No comparison data available. Check that sub-scores are present in the assessment
+                  result.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Integrity Analysis - Beautiful Accordion Design (same as Summary tab) */}
+        {(gaps.length > 0 || strengths.length > 0) && (
+          <div
+            className="border rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-1 sm:p-3">
+              <h3
+                className="text-lg font-semibold mb-1"
+                style={{
+                  color: 'var(--foreground)',
+                }}
+              >
+                Integrity Analysis
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+                We compare your self-assessed scores against real-world projects in our database to
+                identify potential overestimations or underestimations.
+              </p>
+
+              <Accordion type="single" collapsible className="space-y-3">
+                {/* Strengths */}
+                {strengths.length > 0 && (
+                  <Accordion.Item
+                    value="strengths"
+                    className="rounded-lg overflow-hidden"
                     style={{
-                      color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
+                      backgroundColor: 'var(--success-soft)',
+                      borderColor: 'var(--success)',
                     }}
                   >
-                    Integrity Analysis
-                  </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                    We compare your self-assessed scores against real-world projects in our database
-                    to identify potential overestimations or underestimations.
-                  </p>
-
-                  <Accordion type="single" collapsible className="space-y-3">
-                    {/* Strengths */}
-                    {strengths.length > 0 && (
-                      <Accordion.Item
-                        value="strengths"
-                        className="rounded-lg overflow-hidden"
-                        style={{
-                          backgroundColor: 'var(--success-soft)',
-                          borderColor: 'var(--success)',
-                        }}
-                      >
-                        <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--success-soft)] transition-colors">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 size={20} style={{ color: 'var(--success)' }} />
-                            <span
-                              className="text-base font-semibold"
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              Strengths Validated
-                            </span>
-                            <Chip
-                              variant="primary"
-                              color="success"
-                              size="sm"
-                              className="ml-2 font-bold"
-                            >
-                              {strengths.length}
-                            </Chip>
-                          </div>
-                        </Accordion.Trigger>
-                        <Accordion.Body className="px-4 pb-4">
-                          <div className="space-y-2">
-                            {strengths.map((strength, i) => (
-                              <div
-                                key={i}
-                                className="flex gap-2 p-3 rounded-lg border"
+                    <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--success-soft)] transition-colors">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={20} style={{ color: 'var(--success)' }} />
+                        <span
+                          className="text-base font-semibold"
+                          style={{
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          Strengths Validated
+                        </span>
+                        <Chip
+                          variant="primary"
+                          color="success"
+                          size="sm"
+                          className="ml-2 font-bold"
+                        >
+                          {strengths.length}
+                        </Chip>
+                      </div>
+                    </Accordion.Trigger>
+                    <Accordion.Body className="px-4 pb-4">
+                      <div className="space-y-2">
+                        {strengths.map((strength, i) => (
+                          <div
+                            key={i}
+                            className="flex gap-2 p-3 rounded-lg border"
+                            style={{
+                              backgroundColor: 'var(--surface)',
+                              borderColor: 'var(--success)',
+                            }}
+                          >
+                            <CheckCircle2
+                              className="shrink-0 mt-0.5"
+                              size={16}
+                              style={{ color: 'var(--success)' }}
+                            />
+                            <div className="flex-1">
+                              <p
+                                className="text-sm"
                                 style={{
-                                  backgroundColor: 'var(--surface)',
-                                  borderColor: 'var(--success)',
+                                  color: 'var(--foreground)',
                                 }}
                               >
-                                <CheckCircle2
-                                  className="shrink-0 mt-0.5"
-                                  size={16}
-                                  style={{ color: 'var(--success)' }}
-                                />
-                                <div className="flex-1">
-                                  <p
-                                    className="text-sm"
-                                    style={{
-                                      color: 'var(--foreground)',
-                                      fontFamily: 'Inter, system-ui, sans-serif',
-                                    }}
+                                {strength.issue || strength}
+                              </p>
+                              {strength.evidence_source_id && (
+                                <Chip variant="secondary" size="sm" className="mt-1 text-xs">
+                                  Validated by Case #{strength.evidence_source_id}
+                                </Chip>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                )}
+
+                {/* Areas for Improvement */}
+                {gaps.length > 0 && (
+                  <Accordion.Item
+                    value="gaps"
+                    className="rounded-lg overflow-hidden"
+                    style={{
+                      backgroundColor: 'var(--warning-soft)',
+                      borderColor: 'var(--warning)',
+                    }}
+                  >
+                    <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--warning-soft)] transition-colors">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
+                        <span
+                          className="text-base font-semibold"
+                          style={{
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          Areas for Improvement
+                        </span>
+                        <Chip
+                          variant="primary"
+                          color="warning"
+                          size="sm"
+                          className="ml-2 font-bold"
+                        >
+                          {gaps.length}
+                        </Chip>
+                      </div>
+                    </Accordion.Trigger>
+                    <Accordion.Body className="px-4 pb-4">
+                      <div className="space-y-2">
+                        {gaps.map((gap, i) => {
+                          const severity = gap.severity || 'medium';
+                          const severityColors = {
+                            high: 'var(--danger-soft)',
+                            medium: 'var(--warning-soft)',
+                            low: 'var(--info-soft)',
+                          };
+
+                          return (
+                            <div
+                              key={i}
+                              className={`flex gap-2 p-3 rounded-lg border bg-[var(--surface)]`}
+                              style={{
+                                backgroundColor: 'var(--surface)',
+                                borderColor: severityColors[severity],
+                              }}
+                            >
+                              <AlertCircle
+                                className="shrink-0 mt-0.5"
+                                size={16}
+                                style={{ color: 'var(--warning)' }}
+                              />
+                              <div className="flex-1">
+                                <p
+                                  className="text-sm"
+                                  style={{
+                                    color: 'var(--foreground)',
+                                  }}
+                                >
+                                  {(gap.issue || gap).replace(/_/g, ' ')}
+                                </p>
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                  <Chip
+                                    variant="primary"
+                                    color={
+                                      severity === 'high'
+                                        ? 'danger'
+                                        : severity === 'medium'
+                                          ? 'warning'
+                                          : 'default'
+                                    }
+                                    size="sm"
+                                    className="font-bold text-xs"
                                   >
-                                    {strength.issue || strength}
-                                  </p>
-                                  {strength.evidence_source_id && (
-                                    <Chip variant="secondary" size="sm" className="mt-1 text-xs">
-                                      Validated by Case #{strength.evidence_source_id}
+                                    {severity.charAt(0).toUpperCase() + severity.slice(1)} severity
+                                  </Chip>
+                                  {gap.evidence_source_id && (
+                                    <Chip variant="secondary" size="sm" className="text-xs">
+                                      Case #{gap.evidence_source_id}
                                     </Chip>
                                   )}
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        </Accordion.Body>
-                      </Accordion.Item>
-                    )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                )}
+              </Accordion>
+            </div>
+          </div>
+        )}
 
-                    {/* Areas for Improvement */}
-                    {gaps.length > 0 && (
-                      <Accordion.Item
-                        value="gaps"
-                        className="rounded-lg overflow-hidden"
-                        style={{
-                          backgroundColor: 'var(--warning-soft)',
-                          borderColor: 'var(--warning)',
-                        }}
-                      >
-                        <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--warning-soft)] transition-colors">
-                          <div className="flex items-center gap-2">
-                            <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
-                            <span
-                              className="text-base font-semibold"
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              Areas for Improvement
-                            </span>
-                            <Chip
-                              variant="primary"
-                              color="warning"
-                              size="sm"
-                              className="ml-2 font-bold"
-                            >
-                              {gaps.length}
-                            </Chip>
-                          </div>
-                        </Accordion.Trigger>
-                        <Accordion.Body className="px-4 pb-4">
-                          <div className="space-y-2">
-                            {gaps.map((gap, i) => {
-                              const severity = gap.severity || 'medium';
-                              const severityColors = {
-                                high: 'var(--danger-soft)',
-                                medium: 'var(--warning-soft)',
-                                low: 'var(--info-soft)',
-                              };
+        <AuditSummaryCard actualResult={actualResult} />
 
-                              return (
-                                <div
-                                  key={i}
-                                  className={`flex gap-2 p-3 rounded-lg border bg-white`}
-                                  style={{
-                                    backgroundColor: 'var(--surface)',
-                                    borderColor: severityColors[severity],
-                                  }}
-                                >
-                                  <AlertCircle
-                                    className="shrink-0 mt-0.5"
-                                    size={16}
-                                    style={{ color: 'var(--warning)' }}
-                                  />
-                                  <div className="flex-1">
-                                    <p
-                                      className="text-sm"
-                                      style={{
-                                        color: 'var(--foreground)',
-                                        fontFamily: 'Inter, system-ui, sans-serif',
-                                      }}
-                                    >
-                                      {(gap.issue || gap).replace(/_/g, ' ')}
-                                    </p>
-                                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                                      <Chip
-                                        variant="primary"
-                                        color={
-                                          severity === 'high'
-                                            ? 'danger'
-                                            : severity === 'medium'
-                                              ? 'warning'
-                                              : 'default'
-                                        }
-                                        size="sm"
-                                        className="font-bold text-xs"
-                                      >
-                                        {severity.charAt(0).toUpperCase() + severity.slice(1)}{' '}
-                                        severity
-                                      </Chip>
-                                      {gap.evidence_source_id && (
-                                        <Chip variant="secondary" size="sm" className="text-xs">
-                                          Case #{gap.evidence_source_id}
-                                        </Chip>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </Accordion.Body>
-                      </Accordion.Item>
-                    )}
-                  </Accordion>
-                </div>
-              </div>
-            )}
-
-            <AuditSummaryCard actualResult={actualResult} />
-
-            <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
-          </Tabs.Panel>
-
-          <Tabs.Panel id="recommendations" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {/* Strengths & Gaps Card - Modern Design */}
-              <div
-                className="border rounded-lg"
+        <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Strengths & Gaps Card - Modern Design */}
+          <div
+            className="border rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-1 sm:p-3">
+              <h3
+                className="text-lg font-semibold mb-1"
                 style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
+                  color: 'var(--foreground)',
                 }}
               >
-                <div className="p-1 sm:p-3">
-                  <h3
-                    className="text-lg font-semibold mb-1"
-                    style={{
-                      color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
-                    }}
-                  >
-                    Strengths & Gaps
-                  </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                    Highlights from your assessment and improvement areas
-                  </p>
-                  <div className="space-y-4">
-                    <div
-                      className="p-4 rounded-xl border"
-                      style={{
-                        background:
-                          'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
-                        borderColor: 'var(--success)',
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 size={16} style={{ color: 'var(--success)' }} />
-                        <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                          Strengths
-                        </p>
-                      </div>
-                      <ul className="space-y-2 text-sm">
-                        {strengths.length > 0 ? (
-                          strengths.map((strength, i) => (
-                            <li key={i} className="flex items-start gap-2 leading-relaxed">
-                              <span
-                                className="font-semibold mt-0.5"
-                                style={{ color: 'var(--foreground)' }}
-                              >
-                                •
-                              </span>
-                              <span
-                                style={{
-                                  color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
-                                }}
-                              >
-                                {strength.issue || strength}
-                                {strength.evidence_source_id && (
-                                  <Chip size="sm" variant="secondary" className="ml-2 text-xs">
-                                    Case #{strength.evidence_source_id}
-                                  </Chip>
-                                )}
-                              </span>
-                            </li>
-                          ))
-                        ) : (
-                          <>
-                            <li className="flex items-start gap-2 leading-relaxed">
-                              <span
-                                className="font-semibold mt-0.5"
-                                style={{ color: 'var(--foreground)' }}
-                              >
-                                •
-                              </span>
-                              <span
-                                style={{
-                                  color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
-                                }}
-                              >
-                                Strong focus on material reuse and recycling
-                              </span>
-                            </li>
-                            <li className="flex items-start gap-2 leading-relaxed">
-                              <span
-                                className="font-semibold mt-0.5"
-                                style={{ color: 'var(--foreground)' }}
-                              >
-                                •
-                              </span>
-                              <span
-                                style={{
-                                  color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
-                                }}
-                              >
-                                Clear value proposition for sustainability
-                              </span>
-                            </li>
-                            <li className="flex items-start gap-2 leading-relaxed">
-                              <span
-                                className="font-semibold mt-0.5"
-                                style={{ color: 'var(--foreground)' }}
-                              >
-                                •
-                              </span>
-                              <span
-                                style={{
-                                  color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
-                                }}
-                              >
-                                Potential for scalable implementation
-                              </span>
-                            </li>
-                          </>
-                        )}
-                      </ul>
-                    </div>
-
-                    {gaps.length > 0 && (
-                      <div
-                        className="p-4 rounded-xl border"
-                        style={{
-                          background:
-                            'linear-gradient(to bottom right, var(--warning-soft), var(--warning-soft))',
-                          borderColor: 'var(--warning)',
-                        }}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle size={16} style={{ color: 'var(--warning)' }} />
-                          <p
-                            className="text-sm font-semibold"
+                Strengths & Gaps
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+                Highlights from your assessment and improvement areas
+              </p>
+              <div className="space-y-4">
+                <div
+                  className="p-4 rounded-xl border"
+                  style={{
+                    background:
+                      'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
+                    borderColor: 'var(--success)',
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 size={16} style={{ color: 'var(--success)' }} />
+                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                      Strengths
+                    </p>
+                  </div>
+                  <ul className="space-y-2 text-sm">
+                    {strengths.length > 0 ? (
+                      strengths.map((strength, i) => (
+                        <li key={i} className="flex items-start gap-2 leading-relaxed">
+                          <span
+                            className="font-semibold mt-0.5"
                             style={{ color: 'var(--foreground)' }}
                           >
-                            Areas for Improvement
-                          </p>
-                        </div>
-                        <ul className="space-y-2 text-sm">
-                          {gaps.map((gap, i) => (
-                            <li key={i} className="flex items-start gap-2 leading-relaxed">
-                              <span
-                                className="font-semibold mt-0.5"
-                                style={{ color: 'var(--foreground)' }}
-                              >
-                                •
-                              </span>
-                              <span
-                                style={{
-                                  color: 'var(--foreground)',
-                                  fontFamily: 'Inter, system-ui, sans-serif',
-                                }}
-                              >
-                                {gap.issue || gap}
-                                {gap.evidence_source_id && (
-                                  <Chip size="sm" variant="secondary" className="ml-2 text-xs">
-                                    Case #{gap.evidence_source_id}
-                                  </Chip>
-                                )}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                            •
+                          </span>
+                          <span
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            {strength.issue || strength}
+                            {strength.evidence_source_id && (
+                              <Chip size="sm" variant="secondary" className="ml-2 text-xs">
+                                Case #{strength.evidence_source_id}
+                              </Chip>
+                            )}
+                          </span>
+                        </li>
+                      ))
+                    ) : (
+                      <>
+                        <li className="flex items-start gap-2 leading-relaxed">
+                          <span
+                            className="font-semibold mt-0.5"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            •
+                          </span>
+                          <span
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            Strong focus on material reuse and recycling
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2 leading-relaxed">
+                          <span
+                            className="font-semibold mt-0.5"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            •
+                          </span>
+                          <span
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            Clear value proposition for sustainability
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2 leading-relaxed">
+                          <span
+                            className="font-semibold mt-0.5"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            •
+                          </span>
+                          <span
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            Potential for scalable implementation
+                          </span>
+                        </li>
+                      </>
                     )}
-                  </div>
+                  </ul>
                 </div>
-              </div>
 
-              {/* Recommendations Card - Modern Design */}
-              <div
-                className="border rounded-lg"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div className="p-1 sm:p-3">
-                  <h3
-                    className="text-lg font-semibold mb-1"
-                    style={{
-                      color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
-                    }}
-                  >
-                    Recommendations
-                  </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                    Targeted steps to improve your circularity score
-                  </p>
-
+                {gaps.length > 0 && (
                   <div
                     className="p-4 rounded-xl border"
                     style={{
                       background:
-                        'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
-                      borderColor: 'var(--accent)',
+                        'linear-gradient(to bottom right, var(--warning-soft), var(--warning-soft))',
+                      borderColor: 'var(--warning)',
                     }}
                   >
-                    <ul className="space-y-3 text-sm">
-                      {actualResult.audit?.technical_recommendations?.length > 0 ? (
-                        actualResult.audit.technical_recommendations.map((rec, i) => (
-                          <li key={i} className="flex items-start gap-2 leading-relaxed">
-                            <span
-                              className="font-semibold mt-0.5"
-                              style={{ color: 'var(--accent)' }}
-                            >
-                              •
-                            </span>
-                            <span
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              {rec}
-                            </span>
-                          </li>
-                        ))
-                      ) : (
-                        <>
-                          <li className="flex items-start gap-2 leading-relaxed">
-                            <span
-                              className="font-semibold mt-0.5"
-                              style={{ color: 'var(--accent)' }}
-                            >
-                              •
-                            </span>
-                            <span
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              Consider incorporating predictive maintenance strategies
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2 leading-relaxed">
-                            <span
-                              className="font-semibold mt-0.5"
-                              style={{ color: 'var(--accent)' }}
-                            >
-                              •
-                            </span>
-                            <span
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              Explore partnerships with recycling facilities
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2 leading-relaxed">
-                            <span
-                              className="font-semibold mt-0.5"
-                              style={{ color: 'var(--accent)' }}
-                            >
-                              •
-                            </span>
-                            <span
-                              style={{
-                                color: 'var(--foreground)',
-                                fontFamily: 'Inter, system-ui, sans-serif',
-                              }}
-                            >
-                              Develop metrics for tracking circularity performance
-                            </span>
-                          </li>
-                        </>
-                      )}
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle size={16} style={{ color: 'var(--warning)' }} />
+                      <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                        Areas for Improvement
+                      </p>
+                    </div>
+                    <ul className="space-y-2 text-sm">
+                      {gaps.map((gap, i) => (
+                        <li key={i} className="flex items-start gap-2 leading-relaxed">
+                          <span
+                            className="font-semibold mt-0.5"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            •
+                          </span>
+                          <span
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            {gap.issue || gap}
+                            {gap.evidence_source_id && (
+                              <Chip size="sm" variant="secondary" className="ml-2 text-xs">
+                                Case #{gap.evidence_source_id}
+                              </Chip>
+                            )}
+                          </span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
-                </div>
+                )}
               </div>
             </div>
-          </Tabs.Panel>
-        </Tabs>
+          </div>
+
+          {/* Recommendations Card - Modern Design */}
+          <div
+            className="border rounded-lg"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-1 sm:p-3">
+              <h3
+                className="text-lg font-semibold mb-1"
+                style={{
+                  color: 'var(--foreground)',
+                }}
+              >
+                Recommendations
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+                Targeted steps to improve your circularity score
+              </p>
+
+              <div
+                className="p-4 rounded-xl border"
+                style={{
+                  background:
+                    'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
+                  borderColor: 'var(--accent)',
+                }}
+              >
+                <ul className="space-y-3 text-sm">
+                  {actualResult.audit?.technical_recommendations?.length > 0 ? (
+                    actualResult.audit.technical_recommendations.map((rec, i) => (
+                      <li key={i} className="flex items-start gap-2 leading-relaxed">
+                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
+                          •
+                        </span>
+                        <span
+                          style={{
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          {rec}
+                        </span>
+                      </li>
+                    ))
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-2 leading-relaxed">
+                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
+                          •
+                        </span>
+                        <span
+                          style={{
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          Consider incorporating predictive maintenance strategies
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2 leading-relaxed">
+                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
+                          •
+                        </span>
+                        <span
+                          style={{
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          Explore partnerships with recycling facilities
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2 leading-relaxed">
+                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
+                          •
+                        </span>
+                        <span
+                          style={{
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          Develop metrics for tracking circularity performance
+                        </span>
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       {/* </ScrollShadow> */}
     </>

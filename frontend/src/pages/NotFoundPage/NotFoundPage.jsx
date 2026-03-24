@@ -22,9 +22,7 @@ export default function NotFoundPage() {
           >
             <span
               className="text-sm font-semibold uppercase tracking-[0.35em]"
-              style={{
-                fontFamily: 'Inter, system-ui, sans-serif',
-              }}
+              style={{ color: 'var(--foreground)' }}
             >
               Circular Economy Auditor
             </span>
@@ -34,7 +32,6 @@ export default function NotFoundPage() {
             className="mt-6 text-5xl font-bold"
             style={{
               color: 'var(--foreground)',
-              fontFamily: 'Lora, Georgia, serif',
             }}
           >
             404
@@ -43,7 +40,6 @@ export default function NotFoundPage() {
             className="text-lg mt-2"
             style={{
               color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             Page Not Found
@@ -54,7 +50,6 @@ export default function NotFoundPage() {
             className="mx-auto text-base"
             style={{
               color: 'var(--muted)',
-              fontFamily: 'Inter, system-ui, sans-serif',
             }}
           >
             The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
@@ -83,16 +78,14 @@ export default function NotFoundPage() {
                   className="text-sm font-semibold"
                   style={{
                     color: 'var(--foreground)',
-                    fontFamily: 'Lora, Georgia, serif',
                   }}
                 >
-                  Need guidance?
+                  Review past work
                 </p>
                 <p
                   className="text-xs"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   Visit the dashboard to evaluate a new business idea.
@@ -114,16 +107,14 @@ export default function NotFoundPage() {
                   className="text-sm font-semibold"
                   style={{
                     color: 'var(--foreground)',
-                    fontFamily: 'Lora, Georgia, serif',
                   }}
                 >
-                  Review past work
+                  Need guidance?
                 </p>
                 <p
                   className="text-xs"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   Jump to your saved assessments and comparisons.
@@ -135,19 +126,11 @@ export default function NotFoundPage() {
           <div className="w-full h-px my-4" style={{ backgroundColor: 'var(--border)' }} />
 
           <div className="flex flex-wrap justify-center gap-3">
-            <Button
-              onPress={() => navigate('/')}
-              variant="tertiary"
-              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
-            >
+            <Button onPress={() => navigate('/')} variant="tertiary">
               <ArrowLeft size={16} />
               Return Home
             </Button>
-            <Button
-              variant="tertiary"
-              onPress={() => navigate('/assessments')}
-              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
-            >
+            <Button variant="tertiary" onPress={() => navigate('/assessments')}>
               <BarChart3 size={16} />
               My Assessments
             </Button>

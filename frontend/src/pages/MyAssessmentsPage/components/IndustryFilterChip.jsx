@@ -21,7 +21,7 @@ const IndustryFilterChip = React.memo(function IndustryFilterChip({
         'border font-medium',
         isSelected
           ? `${theme.selectedBg} ${theme.selectedText} ${theme.selectedBorder}`
-          : `bg-white ${theme.unselectedText} ${theme.unselectedBorder}`,
+          : `bg-[var(--surface)] ${theme.unselectedText} ${theme.unselectedBorder}`,
         !isSelected && theme.hoverClasses,
       )}
       aria-pressed={isSelected}

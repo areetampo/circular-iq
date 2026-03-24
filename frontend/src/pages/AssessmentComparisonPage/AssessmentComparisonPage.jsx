@@ -1,4 +1,4 @@
-import { Button, Chip, Label, ListBox, Select, Tabs } from '@heroui/react';
+import { Button, Chip } from '@heroui/react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Upload,
 } from 'lucide-react';
-import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -20,18 +19,11 @@ import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV } from '@/features/export';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 
-import {
-  ComparisonSkeleton,
-  DatabaseEvidenceTab,
-  DetailsTab,
-  FactorAnalysisTab,
-  OverviewTab,
-} from './components';
+import { ComparisonSkeleton, DatabaseEvidenceTab } from './components';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
   const params = useParams();
-  const [selectedTab, setSelectedTab] = useState('overview');
 
   // Support both URL params (/assessments/compare/:publicId1/:publicId2) and query params (?publicId1=...&publicId2=...)
   const publicId1 =
@@ -264,9 +256,30 @@ export default function AssessmentComparisonPage() {
   ];
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-0 w-full">
+      {/* STICKY COMPARISON HEADER */}
+      <div
+        className="sticky top-14 z-40 w-full border-b transition-all duration-200 blur-md"
+        style={{ backgroundColor: 'oklch(0.97 0.012 80 / 0.9)', borderColor: 'var(--border)' }}
+      >
+        <div className="grid grid-cols-2 gap-4 max-w-6xl mx-auto">
+          <div className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
+            {assessment1.title}
+            <span className="ml-2 font-mono text-xs" style={{ color: 'var(--muted)' }}>
+              {scoringResult1?.overall_score || 0}/100
+            </span>
+          </div>
+          <div className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
+            {assessment2.title}
+            <span className="ml-2 font-mono text-xs" style={{ color: 'var(--muted)' }}>
+              {scoringResult2?.overall_score || 0}/100
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Assessment Headers */}
-      <div className="w-full px-4 md:px-10">
+      <div className="w-full px-4 md:px-10 pt-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
           <div
             className="border-2 shadow-md rounded-xl hover:shadow-lg transition-all duration-300"
@@ -280,7 +293,6 @@ export default function AssessmentComparisonPage() {
                 className="text-lg font-bold wrap-break-word"
                 style={{
                   color: 'var(--foreground)',
-                  fontFamily: 'Lora, Georgia, serif',
                 }}
               >
                 {assessment1.title}
@@ -349,7 +361,6 @@ export default function AssessmentComparisonPage() {
                 className="text-lg font-bold wrap-break-word"
                 style={{
                   color: 'var(--foreground)',
-                  fontFamily: 'Lora, Georgia, serif',
                 }}
               >
                 {assessment2.title}
@@ -390,134 +401,192 @@ export default function AssessmentComparisonPage() {
         </div>
       </div>
 
-      {/* Tabbed Content */}
-      <Tabs
-        selectedKey={selectedTab}
-        onSelectionChange={(key) => setSelectedTab(key)}
-        variant="primary"
-        className="max-w-7xl mx-auto px-0 sm:px-6 w-full"
-      >
-        {/* Mobile Select Dropdown */}
-        <div className="md:hidden my-4 w-full flex items-center justify-center px-4">
-          <Select
-            value={selectedTab}
-            onChange={setSelectedTab}
-            className="w-2/5"
-            placeholder="View Section"
-          >
-            <Label className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
-              View Section
-            </Label>
-            <Select.Trigger className="mt-2">
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                <ListBox.Item id="overview" textValue="Overview">
-                  Overview
-                </ListBox.Item>
-                <ListBox.Item id="analysis" textValue="Factor Analysis">
-                  Factor Analysis
-                </ListBox.Item>
-                <ListBox.Item id="details" textValue="Details">
-                  Details
-                </ListBox.Item>
-                <ListBox.Item id="evidence" textValue="Database Evidence">
-                  Database Evidence
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
+      {/* Vertical Content - 2 column layout */}
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 space-y-8">
+        {/* Overview Section */}
+        <div className="w-full">
+          {/* Section heading */}
+          <div className="border-b border-border pb-3 mb-6">
+            <span className="label-overline">OVERVIEW</span>
+          </div>
+
+          {/* 2-column split */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0 lg:divide-x divide-border">
+            <div className="lg:pr-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Assessment 1
+                </h3>
+                <div className="space-y-2">
+                  <p style={{ color: 'var(--muted)' }}>
+                    Score: {scoringResult1?.overall_score || 0}/100
+                  </p>
+                  <p style={{ color: 'var(--muted)' }}>
+                    Confidence: {scoringResult1?.confidence_level || 0}%
+                  </p>
+                  <p style={{ color: 'var(--muted)' }}>
+                    Created: {formatTimestamp(assessment1.created_at)}
+                  </p>
+                </div>
+                {insights
+                  .filter((i) => i.type === 'positive')
+                  .map((insight, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <insight.icon size={16} style={{ color: 'var(--success)' }} />
+                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>
+                        {insight.text}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+            <div className="lg:pl-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Assessment 2
+                </h3>
+                <div className="space-y-2">
+                  <p style={{ color: 'var(--muted)' }}>
+                    Score: {scoringResult2?.overall_score || 0}/100
+                  </p>
+                  <p style={{ color: 'var(--muted)' }}>
+                    Confidence: {scoringResult2?.confidence_level || 0}%
+                  </p>
+                  <p style={{ color: 'var(--muted)' }}>
+                    Created: {formatTimestamp(assessment2.created_at)}
+                  </p>
+                </div>
+                {insights
+                  .filter((i) => i.type === 'negative')
+                  .map((insight, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <insight.icon size={16} style={{ color: 'var(--warning)' }} />
+                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>
+                        {insight.text}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Desktop Tabs */}
-        <div className="my-4 hidden md:flex justify-center">
-          <Tabs.List
-            aria-label="Comparison sections"
-            className="border-2 rounded-full shadow-sm font-semibold"
-            style={{
-              background: 'linear-gradient(to right, var(--success-soft), var(--accent-soft))',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <Tabs.Tab id="overview">Overview</Tabs.Tab>
-            <Tabs.Tab id="analysis">Factor Analysis</Tabs.Tab>
-            <Tabs.Tab id="details">Details</Tabs.Tab>
-            <Tabs.Tab id="evidence">Database Evidence</Tabs.Tab>
-          </Tabs.List>
+        <div className="divider-warm my-10" />
+
+        {/* Factor Analysis Section */}
+        <div className="w-full">
+          {/* Section heading */}
+          <div className="border-b border-border pb-3 mb-6">
+            <span className="label-overline">FACTOR ANALYSIS</span>
+          </div>
+
+          {/* 2-column split */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0 lg:divide-x divide-border">
+            <div className="lg:pr-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Assessment 1 Performance
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(scoringResult1?.sub_scores || {}).map(([factor, score]) => (
+                    <div key={factor} className="flex justify-between">
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
+                        {titleize(factor)}
+                      </span>
+                      <span className="text-sm font-mono" style={{ color: 'var(--foreground)' }}>
+                        {score}/100
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="lg:pl-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Assessment 2 Performance
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(scoringResult2?.sub_scores || {}).map(([factor, score]) => (
+                    <div key={factor} className="flex justify-between">
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
+                        {titleize(factor)}
+                      </span>
+                      <span className="text-sm font-mono" style={{ color: 'var(--foreground)' }}>
+                        {score}/100
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* OVERVIEW TAB */}
-        <Tabs.Panel id="overview" className="w-full px-0 md:px-4 space-y-8">
-          <OverviewTab
-            assessment1={assessment1}
-            assessment2={assessment2}
-            scoringResult1={scoringResult1}
-            scoringResult2={scoringResult2}
-            insights={insights}
-            overallDelta={overallDelta}
-            biggestGain={biggestGain}
-            biggestDrop={biggestDrop}
-            averageDelta={averageDelta}
-          />
-        </Tabs.Panel>
+        <div className="divider-warm my-10" />
 
-        {/* ANALYSIS TAB */}
-        <Tabs.Panel id="analysis" className="w-full px-0 md:px-4 space-y-8">
-          <FactorAnalysisTab
-            assessment1={assessment1}
-            assessment2={assessment2}
-            scoringResult1={scoringResult1}
-            scoringResult2={scoringResult2}
-            factorDiffs={factorDiffs}
-            radarChartData={radarChartData}
-            radarConfigs={radarConfigs}
-            barChartData={barChartData}
-            barConfigs={barConfigs}
-            getScoreColor={getScoreColor}
-          />
-        </Tabs.Panel>
+        {/* Database Evidence Section */}
+        <div className="w-full">
+          {/* Section heading */}
+          <div className="border-b border-border pb-3 mb-6">
+            <span className="label-overline">DATABASE EVIDENCE</span>
+          </div>
 
-        {/* DETAILS TAB */}
-        <Tabs.Panel id="details" className="w-full px-4 sm:px-8 space-y-8">
-          <DetailsTab
-            assessment1={assessment1}
-            assessment2={assessment2}
-            scoringResult1={scoringResult1}
-            scoringResult2={scoringResult2}
-          />
-        </Tabs.Panel>
+          {/* 2-column split */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0 lg:divide-x divide-border">
+            <div className="lg:pr-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Assessment 1 Evidence
+                </h3>
+                <DatabaseEvidenceTab
+                  assessment1={assessment1}
+                  assessment2={null}
+                  scoringResult1={scoringResult1}
+                  scoringResult2={null}
+                  openResultsDatabaseEvidenceDetailsDrawer={
+                    openResultsDatabaseEvidenceDetailsDrawer
+                  }
+                />
+              </div>
+            </div>
+            <div className="lg:pl-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  Assessment 2 Evidence
+                </h3>
+                <DatabaseEvidenceTab
+                  assessment1={null}
+                  assessment2={assessment2}
+                  scoringResult1={null}
+                  scoringResult2={scoringResult2}
+                  openResultsDatabaseEvidenceDetailsDrawer={
+                    openResultsDatabaseEvidenceDetailsDrawer
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {/* DATABASE EVIDENCE TAB */}
-        <Tabs.Panel id="evidence" className="w-full px-4 sm:px-8 space-y-8">
-          <DatabaseEvidenceTab
-            assessment1={assessment1}
-            assessment2={assessment2}
-            scoringResult1={scoringResult1}
-            scoringResult2={scoringResult2}
-            openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
-          />
-        </Tabs.Panel>
-      </Tabs>
-
-      {/* Footer */}
-      <div
-        className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
-          Last updated: {getCurrentTimestampFormatted()}
-        </p>
-        <div className="flex gap-2">
-          <Button color="success" onClick={() => exportComparisonCSV([assessment1, assessment2])}>
-            <Upload size={16} />
-            Export CSV
-          </Button>
-          <Button variant="bordered" onClick={handleBack}>
-            <ArrowLeft size={16} />
-            Back to Assessments
-          </Button>
+        {/* Footer */}
+        <div
+          className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+            Last updated: {getCurrentTimestampFormatted()}
+          </p>
+          <div className="flex gap-2">
+            <Button color="success" onClick={() => exportComparisonCSV([assessment1, assessment2])}>
+              <Upload size={16} />
+              Export CSV
+            </Button>
+            <Button variant="bordered" onClick={handleBack}>
+              <ArrowLeft size={16} />
+              Back to Assessments
+            </Button>
+          </div>
         </div>
       </div>
     </div>

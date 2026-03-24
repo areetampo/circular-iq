@@ -28,22 +28,27 @@ export default function ChoiceCardSwitch({
 }) {
   const variants = {
     emerald: {
-      selected: 'bg-linear-to-br from-emerald-50 to-teal-50 border-emerald-300 shadow-sm',
-      unselected: 'bg-slate-50 border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/50',
-      iconSelected: 'text-emerald-600',
-      iconUnselected: 'text-slate-600 group-hover/toggle:text-emerald-600',
+      selected:
+        'bg-linear-to-br from-[var(--success-soft)] to-[var(--info-soft)] border-[var(--success)] shadow-sm',
+      unselected:
+        'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--success)] hover:bg-[var(--success-soft)]/50',
+      iconSelected: 'text-[var(--success)]',
+      iconUnselected: 'text-[var(--muted)] group-hover/toggle:text-[var(--success)]',
     },
     blue: {
-      selected: 'bg-linear-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-sm',
-      unselected: 'bg-slate-50 border-slate-200 hover:border-blue-200 hover:bg-blue-50/50',
-      iconSelected: 'text-blue-600',
-      iconUnselected: 'text-slate-600 group-hover/toggle:text-blue-600',
+      selected:
+        'bg-linear-to-br from-[var(--info-soft)] to-[var(--accent-soft)] border-[var(--info)] shadow-sm',
+      unselected:
+        'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--info)] hover:bg-[var(--info-soft)]/50',
+      iconSelected: 'text-[var(--info)]',
+      iconUnselected: 'text-[var(--muted)] group-hover/toggle:text-[var(--info)]',
     },
     default: {
-      selected: 'bg-slate-50 border-slate-200 shadow-sm',
-      unselected: 'bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-50/50',
-      iconSelected: 'text-slate-700',
-      iconUnselected: 'text-slate-600',
+      selected: 'bg-[var(--surface)] border-[var(--border)] shadow-sm',
+      unselected:
+        'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--surface-raised)]/50',
+      iconSelected: 'text-[var(--foreground)]',
+      iconUnselected: 'text-[var(--muted)]',
     },
   };
 
@@ -91,12 +96,12 @@ export default function ChoiceCardSwitch({
             )}
 
             <div className="flex-1 min-w-0">
-              <div className="text-sm sm:text-base font-semibold text-slate-900 truncate">
+              <div className="text-sm sm:text-base font-semibold text-[var(--foreground)] truncate">
                 {title}
               </div>
               <div className="flex items-center gap-0.5">
                 {description && (
-                  <div className="text-xs sm:text-sm text-slate-600 whitespace-normal">
+                  <div className="text-xs sm:text-sm text-[var(--muted)] whitespace-normal">
                     {description}
                   </div>
                 )}

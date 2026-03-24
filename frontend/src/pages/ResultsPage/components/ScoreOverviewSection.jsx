@@ -3,7 +3,7 @@ import { BarChart3, Globe, Lightbulb, Lock, Target, TrendingUp } from 'lucide-re
 import PropTypes from 'prop-types';
 
 import { titleize } from '@/lib/formatting';
-import { getRiskBadgeColor, getScoreClass } from '@/lib/scoring';
+import { getRiskBadgeColor } from '@/lib/scoring';
 
 export function ScoreOverviewSection({
   actualResult,
@@ -23,95 +23,185 @@ export function ScoreOverviewSection({
   return (
     <>
       {/* Executive Summary */}
-      <Card className="border border-slate-300 shadow-sm rounded-xl bg-white">
-        <div className="p-1 sm:p-3">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900">Executive Summary</h2>
-                {isViewFromMyAssessments && currentData && (
-                  <Chip variant="secondary" size="sm" className="gap-1 ml-1">
-                    {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) ===
-                    false ? (
-                      <>
-                        <Lock size={12} />
-                        Private
-                      </>
-                    ) : (
-                      <>
-                        <Globe size={12} />
-                        Contributing
-                      </>
-                    )}
-                  </Chip>
-                )}
-              </div>
-              {actualResult.metadata?.short_description && (
-                <p className="text-sm text-slate-600 mb-2">
-                  {actualResult.metadata.short_description}
-                </p>
-              )}
-              <p className="text-sm text-slate-600">
-                AI-powered circularity assessment and recommendations
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Chip
-                variant="soft"
-                color="warning"
-                size="sm"
-                className="font-semibold text-xs px-3 py-1"
-              >
-                Confidence: {actualResult.confidence_level || 0}%
-              </Chip>
-              {actualResult.processing_info?.processing_time_ms && (
-                <Chip variant="secondary" size="sm" className="text-xs">
-                  Analysed in {(actualResult.processing_info.processing_time_ms / 1000).toFixed(1)}s
+      <Card
+        className="border rounded-2xl p-6 sm:p-8 mb-2"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h2 className="text-lg sm:text-xl font-bold" style={{ color: 'var(--foreground)' }}>
+                Executive Summary
+              </h2>
+              {isViewFromMyAssessments && currentData && (
+                <Chip variant="secondary" size="sm" className="gap-1 ml-1">
+                  {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) ===
+                  false ? (
+                    <>
+                      <Lock size={12} />
+                      Private
+                    </>
+                  ) : (
+                    <>
+                      <Globe size={12} />
+                      Contributing
+                    </>
+                  )}
                 </Chip>
               )}
             </div>
+            {actualResult.metadata?.short_description && (
+              <p className="text-sm mb-2" style={{ color: 'var(--muted)' }}>
+                {actualResult.metadata.short_description}
+              </p>
+            )}
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>
+              AI-powered circularity assessment and recommendations
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Chip
+              variant="soft"
+              color="warning"
+              size="sm"
+              className="font-semibold text-xs px-3 py-1"
+            >
+              Confidence: {actualResult.confidence_level || 0}%
+            </Chip>
+            {actualResult.processing_info?.processing_time_ms && (
+              <Chip variant="secondary" size="sm" className="text-xs">
+                Analysed in {(actualResult.processing_info.processing_time_ms / 1000).toFixed(1)}s
+              </Chip>
+            )}
+          </div>
+        </div>
+
+        {actualResult.audit?.audit_verdict && (
+          <div
+            className="mb-4 pl-4 py-3 pr-3 rounded-r"
+            style={{
+              borderLeft: '4px solid var(--success)',
+              backgroundColor: 'var(--success-soft)',
+            }}
+          >
+            <p className="text-sm text-[var(--muted)] leading-relaxed">
+              {actualResult.audit.audit_verdict}
+            </p>
+          </div>
+        )}
+
+        {actualResult.audit?.comparative_analysis && (
+          <div
+            className="mb-4 pl-4 py-3 pr-3 rounded-r"
+            style={{ borderLeft: '4px solid var(--info)', backgroundColor: 'var(--info-soft)' }}
+          >
+            <p className="text-xs font-semibold uppercase mb-1" style={{ color: 'var(--info)' }}>
+              Key Finding
+            </p>
+            <p className="text-sm text-[var(--muted)] leading-relaxed">
+              {actualResult.audit.comparative_analysis}
+            </p>
+          </div>
+        )}
+
+        {/* Score hero block */}
+        <div
+          className="border rounded-2xl p-6 sm:p-8 mb-2"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
+          {/* CE tier badge */}
+          <span className="chip chip-accent-soft inline-block mb-4">
+            {actualResult.metadata?.tier || 'UNRATED'}
+          </span>
+
+          {/* Big score */}
+          <div className="flex items-end gap-2 mb-6">
+            <span
+              className="metric-value text-[72px] leading-none"
+              style={{
+                color:
+                  overallScore >= 75
+                    ? 'var(--success)'
+                    : overallScore >= 50
+                      ? 'var(--warning)'
+                      : 'var(--danger)',
+              }}
+            >
+              {overallScore}
+            </span>
+            <span className="text-[20px] mb-2" style={{ color: 'var(--muted)' }}>
+              / 100
+            </span>
           </div>
 
-          {actualResult.audit?.audit_verdict && (
-            <div className="mb-4 pl-4 border-l-4 border-emerald-500 bg-emerald-50 py-3 pr-3 rounded-r">
-              <p className="text-sm text-slate-700 leading-relaxed">
-                {actualResult.audit.audit_verdict}
-              </p>
-            </div>
-          )}
+          {/* 4 stat pills */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'Confidence', value: actualResult.confidence },
+              { label: 'Tech Feasibility', value: actualResult.tech_feasibility },
+              { label: 'Economic Viability', value: actualResult.economic_viability },
+              { label: 'Circularity', value: actualResult.circularity },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                className="border rounded-xl p-3 text-center"
+                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-raised)' }}
+              >
+                <div className="metric-value text-[18px]">{value ?? '—'}</div>
+                <div className="label-overline mt-1">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {actualResult.audit?.comparative_analysis && (
-            <div className="mb-4 pl-4 border-l-4 border-blue-500 bg-blue-50 py-3 pr-3 rounded-r">
-              <p className="text-xs font-semibold text-blue-900 uppercase mb-1">Key Finding</p>
-              <p className="text-sm text-slate-700 leading-relaxed">
-                {actualResult.audit.comparative_analysis}
-              </p>
-            </div>
-          )}
+        {/* 3 analysis cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div
+            className="p-4 rounded-lg"
+            style={{
+              background:
+                'linear-gradient(to bottom right, var(--info-soft), transparent, var(--info-soft))',
+              border: '2px solid var(--info)',
+            }}
+          >
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+              Database Cases Analyzed
+            </p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--info)' }}>
+              {casesSummaries.length || 0}
+            </p>
+          </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="p-4 bg-linear-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-lg">
-              <p className="text-xs text-slate-600 mb-1">Overall Score</p>
-              <p className={`text-3xl font-bold ${getScoreClass(overallScore)}`}>
-                {overallScore}
-                <span className="text-lg text-slate-500">/100</span>
-              </p>
-            </div>
+          <div
+            className="p-4 rounded-lg"
+            style={{
+              background:
+                'linear-gradient(to bottom right, var(--success-soft), transparent, var(--success-soft))',
+              border: '2px solid var(--success)',
+            }}
+          >
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+              Strengths Identified
+            </p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--success)' }}>
+              {strengths.length || 0}
+            </p>
+          </div>
 
-            <div className="p-4 bg-linear-to-br from-blue-50 to-white border-2 border-blue-200 rounded-lg">
-              <p className="text-xs text-slate-600 mb-1">Database Cases Analyzed</p>
-              <p className="text-3xl font-bold text-blue-700">{casesSummaries.length || 0}</p>
-            </div>
-
-            <div className="p-4 bg-linear-to-br from-green-50 to-white border-2 border-green-200 rounded-lg">
-              <p className="text-xs text-slate-600 mb-1">Strengths Identified</p>
-              <p className="text-3xl font-bold text-green-700">{strengths.length || 0}</p>
-            </div>
-
-            <div className="p-4 bg-linear-to-br from-orange-50 to-white border-2 border-orange-200 rounded-lg">
-              <p className="text-xs text-slate-600 mb-1">Improvement Areas</p>
-              <p className="text-3xl font-bold text-orange-700">{gaps.length || 0}</p>
-            </div>
+          <div
+            className="p-4 rounded-lg"
+            style={{
+              background:
+                'linear-gradient(to bottom right, var(--warning-soft), transparent, var(--warning-soft))',
+              border: '2px solid var(--warning)',
+            }}
+          >
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+              Improvement Areas
+            </p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--warning)' }}>
+              {gaps.length || 0}
+            </p>
           </div>
         </div>
       </Card>
@@ -203,7 +293,7 @@ export function ScoreOverviewSection({
                     </Card.Title>
                   </Card.Header>
                   <Card.Content className="-mt-1">
-                    <p className="text-xs text-slate-700 leading-relaxed">{tip.description}</p>
+                    <p className="text-xs text-[var(--muted)] leading-relaxed">{tip.description}</p>
                   </Card.Content>
                 </Card>
               ))}

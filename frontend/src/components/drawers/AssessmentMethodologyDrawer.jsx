@@ -50,7 +50,6 @@ export default function AssessmentMethodologyDrawer() {
                       className="text-base font-semibold"
                       style={{
                         color: 'var(--foreground)',
-                        fontFamily: 'Lora, Georgia, serif',
                       }}
                     >
                       Assessment Methodology
@@ -59,7 +58,6 @@ export default function AssessmentMethodologyDrawer() {
                       className="text-xs mt-0.5"
                       style={{
                         color: 'var(--muted)',
-                        fontFamily: 'Inter, system-ui, sans-serif',
                       }}
                     >
                       Our AI-powered evaluation framework
@@ -76,7 +74,6 @@ export default function AssessmentMethodologyDrawer() {
                 className="text-sm leading-relaxed"
                 style={{
                   color: 'var(--muted)',
-                  fontFamily: 'Inter, system-ui, sans-serif',
                 }}
               >
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
@@ -127,7 +124,6 @@ export default function AssessmentMethodologyDrawer() {
                         className="text-sm font-bold leading-snug"
                         style={{
                           color: 'var(--foreground)',
-                          fontFamily: 'Lora, Georgia, serif',
                         }}
                       >
                         {item.title}
@@ -136,7 +132,6 @@ export default function AssessmentMethodologyDrawer() {
                         className="text-xs leading-relaxed"
                         style={{
                           color: 'var(--muted)',
-                          fontFamily: 'Inter, system-ui, sans-serif',
                         }}
                       >
                         {item.description}
@@ -166,7 +161,6 @@ export default function AssessmentMethodologyDrawer() {
                     className="text-sm font-bold leading-snug"
                     style={{
                       color: 'var(--success)',
-                      fontFamily: 'Lora, Georgia, serif',
                     }}
                   >
                     Data Source
@@ -175,7 +169,6 @@ export default function AssessmentMethodologyDrawer() {
                     className="text-xs leading-relaxed"
                     style={{
                       color: 'var(--muted)',
-                      fontFamily: 'Inter, system-ui, sans-serif',
                     }}
                   >
                     <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
@@ -209,7 +202,6 @@ export default function AssessmentMethodologyDrawer() {
                   className="text-xs leading-relaxed"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>

@@ -78,7 +78,6 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
                 className="text-sm font-bold mb-1"
                 style={{
                   color: 'var(--foreground)',
-                  fontFamily: 'Lora, Georgia, serif',
                 }}
               >
                 Opportunities to Improve
@@ -99,7 +98,6 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
                 className="text-sm font-bold mb-1"
                 style={{
                   color: 'var(--foreground)',
-                  fontFamily: 'Lora, Georgia, serif',
                 }}
               >
                 Strengths

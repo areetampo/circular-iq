@@ -582,7 +582,6 @@ export default function MyAssessmentsPage() {
                         className="text-4xl font-black"
                         style={{
                           color: 'var(--foreground)',
-                          fontFamily: 'Lora, Georgia, serif',
                         }}
                       >
                         {averageScore}
@@ -601,7 +600,6 @@ export default function MyAssessmentsPage() {
                           className="text-lg font-bold"
                           style={{
                             color: 'var(--foreground)',
-                            fontFamily: 'Inter, system-ui, sans-serif',
                           }}
                         >
                           {highestScore}
@@ -619,7 +617,6 @@ export default function MyAssessmentsPage() {
                           className="text-lg font-bold"
                           style={{
                             color: 'var(--foreground)',
-                            fontFamily: 'Inter, system-ui, sans-serif',
                           }}
                         >
                           {lowestScore}
@@ -657,7 +654,6 @@ export default function MyAssessmentsPage() {
                       className="text-2xl font-bold leading-tight"
                       style={{
                         color: 'var(--foreground)',
-                        fontFamily: 'Lora, Georgia, serif',
                       }}
                     >
                       {topIndustries && topIndustries.length > 0
@@ -778,7 +774,6 @@ export default function MyAssessmentsPage() {
                     className="font-bold text-2xl mb-3"
                     style={{
                       color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
                     }}
                   >
                     No assessments yet
@@ -820,7 +815,6 @@ export default function MyAssessmentsPage() {
                     className="font-bold text-2xl mb-3"
                     style={{
                       color: 'var(--foreground)',
-                      fontFamily: 'Lora, Georgia, serif',
                     }}
                   >
                     No assessments found

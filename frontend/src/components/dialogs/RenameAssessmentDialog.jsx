@@ -111,7 +111,6 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                   className="text-sm font-medium"
                   style={{
                     color: 'var(--muted)',
-                    fontFamily: 'Inter, system-ui, sans-serif',
                   }}
                 >
                   Update the assessment name to make it easier to find later.
