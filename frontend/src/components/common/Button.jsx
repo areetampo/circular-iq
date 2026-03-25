@@ -23,40 +23,41 @@ const sizeStyles = {
 const customVariantStyles = {
   // Success/Eco variant - Green theme for positive/eco actions
   success:
-    'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 data-[focus-visible=true]:outline-emerald-500 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
+    'bg-[var(--success)] text-white hover:bg-[var(--success)]/90 active:bg-[var(--success)]/80 data-[focus-visible=true]:outline-[var(--success)] data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
 
   // Eco-soft variant - Soft green theme
   'eco-soft':
-    'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 active:bg-emerald-200 data-[focus-visible=true]:outline-emerald-500 data-[disabled=true]:bg-emerald-50 data-[disabled=true]:text-emerald-300 data-[disabled=true]:opacity-70',
+    'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success)]/30 hover:bg-[var(--success-soft)]/80 hover:border-[var(--success)]/50 active:bg-[var(--success-soft)]/60 data-[focus-visible=true]:outline-[var(--success)] data-[disabled=true]:bg-[var(--success-soft)] data-[disabled=true]:text-[var(--success)]/50 data-[disabled=true]:opacity-70',
 
   // Info variant - Blue theme for informational actions
-  info: 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 data-[focus-visible=true]:outline-blue-500 data-[disabled=true]:bg-blue-400 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
+  info: 'bg-[var(--info)] text-white hover:bg-[var(--info)]/90 active:bg-[var(--info)]/80 data-[focus-visible=true]:outline-[var(--info)] data-[disabled=true]:bg-[var(--info)]/80 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
 
   // Info-soft variant - Soft blue theme
   'info-soft':
-    'bg-blue-100/50 text-blue-700 border border-blue-200 hover:bg-blue-200/50 hover:border-blue-300 active:bg-blue-200 data-[focus-visible=true]:outline-blue-500 data-[disabled=true]:bg-blue-50 data-[disabled=true]:text-blue-300 data-[disabled=true]:opacity-70',
+    'bg-[var(--info-soft)] text-[var(--info)] border border-[var(--info)]/30 hover:bg-[var(--info-soft)]/80 hover:border-[var(--info)]/50 active:bg-[var(--info-soft)]/60 data-[focus-visible=true]:outline-[var(--info)] data-[disabled=true]:bg-[var(--info-soft)] data-[disabled=true]:text-[var(--info)]/50 data-[disabled=true]:opacity-70',
 
-  // Yellow varian
+  // Yellow variant
   yellow:
-    'bg-yellow-400/90 text-slate-900 hover:bg-yellow-500/80 active:bg-yellow-600 data-[focus-visible=true]:outline-yellow-400 data-[disabled=true]:bg-yellow-300 data-[disabled=true]:text-slate-400 data-[disabled=true]:opacity-60',
+    'bg-[var(--warning)] text-white hover:bg-[var(--warning)]/90 active:bg-[var(--warning)]/80 data-[focus-visible=true]:outline-[var(--warning)] data-[disabled=true]:bg-[var(--warning)]/80 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
 
   // Yellow-soft variant - Soft yellow theme
   'yellow-soft':
-    'bg-yellow-200 text-yellow-800 border border-yellow-200 hover:bg-yellow-300 hover:border-yellow-300 active:bg-yellow-200 data-[focus-visible=true]:outline-yellow-400 data-[disabled=true]:bg-yellow-50 data-[disabled=true]:text-yellow-300 data-[disabled=true]:opacity-95',
+    'bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)]/30 hover:bg-[var(--warning-soft)]/80 hover:border-[var(--warning)]/50 active:bg-[var(--warning-soft)]/60 data-[focus-visible=true]:outline-[var(--warning)] data-[disabled=true]:bg-[var(--warning-soft)] data-[disabled=true]:text-[var(--warning)]/50 data-[disabled=true]:opacity-95',
 
-  teal: 'bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800 data-[focus-visible=true]:outline-teal-500 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-70',
+  // Teal variant
+  teal: 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90 active:bg-[var(--accent)]/80 data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-70',
 
   // Teal-soft variant - Soft teal theme
   'teal-soft':
-    'bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 hover:border-teal-300 active:bg-teal-200 data-[focus-visible=true]:outline-teal-500 data-[disabled=true]:bg-teal-50 data-[disabled=true]:text-teal-300 data-[disabled=true]:opacity-70',
+    'bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent-soft)]/80 hover:border-[var(--accent)]/50 active:bg-[var(--accent-soft)]/60 data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:bg-[var(--accent-soft)] data-[disabled=true]:text-[var(--accent)]/50 data-[disabled=true]:opacity-70',
 
   // Neutral variant - Clean gray theme
   neutral:
-    'bg-slate-600 text-white hover:bg-slate-700 active:bg-slate-800 data-[focus-visible=true]:outline-slate-500 data-[disabled=true]:bg-slate-500 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
+    'bg-[var(--foreground)] text-white hover:bg-[var(--foreground)]/90 active:bg-[var(--foreground)]/80 data-[focus-visible=true]:outline-[var(--foreground)] data-[disabled=true]:bg-[var(--foreground)]/80 data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',
 
   // Neutral-soft variant - Soft gray theme
   'neutral-soft':
-    'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 active:bg-slate-200 data-[focus-visible=true]:outline-slate-500 data-[disabled=true]:bg-slate-50 data-[disabled=true]:text-slate-300 data-[disabled=true]:opacity-70',
+    'bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-raised)] hover:border-[var(--border)] active:bg-[var(--surface)] data-[focus-visible=true]:outline-[var(--foreground)] data-[disabled=true]:bg-[var(--surface)] data-[disabled=true]:text-[var(--muted)] data-[disabled=true]:opacity-70',
 };
 
 /**

@@ -550,15 +550,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     {
       name: 'Your Idea',
       dataKey: 'userValue',
-      stroke: '#10b981',
-      fill: '#10b981',
+      stroke: 'var(--success)',
+      fill: 'var(--success)',
       fillOpacity: 0.35,
     },
     {
       name: 'Market Average',
       dataKey: 'marketAvg',
-      stroke: '#3b82f6',
-      fill: '#3b82f6',
+      stroke: 'var(--info)',
+      fill: 'var(--info)',
       fillOpacity: 0.2,
     },
   ];
@@ -840,7 +840,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <div className="mb-6 mt-4 px-4 sm:px-6 space-y-4">
         {isViewFromMyAssessments && currentData?.title && (
           <div
-            className="text-[var(--muted)]r mb-3 text-2xl font-semibold truncate"
+            className="mb-3 text-2xl font-semibold truncate"
             style={{
               color: 'var(--foreground)',
             }}
@@ -1436,7 +1436,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             ].map(({ label, value }) => (
               <div
                 key={label}
-                className="border rounded-xl p-3 text-[var(--muted)]r"
+                className="border rounded-xl p-3"
                 style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-raised)' }}
               >
                 <div className="metric-value text-[18px]">{value ?? '—'}</div>
@@ -1848,7 +1848,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 How your idea compares to similar projects in the database
               </p>
               <div
-                className="p-6 rounded-lg border text-[var(--muted)]r"
+                className="p-6 rounded-lg border"
                 style={{
                   backgroundColor: 'var(--accent-soft)',
                   borderColor: 'var(--border)',

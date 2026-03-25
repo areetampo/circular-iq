@@ -51,19 +51,22 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      'p-2 rounded-lg bg-yellow-50 shrink-0 transition-[transform,box-shadow] duration-300 ease-out',
+                      'p-2 rounded-lg shrink-0 transition-[transform,box-shadow] duration-300 ease-out',
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
                     )}
+                    style={{
+                      backgroundColor: 'var(--warning-soft)',
+                    }}
                   >
-                    <Star className="size-5 text-yellow-500" />
+                    <Star className="size-5" style={{ color: 'var(--warning)' }} />
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
                       Explore Featured Solutions
                     </Drawer.Heading>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
                       Browse featured solutions matching your query
                     </p>
                   </div>
@@ -76,35 +79,61 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                 {isLoading ? (
                   <div className="py-6 text-center">Loading...</div>
                 ) : solutions.length === 0 ? (
-                  <div className="py-6 text-center text-slate-500">No results</div>
+                  <div className="py-6 text-center" style={{ color: 'var(--muted)' }}>
+                    No results
+                  </div>
                 ) : (
                   Array.from(grouped.entries()).map(([cat, list]) => (
                     <div key={cat}>
-                      <div className="text-sm font-semibold text-slate-700 mb-2 px-4">{cat}</div>
+                      <div
+                        className="text-sm font-semibold mb-2 px-4"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        {cat}
+                      </div>
                       <div className="space-y-3 px-4">
                         {list.map((s) => (
                           <div
                             key={s.id}
-                            className="p-4 rounded-xl bg-white border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                            className="p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                            style={{
+                              backgroundColor: 'var(--surface)',
+                              borderColor: 'var(--border)',
+                            }}
                           >
                             <div className="flex items-center justify-between">
                               <h4 className="text-sm font-semibold truncate">{s.title}</h4>
-                              <span className="text-xs text-slate-400">
+                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                 {s.wordCount || 0} words
                               </span>
                             </div>
-                            <p className="text-sm text-slate-600 mt-2 leading-relaxed line-clamp-4">
+                            <p
+                              className="text-sm mt-2 leading-relaxed line-clamp-4"
+                              style={{ color: 'var(--muted)' }}
+                            >
                               {s.solution || s.problem || ''}
                             </p>
                             {(s.source || s.category) && (
                               <div className="mt-2 flex flex-wrap gap-1.5">
                                 {s.category && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                  <span
+                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                                    style={{
+                                      backgroundColor: 'var(--surface-raised)',
+                                      color: 'var(--muted)',
+                                    }}
+                                  >
                                     {s.category}
                                   </span>
                                 )}
                                 {s.industry && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600">
+                                  <span
+                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                                    style={{
+                                      backgroundColor: 'var(--accent-soft)',
+                                      color: 'var(--accent)',
+                                    }}
+                                  >
                                     {s.industry}
                                   </span>
                                 )}

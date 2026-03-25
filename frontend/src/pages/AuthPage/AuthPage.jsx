@@ -22,10 +22,13 @@ export default function AuthPage() {
         {/* Middle: Editorial headline */}
         <div>
           <p className="label-overline mb-4">CIRCULAR ECONOMY ASSESSOR</p>
-          <h1 className="heading-display text-[42px] sm:text-[48px] max-w-md">
+          <h1
+            className="heading-display leading-[1.1]"
+            style={{ fontSize: 'clamp(32px, 3.5vw, 48px)' }}
+          >
             Where circular economy
             <br />
-            meets <em style={{ fontStyle: 'italic' }}>evidence.</em>
+            meets <em className="italic">evidence.</em>
           </h1>
           <p
             className="mt-5 text-[15px] max-w-xs leading-relaxed"

@@ -84,7 +84,7 @@ export function ScoreOverviewSection({
               backgroundColor: 'var(--success-soft)',
             }}
           >
-            <p className="text-sm text-[var(--muted)] leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
               {actualResult.audit.audit_verdict}
             </p>
           </div>
@@ -98,7 +98,7 @@ export function ScoreOverviewSection({
             <p className="text-xs font-semibold uppercase mb-1" style={{ color: 'var(--info)' }}>
               Key Finding
             </p>
-            <p className="text-sm text-[var(--muted)] leading-relaxed">
+            <p className="text-sm text-muted leading-relaxed">
               {actualResult.audit.comparative_analysis}
             </p>
           </div>
@@ -207,54 +207,81 @@ export function ScoreOverviewSection({
       </Card>
 
       {/* Score Highlights */}
-      <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+      <Card
+        className="border rounded-xl card-lift"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
         <div className="p-1 sm:p-3">
-          <h3 className="text-lg font-bold text-slate-900 mb-1">Score Highlights</h3>
-          <p className="text-sm text-slate-600 mb-4">Key performance indicators</p>
+          <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--foreground)' }}>
+            Score Highlights
+          </h3>
+          <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+            Key performance indicators
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 bg-linear-to-br from-green-50 via-green-50 to-green-100 border-l-4 border-green-600 rounded-lg">
+            <div
+              className="p-5 border-l-4 rounded-lg"
+              style={{ borderColor: 'var(--success)', backgroundColor: 'var(--success-soft)' }}
+            >
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-green-900 uppercase tracking-wide">
+                <p
+                  className="text-xs font-bold uppercase tracking-wide"
+                  style={{ color: 'var(--success)' }}
+                >
                   Strongest Factor
                 </p>
-                <TrendingUp className="text-green-600" size={16} />
+                <TrendingUp style={{ color: 'var(--success)' }} size={16} />
               </div>
-              <p className="text-xl font-bold text-green-900 mb-1">
+              <p className="text-xl font-bold mb-1" style={{ color: 'var(--success)' }}>
                 {topFactor ? titleize(topFactor[0]) : 'N/A'}
               </p>
-              <p className="text-sm font-semibold text-green-700">
+              <p className="text-sm font-semibold" style={{ color: 'var(--success)' }}>
                 {topFactor ? `${topFactor[1]}/100` : '—'}
               </p>
             </div>
 
-            <div className="p-5 bg-linear-to-br from-orange-50 via-orange-50 to-orange-100 border-l-4 border-orange-600 rounded-lg">
+            <div
+              className="p-5 border-l-4 rounded-lg"
+              style={{ borderColor: 'var(--warning)', backgroundColor: 'var(--warning-soft)' }}
+            >
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-orange-900 uppercase tracking-wide">
+                <p
+                  className="text-xs font-bold uppercase tracking-wide"
+                  style={{ color: 'var(--warning)' }}
+                >
                   Focus Area
                 </p>
-                <Target className="text-orange-600" size={16} />
+                <Target style={{ color: 'var(--warning)' }} size={16} />
               </div>
-              <p className="text-xl font-bold text-orange-900 mb-1">
+              <p className="text-xl font-bold mb-1" style={{ color: 'var(--warning)' }}>
                 {focusFactor ? titleize(focusFactor[0]) : 'N/A'}
               </p>
-              <p className="text-sm font-semibold text-orange-700">
+              <p className="text-sm font-semibold" style={{ color: 'var(--warning)' }}>
                 {focusFactor ? `${focusFactor[1]}/100` : '—'}
               </p>
             </div>
 
-            <div className="p-5 bg-linear-to-br from-blue-50 via-blue-50 to-blue-100 border-l-4 border-blue-600 rounded-lg">
+            <div
+              className="p-5 border-l-4 rounded-lg"
+              style={{ borderColor: 'var(--info)', backgroundColor: 'var(--info-soft)' }}
+            >
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-blue-900 uppercase tracking-wide">
+                <p
+                  className="text-xs font-bold uppercase tracking-wide"
+                  style={{ color: 'var(--info)' }}
+                >
                   Average Score
                 </p>
-                <BarChart3 className="text-blue-600" size={16} />
+                <BarChart3 style={{ color: 'var(--info)' }} size={16} />
               </div>
-              <p className="text-xl font-bold text-blue-900 mb-1">
+              <p className="text-xl font-bold mb-1" style={{ color: 'var(--info)' }}>
                 {avgFactorScore}
-                <span className="text-sm text-slate-600">/100</span>
               </p>
-              <p className="text-xs text-blue-700">
+              <p className="text-sm">
+                <span style={{ color: 'var(--muted)' }}>/100</span>
+              </p>
+              <p className="text-xs" style={{ color: 'var(--info)' }}>
                 Business: {resolvedBusinessViabilityScore}/100
               </p>
             </div>
@@ -263,17 +290,20 @@ export function ScoreOverviewSection({
       </Card>
 
       {/* Quick Tips for New Users */}
-      <Card className="border-2 border-dashed border-blue-400/80 bg-blue-50/60 shadow-sm rounded-xl">
+      <Card
+        className="border-2 border-dashed rounded-xl"
+        style={{ borderColor: 'var(--info)', backgroundColor: 'var(--info-soft)' }}
+      >
         <div className="p-1 sm:p-3">
           <Card.Header className="px-0 pb-4 pt-0 flex items-center gap-3">
-            <div className="mt-0.5 rounded-lg bg-blue-100/70 p-2">
-              <Lightbulb className="text-blue-700" size={20} />
+            <div className="mt-0.5 rounded-lg p-2" style={{ backgroundColor: 'var(--info)' }}>
+              <Lightbulb style={{ color: 'var(--surface)' }} size={20} />
             </div>
             <div>
-              <Card.Title className="text-lg text-blue-900 text-center">
+              <Card.Title className="text-lg text-center" style={{ color: 'var(--info)' }}>
                 How to Use This Report
               </Card.Title>
-              <Card.Description className="text-sm text-center text-slate-600 mt-1">
+              <Card.Description className="text-center mt-1" style={{ color: 'var(--muted)' }}>
                 Your guide to understanding and acting on these insights
               </Card.Description>
             </div>
@@ -283,17 +313,23 @@ export function ScoreOverviewSection({
               {reportTips.map((tip) => (
                 <Card
                   key={tip.title}
-                  className="border border-blue-200/80 bg-white/90 rounded-xl shadow-sm"
+                  className="border rounded-xl"
+                  style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
                   variant="secondary"
                 >
                   <Card.Header className="">
-                    <Card.Title className="text-sm text-blue-900 flex items-center gap-2">
+                    <Card.Title
+                      className="text-sm flex items-center gap-2"
+                      style={{ color: 'var(--info)' }}
+                    >
                       <tip.Icon className={tip.iconClassName} size={16} />
                       {tip.title}
                     </Card.Title>
                   </Card.Header>
                   <Card.Content className="-mt-1">
-                    <p className="text-xs text-[var(--muted)] leading-relaxed">{tip.description}</p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                      {tip.description}
+                    </p>
                   </Card.Content>
                 </Card>
               ))}
@@ -304,12 +340,18 @@ export function ScoreOverviewSection({
 
       {/* Derived Metrics */}
       {actualResult.derived_metrics && (
-        <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+        <Card
+          className="border rounded-xl card-lift"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <div className="p-1 sm:p-3">
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-              <BarChart3 className="text-blue-600" size={20} /> Derived Metrics
+            <h3
+              className="text-lg font-bold flex items-center gap-2 mb-1"
+              style={{ color: 'var(--foreground)' }}
+            >
+              <BarChart3 style={{ color: 'var(--info)' }} size={20} /> Derived Metrics
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
               Additional consolidated metrics derived from your factor scores.
             </p>
 
@@ -321,26 +363,39 @@ export function ScoreOverviewSection({
               ].map(({ key, label }) => {
                 const value = actualResult.derived_metrics[key];
                 const numeric = typeof value === 'number' ? value : 0;
-                const color = numeric >= 70 ? 'success' : numeric >= 40 ? 'warning' : 'error';
+                const color = numeric >= 70 ? 'success' : numeric >= 40 ? 'warning' : 'danger';
                 return (
-                  <div key={key} className="p-4 bg-white border border-slate-200 rounded-lg">
+                  <div
+                    key={key}
+                    className="p-4 border rounded-lg"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs font-bold text-slate-900">{label}</div>
-                      <div className="text-sm font-bold text-slate-900">{numeric}</div>
+                      <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+                        {label}
+                      </div>
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                        {numeric}
+                      </div>
                     </div>
                     <ProgressBar
                       value={Math.min(100, Math.max(0, numeric))}
-                      color={
-                        color === 'success' ? 'success' : color === 'warning' ? 'warning' : 'danger'
-                      }
+                      color={color}
                       className="h-2 rounded"
                     />
                   </div>
                 );
               })}
-              <div className="p-4 bg-white border border-slate-200 rounded-lg">
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                className="p-4 border rounded-lg"
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-bold text-slate-900">Risk Level</div>
+                  <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+                    Risk Level
+                  </div>
                   <Chip
                     variant="soft"
                     className={`text-xs font-bold ${getRiskBadgeColor(actualResult.derived_metrics.risk_level)}`}
@@ -348,7 +403,9 @@ export function ScoreOverviewSection({
                     {actualResult.derived_metrics.risk_level?.toUpperCase() || 'UNKNOWN'}
                   </Chip>
                 </div>
-                <div className="text-sm text-slate-600 mt-2">Overall project risk assessment</div>
+                <div className="text-sm mt-2" style={{ color: 'var(--muted)' }}>
+                  Overall project risk assessment
+                </div>
               </div>
             </div>
           </div>

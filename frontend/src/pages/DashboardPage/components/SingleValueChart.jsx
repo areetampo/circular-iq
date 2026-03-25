@@ -1,27 +1,49 @@
 import PropTypes from 'prop-types';
 
-function SingleValueChart({ name, value, color = '#10b981' }) {
+function SingleValueChart({ value, label }) {
   return (
-    <div className="flex flex-col items-center justify-center h-44 gap-2">
-      <div
-        className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl text-white"
-        style={{ backgroundColor: color }}
-      >
-        {value}
-      </div>
-      <p className="text-xs font-semibold text-slate-600 text-center">{name}</p>
-      <p className="text-[10px] text-slate-400">100% of assessments</p>
+    <div className="flex flex-col items-center p-4">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        {/* Background ring */}
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" strokeWidth="6" />
+        {/* Value arc */}
+        <circle
+          cx="60"
+          cy="60"
+          r="50"
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray={`${2 * Math.PI * 50}`}
+          strokeDashoffset={`${2 * Math.PI * 50 * (1 - value / 100)}`}
+          transform="rotate(-90 60 60)"
+          className="transition-all duration-700"
+        />
+        {/* Center text */}
+        <text
+          x="60"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="22"
+          fontWeight="500"
+          fill="var(--foreground)"
+          style={{ fontFamily: 'JetBrains Mono, monospace' }}
+        >
+          {value ?? '—'}
+        </text>
+      </svg>
+      <p className="label-overline mt-2">{label}</p>
     </div>
   );
 }
 
 SingleValueChart.propTypes = {
-  /** Display name/label shown below the value */
-  name: PropTypes.string.isRequired,
-  /** Numeric value to display in the circle */
+  /** Numeric value to display (0-100) */
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  /** Hex color code for the circular background */
-  color: PropTypes.string,
+  /** Label text displayed below the chart */
+  label: PropTypes.string.isRequired,
 };
 
 export { SingleValueChart };

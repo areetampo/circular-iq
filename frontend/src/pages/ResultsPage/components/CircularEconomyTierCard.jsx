@@ -6,48 +6,68 @@ export function CircularEconomyTierCard({ actualResult }) {
 
   return (
     <Card
-      className={`border-2 shadow-sm rounded-xl ${
-        actualResult.circular_economy_tier.badge_color === 'green'
-          ? 'border-green-300 bg-green-50'
-          : actualResult.circular_economy_tier.badge_color === 'blue'
-            ? 'border-blue-300 bg-blue-50'
-            : actualResult.circular_economy_tier.badge_color === 'amber'
-              ? 'border-amber-300 bg-amber-50'
-              : 'border-red-300 bg-red-50'
-      }`}
+      className="border-2 rounded-xl card-lift"
+      style={{
+        borderColor:
+          actualResult.circular_economy_tier.badge_color === 'green'
+            ? 'var(--success)'
+            : actualResult.circular_economy_tier.badge_color === 'blue'
+              ? 'var(--info)'
+              : actualResult.circular_economy_tier.badge_color === 'amber'
+                ? 'var(--warning)'
+                : 'var(--danger)',
+        backgroundColor:
+          actualResult.circular_economy_tier.badge_color === 'green'
+            ? 'var(--success-soft)'
+            : actualResult.circular_economy_tier.badge_color === 'blue'
+              ? 'var(--info-soft)'
+              : actualResult.circular_economy_tier.badge_color === 'amber'
+                ? 'var(--warning-soft)'
+                : 'var(--danger-soft)',
+      }}
     >
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <span
+              className="text-xs font-semibold uppercase tracking-wide"
+              style={{ color: 'var(--muted)' }}
+            >
               Circular Economy Tier
             </span>
             <h3
-              className={`text-2xl font-bold mt-0.5 ${
-                actualResult.circular_economy_tier.badge_color === 'green'
-                  ? 'text-green-700'
-                  : actualResult.circular_economy_tier.badge_color === 'blue'
-                    ? 'text-blue-700'
-                    : actualResult.circular_economy_tier.badge_color === 'amber'
-                      ? 'text-amber-700'
-                      : 'text-red-700'
-              }`}
+              className="text-2xl font-bold mt-0.5"
+              style={{
+                color:
+                  actualResult.circular_economy_tier.badge_color === 'green'
+                    ? 'var(--success)'
+                    : actualResult.circular_economy_tier.badge_color === 'blue'
+                      ? 'var(--info)'
+                      : actualResult.circular_economy_tier.badge_color === 'amber'
+                        ? 'var(--warning)'
+                        : 'var(--danger)',
+              }}
             >
               {actualResult.circular_economy_tier.tier}
             </h3>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>
               Score range: {actualResult.circular_economy_tier.range}
               {' · '}
               {actualResult.circular_economy_tier.percentile_estimate}
             </span>
           </div>
         </div>
-        <p className="text-sm text-slate-700 mb-2">
+        <p className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
           {actualResult.circular_economy_tier.description}
         </p>
-        <div className="p-3 bg-white/60 rounded-lg border border-current/10">
-          <span className="text-xs font-semibold text-slate-600">Next Milestone: </span>
-          <span className="text-xs text-slate-700">
+        <div
+          className="p-3 rounded-lg border"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
+          <span className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+            Next Milestone:{' '}
+          </span>
+          <span className="text-xs" style={{ color: 'var(--foreground)' }}>
             {actualResult.circular_economy_tier.next_milestone}
           </span>
         </div>

@@ -1,13 +1,10 @@
-import { Checkbox, Chip, Skeleton, toast } from '@heroui/react';
-import { AlertCircle, Building, CheckCircle2, Clock, Copy, Edit, Eye, Trash2 } from 'lucide-react';
+import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import { Button } from '@/components/common';
-import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
 import CopyButton from '@/components/modern-ui/copy-button';
 import { formatTimestamp } from '@/lib/formatting';
-import { cn } from '@/utils/cn';
 
 const AssessmentListItem = React.memo(function AssessmentListItem({
   assessment,
@@ -20,234 +17,198 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   onTogglePublic,
   onToggleBenchmarks,
 }) {
-  const getStatus = (score) => {
-    if (score >= 80)
-      return {
-        text: 'Excellent',
-        color: 'success',
-        icon: CheckCircle2,
-      };
-    if (score >= 60)
-      return {
-        text: 'Good',
-        color: 'accent',
-        icon: CheckCircle2,
-      };
-    if (score >= 40)
-      return {
-        text: 'Needs Work',
-        color: 'warning',
-        icon: Clock,
-      };
-    return {
-      text: 'Critical',
-      color: 'danger',
-      icon: AlertCircle,
-    };
-  };
-
-  const assessmentCardButtons = [
-    {
-      label: 'View',
-      icon: Eye,
-      variant: 'teal',
-      onClick: () => onView(assessment.public_id),
-      className: '',
-    },
-    {
-      label: 'Rename',
-      icon: Edit,
-      variant: 'info',
-      onClick: () => onRename(assessment.id),
-      className: '',
-    },
-    {
-      label: 'Delete',
-      icon: Trash2,
-      variant: 'danger',
-      onClick: () => onDelete(assessment.id),
-      className: '',
-    },
-  ];
-
-  const status = getStatus(assessment.overall_score);
-  const StatusIcon = status.icon;
+  const formattedDate = formatTimestamp(assessment.created_at);
 
   return (
     <div
-      className={cn(
-        'group relative overflow-hidden transition-all duration-200 ease-out cursor-pointer rounded-xl',
-        isSelected ? 'shadow-lg' : 'hover:shadow-lg',
-      )}
-      style={{
-        backgroundColor: 'var(--surface)',
-        borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
-        borderWidth: '1px',
-      }}
+      className="border rounded-xl px-5 py-4 card-lift cursor-pointer
+                flex flex-col sm:flex-row sm:items-center gap-3"
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
       onClick={() => onView(assessment.public_id)}
     >
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(to bottom right, var(--accent-soft), transparent, var(--accent-soft))',
-        }}
-      />
+      {/* LEFT: text info */}
+      <div className="flex-1 min-w-0">
+        {/* Row 1: tier chip + title */}
+        <div className="flex items-center gap-2 mb-1">
+          {/* CE tier chip */}
+          <span
+            className="text-[10px] font-bold uppercase tracking-widest
+                           px-2 py-0.5 rounded"
+            style={{
+              backgroundColor: 'var(--accent-soft)',
+              color: 'var(--accent-soft-fg)',
+            }}
+          >
+            {assessment.metadata?.tier || 'UNRATED'}
+          </span>
+          {/* Title */}
+          <span className="text-[15px] font-medium truncate" style={{ color: 'var(--foreground)' }}>
+            {assessment.title}
+          </span>
+        </div>
 
-      <div className="relative p-0 xxs:p-3 space-y-5">
-        <div className="flex items-start gap-4">
-          <div className="pt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-            <Checkbox
-              isSelected={isSelected}
+        {/* Row 2: industry · date · description preview */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {assessment.industry && (
+            <span
+              className="text-[11px] px-2 py-0.5 rounded border"
+              style={{
+                backgroundColor: 'var(--surface)',
+                borderColor: 'var(--border)',
+                color: 'var(--muted)',
+              }}
+            >
+              {assessment.industry}
+            </span>
+          )}
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>
+            {formattedDate}
+          </span>
+          {assessment.business_problem && (
+            <span
+              className="text-xs truncate max-w-50 hidden sm:block"
+              style={{ color: 'var(--subtle)' }}
+            >
+              {assessment.business_problem.slice(0, 80)}…
+            </span>
+          )}
+        </div>
+
+        {/* Row 3: Toggles row — always visible, compact */}
+        <div
+          className="flex items-center gap-3 mt-2 flex-wrap"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Multi-select checkbox */}
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isSelected}
               onChange={(e) => {
                 e.stopPropagation();
                 onToggleSelect(assessment.id);
               }}
-              size="lg"
-              color="primary"
-              className="cursor-pointer"
-              aria-label={`Select assessment: ${assessment.title || 'Untitled Assessment'}`}
-            >
-              <Checkbox.Control
-                className="size-6 rounded-full before:rounded-full border"
-                style={{ borderColor: 'var(--border)' }}
-              >
-                <Checkbox.Indicator style={{ backgroundColor: 'var(--accent)' }} />
-              </Checkbox.Control>
-            </Checkbox>
-          </div>
+              className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
+            />
+            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+              Select
+            </span>
+          </label>
 
-          <div className="flex-1 min-w-0 space-y-3">
-            <h3
-              className="font-semibold text-xl leading-tight truncate transition-colors duration-200 ml-0.5"
-              style={{
-                color: 'var(--foreground)',
+          {/* Benchmark toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={assessment.contribute_to_global_benchmarks || false}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggleBenchmarks(assessment.id);
               }}
-              title={assessment.title}
-            >
-              {assessment.title || 'Untitled Assessment'}
-            </h3>
+              className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
+            />
+            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+              Benchmarks
+            </span>
+          </label>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Chip variant="secondary" color="default" size="lg">
-                <Building size={14} />
-                <Chip.Label className="uppercase">
-                  {(assessment.industry || 'General').replace(/_/g, ' ')}
-                </Chip.Label>
-              </Chip>
+          {/* Public toggle + copy */}
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={assessment.is_public || false}
+              onChange={(e) => {
+                e.stopPropagation();
+                onTogglePublic(assessment.id);
+              }}
+              className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
+            />
+            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+              Public
+            </span>
+          </label>
 
-              <Chip
-                variant="primary"
-                color={
-                  assessment.overall_score >= 80
-                    ? 'success'
-                    : assessment.overall_score >= 60
-                      ? 'accent'
-                      : assessment.overall_score >= 40
-                        ? 'warning'
-                        : 'danger'
-                }
-                size="lg"
-              >
-                <Chip.Label style={{ color: 'var(--accent-foreground)' }}>
-                  {assessment.overall_score}%
-                </Chip.Label>
-              </Chip>
+          {assessment.is_public && assessment.public_id && (
+            <CopyButton
+              value={`${window.location.origin}/assessments/share/${assessment.public_id}`}
+            />
+          )}
+        </div>
+      </div>
 
-              <Chip variant="soft" color={status.color} size="lg">
-                <StatusIcon size={14} />
-                <Chip.Label>{status.text}</Chip.Label>
-              </Chip>
+      {/* RIGHT: metrics + actions */}
+      <div className="flex items-center gap-5 shrink-0">
+        {/* Score */}
+        <div className="text-right">
+          <span
+            className="font-mono text-[22px] font-semibold leading-none"
+            style={{
+              color:
+                assessment.overall_score >= 75
+                  ? 'var(--success)'
+                  : assessment.overall_score >= 50
+                    ? 'var(--warning)'
+                    : 'var(--danger)',
+            }}
+          >
+            {assessment.overall_score ?? '—'}
+          </span>
+          <span className="text-xs ml-0.5" style={{ color: 'var(--muted)' }}>
+            /100
+          </span>
+        </div>
 
-              <div className="flex items-center gap-1.5 text-sm ml-1">
-                <Clock size={14} />
-                <span className="italic" style={{ color: 'var(--muted)' }}>
-                  Created {formatTimestamp(assessment.created_at)}
-                </span>
-              </div>
-            </div>
+        {/* Confidence (if available) */}
+        {assessment.confidence_level != null && (
+          <div className="text-right hidden md:block">
+            <p className="font-mono text-[13px]" style={{ color: 'var(--muted)' }}>
+              {assessment.confidence_level}%
+            </p>
+            <p className="label-overline">CONF.</p>
           </div>
-        </div>
+        )}
 
-        <div className="flex flex-wrap gap-2 sm:py-2 px-4" onClick={(e) => e.stopPropagation()}>
-          {assessmentCardButtons.map((btn) => {
-            const Icon = btn.icon;
-            return (
-              <Button
-                key={btn.label}
-                size="md"
-                variant={btn.variant}
-                onPress={(e) => {
-                  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-                  btn.onClick();
-                }}
-                onClick={(e) => e.stopPropagation()}
-                className={cn('flex-1 sm:flex-none', btn.className)}
-              >
-                <Icon size={16} />
-                <span className="font-medium hidden xxs:inline">{btn.label}</span>
-              </Button>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-4">
-          <ChoiceCardSwitch
-            isSelected={assessment.contribute_to_global_benchmarks || false}
-            onChange={(e) => {
-              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-              onToggleBenchmarks(assessment.id);
-            }}
-            onClick={(e) => e.stopPropagation()}
-            size="md"
-            variant="blue"
-            title="Global Benchmarks"
-            description="Share anonymously"
-          />
-
-          <ChoiceCardSwitch
-            isSelected={assessment.is_public || false}
-            onChange={(e) => {
-              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-              onTogglePublic(assessment.id);
-            }}
-            onClick={(e) => e.stopPropagation()}
-            size="md"
-            variant="emerald"
-            title="Public Access"
-            description="Share via link"
-            trailing={
-              <CopyButton
-                value={
-                  assessment.public_id
-                    ? `${window.location.origin}/assessments/share/${assessment.public_id}`
-                    : ''
-                }
-                disabled={!assessment.is_public || !assessment.public_id}
-              />
-            }
-          />
-        </div>
-
-        {assessment.public_id && (
-          <div className="px-4 pt-2">
+        {/* Actions menu */}
+        {/* Keep EXACTLY the existing dropdown/menu implementation — only ensure
+            the trigger button is a 32×32px ghost button with MoreVertical icon */}
+        <div onClick={(e) => e.stopPropagation()}>
+          {/* existing actions dropdown here */}
+          <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
               variant="neutral"
-              className="w-full"
               onPress={(e) => {
                 if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-                navigator.clipboard.writeText(assessment.public_id).catch(() => {});
-                toast.success('Assessment ID copied to clipboard');
+                onView(assessment.public_id);
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <Copy size={16} />
-              Copy Assessment ID
+              View
+            </Button>
+            <Button
+              size="sm"
+              variant="info"
+              onPress={(e) => {
+                if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+                onRename(assessment.id);
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Rename
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onPress={(e) => {
+                if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+                onDelete(assessment.id);
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Delete
             </Button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

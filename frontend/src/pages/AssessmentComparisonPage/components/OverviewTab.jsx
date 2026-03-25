@@ -128,9 +128,12 @@ export function OverviewTab({
             </div>
 
             {/* Business Solution */}
-            <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-white">
+            <Card
+              className="border-2 shadow-md rounded-xl"
+              style={{ borderColor: 'var(--info)', backgroundColor: 'var(--surface)' }}
+            >
               <Card.Header className="flex items-center gap-3 pb-4">
-                <Card.Title className="font-bold text-lg text-slate-900">
+                <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                   Business Solution
                 </Card.Title>
               </Card.Header>
@@ -148,20 +151,20 @@ export function OverviewTab({
                         <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
                           <Table.Cell className="align-top">
                             <div>
-                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                              <p className="text-sm font-semibold text-warm-900 mb-2">
                                 {assessment1?.title || 'Assessment 1'}
                               </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
+                              <p className="text-sm text-warm-700 leading-relaxed">
                                 {assessment1?.business_solution || 'N/A'}
                               </p>
                             </div>
                           </Table.Cell>
                           <Table.Cell className="align-top">
                             <div>
-                              <p className="text-sm font-semibold text-slate-900 mb-2">
+                              <p className="text-sm font-semibold text-warm-900 mb-2">
                                 {assessment2?.title || 'Assessment 2'}
                               </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
+                              <p className="text-sm text-warm-700 leading-relaxed">
                                 {assessment2?.business_solution || 'N/A'}
                               </p>
                             </div>
@@ -176,9 +179,12 @@ export function OverviewTab({
           </div>
 
           {/* Derived Metrics Comparison */}
-          <Card className="border-2 border-emerald-200 shadow-md rounded-xl bg-white">
+          <Card
+            className="border-2 shadow-md rounded-xl"
+            style={{ borderColor: 'var(--success)', backgroundColor: 'var(--surface)' }}
+          >
             <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg text-slate-900">Derived Metrics</Card.Title>
+              <Card.Title className="font-bold text-lg text-warm-900">Derived Metrics</Card.Title>
             </Card.Header>
             <Card.Content className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
@@ -191,16 +197,23 @@ export function OverviewTab({
                   const val2 = scoringResult2?.derived_metrics?.[key] || 0;
                   const winner = val1 > val2 ? 1 : val2 > val1 ? 2 : null;
                   return (
-                    <div key={key} className="p-3 bg-slate-50 rounded-lg">
-                      <div className="text-xs font-bold text-slate-900 mb-2">{label}</div>
+                    <div key={key} className="p-3 bg-warm-50 rounded-lg">
+                      <div
+                        className="text-xs font-bold mb-2"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        {label}
+                      </div>
                       <div className="flex items-center justify-between">
                         <div
-                          className={`text-sm font-bold ${winner === 1 ? 'text-green-700' : 'text-slate-600'}`}
+                          className={`text-sm font-bold ${winner === 1 ? 'text-success' : ''}`}
+                          style={{ color: winner === 1 ? 'var(--success)' : 'var(--muted)' }}
                         >
                           A1: {val1}
                         </div>
                         <div
-                          className={`text-sm font-bold ${winner === 2 ? 'text-green-700' : 'text-slate-600'}`}
+                          className={`text-sm font-bold ${winner === 2 ? 'text-success' : ''}`}
+                          style={{ color: winner === 2 ? 'var(--success)' : 'var(--muted)' }}
                         >
                           A2: {val2}
                         </div>
@@ -208,8 +221,8 @@ export function OverviewTab({
                     </div>
                   );
                 })}
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <div className="text-xs font-bold text-slate-900 mb-2">Risk Level</div>
+                <div className="p-3 bg-warm-50 rounded-lg">
+                  <div className="text-xs font-bold text-warm-900 mb-2">Risk Level</div>
                   <div className="flex items-center justify-between">
                     <Chip
                       variant="soft"
@@ -290,7 +303,10 @@ export function OverviewTab({
           </Card>
 
           {/* Business Context Comparison */}
-          <Card className="border-2 border-amber-200 shadow-md rounded-xl bg-white">
+          <Card
+            className="border-2 shadow-md rounded-xl"
+            style={{ borderColor: 'var(--warning)', backgroundColor: 'var(--surface)' }}
+          >
             <Card.Header className="flex items-center gap-3 pb-4">
               <Card.Title className="font-bold text-lg text-slate-900">Business Context</Card.Title>
             </Card.Header>

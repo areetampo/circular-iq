@@ -1,16 +1,6 @@
-import {
-  Button as HeroButton,
-  Input,
-  Label,
-  ListBox,
-  Select,
-  Separator,
-  Tooltip,
-} from '@heroui/react';
-import { GitCompare, Search } from 'lucide-react';
+import { Label, ListBox, Select } from '@heroui/react';
+import { Search } from 'lucide-react';
 import PropTypes from 'prop-types';
-
-import { Button } from '@/components/common';
 
 import { IndustryFilterChip } from './IndustryFilterChip';
 
@@ -28,154 +18,94 @@ export function FilterBar({
   handleCompareSelected,
 }) {
   return (
-    <div
-      className="border-2 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl"
-      style={{
-        backgroundColor: 'var(--surface)',
-        borderColor: 'var(--border)',
-      }}
-    >
-      <div className="p-6 space-y-6">
-        {/* Sort and Search Row - compact responsive layout */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="w-48">
-              <Select
-                className="w-full"
-                placeholder="Sort by"
-                value={sortBy}
-                onChange={(value) => {
-                  setSortBy(value || 'created_at_desc');
-                  setPage(1);
-                }}
-                variant="bordered"
-                size="md"
-              >
-                <Label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Sort by
-                </Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="created_at_asc" textValue="Date Created (Oldest)">
-                      Date Created (Oldest)
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                    <ListBox.Item id="created_at_desc" textValue="Date Created (Newest)">
-                      Date Created (Newest)
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                    <ListBox.Item id="title_asc" textValue="Title (A-Z)">
-                      Title (A-Z)
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                    <ListBox.Item id="title_desc" textValue="Title (Z-A)">
-                      Title (Z-A)
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                    <ListBox.Item id="overall_score_asc" textValue="Score (Low to High)">
-                      Score (Low to High)
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                    <ListBox.Item id="overall_score_desc" textValue="Score (High to Low)">
-                      Score (High to Low)
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-            </div>
-
-            {/* Small helper action to reset sorting quickly */}
-            <HeroButton
-              onClick={() => setSortBy('created_at_desc')}
-              size="md"
-              variant="ghost"
-              className="hidden md:inline-flex"
-            >
-              Reset
-            </HeroButton>
-          </div>
-
-          {/* Search placed to the right on larger screens, full-width on mobile */}
-          <div className="flex-1 lg:ml-6">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                Search
-              </label>
-              <div className="relative">
-                <Search
-                  className="absolute transform -translate-y-1/2 left-3 top-1/2 pointer-events-none z-10"
-                  size={16}
-                  style={{ color: 'var(--muted)' }}
-                />
-                <Input
-                  type="text"
-                  placeholder="Search by title..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  variant="bordered"
-                  size="md"
-                  className="pl-10 w-full"
-                  style={{
-                    backgroundColor: 'var(--field-bg)',
-                    borderColor: 'var(--field-border)',
-                    color: 'var(--foreground)',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+    <div className="space-y-3 mb-6">
+      {/* Search + sort row */}
+      <div className="flex gap-3 flex-col sm:flex-row">
+        {/* Search — use existing search state and handler */}
+        <div className="relative flex-1">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            size={15}
+            style={{ color: 'var(--muted)' }}
+          />
+          <input
+            type="text"
+            placeholder="Search assessments..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border
+                   focus:outline-none transition-all duration-150"
+            style={{
+              backgroundColor: 'var(--field-bg)',
+              borderColor: 'var(--field-border)',
+              color: 'var(--foreground)',
+            }}
+          />
         </div>
 
-        {/* Industry Filter Chips */}
-        {industryOptions.length > 1 && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-              Filter by Industry
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {industryOptions.map((industry) => (
-                <IndustryFilterChip
-                  key={industry}
-                  industry={industry}
-                  isSelected={selectedIndustries.includes(industry)}
-                  onToggle={handleToggleIndustry}
-                  label={industry === 'all' ? 'All Industries' : formatIndustryLabel(industry)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <Separator orientation="horizontal" style={{ backgroundColor: 'var(--border)' }} />
-
-        {/* Compare 2 Assessments Button */}
-        <div className="flex justify-center items-center">
-          <Tooltip delay={0} isDisabled={selectedIds.size === 2}>
-            <Tooltip.Trigger>
-              <Button
-                onPress={handleCompareSelected}
-                isDisabled={selectedIds.size !== 2}
-                variant="teal"
-                size="md"
-              >
-                <GitCompare size={16} />
-                {selectedIds.size}/2 Compare Selected
-              </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content showArrow placement="top">
-              <Tooltip.Arrow />
-              <span>
-                Select exactly 2 assessments to see how your initiative evolved over time or compare
-                strategies side-by-side.
-              </span>
-            </Tooltip.Content>
-          </Tooltip>
+        {/* Sort — keep existing HeroUI Select */}
+        <div className="w-full sm:w-44">
+          <Select
+            className="w-full"
+            placeholder="Sort by"
+            value={sortBy}
+            onChange={(value) => {
+              setSortBy(value || 'created_at_desc');
+              setPage(1);
+            }}
+            variant="bordered"
+            size="md"
+          >
+            <Label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+              Sort by
+            </Label>
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                <ListBox.Item id="created_at_asc" textValue="Date Created (Oldest)">
+                  Date Created (Oldest)
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="created_at_desc" textValue="Date Created (Newest)">
+                  Date Created (Newest)
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="title_asc" textValue="Title (A-Z)">
+                  Title (A-Z)
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="title_desc" textValue="Title (Z-A)">
+                  Title (Z-A)
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="overall_score_asc" textValue="Score (Low to High)">
+                  Score (Low to High)
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                <ListBox.Item id="overall_score_desc" textValue="Score (High to Low)">
+                  Score (High to Low)
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
+      </div>
+
+      {/* Industry filter chips */}
+      <div className="flex flex-wrap gap-2">
+        {industryOptions.map((industry) => (
+          <IndustryFilterChip
+            key={industry}
+            industry={industry}
+            isSelected={selectedIndustries.includes(industry)}
+            onToggle={handleToggleIndustry}
+            label={industry === 'all' ? 'All Industries' : formatIndustryLabel(industry)}
+          />
+        ))}
       </div>
     </div>
   );

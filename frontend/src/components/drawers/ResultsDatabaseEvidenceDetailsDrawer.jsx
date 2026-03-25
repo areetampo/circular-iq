@@ -40,14 +40,14 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
   const derivedMatchColor =
     matchColor ||
     (derivedMatchPercentage >= 80
-      ? '#22c55e'
+      ? 'var(--success)'
       : derivedMatchPercentage >= 60
-        ? '#3b82f6'
+        ? 'var(--info)'
         : derivedMatchPercentage >= 40
-          ? '#f59e0b'
+          ? 'var(--warning)'
           : derivedMatchPercentage != null
-            ? '#ef4444'
-            : '#94a3b8');
+            ? 'var(--danger)'
+            : 'var(--muted)');
   const derivedSourceCaseId =
     sourceCaseId ?? caseItem?.id ?? caseItem?.source_case_id ?? caseItem?.sourceId ?? null;
 
@@ -90,20 +90,23 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      'p-2 rounded-lg bg-slate-100 shrink-0',
+                      'p-2 rounded-lg shrink-0',
                       'transition-[transform,box-shadow] duration-300 ease-out',
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
                     )}
+                    style={{
+                      backgroundColor: 'var(--surface-raised)',
+                    }}
                   >
-                    <NotebookText className="size-5 text-slate-600" />
+                    <NotebookText className="size-5" style={{ color: 'var(--muted)' }} />
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
                       {derivedTitle || 'Evidence Details'}
                     </Drawer.Heading>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
                       Detailed evidence and matched case context
                     </p>
                   </div>
@@ -114,14 +117,23 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
             <Drawer.Body className="gap-6 mt-4">
               <div className="space-y-6">
                 {/* ── Metadata badges ──────────────────────────────────────────── */}
-                <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-100">
+                <div
+                  className="flex flex-wrap items-center gap-2 pb-4 border-b"
+                  style={{ borderColor: 'var(--border)' }}
+                >
                   {derivedMatchPercentage != null && (
                     <>
-                      <div className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-md bg-gray-100 font-semibold text-gray-600">
+                      <div
+                        className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-md font-semibold"
+                        style={{
+                          backgroundColor: 'var(--surface-raised)',
+                          color: 'var(--muted)',
+                        }}
+                      >
                         <NotebookText className="size-4" />
                         <span>Case {derivedSourceCaseId}</span>
                       </div>
-                      <span className="text-gray-300">•</span>
+                      <span style={{ color: 'var(--border)' }}>•</span>
                       <Chip
                         size="sm"
                         variant="secondary"
@@ -130,7 +142,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                       >
                         {derivedMatchPercentage}% Similar
                       </Chip>
-                      <span className="text-gray-300">•</span>
+                      <span style={{ color: 'var(--border)' }}>•</span>
                       <span
                         className="text-xs font-bold uppercase tracking-wide"
                         style={{ color: derivedMatchColor }}
@@ -183,7 +195,8 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                         href={sourceUrl || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                        className="flex items-center gap-1 text-xs hover:underline"
+                        style={{ color: 'var(--info)' }}
                       >
                         <ExternalLink size={10} />
                         {sourceDisplay}
@@ -194,20 +207,51 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
 
                 {/* ── Summary ──────────────────────────────────────────────────── */}
                 {summary && (
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-700 leading-relaxed italic">{summary}</p>
+                  <div
+                    className="p-3 rounded-lg border"
+                    style={{
+                      backgroundColor: 'var(--surface-raised)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    <p
+                      className="text-sm leading-relaxed italic"
+                      style={{ color: 'var(--foreground)' }}
+                    >
+                      {summary}
+                    </p>
                   </div>
                 )}
 
                 {/* ── Problem ──────────────────────────────────────────────────── */}
                 {problem && (
                   <div>
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-emerald-600">
-                      <Target className="size-5 text-emerald-600" strokeWidth={2} />
-                      <h3 className="text-base font-semibold text-gray-900">Problem Addressed</h3>
+                    <div
+                      className="flex items-center gap-2 mb-3 pb-2 border-b-2"
+                      style={{ borderColor: 'var(--warning)' }}
+                    >
+                      <Target
+                        className="size-5"
+                        style={{ color: 'var(--warning)' }}
+                        strokeWidth={2}
+                      />
+                      <h3
+                        className="text-base font-semibold"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        Problem Addressed
+                      </h3>
                     </div>
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-                      <p className="text-sm leading-7 text-gray-700">{problem}</p>
+                    <div
+                      className="p-4 rounded-xl border"
+                      style={{
+                        backgroundColor: 'var(--warning-soft)',
+                        borderColor: 'var(--warning)',
+                      }}
+                    >
+                      <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>
+                        {problem}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -215,12 +259,32 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                 {/* ── Solution ─────────────────────────────────────────────────── */}
                 {solution && (
                   <div>
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-emerald-600">
-                      <Lightbulb className="size-5 text-emerald-600" strokeWidth={2} />
-                      <h3 className="text-base font-semibold text-gray-900">Solution Approach</h3>
+                    <div
+                      className="flex items-center gap-2 mb-3 pb-2 border-b-2"
+                      style={{ borderColor: 'var(--success)' }}
+                    >
+                      <Lightbulb
+                        className="size-5"
+                        style={{ color: 'var(--success)' }}
+                        strokeWidth={2}
+                      />
+                      <h3
+                        className="text-base font-semibold"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        Solution Approach
+                      </h3>
                     </div>
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-                      <p className="text-sm leading-7 text-gray-700">{solution}</p>
+                    <div
+                      className="p-4 rounded-xl border"
+                      style={{
+                        backgroundColor: 'var(--success-soft)',
+                        borderColor: 'var(--success)',
+                      }}
+                    >
+                      <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>
+                        {solution}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -228,12 +292,32 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                 {/* ── Impact ───────────────────────────────────────────────────── */}
                 {impact && (
                   <div>
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-blue-500">
-                      <TrendingUp className="size-5 text-blue-500" strokeWidth={2} />
-                      <h3 className="text-base font-semibold text-gray-900">Impact & Outcomes</h3>
+                    <div
+                      className="flex items-center gap-2 mb-3 pb-2 border-b-2"
+                      style={{ borderColor: 'var(--info)' }}
+                    >
+                      <TrendingUp
+                        className="size-5"
+                        style={{ color: 'var(--info)' }}
+                        strokeWidth={2}
+                      />
+                      <h3
+                        className="text-base font-semibold"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        Impact & Outcomes
+                      </h3>
                     </div>
-                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
-                      <p className="text-sm leading-7 text-gray-700">{impact}</p>
+                    <div
+                      className="p-4 rounded-xl border"
+                      style={{
+                        backgroundColor: 'var(--info-soft)',
+                        borderColor: 'var(--info)',
+                      }}
+                    >
+                      <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>
+                        {impact}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -241,9 +325,19 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                 {/* ── Score Comparison ─────────────────────────────────────────── */}
                 {caseScores && (
                   <div>
-                    <div className="flex items-center gap-2 mb-3 pb-2 border-b-2 border-purple-500">
-                      <NotebookText className="size-5 text-purple-500" strokeWidth={2} />
-                      <h3 className="text-base font-semibold text-gray-900">
+                    <div
+                      className="flex items-center gap-2 mb-3 pb-2 border-b-2"
+                      style={{ borderColor: 'var(--accent)' }}
+                    >
+                      <NotebookText
+                        className="size-5"
+                        style={{ color: 'var(--accent)' }}
+                        strokeWidth={2}
+                      />
+                      <h3
+                        className="text-base font-semibold"
+                        style={{ color: 'var(--foreground)' }}
+                      >
                         Their Scores vs Yours
                       </h3>
                     </div>
@@ -259,31 +353,43 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                         const diff = null; // user scores not available here — show case score only
                         const barColor =
                           caseScore >= 75
-                            ? 'bg-green-500'
+                            ? 'var(--success)'
                             : caseScore >= 50
-                              ? 'bg-blue-500'
+                              ? 'var(--info)'
                               : caseScore >= 25
-                                ? 'bg-amber-500'
-                                : 'bg-red-500';
+                                ? 'var(--warning)'
+                                : 'var(--danger)';
                         return (
                           <div key={factor} className="flex items-center gap-3">
-                            <div className="w-32 text-xs font-medium text-slate-600 truncate shrink-0">
+                            <div
+                              className="w-32 text-xs font-medium truncate shrink-0"
+                              style={{ color: 'var(--muted)' }}
+                            >
                               {label}
                             </div>
-                            <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="flex-1 rounded-full h-2 overflow-hidden"
+                              style={{ backgroundColor: 'var(--surface-raised)' }}
+                            >
                               <div
-                                className={`h-2 rounded-full ${barColor}`}
-                                style={{ width: `${caseScore}%` }}
+                                className="h-2 rounded-full"
+                                style={{
+                                  width: `${caseScore}%`,
+                                  backgroundColor: barColor,
+                                }}
                               />
                             </div>
-                            <div className="text-xs font-bold text-slate-700 w-8 text-right shrink-0">
+                            <div
+                              className="text-xs font-bold w-8 text-right shrink-0"
+                              style={{ color: 'var(--foreground)' }}
+                            >
                               {caseScore}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                    <p className="text-xs text-slate-400 mt-2 italic">
+                    <p className="text-xs mt-2 italic" style={{ color: 'var(--muted)' }}>
                       Scores assigned to this case from the database.
                     </p>
                   </div>

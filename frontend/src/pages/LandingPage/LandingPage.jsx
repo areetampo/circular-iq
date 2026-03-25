@@ -675,22 +675,22 @@ export default function LandingPage() {
   return (
     <FormProvider {...methods}>
       <div ref={formContainerRef} className="w-full max-w-4xl mx-auto space-y-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
+        {/* Hero */}
+        <div className="text-center py-10 md:py-14">
+          <p className="label-overline mb-4">AI-Powered · Evidence-Based · 40,000+ Cases</p>
           <h1
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{ color: 'var(--foreground)' }}
+            className="heading-display max-w-2xl mx-auto leading-[1.1]"
+            style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}
           >
-            Where circular economy
-            <br />
-            meets <em style={{ fontStyle: 'italic' }}>evidence.</em>
+            Evaluate your circular
+            <br className="hidden sm:block" /> economy initiative.
           </h1>
           <p
-            className="text-lg md:text-xl max-w-3xl mx-auto mb-8"
+            className="mt-4 text-[15px] max-w-md mx-auto leading-relaxed"
             style={{ color: 'var(--muted)' }}
           >
-            AI-powered evaluation grounded in 40,000+ real circular economy case studies and
-            projects.
+            Get an evidence-backed circularity score in minutes, grounded in real-world case
+            studies.
           </p>
         </div>
 
@@ -1063,7 +1063,7 @@ export default function LandingPage() {
                       }}
                     >
                       {loading ? (
-                        <LoaderIcon isButton={true} color="#ffffff" />
+                        <LoaderIcon isButton={true} color="var(--surface)" />
                       ) : (
                         <span>Evaluate Circularity</span>
                       )}
@@ -1080,71 +1080,50 @@ export default function LandingPage() {
 
               {/* Test Case Selector */}
               <div
-                className="w-full rounded-lg border overflow-hidden group/tc"
+                className="w-full rounded-lg border p-5"
                 style={{
                   backgroundColor: 'var(--surface)',
                   borderColor: 'var(--border)',
                 }}
               >
-                <Accordion
-                  className="w-full"
-                  variant="default"
-                  defaultExpandedKeys={['test-cases']}
-                >
-                  <Accordion.Item id="test-cases" defaultExpanded={true}>
-                    <Accordion.Heading>
-                      <Accordion.Trigger className="group/tc flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
-                        <ClipboardList
-                          className="h-6 w-6 shrink-0 transition-transform duration-300 ease-out group-hover/tc:scale-110 mr-1"
-                          style={{ color: 'var(--success)' }}
-                          strokeWidth={1.75}
-                        />
+                <div className="flex items-center gap-3 mb-4">
+                  <ClipboardList
+                    className="h-6 w-6 shrink-0"
+                    style={{ color: 'var(--success)' }}
+                    strokeWidth={1.75}
+                  />
 
-                        <div className="flex flex-col gap-1 text-left">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="font-semibold text-base leading-6"
-                              style={{
-                                color: 'var(--foreground)',
-                              }}
-                            >
-                              Sample Test Cases
-                            </span>
-                            <BadgeInfo
-                              className="info-icon cursor-pointer"
-                              size={22}
-                              style={{ color: 'var(--accent)' }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openSampleTestCasesHeadingInfoDrawer();
-                              }}
-                            />
-                          </div>
-                          <span
-                            className="text-xs font-normal leading-4 italic"
-                            style={{ color: 'var(--muted)' }}
-                          >
-                            Auto-fill the form with curated examples for quick testing
-                          </span>
-                        </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="font-semibold text-base leading-6"
+                        style={{
+                          color: 'var(--foreground)',
+                        }}
+                      >
+                        Sample Test Cases
+                      </span>
+                      <BadgeInfo
+                        className="info-icon cursor-pointer"
+                        size={22}
+                        style={{ color: 'var(--accent)' }}
+                        onClick={openSampleTestCasesHeadingInfoDrawer}
+                      />
+                    </div>
+                    <span
+                      className="text-xs font-normal leading-4 italic"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      Auto-fill the form with curated examples for quick testing
+                    </span>
+                  </div>
+                </div>
 
-                        <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
-                          <ChevronDown />
-                        </Accordion.Indicator>
-                      </Accordion.Trigger>
-                    </Accordion.Heading>
-
-                    <Accordion.Panel>
-                      <Accordion.Body className="pt-2 bg-transparent">
-                        <SampleTestCasesContainer
-                          setShowEvaluationParameters={setShowEvaluationParameters}
-                          openEvalParams={openEvalParams}
-                          openBusinessContext={openBusinessContext}
-                        />
-                      </Accordion.Body>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                </Accordion>
+                <SampleTestCasesContainer
+                  setShowEvaluationParameters={setShowEvaluationParameters}
+                  openEvalParams={openEvalParams}
+                  openBusinessContext={openBusinessContext}
+                />
               </div>
             </div>
           </div>

@@ -1,25 +1,13 @@
 import { Skeleton } from '@heroui/react';
 import {
-  Activity,
   BarChart3,
-  BookOpen,
-  Building2,
   ChevronRight,
-  Gauge,
   Globe,
-  Layers,
   Lightbulb,
-  MapPin,
-  Package,
   RefreshCw,
   Search,
-  Shield,
-  Sparkles,
-  Target,
-  TrendingUp,
   Users,
   X,
-  Zap,
 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -43,10 +31,23 @@ import {
 } from './components';
 
 // ─── Colours ──────────────────────────────────────────────────────────────────
-const TIER_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
-const RISK_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
-const SCORE_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
-const SCALE_COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe'];
+const TIER_COLORS = [
+  'var(--success)',
+  'var(--info)',
+  'var(--warning)',
+  'var(--danger)',
+  'var(--muted)',
+];
+const RISK_COLORS = ['var(--success)', 'var(--warning)', 'var(--danger)', 'var(--muted)'];
+const SCORE_COLORS = ['var(--danger)', 'var(--warning)', 'var(--info)', 'var(--success)'];
+const SCALE_COLORS = [
+  'var(--danger)',
+  'var(--warning)',
+  'var(--info)',
+  'var(--success)',
+  'var(--accent)',
+  'var(--muted)',
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -281,15 +282,9 @@ export default function DashboardPage() {
 
   // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────
   const renderPieOrSingle = (data, colors, emptyMsg) => {
-    if (!data || data.length === 0) return <EmptyChart message={emptyMsg} />;
+    if (!data || data.length === 0) return <EmptyChart />;
     if (!usablePie(data)) {
-      return (
-        <SingleValueChart
-          name={data[0]?.name}
-          value={data[0]?.value}
-          color={colors?.[0] ?? '#10b981'}
-        />
-      );
+      return <SingleValueChart label={data[0]?.name} value={data[0]?.value} />;
     }
     return (
       <PieChart
@@ -348,37 +343,26 @@ export default function DashboardPage() {
           SECTION 1 — GLOBAL ACTIVITY
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider
-          icon={Globe}
-          title="Global Activity"
-          subtitle={`${totalScoringCalls.toLocaleString()} assessments scored — authenticated and anonymous`}
-          accent="emerald"
-        />
+        <SectionDivider label="GLOBAL ACTIVITY" />
 
         {/* Headline 3 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
           <StatCard
-            label="Total Scored"
+            title="Total Scored"
             value={totalScoringCalls?.toLocaleString()}
-            sub="All-time scoring calls"
-            icon={Activity}
-            color="emerald"
+            subtext="All-time scoring calls"
             loading={globalLoading}
           />
           <StatCard
-            label="Avg Score"
+            title="Avg Score"
             value={avgScore ? `${avgScore}%` : null}
-            sub="Across all assessments"
-            icon={Gauge}
-            color="blue"
+            subtext="Across all assessments"
             loading={globalLoading}
           />
           <StatCard
-            label="Input Quality"
+            title="Input Quality"
             value={qualityRate ? `${qualityRate}%` : null}
-            sub="non-junk inputs"
-            icon={Shield}
-            color="purple"
+            subtext="non-junk inputs"
             loading={globalLoading}
           />
         </div>
@@ -386,88 +370,80 @@ export default function DashboardPage() {
         {/* Derived metrics 6-grid — SHORT labels to avoid truncation */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           <StatCard
-            label="Confidence"
+            title="Confidence"
             value={avgConfidence ? `${avgConfidence}%` : null}
-            icon={Target}
-            color="indigo"
             loading={globalLoading}
           />
           <StatCard
-            label="Tech Feas."
+            title="Tech Feas."
             value={avgTechFeas ? `${avgTechFeas}%` : null}
-            icon={Zap}
-            color="amber"
             loading={globalLoading}
           />
           <StatCard
-            label="Econ Viab."
+            title="Econ Viab."
             value={avgEconViab ? `${avgEconViab}%` : null}
-            icon={TrendingUp}
-            color="emerald"
             loading={globalLoading}
           />
           <StatCard
-            label="Circularity"
+            title="Circularity"
             value={avgCircPot ? `${avgCircPot}%` : null}
-            icon={RefreshCw}
-            color="cyan"
             loading={globalLoading}
           />
           <StatCard
-            label="Consistency"
+            title="Consistency"
             value={avgParamConsistency ? `${avgParamConsistency}%` : null}
-            icon={Layers}
-            color="purple"
             loading={globalLoading}
           />
           <StatCard
-            label="R-Alignment"
+            title="R-Alignment"
             value={avgRAlignment ? `${avgRAlignment}%` : null}
-            icon={Sparkles}
-            color="rose"
             loading={globalLoading}
           />
         </div>
 
         {/* Row A: 3 donuts with single-value fallback */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <ChartPanel title="Score Distribution" icon={Gauge} loading={globalLoading}>
+          <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="192px">
             {renderPieOrSingle(scoreDistData, SCORE_COLORS, 'Score data unavailable')}
           </ChartPanel>
-          <ChartPanel title="CE Tier Breakdown" icon={Layers} loading={globalLoading}>
+          <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="192px">
             {renderPieOrSingle(tierDistData, TIER_COLORS, 'Tier data unavailable')}
           </ChartPanel>
-          <ChartPanel title="Risk Distribution" icon={Shield} loading={globalLoading}>
+          <ChartPanel title="Risk Distribution" isLoading={globalLoading} chartHeight="192px">
             {renderPieOrSingle(riskDistData, RISK_COLORS, 'Risk data unavailable')}
           </ChartPanel>
         </div>
 
         {/* Row B: Weekly trend + R-strategy bar */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <ChartPanel title="Weekly Volume — last 12 weeks" icon={TrendingUp} skeleton="h-56">
+          <ChartPanel
+            title="Weekly Volume — last 12 weeks"
+            isLoading={globalLoading}
+            chartHeight="220px"
+          >
             {weeklyData.some((d) => d.count > 0) ? (
               <LineChart
                 data={weeklyData}
                 xAxisKey="period"
-                lines={[{ dataKey: 'count', stroke: '#3b82f6', name: 'Assessments' }]}
+                lines={[{ dataKey: 'count', stroke: 'var(--info)', name: 'Assessments' }]}
                 height={220}
                 showLegend={false}
               />
             ) : (
-              <EmptyChart compact />
+              <EmptyChart />
             )}
           </ChartPanel>
-          <ChartPanel title="R-Strategy Distribution" icon={Sparkles} skeleton="h-56">
+          <ChartPanel title="R-Strategy Distribution" isLoading={globalLoading} chartHeight="220px">
             {usableBar(strategyData, 'value') ? (
               <BarChart
                 data={strategyData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: '#818cf8', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'value', fill: 'var(--accent)', name: 'Count' }]}
                 height={220}
                 showGrid
               />
             ) : (
-              <EmptyChart compact />
+              <EmptyChart />
             )}
           </ChartPanel>
         </div>
@@ -476,34 +452,34 @@ export default function DashboardPage() {
         {(globalLoading || industryBarData.length > 0) && (
           <ChartPanel
             title="Assessment Volume by Industry — top 10 (excluding uncategorized)"
-            icon={Building2}
-            className="mb-4"
+            isLoading={globalLoading}
+            chartHeight="220px"
           >
             {usableBar(industryBarData) ? (
               <BarChart
                 data={industryBarData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: '#10b981', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'count', fill: 'var(--secondary)', name: 'Count' }]}
                 height={220}
                 showGrid
               />
             ) : (
-              <EmptyChart compact />
+              <EmptyChart />
             )}
           </ChartPanel>
         )}
 
         {/* Row D: Material + Geography + Scale */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <ChartPanel title="Primary Material" icon={Package} loading={globalLoading}>
+          <ChartPanel title="Primary Material" isLoading={globalLoading} chartHeight="192px">
             {renderPieOrSingle(materialData, undefined, 'No material data')}
           </ChartPanel>
-          <ChartPanel title="Geographic Focus" icon={MapPin} loading={globalLoading}>
+          <ChartPanel title="Geographic Focus" isLoading={globalLoading} chartHeight="192px">
             {geoData.length > 0 ? (
               <BarChart
                 data={geoData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: '#06b6d4', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'value', fill: 'var(--success)', name: 'Count' }]}
                 height={200}
                 showGrid
               />
@@ -511,7 +487,7 @@ export default function DashboardPage() {
               <EmptyChart />
             )}
           </ChartPanel>
-          <ChartPanel title="Company Scale" icon={Users} loading={globalLoading}>
+          <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="192px">
             {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
           </ChartPanel>
         </div>
@@ -522,14 +498,9 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       {(globalLoading || marketTableRows.length > 0) && (
         <section>
-          <SectionDivider
-            icon={BarChart3}
-            title="Benchmark Intelligence"
-            subtitle="Industry averages from contributed assessments"
-            accent="blue"
-          />
+          <SectionDivider label="BENCHMARK INTELLIGENCE" />
 
-          <ChartPanel loading={globalLoading} className="overflow-x-auto">
+          <ChartPanel isLoading={globalLoading} chartHeight="300px">
             {marketTableRows.length > 0 ? (
               <table className="w-full text-xs">
                 <thead>
@@ -560,7 +531,7 @@ export default function DashboardPage() {
                 </tbody>
               </table>
             ) : (
-              <EmptyChart message="No benchmark data available yet" />
+              <EmptyChart />
             )}
           </ChartPanel>
         </section>
@@ -570,49 +541,24 @@ export default function DashboardPage() {
           SECTION 3 — KNOWLEDGE BASE
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider
-          icon={BookOpen}
-          title="Knowledge Base"
-          subtitle="Featured circular economy solutions and insights"
-          accent="indigo"
-        />
+        <SectionDivider label="KNOWLEDGE BASE" />
 
         {/* Doc stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <StatCard
-            label="Total Documents"
+            title="Total Documents"
             value={totalDocs?.toLocaleString()}
-            icon={BookOpen}
-            color="indigo"
             loading={docLoading}
           />
-          <StatCard
-            label="Industries"
-            value={docStats?.byIndustry?.length}
-            icon={Building2}
-            color="purple"
-            loading={docLoading}
-          />
-          <StatCard
-            label="Sources"
-            value={docStats?.bySources?.length}
-            icon={Package}
-            color="amber"
-            loading={docLoading}
-          />
-          <StatCard
-            label="Categories"
-            value={availableCategories?.length}
-            icon={Layers}
-            color="cyan"
-            loading={docLoading}
-          />
+          <StatCard title="Industries" value={docStats?.byIndustry?.length} loading={docLoading} />
+          <StatCard title="Sources" value={docStats?.bySources?.length} loading={docLoading} />
+          <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
         </div>
 
         {/* Doc distribution charts */}
         {!docLoading && docStats && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-            <ChartPanel title="Documents by Industry" icon={Building2}>
+            <ChartPanel title="Documents by Industry" isLoading={docLoading} chartHeight="180px">
               {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
                 <BarChart
                   data={docStats.byIndustry
@@ -625,10 +571,10 @@ export default function DashboardPage() {
                   showGrid
                 />
               ) : (
-                <EmptyChart compact />
+                <EmptyChart />
               )}
             </ChartPanel>
-            <ChartPanel title="Documents by Source" icon={Package}>
+            <ChartPanel title="Documents by Source" isLoading={docLoading} chartHeight="180px">
               {docStats.bySources && docStats.bySources.length > 0 ? (
                 <BarChart
                   data={docStats.bySources
@@ -640,7 +586,7 @@ export default function DashboardPage() {
                   showGrid
                 />
               ) : (
-                <EmptyChart compact />
+                <EmptyChart />
               )}
             </ChartPanel>
           </div>
@@ -746,8 +692,10 @@ export default function DashboardPage() {
                 filteredSolutions.map((solution) => (
                   <SolutionCard
                     key={solution.id || solution.title}
-                    solution={solution}
-                    onOpen={handleOpenSolution}
+                    title={solution.title}
+                    preview={solution.solution || solution.problem || ''}
+                    category={solution.category}
+                    onView={() => handleOpenSolution(solution)}
                   />
                 ))
               ) : (
@@ -797,48 +745,39 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       {user ? (
         <section>
-          <SectionDivider
-            icon={Users}
-            title="Your Assessments"
-            subtitle="Your personal circular economy evaluation history"
-            accent="indigo"
-          />
+          <SectionDivider label="YOUR ASSESSMENTS" />
 
           {/* Your stats row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             <StatCard
-              label="Total Assessments"
+              title="Total Assessments"
               value={userTotal?.toLocaleString()}
-              icon={Activity}
-              color="indigo"
               loading={userStatsLoading}
             />
             <StatCard
-              label="Average Score"
+              title="Average Score"
               value={userAvg ? `${userAvg}%` : null}
-              icon={Gauge}
-              color="blue"
               loading={userStatsLoading}
             />
             <StatCard
-              label="Median Score"
+              title="Median Score"
               value={userMedian ? `${userMedian}%` : null}
-              icon={Target}
-              color="purple"
               loading={userStatsLoading}
             />
             <StatCard
-              label="Score Range"
+              title="Score Range"
               value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
-              icon={TrendingUp}
-              color="emerald"
               loading={userStatsLoading}
             />
           </div>
 
           {/* Your charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ChartPanel title="Your Assessments by Industry" icon={Building2} skeleton="h-56">
+            <ChartPanel
+              title="Your Assessments by Industry"
+              isLoading={userStatsLoading}
+              chartHeight="220px"
+            >
               {userIndustryData.length > 0 ? (
                 <BarChart
                   data={userIndustryData}
@@ -848,11 +787,15 @@ export default function DashboardPage() {
                   showGrid
                 />
               ) : (
-                <EmptyChart compact />
+                <EmptyChart />
               )}
             </ChartPanel>
 
-            <ChartPanel title="Your Assessments by Risk" icon={Shield} skeleton="h-56">
+            <ChartPanel
+              title="Your Assessments by Risk"
+              isLoading={userStatsLoading}
+              chartHeight="220px"
+            >
               {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
             </ChartPanel>
           </div>

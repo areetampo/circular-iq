@@ -37,16 +37,18 @@ export function WeightedScoreCard({ actualResult }) {
                   style={{ backgroundColor: 'var(--border)' }}
                 >
                   <div
-                    className={`h-2 rounded-full ${
-                      factor.classification === 'Strong'
-                        ? 'bg-green-500'
-                        : factor.classification === 'Moderate'
-                          ? 'bg-blue-500'
-                          : factor.classification === 'Weak'
-                            ? 'bg-amber-500'
-                            : 'bg-red-500'
-                    }`}
-                    style={{ width: `${factor.raw_score}%` }}
+                    className="h-2 rounded-full"
+                    style={{
+                      backgroundColor:
+                        factor.classification === 'Strong'
+                          ? 'var(--success)'
+                          : factor.classification === 'Moderate'
+                            ? 'var(--info)'
+                            : factor.classification === 'Weak'
+                              ? 'var(--warning)'
+                              : 'var(--danger)',
+                      width: `${factor.raw_score}%`,
+                    }}
                   />
                 </div>
                 <div className="text-xs w-8 text-right shrink-0" style={{ color: 'var(--muted)' }}>
@@ -61,15 +63,25 @@ export function WeightedScoreCard({ actualResult }) {
                 <Chip
                   variant="soft"
                   size="sm"
-                  className={`text-xs shrink-0 ${
-                    factor.classification === 'Strong'
-                      ? 'text-green-700 bg-green-100'
-                      : factor.classification === 'Moderate'
-                        ? 'text-blue-700 bg-blue-100'
-                        : factor.classification === 'Weak'
-                          ? 'text-amber-700 bg-amber-100'
-                          : 'text-red-700 bg-red-100'
-                  }`}
+                  className="text-xs shrink-0"
+                  style={{
+                    backgroundColor:
+                      factor.classification === 'Strong'
+                        ? 'var(--success-soft)'
+                        : factor.classification === 'Moderate'
+                          ? 'var(--info-soft)'
+                          : factor.classification === 'Weak'
+                            ? 'var(--warning-soft)'
+                            : 'var(--danger-soft)',
+                    color:
+                      factor.classification === 'Strong'
+                        ? 'var(--success)'
+                        : factor.classification === 'Moderate'
+                          ? 'var(--info)'
+                          : factor.classification === 'Weak'
+                            ? 'var(--warning)'
+                            : 'var(--danger)',
+                  }}
                 >
                   {factor.classification}
                 </Chip>

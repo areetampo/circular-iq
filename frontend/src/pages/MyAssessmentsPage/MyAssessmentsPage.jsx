@@ -528,6 +528,26 @@ export default function MyAssessmentsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <p className="label-overline mb-1">YOUR HISTORY</p>
+          <h1 className="text-[28px] font-semibold" style={{ color: 'var(--foreground)' }}>
+            Saved Assessments
+          </h1>
+        </div>
+        <button
+          onClick={() => navigate('/')}
+          className="text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150"
+          style={{
+            backgroundColor: 'var(--accent)',
+            color: 'var(--accent-foreground)',
+          }}
+        >
+          + New Assessment
+        </button>
+      </div>
+
       {/* INITIAL LOAD: Show all skeletons until data arrives */}
       {isAssessmentStatsLoading ? (
         renderInitialLoadPageSkeleton()

@@ -65,40 +65,84 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
 
 const LOADERS = [
-  ({ color = '#10b981' }) => <Spiral size="40" speed="0.9" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <Bouncy size="45" speed="1.75" color={color || '#059669'} />,
-  ({ color = '#10b981' }) => <Ring2 size="40" stroke="5" speed="0.8" color={color || '#10b981'} />,
-  ({ color = '#34d399' }) => <BouncyArc size="70" speed="1.65" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <Hourglass size="40" speed="1.75" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => (
-    <LineWobble size="70" stroke="5" speed="1.75" color={color || '#059669'} />
+  ({ color = 'var(--accent)' }) => (
+    <Spiral size="40" speed="0.9" color={color || 'var(--accent)'} />
   ),
-  ({ color = '#10b981' }) => (
-    <InfinityLoader size="55" stroke="4" speed="1.3" color={color || '#10b981'} />
+  ({ color = 'var(--accent)' }) => (
+    <Bouncy size="45" speed="1.75" color={color || 'var(--accent)'} />
   ),
-  ({ color = '#10b981' }) => <Quantum size="40" speed="1.75" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <Trio size="40" speed="1.3" color={color || '#059669'} />,
-  ({ color = '#10b981' }) => <DotWave size="47" speed="1" color={color || '#10b981'} />,
-  ({ color = '#34d399' }) => <Leapfrog size="40" speed="2.5" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <NewtonsCradle size="78" speed="1.4" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <DotStream size="60" speed="2.5" color={color || '#059669'} />,
-  ({ color = '#10b981' }) => <Metronome size="40" speed="1.6" color={color || '#10b981'} />,
-  ({ color = '#34d399' }) => (
-    <Pinwheel size="35" stroke="3.5" speed="0.9" color={color || '#34d399'} />
+  ({ color = 'var(--accent)' }) => (
+    <Ring2 size="40" stroke="5" speed="0.8" color={color || 'var(--accent)'} />
   ),
-  ({ color = '#10b981' }) => <Jelly size="45" speed="1.75" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <JellyTriangle size="45" speed="1.75" color={color || '#059669'} />,
-  ({ color = '#34d399' }) => <Mirage size="45" speed="1.75" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <Momentum size="45" speed="1.75" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <Superballs size="45" speed="1.75" color={color || '#059669'} />,
-  ({ color = '#34d399' }) => <Orbit size="45" speed="1.75" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <ChaoticOrbit size="45" speed="1.75" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <Grid size="45" speed="1.75" color={color || '#059669'} />,
-  ({ color = '#34d399' }) => <Trefoil size="45" speed="1.75" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <Treadmill size="45" speed="1.75" color={color || '#10b981'} />,
-  ({ color = '#059669' }) => <TailChase size="45" speed="1.75" color={color || '#059669'} />,
-  ({ color = '#34d399' }) => <Reuleaux size="45" speed="1.75" color={color || '#34d399'} />,
-  ({ color = '#10b981' }) => <Zoomies size="45" speed="1.75" color={color || '#10b981'} />,
+  ({ color = 'var(--accent)' }) => (
+    <BouncyArc size="70" speed="1.65" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Hourglass size="40" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <LineWobble size="70" stroke="5" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <InfinityLoader size="55" stroke="4" speed="1.3" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Quantum size="40" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => <Trio size="40" speed="1.3" color={color || 'var(--accent)'} />,
+  ({ color = 'var(--accent)' }) => <DotWave size="47" speed="1" color={color || 'var(--accent)'} />,
+  ({ color = 'var(--accent)' }) => (
+    <Leapfrog size="40" speed="2.5" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <NewtonsCradle size="78" speed="1.4" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <DotStream size="60" speed="2.5" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Metronome size="40" speed="1.6" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Pinwheel size="35" stroke="3.5" speed="0.9" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Jelly size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <JellyTriangle size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Mirage size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Momentum size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Superballs size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Orbit size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <ChaoticOrbit size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => <Grid size="45" speed="1.75" color={color || 'var(--accent)'} />,
+  ({ color = 'var(--accent)' }) => (
+    <Trefoil size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Treadmill size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <TailChase size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Reuleaux size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
+  ({ color = 'var(--accent)' }) => (
+    <Zoomies size="45" speed="1.75" color={color || 'var(--accent)'} />
+  ),
 ];
 
 const SWITCH_INTERVAL = 3000;

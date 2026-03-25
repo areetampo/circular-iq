@@ -80,7 +80,7 @@ export default function NotFoundPage() {
                     color: 'var(--foreground)',
                   }}
                 >
-                  Review past work
+                  Need guidance?
                 </p>
                 <p
                   className="text-xs"
@@ -109,7 +109,7 @@ export default function NotFoundPage() {
                     color: 'var(--foreground)',
                   }}
                 >
-                  Need guidance?
+                  Review past work
                 </p>
                 <p
                   className="text-xs"

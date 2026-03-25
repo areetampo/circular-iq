@@ -1,6 +1,6 @@
 import { Button, Dropdown } from '@heroui/react';
 import { HelpCircle, LogOut, Menu, Settings, User, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { SITE_NAME } from '@/components/common';
@@ -11,10 +11,10 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
+  const navRef = useRef(null);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
@@ -58,10 +58,17 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const scrolled = window.scrollY > 10;
+      if (navRef.current) {
+        if (scrolled) {
+          navRef.current.setAttribute('data-scrolled', 'true');
+        } else {
+          navRef.current.removeAttribute('data-scrolled');
+        }
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -105,12 +112,9 @@ export default function Navbar() {
 
   return (
     <nav
-      className={cn(
-        'sticky top-0 z-50 w-full border-b transition-all duration-200',
-        isScrolled
-          ? 'bg-[oklch(0.97_0.012_80/0.95)] shadow-sm'
-          : 'bg-[oklch(0.97_0.012_80/0.82)] backdrop-blur-md',
-      )}
+      ref={navRef}
+      data-navbar
+      className="sticky top-0 z-50 w-full border-b transition-all duration-200 bg-[oklch(0.97_0.012_80/0.82)] backdrop-blur-md"
       style={{ borderBottomColor: 'var(--border)' }}
     >
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

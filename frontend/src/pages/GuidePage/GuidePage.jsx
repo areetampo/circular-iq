@@ -621,7 +621,7 @@ const AssessmentMethodologySection = () => {
           <ChartSpline size={16} />
           <span>Assessment Methodology</span>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+        <h2 className="text-3xl font-bold mb-3" style={{ color: 'var(--foreground)' }}>
           Our AI-powered evaluation framework
         </h2>
       </div>
@@ -630,7 +630,10 @@ const AssessmentMethodologySection = () => {
         <p className="text-gray-600 text-lg leading-relaxed mb-8">
           This evaluation uses a proprietary AI-powered framework combining vector similarity search
           with GPT-4o-mini reasoning against a database of{' '}
-          <strong className="text-gray-900">4,000+ high-quality circular economy projects</strong>.
+          <strong style={{ color: 'var(--foreground)' }}>
+            4,000+ high-quality circular economy projects
+          </strong>
+          .
         </p>
 
         <div className="space-y-4 mb-8">
@@ -639,16 +642,24 @@ const AssessmentMethodologySection = () => {
               key={idx}
               className={`p-5 border-l-4 rounded-lg ${item.borderColor} ${item.bgColor} transition-all duration-200 hover:shadow-md`}
             >
-              <h4 className="flex items-center gap-2 mb-2 text-base font-bold text-gray-800">
+              <h4
+                className="flex items-center gap-2 mb-2 text-base font-bold"
+                style={{ color: 'var(--foreground)' }}
+              >
                 {item.icon} {item.title}
               </h4>
-              <p className="text-sm leading-relaxed text-gray-700 m-0">{item.description}</p>
+              <p className="text-sm leading-relaxed m-0" style={{ color: 'var(--muted)' }}>
+                {item.description}
+              </p>
             </div>
           ))}
         </div>
 
         <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-200 mb-8">
-          <h4 className="flex items-center gap-2 mb-3 text-base font-bold text-emerald-800">
+          <h4
+            className="flex items-center gap-2 mb-3 text-base font-bold"
+            style={{ color: 'var(--success)' }}
+          >
             <BookCopy size={20} /> Data Source
           </h4>
           <p className="text-sm text-gray-700 leading-relaxed m-0">
@@ -660,9 +671,12 @@ const AssessmentMethodologySection = () => {
           </p>
         </div>
 
-        <div className="p-5 rounded-xl border-l-4 border-orange-500 bg-orange-50">
+        <div
+          className="p-5 rounded-xl border-l-4"
+          style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
+        >
           <p className="text-sm text-gray-700 leading-relaxed m-0">
-            <strong className="flex items-center gap-2 mb-2 text-orange-800">
+            <strong className="flex items-center gap-2 mb-2" style={{ color: 'var(--warning)' }}>
               <TriangleAlert size={16} /> Disclaimer:
             </strong>
             This assessment is designed to provide{' '}
@@ -728,7 +742,7 @@ const BusinessProblemSection = () => {
           <Target size={16} />
           <span>Business Problem</span>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+        <h2 className="text-3xl font-bold mb-3" style={{ color: 'var(--foreground)' }}>
           Environmental or circular economy challenge
         </h2>
       </div>
@@ -736,7 +750,9 @@ const BusinessProblemSection = () => {
       <div className="prose prose-gray max-w-none">
         <p className="text-gray-600 text-lg leading-relaxed mb-8">
           Describe the{' '}
-          <strong className="text-gray-900">environmental or circular economy challenge</strong>{' '}
+          <strong style={{ color: 'var(--foreground)' }}>
+            environmental or circular economy challenge
+          </strong>{' '}
           your business addresses.
         </p>
 
@@ -745,19 +761,27 @@ const BusinessProblemSection = () => {
           <ul className="space-y-3 m-0">
             {PROBLEM_ELEMENTS.map(({ title, description }) => (
               <li key={title} className="pl-4 text-sm border-l-2 border-emerald-400 list-none">
-                <strong className="text-emerald-900 block mb-1">{title}</strong>
-                <p className="text-gray-700 text-sm m-0">{description}</p>
+                <strong className="block mb-1" style={{ color: 'var(--success)' }}>
+                  {title}
+                </strong>
+                <p className="text-sm m-0" style={{ color: 'var(--muted)' }}>
+                  {description}
+                </p>
               </li>
             ))}
           </ul>
         </div>
 
         <div className="p-6 border border-blue-200 bg-blue-50 rounded-xl mb-8">
-          <h4 className="mb-4 text-base font-bold text-blue-800">Writing Tips</h4>
+          <h4 className="mb-4 text-base font-bold" style={{ color: 'var(--info)' }}>
+            Writing Tips
+          </h4>
           <ul className="space-y-2 m-0 pl-0">
             {PROBLEM_WRITING_TIPS.map((tip) => (
               <li key={tip} className="flex items-start gap-3 text-sm text-gray-700 list-none">
-                <span className="font-bold text-blue-500 text-lg leading-none">•</span>
+                <span className="font-bold" style={{ color: 'var(--info)' }}>
+                  •
+                </span>
                 <span>{tip}</span>
               </li>
             ))}
@@ -765,13 +789,25 @@ const BusinessProblemSection = () => {
         </div>
 
         <div className="mb-8">
-          <h4 className="mb-3 text-base font-bold text-indigo-800">Example Statement</h4>
-          <p className="p-5 text-sm italic leading-relaxed text-gray-700 border-l-4 border-indigo-500 rounded-lg bg-indigo-50 m-0">
+          <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--accent)' }}>
+            Example Statement
+          </h4>
+          <p
+            className="p-5 text-sm italic leading-relaxed rounded-lg m-0"
+            style={{
+              backgroundColor: 'var(--accent-soft)',
+              borderColor: 'var(--accent)',
+              color: 'var(--muted)',
+            }}
+          >
             {PROBLEM_EXAMPLE}
           </p>
         </div>
 
-        <div className="p-4 text-sm italic text-gray-600 bg-gray-100 rounded-lg border border-gray-200">
+        <div
+          className="p-4 text-sm italic rounded-lg"
+          style={{ backgroundColor: 'var(--surface-raised)', color: 'var(--muted)' }}
+        >
           ‼ ️ <strong>Minimum 200 characters required</strong>
         </div>
       </div>
@@ -844,17 +880,21 @@ const BusinessSolutionSection = () => {
   return (
     <section id="business-solution" className="scroll-mt-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-lg bg-teal-100">
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--surface-raised)' }}>
           <Lightbulb className="text-teal-600" size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold">Business Solution Guide</h2>
-          <p className="text-sm text-gray-600">How your business solves the problem</p>
+          <h2 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+            Business Solution Guide
+          </h2>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+            How your business solves problem
+          </p>
         </div>
       </div>
 
       <div className="space-y-6">
-        <p className="leading-relaxed text-gray-700">
+        <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
           Describe <strong>how your business solves the problem</strong> with technical details
           about materials, processes, partnerships, and outcomes.
         </p>
@@ -865,18 +905,24 @@ const BusinessSolutionSection = () => {
             {SOLUTION_COMPONENTS.map(({ title, description }) => (
               <li key={title} className="border-l-2 border-teal-400 pl-3 text-sm">
                 <strong className="text-teal-900">{title}</strong>
-                <p className="text-gray-600 text-sm mt-0.5">{description}</p>
+                <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+                  {description}
+                </p>
               </li>
             ))}
           </ul>
         </div>
 
         <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
-          <h4 className="mb-3 text-base font-bold text-orange-700">Common Pitfalls</h4>
+          <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--warning)' }}>
+            Common Pitfalls
+          </h4>
           <ul className="space-y-1">
             {SOLUTION_PITFALLS.map((pitfall) => (
               <li key={pitfall} className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-orange-500 font-bold">×</span>
+                <span className="font-bold" style={{ color: 'var(--warning)' }}>
+                  ×
+                </span>
                 <span>{pitfall}</span>
               </li>
             ))}
@@ -888,7 +934,9 @@ const BusinessSolutionSection = () => {
           <ul className="space-y-1">
             {SOLUTION_PRO_TIPS.map((tip) => (
               <li key={tip} className="flex items-start gap-2 text-sm text-gray-600">
-                <span className="text-emerald-500 font-bold">✓</span>
+                <span className="font-bold" style={{ color: 'var(--success)' }}>
+                  ✓
+                </span>
                 <span>{tip}</span>
               </li>
             ))}
@@ -896,15 +944,27 @@ const BusinessSolutionSection = () => {
         </div>
 
         <div>
-          <h4 className="mb-2 text-base font-bold text-indigo-700">Example Statement</h4>
-          <p className="p-3 italic text-sm leading-relaxed text-gray-600 rounded-lg bg-indigo-50 border border-l-4 border-indigo-300 border-l-indigo-500">
+          <h4 className="mb-2 text-base font-bold" style={{ color: 'var(--accent)' }}>
+            Example Statement
+          </h4>
+          <p
+            className="p-3 text-sm italic leading-relaxed rounded-lg"
+            style={{
+              backgroundColor: 'var(--accent-soft)',
+              borderColor: 'var(--accent)',
+              color: 'var(--muted)',
+            }}
+          >
             {SOLUTION_EXAMPLE}
           </p>
         </div>
 
-        <p className="text-sm italic text-gray-500 p-3 bg-gray-100 rounded-lg">
-          ‼ ️ <strong>Minimum 200 characters required</strong>
-        </p>
+        <div
+          className="p-4 text-sm italic rounded-lg"
+          style={{ backgroundColor: 'var(--surface-raised)', color: 'var(--muted)' }}
+        >
+          ‼ ️ <strong style={{ color: 'var(--warning)' }}>Minimum 200 characters required</strong>
+        </div>
       </div>
     </section>
   );

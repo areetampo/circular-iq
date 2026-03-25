@@ -12,16 +12,19 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   return (
     <Card
       data-export-section="database-evidence"
-      className="border border-slate-300 shadow-sm rounded-xl bg-white"
+      className="border rounded-xl card-lift"
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
     >
       <div className="p-1 sm:p-3">
         <div className="flex items-center gap-2 mb-2">
-          <FileText className="text-emerald-600" size={20} />
+          <FileText style={{ color: 'var(--success)' }} size={20} />
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Database Evidence</h3>
+            <h3 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>
+              Database Evidence
+            </h3>
           </div>
         </div>
-        <p className="text-sm text-slate-600 mb-4">
+        <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
           Similar cases and benchmark comparisons from the dataset
         </p>
 
@@ -41,11 +44,20 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                 );
 
                 return (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4"
+                    style={{ borderColor: 'var(--border)' }}
+                  >
                     <div className="flex flex-col gap-1 mb-3">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h4 className="text-lg font-semibold text-gray-900">{caseTitle}</h4>
+                          <h4
+                            className="text-lg font-semibold"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            {caseTitle}
+                          </h4>
                           {/* Year + Location + Use type */}
                           <div className="flex flex-wrap gap-1 mt-1">
                             {caseItem.year && (
@@ -68,7 +80,8 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                                 href={caseItem.source_url || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                                className="flex items-center gap-1 text-xs hover:underline"
+                                style={{ color: 'var(--accent)' }}
                               >
                                 <ExternalLink size={10} />
                                 {caseItem.source_display}
@@ -102,24 +115,49 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                       </span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="p-3 border-l-4 border-emerald-600 rounded bg-gray-50">
-                        <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <Target className="text-emerald-600" size={16} />
+                      <div
+                        className="p-3 border-l-4 rounded"
+                        style={{
+                          borderColor: 'var(--success)',
+                          backgroundColor: 'var(--success-soft)',
+                        }}
+                      >
+                        <h5
+                          className="text-sm font-semibold mb-2 flex items-center gap-2"
+                          style={{ color: 'var(--foreground)' }}
+                        >
+                          <Target style={{ color: 'var(--success)' }} size={16} />
                           Problem Addressed
                         </h5>
-                        <p className="text-sm text-gray-600">{problemText}</p>
+                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          {problemText}
+                        </p>
                       </div>
-                      <div className="p-3 border-l-4 border-emerald-600 rounded bg-gray-50">
-                        <h5 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <Lightbulb className="text-emerald-600" size={16} />
+                      <div
+                        className="p-3 border-l-4 rounded"
+                        style={{
+                          borderColor: 'var(--success)',
+                          backgroundColor: 'var(--success-soft)',
+                        }}
+                      >
+                        <h5
+                          className="text-sm font-semibold mb-2 flex items-center gap-2"
+                          style={{ color: 'var(--foreground)' }}
+                        >
+                          <Lightbulb style={{ color: 'var(--success)' }} size={16} />
                           Solution Approach
                         </h5>
-                        <p className="text-sm text-gray-600">{solutionText}</p>
+                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          {solutionText}
+                        </p>
                       </div>
                     </div>
                     {caseItem.case_scores && (
-                      <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                        <p className="text-xs font-semibold text-purple-700 mb-2">
+                      <div
+                        className="mb-4 p-3 border rounded-lg"
+                        style={{ backgroundColor: 'var(--info-soft)', borderColor: 'var(--info)' }}
+                      >
+                        <p className="text-xs font-semibold mb-2" style={{ color: 'var(--info)' }}>
                           Their scores (from database) — compare with yours
                         </p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -132,23 +170,32 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                             const diff = userScore != null ? userScore - score : null;
                             const scoreColor =
                               score >= 75
-                                ? 'text-green-700'
+                                ? 'var(--success)'
                                 : score >= 50
-                                  ? 'text-blue-700'
-                                  : 'text-amber-700';
+                                  ? 'var(--info)'
+                                  : 'var(--warning)';
                             return (
                               <div key={factor} className="text-center">
-                                <div className="text-[10px] text-slate-500 truncate">{label}</div>
-                                <div className={`text-sm font-bold ${scoreColor}`}>{score}</div>
+                                <div
+                                  className="text-[10px] truncate"
+                                  style={{ color: 'var(--muted)' }}
+                                >
+                                  {label}
+                                </div>
+                                <div className="text-sm font-bold" style={{ color: scoreColor }}>
+                                  {score}
+                                </div>
                                 {diff != null && (
                                   <div
-                                    className={`text-[10px] font-semibold ${
-                                      diff > 0
-                                        ? 'text-green-600'
-                                        : diff < 0
-                                          ? 'text-red-500'
-                                          : 'text-slate-400'
-                                    }`}
+                                    className="text-[10px] font-semibold"
+                                    style={{
+                                      color:
+                                        diff > 0
+                                          ? 'var(--success)'
+                                          : diff < 0
+                                            ? 'var(--danger)'
+                                            : 'var(--muted)',
+                                    }}
                                   >
                                     {diff > 0 ? `+${diff}` : diff === 0 ? '=' : diff}
                                   </div>
@@ -157,18 +204,26 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                             );
                           })}
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-1 italic">
+                        <p className="text-[10px] mt-1 italic" style={{ color: 'var(--subtle)' }}>
                           Diff = your score − their score
                         </p>
                       </div>
                     )}
                     {/* Impact / outcomes row */}
                     {caseItem.impact && (
-                      <div className="p-3 border-l-4 border-blue-500 rounded bg-blue-50 mb-3">
-                        <h5 className="text-sm font-semibold text-gray-700 mb-1">
+                      <div
+                        className="p-3 border-l-4 rounded mb-3"
+                        style={{ borderColor: 'var(--info)', backgroundColor: 'var(--info-soft)' }}
+                      >
+                        <h5
+                          className="text-sm font-semibold mb-1"
+                          style={{ color: 'var(--foreground)' }}
+                        >
                           Impact & Outcomes
                         </h5>
-                        <p className="text-sm text-gray-600">{caseItem.impact}</p>
+                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          {caseItem.impact}
+                        </p>
                       </div>
                     )}
 
@@ -205,20 +260,23 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                             sourceCaseId,
                           })
                         }
-                        className="text-emerald-600"
+                        style={{ color: 'var(--success)' }}
                       >
                         View Full Details <ArrowRight className="ml-1" size={14} />
                       </Button>
                     </div>
                     {index < actualResult.similar_cases.length - 1 && (
-                      <hr className="mt-4 border-gray-300" />
+                      <hr className="mt-4" style={{ borderColor: 'var(--border)' }} />
                     )}
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 py-10 text-center text-gray-600">
+            <div
+              className="flex flex-col items-center justify-center gap-4 py-10 text-center"
+              style={{ color: 'var(--muted)' }}
+            >
               <Frown size={40} />
               <p className="">No similar cases were found in the database for this assessment.</p>
             </div>

@@ -65,7 +65,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                       <h3 className={cn('mb-1 text-lg font-bold', cfg.paramTextColor)}>
                         {guidance.name}
                       </h3>
-                      <p className="text-sm font-medium text-slate-500">{guidance.category}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
+                        {guidance.category}
+                      </p>
                     </div>
                     {guidance.weight && (
                       <div
@@ -87,7 +89,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.definition}
                         </p>
-                        <p className="text-gray-600">{guidance.definition}</p>
+                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          {guidance.definition}
+                        </p>
                       </div>
                     )}
                     {guidance.methodology && (
@@ -95,7 +99,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.methodology}
                         </p>
-                        <p className="text-gray-600">{guidance.methodology}</p>
+                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          {guidance.methodology}
+                        </p>
                       </div>
                     )}
                     {guidance.calibration && (
@@ -103,7 +109,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.calibration}
                         </p>
-                        <p className="text-gray-700">{guidance.calibration}</p>
+                        <p className="text-sm" style={{ color: 'var(--foreground)' }}>
+                          {guidance.calibration}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -123,7 +131,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                           <p className={cn('text-sm font-semibold', cfg.paramTextColor)}>
                             {score} - {label}
                           </p>
-                          <p className="text-xs text-gray-600">{description}</p>
+                          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                            {description}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -131,20 +141,34 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 )}
 
                 {guidance.examples && (
-                  <div className="p-4 border border-blue-200 rounded-xl bg-blue-50">
-                    <h4 className="mb-3 text-base font-bold text-blue-700">
+                  <div
+                    className="p-4 rounded-xl border"
+                    style={{
+                      backgroundColor: 'var(--info-soft)',
+                      borderColor: 'var(--info)',
+                    }}
+                  >
+                    <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--info)' }}>
                       {SPECIFIC_PARAMETER_CONTENT.sections.benchmarks}
                     </h4>
                     <div className="space-y-2">
                       {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
                         <div
                           key={`${exampleCase}-${score}-${idx}`}
-                          className="pl-3 border-l-4 border-blue-400"
+                          className="pl-3 border-l-4"
+                          style={{ borderLeftColor: 'var(--info)' }}
                         >
-                          <p className="text-sm font-semibold text-blue-900">
+                          <p
+                            className="text-sm font-semibold"
+                            style={{ color: 'var(--foreground)' }}
+                          >
                             {exampleCase} {score && `(${score})`}
                           </p>
-                          {reason && <p className="text-xs text-gray-600">{reason}</p>}
+                          {reason && (
+                            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                              {reason}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>

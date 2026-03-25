@@ -57,20 +57,32 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                 <div className="flex items-center gap-4">
                   <div
                     className={cn(
-                      'p-3 rounded-xl bg-blue-100 shrink-0',
+                      'p-3 rounded-xl shrink-0',
                       'transition-[transform,box-shadow] duration-300 ease-out',
                       isDrawerOpen
                         ? 'scale-110 -rotate-6 drop-shadow-lg'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
                     )}
+                    style={{
+                      backgroundColor: 'var(--info-soft)',
+                    }}
                   >
-                    <PencilLine className="size-6 text-blue-600" strokeWidth={2} />
+                    <PencilLine
+                      className="size-6"
+                      style={{ color: 'var(--info)' }}
+                      strokeWidth={2}
+                    />
                   </div>
                   <div className="flex-1">
-                    <Drawer.Heading className="text-2xl font-bold text-gray-900 mb-1">
+                    <Drawer.Heading
+                      className="text-2xl font-bold mb-1"
+                      style={{ color: 'var(--foreground)' }}
+                    >
                       {title}
                     </Drawer.Heading>
-                    <p className="text-sm text-slate-500">{TEST_CASE_DETAIL_CONTENT.subheading}</p>
+                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                      {TEST_CASE_DETAIL_CONTENT.subheading}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -79,44 +91,90 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
             <Drawer.Body className="gap-0 mt-0 max-h-[calc(100vh-120px)] overflow-y-auto">
               <div className="space-y-6 py-4">
                 {/* Business Problem Section */}
-                <Card className="border-2 border-emerald-200 shadow-sm rounded-xl bg-linear-to-br from-emerald-50/60 to-white hover:shadow-md transition-shadow duration-200">
+                <Card
+                  className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                  style={{
+                    borderColor: 'var(--success)',
+                    background:
+                      'linear-gradient(to bottom right, var(--success-soft), var(--surface))',
+                  }}
+                >
                   <Card.Header className="flex items-center gap-3 pb-3">
-                    <div className="p-2.5 rounded-lg bg-emerald-100/80">
-                      <Target className="size-5 text-emerald-700" strokeWidth={2.5} />
+                    <div
+                      className="p-2.5 rounded-lg"
+                      style={{ backgroundColor: 'var(--success-soft)' }}
+                    >
+                      <Target
+                        className="size-5"
+                        style={{ color: 'var(--success)' }}
+                        strokeWidth={2.5}
+                      />
                     </div>
                     <div>
-                      <Card.Title className="font-bold text-base text-gray-900">
+                      <Card.Title
+                        className="font-bold text-base"
+                        style={{ color: 'var(--foreground)' }}
+                      >
                         {TEST_CASE_DETAIL_CONTENT.sections.businessProblem.title}
                       </Card.Title>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                         {TEST_CASE_DETAIL_CONTENT.sections.businessProblem.subtitle}
                       </p>
                     </div>
                   </Card.Header>
                   <Card.Content className="pt-0">
-                    <p className="text-sm leading-relaxed text-gray-700 bg-white/50 p-3 rounded-lg">
+                    <p
+                      className="text-sm leading-relaxed p-3 rounded-lg"
+                      style={{
+                        color: 'var(--foreground)',
+                        backgroundColor: 'var(--surface)',
+                      }}
+                    >
                       {problem}
                     </p>
                   </Card.Content>
                 </Card>
 
                 {/* Business Solution Section */}
-                <Card className="border-2 border-teal-200 shadow-sm rounded-xl bg-linear-to-br from-teal-50/60 to-white hover:shadow-md transition-shadow duration-200">
+                <Card
+                  className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                  style={{
+                    borderColor: 'var(--success)',
+                    background:
+                      'linear-gradient(to bottom right, var(--success-soft), var(--surface))',
+                  }}
+                >
                   <Card.Header className="flex items-center gap-3 pb-3">
-                    <div className="p-2.5 rounded-lg bg-teal-100/80">
-                      <Lightbulb className="size-5 text-teal-700" strokeWidth={2.5} />
+                    <div
+                      className="p-2.5 rounded-lg"
+                      style={{ backgroundColor: 'var(--success-soft)' }}
+                    >
+                      <Lightbulb
+                        className="size-5"
+                        style={{ color: 'var(--success)' }}
+                        strokeWidth={2.5}
+                      />
                     </div>
                     <div>
-                      <Card.Title className="font-bold text-base text-gray-900">
+                      <Card.Title
+                        className="font-bold text-base"
+                        style={{ color: 'var(--foreground)' }}
+                      >
                         {TEST_CASE_DETAIL_CONTENT.sections.businessSolution.title}
                       </Card.Title>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                         {TEST_CASE_DETAIL_CONTENT.sections.businessSolution.subtitle}
                       </p>
                     </div>
                   </Card.Header>
                   <Card.Content className="pt-0">
-                    <p className="text-sm leading-relaxed text-gray-700 bg-white/50 p-3 rounded-lg">
+                    <p
+                      className="text-sm leading-relaxed p-3 rounded-lg"
+                      style={{
+                        color: 'var(--foreground)',
+                        backgroundColor: 'var(--surface)',
+                      }}
+                    >
                       {solution}
                     </p>
                   </Card.Content>
@@ -124,16 +182,33 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
 
                 {/* Business Context Section */}
                 {filteredBusinessContext.length > 0 && (
-                  <Card className="border-2 border-amber-200 shadow-sm rounded-xl bg-linear-to-br from-amber-50/60 to-white hover:shadow-md transition-shadow duration-200">
+                  <Card
+                    className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                    style={{
+                      borderColor: 'var(--warning)',
+                      background:
+                        'linear-gradient(to bottom right, var(--warning-soft), var(--surface))',
+                    }}
+                  >
                     <Card.Header className="flex items-center gap-3 pb-3">
-                      <div className="p-2.5 rounded-lg bg-amber-100/80">
-                        <Briefcase className="size-5 text-amber-700" strokeWidth={2.5} />
+                      <div
+                        className="p-2.5 rounded-lg"
+                        style={{ backgroundColor: 'var(--warning-soft)' }}
+                      >
+                        <Briefcase
+                          className="size-5"
+                          style={{ color: 'var(--warning)' }}
+                          strokeWidth={2.5}
+                        />
                       </div>
                       <div>
-                        <Card.Title className="font-bold text-base text-gray-900">
+                        <Card.Title
+                          className="font-bold text-base"
+                          style={{ color: 'var(--foreground)' }}
+                        >
                           {TEST_CASE_DETAIL_CONTENT.sections.businessContext.title}
                         </Card.Title>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                           {filteredBusinessContext.length} field
                           {filteredBusinessContext.length !== 1 ? 's' : ''} specified
                         </p>
@@ -161,26 +236,46 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                           return (
                             <div
                               key={key}
-                              className="p-3 rounded-lg bg-white border border-amber-100 hover:border-amber-200 hover:shadow-sm transition-all duration-200"
+                              className="p-3 rounded-lg hover:border-[var(--warning)] hover:shadow-sm transition-all duration-200"
+                              style={{
+                                backgroundColor: 'var(--surface)',
+                                borderColor: 'var(--warning)',
+                              }}
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-start gap-2.5 min-w-0 flex-1">
                                   {icon && (
-                                    <div className="p-1.5 rounded-md bg-amber-100/80 shrink-0 mt-0.5 flex items-center justify-center">
+                                    <div
+                                      className="p-1.5 rounded-md shrink-0 mt-0.5 flex items-center justify-center"
+                                      style={{ backgroundColor: 'var(--warning-soft)' }}
+                                    >
                                       {icon}
                                     </div>
                                   )}
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                                    <p
+                                      className="text-xs font-bold uppercase tracking-wide"
+                                      style={{ color: 'var(--warning)' }}
+                                    >
                                       {label}
                                     </p>
-                                    <p className="text-sm font-semibold text-gray-900 mt-1.5 wrap-break-word">
+                                    <p
+                                      className="text-sm font-semibold mt-1.5 wrap-break-word"
+                                      style={{ color: 'var(--foreground)' }}
+                                    >
                                       {displayValue}
                                     </p>
                                   </div>
                                 </div>
-                                <div className="p-1 rounded-full bg-emerald-100 shrink-0 mt-1">
-                                  <Check className="size-3.5 text-emerald-600" strokeWidth={3} />
+                                <div
+                                  className="p-1 rounded-full shrink-0 mt-1"
+                                  style={{ backgroundColor: 'var(--success-soft)' }}
+                                >
+                                  <Check
+                                    className="size-3.5"
+                                    style={{ color: 'var(--success)' }}
+                                    strokeWidth={3}
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -192,16 +287,33 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                 )}
 
                 {/* Evaluation Parameters / Scores Section */}
-                <Card className="border-2 border-blue-200 shadow-sm rounded-xl bg-linear-to-br from-blue-50/60 to-white hover:shadow-md transition-shadow duration-200">
+                <Card
+                  className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                  style={{
+                    borderColor: 'var(--info)',
+                    background:
+                      'linear-gradient(to bottom right, var(--info-soft), var(--surface))',
+                  }}
+                >
                   <Card.Header className="flex items-center gap-3 pb-3">
-                    <div className="p-2.5 rounded-lg bg-blue-100/80">
-                      <BarChart3 className="size-5 text-blue-700" strokeWidth={2.5} />
+                    <div
+                      className="p-2.5 rounded-lg"
+                      style={{ backgroundColor: 'var(--info-soft)' }}
+                    >
+                      <BarChart3
+                        className="size-5"
+                        style={{ color: 'var(--info)' }}
+                        strokeWidth={2.5}
+                      />
                     </div>
                     <div>
-                      <Card.Title className="font-bold text-base text-gray-900">
+                      <Card.Title
+                        className="font-bold text-base"
+                        style={{ color: 'var(--foreground)' }}
+                      >
                         {TEST_CASE_DETAIL_CONTENT.sections.evaluationParameters.title}
                       </Card.Title>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                         {TEST_CASE_DETAIL_CONTENT.sections.evaluationParameters.subtitle}
                       </p>
                     </div>
@@ -212,45 +324,56 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                         const isGood = value >= 75;
                         const isMedium = value >= 50;
                         const bgColor = isGood
-                          ? 'bg-emerald-50'
+                          ? 'var(--success-soft)'
                           : isMedium
-                            ? 'bg-amber-50'
-                            : 'bg-red-50';
+                            ? 'var(--warning-soft)'
+                            : 'var(--danger-soft)';
                         const borderColor = isGood
-                          ? 'border-emerald-200'
+                          ? 'var(--success)'
                           : isMedium
-                            ? 'border-amber-200'
-                            : 'border-red-200';
+                            ? 'var(--warning)'
+                            : 'var(--danger)';
                         const textColor = isGood
-                          ? 'text-emerald-700'
+                          ? 'var(--success)'
                           : isMedium
-                            ? 'text-amber-700'
-                            : 'text-red-700';
+                            ? 'var(--warning)'
+                            : 'var(--danger)';
                         const valueColor = isGood
-                          ? 'text-emerald-600'
+                          ? 'var(--success)'
                           : isMedium
-                            ? 'text-amber-600'
-                            : 'text-red-600';
+                            ? 'var(--warning)'
+                            : 'var(--danger)';
                         const badgeColor = isGood
-                          ? 'bg-emerald-100'
+                          ? 'var(--success-soft)'
                           : isMedium
-                            ? 'bg-amber-100'
-                            : 'bg-red-100';
+                            ? 'var(--warning-soft)'
+                            : 'var(--danger-soft)';
 
                         return (
                           <div
                             key={key}
-                            className={`relative p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${bgColor} ${borderColor}`}
+                            className="relative p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                            style={{
+                              backgroundColor: bgColor,
+                              borderColor: borderColor,
+                            }}
                           >
                             <div
-                              className={`text-xs font-bold uppercase tracking-wider mb-2 ${textColor}`}
+                              className="text-xs font-bold uppercase tracking-wider mb-2"
+                              style={{ color: textColor }}
                             >
                               {key.replace(/_/g, ' ')}
                             </div>
                             <div className="flex items-end gap-2">
-                              <div className={`text-2xl font-bold ${valueColor}`}>{value}</div>
+                              <div className="text-2xl font-bold" style={{ color: valueColor }}>
+                                {value}
+                              </div>
                               <div
-                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeColor} ${textColor}`}
+                                className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                                style={{
+                                  backgroundColor: badgeColor,
+                                  color: textColor,
+                                }}
                               >
                                 {isGood ? 'High' : isMedium ? 'Med' : 'Low'}
                               </div>

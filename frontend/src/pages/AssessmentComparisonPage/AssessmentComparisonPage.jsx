@@ -19,7 +19,13 @@ import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV } from '@/features/export';
 import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 
-import { ComparisonSkeleton, DatabaseEvidenceTab } from './components';
+import {
+  ComparisonSkeleton,
+  DatabaseEvidenceTab,
+  DetailsTab,
+  FactorAnalysisTab,
+  OverviewTab,
+} from './components';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
@@ -238,8 +244,13 @@ export default function AssessmentComparisonPage() {
   }));
 
   const radarConfigs = [
-    { dataKey: assessment1.title, stroke: '#10b981', fill: '#10b981', fillOpacity: 0.2 },
-    { dataKey: assessment2.title, stroke: '#3b82f6', fill: '#3b82f6', fillOpacity: 0.2 },
+    {
+      dataKey: assessment1.title,
+      stroke: 'var(--success)',
+      fill: 'var(--success)',
+      fillOpacity: 0.2,
+    },
+    { dataKey: assessment2.title, stroke: 'var(--info)', fill: 'var(--info)', fillOpacity: 0.2 },
   ];
 
   // Prepare data for Bar Chart (Changes)
@@ -251,15 +262,15 @@ export default function AssessmentComparisonPage() {
   }));
 
   const barConfigs = [
-    { dataKey: 'Assessment 1', name: assessment1.title, fill: '#10b981' },
-    { dataKey: 'Assessment 2', name: assessment2.title, fill: '#3b82f6' },
+    { dataKey: 'Assessment 1', name: assessment1.title, fill: 'var(--success)' },
+    { dataKey: 'Assessment 2', name: assessment2.title, fill: 'var(--info)' },
   ];
 
   return (
     <div className="space-y-0 w-full">
       {/* STICKY COMPARISON HEADER */}
       <div
-        className="sticky top-14 z-40 w-full border-b transition-all duration-200 blur-md"
+        className="sticky top-14 z-40 w-full border-b transition-all duration-200 backdrop-blur-md py-3 px-4"
         style={{ backgroundColor: 'oklch(0.97 0.012 80 / 0.9)', borderColor: 'var(--border)' }}
       >
         <div className="grid grid-cols-2 gap-4 max-w-6xl mx-auto">
@@ -403,171 +414,58 @@ export default function AssessmentComparisonPage() {
 
       {/* Vertical Content - 2 column layout */}
       <div className="max-w-7xl mx-auto px-0 sm:px-6 space-y-8">
-        {/* Overview Section */}
-        <div className="w-full">
-          {/* Section heading */}
-          <div className="border-b border-border pb-3 mb-6">
-            <span className="label-overline">OVERVIEW</span>
-          </div>
-
-          {/* 2-column split */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0 lg:divide-x divide-border">
-            <div className="lg:pr-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Assessment 1
-                </h3>
-                <div className="space-y-2">
-                  <p style={{ color: 'var(--muted)' }}>
-                    Score: {scoringResult1?.overall_score || 0}/100
-                  </p>
-                  <p style={{ color: 'var(--muted)' }}>
-                    Confidence: {scoringResult1?.confidence_level || 0}%
-                  </p>
-                  <p style={{ color: 'var(--muted)' }}>
-                    Created: {formatTimestamp(assessment1.created_at)}
-                  </p>
-                </div>
-                {insights
-                  .filter((i) => i.type === 'positive')
-                  .map((insight, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <insight.icon size={16} style={{ color: 'var(--success)' }} />
-                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>
-                        {insight.text}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-            <div className="lg:pl-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Assessment 2
-                </h3>
-                <div className="space-y-2">
-                  <p style={{ color: 'var(--muted)' }}>
-                    Score: {scoringResult2?.overall_score || 0}/100
-                  </p>
-                  <p style={{ color: 'var(--muted)' }}>
-                    Confidence: {scoringResult2?.confidence_level || 0}%
-                  </p>
-                  <p style={{ color: 'var(--muted)' }}>
-                    Created: {formatTimestamp(assessment2.created_at)}
-                  </p>
-                </div>
-                {insights
-                  .filter((i) => i.type === 'negative')
-                  .map((insight, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <insight.icon size={16} style={{ color: 'var(--warning)' }} />
-                      <span className="text-sm" style={{ color: 'var(--foreground)' }}>
-                        {insight.text}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
+        {/* OVERVIEW SECTION */}
+        <div className="border-b border-[var(--border)] pb-3 mb-6">
+          <span className="label-overline">OVERVIEW</span>
         </div>
+        <OverviewTab
+          assessment1={assessment1}
+          assessment2={assessment2}
+          scoringResult1={scoringResult1}
+          scoringResult2={scoringResult2}
+          insights={insights}
+        />
 
         <div className="divider-warm my-10" />
 
-        {/* Factor Analysis Section */}
-        <div className="w-full">
-          {/* Section heading */}
-          <div className="border-b border-border pb-3 mb-6">
-            <span className="label-overline">FACTOR ANALYSIS</span>
-          </div>
-
-          {/* 2-column split */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0 lg:divide-x divide-border">
-            <div className="lg:pr-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Assessment 1 Performance
-                </h3>
-                <div className="space-y-2">
-                  {Object.entries(scoringResult1?.sub_scores || {}).map(([factor, score]) => (
-                    <div key={factor} className="flex justify-between">
-                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                        {titleize(factor)}
-                      </span>
-                      <span className="text-sm font-mono" style={{ color: 'var(--foreground)' }}>
-                        {score}/100
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="lg:pl-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Assessment 2 Performance
-                </h3>
-                <div className="space-y-2">
-                  {Object.entries(scoringResult2?.sub_scores || {}).map(([factor, score]) => (
-                    <div key={factor} className="flex justify-between">
-                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                        {titleize(factor)}
-                      </span>
-                      <span className="text-sm font-mono" style={{ color: 'var(--foreground)' }}>
-                        {score}/100
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* FACTOR ANALYSIS SECTION */}
+        <div className="border-b border-[var(--border)] pb-3 mb-6">
+          <span className="label-overline">FACTOR ANALYSIS</span>
         </div>
+        <FactorAnalysisTab
+          assessment1={assessment1}
+          assessment2={assessment2}
+          scoringResult1={scoringResult1}
+          scoringResult2={scoringResult2}
+          comparisonData={comparisonData}
+        />
 
         <div className="divider-warm my-10" />
 
-        {/* Database Evidence Section */}
-        <div className="w-full">
-          {/* Section heading */}
-          <div className="border-b border-border pb-3 mb-6">
-            <span className="label-overline">DATABASE EVIDENCE</span>
-          </div>
-
-          {/* 2-column split */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-0 lg:divide-x divide-border">
-            <div className="lg:pr-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Assessment 1 Evidence
-                </h3>
-                <DatabaseEvidenceTab
-                  assessment1={assessment1}
-                  assessment2={null}
-                  scoringResult1={scoringResult1}
-                  scoringResult2={null}
-                  openResultsDatabaseEvidenceDetailsDrawer={
-                    openResultsDatabaseEvidenceDetailsDrawer
-                  }
-                />
-              </div>
-            </div>
-            <div className="lg:pl-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                  Assessment 2 Evidence
-                </h3>
-                <DatabaseEvidenceTab
-                  assessment1={null}
-                  assessment2={assessment2}
-                  scoringResult1={null}
-                  scoringResult2={scoringResult2}
-                  openResultsDatabaseEvidenceDetailsDrawer={
-                    openResultsDatabaseEvidenceDetailsDrawer
-                  }
-                />
-              </div>
-            </div>
-          </div>
+        {/* DETAILS SECTION */}
+        <div className="border-b border-[var(--border)] pb-3 mb-6">
+          <span className="label-overline">DETAILS</span>
         </div>
+        <DetailsTab
+          assessment1={assessment1}
+          assessment2={assessment2}
+          scoringResult1={scoringResult1}
+          scoringResult2={scoringResult2}
+        />
+
+        <div className="divider-warm my-10" />
+
+        {/* DATABASE EVIDENCE SECTION */}
+        <div className="border-b border-[var(--border)] pb-3 mb-6">
+          <span className="label-overline">DATABASE EVIDENCE</span>
+        </div>
+        <DatabaseEvidenceTab
+          assessment1={assessment1}
+          assessment2={assessment2}
+          scoringResult1={scoringResult1}
+          scoringResult2={scoringResult2}
+          openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
+        />
 
         {/* Footer */}
         <div

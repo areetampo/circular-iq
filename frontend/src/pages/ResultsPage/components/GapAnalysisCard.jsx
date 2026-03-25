@@ -8,12 +8,20 @@ export function GapAnalysisCard({ actualResult }) {
   if (!actualResult?.gap_analysis) return null;
 
   return actualResult.gap_analysis.has_benchmarks ? (
-    <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+    <Card
+      className="border rounded-xl card-lift"
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+    >
       <div className="p-1 sm:p-3">
-        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-1">
-          <BarChart3 className="text-blue-600" size={20} /> Gap Analysis
+        <h3
+          className="text-lg font-bold flex items-center gap-2 mb-1"
+          style={{ color: 'var(--foreground)' }}
+        >
+          <BarChart3 style={{ color: 'var(--info)' }} size={20} /> Gap Analysis
         </h3>
-        <p className="text-sm text-slate-600 mb-4">{actualResult.gap_analysis.message}</p>
+        <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+          {actualResult.gap_analysis.message}
+        </p>
 
         <BenchmarkTable
           comparisons={actualResult.gap_analysis.comparisons}

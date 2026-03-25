@@ -27,20 +27,23 @@ export default function EvaluationCriteriaDrawer() {
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      'p-2 rounded-lg bg-emerald-100 shrink-0',
+                      'p-2 rounded-lg shrink-0',
                       'transition-[transform,box-shadow] duration-300 ease-out',
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
                     )}
+                    style={{
+                      backgroundColor: 'var(--success-soft)',
+                    }}
                   >
-                    <ClipboardMinus className="size-5 text-emerald-600" />
+                    <ClipboardMinus className="size-5" style={{ color: 'var(--success)' }} />
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
                       {EVALUATION_CRITERIA_CONTENT.heading}
                     </Drawer.Heading>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
                       {EVALUATION_CRITERIA_CONTENT.subheading}
                     </p>
                   </div>
@@ -49,7 +52,7 @@ export default function EvaluationCriteriaDrawer() {
             </Drawer.Header>
             <Drawer.Body className="gap-6 mt-4">
               <div className="space-y-6">
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
                   {EVALUATION_CRITERIA_CONTENT.description}
                 </p>
 
@@ -58,20 +61,24 @@ export default function EvaluationCriteriaDrawer() {
                   {EVALUATION_CRITERIA_CONTENT.metrics.map((metric, idx) => (
                     <div
                       key={idx}
-                      className={`p-3 rounded-lg text-center border ${
-                        metric.color === 'blue'
-                          ? 'bg-linear-to-br from-blue-50 to-cyan-50 border-blue-200'
-                          : 'bg-linear-to-br from-emerald-50 to-green-50 border-emerald-200'
-                      }`}
+                      className={`p-3 rounded-lg text-center border`}
+                      style={{
+                        backgroundColor:
+                          metric.color === 'blue' ? 'var(--info-soft)' : 'var(--success-soft)',
+                        borderColor: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
+                      }}
                     >
                       <div
-                        className={`text-2xl font-bold ${
-                          metric.color === 'blue' ? 'text-blue-600' : 'text-emerald-600'
-                        }`}
+                        className="text-2xl font-bold"
+                        style={{
+                          color: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
+                        }}
                       >
                         {metric.number}
                       </div>
-                      <div className="text-xs text-gray-600 font-medium mt-1">{metric.label}</div>
+                      <div className="text-xs font-medium mt-1" style={{ color: 'var(--muted)' }}>
+                        {metric.label}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -90,49 +97,71 @@ export default function EvaluationCriteriaDrawer() {
                     return (
                       <div
                         key={idx}
-                        className={`p-4 rounded-xl border-l-4 ${section.borderColor} ${
-                          section.color === 'blue'
-                            ? 'bg-linear-to-br from-blue-50 to-cyan-50'
-                            : section.color === 'emerald'
-                              ? 'bg-linear-to-br from-emerald-50 to-green-50'
-                              : 'bg-linear-to-br from-teal-50 to-cyan-50'
-                        }`}
+                        className={`p-4 rounded-xl border-l-4`}
+                        style={{
+                          borderLeftColor:
+                            section.color === 'blue'
+                              ? 'var(--info)'
+                              : section.color === 'emerald'
+                                ? 'var(--success)'
+                                : 'var(--accent)',
+                          backgroundColor:
+                            section.color === 'blue'
+                              ? 'var(--info-soft)'
+                              : section.color === 'emerald'
+                                ? 'var(--success-soft)'
+                                : 'var(--accent-soft)',
+                        }}
                       >
                         <div className="flex items-start gap-2 mb-2">
                           <div
-                            className={`mt-0.5 ${
-                              section.color === 'blue'
-                                ? 'text-blue-600'
-                                : section.color === 'emerald'
-                                  ? 'text-emerald-600'
-                                  : 'text-teal-600'
-                            }`}
+                            style={{
+                              color:
+                                section.color === 'blue'
+                                  ? 'var(--info)'
+                                  : section.color === 'emerald'
+                                    ? 'var(--success)'
+                                    : 'var(--accent)',
+                            }}
                           >
                             {icon}
                           </div>
                           <div className="flex-1">
                             <h4
-                              className={`font-bold mb-0.5 ${
-                                section.color === 'blue'
-                                  ? 'text-blue-700'
-                                  : section.color === 'emerald'
-                                    ? 'text-emerald-700'
-                                    : 'text-teal-700'
-                              }`}
+                              style={{
+                                color:
+                                  section.color === 'blue'
+                                    ? 'var(--info)'
+                                    : section.color === 'emerald'
+                                      ? 'var(--success)'
+                                      : 'var(--accent)',
+                              }}
                             >
                               {section.title}
                             </h4>
-                            <p className="text-xs text-gray-600">{section.description}</p>
+                            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                              {section.description}
+                            </p>
                           </div>
                         </div>
                         <div className={`grid grid-cols-1 gap-2 mt-3 ${section.gridCols}`}>
                           {section.factors.map((factor, factorIdx) => (
                             <div
                               key={factorIdx}
-                              className="p-2 bg-white rounded-lg border border-gray-200"
+                              style={{
+                                backgroundColor: 'var(--surface)',
+                                borderColor: 'var(--border)',
+                              }}
                             >
-                              <p className="text-xs font-semibold text-gray-900">{factor.title}</p>
-                              <p className="text-xs text-gray-600 mt-0.5">{factor.description}</p>
+                              <p
+                                className="text-xs font-semibold"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                {factor.title}
+                              </p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                                {factor.description}
+                              </p>
                             </div>
                           ))}
                         </div>
@@ -142,19 +171,35 @@ export default function EvaluationCriteriaDrawer() {
                 </div>
 
                 {/* How We Calculate Section */}
-                <div className="p-4 rounded-xl bg-linear-to-br from-amber-50 to-orange-50 border border-amber-200">
-                  <h4 className="font-bold text-amber-900 mb-3 text-base">
+                <div
+                  className="p-4 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--warning-soft)',
+                    borderColor: 'var(--warning)',
+                  }}
+                >
+                  <h4 className="font-bold mb-3 text-base" style={{ color: 'var(--warning)' }}>
                     {EVALUATION_CRITERIA_CONTENT.sections.howWeCalculate}
                   </h4>
                   <div className="space-y-2">
                     {EVALUATION_CRITERIA_CONTENT.calculationSteps.map((step) => (
                       <div key={step.number} className="flex items-start gap-3">
-                        <div className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full bg-amber-600 text-sm">
+                        <div
+                          className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full text-sm"
+                          style={{ backgroundColor: 'var(--warning)' }}
+                        >
                           {step.number}
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-amber-900">{step.title}</p>
-                          <p className="text-xs text-gray-600 mt-0.5">{step.description}</p>
+                          <p
+                            className="text-xs font-semibold"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            {step.title}
+                          </p>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                            {step.description}
+                          </p>
                         </div>
                       </div>
                     ))}

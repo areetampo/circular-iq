@@ -27,14 +27,17 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      'p-2 rounded-lg bg-blue-100 shrink-0',
+                      'p-2 rounded-lg shrink-0',
                       'transition-[transform,box-shadow] duration-300 ease-out',
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
                     )}
+                    style={{
+                      backgroundColor: 'var(--info-soft)',
+                    }}
                   >
-                    <ClipboardPenLine className="size-5 text-blue-600" />
+                    <ClipboardPenLine className="size-5" style={{ color: 'var(--info)' }} />
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
@@ -46,20 +49,22 @@ export default function SampleTestCasesHeadingInfoDrawer() {
             </Drawer.Header>
             <Drawer.Body>
               <div className="space-y-6">
-                <p className="leading-relaxed text-gray-600">
+                <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
                   {SAMPLE_TEST_CASES_HEADING_CONTENT.description}
                 </p>
                 <ul className="ml-3 space-y-2">
                   {SAMPLE_TEST_CASES_HEADING_CONTENT.benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="font-bold text-blue-500">→</span>
-                      <span>{benefit}</span>
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <span className="font-bold" style={{ color: 'var(--info)' }}>
+                        →
+                      </span>
+                      <span style={{ color: 'var(--muted)' }}>{benefit}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className="pt-2">
-                  <h3 className="mb-3 text-base font-bold text-gray-900">
+                  <h3 className="mb-3 text-base font-bold" style={{ color: 'var(--foreground)' }}>
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.title}
                   </h3>
                   <div className="space-y-2">
@@ -69,30 +74,57 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                         className={[
                           'group/card relative flex items-start gap-3.5',
                           'p-3 rounded-xl border border-transparent',
-                          'bg-linear-to-br from-slate-50 to-slate-50',
-                          'border-l-4 border-blue-100',
+                          'border-l-4',
                           'transition-all duration-300 ease-out cursor-default select-none',
                           'hover:shadow-md hover:-translate-y-0.5',
                         ].join(' ')}
+                        style={{
+                          backgroundColor: 'var(--surface-raised)',
+                          borderLeftColor: 'var(--info)',
+                        }}
                       >
-                        <div className="shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">
+                        <div
+                          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold"
+                          style={{
+                            backgroundColor: 'var(--info-soft)',
+                            color: 'var(--info)',
+                          }}
+                        >
                           {step.num}
                         </div>
                         <div className="flex flex-col gap-0.5 min-w-0">
-                          <span className="text-sm font-bold text-gray-800 leading-snug">
+                          <span
+                            className="text-sm font-bold leading-snug"
+                            style={{ color: 'var(--foreground)' }}
+                          >
                             {step.title}
                           </span>
-                          <span className="text-xs text-gray-500 leading-relaxed">{step.desc}</span>
+                          <span
+                            className="text-xs leading-relaxed"
+                            style={{ color: 'var(--muted)' }}
+                          >
+                            {step.desc}
+                          </span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-3 border border-blue-200 rounded-lg bg-blue-50">
-                  <p className="flex items-start gap-2 m-0 text-xs text-blue-900">
+                <div
+                  className="p-3 border rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--info-soft)',
+                    borderColor: 'var(--info)',
+                  }}
+                >
+                  <p
+                    className="flex items-start gap-2 m-0 text-xs"
+                    style={{ color: 'var(--info)' }}
+                  >
                     <Lightbulb
-                      className="mt-0.5 text-blue-600 shrink-0"
+                      className="mt-0.5 shrink-0"
+                      style={{ color: 'var(--info)' }}
                       strokeWidth={2}
                       size={16}
                     />

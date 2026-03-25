@@ -1,10 +1,9 @@
-import { ScrollShadow, toast } from '@heroui/react';
-import { BookOpen, CheckCircle2 } from 'lucide-react';
+import { toast } from '@heroui/react';
+import { CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import testCases from '@/data/testCases.json';
@@ -12,7 +11,6 @@ import { useSession } from '@/features/session/hooks/useSession';
 import { cn } from '@/utils/cn';
 
 // Helper function to validate and normalize business model type values
-// Since testCases.json now uses valid enum values, this primarily handles case normalization
 const normalizeBusinessModelType = (value) => {
   if (!value) return null;
   const normalized = String(value).toLowerCase().trim();
@@ -193,96 +191,33 @@ export default function SampleTestCasesContainer({
     handleSelectCase(testCase);
   };
 
-  const getScoreStyle = (value) => {
-    if (value >= 75) return 'text-emerald-600 bg-emerald-50 ring-1 ring-emerald-200';
-    if (value >= 50) return 'text-amber-600 bg-amber-50 ring-1 ring-amber-200';
-    return 'text-red-500 bg-red-50 ring-1 ring-red-200';
-  };
-
   return (
-    <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
+    <div className="flex flex-wrap gap-2">
       {testCases.testCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
         return (
-          <div
+          <button
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer',
-              'border transition-all duration-200',
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200',
+              'border cursor-pointer hover:shadow-sm',
               isSelected
-                ? // Selected: soft emerald tint — feels "loaded/active" not just "hovered"
-                  'border-emerald-300 bg-emerald-50/40 shadow-sm'
-                : // Default → hover: slate border lifts to a warm teal-green
-                  'border-slate-200/80 bg-white hover:border-teal-300 hover:bg-teal-50/20 hover:shadow-sm',
+                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                : 'border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent-soft-fg)]',
+              !isSelected &&
+                'hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
             )}
+            title={testCase.title}
           >
-            {/* Header: index pill + title + check */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={cn(
-                    'text-xs font-bold px-2 py-0.5 rounded-full shrink-0',
-                    isSelected ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500',
-                  )}
-                >
-                  #{index + 1}
-                </span>
-                <h4 className="text-sm font-semibold leading-snug text-slate-800 truncate">
-                  {testCase.title}
-                </h4>
-              </div>
-              {isSelected && (
-                <CheckCircle2
-                  className="text-emerald-500 shrink-0 mt-0.5"
-                  strokeWidth={2}
-                  size={16}
-                />
-              )}
-            </div>
-
-            {/* Problem excerpt */}
-            <p className="text-xs leading-relaxed text-slate-400 line-clamp-2 grow">
-              {testCase.problem.substring(0, 110)}…
-            </p>
-
-            {/* Score pills */}
-            <div className="flex flex-wrap gap-1.5">
-              {Object.entries(testCase.evaluationParameters || {})
-                .slice(0, 3)
-                .map(([key, value]) => (
-                  <span
-                    key={key}
-                    className={cn(
-                      'text-[10px] font-medium px-2 py-0.5 rounded-md',
-                      getScoreStyle(value),
-                    )}
-                  >
-                    {key.replace(/_/g, ' ')}: {value}
-                  </span>
-                ))}
-            </div>
-
-            {/* View details — no divider, just the button flush to bottom */}
-            <div className="flex justify-end">
-              <Button
-                onClick={(e) => {
-                  openSpecificSampleTestCaseViewDetailsDrawer(testCase);
-                  e.stopPropagation();
-                }}
-                variant="eco-soft"
-                size="sm"
-                className="flex items-center gap-2 text-xs"
-              >
-                View details
-                <BookOpen />
-              </Button>
-            </div>
-          </div>
+            <span className="font-bold">{index + 1}</span>
+            <span className="truncate max-w-32">{testCase.title}</span>
+            {isSelected && <CheckCircle2 size={12} className="shrink-0" />}
+          </button>
         );
       })}
-    </ScrollShadow>
+    </div>
   );
 }
 

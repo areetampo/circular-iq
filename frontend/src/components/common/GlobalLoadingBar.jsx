@@ -35,16 +35,18 @@ export default function GlobalLoadingBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 h-0.75 bg-linear-to-r from-emerald-400 via-emerald-500 to-emerald-600 shadow-lg z-9999 transition-all duration-500 ease-out"
+      className="fixed top-0 left-0 h-0.75 shadow-lg z-9999 transition-all duration-500 ease-out"
       style={{
         width: `${progress}%`,
         opacity: progress === 100 ? 0 : 1,
+        background: 'linear-gradient(to right, var(--success), var(--accent), var(--success))',
       }}
     >
       {/* Animated shimmer effect */}
       <div
-        className="absolute inset-0 bg-linear-to-r from-transparent via-white to-transparent opacity-30"
+        className="absolute inset-0 opacity-30"
         style={{
+          background: 'linear-gradient(to right, transparent, var(--surface), transparent)',
           animation: 'shimmer 2s infinite',
           backgroundSize: '200% 100%',
         }}

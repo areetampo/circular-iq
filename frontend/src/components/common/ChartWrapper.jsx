@@ -52,21 +52,29 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
   }
 
   return (
-    <div className="rounded-lg border bg-white p-2 shadow-md">
+    <div
+      className="rounded-lg border p-2 shadow-md"
+      style={{
+        backgroundColor: 'var(--surface)',
+        borderColor: 'var(--border)',
+      }}
+    >
       {label && (
-        <div className="mb-1 text-sm font-semibold">
+        <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
           {labelFormatter ? labelFormatter(label) : label}
         </div>
       )}
       <div className="space-y-1">
         {payload.map((entry, index) => {
           const value = formatter ? formatter(entry.value, entry.name) : entry.value;
-          const dotColor = entry.color || entry.fill || 'var(--color-primary-500)';
+          const dotColor = entry.color || entry.fill || 'var(--accent)';
           return (
             <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: dotColor }} />
-              <span className="text-gray-600">{entry.name}:</span>
-              <span className="font-medium">{value}</span>
+              <span style={{ color: 'var(--muted)' }}>{entry.name}:</span>
+              <span className="font-medium" style={{ color: 'var(--foreground)' }}>
+                {value}
+              </span>
             </div>
           );
         })}

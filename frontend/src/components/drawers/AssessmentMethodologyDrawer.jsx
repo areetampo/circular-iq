@@ -144,17 +144,20 @@ export default function AssessmentMethodologyDrawer() {
               {/* Data source card */}
               <div
                 className="group/card flex items-start gap-3.5 p-4 rounded-xl
-                          bg-linear-to-br from-teal-50 to-emerald-50
-                          border border-teal-200
+                          bg-[var(--success-soft)]
+                          border-[var(--success)]
                           transition-all duration-300 hover:shadow-md hover:-translate-y-0.5
                           cursor-default select-none"
               >
                 <div
-                  className="shrink-0 p-2 rounded-lg bg-teal-100 mt-0.5
+                  className="shrink-0 p-2 rounded-lg bg-[var(--success)] mt-0.5
                             transition-[transform,box-shadow] duration-300
                             group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md"
                 >
-                  <BookCopy className="size-4 text-teal-600" strokeWidth={1.75} />
+                  <BookCopy
+                    className="size-4 text-[var(--success-foreground)]"
+                    strokeWidth={1.75}
+                  />
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
                   <span
