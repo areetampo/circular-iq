@@ -28,6 +28,31 @@ function RadarChartComponent({
     [],
   );
 
+  // Early return for invalid data
+  if (
+    !data ||
+    !Array.isArray(data) ||
+    data.length === 0 ||
+    !radarConfigs ||
+    !Array.isArray(radarConfigs) ||
+    radarConfigs.length === 0
+  ) {
+    return (
+      <div
+        style={{
+          height: `${height}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--muted-foreground)',
+          fontSize: '0.875rem',
+        }}
+      >
+        No data available
+      </div>
+    );
+  }
+
   const chartData = useMemo(
     () =>
       data.map((item) => ({

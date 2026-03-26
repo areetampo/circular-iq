@@ -47,13 +47,19 @@ export function FactorAnalysisTab({
           </Card.Header>
           <Card.Content className="pb-4">
             <div className="h-100 p-4 bg-white rounded-lg">
-              <RadarChart
-                data={radarChartData}
-                radarConfigs={radarConfigs}
-                height={400}
-                showLegend
-                showTooltip
-              />
+              {radarChartData && radarConfigs ? (
+                <RadarChart
+                  data={radarChartData}
+                  radarConfigs={radarConfigs}
+                  height={400}
+                  showLegend
+                  showTooltip
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-500">
+                  Loading chart data...
+                </div>
+              )}
             </div>
           </Card.Content>
         </Card>
@@ -70,14 +76,20 @@ export function FactorAnalysisTab({
           </Card.Header>
           <Card.Content className="pb-4">
             <div className="h-100 p-4 bg-white rounded-lg">
-              <BarChart
-                data={barChartData}
-                barConfigs={barConfigs}
-                height={400}
-                showLegend
-                showGrid
-                yAxisLabel="Score"
-              />
+              {barChartData && barConfigs ? (
+                <BarChart
+                  data={barChartData}
+                  barConfigs={barConfigs}
+                  height={400}
+                  showLegend
+                  showGrid
+                  yAxisLabel="Score"
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-500">
+                  Loading chart data...
+                </div>
+              )}
             </div>
           </Card.Content>
         </Card>
@@ -94,62 +106,68 @@ export function FactorAnalysisTab({
           </Card.Title>
         </Card.Header>
         <Card.Content className="gap-4">
-          {factorDiffs.map((factor) => (
-            <div
-              key={factor.factor}
-              className="space-y-3 pb-4 border-b border-slate-200 last:border-0 hover:bg-slate-50/50 p-3 rounded-lg transition-all duration-200"
-            >
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-slate-900">{factor.label}</h4>
-                <div className="flex items-center gap-2">
-                  <Chip
-                    color={getScoreColor(factor.a1)}
-                    variant="soft"
-                    size="sm"
-                    className="transition-all duration-200"
-                  >
-                    <Chip.Label className="font-semibold">{factor.a1}</Chip.Label>
-                  </Chip>
-                  <ArrowRight className="text-slate-400" size={12} />
-                  <Chip
-                    color={getScoreColor(factor.a2)}
-                    variant="soft"
-                    size="sm"
-                    className="transition-all duration-200"
-                  >
-                    <Chip.Label className="font-semibold">{factor.a2}</Chip.Label>
-                  </Chip>
-                  <ChangeIndicator diff={factor.diff} />
+          {factorDiffs?.length > 0 ? (
+            factorDiffs.map((factor) => (
+              <div
+                key={factor.factor}
+                className="space-y-3 pb-4 border-b border-slate-200 last:border-0 hover:bg-slate-50/50 p-3 rounded-lg transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-slate-900">{factor.label}</h4>
+                  <div className="flex items-center gap-2">
+                    <Chip
+                      color={getScoreColor(factor.a1)}
+                      variant="soft"
+                      size="sm"
+                      className="transition-all duration-200"
+                    >
+                      <Chip.Label className="font-semibold">{factor.a1}</Chip.Label>
+                    </Chip>
+                    <ArrowRight className="text-slate-400" size={12} />
+                    <Chip
+                      color={getScoreColor(factor.a2)}
+                      variant="soft"
+                      size="sm"
+                      className="transition-all duration-200"
+                    >
+                      <Chip.Label className="font-semibold">{factor.a2}</Chip.Label>
+                    </Chip>
+                    <ChangeIndicator diff={factor.diff} />
+                  </div>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 space-y-1">
+                    <div className="text-xs text-emerald-700 font-semibold">
+                      {assessment1.title}
+                    </div>
+                    <ProgressBar
+                      value={factor.a1}
+                      className="h-2.5 rounded-full bg-emerald-500"
+                      aria-label={`${assessment1.title} factor score`}
+                    />
+                  </div>
+                  <span className="text-xs text-emerald-700 font-bold w-10 text-right">
+                    {factor.a1}%
+                  </span>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 space-y-1">
+                    <div className="text-xs text-amber-600 font-semibold">{assessment2.title}</div>
+                    <ProgressBar
+                      value={factor.a2}
+                      className="h-2.5 rounded-full bg-amber-500"
+                      aria-label={`${assessment2.title} factor score`}
+                    />
+                  </div>
+                  <span className="text-xs text-amber-600 font-bold w-10 text-right">
+                    {factor.a2}%
+                  </span>
                 </div>
               </div>
-              <div className="flex gap-2 items-center">
-                <div className="flex-1 space-y-1">
-                  <div className="text-xs text-emerald-700 font-semibold">{assessment1.title}</div>
-                  <ProgressBar
-                    value={factor.a1}
-                    className="h-2.5 rounded-full bg-emerald-500"
-                    aria-label={`${assessment1.title} factor score`}
-                  />
-                </div>
-                <span className="text-xs text-emerald-700 font-bold w-10 text-right">
-                  {factor.a1}%
-                </span>
-              </div>
-              <div className="flex gap-2 items-center">
-                <div className="flex-1 space-y-1">
-                  <div className="text-xs text-amber-600 font-semibold">{assessment2.title}</div>
-                  <ProgressBar
-                    value={factor.a2}
-                    className="h-2.5 rounded-full bg-amber-500"
-                    aria-label={`${assessment2.title} factor score`}
-                  />
-                </div>
-                <span className="text-xs text-amber-600 font-bold w-10 text-right">
-                  {factor.a2}%
-                </span>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-center py-8 text-slate-500">No factor analysis data available</div>
+          )}
         </Card.Content>
       </Card>
 
@@ -166,7 +184,7 @@ export function FactorAnalysisTab({
         <Card.Content className="p-0">
           <Table>
             <Table.ScrollContainer>
-              <Table.Content aria-label="Factor comparison table" className="min-w-[600px]">
+              <Table.Content aria-label="Factor comparison table" className="min-w-150">
                 <Table.Header>
                   <Table.Column className="w-[35%]" isRowHeader>
                     FACTOR

@@ -93,7 +93,7 @@ export default function AssessmentComparisonPage() {
       />
     );
 
-  if (!assessment1 || !assessment2)
+  if (!assessment1 || !assessment2) {
     return (
       <ErrorDisplay
         variant="warning"
@@ -111,6 +111,7 @@ export default function AssessmentComparisonPage() {
         showDefaultActions={false}
       />
     );
+  }
 
   // Reconstruct full scoring results
   const scoringResult1 = reconstructScoringResult(assessment1);
@@ -236,12 +237,15 @@ export default function AssessmentComparisonPage() {
 
   // Prepare data for Radar Chart
   const factors = Object.keys(scoringResult1?.sub_scores || {});
-  const radarChartData = factors.map((factor) => ({
-    subject: titleize(factor),
-    [assessment1.title]: scoringResult1?.sub_scores?.[factor] || 0,
-    [assessment2.title]: scoringResult2?.sub_scores?.[factor] || 0,
-    fullMark: 100,
-  }));
+  const radarChartData =
+    factors.length > 0
+      ? factors.map((factor) => ({
+          subject: titleize(factor),
+          [assessment1.title]: scoringResult1?.sub_scores?.[factor] || 0,
+          [assessment2.title]: scoringResult2?.sub_scores?.[factor] || 0,
+          fullMark: 100,
+        }))
+      : [];
 
   const radarConfigs = [
     {
@@ -254,12 +258,15 @@ export default function AssessmentComparisonPage() {
   ];
 
   // Prepare data for Bar Chart (Changes)
-  const barChartData = factorDiffs.map((f) => ({
-    name: f.label,
-    'Assessment 1': f.a1,
-    'Assessment 2': f.a2,
-    Change: f.diff,
-  }));
+  const barChartData =
+    factorDiffs?.length > 0
+      ? factorDiffs.map((f) => ({
+          name: f.label,
+          'Assessment 1': f.a1,
+          'Assessment 2': f.a2,
+          Change: f.diff,
+        }))
+      : [];
 
   const barConfigs = [
     { dataKey: 'Assessment 1', name: assessment1.title, fill: 'var(--success)' },
@@ -437,7 +444,12 @@ export default function AssessmentComparisonPage() {
           assessment2={assessment2}
           scoringResult1={scoringResult1}
           scoringResult2={scoringResult2}
-          comparisonData={comparisonData}
+          factorDiffs={factorDiffs}
+          radarChartData={radarChartData}
+          radarConfigs={radarConfigs}
+          barChartData={barChartData}
+          barConfigs={barConfigs}
+          getScoreColor={getScoreColor}
         />
 
         <div className="divider-warm my-10" />

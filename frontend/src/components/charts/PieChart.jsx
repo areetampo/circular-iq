@@ -1,5 +1,4 @@
 import { Card, Skeleton } from '@heroui/react';
-import { ChartsContainer } from '@mui/x-charts';
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
@@ -16,7 +15,6 @@ export default function PieChart({
   height = 300,
   showLegend = true,
   isLoading = false,
-  responsive = true,
   className,
   colors,
   innerRadius = 0,
@@ -59,28 +57,13 @@ export default function PieChart({
       },
     ];
 
-    const ChartComponent = responsive ? ChartsContainer : MuiPieChart;
-    const chartProps = responsive
-      ? { series, height }
-      : {
-          series,
-          height,
-          slots: { legend: { hidden: !showLegend } },
-        };
-
     return (
       <div style={{ width: '100%', height: '100%' }}>
-        {responsive ? (
-          <ChartsContainer series={series} height={height}>
-            <MuiPieChart slotProps={{ legend: { hidden: !showLegend } }} />
-          </ChartsContainer>
-        ) : (
-          <MuiPieChart
-            series={series}
-            height={height}
-            slotProps={{ legend: { hidden: !showLegend } }}
-          />
-        )}
+        <MuiPieChart
+          series={series}
+          height={height}
+          slotProps={{ legend: { hidden: !showLegend } }}
+        />
       </div>
     );
   }, [
@@ -88,7 +71,6 @@ export default function PieChart({
     dataKey,
     nameKey,
     showLegend,
-    responsive,
     colors,
     innerRadius,
     outerRadius,
@@ -104,15 +86,11 @@ export default function PieChart({
     );
   }
 
-  if (responsive) {
-    return (
-      <Card className={className} style={{ height }}>
-        <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
-      </Card>
-    );
-  }
-
-  return chartContent;
+  return (
+    <Card className={className} style={{ height }}>
+      <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
+    </Card>
+  );
 }
 
 PieChart.propTypes = {
@@ -128,8 +106,6 @@ PieChart.propTypes = {
   showLegend: PropTypes.bool,
   /** Show loading state */
   isLoading: PropTypes.bool,
-  /** Enable responsive design */
-  responsive: PropTypes.bool,
   /** Additional CSS classes */
   className: PropTypes.string,
   /** Custom color palette */

@@ -1,6 +1,7 @@
 import { Card, Skeleton } from '@heroui/react';
-import { ChartsContainer, ChartsTooltip } from '@mui/x-charts';
+import { ChartsTooltip } from '@mui/x-charts';
 import PropTypes from 'prop-types';
+
 import { cn } from '../../utils/cn';
 
 /**
@@ -14,7 +15,6 @@ export function ChartContainer({
   height = 280,
   overflow = 'hidden',
   isLoading = false,
-  responsive = true,
   colors,
 }) {
   const mergedStyle = { minHeight: 200, height, ...style };
@@ -36,15 +36,7 @@ export function ChartContainer({
       )}
       style={mergedStyle}
     >
-      <div style={{ width: '100%', height: '100%' }}>
-        {responsive ? (
-          <ChartsContainer colors={colors} style={{ width: '100%', height: '100%' }}>
-            {children}
-          </ChartsContainer>
-        ) : (
-          children
-        )}
-      </div>
+      <div style={{ width: '100%', height: '100%' }}>{children}</div>
     </Card>
   );
 }
@@ -56,7 +48,6 @@ ChartContainer.propTypes = {
   height: PropTypes.number,
   overflow: PropTypes.string,
   isLoading: PropTypes.bool,
-  responsive: PropTypes.bool,
   colors: PropTypes.arrayOf(PropTypes.string),
 };
 

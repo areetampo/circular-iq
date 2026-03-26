@@ -1,5 +1,4 @@
 import { Card, Skeleton } from '@heroui/react';
-import { ChartsContainer } from '@mui/x-charts';
 import { BarChart as MuiBarChart } from '@mui/x-charts/BarChart';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
@@ -18,12 +17,18 @@ export default function BarChart({
   yAxisLabel,
   showLegend = true,
   isLoading = false,
-  responsive = true,
   className,
   colors,
 }) {
   const chartContent = useMemo(() => {
-    if (!data.length || !barConfigs.length) {
+    if (
+      !data ||
+      !Array.isArray(data) ||
+      data.length === 0 ||
+      !barConfigs ||
+      !Array.isArray(barConfigs) ||
+      barConfigs.length === 0
+    ) {
       return (
         <div
           style={{
@@ -46,49 +51,19 @@ export default function BarChart({
       color: cfg.fill || cfg.color || colors?.[index] || 'var(--chart-1)',
     }));
 
-    const ChartComponent = responsive ? ChartsContainer : MuiBarChart;
-    const chartProps = responsive
-      ? {
-          series,
-          dataset: data,
-          xAxis: [{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }],
-          yAxis: [{ label: yAxisLabel }],
-          height,
-        }
-      : {
-          dataset: data,
-          xAxis: [{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }],
-          yAxis: [{ label: yAxisLabel }],
-          series,
-          height,
-          slotProps: { legend: { hidden: !showLegend } },
-        };
-
     return (
       <div style={{ width: '100%', height: '100%' }}>
-        {responsive ? (
-          <ChartsContainer
-            series={series}
-            dataset={data}
-            xAxis={[{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }]}
-            yAxis={[{ label: yAxisLabel }]}
-            height={height}
-          >
-            <MuiBarChart slotProps={{ legend: { hidden: !showLegend } }} />
-          </ChartsContainer>
-        ) : (
-          <MuiBarChart
-            dataset={data}
-            xAxis={[{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }]}
-            yAxis={[{ label: yAxisLabel }]}
-            series={series}
-            height={height}
-            slotProps={{ legend: { hidden: !showLegend } }}
-          />
-        )}
+        <MuiBarChart
+          dataset={data}
+          xAxis={[{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }]}
+          yAxis={[{ label: yAxisLabel }]}
+          series={series}
+          height={height}
+          slotProps={{ legend: { hidden: !showLegend } }}
+        />
       </div>
     );
-  }, [data, barConfigs, height, xAxisKey, xAxisLabel, yAxisLabel, showLegend, responsive, colors]);
+  }, [data, barConfigs, height, xAxisKey, xAxisLabel, yAxisLabel, showLegend, colors]);
 
   if (isLoading) {
     return (
@@ -98,19 +73,15 @@ export default function BarChart({
     );
   }
 
-  if (responsive) {
-    return (
-      <Card className={className} style={{ height }}>
-        <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
-      </Card>
-    );
-  }
-
-  return chartContent;
+  return (
+    <Card className={className} style={{ height }}>
+      <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
+    </Card>
+  );
 }
 
 BarChart.propTypes = {
-  /** Array of data objects for the chart */
+  /** Array of data objects for chart */
   data: PropTypes.arrayOf(PropTypes.object),
   /** Array of bar configuration objects with dataKey, name, fill/color properties */
   barConfigs: PropTypes.arrayOf(
@@ -133,8 +104,6 @@ BarChart.propTypes = {
   showLegend: PropTypes.bool,
   /** Show loading state */
   isLoading: PropTypes.bool,
-  /** Enable responsive design */
-  responsive: PropTypes.bool,
   /** Additional CSS classes */
   className: PropTypes.string,
   /** Custom color palette */
