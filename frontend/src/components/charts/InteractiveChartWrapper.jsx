@@ -1,6 +1,7 @@
 import { Card, Chip } from '@heroui/react';
 import PropTypes from 'prop-types';
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
 import ChartErrorBoundary from './ChartErrorBoundary';
 
 /**
@@ -32,8 +33,8 @@ export default function InteractiveChartWrapper({
     }
 
     const numericValues = data
-      .flatMap(item => Object.values(item))
-      .filter(val => typeof val === 'number');
+      .flatMap((item) => Object.values(item))
+      .filter((val) => typeof val === 'number');
 
     if (numericValues.length === 0) {
       return null;
@@ -53,28 +54,31 @@ export default function InteractiveChartWrapper({
     };
   }, [data]);
 
-  const handleDataPointClick = useCallback((pointData, pointIndex) => {
-    setSelectedPoints(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(pointIndex)) {
-        newSet.delete(pointIndex);
-      } else {
-        newSet.add(pointIndex);
-      }
-      return newSet;
-    });
+  const handleDataPointClick = useCallback(
+    (pointData, pointIndex) => {
+      setSelectedPoints((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(pointIndex)) {
+          newSet.delete(pointIndex);
+        } else {
+          newSet.add(pointIndex);
+        }
+        return newSet;
+      });
 
-    if (onDataPointClick) {
-      onDataPointClick(pointData, pointIndex);
-    }
-  }, [onDataPointClick]);
+      if (onDataPointClick) {
+        onDataPointClick(pointData, pointIndex);
+      }
+    },
+    [onDataPointClick],
+  );
 
   const handleExport = useCallback((format = 'png') => {
     console.log(`Exporting chart as ${format}`);
   }, []);
 
   const toggleFullscreen = useCallback(() => {
-    setIsFullscreen(prev => !prev);
+    setIsFullscreen((prev) => !prev);
   }, []);
 
   const clearSelection = useCallback(() => {
@@ -86,14 +90,16 @@ export default function InteractiveChartWrapper({
 
   return (
     <ChartErrorBoundary height={height} className={className}>
-      <Card 
+      <Card
         className={`w-full ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''} ${className}`}
         style={{ height: isFullscreen ? '100vh' : height }}
       >
         {/* Header */}
         {(title || subtitle || showControls) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b" 
-               style={{ borderColor: 'var(--border)' }}>
+          <div
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b"
+            style={{ borderColor: 'var(--border)' }}
+          >
             <div className="flex-1">
               {title && (
                 <h3 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
@@ -106,21 +112,16 @@ export default function InteractiveChartWrapper({
                 </p>
               )}
             </div>
-            
+
             {/* Controls */}
             {showControls && (
               <div className="flex items-center gap-2 mt-2 sm:mt-0">
                 {selectedPoints.size > 0 && (
-                  <Chip 
-                    size="sm" 
-                    variant="flat" 
-                    color="primary"
-                    onClose={clearSelection}
-                  >
+                  <Chip size="sm" variant="flat" color="primary" onClose={clearSelection}>
                     {selectedPoints.size} selected
                   </Chip>
                 )}
-                
+
                 {enableExport && (
                   <div className="flex gap-1">
                     <button
@@ -141,7 +142,7 @@ export default function InteractiveChartWrapper({
                     </button>
                   </div>
                 )}
-                
+
                 {enableFullscreen && (
                   <button
                     onClick={toggleFullscreen}
@@ -159,15 +160,14 @@ export default function InteractiveChartWrapper({
 
         {/* Chart Content */}
         <div className="flex-1 relative" style={{ minHeight: 0 }}>
-          {typeof children === 'function' 
-            ? children({ 
-                selectedPoints, 
-                hoveredPoint, 
+          {typeof children === 'function'
+            ? children({
+                selectedPoints,
+                hoveredPoint,
                 onDataPointClick: handleDataPointClick,
-                onHover: setHoveredPoint 
+                onHover: setHoveredPoint,
               })
-            : children
-          }
+            : children}
         </div>
 
         {/* Footer with Data Stats */}

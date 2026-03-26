@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import testCases from '@/data/testCases.json';
 import { useSession } from '@/features/session/hooks/useSession';
 import { cn } from '@/utils/cn';
 
@@ -193,7 +193,7 @@ export default function SampleTestCasesContainer({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {testCases.testCases.map((testCase, index) => {
+      {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
         return (

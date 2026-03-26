@@ -1,9 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { DrawerProvider } from '@/contexts/DrawerContext';
-import testCases from '@/data/testCases.json';
 
 import SampleTestCasesContainer from './SampleTestCasesContainer';
 
@@ -38,7 +38,7 @@ describe('SampleTestCasesContainer', () => {
   it('updates form values and persists session when a test case is selected', async () => {
     const { getByText } = render(<Wrapper />);
 
-    const firstCase = testCases.testCases[0];
+    const firstCase = sampleTestCases[0];
     const card = getByText(firstCase.title);
 
     fireEvent.click(card);
