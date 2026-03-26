@@ -106,7 +106,7 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
                   boxShadow: `0 0 4px ${dotColor}40`,
                 }}
               />
-              <span style={{ color: 'var(--muted-foreground)' }}>{entry.name}:</span>
+              <span style={{ color: 'var(--muted)' }}>{entry.name}:</span>
               <span className="font-medium" style={{ color: 'var(--foreground)' }}>
                 {value}
               </span>

@@ -1,7 +1,7 @@
-@import 'tailwindcss';
-
 /* Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@import 'tailwindcss';
 
 /* HeroUI v3 styles - Essential for Modal/AlertDialog/Form components */
 @import '@heroui/styles';
@@ -936,6 +936,7 @@
 
 @layer components {
   nav[data-scrolled='true'] {
-    box-shadow: 0 1px 12px oklch(0.18 0.015 60 / 0.06);
+    box-shadow: 0 1px 20px oklch(0.18 0.015 60 / 0.08);
+    background-color: oklch(0.97 0.012 80 / 0.96) !important;
   }
 }

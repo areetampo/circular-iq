@@ -70,7 +70,7 @@ class ChartErrorBoundary extends Component {
               style={{
                 fontSize: '2rem',
                 marginBottom: '0.5rem',
-                color: 'var(--destructive)',
+                color: 'var(--danger)',
               }}
             >
               ⚠️
@@ -88,7 +88,7 @@ class ChartErrorBoundary extends Component {
             <p
               style={{
                 margin: '0.5rem 0',
-                color: 'var(--muted-foreground)',
+                color: 'var(--muted)',
                 fontSize: '0.875rem',
               }}
             >
@@ -100,7 +100,7 @@ class ChartErrorBoundary extends Component {
                   marginTop: '1rem',
                   textAlign: 'left',
                   fontSize: '0.75rem',
-                  color: 'var(--muted-foreground)',
+                  color: 'var(--muted)',
                 }}
               >
                 <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Error Details</summary>
@@ -108,7 +108,7 @@ class ChartErrorBoundary extends Component {
                   style={{
                     marginTop: '0.5rem',
                     padding: '0.5rem',
-                    backgroundColor: 'var(--muted)',
+                    backgroundColor: 'var(--surface-raised)',
                     borderRadius: '0.25rem',
                     overflow: 'auto',
                     maxHeight: '100px',

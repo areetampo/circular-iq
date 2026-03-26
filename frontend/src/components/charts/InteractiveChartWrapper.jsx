@@ -107,7 +107,7 @@ export default function InteractiveChartWrapper({
                 </h3>
               )}
               {subtitle && (
-                <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>
                   {subtitle}
                 </p>
               )}
@@ -127,7 +127,7 @@ export default function InteractiveChartWrapper({
                     <button
                       onClick={() => handleExport('png')}
                       className="px-2 py-1 text-xs rounded hover:bg-default-100 transition-colors"
-                      style={{ color: 'var(--muted-foreground)' }}
+                      style={{ color: 'var(--muted)' }}
                       title="Export as PNG"
                     >
                       📷
@@ -135,7 +135,7 @@ export default function InteractiveChartWrapper({
                     <button
                       onClick={() => handleExport('svg')}
                       className="px-2 py-1 text-xs rounded hover:bg-default-100 transition-colors"
-                      style={{ color: 'var(--muted-foreground)' }}
+                      style={{ color: 'var(--muted)' }}
                       title="Export as SVG"
                     >
                       📄
@@ -147,7 +147,7 @@ export default function InteractiveChartWrapper({
                   <button
                     onClick={toggleFullscreen}
                     className="px-2 py-1 text-xs rounded hover:bg-default-100 transition-colors"
-                    style={{ color: 'var(--muted-foreground)' }}
+                    style={{ color: 'var(--muted)' }}
                     title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                   >
                     {isFullscreen ? '✕' : '⛶'}
@@ -175,19 +175,19 @@ export default function InteractiveChartWrapper({
           <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
             <div className="flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--muted-foreground)' }}>Points:</span>
+                <span style={{ color: 'var(--muted)' }}>Points:</span>
                 <span className="font-medium" style={{ color: 'var(--foreground)' }}>
                   {dataStats.count}
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--muted-foreground)' }}>Avg:</span>
+                <span style={{ color: 'var(--muted)' }}>Avg:</span>
                 <span className="font-medium" style={{ color: 'var(--foreground)' }}>
                   {dataStats.avg}
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--muted-foreground)' }}>Range:</span>
+                <span style={{ color: 'var(--muted)' }}>Range:</span>
                 <span className="font-medium" style={{ color: 'var(--foreground)' }}>
                   {dataStats.min} - {dataStats.max}
                 </span>
