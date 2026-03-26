@@ -1,4 +1,6 @@
 export const BUSINESS_SOLUTION_CONTENT = {
+  title: 'Business Solution Guide',
+  subtitle: 'How your business solves the problem',
   components: [
     {
       title: 'Materials and Inputs',

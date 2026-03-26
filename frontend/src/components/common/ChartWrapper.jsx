@@ -1,18 +1,34 @@
+import { Card, Skeleton } from '@heroui/react';
+import { ChartsContainer, ChartsTooltip } from '@mui/x-charts';
 import PropTypes from 'prop-types';
-import { Tooltip } from 'recharts';
-
 import { cn } from '../../utils/cn';
 
 /**
- * ChartContainer - Simple wrapper that provides consistent height and prevents overflow.
- * NOTE: Chart components should include their own ResponsiveContainer to avoid nested containers.
+ * ChartContainer - Responsive wrapper that provides consistent height and modern styling
+ * Uses MUI X Charts patterns for optimal responsive behavior
  */
-export function ChartContainer({ children, className, style, height = 280, overflow = 'hidden' }) {
-  // wrapper provides minHeight and explicit height. overflow can be 'auto' to enable scrolling when needed.
+export function ChartContainer({
+  children,
+  className,
+  style,
+  height = 280,
+  overflow = 'hidden',
+  isLoading = false,
+  responsive = true,
+  colors,
+}) {
   const mergedStyle = { minHeight: 200, height, ...style };
 
+  if (isLoading) {
+    return (
+      <Card className={cn('min-w-0', className)} style={mergedStyle}>
+        <Skeleton className="w-full h-full" />
+      </Card>
+    );
+  }
+
   return (
-    <div
+    <Card
       className={cn(
         'min-w-0',
         className,
@@ -20,31 +36,43 @@ export function ChartContainer({ children, className, style, height = 280, overf
       )}
       style={mergedStyle}
     >
-      <div style={{ width: '100%', height: '100%' }}>{children}</div>
-    </div>
+      <div style={{ width: '100%', height: '100%' }}>
+        {responsive ? (
+          <ChartsContainer colors={colors} style={{ width: '100%', height: '100%' }}>
+            {children}
+          </ChartsContainer>
+        ) : (
+          children
+        )}
+      </div>
+    </Card>
   );
 }
 
 ChartContainer.propTypes = {
   children: PropTypes.node.isRequired,
-  config: PropTypes.object,
   className: PropTypes.string,
   style: PropTypes.object,
+  height: PropTypes.number,
+  overflow: PropTypes.string,
+  isLoading: PropTypes.bool,
+  responsive: PropTypes.bool,
+  colors: PropTypes.arrayOf(PropTypes.string),
 };
 
 /**
- * ChartTooltip - Wrapper for Recharts Tooltip
+ * ChartTooltip - Wrapper for MUI X Charts Tooltip
  */
-export function ChartTooltip({ content, ...props }) {
-  return <Tooltip content={content} {...props} />;
+export function ChartTooltip({ ...props }) {
+  return <ChartsTooltip {...props} />;
 }
 
 ChartTooltip.propTypes = {
-  content: PropTypes.oneOfType([PropTypes.func, PropTypes.element]),
+  // MUI X ChartsTooltip props
 };
 
 /**
- * ChartTooltipContent - Custom tooltip content component
+ * ChartTooltipContent - Custom tooltip content component with warm design tokens
  */
 export function ChartTooltipContent({ active, payload, label, labelFormatter, formatter }) {
   if (!active || !payload || payload.length === 0) {
@@ -53,10 +81,11 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
 
   return (
     <div
-      className="rounded-lg border p-2 shadow-md"
+      className="rounded-lg border p-2 shadow-md backdrop-blur-sm"
       style={{
         backgroundColor: 'var(--surface)',
         borderColor: 'var(--border)',
+        fontSize: '0.875rem',
       }}
     >
       {label && (
@@ -70,8 +99,14 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
           const dotColor = entry.color || entry.fill || 'var(--accent)';
           return (
             <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
-              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: dotColor }} />
-              <span style={{ color: 'var(--muted)' }}>{entry.name}:</span>
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{
+                  backgroundColor: dotColor,
+                  boxShadow: `0 0 4px ${dotColor}40`,
+                }}
+              />
+              <span style={{ color: 'var(--muted-foreground)' }}>{entry.name}:</span>
               <span className="font-medium" style={{ color: 'var(--foreground)' }}>
                 {value}
               </span>

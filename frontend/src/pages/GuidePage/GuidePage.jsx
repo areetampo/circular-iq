@@ -1,34 +1,18 @@
 import {
   BarChart3,
   BookCopy,
-  Bot,
-  ChartColumn,
   ChartSpline,
   ChevronDown,
   ChevronUp,
-  CircleCheck,
   ClipboardMinus,
   ClipboardPenLine,
   Lightbulb,
-  Search,
   Settings,
   Target,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { parameterGuidance } from '@/constants/drawers';
-
-import {
-  CALCULATION_STEPS,
-  FACTOR_DEFINITIONS,
-  METRICS,
-  PROBLEM_ELEMENTS,
-  PROBLEM_EXAMPLE,
-  PROBLEM_WRITING_TIPS,
-  SOLUTION_COMPONENTS,
-  SOLUTION_EXAMPLE,
-  SOLUTION_PITFALLS,
-} from './content';
+import { GUIDE_PAGE_CONTENT } from '@/constants/drawers/GuidePageContent';
 
 // Navigation sections
 const SECTIONS = [
@@ -198,46 +182,11 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
 
 // Assessment Methodology Section
 const AssessmentMethodologySection = () => {
-  const METHODOLOGY_ITEMS = [
-    {
-      icon: <Search size={20} />,
-      title: 'Semantic Analysis',
-      description:
-        'Uses OpenAI text-embedding-3-small (1536 dimensions) to find most relevant projects matching your business model and problem space.',
-      borderColor: 'border-blue-500',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      icon: <Bot size={20} />,
-      title: 'AI Reasoning',
-      description:
-        'GPT-4o-mini analyzes your submission against 3 similar cases with strict evidence-based reasoning and integrity checking.',
-      borderColor: 'border-emerald-600',
-      bgColor: 'bg-emerald-50',
-    },
-    {
-      icon: <ChartColumn size={20} />,
-      title: 'Multi-Dimensional Scoring',
-      description:
-        'Evaluates across 8 weighted parameters covering material innovation, circularity loops, market viability, and environmental impact.',
-      borderColor: 'border-orange-500',
-      bgColor: 'bg-orange-50',
-    },
-    {
-      icon: <CircleCheck size={20} />,
-      title: 'Integrity Validation',
-      description:
-        'Cross-references your self-assessed scores against real-world benchmarks to identify overestimations and provide honest feedback.',
-      borderColor: 'border-purple-600',
-      bgColor: 'bg-purple-50',
-    },
-  ];
-
   return (
     <section id="assessment-methodology" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <BookCopy className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -256,18 +205,32 @@ const AssessmentMethodologySection = () => {
           </p>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {METHODOLOGY_ITEMS.map((item, idx) => (
+            {GUIDE_PAGE_CONTENT.assessmentMethodology.items.map((item, idx) => (
               <div
                 key={idx}
-                className={`p-4 rounded-xl border-l-4 ${item.bgColor}`}
-                style={{ borderColor: item.borderColor }}
+                className="p-4 rounded-xl border-l-4"
+                style={{ backgroundColor: item.bgColor, borderLeftColor: item.borderColor }}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className="shrink-0 p-2 rounded-lg"
                     style={{ backgroundColor: 'var(--surface-raised)' }}
                   >
-                    {item.icon}
+                    <item.icon
+                      size={20}
+                      style={{
+                        color:
+                          item.borderColor === 'var(--info)'
+                            ? 'var(--info)'
+                            : item.borderColor === 'var(--success)'
+                              ? 'var(--success)'
+                              : item.borderColor === 'var(--warning)'
+                                ? 'var(--warning)'
+                                : item.borderColor === 'var(--accent)'
+                                  ? 'var(--accent)'
+                                  : 'var(--foreground)',
+                      }}
+                    />
                   </div>
                   <div>
                     <h3 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)' }}>
@@ -308,7 +271,7 @@ const BusinessProblemSection = () => {
     <section id="business-problem" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <Target className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -337,7 +300,7 @@ const BusinessProblemSection = () => {
               Essential Elements
             </h4>
             <div className="space-y-2">
-              {PROBLEM_ELEMENTS.map((item, idx) => (
+              {GUIDE_PAGE_CONTENT.businessProblem.elements.map((item, idx) => (
                 <div
                   key={idx}
                   className={[
@@ -392,7 +355,7 @@ const BusinessProblemSection = () => {
               Writing Tips
             </h4>
             <ul className="space-y-1">
-              {PROBLEM_WRITING_TIPS.map((tip) => (
+              {GUIDE_PAGE_CONTENT.businessProblem.writingTips.map((tip) => (
                 <li key={tip} className="flex items-start gap-2 text-sm">
                   <span className="font-bold" style={{ color: 'var(--info)' }}>
                     •
@@ -416,7 +379,7 @@ const BusinessProblemSection = () => {
                 border: '1px solid var(--accent)',
               }}
             >
-              {PROBLEM_EXAMPLE}
+              {GUIDE_PAGE_CONTENT.businessProblem.example}
             </p>
           </div>
 
@@ -441,7 +404,7 @@ const BusinessSolutionSection = () => {
     <section id="business-solution" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <Lightbulb className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -466,7 +429,7 @@ const BusinessSolutionSection = () => {
               Critical Components
             </h4>
             <ul className="space-y-2">
-              {SOLUTION_COMPONENTS.map(({ title, description }) => (
+              {GUIDE_PAGE_CONTENT.businessSolution.components.map(({ title, description }) => (
                 <li
                   key={title}
                   className="border-l-2 pl-3 text-sm"
@@ -491,7 +454,7 @@ const BusinessSolutionSection = () => {
               Common Pitfalls
             </h4>
             <ul className="space-y-1">
-              {SOLUTION_PITFALLS.map(({ title, description }) => (
+              {GUIDE_PAGE_CONTENT.businessSolution.pitfalls.map(({ title, description }) => (
                 <li key={title} className="flex items-start gap-3 text-sm">
                   <span className="font-semibold" style={{ color: 'var(--warning)' }}>
                     {title}
@@ -515,7 +478,7 @@ const BusinessSolutionSection = () => {
                 border: '1px solid var(--accent)',
               }}
             >
-              {SOLUTION_EXAMPLE}
+              {GUIDE_PAGE_CONTENT.businessSolution.example}
             </p>
           </div>
 
@@ -561,7 +524,7 @@ const EvaluationCriteriaSection = () => {
     <section id="evaluation-criteria" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <ClipboardMinus className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -579,14 +542,15 @@ const EvaluationCriteriaSection = () => {
           </p>
 
           <div className="grid grid-cols-3 gap-3">
-            {METRICS.map((metric, idx) => (
+            {GUIDE_PAGE_CONTENT.evaluationCriteria.metrics.map((metric, idx) => (
               <div
                 key={idx}
-                className={`p-3 rounded-lg text-center border ${
-                  metric.color === 'blue'
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'bg-emerald-50 border-emerald-200'
-                }`}
+                className="p-3 rounded-lg text-center border"
+                style={{
+                  backgroundColor:
+                    metric.color === 'blue' ? 'var(--info-soft)' : 'var(--success-soft)',
+                  borderColor: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
+                }}
               >
                 <div
                   className={`text-2xl font-bold`}
@@ -622,10 +586,10 @@ const EvaluationCriteriaSection = () => {
                     }}
                   >
                     <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
-                      {parameterGuidance[factor]?.name || factor}
+                      {GUIDE_PAGE_CONTENT.evaluationParameters.factors[factor]?.name || factor}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                      {parameterGuidance[factor]?.category || 'N/A'}
+                      {GUIDE_PAGE_CONTENT.evaluationParameters.factors[factor]?.category || 'N/A'}
                     </p>
                   </div>
                 ))}
@@ -644,7 +608,7 @@ const EvaluationCriteriaSection = () => {
               How We Calculate Your Score
             </h4>
             <div className="space-y-2">
-              {CALCULATION_STEPS.map((step) => (
+              {GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.map((step) => (
                 <div key={step.number} className="flex items-start gap-3">
                   <div
                     className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full text-sm"
@@ -678,7 +642,7 @@ const EvaluationParametersSection = () => {
     <section id="evaluation-parameters" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <BarChart3 className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -696,23 +660,25 @@ const EvaluationParametersSection = () => {
           </p>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {Object.entries(FACTOR_DEFINITIONS).map(([key, factor]) => (
-              <div
-                key={key}
-                className="p-4 rounded-xl"
-                style={{ backgroundColor: 'var(--success-soft)', borderColor: 'var(--success)' }}
-              >
-                <h4 className="text-base font-bold mb-1" style={{ color: 'var(--success)' }}>
-                  {factor.title}
-                </h4>
-                <p className="text-xs font-medium mb-2" style={{ color: 'var(--success)' }}>
-                  Category: {factor.category}
-                </p>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                  {factor.desc}
-                </p>
-              </div>
-            ))}
+            {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.factors).map(
+              ([key, factor]) => (
+                <div
+                  key={key}
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: 'var(--success-soft)', borderColor: 'var(--success)' }}
+                >
+                  <h4 className="text-base font-bold mb-1" style={{ color: 'var(--success)' }}>
+                    {factor.title}
+                  </h4>
+                  <p className="text-xs font-medium mb-2" style={{ color: 'var(--success)' }}>
+                    Category: {factor.category}
+                  </p>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    {factor.desc}
+                  </p>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -726,7 +692,7 @@ const ParameterDetailsSection = () => {
     <section id="parameter-details" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <Settings className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -738,90 +704,92 @@ const ParameterDetailsSection = () => {
         </div>
 
         <div className="space-y-6">
-          {Object.entries(parameterGuidance).map(([key, guidance]) => (
-            <div key={key} className="space-y-6">
-              <div className="border-l-4 pl-6">
-                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
-                  {guidance.name}
-                </h3>
-                <p className="text-sm font-medium mb-2" style={{ color: 'var(--muted)' }}>
-                  <strong>Category:</strong> {guidance.category} | <strong>Weight:</strong>{' '}
-                  {guidance.weightPercent}
-                </p>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>
-                  {guidance.definition}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="space-y-4">
-                  <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
-                    Scoring Scale
-                  </h4>
-                  <div className="space-y-2">
-                    {guidance.scale.map((level) => (
-                      <div
-                        key={level.score}
-                        className="flex items-start gap-3 p-3 rounded-lg border"
-                        style={{
-                          backgroundColor: 'var(--surface)',
-                          borderColor: 'var(--border)',
-                        }}
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                            {level.score} - {level.label}
-                          </p>
-                          <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                            {level.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
-                    Methodology
-                  </h4>
+          {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.factors).map(
+            ([key, guidance]) => (
+              <div key={key} className="space-y-6">
+                <div className="border-l-4 pl-6">
+                  <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+                    {guidance.name}
+                  </h3>
+                  <p className="text-sm font-medium mb-2" style={{ color: 'var(--muted)' }}>
+                    <strong>Category:</strong> {guidance.category} | <strong>Weight:</strong>{' '}
+                    {guidance.weightPercent}
+                  </p>
                   <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>
-                    {guidance.methodology}
-                  </p>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                    <strong>Calibration:</strong> {guidance.calibration}
+                    {guidance.definition}
                   </p>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
-                    Example Cases
-                  </h4>
-                  <div className="space-y-2">
-                    {guidance.examples.map((example, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-3 p-3 rounded-lg border"
-                        style={{
-                          backgroundColor: 'var(--surface)',
-                          borderColor: 'var(--border)',
-                        }}
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                            Score: {example.score} - {example.case}
-                          </p>
-                          <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                            {example.reason}
-                          </p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="space-y-4">
+                    <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
+                      Scoring Scale
+                    </h4>
+                    <div className="space-y-2">
+                      {guidance.scale.map((level) => (
+                        <div
+                          key={level.score}
+                          className="flex items-start gap-3 p-3 rounded-lg border"
+                          style={{
+                            backgroundColor: 'var(--surface)',
+                            borderColor: 'var(--border)',
+                          }}
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                              {level.score} - {level.label}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                              {level.description}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
+                      Methodology
+                    </h4>
+                    <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>
+                      {guidance.methodology}
+                    </p>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                      <strong>Calibration:</strong> {guidance.calibration}
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
+                      Example Cases
+                    </h4>
+                    <div className="space-y-2">
+                      {guidance.examples.map((example, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-3 p-3 rounded-lg border"
+                          style={{
+                            backgroundColor: 'var(--surface)',
+                            borderColor: 'var(--border)',
+                          }}
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                              Score: {example.score} - {example.case}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                              {example.reason}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ),
+          )}
         </div>
       </div>
     </section>
@@ -836,7 +804,7 @@ const SampleTestCasesSection = () => {
     <section id="sample-test-cases" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-100">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
             <ClipboardPenLine className="" style={{ color: 'var(--success)' }} size={24} />
           </div>
           <div>
@@ -892,13 +860,15 @@ const SampleTestCasesSection = () => {
               <div
                 key={testCase.id}
                 className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
-                  activeCase === testCase.id
-                    ? 'ring-2 ring-blue-500 bg-blue-50'
-                    : 'hover:shadow-md hover:-translate-y-0.5'
+                  activeCase === testCase.id ? 'ring-2' : 'hover:shadow-md hover:-translate-y-0.5'
                 }`}
                 style={{
                   borderColor: activeCase === testCase.id ? 'var(--info)' : 'var(--border)',
-                  backgroundColor: activeCase === testCase.id ? undefined : 'var(--surface)',
+                  backgroundColor:
+                    activeCase === testCase.id ? 'var(--info-soft)' : 'var(--surface)',
+                  outlineColor: activeCase === testCase.id ? 'var(--info)' : 'transparent',
+                  outlineWidth: activeCase === testCase.id ? '2px' : '0',
+                  outlineOffset: activeCase === testCase.id ? '2px' : '0',
                 }}
                 onClick={() => setActiveCase(activeCase === testCase.id ? null : testCase.id)}
               >
@@ -934,8 +904,8 @@ const SampleTestCasesSection = () => {
           </div>
 
           <div
-            className="p-4 rounded-lg border-l-4 bg-blue-50"
-            style={{ borderColor: 'var(--info)' }}
+            className="p-4 rounded-lg border-l-4"
+            style={{ backgroundColor: 'var(--info-soft)', borderLeftColor: 'var(--info)' }}
           >
             <h4 className="mb-2 text-base font-bold" style={{ color: 'var(--info)' }}>
               How to Use These Examples

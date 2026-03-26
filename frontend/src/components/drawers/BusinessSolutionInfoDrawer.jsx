@@ -45,10 +45,10 @@ export default function BusinessSolutionInfoDrawer() {
                   </div>
                   <div>
                     <Drawer.Heading className="text-lg font-semibold">
-                      Business Solution Guide
+                      {BUSINESS_SOLUTION_CONTENT.title}
                     </Drawer.Heading>
                     <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                      How your business solves the problem
+                      {BUSINESS_SOLUTION_CONTENT.subtitle}
                     </p>
                   </div>
                 </div>

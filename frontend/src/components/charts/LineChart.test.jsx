@@ -17,6 +17,7 @@ describe('LineChart', () => {
         lines={[{ dataKey: 'value', stroke: '#3b82f6', name: 'Value' }]}
         xAxisKey="period"
         height={300}
+        responsive={false}
       />,
     );
 
@@ -41,20 +42,15 @@ describe('LineChart', () => {
         lowerKey: 'lower',
         fill: '#e6f4ea',
         fillOpacity: 0.9,
+        name: '95% CI',
       },
     ];
 
     const { container } = render(
-      <LineChart
-        data={data}
-        lines={lines}
-        xAxisKey="period"
-        height={300}
-        ariaLabel="Test chart with confidence interval"
-      />,
+      <LineChart data={data} lines={lines} xAxisKey="period" height={300} responsive={false} />,
     );
 
-    // Verify the component renders
+    // Verify the component renders without errors
     expect(container.firstChild).toBeTruthy();
   });
 
@@ -80,6 +76,7 @@ describe('LineChart', () => {
         xAxisKey="period"
         height={300}
         ariaLabel="Sales trend chart"
+        responsive={false}
       />,
     );
 

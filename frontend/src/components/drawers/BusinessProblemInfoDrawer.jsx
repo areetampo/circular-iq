@@ -48,10 +48,10 @@ export default function BusinessProblemInfoDrawer() {
                       className="text-lg font-semibold"
                       style={{ color: 'var(--foreground)' }}
                     >
-                      Business Problem Guide
+                      {BUSINESS_PROBLEM_CONTENT.title}
                     </Drawer.Heading>
                     <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                      Environmental or circular economy challenge
+                      {BUSINESS_PROBLEM_CONTENT.subtitle}
                     </p>
                   </div>
                 </div>

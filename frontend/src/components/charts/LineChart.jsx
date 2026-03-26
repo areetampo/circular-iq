@@ -1,5 +1,8 @@
+import { Card, Skeleton } from '@heroui/react';
+import { ChartsContainer } from '@mui/x-charts';
 import { LineChart as MuiLineChart } from '@mui/x-charts/LineChart';
 import PropTypes from 'prop-types';
+import { useMemo } from 'react';
 
 /**
  * LineChart Component
@@ -13,39 +16,98 @@ export default function LineChart({
   xAxisKey = 'label',
   showLegend = true,
   ariaLabel,
+  isLoading = false,
+  responsive = true,
+  className,
+  colors,
+  showTooltip = true,
+  showGrid = true,
 }) {
-  if (!data.length || !lines.length) {
-    return (
-      <div
-        style={{
+  const chartContent = useMemo(() => {
+    if (!data.length || !lines.length) {
+      return (
+        <div
+          style={{
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--muted-foreground)',
+            fontSize: '0.875rem',
+          }}
+        >
+          No data available
+        </div>
+      );
+    }
+
+    const series = lines.map((line, index) => ({
+      dataKey: line.dataKey || line.id,
+      label: line.name || line.dataKey || line.id,
+      color: line.stroke || line.color || colors?.[index] || 'var(--chart-1)',
+      showMark: line.showMark !== undefined ? line.showMark : false,
+      curve: line.curve || 'linear',
+      strokeWidth: line.strokeWidth || 2,
+    }));
+
+    const ChartComponent = responsive ? ChartsContainer : MuiLineChart;
+    const chartProps = responsive
+      ? { series, dataset: data, xAxis: [{ scaleType: 'point', dataKey: xAxisKey }], height }
+      : {
+          dataset: data,
+          xAxis: [{ scaleType: 'point', dataKey: xAxisKey }],
+          series,
           height,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#9ca3af',
-        }}
-      >
-        No data available
+          slots: { legend: { hidden: !showLegend } },
+        };
+
+    return (
+      <div style={{ width: '100%', height: '100%' }}>
+        {responsive ? (
+          <ChartsContainer
+            series={series}
+            dataset={data}
+            xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
+            height={height}
+          >
+            <MuiLineChart slotProps={{ legend: { hidden: !showLegend } }} />
+          </ChartsContainer>
+        ) : (
+          <MuiLineChart
+            dataset={data}
+            xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
+            series={series}
+            height={height}
+            slotProps={{ legend: { hidden: !showLegend } }}
+          />
+        )}
       </div>
+    );
+  }, [data, lines, height, xAxisKey, showLegend, responsive, colors, showTooltip, showGrid]);
+
+  if (isLoading) {
+    return (
+      <Card className={className} style={{ height }}>
+        <Skeleton className="w-full h-full" />
+      </Card>
     );
   }
 
-  const series = lines.map((line) => ({
-    dataKey: line.dataKey || line.id,
-    label: line.name || line.dataKey || line.id,
-    color: line.stroke || line.color,
-    showMark: false,
-  }));
+  if (responsive) {
+    return (
+      <Card className={className} style={{ height }}>
+        <div style={{ width: '100%', height: '100%' }}>
+          <div role="img" aria-label={ariaLabel} style={{ width: '100%', height: '100%' }}>
+            {chartContent}
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div role="img" aria-label={ariaLabel}>
-      <MuiLineChart
-        dataset={data}
-        xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
-        series={series}
-        height={height}
-        slots={{ legend: { hidden: !showLegend } }}
-      />
+      {chartContent}
     </div>
   );
 }
@@ -61,6 +123,9 @@ LineChart.propTypes = {
       name: PropTypes.string,
       stroke: PropTypes.string,
       color: PropTypes.string,
+      showMark: PropTypes.bool,
+      curve: PropTypes.string,
+      strokeWidth: PropTypes.number,
     }),
   ),
   /** Chart height in pixels */
@@ -71,4 +136,16 @@ LineChart.propTypes = {
   showLegend: PropTypes.bool,
   /** Accessibility label for the chart */
   ariaLabel: PropTypes.string,
+  /** Show loading state */
+  isLoading: PropTypes.bool,
+  /** Enable responsive design */
+  responsive: PropTypes.bool,
+  /** Additional CSS classes */
+  className: PropTypes.string,
+  /** Custom color palette */
+  colors: PropTypes.arrayOf(PropTypes.string),
+  /** Show tooltip on hover */
+  showTooltip: PropTypes.bool,
+  /** Show grid lines */
+  showGrid: PropTypes.bool,
 };

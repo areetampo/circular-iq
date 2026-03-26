@@ -1,5 +1,8 @@
+import { Card, Skeleton } from '@heroui/react';
+import { ChartsContainer } from '@mui/x-charts';
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart';
 import PropTypes from 'prop-types';
+import { useMemo } from 'react';
 
 /**
  * PieChart Component
@@ -12,36 +15,104 @@ export default function PieChart({
   nameKey = 'value',
   height = 300,
   showLegend = true,
+  isLoading = false,
+  responsive = true,
+  className,
+  colors,
+  innerRadius = 0,
+  outerRadius = null,
+  paddingAngle = 0,
+  cornerRadius = 0,
 }) {
-  if (!data.length) {
-    return (
-      <div
-        style={{
+  const chartContent = useMemo(() => {
+    if (!data.length) {
+      return (
+        <div
+          style={{
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--muted-foreground)',
+            fontSize: '0.875rem',
+          }}
+        >
+          No data available
+        </div>
+      );
+    }
+
+    const seriesData = data.map((item, i) => ({
+      id: i,
+      value: typeof item[dataKey] === 'number' ? item[dataKey] : 0,
+      label: item[nameKey] || `Item ${i + 1}`,
+      color: item.color || colors?.[i] || undefined,
+    }));
+
+    const series = [
+      {
+        data: seriesData,
+        innerRadius,
+        outerRadius,
+        paddingAngle,
+        cornerRadius,
+      },
+    ];
+
+    const ChartComponent = responsive ? ChartsContainer : MuiPieChart;
+    const chartProps = responsive
+      ? { series, height }
+      : {
+          series,
           height,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#9ca3af',
-        }}
-      >
-        No data available
+          slots: { legend: { hidden: !showLegend } },
+        };
+
+    return (
+      <div style={{ width: '100%', height: '100%' }}>
+        {responsive ? (
+          <ChartsContainer series={series} height={height}>
+            <MuiPieChart slotProps={{ legend: { hidden: !showLegend } }} />
+          </ChartsContainer>
+        ) : (
+          <MuiPieChart
+            series={series}
+            height={height}
+            slotProps={{ legend: { hidden: !showLegend } }}
+          />
+        )}
       </div>
+    );
+  }, [
+    data,
+    dataKey,
+    nameKey,
+    showLegend,
+    responsive,
+    colors,
+    innerRadius,
+    outerRadius,
+    paddingAngle,
+    cornerRadius,
+  ]);
+
+  if (isLoading) {
+    return (
+      <Card className={className} style={{ height }}>
+        <Skeleton className="w-full h-full" />
+      </Card>
     );
   }
 
-  const seriesData = data.map((item, i) => ({
-    id: i,
-    value: typeof item[dataKey] === 'number' ? item[dataKey] : 0,
-    label: item[nameKey] || `Item ${i + 1}`,
-  }));
+  if (responsive) {
+    return (
+      <Card className={className} style={{ height }}>
+        <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
+      </Card>
+    );
+  }
 
-  return (
-    <MuiPieChart
-      series={[{ data: seriesData }]}
-      height={height}
-      slots={{ legend: { hidden: !showLegend } }}
-    />
-  );
+  return chartContent;
 }
 
 PieChart.propTypes = {
@@ -55,4 +126,20 @@ PieChart.propTypes = {
   height: PropTypes.number,
   /** Show/hide legend */
   showLegend: PropTypes.bool,
+  /** Show loading state */
+  isLoading: PropTypes.bool,
+  /** Enable responsive design */
+  responsive: PropTypes.bool,
+  /** Additional CSS classes */
+  className: PropTypes.string,
+  /** Custom color palette */
+  colors: PropTypes.arrayOf(PropTypes.string),
+  /** Inner radius for donut chart */
+  innerRadius: PropTypes.number,
+  /** Outer radius override */
+  outerRadius: PropTypes.number,
+  /** Angle between slices */
+  paddingAngle: PropTypes.number,
+  /** Corner radius for slices */
+  cornerRadius: PropTypes.number,
 };

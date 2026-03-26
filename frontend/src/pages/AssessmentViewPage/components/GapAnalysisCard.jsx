@@ -7,9 +7,14 @@ export default function GapAnalysisCard({ scoringResult }) {
   if (!scoringResult?.gap_analysis?.has_benchmarks) return null;
 
   return (
-    <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+    <Card
+      className="border rounded-xl card-lift"
+      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+    >
       <div className="p-4">
-        <h3 className="text-lg font-bold text-slate-900 mb-4">Gap Analysis</h3>
+        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+          Gap Analysis
+        </h3>
         <BenchmarkTable
           comparisons={scoringResult.gap_analysis.comparisons}
           opportunities={scoringResult.gap_analysis.opportunities}
@@ -28,7 +33,7 @@ export default function GapAnalysisCard({ scoringResult }) {
           ))}
         </div>
         {scoringResult.gap_analysis.message && (
-          <p className="text-xs text-slate-500 mt-3 italic">
+          <p className="text-xs mt-3 italic" style={{ color: 'var(--muted)' }}>
             {scoringResult.gap_analysis.message}
           </p>
         )}

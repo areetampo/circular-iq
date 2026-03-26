@@ -1,4 +1,6 @@
 export const BUSINESS_PROBLEM_CONTENT = {
+  title: 'Business Problem Guide',
+  subtitle: 'Environmental or circular economy challenge',
   elements: [
     {
       title: 'Environmental Impact',

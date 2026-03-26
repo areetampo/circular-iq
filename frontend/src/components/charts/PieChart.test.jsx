@@ -12,7 +12,14 @@ describe('PieChart', () => {
 
     const { asFragment, container } = render(
       <div style={{ width: 600, height: 300 }}>
-        <PieChart data={data} dataKey="value" nameKey="name" height={260} showLegend={true} />
+        <PieChart
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          height={260}
+          showLegend={true}
+          responsive={false}
+        />
       </div>,
     );
 

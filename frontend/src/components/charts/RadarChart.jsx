@@ -1,6 +1,6 @@
 import { Card, ProgressCircle } from '@heroui/react';
 import PropTypes from 'prop-types';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 function RadarChartComponent({
   data,
@@ -9,16 +9,24 @@ function RadarChartComponent({
   showLegend = true,
   showTooltip = true,
   isLoading = false,
+  responsive = true,
+  className,
+  colors,
+  interactive = true,
+  animationDuration = 300,
 }) {
-  // Default color palette for charts
-  const defaultColors = [
-    '#3b82f6', // blue
-    '#10b981', // emerald
-    '#f59e0b', // amber
-    '#ef4444', // red
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-  ];
+  // Default color palette for charts - using warm design tokens
+  const defaultColors = useMemo(
+    () => [
+      'var(--chart-1)', // warm blue
+      'var(--chart-2)', // warm green
+      'var(--chart-3)', // warm amber
+      'var(--chart-4)', // warm red
+      'var(--chart-5)', // warm purple
+      'var(--chart-6)', // warm pink
+    ],
+    [],
+  );
 
   const chartData = useMemo(
     () =>
@@ -31,17 +39,18 @@ function RadarChartComponent({
 
   const colorMap = useMemo(() => {
     return radarConfigs.reduce((acc, config, i) => {
-      acc[config.dataKey] = config.stroke || defaultColors[i % defaultColors.length];
+      acc[config.dataKey] = config.stroke || colors?.[i] || defaultColors[i % defaultColors.length];
       return acc;
     }, {});
-  }, [radarConfigs]);
+  }, [radarConfigs, colors, defaultColors]);
 
   const dimensions = useMemo(() => {
-    const size = Math.min(height - 80, 400);
+    const containerSize = responsive ? Math.min(height - 80, 400) : Math.min(height - 80, 600);
+    const size = containerSize;
     const center = size / 2;
     const radius = center - 40;
     return { size, center, radius };
-  }, [height]);
+  }, [height, responsive]);
 
   const { angles, points } = useMemo(() => {
     if (!chartData.length) return { angles: [], points: [] };
@@ -68,6 +77,22 @@ function RadarChartComponent({
     });
     return `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')} Z`;
   };
+
+  const handlePointHover = useCallback(
+    (config, dataIndex) => {
+      if (!interactive || !showTooltip) return;
+      // Tooltip implementation can be added here
+    },
+    [interactive, showTooltip],
+  );
+
+  const handlePointClick = useCallback(
+    (config, dataIndex) => {
+      if (!interactive) return;
+      // Click handler implementation
+    },
+    [interactive],
+  );
 
   if (isLoading) {
     return (
@@ -275,6 +300,11 @@ RadarChartComponent.propTypes = {
   showLegend: PropTypes.bool,
   showTooltip: PropTypes.bool,
   isLoading: PropTypes.bool,
+  responsive: PropTypes.bool,
+  className: PropTypes.string,
+  colors: PropTypes.arrayOf(PropTypes.string),
+  interactive: PropTypes.bool,
+  animationDuration: PropTypes.number,
 };
 
 export default RadarChartComponent;

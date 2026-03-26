@@ -47,20 +47,15 @@ export default function AssessmentMethodologyDrawer() {
                   </div>
                   <div>
                     <Drawer.Heading
-                      className="text-base font-semibold"
+                      className="text-lg font-semibold"
                       style={{
                         color: 'var(--foreground)',
                       }}
                     >
-                      Assessment Methodology
+                      {ASSESSMENT_METHODOLOGY_CONTENT.title}
                     </Drawer.Heading>
-                    <p
-                      className="text-xs mt-0.5"
-                      style={{
-                        color: 'var(--muted)',
-                      }}
-                    >
-                      Our AI-powered evaluation framework
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                      {ASSESSMENT_METHODOLOGY_CONTENT.subtitle}
                     </p>
                   </div>
                 </div>

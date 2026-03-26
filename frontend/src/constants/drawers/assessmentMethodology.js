@@ -1,6 +1,8 @@
 import { Bot, ChartColumn, CircleCheck, Search } from 'lucide-react';
 
 export const ASSESSMENT_METHODOLOGY_CONTENT = {
+  title: 'Assessment Methodology',
+  subtitle: 'How we evaluate circular economy initiatives',
   items: [
     {
       icon: Search,
