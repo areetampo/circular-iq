@@ -1,17 +1,12 @@
-import { Accordion, Label, TextArea as Textarea, toast, Tooltip } from '@heroui/react';
+import { Accordion, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
   BadgeInfo,
-  Bot,
   BriefcaseBusiness,
   ChevronDown,
   ClipboardList,
-  LayersPlus,
-  NotebookPen,
-  PencilRuler,
-  Pickaxe,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -30,8 +25,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
 import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
+import BusinessInputField from '@/pages/LandingPage/components/BusinessInputField';
 import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
-import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
+import FeatureCards from '@/pages/LandingPage/components/FeatureCards';
+import HeroSection from '@/pages/LandingPage/components/HeroSection';
+import MethodologyButtons from '@/pages/LandingPage/components/MethodologyButtons';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 
 export default function LandingPage() {
@@ -642,123 +640,20 @@ export default function LandingPage() {
     }
   };
 
-  const FEATURE_CARDS = [
-    {
-      key: 'ai-powered',
-      title: 'AI-Powered',
-      desc: 'Machine learning analysis grounded in circular economy principles.',
-      Icon: Bot,
-      bg: 'var(--accent-soft)',
-      borderClass: 'var(--border)',
-      iconColor: 'var(--accent)',
-    },
-    {
-      key: 'multi-dimensional',
-      title: 'Multi-Dimensional',
-      desc: 'Evaluates across key domains for clarity and depth.',
-      Icon: LayersPlus,
-      bg: 'var(--success-soft)',
-      borderClass: 'var(--border)',
-      iconColor: 'var(--success)',
-    },
-    {
-      key: 'actionable',
-      title: 'Actionable',
-      desc: 'Clear recommendations you can apply immediately to improve outcomes.',
-      Icon: Pickaxe,
-      bg: 'var(--warning-soft)',
-      borderClass: 'var(--border)',
-      iconColor: 'var(--warning)',
-    },
-  ];
-
   return (
     <FormProvider {...methods}>
       <div ref={formContainerRef} className="w-full max-w-4xl mx-auto space-y-8">
         {/* Hero */}
-        <div className="text-center py-10 md:py-14">
-          <p className="label-overline mb-4">AI-Powered · Evidence-Based · 40,000+ Cases</p>
-          <h1
-            className="heading-display max-w-2xl mx-auto leading-[1.1]"
-            style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}
-          >
-            Evaluate your circular
-            <br className="hidden sm:block" /> economy initiative.
-          </h1>
-          <p
-            className="mt-4 text-[15px] max-w-md mx-auto leading-relaxed"
-            style={{ color: 'var(--muted)' }}
-          >
-            Get an evidence-backed circularity score in minutes, grounded in real-world case
-            studies.
-          </p>
-        </div>
+        <HeroSection />
 
-        {/* Assessment Methodology & Evaluation Criteria Buttons */}
-        <motion.div
-          className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <motion.div>
-            <Button onClick={openAssessmentMethodologyDrawer} size="lg" variant="success">
-              <span>Assessment Methodology</span>
-              <PencilRuler />
-            </Button>
-          </motion.div>
-
-          <motion.div>
-            <Button onClick={openEvaluationCriteriaDrawer} size="lg" variant="eco-soft">
-              <span>Evaluation Criteria</span>
-              <NotebookPen />
-            </Button>
-          </motion.div>
-        </motion.div>
+        {/* Methodology Buttons */}
+        <MethodologyButtons
+          openAssessmentMethodologyDrawer={openAssessmentMethodologyDrawer}
+          openEvaluationCriteriaDrawer={openEvaluationCriteriaDrawer}
+        />
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {FEATURE_CARDS.map((card) => {
-            const Icon = card.Icon;
-            return (
-              <div
-                key={card.key}
-                role="article"
-                aria-label={card.title}
-                className="rounded-lg border p-6 card-lift group"
-                style={{
-                  backgroundColor: card.bg,
-                  borderColor: card.borderClass,
-                }}
-              >
-                <div className="flex flex-col items-center justify-center text-center">
-                  <Icon
-                    className="h-8 w-8 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110"
-                    style={{ color: card.iconColor }}
-                    strokeWidth={1.75}
-                  />
-
-                  <h3
-                    className="font-semibold text-lg mt-4"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
-                    {card.title}
-                  </h3>
-                  <p
-                    className="mt-2 text-sm leading-relaxed"
-                    style={{
-                      color: 'var(--muted)',
-                    }}
-                  >
-                    {card.desc}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <FeatureCards />
 
         {/* Input Form */}
         <motion.div
@@ -797,89 +692,34 @@ export default function LandingPage() {
               {/* Business Problem and Solution - Two columns on desktop */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Problem Input */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-start gap-2">
-                        <Label
-                          htmlFor="business-problem"
-                          className="text-base font-semibold"
-                          style={{ color: 'var(--foreground)' }}
-                        >
-                          Business Problem
-                        </Label>
-                        <BadgeInfo
-                          className="info-icon cursor-pointer"
-                          size={22}
-                          style={{ color: 'var(--accent)' }}
-                          onClick={openBusinessProblemInfoDrawer}
-                        />
-                      </div>
-                      <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-                        What environmental or circular economy challenge does your business address?
-                      </p>
-                    </div>
-                  </div>
-                  <Textarea
-                    id="business-problem"
-                    rows={4}
-                    placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
-                    {...register('businessProblem', {
-                      onBlur: () => flushAutosave(),
-                    })}
-                    disabled={loading}
-                    className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
-                    style={{
-                      borderColor: 'var(--field-border)',
-                      backgroundColor: 'var(--field-bg)',
-                      color: 'var(--foreground)',
-                    }}
-                  />
-                  <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
-                </div>
+                <BusinessInputField
+                  id="business-problem"
+                  label="Business Problem"
+                  description="What environmental or circular economy challenge does your business address?"
+                  placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
+                  fieldName="businessProblem"
+                  register={register}
+                  onInfoClick={openBusinessProblemInfoDrawer}
+                  loading={loading}
+                  flushAutosave={flushAutosave}
+                  rows={4}
+                  minLength={200}
+                />
 
                 {/* Solution Input */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-start gap-3">
-                        <Label
-                          htmlFor="business-solution"
-                          className="text-base font-semibold"
-                          style={{ color: 'var(--foreground)' }}
-                        >
-                          Business Solution
-                        </Label>
-                        <BadgeInfo
-                          className="info-icon cursor-pointer"
-                          size={22}
-                          style={{ color: 'var(--accent)' }}
-                          onClick={openBusinessSolutionInfoDrawer}
-                        />
-                      </div>
-                      <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-                        How does your business solve this problem? Include materials, processes, and
-                        circularity strategy.
-                      </p>
-                    </div>
-                  </div>
-                  <Textarea
-                    id="business-solution"
-                    rows={5}
-                    placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
-                    {...register('businessSolution', {
-                      onBlur: () => flushAutosave(),
-                    })}
-                    disabled={loading}
-                    className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
-                    style={{
-                      borderColor: 'var(--field-border)',
-                      backgroundColor: 'var(--field-bg)',
-                      color: 'var(--foreground)',
-                    }}
-                  />
-                  <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
-                </div>
+                <BusinessInputField
+                  id="business-solution"
+                  label="Business Solution"
+                  description="How does your business solve this problem? Include materials, processes, and circularity strategy."
+                  placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
+                  fieldName="businessSolution"
+                  register={register}
+                  onInfoClick={openBusinessSolutionInfoDrawer}
+                  loading={loading}
+                  flushAutosave={flushAutosave}
+                  rows={5}
+                  minLength={200}
+                />
               </div>
 
               {/* Business Context Section */}

@@ -1,28 +1,49 @@
-import { Chip } from '@heroui/react';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 function ChangeIndicator({ diff }) {
   if (diff > 0) {
     return (
-      <Chip color="success" variant="soft" size="sm" className="transition-all duration-200">
-        <TrendingUp size={14} />
-        <Chip.Label>+{diff}</Chip.Label>
-      </Chip>
+      <div
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all duration-200"
+        style={{
+          background: 'var(--success-soft)',
+          color: 'var(--success)',
+          border: '1px solid var(--success)',
+          fontFamily: 'JetBrains Mono, monospace',
+        }}
+      >
+        <TrendingUp size={11} />+{diff}
+      </div>
     );
   } else if (diff < 0) {
     return (
-      <Chip color="danger" variant="soft" size="sm" className="transition-all duration-200">
-        <TrendingDown size={14} />
-        <Chip.Label>{diff}</Chip.Label>
-      </Chip>
+      <div
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all duration-200"
+        style={{
+          background: 'var(--danger-soft)',
+          color: 'var(--danger)',
+          border: '1px solid var(--danger)',
+          fontFamily: 'JetBrains Mono, monospace',
+        }}
+      >
+        <TrendingDown size={11} />
+        {diff}
+      </div>
     );
   }
   return (
-    <Chip color="default" variant="soft" size="sm" className="transition-all duration-200">
-      <Minus size={14} />
-      <Chip.Label>0</Chip.Label>
-    </Chip>
+    <div
+      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all duration-200"
+      style={{
+        background: 'var(--surface-raised)',
+        color: 'var(--muted)',
+        border: '1px solid var(--border)',
+        fontFamily: 'JetBrains Mono, monospace',
+      }}
+    >
+      <Minus size={11} />0
+    </div>
   );
 }
 

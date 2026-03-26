@@ -21,7 +21,10 @@ export default function ResultsSkeleton() {
 
         {/* Tabs Skeleton */}
         <div className="flex justify-center my-4">
-          <div className="flex gap-2 p-1 bg-emerald-100/30 rounded-xl">
+          <div
+            className="flex gap-2 p-1 rounded-xl"
+            style={{ backgroundColor: 'var(--success-soft)' }}
+          >
             <Skeleton animationType="shimmer" className="h-10 w-32 rounded-lg" />
             <Skeleton animationType="shimmer" className="h-10 w-40 rounded-lg" />
             <Skeleton animationType="shimmer" className="h-10 w-40 rounded-lg" />
@@ -88,7 +91,10 @@ export default function ResultsSkeleton() {
           </Card>
 
           {/* Score Highlights Skeleton */}
-          <Card className="border border-slate-300 shadow-sm bg-white rounded-xl">
+          <Card
+            className="border shadow-sm rounded-xl"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+          >
             <div className="p-4 sm:p-6">
               <Skeleton animationType="shimmer" className="h-6 w-40 mb-6 rounded-md" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

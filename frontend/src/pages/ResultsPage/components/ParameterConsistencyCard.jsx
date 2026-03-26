@@ -1,83 +1,60 @@
-import { Card, Chip } from '@heroui/react';
+import { Chip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 import { formatFactorName } from '@/lib/scoring';
 
+import ScoreCard from './ScoreCard';
+
 export function ParameterConsistencyCard({ actualResult }) {
   if (!actualResult?.parameter_consistency) return null;
 
+  const { score, rating, interpretation, issues } = actualResult.parameter_consistency;
+
+  const getScoreColor = (score) => {
+    if (score >= 85) return 'var(--success)';
+    if (score >= 65) return 'var(--info)';
+    if (score >= 40) return 'var(--warning)';
+    return 'var(--danger)';
+  };
+
   return (
-    <Card
-      className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+    <ScoreCard
+      title="Self-Assessment Reliability"
+      description="Internal consistency of your 8 parameter scores"
+      score={score}
+      rating={`${rating} Consistency`}
+      message={interpretation}
+      scoreColor={getScoreColor(score)}
     >
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>
-              Self-Assessment Reliability
-            </h3>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Internal consistency of your 8 parameter scores
-            </p>
-          </div>
-          <div className="text-right">
+      {issues.length > 0 && (
+        <div className="space-y-2 mt-3">
+          {issues.map((issue, i) => (
             <div
-              className="text-3xl font-bold"
-              style={{
-                color:
-                  actualResult.parameter_consistency.score >= 85
-                    ? 'var(--success)'
-                    : actualResult.parameter_consistency.score >= 65
-                      ? 'var(--info)'
-                      : actualResult.parameter_consistency.score >= 40
-                        ? 'var(--warning)'
-                        : 'var(--danger)',
-              }}
+              key={i}
+              className="p-2 border rounded-lg"
+              style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
             >
-              {actualResult.parameter_consistency.score}
-              <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                /100
-              </span>
-            </div>
-            <div className="text-xs" style={{ color: 'var(--muted)' }}>
-              {actualResult.parameter_consistency.rating} Consistency
-            </div>
-          </div>
-        </div>
-        <p className="text-sm mb-3" style={{ color: 'var(--foreground)' }}>
-          {actualResult.parameter_consistency.interpretation}
-        </p>
-        {actualResult.parameter_consistency.issues.length > 0 && (
-          <div className="space-y-2">
-            {actualResult.parameter_consistency.issues.map((issue, i) => (
-              <div
-                key={i}
-                className="p-2 border rounded-lg"
-                style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
-              >
-                <p className="text-xs" style={{ color: 'var(--warning)' }}>
-                  {issue.issue}
-                </p>
-                <div className="flex gap-1 mt-1">
-                  {issue.factors.map((f) => (
-                    <Chip
-                      key={f}
-                      size="sm"
-                      variant="soft"
-                      className="text-xs"
-                      style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}
-                    >
-                      {formatFactorName(f)}
-                    </Chip>
-                  ))}
-                </div>
+              <p className="text-xs" style={{ color: 'var(--warning)' }}>
+                {issue.issue}
+              </p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {issue.factors.map((f) => (
+                  <Chip
+                    key={f}
+                    size="sm"
+                    variant="soft"
+                    className="text-xs"
+                    style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}
+                  >
+                    {formatFactorName(f)}
+                  </Chip>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </Card>
+            </div>
+          ))}
+        </div>
+      )}
+    </ScoreCard>
   );
 }
 

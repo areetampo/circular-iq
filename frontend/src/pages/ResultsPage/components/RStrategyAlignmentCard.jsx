@@ -1,97 +1,73 @@
-import { Card, Chip } from '@heroui/react';
+import { Chip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 import { formatFactorName } from '@/lib/scoring';
 
+import ScoreCard from './ScoreCard';
+
 export function RStrategyAlignmentCard({ actualResult }) {
   if (actualResult?.r_strategy_alignment?.alignment_score == null) return null;
 
+  const { alignment_score, strategy, rating, message, misaligned_factors, well_aligned_factors } =
+    actualResult.r_strategy_alignment;
+
+  const getScoreColor = (score) => {
+    if (score >= 75) return 'var(--success)';
+    if (score >= 55) return 'var(--info)';
+    if (score >= 35) return 'var(--warning)';
+    return 'var(--danger)';
+  };
+
   return (
-    <Card
-      className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+    <ScoreCard
+      title="R-Strategy Alignment"
+      description={`How well your scores support the detected ${strategy} strategy`}
+      score={alignment_score}
+      rating={rating}
+      message={message}
+      scoreColor={getScoreColor(alignment_score)}
     >
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>
-              R-Strategy Alignment
-            </h3>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              How well your scores support to detected{' '}
-              <span className="font-semibold">{actualResult.r_strategy_alignment.strategy}</span>{' '}
-              strategy
-            </p>
-          </div>
-          <div className="text-right">
-            <div
-              className="text-3xl font-bold"
-              style={{
-                color:
-                  actualResult.r_strategy_alignment.alignment_score >= 75
-                    ? 'var(--success)'
-                    : actualResult.r_strategy_alignment.alignment_score >= 55
-                      ? 'var(--info)'
-                      : actualResult.r_strategy_alignment.alignment_score >= 35
-                        ? 'var(--warning)'
-                        : 'var(--danger)',
-              }}
-            >
-              {actualResult.r_strategy_alignment.alignment_score}
-              <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                /100
-              </span>
-            </div>
-            <div className="text-xs" style={{ color: 'var(--muted)' }}>
-              {actualResult.r_strategy_alignment.rating}
-            </div>
+      {misaligned_factors.length > 0 && (
+        <div className="mb-2">
+          <span className="text-xs font-semibold" style={{ color: 'var(--danger)' }}>
+            Critical factors below threshold:
+          </span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {misaligned_factors.map((f) => (
+              <Chip
+                key={f}
+                size="sm"
+                variant="soft"
+                className="text-xs"
+                style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger)' }}
+              >
+                {formatFactorName(f)}
+              </Chip>
+            ))}
           </div>
         </div>
-        <p className="text-sm mb-3" style={{ color: 'var(--foreground)' }}>
-          {actualResult.r_strategy_alignment.message}
-        </p>
-        {actualResult.r_strategy_alignment.misaligned_factors.length > 0 && (
-          <div className="mb-2">
-            <span className="text-xs font-semibold" style={{ color: 'var(--danger)' }}>
-              Critical factors below threshold:
-            </span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {actualResult.r_strategy_alignment.misaligned_factors.map((f) => (
-                <Chip
-                  key={f}
-                  size="sm"
-                  variant="soft"
-                  className="text-xs"
-                  style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger)' }}
-                >
-                  {formatFactorName(f)}
-                </Chip>
-              ))}
-            </div>
+      )}
+      {well_aligned_factors.length > 0 && (
+        <div>
+          <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>
+            Well aligned:
+          </span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {well_aligned_factors.map((f) => (
+              <Chip
+                key={f}
+                size="sm"
+                variant="soft"
+                className="text-xs"
+                style={{ backgroundColor: 'var(--success-soft)', color: 'var(--success)' }}
+              >
+                {formatFactorName(f)}
+              </Chip>
+            ))}
           </div>
-        )}
-        {actualResult.r_strategy_alignment.well_aligned_factors.length > 0 && (
-          <div>
-            <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>
-              Well aligned:
-            </span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {actualResult.r_strategy_alignment.well_aligned_factors.map((f) => (
-                <Chip
-                  key={f}
-                  size="sm"
-                  variant="soft"
-                  className="text-xs"
-                  style={{ backgroundColor: 'var(--success-soft)', color: 'var(--success)' }}
-                >
-                  {formatFactorName(f)}
-                </Chip>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </Card>
+        </div>
+      )}
+    </ScoreCard>
   );
 }
 

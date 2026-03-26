@@ -155,7 +155,8 @@ export default function AssessmentMethodologyDrawer() {
                             group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md"
                 >
                   <BookCopy
-                    className="size-4 text-[var(--success-foreground)]"
+                    className="size-4"
+                    style={{ color: 'var(--surface)' }}
                     strokeWidth={1.75}
                   />
                 </div>

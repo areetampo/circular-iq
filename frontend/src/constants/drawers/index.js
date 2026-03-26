@@ -19,3 +19,6 @@ export { ASSESSMENT_METHODOLOGY_CONTENT } from './assessmentMethodology';
 export { BUSINESS_CONTEXT_HEADING_CONTENT } from './businessContextHeading';
 export { BUSINESS_PROBLEM_CONTENT } from './businessProblem';
 export { BUSINESS_SOLUTION_CONTENT } from './businessSolution';
+
+// Parameter guidance
+export { parameterGuidance } from './parameterGuidance';

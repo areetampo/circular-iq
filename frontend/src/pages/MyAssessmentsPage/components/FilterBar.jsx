@@ -1,5 +1,5 @@
 import { Label, ListBox, Select } from '@heroui/react';
-import { Search } from 'lucide-react';
+import { GitCompare, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { IndustryFilterChip } from './IndustryFilterChip';
@@ -95,18 +95,46 @@ export function FilterBar({
         </div>
       </div>
 
+      {/* Compare button — only shown when exactly 2 assessments are selected */}
+      {selectedIds?.size > 0 && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCompareSelected}
+            disabled={selectedIds.size !== 2}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium
+                     rounded-lg transition-all duration-150 disabled:opacity-50
+                     disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: selectedIds.size === 2 ? 'var(--accent)' : 'var(--surface)',
+              color: selectedIds.size === 2 ? 'var(--accent-foreground)' : 'var(--muted)',
+              border: selectedIds.size !== 2 ? '1px solid var(--border)' : 'none',
+            }}
+            title={
+              selectedIds.size !== 2
+                ? 'Select exactly 2 assessments to compare'
+                : 'Compare selected'
+            }
+          >
+            <GitCompare size={15} />
+            {selectedIds.size}/2 Compare Selected
+          </button>
+        </div>
+      )}
+
       {/* Industry filter chips */}
-      <div className="flex flex-wrap gap-2">
-        {industryOptions.map((industry) => (
-          <IndustryFilterChip
-            key={industry}
-            industry={industry}
-            isSelected={selectedIndustries.includes(industry)}
-            onToggle={handleToggleIndustry}
-            label={industry === 'all' ? 'All Industries' : formatIndustryLabel(industry)}
-          />
-        ))}
-      </div>
+      {industryOptions.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {industryOptions.map((industry) => (
+            <IndustryFilterChip
+              key={industry}
+              industry={industry}
+              isSelected={selectedIndustries.includes(industry)}
+              onToggle={handleToggleIndustry}
+              label={industry === 'all' ? 'All Industries' : formatIndustryLabel(industry)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

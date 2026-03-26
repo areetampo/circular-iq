@@ -60,120 +60,84 @@ import {
   Zoomies,
 } from 'ldrs/react';
 import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
-const LOADERS = [
-  ({ color = 'var(--accent)' }) => (
-    <Spiral size="40" speed="0.9" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Bouncy size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Ring2 size="40" stroke="5" speed="0.8" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <BouncyArc size="70" speed="1.65" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Hourglass size="40" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <LineWobble size="70" stroke="5" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <InfinityLoader size="55" stroke="4" speed="1.3" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Quantum size="40" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => <Trio size="40" speed="1.3" color={color || 'var(--accent)'} />,
-  ({ color = 'var(--accent)' }) => <DotWave size="47" speed="1" color={color || 'var(--accent)'} />,
-  ({ color = 'var(--accent)' }) => (
-    <Leapfrog size="40" speed="2.5" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <NewtonsCradle size="78" speed="1.4" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <DotStream size="60" speed="2.5" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Metronome size="40" speed="1.6" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Pinwheel size="35" stroke="3.5" speed="0.9" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Jelly size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <JellyTriangle size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Mirage size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Momentum size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Superballs size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Orbit size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <ChaoticOrbit size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => <Grid size="45" speed="1.75" color={color || 'var(--accent)'} />,
-  ({ color = 'var(--accent)' }) => (
-    <Trefoil size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Treadmill size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <TailChase size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Reuleaux size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
-  ({ color = 'var(--accent)' }) => (
-    <Zoomies size="45" speed="1.75" color={color || 'var(--accent)'} />
-  ),
+const getRandomIndex = (exclude, maxIndex) => {
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * maxIndex);
+  } while (idx === exclude);
+  return idx;
+};
+
+// Create a factory function that generates loaders with resolved color
+const createLoaders = (accentColor) => [
+  ({ color }) => <Spiral size="40" speed="0.9" color={color || accentColor} />,
+  ({ color }) => <Bouncy size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Ring2 size="40" stroke="5" speed="0.8" color={color || accentColor} />,
+  ({ color }) => <BouncyArc size="70" speed="1.65" color={color || accentColor} />,
+  ({ color }) => <Hourglass size="40" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <LineWobble size="70" stroke="5" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <InfinityLoader size="55" stroke="4" speed="1.3" color={color || accentColor} />,
+  ({ color }) => <Quantum size="40" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Trio size="40" speed="1.3" color={color || accentColor} />,
+  ({ color }) => <DotWave size="47" speed="1" color={color || accentColor} />,
+  ({ color }) => <Leapfrog size="40" speed="2.5" color={color || accentColor} />,
+  ({ color }) => <NewtonsCradle size="78" speed="1.4" color={color || accentColor} />,
+  ({ color }) => <DotStream size="60" speed="2.5" color={color || accentColor} />,
+  ({ color }) => <Metronome size="40" speed="1.6" color={color || accentColor} />,
+  ({ color }) => <Pinwheel size="35" stroke="3.5" speed="0.9" color={color || accentColor} />,
+  ({ color }) => <Jelly size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <JellyTriangle size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Mirage size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Momentum size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Superballs size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Orbit size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <ChaoticOrbit size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Grid size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Trefoil size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Treadmill size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <TailChase size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Reuleaux size="45" speed="1.75" color={color || accentColor} />,
+  ({ color }) => <Zoomies size="45" speed="1.75" color={color || accentColor} />,
 ];
 
 const SWITCH_INTERVAL = 3000;
 const FADE_DURATION = 400;
 
-const getRandomIndex = (exclude) => {
-  let idx;
-  do {
-    idx = Math.floor(Math.random() * LOADERS.length);
-  } while (idx === exclude);
-  return idx;
-};
-
 export default function LoaderIcon({ color = '', isButton = false }) {
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * LOADERS.length));
+  const [index, setIndex] = useState(() =>
+    Math.floor(Math.random() * createLoaders('#C89B6D').length),
+  );
   const [visible, setVisible] = useState(true);
+
+  // Resolve CSS variable at render time
+  const accentColor = useMemo(() => {
+    if (typeof window === 'undefined') return '#C89B6D'; // SSR fallback
+    return (
+      getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#C89B6D'
+    );
+  }, []);
+
+  // Get loaders with resolved color
+  const loaders = useMemo(() => createLoaders(accentColor), [accentColor]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setVisible(false);
 
       setTimeout(() => {
-        setIndex((prev) => getRandomIndex(prev));
+        setIndex((prev) => getRandomIndex(prev, loaders.length));
         setVisible(true);
       }, FADE_DURATION);
     }, SWITCH_INTERVAL);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [loaders.length]);
 
-  const Icon = LOADERS[index];
+  const Icon = loaders[index];
 
   return (
     <div

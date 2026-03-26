@@ -13,15 +13,15 @@
  * Styling: Tailwind CSS v4 + HeroUI v3 components
  */
 
-import { logger } from '@/utils/logger';
-window.logger = logger;
-
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from '@/app/App.jsx';
+import { logger } from '@/utils/logger';
 import './index.css';
+
+window.logger = logger;
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

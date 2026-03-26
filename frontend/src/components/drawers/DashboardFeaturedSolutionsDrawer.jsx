@@ -13,7 +13,7 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
   if (Object.keys(data).length === 0) return null;
   const { q, industry } = data;
 
-  const { isDrawerOpen, onClose } = useGlobalDrawer();
+  const { isDrawerOpen, onClose, openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
   const direction = useDrawerDirection();
 
   const { solutions = [], isLoading } = useFeaturedSolutions({
@@ -91,54 +91,46 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                       >
                         {cat}
                       </div>
-                      <div className="space-y-3 px-4">
+                      <div className="space-y-1 px-4">
                         {list.map((s) => (
                           <div
                             key={s.id}
-                            className="p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-                            style={{
-                              backgroundColor: 'var(--surface)',
-                              borderColor: 'var(--border)',
-                            }}
+                            className="py-3 border-b border-[var(--border)] transition-all duration-200"
                           >
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-semibold truncate">{s.title}</h4>
+                            <div className="flex items-center justify-between mb-1">
+                              <h4
+                                className="text-sm font-semibold truncate"
+                                style={{ color: 'var(--foreground)' }}
+                              >
+                                {s.title}
+                              </h4>
                               <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                 {s.wordCount || 0} words
                               </span>
                             </div>
                             <p
-                              className="text-sm mt-2 leading-relaxed line-clamp-4"
+                              className="text-xs leading-relaxed line-clamp-2 mb-2"
                               style={{ color: 'var(--muted)' }}
                             >
                               {s.solution || s.problem || ''}
                             </p>
-                            {(s.source || s.category) && (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {s.category && (
-                                  <span
-                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                                    style={{
-                                      backgroundColor: 'var(--surface-raised)',
-                                      color: 'var(--muted)',
-                                    }}
-                                  >
-                                    {s.category}
-                                  </span>
-                                )}
-                                {s.industry && (
-                                  <span
-                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                                    style={{
-                                      backgroundColor: 'var(--accent-soft)',
-                                      color: 'var(--accent)',
-                                    }}
-                                  >
-                                    {s.industry}
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            <a
+                              href="#"
+                              className="text-xs font-medium inline-flex items-center gap-1 hover:gap-1.5 transition-all duration-150"
+                              style={{ color: 'var(--accent)' }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                openResultsDatabaseEvidenceDetailsDrawer({
+                                  title: s.title || 'Solution Details',
+                                  solution: s.solution || '',
+                                  problem: s.problem || '',
+                                  category: s.category || '',
+                                  wordCount: s.wordCount || 0,
+                                });
+                              }}
+                            >
+                              View →
+                            </a>
                           </div>
                         ))}
                       </div>

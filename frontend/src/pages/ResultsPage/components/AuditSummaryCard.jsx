@@ -229,13 +229,13 @@ export function AuditSummaryCard({ actualResult }) {
                             ? 'var(--success-soft)'
                             : sdg.relevance === 'medium'
                               ? 'var(--info-soft)'
-                              : 'var(--muted)',
+                              : 'var(--surface-raised)',
                         color:
                           sdg.relevance === 'high'
                             ? 'var(--success)'
                             : sdg.relevance === 'medium'
                               ? 'var(--info)'
-                              : 'var(--muted)',
+                              : 'var(--subtle)',
                       }}
                     >
                       {sdg.relevance} relevance

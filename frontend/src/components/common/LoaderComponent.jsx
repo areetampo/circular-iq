@@ -7,32 +7,13 @@ export default function LoaderComponent({
   message = 'Please wait while we retrieve your data...',
 }) {
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-6 pb-10">
+    <div className="flex flex-col items-center justify-center gap-3 py-8">
       <LoaderIcon className="" />
-
-      {/* Fixed height container with vertical centering */}
-      <div className="flex flex-col items-center justify-center h-12 max-w-md">
-        <h2
-          className="text-2xl font-semibold text-center"
-          style={{
-            color: 'var(--success)',
-          }}
-        >
-          {heading || '\u00A0'}
-        </h2>
-      </div>
-
-      {/* Fixed height container for message with vertical centering */}
-      <div className="flex flex-col items-center justify-center h-8">
-        <p
-          className="mx-8 text-base text-center text-wrap"
-          style={{
-            color: 'var(--accent)',
-          }}
-        >
-          {message || '\u00A0'}
+      {message && (
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          {message}
         </p>
-      </div>
+      )}
     </div>
   );
 }
