@@ -25,12 +25,21 @@ export function DatabaseEvidenceTab({
         const icon = color === 'emerald' ? 'text-emerald-700' : 'text-blue-700';
 
         return (
-          <Card key={assessment.id} className={`border-2 ${border} shadow-md rounded-xl bg-white`}>
+          <Card
+            key={assessment.id}
+            className={`border-2 ${border} shadow-md rounded-xl`}
+            style={{ backgroundColor: 'var(--surface)' }}
+          >
             <Card.Header className="flex items-center gap-3 pb-3">
-              <div className={`p-2.5 rounded-lg bg-linear-to-br ${grad}`}>
+              <div
+                className="p-2.5 rounded-lg"
+                style={{
+                  background: `linear-gradient(to bottom right, var(--${color === 'emerald' ? 'success' : 'info'}-soft), var(--surface))`,
+                }}
+              >
                 <FileText className={icon} size={20} />
               </div>
-              <Card.Title className="font-bold text-lg text-slate-900">
+              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                 {assessment.title} — Similar Cases
               </Card.Title>
             </Card.Header>
@@ -59,11 +68,20 @@ export function DatabaseEvidenceTab({
                             : '#ef4444';
 
                     return (
-                      <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-slate-50">
+                      <div
+                        key={idx}
+                        className="p-4 border rounded-xl"
+                        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                      >
                         {/* Header */}
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">{title}</p>
+                            <p
+                              className="text-sm font-semibold"
+                              style={{ color: 'var(--foreground)' }}
+                            >
+                              {title}
+                            </p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {caseItem.year && (
                                 <Chip size="sm" variant="secondary" className="text-xs">
@@ -97,6 +115,14 @@ export function DatabaseEvidenceTab({
                             variant="flat"
                             color={pct >= 70 ? 'success' : pct >= 50 ? 'primary' : 'warning'}
                             className="shrink-0 text-xs"
+                            style={{
+                              color:
+                                pct >= 70
+                                  ? 'var(--success)'
+                                  : pct >= 50
+                                    ? 'var(--accent)'
+                                    : 'var(--warning)',
+                            }}
                           >
                             {pct}% match
                           </Chip>
@@ -104,20 +130,36 @@ export function DatabaseEvidenceTab({
 
                         {/* Summary */}
                         {summ && (
-                          <p className="text-xs text-slate-600 italic mb-3 leading-relaxed">
+                          <p
+                            className="text-xs italic mb-3 leading-relaxed"
+                            style={{ color: 'var(--muted)' }}
+                          >
                             {summ}
                           </p>
                         )}
 
                         {/* Score comparison */}
                         {caseItem.case_scores && (
-                          <div className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                            <p className="text-xs font-semibold text-purple-700 mb-2">
+                          <div
+                            className="p-3 border-l-4 rounded-lg"
+                            style={{
+                              backgroundColor: 'var(--surface)',
+                              borderColor: 'var(--info)',
+                            }}
+                          >
+                            <p
+                              className="text-xs font-semibold"
+                              style={{ color: 'var(--foreground)' }}
+                            >
                               Case scores vs yours
                             </p>
                             <div className="grid grid-cols-4 gap-1">
                               {Object.entries(caseItem.case_scores).map(([factor, caseScore]) => (
-                                <div key={factor} className="text-xs text-slate-700">
+                                <div
+                                  key={factor}
+                                  className="text-xs"
+                                  style={{ color: 'var(--foreground)' }}
+                                >
                                   <strong>{formatFactorName(factor)}:</strong> {caseScore}
                                 </div>
                               ))}
@@ -127,9 +169,19 @@ export function DatabaseEvidenceTab({
 
                         {/* Impact */}
                         {caseItem.impact && (
-                          <div className="p-2 bg-blue-50 border-l-4 border-blue-400 rounded mb-2">
-                            <p className="text-xs font-semibold text-blue-700 mb-0.5">Impact</p>
-                            <p className="text-xs text-slate-700">{caseItem.impact}</p>
+                          <div
+                            className="p-2 border-l-4 rounded mb-2"
+                            style={{
+                              borderColor: 'var(--info)',
+                              backgroundColor: 'var(--info-soft)',
+                            }}
+                          >
+                            <p className="text-xs font-semibold" style={{ color: 'var(--info)' }}>
+                              Impact
+                            </p>
+                            <p className="text-xs" style={{ color: 'var(--foreground)' }}>
+                              {caseItem.impact}
+                            </p>
                           </div>
                         )}
 
@@ -138,7 +190,7 @@ export function DatabaseEvidenceTab({
                           <Button
                             size="sm"
                             variant="light"
-                            className="text-emerald-600"
+                            style={{ color: 'var(--accent)' }}
                             onPress={() =>
                               openResultsDatabaseEvidenceDetailsDrawer({
                                 assessmentId: assessment.id,
@@ -155,7 +207,10 @@ export function DatabaseEvidenceTab({
                   })}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-slate-500">
+                <div
+                  className="flex flex-col items-center justify-center gap-3 py-8 text-center"
+                  style={{ color: 'var(--muted)' }}
+                >
                   <Frown size={32} />
                   <p className="text-sm">No similar cases found for this assessment.</p>
                 </div>

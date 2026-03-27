@@ -126,7 +126,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                     }}
                     maxLength={100}
                     className={cn(
-                      'rounded-full mb-1',
+                      'rounded-lg mb-1',
                       error && 'border-red-600 focus:ring-red-600',
                       'text-xs xs:text-sm',
                     )}
@@ -143,7 +143,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
 
               <AlertDialog.Footer>
                 <Button
-                  variant="neutral-soft"
+                  variant="tertiary"
                   onPress={() => {
                     close();
                     onClose();
@@ -153,7 +153,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                   Cancel
                 </Button>
                 <Button
-                  variant="yellow"
+                  variant="primary"
                   onPress={() => handleSubmit(close)}
                   isLoading={isLoading}
                   isDisabled={isLoading || name.trim() === (defaultName || '').trim()}

@@ -1,4 +1,4 @@
-import { Accordion, Chip, Input, Label, toast, Tooltip } from '@heroui/react';
+import { Accordion, Chip, Input, toast, Tooltip } from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -12,7 +12,6 @@ import {
   FolderPen,
   Globe,
   Lightbulb,
-  Link2,
   MonitorDown,
   RefreshCw,
   Save,
@@ -24,7 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import RadarChart from '@/components/charts/RadarChart';
-import { Button, Switch } from '@/components/common';
+import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import CopyButton from '@/components/modern-ui/copy-button';
 import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -867,12 +866,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
           {!isPublicShare && (
             <>
-              <Button variant="info-soft" onPress={handleViewHistory}>
+              <Button variant="secondary" onPress={handleViewHistory}>
                 <FileText size={16} />
                 My Assessments
               </Button>
               {currentData && (
-                <Button variant="yellow-soft" onPress={handleReevaluate}>
+                <Button variant="tertiary" onPress={handleReevaluate}>
                   <RefreshCw size={16} />
                   Re-evaluate
                 </Button>
@@ -884,7 +883,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             <Tooltip delay={0} placement="top" isDisabled={!!user}>
               <Tooltip.Trigger>
                 <Button
-                  variant="neutral-soft"
+                  variant="tertiary"
                   onPress={user ? handleDownloadPDF : undefined}
                   isDisabled={!user || isExporting}
                   disabled={!user || isExporting}
@@ -909,7 +908,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             <Tooltip delay={0} placement="top" isDisabled={!!user}>
               <Tooltip.Trigger>
                 <Button
-                  variant="neutral-soft"
+                  variant="tertiary"
                   onPress={user ? handleDownloadCSV : undefined}
                   isDisabled={!user || isExporting}
                   disabled={!user || isExporting}
@@ -1000,7 +999,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             currentData.user_id &&
             user?.id === currentData.user_id && (
               <>
-                <Button variant="info-soft" onPress={handleOpenRename}>
+                <Button variant="secondary" onPress={handleOpenRename}>
                   <FolderPen size={16} />
                   Rename
                 </Button>
@@ -1012,108 +1011,47 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             )}
         </div>
 
-        {/* Share Assessment Section */}
-        {
-          // isViewFromMyAssessments &&
-          /*!isPublicShare && currentData*/
-          !isPublicShare && (
-            <Tooltip delay={0} isDisabled={!isResultsRoute}>
-              <Tooltip.Trigger>
-                <div
-                  className={`border rounded-lg ${isResultsRoute ? 'opacity-95' : ''}`}
+        {/* Share Assessment Section - Simplified */}
+        {!isPublicShare && currentData?.public_id && (
+          <div
+            className="border rounded-lg mb-3"
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div className="p-1 sm:p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <h3
+                  className="text-lg font-semibold"
                   style={{
-                    backgroundColor: 'var(--surface)',
-                    borderColor: 'var(--border)',
+                    color: 'var(--foreground)',
                   }}
                 >
-                  {/* disable interactive controls when route is /results (unsaved session) */}
-                  <div className={`${isResultsRoute ? 'pointer-events-none' : ''} p-4`}>
-                    <Switch
-                      id="public-toggle"
-                      variant="public"
-                      size="md md:lg"
-                      // size={?} //ResponsiveSizeWrapper used in components/common/Switch to auto-adjust size based on screen
-                      isSelected={
-                        optimisticIsPublic !== null
-                          ? optimisticIsPublic
-                          : currentData?.is_public || false
-                      }
-                      onChange={handleTogglePublic}
-                      isDisabled={isUpdatingPublic || isResultsRoute}
-                      className="flex items-center justify-between gap-4 px-2"
-                    >
-                      {({ isSelected }) => (
-                        <>
-                          <div className="">
-                            <Label
-                              htmlFor="public-toggle"
-                              className="font-semibold flex items-center gap-2 justify-start"
-                              style={{
-                                color: 'var(--foreground)',
-                              }}
-                            >
-                              <span>Public Access</span>
-                              <Link2
-                                className="flex-shrink-0"
-                                size={20}
-                                style={{ color: 'var(--success)' }}
-                              />
-                            </Label>
-                            <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-                              Allow anyone with the link to view this assessment
-                            </p>
-                          </div>
+                  Share Assessment
+                </h3>
+              </div>
 
-                          <Switch.Control>
-                            <Switch.Thumb>
-                              <Switch.Icon />
-                            </Switch.Thumb>
-                          </Switch.Control>
-                        </>
-                      )}
-                    </Switch>
-
-                    {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
-                      currentData?.public_id && (
-                        <div className="flex flex-row gap-2 mt-1">
-                          <Input
-                            id="share-url"
-                            type="text"
-                            readOnly
-                            disabled={isResultsRoute || !currentData?.public_id}
-                            value={
-                              currentData?.public_id
-                                ? `${window.location.origin}/assessments/share/${currentData.public_id}`
-                                : ''
-                            }
-                            className="text-xs flex-1"
-                            style={{
-                              backgroundColor: 'var(--field-bg)',
-                              borderColor: 'var(--field-border)',
-                              color: 'var(--foreground)',
-                            }}
-                          />
-                          <CopyButton
-                            value={
-                              currentData?.public_id
-                                ? `${window.location.origin}/assessments/share/${currentData.public_id}`
-                                : ''
-                            }
-                            disabled={isResultsRoute || !currentData?.public_id}
-                          />
-                        </div>
-                      )}
-                  </div>
-                </div>
-              </Tooltip.Trigger>
-
-              <Tooltip.Content showArrow placement="top">
-                <Tooltip.Arrow />
-                <p className="text-xs font-bold">Save assessment to share it publicly</p>
-              </Tooltip.Content>
-            </Tooltip>
-          )
-        }
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  id="share-url"
+                  type="text"
+                  readOnly
+                  value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                  className="text-xs flex-1"
+                  style={{
+                    backgroundColor: 'var(--field-bg)',
+                    borderColor: 'var(--field-border)',
+                    color: 'var(--foreground)',
+                  }}
+                />
+                <CopyButton
+                  value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Case Summary */}
@@ -1466,10 +1404,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           >
             Compare →
           </Button>
-          <Button size="sm" variant="outline" onClick={() => exportAssessmentPDF(actualResult)}>
+          <Button size="sm" variant="tertiary" onClick={() => exportAssessmentPDF(actualResult)}>
             Export PDF
           </Button>
-          <Button size="sm" variant="outline" onClick={() => exportAssessmentCSV(actualResult)}>
+          <Button size="sm" variant="tertiary" onClick={() => exportAssessmentCSV(actualResult)}>
             Export CSV
           </Button>
         </div>

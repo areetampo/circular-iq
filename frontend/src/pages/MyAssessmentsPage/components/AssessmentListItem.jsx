@@ -21,7 +21,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 
   return (
     <div
-      className="border rounded-xl px-5 py-4 card-lift cursor-pointer
+      className="border rounded-xl px-5 py-4 cursor-pointer
                 flex flex-col sm:flex-row sm:items-center gap-3"
       style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
@@ -176,7 +176,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
-              variant="neutral"
+              variant="secondary"
               onPress={(e) => {
                 if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
                 onView(assessment.public_id);
@@ -187,7 +187,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             </Button>
             <Button
               size="sm"
-              variant="info"
+              variant="tertiary"
               onPress={(e) => {
                 if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
                 onRename(assessment.id);

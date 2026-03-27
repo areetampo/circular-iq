@@ -352,7 +352,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                         return (
                           <div
                             key={key}
-                            className="relative p-3 rounded-lg border-2 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                            className="relative p-3 rounded-lg border-2 transition-colors duration-200 hover:shadow-md"
                             style={{
                               backgroundColor: bgColor,
                               borderColor: borderColor,

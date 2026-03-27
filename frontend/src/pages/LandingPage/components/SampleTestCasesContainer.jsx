@@ -204,10 +204,10 @@ export default function SampleTestCasesContainer({
               'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200',
               'border cursor-pointer hover:shadow-sm',
               isSelected
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-foreground)]'
                 : 'border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent-soft-fg)]',
               !isSelected &&
-                'hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-white',
+                'hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]',
             )}
             title={testCase.title}
           >

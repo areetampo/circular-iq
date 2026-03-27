@@ -27,18 +27,7 @@ export default function AssessmentMethodologyDrawer() {
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'p-2 rounded-xl shrink-0',
-                      'transition-[transform,box-shadow] duration-300 ease-out',
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                    )}
-                    style={{
-                      backgroundColor: 'var(--accent-soft)',
-                    }}
-                  >
+                  <div className={cn('p-2 rounded-xl shrink-0')}>
                     <ChartSpline
                       className="size-5"
                       style={{ color: 'var(--accent)' }}
@@ -85,27 +74,22 @@ export default function AssessmentMethodologyDrawer() {
                   <div
                     key={idx}
                     className={cn(
-                      'group/card relative flex items-start gap-3.5',
-                      'p-4 rounded-xl border border-transparent',
-                      'bg-linear-to-br',
-                      item.gradientFrom,
-                      item.gradientTo,
-                      'border-l-4',
-                      item.accentBorder,
-                      // Hover lift
-                      'transition-all duration-300 ease-out cursor-default',
-                      'hover:shadow-md hover:border-opacity-100',
-                      'hover:-translate-y-0.5',
+                      'flex items-start gap-3.5',
+                      'p-4 rounded-xl border',
+                      // No hover lift
+                      'transition-colors duration-300 ease-out cursor-default',
                     )}
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      borderColor: 'var(--border)',
+                    }}
                   >
                     {/* Animated icon */}
                     <div
-                      className={cn(
-                        'shrink-0 p-2 rounded-lg mt-0.5',
-                        item.iconBg,
-                        'transition-[transform,box-shadow] duration-300 ease-out',
-                        'group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md',
-                      )}
+                      className="shrink-0 p-2 rounded-lg mt-0.5"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                      }}
                     >
                       {React.createElement(item.icon, {
                         className: cn('size-4', item.iconColor),
@@ -138,20 +122,23 @@ export default function AssessmentMethodologyDrawer() {
 
               {/* Data source card */}
               <div
-                className="group/card flex items-start gap-3.5 p-4 rounded-xl
-                          bg-[var(--success-soft)]
-                          border-[var(--success)]
-                          transition-all duration-300 hover:shadow-md hover:-translate-y-0.5
-                          cursor-default select-none"
+                className="flex items-start gap-3.5 p-4 rounded-xl border
+                          transition-colors duration-300 cursor-default select-none"
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
+                }}
               >
                 <div
-                  className="shrink-0 p-2 rounded-lg bg-[var(--success)] mt-0.5
-                            transition-[transform,box-shadow] duration-300
-                            group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md"
+                  className="shrink-0 p-2 rounded-lg mt-0.5"
+                  style={{
+                    backgroundColor: 'var(--success-soft)',
+                    color: 'var(--success)',
+                  }}
                 >
                   <BookCopy
                     className="size-4"
-                    style={{ color: 'var(--surface)' }}
+                    style={{ color: 'var(--success)' }}
                     strokeWidth={1.75}
                   />
                 </div>
@@ -159,7 +146,7 @@ export default function AssessmentMethodologyDrawer() {
                   <span
                     className="text-sm font-bold leading-snug"
                     style={{
-                      color: 'var(--success)',
+                      color: 'var(--foreground)',
                     }}
                   >
                     Data Source
@@ -188,13 +175,12 @@ export default function AssessmentMethodologyDrawer() {
               <div
                 className="flex items-start gap-3 p-4 rounded-xl border-l-4"
                 style={{
-                  backgroundColor: 'var(--danger-soft)',
-                  borderColor: 'var(--danger)',
+                  borderColor: 'var(--border)',
                 }}
               >
                 <TriangleAlert
                   className="size-4 shrink-0 mt-0.5"
-                  style={{ color: 'var(--danger)' }}
+                  style={{ color: 'var(--accent)' }}
                   strokeWidth={1.75}
                 />
                 <p

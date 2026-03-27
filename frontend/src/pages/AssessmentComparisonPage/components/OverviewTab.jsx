@@ -148,23 +148,35 @@ export function OverviewTab({
                         <Table.Column className="w-1/2">Assessment 2</Table.Column>
                       </Table.Header>
                       <Table.Body>
-                        <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
+                        <Table.Row className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
                           <Table.Cell className="align-top">
                             <div>
-                              <p className="text-sm font-semibold text-warm-900 mb-2">
+                              <p
+                                className="text-sm font-semibold mb-2"
+                                style={{ color: 'var(--foreground)' }}
+                              >
                                 {assessment1?.title || 'Assessment 1'}
                               </p>
-                              <p className="text-sm text-warm-700 leading-relaxed">
+                              <p
+                                className="text-sm leading-relaxed"
+                                style={{ color: 'var(--muted)' }}
+                              >
                                 {assessment1?.business_solution || 'N/A'}
                               </p>
                             </div>
                           </Table.Cell>
                           <Table.Cell className="align-top">
                             <div>
-                              <p className="text-sm font-semibold text-warm-900 mb-2">
+                              <p
+                                className="text-sm font-semibold mb-2"
+                                style={{ color: 'var(--foreground)' }}
+                              >
                                 {assessment2?.title || 'Assessment 2'}
                               </p>
-                              <p className="text-sm text-warm-700 leading-relaxed">
+                              <p
+                                className="text-sm leading-relaxed"
+                                style={{ color: 'var(--muted)' }}
+                              >
                                 {assessment2?.business_solution || 'N/A'}
                               </p>
                             </div>
@@ -184,7 +196,9 @@ export function OverviewTab({
             style={{ borderColor: 'var(--success)', backgroundColor: 'var(--surface)' }}
           >
             <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg text-warm-900">Derived Metrics</Card.Title>
+              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+                Derived Metrics
+              </Card.Title>
             </Card.Header>
             <Card.Content className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
@@ -197,7 +211,11 @@ export function OverviewTab({
                   const val2 = scoringResult2?.derived_metrics?.[key] || 0;
                   const winner = val1 > val2 ? 1 : val2 > val1 ? 2 : null;
                   return (
-                    <div key={key} className="p-3 bg-warm-50 rounded-lg">
+                    <div
+                      key={key}
+                      className="p-3 rounded-lg"
+                      style={{ backgroundColor: 'var(--surface)' }}
+                    >
                       <div
                         className="text-xs font-bold mb-2"
                         style={{ color: 'var(--foreground)' }}
@@ -222,7 +240,9 @@ export function OverviewTab({
                   );
                 })}
                 <div className="p-3 bg-warm-50 rounded-lg">
-                  <div className="text-xs font-bold text-warm-900 mb-2">Risk Level</div>
+                  <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
+                    Risk Level
+                  </div>
                   <div className="flex items-center justify-between">
                     <Chip
                       variant="soft"
@@ -243,9 +263,12 @@ export function OverviewTab({
           </Card>
 
           {/* Evaluation Parameters Summary */}
-          <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-white">
+          <Card
+            className="border-2 shadow-md rounded-xl"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)' }}
+          >
             <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg text-slate-900">
+              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                 Evaluation Parameters
               </Card.Title>
             </Card.Header>
@@ -279,16 +302,19 @@ export function OverviewTab({
                         return (
                           <Table.Row
                             key={key}
-                            className="hover:bg-slate-50/50 transition-colors duration-150"
+                            className="hover:bg-[var(--surface-hover)] transition-colors duration-150"
                           >
-                            <Table.Cell className="font-medium text-slate-900 capitalize">
+                            <Table.Cell
+                              className="font-medium capitalize"
+                              style={{ color: 'var(--foreground)' }}
+                            >
                               {key.replace(/_/g, ' ')}
                             </Table.Cell>
-                            <Table.Cell className="text-center text-slate-600">
+                            <Table.Cell className="text-center" style={{ color: 'var(--muted)' }}>
                               {String(value1).substring(0, 30)}
                               {String(value1).length > 30 ? '...' : ''}
                             </Table.Cell>
-                            <Table.Cell className="text-center text-slate-600">
+                            <Table.Cell className="text-center" style={{ color: 'var(--muted)' }}>
                               {String(value2 || '').substring(0, 30)}
                               {String(value2 || '').length > 30 ? '...' : ''}
                             </Table.Cell>
@@ -308,7 +334,9 @@ export function OverviewTab({
             style={{ borderColor: 'var(--warning)', backgroundColor: 'var(--surface)' }}
           >
             <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg text-slate-900">Business Context</Card.Title>
+              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+                Business Context
+              </Card.Title>
             </Card.Header>
             <Card.Content className="p-0 overflow-x-auto">
               <Table>
@@ -340,7 +368,10 @@ export function OverviewTab({
                         if (allKeys.size === 0) {
                           return (
                             <Table.Row>
-                              <Table.Cell colSpan={3} className="text-center text-slate-500 py-6">
+                              <Table.Cell
+                                className="text-center py-6"
+                                style={{ color: 'var(--muted)' }}
+                              >
                                 No business context data available
                               </Table.Cell>
                             </Table.Row>
@@ -370,21 +401,30 @@ export function OverviewTab({
                           return (
                             <Table.Row
                               key={key}
-                              className={`hover:bg-slate-50/50 transition-colors duration-150 ${
-                                val1Str === val2Str ? '' : 'bg-yellow-50/30'
+                              className={`hover:bg-[var(--surface-hover)] transition-colors duration-150 ${
+                                val1Str === val2Str ? '' : 'bg-[var(--warning-soft)]/30'
                               }`}
                             >
-                              <Table.Cell className="font-medium text-slate-900 capitalize">
+                              <Table.Cell
+                                className="font-medium capitalize"
+                                style={{ color: 'var(--foreground)' }}
+                              >
                                 {key.replace(/_/g, ' ')}
                               </Table.Cell>
                               <Table.Cell
-                                className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
+                                className={`text-center ${val1Str === val2Str ? '' : 'font-semibold'}`}
+                                style={{
+                                  color: val1Str === val2Str ? 'var(--muted)' : 'var(--warning)',
+                                }}
                               >
                                 {val1Str.substring(0, 30)}
                                 {val1Str.length > 30 ? '...' : ''}
                               </Table.Cell>
                               <Table.Cell
-                                className={`text-center text-slate-600 ${val1Str === val2Str ? '' : 'font-semibold text-amber-700'}`}
+                                className={`text-center ${val1Str === val2Str ? '' : 'font-semibold'}`}
+                                style={{
+                                  color: val1Str === val2Str ? 'var(--muted)' : 'var(--warning)',
+                                }}
                               >
                                 {val2Str.substring(0, 30)}
                                 {val2Str.length > 30 ? '...' : ''}
@@ -404,27 +444,61 @@ export function OverviewTab({
 
       {/* Key Insights */}
       {insights && insights.length > 0 && (
-        <Card className="border-2 border-teal-200 shadow-md rounded-xl bg-linear-to-br from-teal-50/30 to-white">
+        <Card
+          className="border-2 shadow-md rounded-xl"
+          style={{
+            borderColor: 'var(--info)',
+            background: 'linear-gradient(to bottom right, var(--info-soft)/30, var(--background))',
+          }}
+        >
           <Card.Header className="flex items-center gap-3 pb-4">
-            <div className="p-2.5 rounded-lg bg-linear-to-br from-teal-100 to-teal-200">
-              <Lightbulb className="text-teal-700" size={20} />
+            <div
+              className="p-2.5 rounded-lg"
+              style={{
+                background: 'linear-gradient(to bottom right, var(--info-soft), var(--info-soft))',
+              }}
+            >
+              <Lightbulb style={{ color: 'var(--info)' }} size={20} />
             </div>
-            <Card.Title className="font-bold text-lg text-slate-900">Key Insights</Card.Title>
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+              Key Insights
+            </Card.Title>
           </Card.Header>
           <Card.Content className="gap-3 flex flex-col">
             {insights.map((insight, idx) => {
               const IconComponent = insight.icon;
               const colorClass =
                 insight.type === 'positive'
-                  ? 'bg-linear-to-r from-emerald-50 to-green-50 border-l-emerald-500 text-emerald-700'
+                  ? 'border-l-4'
                   : insight.type === 'negative'
-                    ? 'bg-linear-to-r from-red-50 to-orange-50 border-l-red-500 text-red-700'
-                    : 'bg-linear-to-r from-slate-50 to-gray-50 border-l-slate-400 text-slate-700';
+                    ? 'border-l-4'
+                    : 'border-l-4';
 
               return (
                 <div
                   key={idx}
-                  className={`flex items-center gap-3 p-4 rounded-lg border-l-4 ${colorClass} transition-all duration-200 hover:shadow-md`}
+                  className="flex items-center gap-3 p-4 rounded-r-lg transition-all duration-200 hover:shadow-md"
+                  style={{
+                    backgroundColor:
+                      insight.type === 'positive'
+                        ? 'var(--success-soft)'
+                        : insight.type === 'negative'
+                          ? 'var(--danger-soft)'
+                          : 'var(--surface)',
+                    borderLeftColor:
+                      insight.type === 'positive'
+                        ? 'var(--success)'
+                        : insight.type === 'negative'
+                          ? 'var(--danger)'
+                          : 'var(--border)',
+                    borderLeftWidth: '4px',
+                    color:
+                      insight.type === 'positive'
+                        ? 'var(--success)'
+                        : insight.type === 'negative'
+                          ? 'var(--danger)'
+                          : 'var(--foreground)',
+                  }}
                 >
                   <IconComponent className="shrink-0" strokeWidth={2.5} size={20} />
                   <p className="text-sm font-medium m-0">{insight.text}</p>

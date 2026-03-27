@@ -1,5 +1,4 @@
-import { Check, Copy } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { Copy } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useState } from 'react';
 
@@ -33,40 +32,22 @@ export default function CopyButton({ value = '', disabled = false, className = '
   );
 
   return (
-    <motion.button
+    <button
       onClick={handleClick}
-      className={`group relative rounded-md p-1.5 text-zinc-400 transition-all duration-150 ease-out will-change-colors ${className}`}
-      aria-label="Copy command"
-      whileHover={!disabled ? { backgroundColor: 'rgba(255, 255, 255, 0.05)' } : {}}
-      whileTap={!disabled ? { scale: 0.92 } : {}}
+      className={`flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md
+             transition-colors hover:bg-[var(--accent-soft)]
+             disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      style={{
+        color: 'var(--muted)',
+        border: '1px solid var(--border)',
+      }}
+      title="Copy assessment ID"
       disabled={disabled}
       {...props}
     >
-      <AnimatePresence mode="wait">
-        {hasCopied ? (
-          <motion.div
-            key="check"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.12, ease: 'easeOut' }}
-          >
-            <Check className="h-4 w-4 transition-colors duration-150" color="#006045" />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="copy"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.12, ease: 'easeOut' }}
-            className="cursor-pointer"
-          >
-            <Copy className="h-4 w-4 transition-colors duration-150" color="#006045" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.button>
+      <Copy size={12} />
+      <span>ID</span>
+    </button>
   );
 }
 

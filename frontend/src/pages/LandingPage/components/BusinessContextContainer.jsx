@@ -57,8 +57,14 @@ function BusinessContextContainer({ loading = false }) {
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-semibold text-slate-700">{label}</span>
-      {description && <span className="text-xs text-slate-400">{description}</span>}
+      <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+        {label}
+      </span>
+      {description && (
+        <span className="text-xs" style={{ color: 'var(--muted)' }}>
+          {description}
+        </span>
+      )}
       <Controller
         name={`businessContext.${name}`}
         control={control}
@@ -97,7 +103,7 @@ function BusinessContextContainer({ loading = false }) {
 
   return (
     <div className="px-4 pt-2 pb-6 space-y-5">
-      <p className="text-xs text-slate-500 italic">
+      <p className="text-xs italic" style={{ color: 'var(--muted)' }}>
         These optional fields help the AI generate more precise benchmarks and recommendations. Your
         answers are never stored beyond this session unless you save the assessment.
       </p>
@@ -148,12 +154,15 @@ function BusinessContextContainer({ loading = false }) {
             className="w-full"
           >
             <Switch.Content className="w-full">
-              <Label className="cursor-pointer flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <Label
+                className="cursor-pointer flex items-center justify-between p-3 rounded-lg border"
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+              >
                 <div className="flex flex-col gap-0.5 mr-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
                     Existing Supply Chain / Collection Partnerships
                   </span>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                     Do you already have partners for collection, processing, or distribution?
                   </p>
                 </div>

@@ -18,6 +18,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import App from '@/app/App.jsx';
+import Navbar from '@/components/layout/Navbar.jsx';
 import { logger } from '@/utils/logger';
 import './index.css';
 
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <div id="app-root" className="app-bg">
+        <Navbar />
         <div className="app-content">
           <App />
         </div>

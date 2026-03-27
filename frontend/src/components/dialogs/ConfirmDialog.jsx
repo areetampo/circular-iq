@@ -125,12 +125,7 @@ export function ConfirmDialog({
             <Button variant="tertiary" onPress={handleCancelClick} isDisabled={isLoading}>
               {cancelText}
             </Button>
-            <Button
-              variant={buttonVariant}
-              color={buttonVariant === 'danger' ? 'danger' : undefined}
-              onPress={handleConfirmClick}
-              isLoading={isLoading}
-            >
+            <Button variant={buttonVariant} onPress={handleConfirmClick} isLoading={isLoading}>
               {confirmText}
             </Button>
           </AlertDialog.Footer>

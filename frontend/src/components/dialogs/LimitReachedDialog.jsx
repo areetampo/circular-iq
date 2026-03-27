@@ -51,21 +51,24 @@ export function LimitReachedDialog(props) {
                 <AlertDialog.Icon status="danger">
                   <OctagonX size={25} />
                 </AlertDialog.Icon>
-                <AlertDialog.Heading className="text-red-600">
-                  Free Trial Limit Reached
-                </AlertDialog.Heading>
+                <AlertDialog.Heading>Free Trial Limit Reached</AlertDialog.Heading>
               </AlertDialog.Header>
 
               <AlertDialog.Body className="space-y-3">
-                <p className="text-sm text-slate-500 font-medium">
+                <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
                   You&apos;ve used your <span className="font-bold">{limit}</span> free evaluations.
                   Create an account to continue assessing your circular economy initiatives:
                 </p>
                 <ul className="mt-2 space-y-2.5">
                   {LIMIT_REACHED_DIALOG_POINTS.map((point, idx) => (
                     <li key={idx} className="flex items-center gap-2">
-                      <point.icon size={18} className="text-green-600" aria-hidden="true" />
-                      <span className="text-gray-700">{point.text}</span>
+                      <point.icon
+                        size={18}
+                        className="shrink-0"
+                        style={{ color: 'var(--accent)' }}
+                        aria-hidden="true"
+                      />
+                      <span style={{ color: 'var(--foreground)' }}>{point.text}</span>
                     </li>
                   ))}
                 </ul>
@@ -81,7 +84,7 @@ export function LimitReachedDialog(props) {
                   Cancel
                 </Button>
                 <Button
-                  variant="success"
+                  variant="primary"
                   onPress={() => {
                     handleSignUp();
                     close();

@@ -40,7 +40,7 @@ export default function FeatureCards() {
             key={card.key}
             role="article"
             aria-label={card.title}
-            className="rounded-lg border p-6 card-lift group"
+            className="rounded-lg border p-6 group"
             style={{
               backgroundColor: card.bg,
               borderColor: card.borderClass,
@@ -48,7 +48,7 @@ export default function FeatureCards() {
           >
             <div className="flex flex-col items-center justify-center text-center">
               <Icon
-                className="h-8 w-8 shrink-0 transition-transform duration-300 ease-out group-hover:scale-110"
+                className="h-8 w-8 shrink-0"
                 style={{ color: card.iconColor }}
                 strokeWidth={1.75}
               />

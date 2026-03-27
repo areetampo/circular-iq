@@ -67,9 +67,9 @@ export default function SharePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-16">
+    <div className="min-h-[70vh] flex flex-col justify-center max-w-lg mx-auto px-6 py-12">
       <h1
-        className="text-2xl font-bold mb-4"
+        className="heading-display text-[24px] mb-4"
         style={{
           color: 'var(--foreground)',
         }}
@@ -77,7 +77,7 @@ export default function SharePage() {
         Open a Shared Assessment
       </h1>
       <p
-        className="text-sm mb-6"
+        className="text-[14px] mb-8 max-w-md"
         style={{
           color: 'var(--muted)',
         }}
@@ -89,7 +89,7 @@ export default function SharePage() {
         <div>
           <Label
             htmlFor="public-id"
-            className="text-sm font-semibold"
+            className="text-[13px] font-medium"
             style={{
               color: 'var(--foreground)',
             }}
@@ -100,9 +100,9 @@ export default function SharePage() {
             id="public-id"
             value={publicId}
             onChange={(e) => setPublicId(e.target.value)}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             size="lg"
-            className="mt-2"
+            className="mt-2 w-full"
           />
         </div>
 
@@ -113,11 +113,11 @@ export default function SharePage() {
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          <Button type="submit" variant="teal" isLoading={loading}>
+        <div className="flex items-center gap-3">
+          <Button type="submit" variant="primary" isLoading={loading}>
             Open
           </Button>
-          <Button type="button" variant="neutral" onPress={() => setPublicId('')}>
+          <Button type="button" variant="secondary" onPress={() => setPublicId('')}>
             Clear
           </Button>
         </div>

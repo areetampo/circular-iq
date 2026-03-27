@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, Compass, Leaf } from 'lucide-react';
+import { ArrowLeft, BarChart3, Compass } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -7,134 +7,88 @@ export default function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-6 py-12">
-      <div
-        className="w-full border-2 rounded-xl"
-        style={{
-          borderColor: 'var(--success)',
-          background: 'linear-gradient(to bottom right, var(--surface), var(--success-soft))',
-        }}
-      >
-        <div className="px-6 py-8 border-b text-center" style={{ borderColor: 'var(--border)' }}>
+    <div className="flex items-center justify-center min-h-[80vh] px-6 py-16">
+      <div className="w-full max-w-2xl text-center">
+        {/* 404 numeral — large editorial */}
+        <p
+          className="text-[120px] font-bold leading-none select-none"
+          style={{
+            color: 'var(--border-strong)',
+            fontFamily: 'Lora, serif',
+            letterSpacing: '-0.04em',
+          }}
+        >
+          404
+        </p>
+
+        {/* Heading + description */}
+        <h1 className="heading-display text-[26px] mt-2" style={{ color: 'var(--foreground)' }}>
+          Page Not Found
+        </h1>
+        <p
+          className="mt-3 text-[15px] max-w-md mx-auto leading-relaxed"
+          style={{ color: 'var(--muted)' }}
+        >
+          The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
+          deleted.
+        </p>
+
+        {/* Thin divider */}
+        <div className="w-12 h-[1.5px] mx-auto my-8" style={{ backgroundColor: 'var(--accent)' }} />
+
+        {/* Navigation options */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-8 text-left">
           <div
-            className="flex items-center justify-center gap-3"
-            style={{ color: 'var(--success)' }}
+            className="flex items-start gap-3 p-4 rounded-xl border"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
           >
-            <span
-              className="text-sm font-semibold uppercase tracking-[0.35em]"
-              style={{ color: 'var(--foreground)' }}
+            <div
+              className="p-2 rounded-md mt-0.5 flex-shrink-0"
+              style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}
             >
-              Circular Economy Auditor
-            </span>
-            <Leaf size={32} />
+              <Compass size={15} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                Need guidance?
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                Visit the home page to start a new assessment.
+              </p>
+            </div>
           </div>
-          <h1
-            className="mt-6 text-5xl font-bold"
-            style={{
-              color: 'var(--foreground)',
-            }}
-          >
-            404
-          </h1>
-          <p
-            className="text-lg mt-2"
-            style={{
-              color: 'var(--muted)',
-            }}
-          >
-            Page Not Found
-          </p>
-        </div>
-        <div className="px-6 py-8 space-y-6 text-center">
-          <p
-            className="mx-auto text-base"
-            style={{
-              color: 'var(--muted)',
-            }}
-          >
-            The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
-            deleted. Let&apos;s get you back on track.
-          </p>
 
           <div
-            className="grid gap-4 p-4 text-left border rounded-xl sm:grid-cols-2"
-            style={{
-              borderColor: 'var(--border)',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            }}
+            className="flex items-start gap-3 p-4 rounded-xl border"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
           >
-            <div className="flex items-start gap-3">
-              <div
-                className="p-2 mt-1 rounded-full"
-                style={{
-                  backgroundColor: 'var(--success-soft)',
-                  color: 'var(--success)',
-                }}
-              >
-                <Compass size={16} />
-              </div>
-              <div>
-                <p
-                  className="text-sm font-semibold"
-                  style={{
-                    color: 'var(--foreground)',
-                  }}
-                >
-                  Need guidance?
-                </p>
-                <p
-                  className="text-xs"
-                  style={{
-                    color: 'var(--muted)',
-                  }}
-                >
-                  Visit the dashboard to evaluate a new business idea.
-                </p>
-              </div>
+            <div
+              className="p-2 rounded-md mt-0.5 flex-shrink-0"
+              style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}
+            >
+              <BarChart3 size={15} />
             </div>
-            <div className="flex items-start gap-3">
-              <div
-                className="p-2 mt-1 rounded-full"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  color: 'var(--accent)',
-                }}
-              >
-                <BarChart3 size={16} />
-              </div>
-              <div>
-                <p
-                  className="text-sm font-semibold"
-                  style={{
-                    color: 'var(--foreground)',
-                  }}
-                >
-                  Review past work
-                </p>
-                <p
-                  className="text-xs"
-                  style={{
-                    color: 'var(--muted)',
-                  }}
-                >
-                  Jump to your saved assessments and comparisons.
-                </p>
-              </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                Review past work
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                Jump to your saved assessments and comparisons.
+              </p>
             </div>
           </div>
+        </div>
 
-          <div className="w-full h-px my-4" style={{ backgroundColor: 'var(--border)' }} />
-
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button onPress={() => navigate('/')} variant="tertiary">
-              <ArrowLeft size={16} />
-              Return Home
-            </Button>
-            <Button variant="tertiary" onPress={() => navigate('/assessments')}>
-              <BarChart3 size={16} />
-              My Assessments
-            </Button>
-          </div>
+        {/* Action buttons */}
+        <div className="flex flex-wrap justify-center gap-3">
+          <Button variant="primary" onPress={() => navigate('/')}>
+            <ArrowLeft size={15} />
+            Return Home
+          </Button>
+          <Button variant="secondary" onPress={() => navigate('/assessments')}>
+            <BarChart3 size={15} />
+            My Assessments
+          </Button>
         </div>
       </div>
     </div>

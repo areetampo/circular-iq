@@ -30,42 +30,42 @@ export default function ErrorDisplay({
   const variants = {
     error: {
       containerBg: '',
-      cardBorder: 'border-[var(--danger)]',
+      cardBorder: 'border-danger',
       cardBg: 'bg-[var(--surface)]',
-      iconBg: 'bg-[var(--danger-soft)]',
-      iconColor: 'text-[var(--danger)]',
-      titleColor: 'text-[var(--danger)]',
-      messageColor: 'text-[var(--danger)]',
+      iconBg: 'bg-danger-soft',
+      iconColor: 'text-danger',
+      titleColor: 'text-danger',
+      messageColor: 'text-danger',
       defaultIcon: XCircle,
     },
     warning: {
       containerBg: '',
-      cardBorder: 'border-[var(--warning)]',
+      cardBorder: 'border-warning',
       cardBg: 'bg-[var(--surface)]',
-      iconBg: 'bg-[var(--warning-soft)]',
-      iconColor: 'text-[var(--warning)]',
-      titleColor: 'text-[var(--warning)]',
-      messageColor: 'text-[var(--warning)]',
+      iconBg: 'bg-warning-soft',
+      iconColor: 'text-warning',
+      titleColor: 'text-warning',
+      messageColor: 'text-warning',
       defaultIcon: AlertTriangle,
     },
     info: {
       containerBg: '',
-      cardBorder: 'border-[var(--info)]',
+      cardBorder: 'border-info',
       cardBg: 'bg-[var(--surface)]',
-      iconBg: 'bg-[var(--info-soft)]',
-      iconColor: 'text-[var(--info)]',
-      titleColor: 'text-[var(--info)]',
-      messageColor: 'text-[var(--info)]',
+      iconBg: 'bg-info-soft',
+      iconColor: 'text-info',
+      titleColor: 'text-info',
+      messageColor: 'text-info',
       defaultIcon: Info,
     },
     404: {
       containerBg: '',
-      cardBorder: 'border-[var(--success)]',
-      cardBg: 'bg-linear-to-br from-[var(--surface)] to-[var(--success-soft)]',
-      iconBg: 'bg-[var(--success-soft)]',
-      iconColor: 'text-[var(--success)]',
-      titleColor: 'text-[var(--foreground)]',
-      messageColor: 'text-[var(--muted)]',
+      cardBorder: 'border-success',
+      cardBg: 'bg-gradient-to-br from-surface to-success-soft',
+      iconBg: 'bg-success-soft',
+      iconColor: 'text-success',
+      titleColor: 'text-foreground',
+      messageColor: 'text-muted',
       defaultIcon: AlertCircle,
     },
   };
@@ -81,7 +81,6 @@ export default function ErrorDisplay({
           icon: RefreshCcw,
           onClick: () => window.location.reload(),
           variant: 'tertiary',
-          // className: 'text-white bg-emerald-600 hover:bg-emerald-700',
         },
         {
           label: 'Return Home',
@@ -121,14 +120,14 @@ export default function ErrorDisplay({
 
           {/* Error details (dev only) */}
           {import.meta.env.DEV && errorDetails && (
-            <div className="p-4 border-l-4 border-[var(--danger)] rounded bg-[var(--danger-soft)]">
+            <div className="p-4 border-l-4 border-danger rounded bg-danger-soft">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="text-[var(--danger)]" size={16} />
-                <p className="text-xs font-semibold text-[var(--danger)]">
+                <AlertCircle className="text-danger" size={16} />
+                <p className="text-xs font-semibold text-danger">
                   Error Details (Development Only)
                 </p>
               </div>
-              <pre className="text-xs text-[var(--danger)] whitespace-pre-wrap break-all overflow-x-auto max-h-40">
+              <pre className="text-xs text-danger whitespace-pre-wrap break-all overflow-x-auto max-h-40">
                 {typeof errorDetails === 'string' ? errorDetails : errorDetails.toString()}
               </pre>
             </div>

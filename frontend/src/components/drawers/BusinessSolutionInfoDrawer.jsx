@@ -26,13 +26,7 @@ export default function BusinessSolutionInfoDrawer() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className={cn(
-                      'p-2 rounded-lg shrink-0',
-                      'transition-[transform,box-shadow] duration-300 ease-out',
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                    )}
+                    className={cn('p-2 rounded-lg shrink-0')}
                     style={{
                       backgroundColor: 'var(--success-soft)',
                     }}
@@ -79,8 +73,7 @@ export default function BusinessSolutionInfoDrawer() {
                           'group/card relative flex items-start gap-3.5',
                           'p-4 rounded-xl border border-transparent',
                           'border-l-4',
-                          'transition-all duration-300 ease-out cursor-default select-none',
-                          'hover:shadow-md hover:-translate-y-0.5',
+                          'transition-colors duration-300 ease-out cursor-default select-none',
                         ].join(' ')}
                         style={{
                           backgroundColor: 'var(--success-soft)',

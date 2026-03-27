@@ -130,17 +130,26 @@ export function SessionRestoreDialog(props) {
               </AlertDialog.Header>
 
               <AlertDialog.Body className="space-y-3">
-                <p className="text-sm text-gray-600 italic">
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>
                   Your inputs are already saved locally — you can restore calculated results below
                   or continue from your saved inputs.
                 </p>
 
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
-                  <p className="text-[0.9rem] font-semibold text-blue-900 flex items-center gap-2">
-                    <FileCheck size={20} className="inline" />
+                <div
+                  className="p-3 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    borderColor: 'var(--border)',
+                  }}
+                >
+                  <p
+                    className="text-[13px] font-semibold flex items-center gap-2"
+                    style={{ color: 'var(--foreground)' }}
+                  >
+                    <FileCheck size={16} style={{ color: 'var(--accent)' }} />
                     <span>Calculated results</span>
                   </p>
-                  <p className="text-sm text-blue-700 mt-1">
+                  <p className="text-[13px] mt-1" style={{ color: 'var(--muted)' }}>
                     {hasResults
                       ? 'You have unsaved assessment results'
                       : 'No calculated results found to restore.'}
@@ -162,7 +171,7 @@ export function SessionRestoreDialog(props) {
                   </Button>
 
                   <Button
-                    variant="success"
+                    variant="primary"
                     onPress={() => {
                       handleRestoreResults();
                       close();

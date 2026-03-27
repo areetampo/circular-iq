@@ -8,12 +8,12 @@ import PropTypes from 'prop-types';
  * HeroUI's own size prop is bypassed so we have full control over sizing.
  */
 const sizeStyles = {
-  xs: 'h-6  px-2  text-[11px] font-medium   rounded-3xl  gap-1   [&>svg]:size-3',
-  sm: 'h-7  px-3  text-xs     font-medium   rounded-3xl  gap-1.5 [&>svg]:size-3.5',
-  md: 'h-9  px-4  text-sm     font-semibold rounded-3xl  gap-2   [&>svg]:size-4', // default
-  lg: 'h-11 px-4  text-base   font-semibold rounded-3xl  gap-2   [&>svg]:size-[18px]',
-  xl: 'h-13 px-5  text-xl     font-semibold rounded-3xl gap-2.5 [&>svg]:size-5',
-  '2xl': 'h-16 px-6  text-2xl    font-bold     rounded-3xl gap-3   [&>svg]:size-6',
+  xs: 'h-6  px-2  text-[11px] font-medium   rounded-lg  gap-1   [&>svg]:size-3',
+  sm: 'h-7  px-3  text-xs     font-medium   rounded-lg  gap-1.5 [&>svg]:size-3.5',
+  md: 'h-9  px-4  text-sm     font-semibold rounded-lg  gap-2   [&>svg]:size-4', // default
+  lg: 'h-11 px-4  text-base   font-semibold rounded-lg  gap-2   [&>svg]:size-[18px]',
+  xl: 'h-13 px-5  text-xl     font-semibold rounded-lg  gap-2.5 [&>svg]:size-5',
+  '2xl': 'h-16 px-6  text-2xl  font-bold     rounded-lg  gap-3   [&>svg]:size-6',
 };
 
 /**
@@ -21,6 +21,30 @@ const sizeStyles = {
  * Simple, clean designs following heroui's principles
  */
 const customVariantStyles = {
+  // Primary variant - Warm tan main CTA
+  primary:
+    'bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] active:bg-[var(--accent-hover)] data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:opacity-50',
+
+  // Secondary variant - Warm border, foreground text
+  secondary:
+    'bg-transparent text-[var(--foreground)] border border-[var(--border-strong)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent)] active:bg-[var(--accent-soft)] data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:opacity-50',
+
+  // Ghost variant - No border, muted text
+  ghost:
+    'bg-transparent text-[var(--muted)] border border-transparent hover:bg-[var(--accent-soft)] hover:text-[var(--foreground)] active:bg-[var(--accent-soft)] data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:opacity-50',
+
+  // Tertiary variant - Surface background with border
+  tertiary:
+    'bg-[var(--surface-raised)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent)] active:bg-[var(--accent-soft)] data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:opacity-50',
+
+  // Danger variant - Red for destructive actions
+  danger:
+    'bg-[var(--danger)] text-white hover:bg-[var(--danger)]/90 active:bg-[var(--danger)]/80 data-[focus-visible=true]:outline-[var(--danger)] data-[disabled=true]:opacity-50',
+
+  // Danger-soft variant - Soft red theme
+  'danger-soft':
+    'bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)]/30 hover:bg-[var(--danger-soft)]/80 active:bg-[var(--danger-soft)]/60 data-[focus-visible=true]:outline-[var(--danger)] data-[disabled=true]:opacity-50',
+
   // Success/Eco variant - Green theme for positive/eco actions
   success:
     'bg-[var(--success)] text-white hover:bg-[var(--success)]/90 active:bg-[var(--success)]/80 data-[focus-visible=true]:outline-[var(--success)] data-[disabled=true]:text-white/70 data-[disabled=true]:opacity-60',

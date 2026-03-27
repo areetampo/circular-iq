@@ -89,7 +89,12 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   style={{ '--field-focus': '#4b5563' }}
                 >
                   <NumberField.DecrementButton
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none"
+                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none"
+                    style={{ color: 'var(--muted)' }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Decrease value"
                   />
                   <NumberField.Input
@@ -140,10 +145,16 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         /* ignore */
                       }
                     }}
-                    className="w-17 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
+                    className="w-17 text-center text-2xl font-bold bg-transparent focus:outline-none"
+                    style={{ color: 'var(--foreground)' }}
                   />
                   <NumberField.IncrementButton
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none"
+                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none"
+                    style={{ color: 'var(--muted)' }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Increase value"
                   />
                 </NumberField.Group>
@@ -164,8 +175,8 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       onClick={() => field.onChange(option.score)}
                       className={cn(
                         'cursor-pointer flex-1 p-2.5 rounded-lg border-2 text-left transition-all duration-150',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
-                        isSelected ? 'shadow-sm opacity-80' : 'bg-white opacity-60',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                        isSelected ? 'shadow-sm opacity-80' : 'opacity-60',
                         tierClass,
                         loading && 'opacity-50 cursor-not-allowed',
                       )}
@@ -198,7 +209,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
               )} */}
 
               {guidance?.examples?.[0] && (
-                <p className="text-[11px] italic text-slate-400 text-center leading-relaxed px-2">
+                <p
+                  className="text-[11px] italic text-center leading-relaxed px-2"
+                  style={{ color: 'var(--muted)' }}
+                >
                   Example: {guidance.examples[0].case} = {guidance.examples[0].score}
                   {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
                 </p>
@@ -242,7 +256,8 @@ export default function EvaluationParametersContainer({
             <Accordion.Item
               key={groupIdx}
               id={groupName}
-              className={cn('group/item', groupIdx > 0 && 'border-t border-slate-200/70')}
+              className={cn('group/item', groupIdx > 0 && 'border-t')}
+              style={{ borderTopColor: 'var(--border)' }}
             >
               <Accordion.Heading>
                 {/*
@@ -252,7 +267,13 @@ export default function EvaluationParametersContainer({
                   - subtitle is text-xs (vs parent's text-sm)
                   - py-3 stays the same — tight and compact
                 */}
-                <Accordion.Trigger className="hover:bg-slate-50/80 group flex items-center gap-3 px-5 py-3 transition-colors duration-200">
+                <Accordion.Trigger
+                  className="group flex items-center gap-3 px-5 py-3 transition-colors duration-200"
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
+                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
                   <cfg.Icon
                     className={cn(
                       cfg.iconColor,
@@ -264,15 +285,21 @@ export default function EvaluationParametersContainer({
                   />
 
                   <div className="flex flex-col gap-0.5 text-left">
-                    <span className="font-semibold text-[16px] leading-5 text-slate-700">
+                    <span
+                      className="font-semibold text-[16px] leading-5"
+                      style={{ color: 'var(--foreground)' }}
+                    >
                       {groupName}
                     </span>
-                    <span className="text-xs font-normal leading-4 text-slate-400">
+                    <span
+                      className="text-xs font-normal leading-4"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {cfg.subtitle}
                     </span>
                   </div>
 
-                  <Accordion.Indicator className="text-slate-300 [&>svg]:size-4">
+                  <Accordion.Indicator style={{ color: 'var(--muted)' }}>
                     <ChevronDown />
                   </Accordion.Indicator>
                 </Accordion.Trigger>
@@ -288,7 +315,10 @@ export default function EvaluationParametersContainer({
                         </div>
                         {idx < group.length - 1 && (
                           <div className="flex justify-center items-center">
-                            <div className="hidden md:block w-px self-stretch bg-slate-200/60 my-2" />
+                            <div
+                              className="hidden md:block w-px self-stretch my-2"
+                              style={{ backgroundColor: 'var(--border)' }}
+                            />
                             <Separator orientation="horizontal" className="md:hidden w-5/6" />
                           </div>
                         )}

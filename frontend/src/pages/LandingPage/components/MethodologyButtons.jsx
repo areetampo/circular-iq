@@ -14,14 +14,14 @@ export default function MethodologyButtons({
       transition={{ duration: 0.5, delay: 0.3 }}
     >
       <motion.div>
-        <Button onClick={openAssessmentMethodologyDrawer} size="lg" variant="success">
+        <Button onClick={openAssessmentMethodologyDrawer} size="lg" variant="secondary">
           <span>Assessment Methodology</span>
           <PencilRuler />
         </Button>
       </motion.div>
 
       <motion.div>
-        <Button onClick={openEvaluationCriteriaDrawer} size="lg" variant="eco-soft">
+        <Button onClick={openEvaluationCriteriaDrawer} size="lg" variant="secondary">
           <span>Evaluation Criteria</span>
           <NotebookPen />
         </Button>

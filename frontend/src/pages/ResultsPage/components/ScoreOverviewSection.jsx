@@ -1,5 +1,5 @@
 import { Card, Chip, ProgressBar } from '@heroui/react';
-import { BarChart3, Globe, Lightbulb, Lock, Target, TrendingUp } from 'lucide-react';
+import { BarChart3, Globe, Lock, Target, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { titleize } from '@/lib/formatting';
@@ -286,55 +286,6 @@ export function ScoreOverviewSection({
               </p>
             </div>
           </div>
-        </div>
-      </Card>
-
-      {/* Quick Tips for New Users */}
-      <Card
-        className="border-2 border-dashed rounded-xl"
-        style={{ borderColor: 'var(--info)', backgroundColor: 'var(--info-soft)' }}
-      >
-        <div className="p-1 sm:p-3">
-          <Card.Header className="px-0 pb-4 pt-0 flex items-center gap-3">
-            <div className="mt-0.5 rounded-lg p-2" style={{ backgroundColor: 'var(--info)' }}>
-              <Lightbulb style={{ color: 'var(--surface)' }} size={20} />
-            </div>
-            <div>
-              <Card.Title className="text-lg text-center" style={{ color: 'var(--info)' }}>
-                How to Use This Report
-              </Card.Title>
-              <Card.Description className="text-center mt-1" style={{ color: 'var(--muted)' }}>
-                Your guide to understanding and acting on these insights
-              </Card.Description>
-            </div>
-          </Card.Header>
-          <Card.Content className="px-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {reportTips.map((tip) => (
-                <Card
-                  key={tip.title}
-                  className="border rounded-xl"
-                  style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
-                  variant="secondary"
-                >
-                  <Card.Header className="">
-                    <Card.Title
-                      className="text-sm flex items-center gap-2"
-                      style={{ color: 'var(--info)' }}
-                    >
-                      <tip.Icon className={tip.iconClassName} size={16} />
-                      {tip.title}
-                    </Card.Title>
-                  </Card.Header>
-                  <Card.Content className="-mt-1">
-                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
-                      {tip.description}
-                    </p>
-                  </Card.Content>
-                </Card>
-              ))}
-            </div>
-          </Card.Content>
         </div>
       </Card>
 

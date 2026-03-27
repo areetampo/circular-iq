@@ -581,7 +581,7 @@ export default function MyAssessmentsPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {/* Average Score Card */}
               <div
-                className="border rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200"
+                className="border rounded-xl px-6 py-5"
                 style={{
                   background:
                     'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
@@ -599,7 +599,7 @@ export default function MyAssessmentsPage() {
                     </p>
                     <div className="flex items-baseline gap-3">
                       <h3
-                        className="text-4xl font-black"
+                        className="text-3xl font-black"
                         style={{
                           color: 'var(--foreground)',
                         }}
@@ -654,7 +654,7 @@ export default function MyAssessmentsPage() {
               </div>
               {/* Primary Focus Card */}
               <div
-                className="border rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200"
+                className="border rounded-xl px-6 py-5"
                 style={{
                   background:
                     'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',

@@ -1,5 +1,5 @@
 import { Input, Label } from '@heroui/react';
-import { Frown } from 'lucide-react';
+import { ArrowLeft, Frown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -94,93 +94,137 @@ export default function CompareForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Assessment ID 1 */}
-        <div>
-          <Label
-            htmlFor="public-id-1"
-            className="text-sm font-semibold mb-2 block"
-            style={{
-              color: 'var(--foreground)',
-            }}
-          >
-            First Assessment ID
-          </Label>
-          <Input
-            id="public-id-1"
-            value={publicId1}
-            onChange={(e) => setPublicId1(e.target.value)}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-            size="lg"
-            className="mt-2"
-            style={{
-              backgroundColor: 'var(--field-bg)',
-              borderColor: 'var(--field-border)',
-              color: 'var(--foreground)',
-            }}
-          />
-        </div>
-
-        {/* Assessment ID 2 */}
-        <div>
-          <Label
-            htmlFor="public-id-2"
-            className="text-sm font-semibold mb-2 block"
-            style={{
-              color: 'var(--foreground)',
-            }}
-          >
-            Second Assessment ID
-          </Label>
-          <Input
-            id="public-id-2"
-            value={publicId2}
-            onChange={(e) => setPublicId2(e.target.value)}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-            size="lg"
-            className="mt-2"
-            style={{
-              backgroundColor: 'var(--field-bg)',
-              borderColor: 'var(--field-border)',
-              color: 'var(--foreground)',
-            }}
-          />
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="heading-display text-[28px]" style={{ color: 'var(--foreground)' }}>
+          Compare Assessments
+        </h1>
+        <p className="mt-2 text-[14px]" style={{ color: 'var(--muted)' }}>
+          Enter the public IDs of two assessments you want to compare side by side.
+        </p>
       </div>
 
-      {error && (
-        <div
-          className="flex items-start gap-3 p-4 rounded-lg"
-          style={{
-            backgroundColor: 'var(--danger-soft)',
-            borderColor: 'var(--danger)',
-            borderWidth: '1px',
-          }}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Assessment ID 1 */}
+          <div>
+            <Label
+              htmlFor="public-id-1"
+              className="text-[13px] font-medium mb-2 block"
+              style={{
+                color: 'var(--foreground)',
+              }}
+            >
+              First Assessment ID
+            </Label>
+            <Input
+              id="public-id-1"
+              value={publicId1}
+              onChange={(e) => setPublicId1(e.target.value)}
+              placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              size="lg"
+              className="w-full mt-2"
+              style={{
+                backgroundColor: 'var(--field-bg)',
+                borderColor: 'var(--field-border)',
+                color: 'var(--foreground)',
+              }}
+            />
+          </div>
+
+          {/* Assessment ID 2 */}
+          <div>
+            <Label
+              htmlFor="public-id-2"
+              className="text-[13px] font-medium mb-2 block"
+              style={{
+                color: 'var(--foreground)',
+              }}
+            >
+              Second Assessment ID
+            </Label>
+            <Input
+              id="public-id-2"
+              value={publicId2}
+              onChange={(e) => setPublicId2(e.target.value)}
+              placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              size="lg"
+              className="w-full mt-2"
+              style={{
+                backgroundColor: 'var(--field-bg)',
+                borderColor: 'var(--field-border)',
+                color: 'var(--foreground)',
+              }}
+            />
+          </div>
+        </div>
+
+        {error && (
+          <div
+            className="flex items-start gap-3 p-4 rounded-lg"
+            style={{
+              backgroundColor: 'var(--danger-soft)',
+              borderColor: 'var(--danger)',
+              borderWidth: '1px',
+            }}
+          >
+            <Frown size={20} className="mt-0.5 shrink-0" style={{ color: 'var(--danger)' }} />
+            <span
+              className="text-sm"
+              style={{
+                color: 'var(--danger)',
+              }}
+            >
+              {error}
+            </span>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" variant="primary" isLoading={loading}>
+            Compare
+          </Button>
+          <Button type="button" variant="secondary" onPress={handleClear}>
+            Clear
+          </Button>
+          <Button type="button" variant="tertiary" onPress={() => navigate('/assessments')}>
+            <ArrowLeft size={14} />
+            Back to Assessments
+          </Button>
+        </div>
+      </form>
+
+      {/* Info box */}
+      <div
+        className="mt-8 p-4 rounded-xl border"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
+        <p
+          className="text-[12px] font-semibold uppercase tracking-wide mb-2"
+          style={{ color: 'var(--muted)' }}
         >
-          <Frown size={20} className="mt-0.5 shrink-0" style={{ color: 'var(--danger)' }} />
-          <span
-            className="text-sm"
-            style={{
-              color: 'var(--danger)',
-            }}
-          >
-            {error}
-          </span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-3 pt-4">
-        <Button type="submit" variant="teal" isLoading={loading}>
-          Compare
-        </Button>
-        <Button type="button" variant="neutral" onPress={handleClear}>
-          Clear
-        </Button>
-        <Button type="button" variant="neutral" onPress={() => navigate('/assessments')}>
-          Back to Assessments
-        </Button>
+          About Comparison
+        </p>
+        <ul className="space-y-1.5">
+          {[
+            'You can compare any of your own assessments',
+            'You can compare public assessments from other users',
+            'Use the Assessment IDs from your assessments list or shared links',
+          ].map((item) => (
+            <li
+              key={item}
+              className="flex items-start gap-2 text-[13px]"
+              style={{ color: 'var(--muted)' }}
+            >
+              <span
+                className="shrink-0 mt-1.5 w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'var(--accent)' }}
+              />
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
-    </form>
+    </div>
   );
 }

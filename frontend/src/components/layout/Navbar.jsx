@@ -1,5 +1,5 @@
 import { Dropdown } from '@heroui/react';
-import { HelpCircle, LogOut, Settings, User, X } from 'lucide-react';
+import { HelpCircle, LogOut, RefreshCw, Settings, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -132,13 +132,13 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-14">
             {/* LEFT: Brand */}
             <button onClick={() => navigate('/')} className="flex items-center gap-2.5 group">
-              {/* Logo mark: small accent circle with a circular arrow symbol */}
+              {/* Logo mark: small accent circle with RefreshCw icon */}
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center
-                           transition-transform duration-200 group-hover:rotate-[-12deg]"
+                className="w-7 h-7 rounded-md flex items-center justify-center
+                           transition-transform duration-200 group-hover:rotate-[-15deg]"
                 style={{ backgroundColor: 'var(--accent)' }}
               >
-                <span className="text-white text-sm font-bold select-none">⟳</span>
+                <RefreshCw size={14} strokeWidth={2.5} className="text-white" />
               </div>
               <span
                 className="font-serif text-[15px] font-semibold tracking-tight hidden xs:inline"
@@ -160,10 +160,10 @@ export default function Navbar() {
                     style={{ color: isActive ? 'var(--foreground)' : 'var(--muted)' }}
                   >
                     {item.name}
-                    {/* Active underline dot — a small 4px accent circle below the link */}
+                    {/* Active underline indicator */}
                     {isActive && (
                       <span
-                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                        className="absolute -bottom-0.5 left-0 w-full h-[1.5px] rounded-full"
                         style={{ backgroundColor: 'var(--accent)' }}
                       />
                     )}
@@ -348,10 +348,10 @@ export default function Navbar() {
           {/* Brand in panel */}
           <div className="flex items-center gap-2">
             <div
-              className="w-6 h-6 rounded-full flex items-center justify-center"
+              className="w-6 h-6 rounded-md flex items-center justify-center"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              <span className="text-white text-xs font-bold">⟳</span>
+              <RefreshCw size={12} strokeWidth={2.5} className="text-white" />
             </div>
             <span
               className="font-serif text-[14px] font-semibold"

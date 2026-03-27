@@ -80,8 +80,7 @@ export default function BusinessContextHeadingInfoDrawer() {
                           'group/card relative flex items-start gap-3.5',
                           'p-3.5 rounded-lg border border-transparent',
                           'border-l-4',
-                          'transition-all duration-300 ease-out cursor-default select-none',
-                          'hover:shadow-md hover:-translate-y-0.5',
+                          'transition-colors duration-300 ease-out cursor-default select-none',
                         ].join(' ')}
                         style={{
                           backgroundColor: 'var(--surface)',

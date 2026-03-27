@@ -1,11 +1,9 @@
-import { CompareForm, CompareHeader, CompareInfoBox } from './components';
+import { CompareForm } from './components';
 
 export default function ComparePage() {
   return (
-    <div className="max-w-4xl mx-auto py-16">
-      <CompareHeader />
+    <div className="min-h-[70vh] flex flex-col justify-center max-w-2xl mx-auto px-6 py-12">
       <CompareForm />
-      <CompareInfoBox />
     </div>
   );
 }

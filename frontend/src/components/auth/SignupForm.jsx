@@ -7,7 +7,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { SITE_NAME } from '@/components/common';
 import Button from '@/components/common/Button';
-import LoaderIcon from '@/components/common/LoaderIcon';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
 import { logger } from '@/utils/logger';
@@ -119,154 +118,136 @@ export function SignupForm({ onSwitchToLogin }) {
 
   return (
     <div className="w-full max-w-md">
-      <div
-        className="border rounded-lg p-6 space-y-6"
-        style={{
-          backgroundColor: 'var(--surface)',
-          borderColor: 'var(--border)',
-        }}
-      >
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1
-            className="text-2xl font-semibold"
-            style={{
-              color: 'var(--foreground)',
-            }}
-          >
-            Create Account
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>
-            Join to start evaluating circular economy ideas
-          </p>
-        </div>
+      {/* Header */}
+      <div className="text-center space-y-2 mb-6">
+        <h2 className="heading-display text-[22px]" style={{ color: 'var(--foreground)' }}>
+          Create Account
+        </h2>
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+          Join to start evaluating circular economy ideas
+        </p>
+      </div>
 
-        <Form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Username */}
-          <Controller
-            name="username"
-            control={control}
-            render={({ field }) => (
-              <TextField isInvalid={!!errors.username}>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                    Username
-                  </Label>
-                  {errors.username && (
-                    <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
-                      Incorrect username format
-                    </FieldError>
-                  )}
-                </div>
-                <Input
-                  {...field}
-                  type="text"
-                  placeholder="your_username"
-                  disabled={isLoading}
-                  className="mt-1.5"
-                  autoComplete="username"
-                  spellCheck={false}
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                />
-                <div className="text-xs mt-1.5 px-2" style={{ color: 'var(--muted)' }}>
-                  <p>{`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}</p>
-                  <div className="whitespace-pre-line">{AUTH_VALIDATION.USERNAME.PATTERN_DESC}</div>
-                </div>
-              </TextField>
-            )}
-          />
+      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Username */}
+        <Controller
+          name="username"
+          control={control}
+          render={({ field }) => (
+            <TextField isInvalid={!!errors.username}>
+              <div className="flex items-center justify-between">
+                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
+                  Username
+                </Label>
+                {errors.username && (
+                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
+                    Incorrect username format
+                  </FieldError>
+                )}
+              </div>
+              <Input
+                {...field}
+                type="text"
+                placeholder="your_username"
+                disabled={isLoading}
+                className="mt-1.5"
+                autoComplete="username"
+                spellCheck={false}
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
+              <div className="text-xs mt-1.5 px-2" style={{ color: 'var(--muted)' }}>
+                <p>{`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}</p>
+                <div className="whitespace-pre-line">{AUTH_VALIDATION.USERNAME.PATTERN_DESC}</div>
+              </div>
+            </TextField>
+          )}
+        />
 
-          {/* Password */}
-          <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <TextField isInvalid={!!errors.password}>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                    Password
-                  </Label>
-                  {errors.password && (
-                    <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
-                      Incorrect password format
-                    </FieldError>
-                  )}
-                </div>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="••••••"
-                  disabled={isLoading}
-                  className="mt-1.5"
-                  autoComplete="new-password"
-                />
-                <div className="text-xs mt-1.5 px-2" style={{ color: 'var(--muted)' }}>
-                  <p>{`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}</p>
-                  <div className="whitespace-pre-line">{`${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}</div>
-                </div>
-              </TextField>
-            )}
-          />
+        {/* Password */}
+        <Controller
+          name="password"
+          control={control}
+          render={({ field }) => (
+            <TextField isInvalid={!!errors.password}>
+              <div className="flex items-center justify-between">
+                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
+                  Password
+                </Label>
+                {errors.password && (
+                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
+                    Incorrect password format
+                  </FieldError>
+                )}
+              </div>
+              <Input
+                {...field}
+                type="password"
+                placeholder="••••••"
+                disabled={isLoading}
+                className="mt-1.5"
+                autoComplete="new-password"
+              />
+              <div className="text-xs mt-1.5 px-2" style={{ color: 'var(--muted)' }}>
+                <p>{`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}</p>
+                <div className="whitespace-pre-line">{`${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}</div>
+              </div>
+            </TextField>
+          )}
+        />
 
-          {/* Confirm Password */}
-          <Controller
-            name="confirmPassword"
-            control={control}
-            render={({ field }) => (
-              <TextField isInvalid={!!errors.confirmPassword}>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                    Confirm Password
-                  </Label>
-                  {errors.confirmPassword && (
-                    <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
-                      {errors.confirmPassword.message}
-                    </FieldError>
-                  )}
-                </div>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="••••••••"
-                  disabled={isLoading}
-                  className="mt-1.5"
-                  autoComplete="new-password"
-                />
-              </TextField>
-            )}
-          />
+        {/* Confirm Password */}
+        <Controller
+          name="confirmPassword"
+          control={control}
+          render={({ field }) => (
+            <TextField isInvalid={!!errors.confirmPassword}>
+              <div className="flex items-center justify-between">
+                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
+                  Confirm Password
+                </Label>
+                {errors.confirmPassword && (
+                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
+                    {errors.confirmPassword.message}
+                  </FieldError>
+                )}
+              </div>
+              <Input
+                {...field}
+                type="password"
+                placeholder="••••••••"
+                disabled={isLoading}
+                className="mt-1.5"
+                autoComplete="new-password"
+              />
+            </TextField>
+          )}
+        />
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            className="w-full text-sm font-medium"
-            disabled={isLoading}
-            style={{
-              backgroundColor: 'var(--accent)',
-              color: 'var(--accent-foreground)',
-            }}
-          >
-            <span className="flex items-center justify-center gap-2">
-              {isLoading ? <LoaderIcon color="#ffffff" isButton /> : <>Create Account</>}
-            </span>
-          </Button>
-        </Form>
+        {/* Submit */}
+        <Button
+          variant="primary"
+          className="w-full"
+          isLoading={isLoading}
+          onPress={handleSubmit(onSubmit)}
+        >
+          Create Account
+        </Button>
+      </Form>
 
-        {/* Switch to Login */}
-        <div className="text-center text-sm">
-          <span style={{ color: 'var(--muted)' }}>Already have an account? </span>
-          <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="font-medium transition-colors hover:opacity-80 cursor-pointer"
-            style={{
-              color: 'var(--accent)',
-            }}
-          >
-            Sign in
-          </button>
-        </div>
+      {/* Switch to Login */}
+      <div className="text-center text-sm mt-6">
+        <span style={{ color: 'var(--muted)' }}>Already have an account? </span>
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          className="font-medium transition-colors hover:opacity-80 cursor-pointer"
+          style={{
+            color: 'var(--accent)',
+          }}
+        >
+          Sign in
+        </button>
       </div>
     </div>
   );

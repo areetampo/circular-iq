@@ -889,6 +889,7 @@ export default function LandingPage() {
                 <Tooltip delay={0} isDisabled={isValid}>
                   <Tooltip.Trigger>
                     <Button
+                      variant="primary"
                       size="lg"
                       onPress={handleSubmit(handleFormSubmit)}
                       isDisabled={loading || !isValid}

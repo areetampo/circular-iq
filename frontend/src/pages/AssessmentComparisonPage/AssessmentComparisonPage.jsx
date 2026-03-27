@@ -300,7 +300,7 @@ export default function AssessmentComparisonPage() {
       <div className="w-full px-4 md:px-10 pt-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
           <div
-            className="border-2 shadow-md rounded-xl hover:shadow-lg transition-all duration-300"
+            className="border-2 rounded-xl"
             style={{
               background: 'linear-gradient(to bottom right, var(--success-soft), var(--surface))',
               borderColor: 'var(--success)',
@@ -355,7 +355,7 @@ export default function AssessmentComparisonPage() {
                 color="default"
                 variant="secondary"
                 size="lg"
-                className="text-lg font-bold px-5 py-3 shadow-md"
+                className="text-lg font-bold px-5 py-3"
                 style={{
                   background:
                     'linear-gradient(to right, var(--success-soft), var(--accent-soft), var(--info-soft))',
@@ -368,7 +368,7 @@ export default function AssessmentComparisonPage() {
           </div>
 
           <div
-            className="border-2 shadow-md rounded-xl hover:shadow-lg transition-all duration-300"
+            className="border-2 rounded-xl"
             style={{
               background: 'linear-gradient(to bottom right, var(--accent-soft), var(--surface))',
               borderColor: 'var(--accent)',
@@ -488,11 +488,14 @@ export default function AssessmentComparisonPage() {
             Last updated: {getCurrentTimestampFormatted()}
           </p>
           <div className="flex gap-2">
-            <Button color="success" onClick={() => exportComparisonCSV([assessment1, assessment2])}>
+            <Button
+              variant="primary"
+              onClick={() => exportComparisonCSV([assessment1, assessment2])}
+            >
               <Upload size={16} />
               Export CSV
             </Button>
-            <Button variant="bordered" onClick={handleBack}>
+            <Button variant="tertiary" onClick={handleBack}>
               <ArrowLeft size={16} />
               Back to Assessments
             </Button>
