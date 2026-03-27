@@ -150,8 +150,8 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     }}
                     maxLength={100}
                     className={cn(
-                      'rounded-full',
-                      error && 'border-red-600 focus:ring-red-600',
+                      'rounded-lg',
+                      error && 'border-danger focus:ring-danger',
                       'text-xs xs:text-sm',
                     )}
                     fullWidth
@@ -196,7 +196,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
 
               <AlertDialog.Footer>
                 <Button
-                  variant="neutral-soft"
+                  variant="tertiary"
                   onPress={() => {
                     close();
                     onClose();
@@ -206,7 +206,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                   Cancel
                 </Button>
                 <Button
-                  variant="success"
+                  variant="primary"
                   onPress={() => {
                     if (!isSubmitting) handleSubmit(close);
                   }}

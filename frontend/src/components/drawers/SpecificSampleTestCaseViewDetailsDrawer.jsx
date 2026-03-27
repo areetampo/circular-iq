@@ -92,7 +92,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
               <div className="space-y-6 py-4">
                 {/* Business Problem Section */}
                 <Card
-                  className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                  className="border-2 shadow-sm rounded-xl transition-colors duration-200"
                   style={{
                     borderColor: 'var(--success)',
                     background:
@@ -137,7 +137,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
 
                 {/* Business Solution Section */}
                 <Card
-                  className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                  className="border-2 shadow-sm rounded-xl transition-colors duration-200"
                   style={{
                     borderColor: 'var(--success)',
                     background:
@@ -183,7 +183,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                 {/* Business Context Section */}
                 {filteredBusinessContext.length > 0 && (
                   <Card
-                    className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                    className="border-2 shadow-sm rounded-xl transition-colors duration-200"
                     style={{
                       borderColor: 'var(--warning)',
                       background:
@@ -236,7 +236,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                           return (
                             <div
                               key={key}
-                              className="p-3 rounded-lg hover:border-[var(--warning)] hover:shadow-sm transition-all duration-200"
+                              className="p-3 rounded-lg hover:border-warning transition-colors duration-200"
                               style={{
                                 backgroundColor: 'var(--surface)',
                                 borderColor: 'var(--warning)',
@@ -288,7 +288,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
 
                 {/* Evaluation Parameters / Scores Section */}
                 <Card
-                  className="border-2 shadow-sm rounded-xl hover:shadow-md transition-shadow duration-200"
+                  className="border-2 shadow-sm rounded-xl transition-colors duration-200"
                   style={{
                     borderColor: 'var(--info)',
                     background:
@@ -352,7 +352,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                         return (
                           <div
                             key={key}
-                            className="relative p-3 rounded-lg border-2 transition-colors duration-200 hover:shadow-md"
+                            className="relative p-3 rounded-lg border-2 transition-colors duration-200"
                             style={{
                               backgroundColor: bgColor,
                               borderColor: borderColor,

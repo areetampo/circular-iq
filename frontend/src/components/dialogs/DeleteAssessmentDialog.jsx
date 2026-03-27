@@ -64,7 +64,7 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
       confirmText="Delete"
       cancelText="Cancel"
       onConfirm={onConfirm}
-      variant="destructive"
+      variant="danger"
       isLoading={isLoading}
     />
   );

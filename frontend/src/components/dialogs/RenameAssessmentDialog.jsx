@@ -127,7 +127,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                     maxLength={100}
                     className={cn(
                       'rounded-lg mb-1',
-                      error && 'border-red-600 focus:ring-red-600',
+                      error && 'border-danger focus:ring-danger',
                       'text-xs xs:text-sm',
                     )}
                     fullWidth

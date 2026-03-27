@@ -119,7 +119,13 @@ export function ConfirmDialog({
             <AlertDialog.Heading>{title}</AlertDialog.Heading>
           </AlertDialog.Header>
 
-          <AlertDialog.Body>{description && <p>{description}</p>}</AlertDialog.Body>
+          <AlertDialog.Body>
+            {description && (
+              <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
+                {description}
+              </p>
+            )}
+          </AlertDialog.Body>
 
           <AlertDialog.Footer>
             <Button variant="tertiary" onPress={handleCancelClick} isDisabled={isLoading}>

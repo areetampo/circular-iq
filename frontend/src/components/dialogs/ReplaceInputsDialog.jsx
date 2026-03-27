@@ -135,13 +135,15 @@ function ReplaceInputsDialogContent() {
             <AlertDialog.Heading>{title}</AlertDialog.Heading>
           </AlertDialog.Header>
           <AlertDialog.Body>
-            <p>{description}</p>
+            <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
+              {description}
+            </p>
           </AlertDialog.Body>
           <AlertDialog.Footer>
             <Button variant="tertiary" onPress={handleCancelClick}>
               {cancelText}
             </Button>
-            <Button variant="success" onPress={handleConfirmClick}>
+            <Button variant="danger" onPress={handleConfirmClick}>
               {confirmText}
             </Button>
           </AlertDialog.Footer>
