@@ -6,7 +6,7 @@ export const FEATURE_CARDS = [
     title: 'AI-Powered',
     desc: 'Machine learning analysis grounded in circular economy principles.',
     Icon: Bot,
-    bg: 'var(--accent-soft)',
+    bg: 'var(--surface)',
     borderClass: 'var(--border)',
     iconColor: 'var(--accent)',
   },
@@ -15,18 +15,18 @@ export const FEATURE_CARDS = [
     title: 'Multi-Dimensional',
     desc: 'Evaluates across key domains for clarity and depth.',
     Icon: LayersPlus,
-    bg: 'var(--success-soft)',
+    bg: 'var(--surface)',
     borderClass: 'var(--border)',
-    iconColor: 'var(--success)',
+    iconColor: 'var(--accent)',
   },
   {
     key: 'actionable',
     title: 'Actionable',
     desc: 'Clear recommendations you can apply immediately to improve outcomes.',
     Icon: Pickaxe,
-    bg: 'var(--warning-soft)',
+    bg: 'var(--surface)',
     borderClass: 'var(--border)',
-    iconColor: 'var(--warning)',
+    iconColor: 'var(--accent)',
   },
 ];
 
@@ -47,14 +47,19 @@ export default function FeatureCards() {
             }}
           >
             <div className="flex flex-col items-center justify-center text-center">
-              <Icon
-                className="h-8 w-8 shrink-0"
-                style={{ color: card.iconColor }}
-                strokeWidth={1.75}
-              />
+              <div
+                className="p-3 rounded-lg mb-4"
+                style={{ backgroundColor: 'var(--accent-soft)' }}
+              >
+                <Icon
+                  className="h-8 w-8 shrink-0"
+                  style={{ color: card.iconColor }}
+                  strokeWidth={1.75}
+                />
+              </div>
 
               <h3
-                className="font-semibold text-lg mt-4"
+                className="font-semibold text-lg"
                 style={{
                   color: 'var(--foreground)',
                 }}

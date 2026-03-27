@@ -583,9 +583,8 @@ export default function MyAssessmentsPage() {
               <div
                 className="border rounded-xl px-6 py-5"
                 style={{
-                  background:
-                    'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
-                  borderColor: 'var(--success)',
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
                   borderWidth: '1px',
                 }}
               >
@@ -593,7 +592,7 @@ export default function MyAssessmentsPage() {
                   <div>
                     <p
                       className="text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ color: 'var(--success)' }}
+                      style={{ color: 'var(--muted)' }}
                     >
                       Average Score
                     </p>
@@ -646,9 +645,9 @@ export default function MyAssessmentsPage() {
                   </div>
                   <div
                     className="p-3 rounded-xl shrink-0"
-                    style={{ backgroundColor: 'var(--success-soft)' }}
+                    style={{ backgroundColor: 'var(--accent-soft)' }}
                   >
-                    <Award size={24} style={{ color: 'var(--success)' }} />
+                    <Award size={24} style={{ color: 'var(--accent)' }} />
                   </div>
                 </div>
               </div>

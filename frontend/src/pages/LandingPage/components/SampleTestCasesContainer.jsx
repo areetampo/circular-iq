@@ -201,13 +201,13 @@ export default function SampleTestCasesContainer({
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200',
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
               'border cursor-pointer hover:shadow-sm',
               isSelected
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-foreground)]'
-                : 'border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent-soft-fg)]',
+                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]',
               !isSelected &&
-                'hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]',
+                'hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]',
             )}
             title={testCase.title}
           >

@@ -449,6 +449,7 @@
   /* ── Text ── */
   --muted: oklch(0.55 0.015 75); /* secondary/helper text */
   --subtle: oklch(0.72 0.012 75); /* tertiary text */
+  --surface-hover: oklch(0.96 0.012 80); /* slightly darker than background */
 
   /* ── Form fields ── */
   --field-bg: oklch(0.99 0.006 80);
@@ -493,6 +494,7 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-subtle: var(--subtle);
+  --color-surface-hover: var(--surface-hover);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -582,7 +584,7 @@
     background-image: radial-gradient(circle, oklch(0.68 0.08 68 / 0.13) 1.2px, transparent 1.2px);
     background-size: 26px 26px;
     transform: rotate(45deg) translate(0, 0);
-    animation: drift-grid 32s linear infinite;
+    animation: drift-grid 48s linear infinite;
     pointer-events: none;
     z-index: 0;
   }
@@ -601,11 +603,6 @@
     position: relative;
     z-index: 1;
   }
-}
-
-/* Update the drift-grid animation to use 48s duration */
-.app-bg::before {
-  animation: drift-grid 48s linear infinite !important;
 }
 
 /* HeroUI Component Overrides */

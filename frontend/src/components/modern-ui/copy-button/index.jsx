@@ -1,4 +1,4 @@
-import { Copy } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useState } from 'react';
 
@@ -10,26 +10,16 @@ import { useCallback, useState } from 'react';
 export default function CopyButton({ value = '', disabled = false, className = '', ...props }) {
   const [hasCopied, setHasCopied] = useState(false);
 
-  const handleCopy = useCallback(async () => {
-    if (disabled) return;
+  const handleClick = useCallback(async () => {
+    if (disabled || !value) return;
     try {
       await navigator.clipboard.writeText(value);
       setHasCopied(true);
-      // Reset after 2 seconds
-      const timeout = setTimeout(() => setHasCopied(false), 2000);
-      return () => clearTimeout(timeout);
+      setTimeout(() => setHasCopied(false), 2000);
     } catch {
-      // ignore
+      /* ignore */
     }
-  }, [disabled, value]);
-
-  const handleClick = useCallback(
-    (e) => {
-      e.stopPropagation();
-      handleCopy();
-    },
-    [handleCopy],
-  );
+  }, [value, disabled]);
 
   return (
     <button
@@ -38,15 +28,15 @@ export default function CopyButton({ value = '', disabled = false, className = '
              transition-colors hover:bg-[var(--accent-soft)]
              disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       style={{
-        color: 'var(--muted)',
-        border: '1px solid var(--border)',
+        color: hasCopied ? 'var(--success)' : 'var(--muted)',
+        border: `1px solid ${hasCopied ? 'var(--success)' : 'var(--border)'}`,
       }}
-      title="Copy assessment ID"
+      title={hasCopied ? 'Copied!' : 'Copy assessment ID'}
       disabled={disabled}
       {...props}
     >
-      <Copy size={12} />
-      <span>ID</span>
+      {hasCopied ? <Check size={12} /> : <Copy size={12} />}
+      <span>{hasCopied ? 'Copied' : 'ID'}</span>
     </button>
   );
 }

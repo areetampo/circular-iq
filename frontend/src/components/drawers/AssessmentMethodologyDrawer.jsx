@@ -175,12 +175,13 @@ export default function AssessmentMethodologyDrawer() {
               <div
                 className="flex items-start gap-3 p-4 rounded-xl border-l-4"
                 style={{
-                  borderColor: 'var(--border)',
+                  backgroundColor: 'var(--danger-soft)',
+                  borderLeftColor: 'var(--danger)',
                 }}
               >
                 <TriangleAlert
                   className="size-4 shrink-0 mt-0.5"
-                  style={{ color: 'var(--accent)' }}
+                  style={{ color: 'var(--danger)' }}
                   strokeWidth={1.75}
                 />
                 <p

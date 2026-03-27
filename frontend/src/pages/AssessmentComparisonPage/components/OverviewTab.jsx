@@ -239,7 +239,7 @@ export function OverviewTab({
                     </div>
                   );
                 })}
-                <div className="p-3 bg-warm-50 rounded-lg">
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
                   <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
                     Risk Level
                   </div>

@@ -1,9 +1,7 @@
-import { Chip } from '@heroui/react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import { getIndustryTheme } from '@/constants/industryThemes';
-import { cn } from '@/utils/cn';
 
 const IndustryFilterChip = React.memo(function IndustryFilterChip({
   industry,
@@ -14,20 +12,18 @@ const IndustryFilterChip = React.memo(function IndustryFilterChip({
   const theme = getIndustryTheme(industry);
 
   return (
-    <Chip
+    <button
       onClick={() => onToggle(industry)}
-      className={cn(
-        'cursor-pointer select-none transition-colors duration-200 ease-in-out',
-        'border font-medium',
-        isSelected
-          ? `${theme.selectedBg} ${theme.selectedText} ${theme.selectedBorder}`
-          : `bg-[var(--surface)] ${theme.unselectedText} ${theme.unselectedBorder}`,
-        !isSelected && theme.hoverClasses,
-      )}
+      className="px-3 py-1.5 rounded-md text-[12px] font-medium border transition-colors"
+      style={{
+        backgroundColor: isSelected ? 'var(--accent)' : 'var(--surface)',
+        color: isSelected ? 'white' : 'var(--foreground)',
+        borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+      }}
       aria-pressed={isSelected}
     >
-      <Chip.Label className="px-1">{label}</Chip.Label>
-    </Chip>
+      {label}
+    </button>
   );
 });
 

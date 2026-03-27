@@ -36,17 +36,20 @@ export function FactorAnalysisTab({
       {/* Visual Comparison Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Radar Chart */}
-        <Card className="border-2 border-blue-200 shadow-md rounded-xl bg-linear-to-br from-blue-50/30 to-white">
+        <Card
+          className="border-2 rounded-xl"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <Card.Header className="flex items-center gap-3 pb-0">
-            <div className="p-2.5 rounded-lg bg-linear-to-br from-blue-100 to-blue-200">
-              <GitCompare className="text-blue-700" size={20} />
+            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+              <GitCompare style={{ color: 'var(--accent)' }} size={20} />
             </div>
-            <Card.Title className="font-bold text-lg text-slate-900">
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               Factor Comparison (Radar)
             </Card.Title>
           </Card.Header>
           <Card.Content className="pb-4">
-            <div className="h-100 p-4 bg-white rounded-lg">
+            <div className="h-100 p-4 rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
               {radarChartData && radarConfigs ? (
                 <RadarChart
                   data={radarChartData}
@@ -56,7 +59,10 @@ export function FactorAnalysisTab({
                   showTooltip
                 />
               ) : (
-                <div className="h-full flex items-center justify-center text-slate-500">
+                <div
+                  className="h-full flex items-center justify-center"
+                  style={{ color: 'var(--muted)' }}
+                >
                   Loading chart data...
                 </div>
               )}
@@ -65,17 +71,20 @@ export function FactorAnalysisTab({
         </Card>
 
         {/* Bar Chart */}
-        <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-linear-to-br from-purple-50/30 to-white">
+        <Card
+          className="border-2 rounded-xl"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <Card.Header className="flex items-center gap-3 pb-0">
-            <div className="p-2.5 rounded-lg bg-linear-to-br from-purple-100 to-purple-200">
-              <BarChart3 className="text-purple-700" size={20} />
+            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+              <BarChart3 style={{ color: 'var(--accent)' }} size={20} />
             </div>
-            <Card.Title className="font-bold text-lg text-slate-900">
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               Score Comparison (Bar)
             </Card.Title>
           </Card.Header>
           <Card.Content className="pb-4">
-            <div className="h-100 p-4 bg-white rounded-lg">
+            <div className="h-100 p-4 rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
               {barChartData && barConfigs ? (
                 <BarChart
                   data={barChartData}
@@ -86,7 +95,10 @@ export function FactorAnalysisTab({
                   yAxisLabel="Score"
                 />
               ) : (
-                <div className="h-full flex items-center justify-center text-slate-500">
+                <div
+                  className="h-full flex items-center justify-center"
+                  style={{ color: 'var(--muted)' }}
+                >
                   Loading chart data...
                 </div>
               )}
@@ -245,7 +257,9 @@ export function FactorAnalysisTab({
             <div className="p-2.5 rounded-lg bg-linear-to-br from-red-100 to-red-200">
               <AlertTriangle className="text-red-700" size={20} />
             </div>
-            <Card.Title className="font-bold text-lg text-slate-900">Integrity Analysis</Card.Title>
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+              Integrity Analysis
+            </Card.Title>
           </Card.Header>
           <Card.Content>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -394,7 +408,9 @@ export function FactorAnalysisTab({
             <div className="p-2.5 rounded-lg bg-linear-to-br from-indigo-100 to-indigo-200">
               <Lightbulb className="text-indigo-700" size={20} />
             </div>
-            <Card.Title className="font-bold text-lg text-slate-900">AI Audit Summary</Card.Title>
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+              AI Audit Summary
+            </Card.Title>
           </Card.Header>
           <Card.Content>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -23,7 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import RadarChart from '@/components/charts/RadarChart';
-import { Button } from '@/components/common';
+import { Button, Switch } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import CopyButton from '@/components/modern-ui/copy-button';
 import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -1011,45 +1011,57 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             )}
         </div>
 
-        {/* Share Assessment Section - Simplified */}
-        {!isPublicShare && currentData?.public_id && (
+        {/* Share Assessment Section */}
+        {!isPublicShare && currentData && (
           <div
-            className="border rounded-lg mb-3"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
+            className="border rounded-lg mb-3 p-4"
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
           >
-            <div className="p-1 sm:p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                <h3
-                  className="text-lg font-semibold"
-                  style={{
-                    color: 'var(--foreground)',
-                  }}
-                >
-                  Share Assessment
-                </h3>
+            {/* Toggle row */}
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
+                  Public sharing
+                </p>
+                <p className="text-[12px] mt-0.5" style={{ color: 'var(--muted)' }}>
+                  {isResultsRoute
+                    ? 'Save assessment to enable sharing'
+                    : 'Allow others to view this assessment via link'}
+                </p>
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Input
-                  id="share-url"
-                  type="text"
-                  readOnly
-                  value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                  className="text-xs flex-1"
-                  style={{
-                    backgroundColor: 'var(--field-bg)',
-                    borderColor: 'var(--field-border)',
-                    color: 'var(--foreground)',
-                  }}
-                />
-                <CopyButton
-                  value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                />
-              </div>
+              <Switch
+                id="public-toggle"
+                variant="public"
+                isSelected={
+                  optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
+                }
+                onChange={handleTogglePublic}
+                isDisabled={isUpdatingPublic || isResultsRoute}
+              />
             </div>
+
+            {/* Share URL — shown only when public and public_id exists */}
+            {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
+              currentData?.public_id && (
+                <div
+                  className="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t"
+                  style={{ borderColor: 'var(--border)' }}
+                >
+                  <Input
+                    readOnly
+                    value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                    className="text-xs flex-1"
+                    style={{
+                      backgroundColor: 'var(--field-bg)',
+                      borderColor: 'var(--field-border)',
+                      color: 'var(--foreground)',
+                    }}
+                  />
+                  <CopyButton
+                    value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                  />
+                </div>
+              )}
           </div>
         )}
       </div>

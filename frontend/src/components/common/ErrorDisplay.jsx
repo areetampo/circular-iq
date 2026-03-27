@@ -30,42 +30,42 @@ export default function ErrorDisplay({
   const variants = {
     error: {
       containerBg: '',
-      cardBorder: 'border-danger',
-      cardBg: 'bg-[var(--surface)]',
-      iconBg: 'bg-danger-soft',
-      iconColor: 'text-danger',
-      titleColor: 'text-danger',
-      messageColor: 'text-danger',
+      cardBorderColor: 'var(--danger)',
+      cardBg: 'var(--surface)',
+      iconBg: 'var(--danger-soft)',
+      iconColor: 'var(--danger)',
+      titleColor: 'var(--danger)',
+      messageColor: 'var(--danger)',
       defaultIcon: XCircle,
     },
     warning: {
       containerBg: '',
-      cardBorder: 'border-warning',
-      cardBg: 'bg-[var(--surface)]',
-      iconBg: 'bg-warning-soft',
-      iconColor: 'text-warning',
-      titleColor: 'text-warning',
-      messageColor: 'text-warning',
+      cardBorderColor: 'var(--warning)',
+      cardBg: 'var(--surface)',
+      iconBg: 'var(--warning-soft)',
+      iconColor: 'var(--warning)',
+      titleColor: 'var(--warning)',
+      messageColor: 'var(--warning)',
       defaultIcon: AlertTriangle,
     },
     info: {
       containerBg: '',
-      cardBorder: 'border-info',
-      cardBg: 'bg-[var(--surface)]',
-      iconBg: 'bg-info-soft',
-      iconColor: 'text-info',
-      titleColor: 'text-info',
-      messageColor: 'text-info',
+      cardBorderColor: 'var(--info)',
+      cardBg: 'var(--surface)',
+      iconBg: 'var(--info-soft)',
+      iconColor: 'var(--info)',
+      titleColor: 'var(--info)',
+      messageColor: 'var(--info)',
       defaultIcon: Info,
     },
     404: {
       containerBg: '',
-      cardBorder: 'border-success',
-      cardBg: 'bg-gradient-to-br from-surface to-success-soft',
-      iconBg: 'bg-success-soft',
-      iconColor: 'text-success',
-      titleColor: 'text-foreground',
-      messageColor: 'text-muted',
+      cardBorderColor: 'var(--border)',
+      cardBg: 'var(--surface)',
+      iconBg: 'var(--accent-soft)',
+      iconColor: 'var(--accent)',
+      titleColor: 'var(--foreground)',
+      messageColor: 'var(--muted)',
       defaultIcon: AlertCircle,
     },
   };
@@ -99,17 +99,27 @@ export default function ErrorDisplay({
         fullScreen ? 'min-h-screen' : 'min-h-100'
       } px-6 py-12 bg-linear-to-br ${style.containerBg} ${className}`}
     >
-      <Card className={`w-full max-w-2xl border-2 ${style.cardBorder} ${style.cardBg}`}>
+      <Card
+        className={`w-full max-w-2xl border-2 ${style.containerBg}`}
+        style={{
+          borderColor: style.cardBorderColor,
+          backgroundColor: style.cardBg,
+        }}
+      >
         {/* Header Section */}
         <div className="p-6 pb-0 text-center">
           <div className={`flex justify-center mb-4`}>
-            <div className={`p-3 rounded-full ${style.iconBg}`}>
-              <Icon className={style.iconColor} strokeWidth={2} size={48} />
+            <div className="p-3 rounded-full" style={{ backgroundColor: style.iconBg }}>
+              <Icon strokeWidth={2} size={48} style={{ color: style.iconColor }} />
             </div>
           </div>
-          <h1 className={`text-3xl font-bold ${style.titleColor}`}>{title}</h1>
+          <h1 className="text-3xl font-bold" style={{ color: style.titleColor }}>
+            {title}
+          </h1>
           {message && (
-            <p className={`text-base ${style.messageColor} mt-3 max-w-lg mx-auto`}>{message}</p>
+            <p className="text-base mt-3 max-w-lg mx-auto" style={{ color: style.messageColor }}>
+              {message}
+            </p>
           )}
         </div>
 
@@ -120,14 +130,20 @@ export default function ErrorDisplay({
 
           {/* Error details (dev only) */}
           {import.meta.env.DEV && errorDetails && (
-            <div className="p-4 border-l-4 border-danger rounded bg-danger-soft">
+            <div
+              className="p-4 border-l-4 rounded"
+              style={{ borderColor: 'var(--danger)', backgroundColor: 'var(--danger-soft)' }}
+            >
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="text-danger" size={16} />
-                <p className="text-xs font-semibold text-danger">
+                <AlertCircle size={16} style={{ color: 'var(--danger)' }} />
+                <p className="text-xs font-semibold" style={{ color: 'var(--danger)' }}>
                   Error Details (Development Only)
                 </p>
               </div>
-              <pre className="text-xs text-danger whitespace-pre-wrap break-all overflow-x-auto max-h-40">
+              <pre
+                className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-40"
+                style={{ color: 'var(--danger)' }}
+              >
                 {typeof errorDetails === 'string' ? errorDetails : errorDetails.toString()}
               </pre>
             </div>

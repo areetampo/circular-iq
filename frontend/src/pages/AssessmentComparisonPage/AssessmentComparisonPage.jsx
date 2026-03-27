@@ -302,8 +302,8 @@ export default function AssessmentComparisonPage() {
           <div
             className="border-2 rounded-xl"
             style={{
-              background: 'linear-gradient(to bottom right, var(--success-soft), var(--surface))',
-              borderColor: 'var(--success)',
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
             }}
           >
             <div className="gap-3 p-4">
@@ -357,9 +357,9 @@ export default function AssessmentComparisonPage() {
                 size="lg"
                 className="text-lg font-bold px-5 py-3"
                 style={{
-                  background:
-                    'linear-gradient(to right, var(--success-soft), var(--accent-soft), var(--info-soft))',
-                  color: 'var(--foreground)',
+                  backgroundColor: 'var(--accent-soft)',
+                  color: 'var(--accent)',
+                  border: '1px solid var(--accent)',
                 }}
               >
                 <Chip.Label>VS</Chip.Label>
@@ -370,8 +370,8 @@ export default function AssessmentComparisonPage() {
           <div
             className="border-2 rounded-xl"
             style={{
-              background: 'linear-gradient(to bottom right, var(--accent-soft), var(--surface))',
-              borderColor: 'var(--accent)',
+              backgroundColor: 'var(--surface)',
+              borderColor: 'var(--border)',
             }}
           >
             <div className="gap-3 p-4">
