@@ -438,7 +438,7 @@ export default function MyAssessmentsPage() {
         <div
           className="border rounded-xl px-6 py-5 shadow-sm"
           style={{
-            background: 'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
+            backgroundColor: 'var(--surface)',
             borderColor: 'var(--border)',
           }}
         >
@@ -568,7 +568,7 @@ export default function MyAssessmentsPage() {
             {
               label: 'Back to Home',
               onClick: handleBack,
-              variant: 'neutral-soft',
+              variant: 'secondary',
             },
           ]}
           showDefaultActions={false}
@@ -606,7 +606,7 @@ export default function MyAssessmentsPage() {
                         {averageScore}
                       </h3>
                     </div>
-                    <p className="text-sm font-medium mt-2" style={{ color: 'var(--success)' }}>
+                    <p className="text-sm font-medium mt-2" style={{ color: 'var(--muted)' }}>
                       Across {stats_totalAssessments} assessment
                       {stats_totalAssessments !== 1 ? 's' : ''}
                     </p>
@@ -655,10 +655,8 @@ export default function MyAssessmentsPage() {
               <div
                 className="border rounded-xl px-6 py-5"
                 style={{
-                  background:
-                    'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
-                  borderColor: 'var(--accent)',
-                  borderWidth: '1px',
+                  backgroundColor: 'var(--surface)',
+                  borderColor: 'var(--border)',
                 }}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -686,7 +684,7 @@ export default function MyAssessmentsPage() {
                     {topIndustries && topIndustries.length > 3 && (
                       <Popover>
                         <Popover.Trigger>
-                          <Button size="xs" variant="info-soft" className="mt-2">
+                          <Button size="xs" variant="ghost" className="mt-2">
                             View All
                           </Button>
                         </Popover.Trigger>
@@ -764,7 +762,7 @@ export default function MyAssessmentsPage() {
                   {
                     label: 'Back to Home',
                     onClick: handleBack,
-                    variant: 'neutral-soft',
+                    variant: 'secondary',
                   },
                 ]}
                 showDefaultActions={false}
@@ -804,7 +802,7 @@ export default function MyAssessmentsPage() {
                     Start your first assessment to track your circular economy progress and get
                     personalized recommendations.
                   </p>
-                  <Button onPress={handleBack} variant="success" size="lg">
+                  <Button onPress={handleBack} variant="primary" size="lg">
                     <Plus size={20} />
                     Start Your First Assessment
                   </Button>
@@ -846,7 +844,7 @@ export default function MyAssessmentsPage() {
                     different industry or adjusting your search.
                   </p>
                   <Button
-                    variant="neutral"
+                    variant="secondary"
                     onPress={() => {
                       setSearchTerm('');
                       setSelectedIndustries(['all']);
@@ -982,7 +980,7 @@ export default function MyAssessmentsPage() {
 
       {/* Simple Back Home Button */}
       <div className="flex justify-center pt-2">
-        <Button variant="neutral-soft" onPress={handleBack} size="lg">
+        <Button variant="secondary" onPress={handleBack} size="lg">
           <ArrowLeft strokeWidth={2.5} size={20} />
           Back to Home
         </Button>

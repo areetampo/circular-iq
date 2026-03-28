@@ -9,9 +9,9 @@ function formatFactorName(factor) {
 }
 
 const statusConfig = {
-  below_average: { label: 'Needs Work', color: 'error', bg: 'rgba(244, 67, 54, 0.08)' },
-  average: { label: 'On Track', color: 'default', bg: 'rgba(120, 144, 156, 0.08)' },
-  above_average: { label: 'Strong', color: 'success', bg: 'rgba(46, 125, 50, 0.08)' },
+  below_average: { label: 'Needs Work', color: 'var(--danger)', bg: 'var(--danger-soft)' },
+  average: { label: 'On Track', color: 'var(--foreground)', bg: 'var(--surface)' },
+  above_average: { label: 'Strong', color: 'var(--success)', bg: 'var(--success-soft)' },
 };
 
 export default function BenchmarkTable({ comparisons = {}, opportunities = [], strengths = [] }) {

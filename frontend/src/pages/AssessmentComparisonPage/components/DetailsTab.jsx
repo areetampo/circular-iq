@@ -17,27 +17,34 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
   return (
     <>
       {/* Project Details */}
-      <Card className="border-2 border-violet-200 shadow-md rounded-xl bg-linear-to-br from-violet-50/30 to-white">
+      <Card
+        className="border-2 rounded-xl"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
         <Card.Header className="flex items-center gap-3 pb-4">
-          <div className="p-2.5 rounded-lg bg-linear-to-br from-violet-100 to-violet-200">
-            <FileText className="text-violet-700" size={20} />
+          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <FileText style={{ color: 'var(--accent)' }} size={20} />
           </div>
-          <Card.Title className="font-bold text-lg text-slate-900">Project Details</Card.Title>
+          <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+            Project Details
+          </Card.Title>
         </Card.Header>
         <Card.Content className="p-0">
           <Table>
             <Table.ScrollContainer>
-              <Table.Content aria-label="Project details table" className="min-w-[600px]">
+              <Table.Content aria-label="Project details table" className="min-w-md">
                 <Table.Header>
-                  <Table.Column className="w-[35%]" isRowHeader>
+                  <Table.Column className="w-1/3" isRowHeader>
                     ATTRIBUTE
                   </Table.Column>
                   <Table.Column className="text-center">{assessment1.title}</Table.Column>
                   <Table.Column className="text-center">{assessment2.title}</Table.Column>
                 </Table.Header>
                 <Table.Body>
-                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <Table.Cell className="font-semibold text-slate-900">Industry</Table.Cell>
+                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      Industry
+                    </Table.Cell>
                     <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
@@ -57,8 +64,10 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <Table.Cell className="font-semibold text-slate-900">Scale</Table.Cell>
+                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      Scale
+                    </Table.Cell>
                     <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>{titleize(scoringResult1?.metadata?.scale)}</Chip.Label>
@@ -70,8 +79,10 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <Table.Cell className="font-semibold text-slate-900">Strategy</Table.Cell>
+                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      Strategy
+                    </Table.Cell>
                     <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>{titleize(scoringResult1?.metadata?.r_strategy)}</Chip.Label>
@@ -83,8 +94,10 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row className="hover:bg-slate-50/50 transition-colors duration-150">
-                    <Table.Cell className="font-semibold text-slate-900">Material</Table.Cell>
+                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      Material
+                    </Table.Cell>
                     <Table.Cell className="text-center">
                       <Chip variant="secondary" size="sm" className="transition-all duration-200">
                         <Chip.Label>
@@ -110,19 +123,22 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {/* Gap Analysis Comparison */}
       {(scoringResult1?.gap_analysis?.has_benchmarks ||
         scoringResult2?.gap_analysis?.has_benchmarks) && (
-        <Card className="border-2 border-amber-200 shadow-md rounded-xl bg-linear-to-br from-amber-50/30 to-white">
+        <Card
+          className="border-2 rounded-xl"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <Card.Header className="flex items-center gap-3 pb-4">
-            <div className="p-2.5 rounded-lg bg-linear-to-br from-amber-100 to-amber-200">
-              <Award className="text-amber-700" size={20} />
+            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+              <Award style={{ color: 'var(--accent)' }} size={20} />
             </div>
-            <Card.Title className="font-bold text-lg text-slate-900">
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               Gap Analysis vs Similar Projects
             </Card.Title>
           </Card.Header>
           <Card.Content className="p-0 overflow-x-auto">
             <Table>
               <Table.ScrollContainer>
-                <Table.Content aria-label="Gap analysis comparison" className="min-w-[600px]">
+                <Table.Content aria-label="Gap analysis comparison" className="min-w-md">
                   <Table.Header>
                     <Table.Column className="w-[35%]" isRowHeader>
                       FACTOR
@@ -136,47 +152,64 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                     ).map((factor) => {
                       const comp1 = scoringResult1?.gap_analysis?.comparisons?.[factor];
                       const comp2 = scoringResult2?.gap_analysis?.comparisons?.[factor];
-                      const statusCls = (s) =>
-                        s === 'above_average'
-                          ? 'text-green-700 bg-green-100'
-                          : s === 'below_average'
-                            ? 'text-red-700 bg-red-100'
-                            : 'text-blue-700 bg-blue-100';
+                      const statusStyle = (s) => ({
+                        color:
+                          s === 'above_average'
+                            ? 'var(--success)'
+                            : s === 'below_average'
+                              ? 'var(--danger)'
+                              : 'var(--info)',
+                      });
                       return (
                         <Table.Row key={factor}>
-                          <Table.Cell className="font-medium text-slate-900">
+                          <Table.Cell
+                            className="font-medium"
+                            style={{ color: 'var(--foreground)' }}
+                          >
                             {formatFactorName(factor)}
                           </Table.Cell>
                           <Table.Cell className="text-center">
                             {comp1 ? (
                               <div className="flex flex-col items-center gap-1">
-                                <span className="text-sm font-bold text-slate-800">
+                                <span
+                                  className="text-sm font-bold"
+                                  style={{ color: 'var(--foreground)' }}
+                                >
                                   {comp1.userScore}
                                 </span>
                                 <span
-                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls(comp1.status)}`}
+                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                                  style={statusStyle(comp1.status)}
                                 >
                                   {comp1.status?.replace(/_/g, ' ') || '—'}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-slate-400 text-xs">—</span>
+                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                                —
+                              </span>
                             )}
                           </Table.Cell>
                           <Table.Cell className="text-center">
                             {comp2 ? (
                               <div className="flex flex-col items-center gap-1">
-                                <span className="text-sm font-bold text-slate-800">
+                                <span
+                                  className="text-sm font-bold"
+                                  style={{ color: 'var(--foreground)' }}
+                                >
                                   {comp2.userScore}
                                 </span>
                                 <span
-                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCls(comp2.status)}`}
+                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                                  style={statusStyle(comp2.status)}
                                 >
                                   {comp2.status?.replace(/_/g, ' ') || '—'}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-slate-400 text-xs">—</span>
+                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                                —
+                              </span>
                             )}
                           </Table.Cell>
                         </Table.Row>
@@ -192,9 +225,12 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
 
       {/* Circular Economy Tier Comparison */}
       {(scoringResult1?.circular_economy_tier || scoringResult2?.circular_economy_tier) && (
-        <Card className="border-2 border-green-200 shadow-md rounded-xl bg-white">
+        <Card
+          className="border-2 rounded-xl"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <Card.Header className="flex items-center gap-3 pb-3">
-            <Card.Title className="font-bold text-lg text-slate-900">
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               Circular Economy Tier
             </Card.Title>
           </Card.Header>
@@ -209,29 +245,53 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   return (
                     <div
                       key={title}
-                      className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-400 text-sm"
+                      className="p-4 rounded-xl border text-sm"
+                      style={{
+                        backgroundColor: 'var(--surface)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--muted)',
+                      }}
                     >
                       No tier data
                     </div>
                   );
-                const tierCls =
+                const tierColor =
                   tier.badge_color === 'green'
-                    ? 'border-green-300 bg-green-50 text-green-700'
+                    ? 'var(--success)'
                     : tier.badge_color === 'blue'
-                      ? 'border-blue-300 bg-blue-50 text-blue-700'
+                      ? 'var(--info)'
                       : tier.badge_color === 'amber'
-                        ? 'border-amber-300 bg-amber-50 text-amber-700'
-                        : 'border-red-300 bg-red-50 text-red-700';
+                        ? 'var(--warning)'
+                        : 'var(--danger)';
+                const tierBg =
+                  tier.badge_color === 'green'
+                    ? 'var(--success-soft)'
+                    : tier.badge_color === 'blue'
+                      ? 'var(--info-soft)'
+                      : tier.badge_color === 'amber'
+                        ? 'var(--warning-soft)'
+                        : 'var(--danger-soft)';
                 return (
-                  <div key={title} className={`p-4 rounded-xl border-2 ${tierCls}`}>
-                    <p className="text-xs font-semibold uppercase tracking-wide opacity-70 mb-1">
+                  <div
+                    key={title}
+                    className="p-4 rounded-xl border-2"
+                    style={{ borderColor: tierColor, backgroundColor: tierBg }}
+                  >
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wide mb-1"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {title}
                     </p>
-                    <p className="text-2xl font-bold">{tier.tier}</p>
-                    <p className="text-xs opacity-70 mb-2">
+                    <p className="text-2xl font-bold" style={{ color: tierColor }}>
+                      {tier.tier}
+                    </p>
+                    <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
                       {tier.range} · {tier.percentile_estimate}
                     </p>
-                    <p className="text-xs leading-relaxed opacity-90">{tier.next_milestone}</p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                      {tier.next_milestone}
+                    </p>
                   </div>
                 );
               })}
@@ -243,9 +303,12 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {/* R-Strategy Alignment Comparison */}
       {(scoringResult1?.r_strategy_alignment?.alignment_score != null ||
         scoringResult2?.r_strategy_alignment?.alignment_score != null) && (
-        <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-white">
+        <Card
+          className="border-2 rounded-xl"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <Card.Header className="flex items-center gap-3 pb-3">
-            <Card.Title className="font-bold text-lg text-slate-900">
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               R-Strategy Alignment
             </Card.Title>
           </Card.Header>
@@ -260,31 +323,48 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   return (
                     <div
                       key={title}
-                      className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-400 text-sm"
+                      className="p-4 rounded-xl border text-sm"
+                      style={{
+                        backgroundColor: 'var(--surface)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--muted)',
+                      }}
                     >
                       No alignment data
                     </div>
                   );
                 const sc =
                   ra.alignment_score >= 75
-                    ? 'text-green-600'
+                    ? 'var(--success)'
                     : ra.alignment_score >= 55
-                      ? 'text-blue-600'
-                      : 'text-amber-600';
+                      ? 'var(--info)'
+                      : 'var(--warning)';
                 return (
-                  <div key={title} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
+                  <div
+                    key={title}
+                    className="p-4 rounded-xl border"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  >
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wide mb-1"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {title}
                     </p>
-                    <p className="text-sm font-semibold text-slate-700 mb-1">
-                      Strategy: {ra.strategy}
-                    </p>
                     <div className="flex items-baseline gap-1 mb-1">
-                      <span className={`text-2xl font-bold ${sc}`}>{ra.alignment_score}</span>
-                      <span className="text-sm text-slate-400">/100</span>
+                      <span className="text-2xl font-bold" style={{ color: sc }}>
+                        {ra.alignment_score}
+                      </span>
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
+                        /100
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 mb-1">{ra.rating}</p>
-                    <p className="text-xs text-slate-600 leading-relaxed">{ra.message}</p>
+                    <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                      {ra.rating}
+                    </p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                      {ra.message}
+                    </p>
                   </div>
                 );
               })}
@@ -295,9 +375,12 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
 
       {/* Parameter Consistency Comparison */}
       {(scoringResult1?.parameter_consistency || scoringResult2?.parameter_consistency) && (
-        <Card className="border-2 border-indigo-200 shadow-md rounded-xl bg-white">
+        <Card
+          className="border-2 rounded-xl"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           <Card.Header className="flex items-center gap-3 pb-3">
-            <Card.Title className="font-bold text-lg text-slate-900">
+            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               Self-Assessment Reliability
             </Card.Title>
           </Card.Header>
@@ -312,30 +395,50 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   return (
                     <div
                       key={title}
-                      className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-400 text-sm"
+                      className="p-4 rounded-xl border text-sm"
+                      style={{
+                        backgroundColor: 'var(--surface)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--muted)',
+                      }}
                     >
                       No data
                     </div>
                   );
                 const sc =
                   pc.score >= 85
-                    ? 'text-green-600'
+                    ? 'var(--success)'
                     : pc.score >= 65
-                      ? 'text-blue-600'
-                      : 'text-amber-600';
+                      ? 'var(--info)'
+                      : 'var(--warning)';
                 return (
-                  <div key={title} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                  <div
+                    key={title}
+                    className="p-4 rounded-xl border"
+                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  >
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wide mb-2"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {title}
                     </p>
                     <div className="flex items-baseline gap-1 mb-1">
-                      <span className={`text-2xl font-bold ${sc}`}>{pc.score}</span>
-                      <span className="text-sm text-slate-400">/100</span>
+                      <span className="text-2xl font-bold" style={{ color: sc }}>
+                        {pc.score}
+                      </span>
+                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
+                        /100
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 mb-1">{pc.rating} Consistency</p>
-                    <p className="text-xs text-slate-600 leading-relaxed">{pc.interpretation}</p>
+                    <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                      {pc.rating} Consistency
+                    </p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                      {pc.interpretation}
+                    </p>
                     {pc.issues?.length > 0 && (
-                      <p className="text-xs text-amber-600 mt-1">
+                      <p className="text-xs mt-1" style={{ color: 'var(--warning)' }}>
                         {pc.issues_found} issue{pc.issues_found !== 1 ? 's' : ''} detected
                       </p>
                     )}
@@ -348,31 +451,46 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       )}
 
       {/* Auditor's Verdict */}
-      <Card className="border-2 border-green-200 shadow-md rounded-xl bg-linear-to-br from-green-50/30 to-white">
+      <Card
+        className="border-2 rounded-xl"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
         <Card.Header className="flex gap-3 items-center pb-3">
-          <div className="p-2.5 rounded-lg bg-linear-to-br from-green-100 to-green-200">
-            <Lightbulb className="text-green-700" size={20} />
+          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <Lightbulb style={{ color: 'var(--accent)' }} size={20} />
           </div>
-          <Card.Title className="font-bold text-lg text-slate-900">
+          <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
             Auditor&apos;s Verdict
           </Card.Title>
         </Card.Header>
         <Card.Content>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-5 pl-4 border-l-4 border-emerald-500 bg-linear-to-r from-emerald-50/50 to-white rounded-r-lg hover:shadow-md transition-all duration-200">
-              <p className="text-sm font-bold text-emerald-700 uppercase mb-2 tracking-wide">
+            <div
+              className="p-5 pl-4 border-l-4 rounded-r-lg"
+              style={{ borderLeftColor: 'var(--success)', backgroundColor: 'var(--success-soft)' }}
+            >
+              <p
+                className="text-sm font-bold uppercase mb-2 tracking-wide"
+                style={{ color: 'var(--success)' }}
+              >
                 {assessment1.title}
               </p>
-              <p className="text-sm text-slate-700 leading-relaxed">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
                 {scoringResult1?.audit?.audit_verdict || 'No verdict available'}
               </p>
             </div>
 
-            <div className="p-5 pl-4 border-l-4 border-blue-500 bg-linear-to-r from-blue-50/50 to-white rounded-r-lg hover:shadow-md transition-all duration-200">
-              <p className="text-sm font-bold text-blue-700 uppercase mb-2 tracking-wide">
+            <div
+              className="p-5 pl-4 border-l-4 rounded-r-lg"
+              style={{ borderLeftColor: 'var(--info)', backgroundColor: 'var(--info-soft)' }}
+            >
+              <p
+                className="text-sm font-bold uppercase mb-2 tracking-wide"
+                style={{ color: 'var(--info)' }}
+              >
                 {assessment2.title}
               </p>
-              <p className="text-sm text-slate-700 leading-relaxed">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
                 {scoringResult2?.audit?.audit_verdict || 'No verdict available'}
               </p>
             </div>
@@ -381,17 +499,22 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       </Card>
 
       {/* Summary */}
-      <Card className="border-2 border-teal-300 bg-linear-to-br from-teal-50/40 via-emerald-50/30 to-cyan-50/40 shadow-md rounded-xl">
+      <Card
+        className="border-2 rounded-xl"
+        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      >
         <Card.Content className="gap-4 p-0">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-linear-to-br from-teal-100 to-teal-200">
-              <Lightbulb className="text-teal-700" size={20} />
+            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+              <Lightbulb style={{ color: 'var(--accent)' }} size={20} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Summary</h3>
+            <h3 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
+              Summary
+            </h3>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
-              <strong className="text-slate-900">Score Trend:</strong>
+              <strong style={{ color: 'var(--foreground)' }}>Score Trend:</strong>
               {scoringResult2?.overall_score > scoringResult1?.overall_score ? (
                 <Chip
                   color="success"
@@ -431,8 +554,11 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
               if (a1 && a2 && a1 !== a2) {
                 return (
                   <div className="flex items-center gap-2">
-                    <strong className="text-slate-900">Industry Change:</strong>
-                    <span className="flex items-center gap-1 text-slate-600 font-medium">
+                    <strong style={{ color: 'var(--foreground)' }}>Industry Change:</strong>
+                    <span
+                      className="flex items-center gap-1 font-medium"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       {titleize(a1)}
                       <ArrowRight size={12} />
                       {titleize(a2)}
@@ -443,9 +569,9 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
               return null;
             })()}
 
-            <div className="text-slate-600 pt-2 border-t border-slate-200">
-              <strong className="text-slate-900">Compared: </strong>
-              <span className="text-md font-bold">
+            <div className="pt-2 border-t" style={{ borderTopColor: 'var(--border)' }}>
+              <strong style={{ color: 'var(--foreground)' }}>Compared: </strong>
+              <span className="text-md font-bold" style={{ color: 'var(--foreground)' }}>
                 {assessment1.title}
                 <span className="italic font-normal">
                   {' '}

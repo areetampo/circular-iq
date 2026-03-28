@@ -55,7 +55,7 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
             <div
               className={`absolute left-0 top-0 bottom-0 w-0.5 transition-all duration-200`}
               style={{
-                backgroundColor: 'var(--success)',
+                backgroundColor: 'var(--accent)',
                 opacity: isActive ? '1' : '0',
               }}
             />
@@ -107,7 +107,7 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
       >
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-[var(--accent-soft)]"
+          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-accent-soft"
         >
           <div className="flex items-center gap-3">
             <div className="relative w-6 h-6 shrink-0">
@@ -131,13 +131,13 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
                   strokeDashoffset={`${2 * Math.PI * 10 * (1 - getProgress(activeSection) / 100)}`}
                   strokeLinecap="round"
                   className="transition-all duration-300"
-                  style={{ stroke: 'var(--success)' }}
+                  style={{ stroke: 'var(--accent)' }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 {SECTIONS.find((s) => s.id === activeSection) &&
                   React.createElement(SECTIONS.find((s) => s.id === activeSection).icon, {
-                    style: { color: 'var(--success)' },
+                    style: { color: 'var(--accent)' },
                     size: 12,
                   })}
               </div>
@@ -186,8 +186,8 @@ const AssessmentMethodologySection = () => {
     <section id="assessment-methodology" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <BookCopy className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <BookCopy className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Assessment Methodology</h2>
@@ -271,8 +271,8 @@ const BusinessProblemSection = () => {
     <section id="business-problem" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <Target className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <Target className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Business Problem Guide</h2>
@@ -303,12 +303,7 @@ const BusinessProblemSection = () => {
               {GUIDE_PAGE_CONTENT.businessProblem.elements.map((item, idx) => (
                 <div
                   key={idx}
-                  className={[
-                    'group/card relative flex items-start gap-3.5',
-                    'p-4 rounded-xl border-l-4',
-                    'transition-all duration-300 ease-out cursor-default select-none',
-                    'hover:shadow-md hover:-translate-y-0.5',
-                  ].join(' ')}
+                  className="flex items-start gap-3.5 p-4 rounded-xl border-l-4 cursor-default select-none"
                   style={{
                     backgroundColor: 'var(--surface-raised)',
                     borderColor: 'var(--success)',
@@ -316,9 +311,7 @@ const BusinessProblemSection = () => {
                   }}
                 >
                   <div
-                    className="shrink-0 p-2 rounded-lg mt-0.5
-                                    transition-[transform,box-shadow] duration-300 ease-out
-                                    group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md"
+                    className="shrink-0 p-2 rounded-lg mt-0.5"
                     style={{ backgroundColor: 'var(--success-soft)' }}
                   >
                     <ClipboardMinus
@@ -404,8 +397,8 @@ const BusinessSolutionSection = () => {
     <section id="business-solution" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <Lightbulb className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <Lightbulb className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Business Solution Guide</h2>
@@ -524,8 +517,8 @@ const EvaluationCriteriaSection = () => {
     <section id="evaluation-criteria" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <ClipboardMinus className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <ClipboardMinus className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Evaluation Criteria</h2>
@@ -642,8 +635,8 @@ const EvaluationParametersSection = () => {
     <section id="evaluation-parameters" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <BarChart3 className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <BarChart3 className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Evaluation Parameters Guide</h2>
@@ -664,13 +657,13 @@ const EvaluationParametersSection = () => {
               ([key, factor]) => (
                 <div
                   key={key}
-                  className="p-4 rounded-xl"
-                  style={{ backgroundColor: 'var(--success-soft)', borderColor: 'var(--success)' }}
+                  className="p-4 rounded-xl border"
+                  style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
                 >
-                  <h4 className="text-base font-bold mb-1" style={{ color: 'var(--success)' }}>
+                  <h4 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)' }}>
                     {factor.title}
                   </h4>
-                  <p className="text-xs font-medium mb-2" style={{ color: 'var(--success)' }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted)' }}>
                     Category: {factor.category}
                   </p>
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
@@ -692,8 +685,8 @@ const ParameterDetailsSection = () => {
     <section id="parameter-details" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <Settings className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <Settings className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Parameter Details</h2>
@@ -707,7 +700,7 @@ const ParameterDetailsSection = () => {
           {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.factors).map(
             ([key, guidance]) => (
               <div key={key} className="space-y-6">
-                <div className="border-l-4 pl-6">
+                <div className="border-l-4 pl-6" style={{ borderLeftColor: 'var(--accent)' }}>
                   <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
                     {guidance.name}
                   </h3>
@@ -804,8 +797,8 @@ const SampleTestCasesSection = () => {
     <section id="sample-test-cases" className="scroll-mt-20 lg:scroll-mt-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--success-soft)' }}>
-            <ClipboardPenLine className="" style={{ color: 'var(--success)' }} size={24} />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <ClipboardPenLine className="" style={{ color: 'var(--accent)' }} size={24} />
           </div>
           <div>
             <h2 className="text-2xl font-bold">Sample Test Cases</h2>
@@ -859,9 +852,7 @@ const SampleTestCasesSection = () => {
             ].map((testCase) => (
               <div
                 key={testCase.id}
-                className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
-                  activeCase === testCase.id ? 'ring-2' : 'hover:shadow-md hover:-translate-y-0.5'
-                }`}
+                className="p-4 rounded-xl border cursor-pointer transition-colors duration-200"
                 style={{
                   borderColor: activeCase === testCase.id ? 'var(--info)' : 'var(--border)',
                   backgroundColor:
@@ -1001,7 +992,7 @@ export default function GuidePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen">
       {/* Navigation */}
       <Navigation
         activeSection={activeSection}
