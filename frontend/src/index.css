@@ -466,6 +466,13 @@
   --info: oklch(0.58 0.13 240); /* calm blue */
   --info-soft: oklch(0.95 0.04 240 / 0.25);
 
+  /* ── Chart colours ── */
+  --chart-1: var(--info);
+  --chart-2: var(--accent);
+  --chart-3: var(--accent);
+  --chart-4: var(--success);
+  --chart-5: var(--warning);
+
   /* ── Scoring colours (for score badges/values) ── */
   --score-high: oklch(0.52 0.14 155); /* green ≥ 75 */
   --score-mid: oklch(0.65 0.14 68); /* amber 50–74 */
@@ -499,6 +506,11 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-info: var(--info);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
   --font-serif: 'Lora', Georgia, serif;
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
