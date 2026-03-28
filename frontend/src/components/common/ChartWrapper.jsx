@@ -2,7 +2,7 @@ import { Card, Skeleton } from '@heroui/react';
 import { ChartsTooltip } from '@mui/x-charts';
 import PropTypes from 'prop-types';
 
-import { cn } from '../../utils/cn';
+import { cn } from '@/utils/cn';
 
 /**
  * ChartContainer - Responsive wrapper that provides consistent height and modern styling

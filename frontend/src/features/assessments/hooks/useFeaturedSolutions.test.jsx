@@ -7,8 +7,8 @@ vi.mock('../api/assessmentApi', () => ({
   getFeaturedSolutions: vi.fn(),
 }));
 
+import { getFeaturedSolutions } from '@/features/assessments/api/assessmentApi';
 import { useFeaturedSolutions } from './useFeaturedSolutions';
-import { getFeaturedSolutions } from '../api/assessmentApi';
 
 const createTestQueryClient = () =>
   new QueryClient({

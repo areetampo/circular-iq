@@ -1,5 +1,6 @@
-import Brand from '@/components/common/Brand';
 import { BarChart3, CheckCircle2, Leaf, Zap } from 'lucide-react';
+
+import Brand from '@/components/common/Brand';
 
 const TRUST_SIGNALS = [
   { icon: CheckCircle2, text: '40,000+ case studies indexed' },

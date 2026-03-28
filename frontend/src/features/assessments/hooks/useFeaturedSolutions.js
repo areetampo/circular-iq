@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getFeaturedSolutions } from '../api/assessmentApi';
+import { getFeaturedSolutions } from '@/features/assessments/api/assessmentApi';
 
 /**
  * useFeaturedSolutions

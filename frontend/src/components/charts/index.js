@@ -9,4 +9,8 @@ export { default as ChartErrorBoundary } from './ChartErrorBoundary';
 export { default as InteractiveChartWrapper } from './InteractiveChartWrapper';
 
 // Re-export from common
-export { ChartContainer, ChartTooltip, ChartTooltipContent } from '../common/ChartWrapper';
+export {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/common/ChartWrapper';

@@ -14,9 +14,9 @@ import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentSt
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatTruncatedList } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
+import { parseSortBy } from '@/utils/sortUtils';
 
 import { AssessmentList, AssessmentListSkeleton, FilterBar } from './components';
-import { parseSortBy } from './sortUtils';
 
 export default function MyAssessmentsPage() {
   const navigate = useNavigate();

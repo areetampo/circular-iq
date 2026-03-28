@@ -7,8 +7,8 @@ import LoaderComponent from '@/components/common/LoaderComponent';
 import { deleteAssessment } from '@/features/assessments/api/assessmentApi';
 import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
+import { CircularEconomyTierCard, WeightedScoreCard } from '@/pages/ResultsPage/components';
 
-import { CircularEconomyTierCard, WeightedScoreCard } from '../ResultsPage/components';
 import {
   AssessmentHeader,
   AuditSummaryCard,

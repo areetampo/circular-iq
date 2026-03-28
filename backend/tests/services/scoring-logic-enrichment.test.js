@@ -1,11 +1,11 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
 import {
   calculateParameterConsistency,
   calculateRStrategyAlignment,
   classifyCircularEconomyTier,
   generateWeightedScoreCard,
-} from '../../services/scoring.logic.js';
+} from '#services/scoring.logic.js';
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 
 const weights = {
   public_participation: 0.15,
