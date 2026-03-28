@@ -41,7 +41,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   <Table.Column className="text-center">{assessment2.title}</Table.Column>
                 </Table.Header>
                 <Table.Body>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                  <Table.Row className="hover:bg-[var(--accent-soft)] transition-colors duration-150">
                     <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
                       Industry
                     </Table.Cell>
@@ -64,7 +64,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                  <Table.Row className="hover:bg-[var(--accent-soft)] transition-colors duration-150">
                     <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
                       Scale
                     </Table.Cell>
@@ -79,7 +79,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                  <Table.Row className="hover:bg-[var(--accent-soft)] transition-colors duration-150">
                     <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
                       Strategy
                     </Table.Cell>
@@ -94,7 +94,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
+                  <Table.Row className="hover:bg-[var(--accent-soft)] transition-colors duration-150">
                     <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
                       Material
                     </Table.Cell>

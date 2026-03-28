@@ -39,7 +39,7 @@ export default function GlobalLoadingBar() {
       style={{
         width: `${progress}%`,
         opacity: progress === 100 ? 0 : 1,
-        background: 'linear-gradient(to right, var(--accent), var(--surface), var(--accent))',
+        background: 'linear-gradient(to right, var(--accent), var(--accent-hover), var(--accent))',
       }}
     >
       {/* Animated shimmer effect */}
