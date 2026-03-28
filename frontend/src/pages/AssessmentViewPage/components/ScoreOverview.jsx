@@ -1,7 +1,5 @@
 import { Chip } from '@heroui/react';
 
-import { getScoreClass } from '@/lib/scoring';
-
 export default function ScoreOverview({ scoringResult }) {
   return (
     <div
@@ -23,8 +21,17 @@ export default function ScoreOverview({ scoringResult }) {
               Overall Score
             </p>
             <p
-              className={`text-4xl font-bold ${getScoreClass(scoringResult.overall_score)}`}
-              style={{}}
+              className="text-4xl font-bold"
+              style={{
+                color:
+                  scoringResult.overall_score >= 75
+                    ? 'var(--success)'
+                    : scoringResult.overall_score >= 50
+                      ? 'var(--info)'
+                      : scoringResult.overall_score >= 25
+                        ? 'var(--warning)'
+                        : 'var(--danger)',
+              }}
             >
               {scoringResult.overall_score ?? 'N/A'}
               <span className="text-lg" style={{ color: 'var(--muted)' }}>

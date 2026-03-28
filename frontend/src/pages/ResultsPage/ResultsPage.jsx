@@ -986,7 +986,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   scoringResult: actualResult,
                 });
               }}
-              variant="success"
+              variant="primary"
               isDisabled={isExporting}
             >
               <Save size={16} />
@@ -1648,10 +1648,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         </p>
                       </div>
                       <div
-                        className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
+                        className="ml-4 px-3 py-1 rounded-lg font-bold text-sm"
                         style={{
-                          backgroundColor: badgeColor,
-                          color: 'var(--accent-foreground)',
+                          backgroundColor: 'var(--surface)',
+                          color: badgeColor,
+                          border: '1px solid var(--border)',
                         }}
                       >
                         {numValue}
@@ -1696,15 +1697,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     </p>
                   </div>
                   <div
-                    className="ml-4 px-3 py-1 rounded-full font-bold text-sm"
+                    className="ml-4 px-3 py-1 rounded-lg font-bold text-sm"
                     style={{
-                      backgroundColor:
+                      backgroundColor: 'var(--surface)',
+                      color:
                         resolvedBusinessViabilityScore >= 75
                           ? 'var(--success)'
                           : resolvedBusinessViabilityScore >= 50
                             ? 'var(--accent)'
                             : 'var(--warning)',
-                      color: 'var(--accent-foreground)',
+                      border: '1px solid var(--border)',
                     }}
                   >
                     {resolvedBusinessViabilityScore}

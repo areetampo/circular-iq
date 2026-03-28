@@ -19,7 +19,6 @@ import { useDocumentStats } from '@/features/assessments/hooks/useDocumentStats'
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { useAuth } from '@/hooks/useAuth';
-import { cn } from '@/utils/cn';
 
 import {
   ChartPanel,
@@ -504,26 +503,59 @@ export default function DashboardPage() {
             {marketTableRows.length > 0 ? (
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-2 px-3 font-semibold text-slate-600">Industry</th>
-                    <th className="text-right py-2 px-3 font-semibold text-slate-600">Count</th>
-                    <th className="text-right py-2 px-3 font-semibold text-slate-600">Avg Score</th>
-                    <th className="text-right py-2 px-3 font-semibold text-slate-600">
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    <th
+                      className="text-left py-2 px-3 font-semibold"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      Industry
+                    </th>
+                    <th
+                      className="text-right py-2 px-3 font-semibold"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      Count
+                    </th>
+                    <th
+                      className="text-right py-2 px-3 font-semibold"
+                      style={{ color: 'var(--muted)' }}
+                    >
+                      Avg Score
+                    </th>
+                    <th
+                      className="text-right py-2 px-3 font-semibold"
+                      style={{ color: 'var(--muted)' }}
+                    >
                       Market Share
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {marketTableRows.map((row) => (
-                    <tr key={row.industry} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="py-2 px-3 text-slate-900 font-medium">{row.industry}</td>
-                      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
+                    <tr
+                      key={row.industry}
+                      className="hover:bg-[var(--accent-soft)] transition-colors"
+                      style={{ borderBottom: '1px solid var(--border)' }}
+                    >
+                      <td className="py-2 px-3 font-medium" style={{ color: 'var(--foreground)' }}>
+                        {row.industry}
+                      </td>
+                      <td
+                        className="py-2 px-3 text-right tabular-nums"
+                        style={{ color: 'var(--muted)' }}
+                      >
                         {row.count?.toLocaleString() ?? 0}
                       </td>
-                      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
+                      <td
+                        className="py-2 px-3 text-right tabular-nums"
+                        style={{ color: 'var(--muted)' }}
+                      >
                         {row.average_score ? `${row.average_score}%` : '—'}
                       </td>
-                      <td className="py-2 px-3 text-right text-slate-600 tabular-nums">
+                      <td
+                        className="py-2 px-3 text-right tabular-nums"
+                        style={{ color: 'var(--muted)' }}
+                      >
                         {row.market_share ? `${row.market_share}%` : '—'}
                       </td>
                     </tr>
@@ -566,7 +598,7 @@ export default function DashboardPage() {
                     .slice(0, 8)
                     .map((d) => ({ name: d.industry, count: d.count }))}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: '#6366f1', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'count', fill: 'var(--chart-1)', name: 'Count' }]}
                   height={180}
                   showGrid
                 />
@@ -581,7 +613,7 @@ export default function DashboardPage() {
                     .slice(0, 8)
                     .map((d) => ({ name: d.source, count: d.count }))}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: '#8b5cf6', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'count', fill: 'var(--chart-2)', name: 'Count' }]}
                   height={180}
                   showGrid
                 />
@@ -593,11 +625,17 @@ export default function DashboardPage() {
         )}
 
         {/* ── Featured Solutions ───────────────────────────────────────────── */}
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <div
+          className="rounded-xl border overflow-hidden"
+          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
           {/* Header + search */}
-          <div className="px-4 py-3 border-b border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <Lightbulb size={14} className="text-amber-500" />
+          <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+            <h3
+              className="text-sm font-semibold mb-3 flex items-center gap-2"
+              style={{ color: 'var(--foreground)' }}
+            >
+              <Lightbulb size={14} style={{ color: 'var(--accent)' }} />
               Featured Solutions
             </h3>
             <div className="space-y-3">
@@ -606,7 +644,8 @@ export default function DashboardPage() {
                 <div className="relative flex-1">
                   <Search
                     size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2"
+                    style={{ color: 'var(--muted)' }}
                   />
                   <input
                     type="text"
@@ -614,13 +653,19 @@ export default function DashboardPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                     placeholder="Search solutions..."
-                    className="w-full pl-9 pr-9 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                    className="w-full pl-9 pr-9 py-1.5 text-sm rounded-lg focus:outline-none"
+                    style={{
+                      border: '1px solid var(--field-border)',
+                      backgroundColor: 'var(--field-bg)',
+                      color: 'var(--foreground)',
+                    }}
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={handleSearchClear}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--muted)' }}
                     >
                       <X size={14} />
                     </button>
@@ -629,7 +674,8 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors shrink-0"
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors shrink-0"
+                  style={{ backgroundColor: 'var(--accent)', color: 'white' }}
                 >
                   Search
                 </button>
@@ -641,12 +687,12 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setCategoryFilter(undefined)}
-                    className={cn(
-                      'px-2.5 py-1 rounded-full text-[10px] font-medium transition-all',
-                      !categoryFilter
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                    )}
+                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                    style={{
+                      backgroundColor: !categoryFilter ? 'var(--accent)' : 'var(--surface)',
+                      color: !categoryFilter ? 'white' : 'var(--muted)',
+                      border: '1px solid var(--border)',
+                    }}
                   >
                     All
                   </button>
@@ -655,12 +701,13 @@ export default function DashboardPage() {
                       key={cat}
                       type="button"
                       onClick={() => setCategoryFilter(cat)}
-                      className={cn(
-                        'px-2.5 py-1 rounded-full text-[10px] font-medium transition-all',
-                        categoryFilter === cat
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                      )}
+                      className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                      style={{
+                        backgroundColor:
+                          categoryFilter === cat ? 'var(--accent)' : 'var(--surface)',
+                        color: categoryFilter === cat ? 'white' : 'var(--muted)',
+                        border: '1px solid var(--border)',
+                      }}
                     >
                       {cat}
                     </button>
@@ -782,7 +829,7 @@ export default function DashboardPage() {
                 <BarChart
                   data={userIndustryData}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: '#a78bfa', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'count', fill: 'var(--chart-3)', name: 'Count' }]}
                   height={220}
                   showGrid
                 />

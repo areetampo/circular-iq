@@ -3,7 +3,6 @@ import { BarChart3, Globe, Lock, Target, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { titleize } from '@/lib/formatting';
-import { getRiskBadgeColor } from '@/lib/scoring';
 
 export function ScoreOverviewSection({
   actualResult,
@@ -98,7 +97,7 @@ export function ScoreOverviewSection({
             <p className="text-xs font-semibold uppercase mb-1" style={{ color: 'var(--info)' }}>
               Key Finding
             </p>
-            <p className="text-sm text-muted leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
               {actualResult.audit.comparative_analysis}
             </p>
           </div>
@@ -349,7 +348,15 @@ export function ScoreOverviewSection({
                   </div>
                   <Chip
                     variant="soft"
-                    className={`text-xs font-bold ${getRiskBadgeColor(actualResult.derived_metrics.risk_level)}`}
+                    className="text-xs font-bold"
+                    style={{
+                      color:
+                        actualResult.derived_metrics.risk_level === 'low'
+                          ? 'var(--success)'
+                          : actualResult.derived_metrics.risk_level === 'medium'
+                            ? 'var(--warning)'
+                            : 'var(--danger)',
+                    }}
                   >
                     {actualResult.derived_metrics.risk_level?.toUpperCase() || 'UNKNOWN'}
                   </Chip>

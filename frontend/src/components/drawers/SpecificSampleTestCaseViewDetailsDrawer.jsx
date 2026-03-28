@@ -236,7 +236,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                           return (
                             <div
                               key={key}
-                              className="p-3 rounded-lg hover:border-warning transition-colors duration-200"
+                              className="p-3 rounded-lg transition-colors duration-200 hover:border-[var(--warning)]"
                               style={{
                                 backgroundColor: 'var(--surface)',
                                 borderColor: 'var(--warning)',

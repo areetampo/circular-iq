@@ -22,7 +22,7 @@ export function ScoreCategoryBreakdown({ actualResult }) {
             <div
               key={category}
               className="p-4 border rounded-lg"
-              style={{ backgroundColor: 'var(--muted)', borderColor: 'var(--border)' }}
+              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>

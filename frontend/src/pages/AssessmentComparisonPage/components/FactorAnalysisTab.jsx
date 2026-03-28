@@ -125,7 +125,7 @@ export function FactorAnalysisTab({
             factorDiffs.map((factor) => (
               <div
                 key={factor.factor}
-                className="space-y-3 pb-4 border-b last:border-0 p-3 rounded-lg transition-colors duration-200 hover:bg-accent-soft"
+                className="space-y-3 pb-4 border-b last:border-0 p-3 rounded-lg transition-colors duration-200 hover:bg-[var(--accent-soft)]"
                 style={{ borderColor: 'var(--border)' }}
               >
                 <div className="flex items-center justify-between">
@@ -233,7 +233,7 @@ export function FactorAnalysisTab({
                     return (
                       <Table.Row
                         key={factor}
-                        className="hover:bg-accent-soft transition-colors duration-150"
+                        className="hover:bg-[var(--accent-soft)] transition-colors duration-150"
                       >
                         <Table.Cell
                           className="font-semibold"

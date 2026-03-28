@@ -110,7 +110,17 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                         }
                         className="mb-1"
                       />
-                      <span className={`text-sm font-medium ${matchStrengthColor}`}>
+                      <span
+                        className="text-sm font-medium"
+                        style={{
+                          color:
+                            matchPercentage >= 70
+                              ? 'var(--success)'
+                              : matchPercentage >= 50
+                                ? 'var(--accent)'
+                                : 'var(--warning)',
+                        }}
+                      >
                         {matchStrengthLabel}
                       </span>
                     </div>

@@ -6,7 +6,7 @@ import { Card, Skeleton } from '@heroui/react';
  */
 export default function ResultsSkeleton() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--surface)' }}>
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Action Buttons Bar Skeleton */}
         <div
@@ -21,10 +21,7 @@ export default function ResultsSkeleton() {
 
         {/* Tabs Skeleton */}
         <div className="flex justify-center my-4">
-          <div
-            className="flex gap-2 p-1 rounded-xl"
-            style={{ backgroundColor: 'var(--success-soft)' }}
-          >
+          <div className="flex gap-2 p-1 rounded-xl" style={{ backgroundColor: 'var(--surface)' }}>
             <Skeleton animationType="shimmer" className="h-10 w-32 rounded-lg" />
             <Skeleton animationType="shimmer" className="h-10 w-40 rounded-lg" />
             <Skeleton animationType="shimmer" className="h-10 w-40 rounded-lg" />

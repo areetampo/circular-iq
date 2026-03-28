@@ -1,7 +1,5 @@
 import { Chip } from '@heroui/react';
 
-import { getRiskBadgeColor } from '@/lib/scoring';
-
 export default function DerivedMetricsCard({ scoringResult }) {
   if (!scoringResult?.derived_metrics) return null;
 
@@ -71,9 +69,15 @@ export default function DerivedMetricsCard({ scoringResult }) {
             </p>
             <Chip
               variant="soft"
-              className={`text-xs font-bold ${getRiskBadgeColor(
-                scoringResult.derived_metrics.risk_level,
-              )}`}
+              className="text-xs font-bold"
+              style={{
+                color:
+                  scoringResult.derived_metrics.risk_level === 'low'
+                    ? 'var(--success)'
+                    : scoringResult.derived_metrics.risk_level === 'medium'
+                      ? 'var(--warning)'
+                      : 'var(--danger)',
+              }}
             >
               {scoringResult.derived_metrics.risk_level?.toUpperCase() || 'UNKNOWN'}
             </Chip>
