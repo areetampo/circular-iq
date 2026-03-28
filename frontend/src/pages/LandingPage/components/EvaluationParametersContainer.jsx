@@ -64,9 +64,8 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
               >
                 <Label
                   className={cn(
-                    'mb-2 flex items-center gap-1.5 rounded-full px-3 py-1 w-fit mx-auto shadow-sm',
-                    'cursor-pointer select-none touch-none will-change-transform',
-                    'transition-all duration-150 ease-out',
+                    'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium',
+                    'cursor-pointer transition-all duration-150',
                     'hover:scale-103',
                     'active:scale-100',
                     (() => {
@@ -77,6 +76,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                     })(),
                   )}
                   onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
+                  aria-label={`View details for ${parameterLabels[paramKey].label}`}
                 >
                   <span className="font-semibold text-sm whitespace-nowrap">
                     {parameterLabels[paramKey].label}

@@ -5,7 +5,6 @@ import { Button } from '@/components/common';
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
-
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-6 py-16">
       <div className="w-full max-w-2xl text-center">

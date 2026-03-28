@@ -26,6 +26,15 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
       onClick={() => onView(assessment.public_id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onView(assessment.public_id);
+        }
+      }}
+      aria-label={`View assessment: ${assessment.title || 'Untitled'}`}
     >
       {/* LEFT: text info */}
       <div className="flex-1 min-w-0">

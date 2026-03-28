@@ -46,6 +46,7 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
               onSectionClick(section.id);
               if (isMobile) setIsMobileMenuOpen(false);
             }}
+            aria-label={`Navigate to ${section.title}`}
             className={`group flex items-center gap-3 w-full py-2 text-left transition-all duration-200 relative ${
               isActive ? 'font-medium' : ''
             }`}
@@ -107,6 +108,8 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
       >
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label={`${isMobileMenuOpen ? 'Close' : 'Open'} section navigation menu`}
+          aria-expanded={isMobileMenuOpen}
           className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-[var(--accent-soft)]"
         >
           <div className="flex items-center gap-3">

@@ -22,6 +22,15 @@ export default function Navbar() {
     { id: 'guide', name: 'Guide', path: '/guide' },
   ];
 
+  const handleSignOut = async () => {
+    try {
+      await signOut?.();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   const userDropdownItems = [
     {
       id: 'assessments',
@@ -77,15 +86,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut?.();
-      navigate('/auth');
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  };
-
   const isActivePath = (path) => {
     const currentPath = location.pathname;
     if (path === '/assessments/compare') {
@@ -131,7 +131,11 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             {/* LEFT: Brand */}
-            <button onClick={() => navigate('/')} className="flex items-center gap-2.5 group">
+            <button
+              onClick={() => navigate('/')}
+              aria-label="Navigate to home page"
+              className="flex items-center gap-2.5 group"
+            >
               {/* Logo mark: small accent circle with RefreshCw icon */}
               <div
                 className="w-7 h-7 rounded-md flex items-center justify-center
@@ -156,6 +160,7 @@ export default function Navbar() {
                   <button
                     key={item.id}
                     onClick={() => handleNavigation(item)}
+                    aria-label={`Navigate to ${item.name}`}
                     className="relative text-[13px] font-medium transition-colors duration-150 py-1"
                     style={{ color: isActive ? 'var(--foreground)' : 'var(--muted)' }}
                   >
@@ -182,6 +187,8 @@ export default function Navbar() {
                       <Dropdown.Trigger
                         className="flex items-center gap-2 cursor-pointer transition-colors duration-150"
                         onClick={() => setIsDropdownOpen((prev) => !prev)}
+                        aria-label="User menu"
+                        aria-expanded={isDropdownOpen}
                       >
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center
@@ -261,6 +268,8 @@ export default function Navbar() {
                   {/* Mobile hamburger button */}
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    aria-label={`${isMenuOpen ? 'Close' : 'Open'} mobile navigation menu`}
+                    aria-expanded={isMenuOpen}
                     className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg
                                transition-colors duration-150"
                     style={{
@@ -299,6 +308,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => navigate('/auth')}
+                    aria-label="Sign in to your account"
                     className="text-[13px] font-medium transition-colors text-[var(--muted)]
                                hover:text-[var(--foreground)]"
                   >
@@ -306,6 +316,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={() => navigate('/auth')}
+                    aria-label="Get started with your account"
                     className="text-[13px] font-medium px-4 py-1.5 rounded-lg
                                transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
                     style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
@@ -362,6 +373,7 @@ export default function Navbar() {
           </div>
           <button
             onClick={() => setIsMenuOpen(false)}
+            aria-label="Close mobile navigation menu"
             className="w-7 h-7 flex items-center justify-center rounded-md
                        transition-colors hover:bg-[var(--accent-soft)]"
             style={{ color: 'var(--muted)' }}
@@ -403,6 +415,7 @@ export default function Navbar() {
               <button
                 key={item.id}
                 onClick={() => handleNavigation(item)}
+                aria-label={`Navigate to ${item.name}`}
                 className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium
                             text-left transition-colors duration-150 relative`}
                 style={{
@@ -437,6 +450,7 @@ export default function Navbar() {
                 handleSignOut();
                 setIsMenuOpen(false);
               }}
+              aria-label="Sign out of your account"
               className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg
                          text-sm font-medium transition-colors duration-150
                          hover:bg-[var(--danger-soft)]"
@@ -451,6 +465,7 @@ export default function Navbar() {
                 navigate('/auth');
                 setIsMenuOpen(false);
               }}
+              aria-label="Sign in to your account"
               className="w-full py-2.5 rounded-lg text-sm font-medium
                          transition-all duration-150 hover:opacity-90"
               style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
