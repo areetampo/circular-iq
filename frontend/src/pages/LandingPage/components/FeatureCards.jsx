@@ -32,7 +32,7 @@ export const FEATURE_CARDS = [
 
 export default function FeatureCards() {
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       {FEATURE_CARDS.map((card) => {
         const Icon = card.Icon;
         return (
@@ -40,40 +40,34 @@ export default function FeatureCards() {
             key={card.key}
             role="article"
             aria-label={card.title}
-            className="rounded-lg border p-6 group"
+            className="rounded-lg border p-5"
             style={{
-              backgroundColor: card.bg,
-              borderColor: card.borderClass,
+              backgroundColor: 'transparent',
+              borderColor: 'var(--border)',
             }}
           >
-            <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex items-start gap-4">
               <div
-                className="p-3 rounded-lg mb-4"
+                className="p-2.5 rounded-lg shrink-0"
                 style={{ backgroundColor: 'var(--accent-soft)' }}
               >
                 <Icon
-                  className="h-8 w-8 shrink-0"
+                  className="h-5 w-5 shrink-0"
                   style={{ color: card.iconColor }}
                   strokeWidth={1.75}
                 />
               </div>
-
-              <h3
-                className="font-semibold text-lg"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
-                {card.title}
-              </h3>
-              <p
-                className="mt-2 text-sm leading-relaxed"
-                style={{
-                  color: 'var(--muted)',
-                }}
-              >
-                {card.desc}
-              </p>
+              <div>
+                <h3
+                  className="font-semibold text-[15px] mb-1"
+                  style={{ color: 'var(--foreground)' }}
+                >
+                  {card.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                  {card.desc}
+                </p>
+              </div>
             </div>
           </div>
         );

@@ -8,7 +8,6 @@ import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
-import { cn } from '@/utils/cn';
 
 // Helper function to validate and normalize business model type values
 const normalizeBusinessModelType = (value) => {
@@ -192,7 +191,7 @@ export default function SampleTestCasesContainer({
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
       {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
@@ -202,20 +201,47 @@ export default function SampleTestCasesContainer({
             onClick={() => requestSelectCase(testCase)}
             aria-label={`Select sample test case: ${testCase.title}`}
             aria-pressed={isSelected}
-            className={cn(
-              'inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
-              'border cursor-pointer hover:shadow-sm',
-              isSelected
-                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]',
-              !isSelected &&
-                'hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]',
-            )}
-            title={testCase.title}
+            className="text-left rounded-lg border p-3 transition-colors duration-150 cursor-pointer"
+            style={{
+              backgroundColor: isSelected ? 'var(--accent-soft)' : 'transparent',
+              borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+            }}
           >
-            <span className="font-bold">{index + 1}</span>
-            <span className="truncate max-w-32">{testCase.title}</span>
-            {isSelected && <CheckCircle2 size={12} className="shrink-0" />}
+            <div className="flex items-start gap-2.5">
+              {/* Number badge */}
+              <span
+                className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
+                style={{
+                  backgroundColor: isSelected ? 'var(--accent)' : 'var(--surface)',
+                  color: isSelected ? 'white' : 'var(--muted)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {index + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p
+                    className="text-[13px] font-semibold leading-tight truncate"
+                    style={{ color: 'var(--foreground)' }}
+                  >
+                    {testCase.title}
+                  </p>
+                  {isSelected && (
+                    <CheckCircle2
+                      size={13}
+                      className="shrink-0"
+                      style={{ color: 'var(--accent)' }}
+                    />
+                  )}
+                </div>
+                {testCase.industry && (
+                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--muted)' }}>
+                    {testCase.industry}
+                  </p>
+                )}
+              </div>
+            </div>
           </button>
         );
       })}

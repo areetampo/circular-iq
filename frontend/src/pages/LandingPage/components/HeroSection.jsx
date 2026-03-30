@@ -1,6 +1,6 @@
 export default function HeroSection() {
   return (
-    <div className="text-center py-10 md:py-14">
+    <div className="text-center py-8 md:py-10">
       <p className="label-overline mb-4">AI-Powered · Evidence-Based · 40,000+ Cases</p>
       <h1
         className="heading-display max-w-2xl mx-auto leading-[1.1]"
@@ -13,8 +13,7 @@ export default function HeroSection() {
         className="mt-4 text-[15px] max-w-md mx-auto leading-relaxed"
         style={{ color: 'var(--muted)' }}
       >
-        Get an evidence-backed circularity score in minutes, grounded in real-world case
-        studies.
+        Get an evidence-backed circularity score in minutes, grounded in real-world case studies.
       </p>
     </div>
   );

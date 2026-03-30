@@ -66,8 +66,6 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   className={cn(
                     'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium',
                     'cursor-pointer transition-all duration-150',
-                    'hover:scale-103',
-                    'active:scale-100',
                     (() => {
                       const cfg =
                         GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
@@ -275,12 +273,7 @@ export default function EvaluationParametersContainer({
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <cfg.Icon
-                    className={cn(
-                      cfg.iconColor,
-                      'h-5 w-5 shrink-0',
-                      'transition-[scale,rotate] duration-300 ease-out',
-                      'group-hover/item:scale-[1.2] group-hover/item:-rotate-10 group-hover/item:drop-shadow-md mr-1.5',
-                    )}
+                    className={cn(cfg.iconColor, 'h-5 w-5 shrink-0 mr-1.5')}
                     strokeWidth={1.75}
                   />
 

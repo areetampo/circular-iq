@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
 import { titleize } from '@/lib/formatting';
-import { getRiskBadgeColor } from '@/lib/scoring';
 
 export function OverviewTab({
   assessment1,
@@ -247,13 +246,29 @@ export function OverviewTab({
                   <div className="flex items-center justify-between">
                     <Chip
                       variant="default"
-                      className={`text-xs ${getRiskBadgeColor(scoringResult1?.derived_metrics?.risk_level)}`}
+                      className="text-xs"
+                      style={{
+                        color:
+                          scoringResult1?.derived_metrics?.risk_level === 'low'
+                            ? 'var(--success)'
+                            : scoringResult1?.derived_metrics?.risk_level === 'medium'
+                              ? 'var(--warning)'
+                              : 'var(--danger)',
+                      }}
                     >
                       A1: {scoringResult1?.derived_metrics?.risk_level || 'N/A'}
                     </Chip>
                     <Chip
                       variant="default"
-                      className={`text-xs ${getRiskBadgeColor(scoringResult2?.derived_metrics?.risk_level)}`}
+                      className="text-xs"
+                      style={{
+                        color:
+                          scoringResult2?.derived_metrics?.risk_level === 'low'
+                            ? 'var(--success)'
+                            : scoringResult2?.derived_metrics?.risk_level === 'medium'
+                              ? 'var(--warning)'
+                              : 'var(--danger)',
+                      }}
                     >
                       A2: {scoringResult2?.derived_metrics?.risk_level || 'N/A'}
                     </Chip>

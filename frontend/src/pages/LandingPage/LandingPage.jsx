@@ -655,317 +655,295 @@ export default function LandingPage() {
         {/* Feature Cards */}
         <FeatureCards />
 
-        {/* Input Form */}
+        {/* Input Form — no card wrapper, floats directly on page bg */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          <div
-            ref={businessProblemSectionRef}
-            className="border rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <div className="p-6 sm:p-8">
+          <div ref={businessProblemSectionRef} className="space-y-6">
+            {/* Section heading */}
+            <div className="border-b pb-4" style={{ borderColor: 'var(--border)' }}>
               <h2
-                className="text-2xl font-semibold mb-2"
-                style={{
-                  color: 'var(--foreground)',
-                }}
+                className="heading-display text-[22px] mb-1"
+                style={{ color: 'var(--foreground)' }}
               >
                 Evaluate Your Circular Economy Business
               </h2>
-              <p
-                className="text-sm mb-6"
-                style={{
-                  color: 'var(--muted)',
-                }}
-              >
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>
                 Describe your business idea using the same structure as real circular economy
                 projects: what problem you solve, and how your solution addresses it.
               </p>
             </div>
-            <div className="space-y-6 px-6 sm:px-8 pb-8">
-              {/* Business Problem and Solution - Two columns on desktop */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Problem Input */}
-                <BusinessInputField
-                  id="business-problem"
-                  label="Business Problem"
-                  description="What environmental or circular economy challenge does your business address?"
-                  placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually, depleting marine ecosystems and poisoning food chains. Current alternatives are either cost-prohibitive or require complex infrastructure..."
-                  fieldName="businessProblem"
-                  register={register}
-                  onInfoClick={openBusinessProblemInfoDrawer}
-                  loading={loading}
-                  flushAutosave={flushAutosave}
-                  rows={4}
-                  minLength={200}
-                />
 
-                {/* Solution Input */}
-                <BusinessInputField
-                  id="business-solution"
-                  label="Business Solution"
-                  description="How does your business solve this problem? Include materials, processes, and circularity strategy."
-                  placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste, combined with a hub-and-spoke collection model. Customers receive pre-addressed, compostable mailers; we aggregate returns at regional hubs; certified composting facilities process 95% of materials into soil amendments sold back to agriculture..."
-                  fieldName="businessSolution"
-                  register={register}
-                  onInfoClick={openBusinessSolutionInfoDrawer}
-                  loading={loading}
-                  flushAutosave={flushAutosave}
-                  rows={5}
-                  minLength={200}
-                />
-              </div>
+            {/* Business Problem and Solution — same grid layout, no card */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <BusinessInputField
+                id="business-problem"
+                label="Business Problem"
+                description="What environmental or circular economy challenge does your business address?"
+                placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually..."
+                fieldName="businessProblem"
+                register={register}
+                onInfoClick={openBusinessProblemInfoDrawer}
+                loading={loading}
+                flushAutosave={flushAutosave}
+                rows={4}
+                minLength={200}
+              />
+              <BusinessInputField
+                id="business-solution"
+                label="Business Solution"
+                description="How does your business solve this problem? Include materials, processes, and circularity strategy."
+                placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste..."
+                fieldName="businessSolution"
+                register={register}
+                onInfoClick={openBusinessSolutionInfoDrawer}
+                loading={loading}
+                flushAutosave={flushAutosave}
+                rows={5}
+                minLength={200}
+              />
+            </div>
 
-              {/* Business Context Section */}
+            {/* Business Context — keep exactly as-is (accordion in its own bordered container) */}
+            <div
+              className="w-full rounded-lg border overflow-hidden"
+              style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+            >
+              <Accordion
+                className="w-full"
+                variant="default"
+                expandedKeys={businessContextExpandedKeys}
+                onExpandedChange={setBusinessContextExpandedKeys}
+              >
+                <Accordion.Item id="business-context-heading">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
+                      <BriefcaseBusiness
+                        className="h-6 w-6 shrink-0 mr-1"
+                        style={{ color: 'var(--accent)' }}
+                        strokeWidth={1.75}
+                      />
+
+                      <div className="flex flex-col gap-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="font-semibold text-lg leading-6"
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            Business Context
+                          </span>
+                          <BadgeInfo
+                            className="info-icon cursor-pointer"
+                            size={22}
+                            style={{ color: 'var(--accent)' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openBusinessContextHeadingInfoDrawer();
+                            }}
+                          />
+                        </div>
+                        <span
+                          className="text-xs font-normal leading-4"
+                          style={{ color: 'var(--muted)' }}
+                        >
+                          Optional — improves analysis quality
+                        </span>
+                      </div>
+
+                      <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
+                        <ChevronDown />
+                      </Accordion.Indicator>
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+
+                  <Accordion.Panel>
+                    <Accordion.Body className="p-0 bg-transparent">
+                      <BusinessContextContainer loading={loading} />
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            </div>
+
+            {/* Evaluation Parameters — keep exactly as-is */}
+            <div
+              className="w-full rounded-lg border overflow-hidden"
+              style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+            >
+              <Accordion
+                className="w-full"
+                variant="default"
+                allowsMultipleExpanded
+                expandedKeys={evalParamsExpandedKeys}
+                onExpandedChange={setEvalParamsExpandedKeys}
+              >
+                <Accordion.Item id="evaluation-parameters-heading">
+                  <Accordion.Heading>
+                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
+                      <SlidersHorizontal
+                        className="h-6 w-6 shrink-0 mr-1"
+                        style={{ color: 'var(--success)' }}
+                        strokeWidth={1.75}
+                      />
+
+                      <div className="flex flex-col gap-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="font-semibold text-lg leading-6"
+                            style={{
+                              color: 'var(--foreground)',
+                            }}
+                          >
+                            Evaluation Parameters
+                          </span>
+                          <BadgeInfo
+                            className="info-icon cursor-pointer"
+                            size={22}
+                            style={{ color: 'var(--accent)' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEvaluationParametersHeadingInfoDrawer();
+                            }}
+                          />
+                        </div>
+                        <span
+                          className="text-sm font-normal leading-4"
+                          style={{ color: 'var(--muted)' }}
+                        >
+                          Score each dimension of circular value
+                        </span>
+                      </div>
+
+                      <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
+                        <ChevronDown />
+                      </Accordion.Indicator>
+                    </Accordion.Trigger>
+                  </Accordion.Heading>
+
+                  <Accordion.Panel>
+                    <Accordion.Body className="p-0 bg-transparent">
+                      <EvaluationParametersContainer
+                        loading={loading}
+                        innerExpandedKeys={innerExpandedKeys}
+                        onInnerExpandedChange={setInnerExpandedKeys}
+                      />
+                    </Accordion.Body>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            </div>
+
+            {/* Error and Submit — keep exactly as-is */}
+            {error && (
               <div
-                className="w-full rounded-lg border overflow-hidden"
+                className="p-3 sm:p-4 rounded-lg border"
                 style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
+                  backgroundColor: 'var(--danger-soft)',
+                  borderColor: 'var(--danger-border)',
                 }}
               >
-                <Accordion
-                  className="w-full"
-                  variant="default"
-                  expandedKeys={businessContextExpandedKeys}
-                  onExpandedChange={setBusinessContextExpandedKeys}
-                >
-                  <Accordion.Item id="business-context-heading">
-                    <Accordion.Heading>
-                      <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
-                        <BriefcaseBusiness
-                          className="h-6 w-6 shrink-0 transition-transform duration-300 ease-out group-hover/parent:scale-110 mr-1"
-                          style={{ color: 'var(--accent)' }}
-                          strokeWidth={1.75}
-                        />
-
-                        <div className="flex flex-col gap-1 text-left">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="font-semibold text-lg leading-6"
-                              style={{
-                                color: 'var(--foreground)',
-                              }}
-                            >
-                              Business Context
-                            </span>
-                            <BadgeInfo
-                              className="info-icon cursor-pointer"
-                              size={22}
-                              style={{ color: 'var(--accent)' }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openBusinessContextHeadingInfoDrawer();
-                              }}
-                            />
-                          </div>
-                          <span
-                            className="text-xs font-normal leading-4"
-                            style={{ color: 'var(--muted)' }}
-                          >
-                            Optional — improves analysis quality
-                          </span>
-                        </div>
-
-                        <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
-                          <ChevronDown />
-                        </Accordion.Indicator>
-                      </Accordion.Trigger>
-                    </Accordion.Heading>
-
-                    <Accordion.Panel>
-                      <Accordion.Body className="p-0 bg-transparent">
-                        <BusinessContextContainer loading={loading} />
-                      </Accordion.Body>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                </Accordion>
-              </div>
-
-              {/* EvaluationParameters Parameters Section */}
-              <div
-                className="w-full rounded-lg border overflow-hidden"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <Accordion
-                  className="w-full"
-                  variant="default"
-                  allowsMultipleExpanded
-                  expandedKeys={evalParamsExpandedKeys}
-                  onExpandedChange={setEvalParamsExpandedKeys}
-                >
-                  <Accordion.Item id="evaluation-parameters-heading">
-                    <Accordion.Heading>
-                      <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
-                        <SlidersHorizontal
-                          className="h-6 w-6 shrink-0 transition-transform duration-300 ease-out group-hover/parent:scale-110 mr-1"
-                          style={{ color: 'var(--success)' }}
-                          strokeWidth={1.75}
-                        />
-
-                        <div className="flex flex-col gap-1 text-left">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="font-semibold text-lg leading-6"
-                              style={{
-                                color: 'var(--foreground)',
-                              }}
-                            >
-                              Evaluation Parameters
-                            </span>
-                            <BadgeInfo
-                              className="info-icon cursor-pointer"
-                              size={22}
-                              style={{ color: 'var(--accent)' }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEvaluationParametersHeadingInfoDrawer();
-                              }}
-                            />
-                          </div>
-                          <span
-                            className="text-sm font-normal leading-4"
-                            style={{ color: 'var(--muted)' }}
-                          >
-                            Score each dimension of circular value
-                          </span>
-                        </div>
-
-                        <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
-                          <ChevronDown />
-                        </Accordion.Indicator>
-                      </Accordion.Trigger>
-                    </Accordion.Heading>
-
-                    <Accordion.Panel>
-                      <Accordion.Body className="p-0 bg-transparent">
-                        <EvaluationParametersContainer
-                          loading={loading}
-                          innerExpandedKeys={innerExpandedKeys}
-                          onInnerExpandedChange={setInnerExpandedKeys}
-                        />
-                      </Accordion.Body>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                </Accordion>
-              </div>
-
-              {error && (
-                <div
-                  className="p-3 sm:p-4 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--danger-soft)',
-                    borderColor: 'var(--danger-border)',
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle
-                      className="flex-shrink-0"
-                      style={{ color: 'var(--danger)' }}
-                      strokeWidth={2.5}
-                      size={16}
-                    />
-                    <strong className="font-semibold" style={{ color: 'var(--danger)' }}>
-                      Validation Error:
-                    </strong>
-                  </div>
-                  <p className="text-sm font-medium" style={{ color: 'var(--danger)' }}>
-                    {error}, please try again.
-                  </p>
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle
+                    className="flex-shrink-0"
+                    style={{ color: 'var(--danger)' }}
+                    strokeWidth={2.5}
+                    size={16}
+                  />
+                  <strong className="font-semibold" style={{ color: 'var(--danger)' }}>
+                    Validation Error:
+                  </strong>
                 </div>
-              )}
+                <p className="text-sm font-medium" style={{ color: 'var(--danger)' }}>
+                  {error}, please try again.
+                </p>
+              </div>
+            )}
 
-              {/* Submit Button Section */}
-              <div className="w-full">
-                <Tooltip delay={0} isDisabled={isValid}>
-                  <Tooltip.Trigger>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onPress={handleSubmit(handleFormSubmit)}
-                      isDisabled={loading || !isValid}
-                      fullWidth
-                      className="h-12 text-sm font-medium"
+            {/* Submit Button — keep exactly as-is */}
+            <div className="w-full">
+              <Tooltip delay={0} isDisabled={isValid}>
+                <Tooltip.Trigger>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onPress={handleSubmit(handleFormSubmit)}
+                    isDisabled={loading || !isValid}
+                    fullWidth
+                    className="h-12 text-sm font-medium"
+                    style={{
+                      backgroundColor: loading || !isValid ? 'var(--muted)' : 'var(--accent)',
+                      color:
+                        loading || !isValid
+                          ? 'var(--muted-foreground)'
+                          : 'var(--accent-foreground)',
+                    }}
+                  >
+                    {loading ? (
+                      <LoaderIcon isButton={true} color="var(--surface)" />
+                    ) : (
+                      <span>Evaluate Circularity</span>
+                    )}
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content showArrow placement="top" className="text-center">
+                  <Tooltip.Arrow />
+                  <span>
+                    Please fill out business problem and solution fields (min. 200 chars each)
+                  </span>
+                </Tooltip.Content>
+              </Tooltip>
+            </div>
+
+            {/* Sample Test Cases — keep exactly as-is */}
+            <div
+              className="w-full rounded-lg border p-5"
+              style={{
+                backgroundColor: 'var(--surface)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <ClipboardList
+                  className="h-6 w-6 shrink-0"
+                  style={{ color: 'var(--success)' }}
+                  strokeWidth={1.75}
+                />
+
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="font-semibold text-base leading-6"
                       style={{
-                        backgroundColor: loading || !isValid ? 'var(--muted)' : 'var(--accent)',
-                        color:
-                          loading || !isValid
-                            ? 'var(--muted-foreground)'
-                            : 'var(--accent-foreground)',
+                        color: 'var(--foreground)',
                       }}
                     >
-                      {loading ? (
-                        <LoaderIcon isButton={true} color="var(--surface)" />
-                      ) : (
-                        <span>Evaluate Circularity</span>
-                      )}
-                    </Button>
-                  </Tooltip.Trigger>
-                  <Tooltip.Content showArrow placement="top" className="text-center">
-                    <Tooltip.Arrow />
-                    <span>
-                      Please fill out business problem and solution fields (min. 200 chars each)
+                      Sample Test Cases
                     </span>
-                  </Tooltip.Content>
-                </Tooltip>
-              </div>
-
-              {/* Test Case Selector */}
-              <div
-                className="w-full rounded-lg border p-5"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <ClipboardList
-                    className="h-6 w-6 shrink-0"
-                    style={{ color: 'var(--success)' }}
-                    strokeWidth={1.75}
-                  />
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="font-semibold text-base leading-6"
-                        style={{
-                          color: 'var(--foreground)',
-                        }}
-                      >
-                        Sample Test Cases
-                      </span>
-                      <BadgeInfo
-                        className="info-icon cursor-pointer"
-                        size={22}
-                        style={{ color: 'var(--accent)' }}
-                        onClick={openSampleTestCasesHeadingInfoDrawer}
-                      />
-                    </div>
-                    <span
-                      className="text-xs font-normal leading-4 italic"
-                      style={{ color: 'var(--muted)' }}
-                    >
-                      Auto-fill the form with curated examples for quick testing
-                    </span>
+                    <BadgeInfo
+                      className="info-icon cursor-pointer"
+                      size={22}
+                      style={{ color: 'var(--accent)' }}
+                      onClick={openSampleTestCasesHeadingInfoDrawer}
+                    />
                   </div>
+                  <span
+                    className="text-xs font-normal leading-4 italic"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    Auto-fill the form with curated examples for quick testing
+                  </span>
                 </div>
-
-                <SampleTestCasesContainer
-                  setShowEvaluationParameters={setShowEvaluationParameters}
-                  openEvalParams={openEvalParams}
-                  openBusinessContext={openBusinessContext}
-                />
               </div>
+
+              <SampleTestCasesContainer
+                setShowEvaluationParameters={setShowEvaluationParameters}
+                openEvalParams={openEvalParams}
+                openBusinessContext={openBusinessContext}
+              />
             </div>
           </div>
         </motion.div>
