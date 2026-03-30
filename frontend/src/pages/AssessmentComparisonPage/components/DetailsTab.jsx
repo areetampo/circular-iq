@@ -1,5 +1,4 @@
-import { Card, Chip, Table } from '@heroui/react';
-// TODO: Migrate Chip.Label compound component - requires custom implementation
+import { Card, Table } from '@heroui/react';
 import {
   ArrowRight,
   Award,
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatTimestamp, titleize } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 
@@ -20,7 +20,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {/* Project Details */}
       <Card
         className="border-2 rounded-xl"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <Card.Header className="flex items-center gap-3 pb-4">
           <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -47,21 +47,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       Industry
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>
-                          {titleize(
-                            scoringResult1?.metadata?.industry || assessment1.industry || '',
-                          )}
-                        </Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult1?.metadata?.industry || assessment1.industry || '')}
                       </Chip>
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>
-                          {titleize(
-                            scoringResult2?.metadata?.industry || assessment2.industry || '',
-                          )}
-                        </Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult2?.metadata?.industry || assessment2.industry || '')}
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
@@ -70,13 +62,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       Scale
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>{titleize(scoringResult1?.metadata?.scale)}</Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult1?.metadata?.scale)}
                       </Chip>
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>{titleize(scoringResult2?.metadata?.scale)}</Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult2?.metadata?.scale)}
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
@@ -85,13 +77,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       Strategy
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>{titleize(scoringResult1?.metadata?.r_strategy)}</Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult1?.metadata?.r_strategy)}
                       </Chip>
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>{titleize(scoringResult2?.metadata?.r_strategy)}</Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult2?.metadata?.r_strategy)}
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
@@ -100,17 +92,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       Material
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>
-                          {titleize(scoringResult1?.metadata?.primary_material)}
-                        </Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult1?.metadata?.primary_material)}
                       </Chip>
                     </Table.Cell>
                     <Table.Cell className="text-center">
-                      <Chip variant="secondary" size="sm" className="transition-all duration-200">
-                        <Chip.Label>
-                          {titleize(scoringResult2?.metadata?.primary_material)}
-                        </Chip.Label>
+                      <Chip variant="default" size="sm" className="transition-all duration-200">
+                        {titleize(scoringResult2?.metadata?.primary_material)}
                       </Chip>
                     </Table.Cell>
                   </Table.Row>
@@ -126,7 +114,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
         scoringResult2?.gap_analysis?.has_benchmarks) && (
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-4">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -228,7 +216,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {(scoringResult1?.circular_economy_tier || scoringResult2?.circular_economy_tier) && (
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-3">
             <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
@@ -248,7 +236,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       key={title}
                       className="p-4 rounded-xl border text-sm"
                       style={{
-                        backgroundColor: 'var(--surface)',
+                        backgroundColor: 'transparent',
                         borderColor: 'var(--border)',
                         color: 'var(--muted)',
                       }}
@@ -306,7 +294,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
         scoringResult2?.r_strategy_alignment?.alignment_score != null) && (
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-3">
             <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
@@ -326,7 +314,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       key={title}
                       className="p-4 rounded-xl border text-sm"
                       style={{
-                        backgroundColor: 'var(--surface)',
+                        backgroundColor: 'transparent',
                         borderColor: 'var(--border)',
                         color: 'var(--muted)',
                       }}
@@ -344,7 +332,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   <div
                     key={title}
                     className="p-4 rounded-xl border"
-                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
                   >
                     <p
                       className="text-xs font-semibold uppercase tracking-wide mb-1"
@@ -378,7 +366,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {(scoringResult1?.parameter_consistency || scoringResult2?.parameter_consistency) && (
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-3">
             <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
@@ -398,7 +386,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                       key={title}
                       className="p-4 rounded-xl border text-sm"
                       style={{
-                        backgroundColor: 'var(--surface)',
+                        backgroundColor: 'transparent',
                         borderColor: 'var(--border)',
                         color: 'var(--muted)',
                       }}
@@ -416,7 +404,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   <div
                     key={title}
                     className="p-4 rounded-xl border"
-                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
                   >
                     <p
                       className="text-xs font-semibold uppercase tracking-wide mb-2"
@@ -454,7 +442,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {/* Auditor's Verdict */}
       <Card
         className="border-2 rounded-xl"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <Card.Header className="flex gap-3 items-center pb-3">
           <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -502,7 +490,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
       {/* Summary */}
       <Card
         className="border-2 rounded-xl"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <Card.Content className="gap-4 p-0">
           <div className="flex items-center gap-3">
@@ -524,7 +512,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   className="transition-all duration-200"
                 >
                   <TrendingUp size={12} />
-                  <Chip.Label className="font-semibold">Score improved</Chip.Label>
+                  Score improved
                 </Chip>
               ) : scoringResult2?.overall_score < scoringResult1?.overall_score ? (
                 <Chip
@@ -534,7 +522,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   className="transition-all duration-200"
                 >
                   <TrendingDown size={12} />
-                  <Chip.Label className="font-semibold">Score declined</Chip.Label>
+                  Score declined
                 </Chip>
               ) : (
                 <Chip
@@ -544,7 +532,7 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   className="transition-all duration-200"
                 >
                   <Minus size={12} />
-                  <Chip.Label className="font-semibold">Score unchanged</Chip.Label>
+                  Score unchanged
                 </Chip>
               )}
             </div>

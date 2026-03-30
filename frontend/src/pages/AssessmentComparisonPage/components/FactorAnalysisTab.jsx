@@ -1,5 +1,4 @@
-import { Card, Chip, ProgressBar, Table } from '@heroui/react';
-// TODO: Migrate Chip.Label compound component - requires custom implementation
+import { Card, ProgressBar, Table } from '@heroui/react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -14,6 +13,7 @@ import PropTypes from 'prop-types';
 
 import BarChart from '@/components/charts/BarChart';
 import RadarChart from '@/components/charts/RadarChart';
+import { Chip } from '@/components/common';
 import { titleize } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import { categorizeIntegrityGaps } from '@/utils/content';
@@ -39,7 +39,7 @@ export function FactorAnalysisTab({
         {/* Radar Chart */}
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-0">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -50,7 +50,7 @@ export function FactorAnalysisTab({
             </Card.Title>
           </Card.Header>
           <Card.Content className="pb-4">
-            <div className="h-100 p-4 rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
+            <div className="h-100 p-4 rounded-lg" style={{ backgroundColor: 'transparent' }}>
               {radarChartData && radarConfigs ? (
                 <RadarChart
                   data={radarChartData}
@@ -74,7 +74,7 @@ export function FactorAnalysisTab({
         {/* Bar Chart */}
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-0">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -85,7 +85,7 @@ export function FactorAnalysisTab({
             </Card.Title>
           </Card.Header>
           <Card.Content className="pb-4">
-            <div className="h-100 p-4 rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
+            <div className="h-100 p-4 rounded-lg" style={{ backgroundColor: 'transparent' }}>
               {barChartData && barConfigs ? (
                 <BarChart
                   data={barChartData}
@@ -111,7 +111,7 @@ export function FactorAnalysisTab({
       {/* Detailed Factor Progress */}
       <Card
         className="border-2 rounded-xl"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <Card.Header className="flex items-center gap-3 pb-0">
           <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -140,7 +140,7 @@ export function FactorAnalysisTab({
                       size="sm"
                       className="transition-all duration-200"
                     >
-                      <Chip.Label className="font-semibold">{factor.a1}</Chip.Label>
+                      {factor.a1}
                     </Chip>
                     <ArrowRight size={12} style={{ color: 'var(--muted)' }} />
                     <Chip
@@ -149,7 +149,7 @@ export function FactorAnalysisTab({
                       size="sm"
                       className="transition-all duration-200"
                     >
-                      <Chip.Label className="font-semibold">{factor.a2}</Chip.Label>
+                      {factor.a2}
                     </Chip>
                     <ChangeIndicator diff={factor.diff} />
                   </div>
@@ -205,7 +205,7 @@ export function FactorAnalysisTab({
       {/* Factor-by-Factor Table */}
       <Card
         className="border-2 rounded-xl"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <Card.Header className="flex gap-3 items-center pb-3">
           <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -249,7 +249,7 @@ export function FactorAnalysisTab({
                             size="md"
                             className="transition-all duration-200"
                           >
-                            <Chip.Label className="font-bold">{val1}</Chip.Label>
+                            {val1}
                           </Chip>
                         </Table.Cell>
                         <Table.Cell className="text-center">
@@ -259,7 +259,7 @@ export function FactorAnalysisTab({
                             size="md"
                             className="transition-all duration-200"
                           >
-                            <Chip.Label className="font-bold">{val2}</Chip.Label>
+                            {val2}
                           </Chip>
                         </Table.Cell>
                         <Table.Cell className="text-center">
@@ -279,7 +279,7 @@ export function FactorAnalysisTab({
       {(scoringResult1?.audit?.integrity_gaps || scoringResult2?.audit?.integrity_gaps) && (
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-4">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--danger-soft)' }}>
@@ -302,7 +302,7 @@ export function FactorAnalysisTab({
                   <Card
                     key={assessment.id}
                     className="border rounded-xl"
-                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
                   >
                     <Card.Header className="pb-3">
                       <Card.Title className="font-bold" style={{ color: 'var(--foreground)' }}>
@@ -469,7 +469,7 @@ export function FactorAnalysisTab({
       {(scoringResult1?.audit || scoringResult2?.audit) && (
         <Card
           className="border-2 rounded-xl"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <Card.Header className="flex items-center gap-3 pb-4">
             <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
@@ -492,7 +492,7 @@ export function FactorAnalysisTab({
                   <Card
                     key={assessment.id}
                     className="border rounded-xl"
-                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
                   >
                     <Card.Header className="pb-3">
                       <Card.Title className="font-bold" style={{ color: 'var(--foreground)' }}>
@@ -571,7 +571,7 @@ export function FactorAnalysisTab({
                                 key={i}
                                 className="p-3 border rounded-lg flex gap-2"
                                 style={{
-                                  backgroundColor: 'var(--surface)',
+                                  backgroundColor: 'transparent',
                                   borderColor: 'var(--border)',
                                 }}
                               >
@@ -675,7 +675,7 @@ export function FactorAnalysisTab({
                                 key={i}
                                 className="p-3 border rounded-lg flex gap-2"
                                 style={{
-                                  backgroundColor: 'var(--surface)',
+                                  backgroundColor: 'transparent',
                                   borderColor: 'var(--border)',
                                 }}
                               >
@@ -753,7 +753,7 @@ export function FactorAnalysisTab({
                                   key={key}
                                   className="p-2 border rounded-lg"
                                   style={{
-                                    backgroundColor: 'var(--surface)',
+                                    backgroundColor: 'transparent',
                                     borderColor: 'var(--border)',
                                   }}
                                 >

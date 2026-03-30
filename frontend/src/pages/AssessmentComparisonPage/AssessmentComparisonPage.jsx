@@ -1,5 +1,4 @@
-import { Button, Chip } from '@heroui/react';
-// TODO: Migrate Chip.Label compound component - requires custom implementation
+import { Button } from '@heroui/react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { Chip } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
@@ -278,7 +278,7 @@ export default function AssessmentComparisonPage() {
     <div className="space-y-0 w-full">
       {/* STICKY COMPARISON HEADER */}
       <div
-        className="sticky top-14 z-40 w-full border-b transition-all duration-200 backdrop-blur-md py-3 px-4"
+        className="sticky top-0 z-40 w-full border-b transition-all duration-200 backdrop-blur-md py-3 px-4"
         style={{ backgroundColor: 'oklch(0.97 0.012 80 / 0.9)', borderColor: 'var(--border)' }}
       >
         <div className="grid grid-cols-2 gap-4 max-w-6xl mx-auto">
@@ -303,7 +303,7 @@ export default function AssessmentComparisonPage() {
           <div
             className="border-2 rounded-xl"
             style={{
-              backgroundColor: 'var(--surface)',
+              backgroundColor: 'transparent',
               borderColor: 'var(--border)',
             }}
           >
@@ -320,58 +320,45 @@ export default function AssessmentComparisonPage() {
                 {formatTimestamp(assessment1.created_at)}
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <Chip color="success" variant="soft" size="sm">
-                  Score: {scoringResult1?.overall_score || 0}/100
-                </Chip>
-                <Chip color="warning" variant="soft" size="sm">
-                  Conf: {scoringResult1?.confidence_level || 0}%
-                </Chip>
+                <Chip variant="success">Score: {scoringResult1?.overall_score || 0}/100</Chip>
+                <Chip variant="warning">Conf: {scoringResult1?.confidence_level || 0}%</Chip>
               </div>
               <div className="flex flex-wrap gap-1 mt-2">
                 {scoringResult1?.metadata?.industry && (
-                  <Chip variant="secondary" size="sm">
-                    {scoringResult1.metadata.industry}
-                  </Chip>
+                  <Chip variant="default">{scoringResult1.metadata.industry}</Chip>
                 )}
                 {scoringResult1?.metadata?.scale && (
-                  <Chip variant="secondary" size="sm">
-                    {scoringResult1.metadata.scale}
-                  </Chip>
+                  <Chip variant="default">{scoringResult1.metadata.scale}</Chip>
                 )}
                 {scoringResult1?.metadata?.r_strategy && (
-                  <Chip variant="secondary" size="sm">
-                    {scoringResult1.metadata.r_strategy}
-                  </Chip>
+                  <Chip variant="default">{scoringResult1.metadata.r_strategy}</Chip>
                 )}
               </div>
-              <Chip color="success" variant="soft" size="sm" className="w-fit mt-1">
-                <Chip.Label className="font-semibold">Assessment 1</Chip.Label>
+              <Chip variant="success" className="w-fit mt-1 font-semibold">
+                Assessment 1
               </Chip>
             </div>
           </div>
 
           <div className="hidden md:flex items-center justify-center px-4">
             <div className="text-center">
-              <Chip
-                color="default"
-                variant="secondary"
-                size="lg"
-                className="text-lg font-bold px-5 py-3"
+              <span
+                className="text-sm font-bold px-3 py-1.5 rounded-md"
                 style={{
                   backgroundColor: 'var(--accent-soft)',
                   color: 'var(--accent)',
                   border: '1px solid var(--accent)',
                 }}
               >
-                <Chip.Label>VS</Chip.Label>
-              </Chip>
+                VS
+              </span>
             </div>
           </div>
 
           <div
             className="border-2 rounded-xl"
             style={{
-              backgroundColor: 'var(--surface)',
+              backgroundColor: 'transparent',
               borderColor: 'var(--border)',
             }}
           >
@@ -388,32 +375,22 @@ export default function AssessmentComparisonPage() {
                 {formatTimestamp(assessment2.created_at)}
               </p>
               <div className="flex items-center gap-2 mt-2">
-                <Chip color="primary" variant="soft" size="sm">
-                  Score: {scoringResult2?.overall_score || 0}/100
-                </Chip>
-                <Chip color="warning" variant="soft" size="sm">
-                  Conf: {scoringResult2?.confidence_level || 0}%
-                </Chip>
+                <Chip variant="info">Score: {scoringResult2?.overall_score || 0}/100</Chip>
+                <Chip variant="warning">Conf: {scoringResult2?.confidence_level || 0}%</Chip>
               </div>
               <div className="flex flex-wrap gap-1 mt-2">
                 {scoringResult2?.metadata?.industry && (
-                  <Chip variant="secondary" size="sm">
-                    {scoringResult2.metadata.industry}
-                  </Chip>
+                  <Chip variant="default">{scoringResult2.metadata.industry}</Chip>
                 )}
                 {scoringResult2?.metadata?.scale && (
-                  <Chip variant="secondary" size="sm">
-                    {scoringResult2.metadata.scale}
-                  </Chip>
+                  <Chip variant="default">{scoringResult2.metadata.scale}</Chip>
                 )}
                 {scoringResult2?.metadata?.r_strategy && (
-                  <Chip variant="secondary" size="sm">
-                    {scoringResult2.metadata.r_strategy}
-                  </Chip>
+                  <Chip variant="default">{scoringResult2.metadata.r_strategy}</Chip>
                 )}
               </div>
-              <Chip color="primary" variant="soft" size="sm" className="w-fit mt-1">
-                <Chip.Label className="font-semibold">Assessment 2</Chip.Label>
+              <Chip variant="info" className="w-fit mt-1 font-semibold">
+                Assessment 2
               </Chip>
             </div>
           </div>

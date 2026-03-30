@@ -95,31 +95,29 @@ export function FilterBar({
         </div>
       </div>
 
-      {/* Compare button — only shown when exactly 2 assessments are selected */}
-      {selectedIds?.size > 0 && (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCompareSelected}
-            disabled={selectedIds.size !== 2}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium
-                     rounded-lg transition-all duration-150 disabled:opacity-50
-                     disabled:cursor-not-allowed"
-            style={{
-              backgroundColor: selectedIds.size === 2 ? 'var(--accent)' : 'var(--surface)',
-              color: selectedIds.size === 2 ? 'var(--accent-foreground)' : 'var(--muted)',
-              border: selectedIds.size !== 2 ? '1px solid var(--border)' : 'none',
-            }}
-            title={
-              selectedIds.size !== 2
-                ? 'Select exactly 2 assessments to compare'
-                : 'Compare selected'
-            }
-          >
-            <GitCompare size={15} />
-            {selectedIds.size}/2 Compare Selected
-          </button>
-        </div>
-      )}
+      {/* Compare button — always visible */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleCompareSelected}
+          disabled={selectedIds.size !== 2}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium
+                     rounded-md border transition-colors duration-150
+                     disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: selectedIds.size === 2 ? 'var(--accent)' : 'transparent',
+            color: selectedIds.size === 2 ? 'white' : 'var(--muted)',
+            borderColor: selectedIds.size === 2 ? 'var(--accent)' : 'var(--border)',
+          }}
+          title={
+            selectedIds.size !== 2 ? 'Select exactly 2 assessments to compare' : 'Compare selected'
+          }
+        >
+          <GitCompare size={14} />
+          {selectedIds.size < 2
+            ? `Select ${2 - selectedIds.size} more to compare`
+            : 'Compare Selected'}
+        </button>
+      </div>
 
       {/* Industry filter chips */}
       {industryOptions.length > 1 && (

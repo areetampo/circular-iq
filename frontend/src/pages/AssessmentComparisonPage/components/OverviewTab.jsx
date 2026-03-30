@@ -1,4 +1,4 @@
-import { Card, ProgressBar, Table } from '@heroui/react';
+import { ProgressBar, Table } from '@heroui/react';
 import { Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -20,19 +20,14 @@ export function OverviewTab({
     <>
       {/* Input Data Comparison */}
       <div
-        className="border-2 shadow-md rounded-xl"
+        className="border rounded-xl"
         style={{
-          background: 'linear-gradient(to bottom right, var(--accent-soft), var(--surface))',
-          borderColor: 'var(--accent)',
+          backgroundColor: 'transparent',
+          borderColor: 'var(--border)',
         }}
       >
         <div className="flex items-center gap-3 pb-4 p-6">
-          <div
-            className="p-2.5 rounded-lg"
-            style={{
-              background: 'linear-gradient(to bottom right, var(--accent-soft), var(--accent))',
-            }}
-          >
+          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
             <Lightbulb size={20} style={{ color: 'var(--accent)' }} />
           </div>
           <h3
@@ -48,9 +43,9 @@ export function OverviewTab({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Business Problem */}
             <div
-              className="border-2 shadow-md rounded-xl"
+              className="border rounded-xl"
               style={{
-                backgroundColor: 'var(--surface)',
+                backgroundColor: 'transparent',
                 borderColor: 'var(--border)',
               }}
             >
@@ -75,10 +70,7 @@ export function OverviewTab({
                         <Table.Column className="w-1/2">Assessment 2</Table.Column>
                       </Table.Header>
                       <Table.Body>
-                        <Table.Row
-                          className="transition-colors duration-150"
-                          style={{ backgroundColor: 'var(--accent-soft)' }}
-                        >
+                        <Table.Row className="transition-colors duration-150 hover:bg-[var(--accent-soft)]">
                           <Table.Cell>
                             <div>
                               <p
@@ -128,16 +120,16 @@ export function OverviewTab({
             </div>
 
             {/* Business Solution */}
-            <Card
-              className="border-2 shadow-md rounded-xl"
-              style={{ borderColor: 'var(--info)', backgroundColor: 'var(--surface)' }}
+            <div
+              className="border rounded-xl"
+              style={{ borderColor: 'var(--info)', backgroundColor: 'transparent' }}
             >
-              <Card.Header className="flex items-center gap-3 pb-4">
-                <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+              <div className="flex items-center gap-3 pb-4 p-6">
+                <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                   Business Solution
-                </Card.Title>
-              </Card.Header>
-              <Card.Content className="p-0">
+                </h3>
+              </div>
+              <div className="p-0">
                 <Table>
                   <Table.ScrollContainer>
                     <Table.Content aria-label="Business solution comparison" className="min-w-150">
@@ -186,21 +178,21 @@ export function OverviewTab({
                     </Table.Content>
                   </Table.ScrollContainer>
                 </Table>
-              </Card.Content>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Derived Metrics Comparison */}
-          <Card
-            className="border-2 shadow-md rounded-xl"
-            style={{ borderColor: 'var(--success)', backgroundColor: 'var(--surface)' }}
+          <div
+            className="border rounded-xl"
+            style={{ borderColor: 'var(--success)', backgroundColor: 'transparent' }}
           >
-            <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+            <div className="flex items-center gap-3 pb-4 p-6">
+              <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                 Derived Metrics
-              </Card.Title>
-            </Card.Header>
-            <Card.Content className="p-0">
+              </h3>
+            </div>
+            <div className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
                 {[
                   { key: 'technical_feasibility', label: 'Technical Feasibility' },
@@ -214,7 +206,7 @@ export function OverviewTab({
                     <div
                       key={key}
                       className="p-3 rounded-lg"
-                      style={{ backgroundColor: 'var(--surface)' }}
+                      style={{ backgroundColor: 'transparent' }}
                     >
                       <div
                         className="text-xs font-bold mb-2"
@@ -239,7 +231,7 @@ export function OverviewTab({
                     </div>
                   );
                 })}
-                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--surface)' }}>
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'transparent' }}>
                   <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
                     Risk Level
                   </div>
@@ -275,20 +267,20 @@ export function OverviewTab({
                   </div>
                 </div>
               </div>
-            </Card.Content>
-          </Card>
+            </div>
+          </div>
 
           {/* Evaluation Parameters Summary */}
-          <Card
-            className="border-2 shadow-md rounded-xl"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)' }}
+          <div
+            className="border rounded-xl"
+            style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
           >
-            <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+            <div className="flex items-center gap-3 pb-4 p-6">
+              <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                 Evaluation Parameters
-              </Card.Title>
-            </Card.Header>
-            <Card.Content className="p-0 overflow-x-auto">
+              </h3>
+            </div>
+            <div className="p-0 overflow-x-auto">
               <Table>
                 <Table.ScrollContainer>
                   <Table.Content
@@ -341,20 +333,20 @@ export function OverviewTab({
                   </Table.Content>
                 </Table.ScrollContainer>
               </Table>
-            </Card.Content>
-          </Card>
+            </div>
+          </div>
 
           {/* Business Context Comparison */}
-          <Card
-            className="border-2 shadow-md rounded-xl"
-            style={{ borderColor: 'var(--warning)', backgroundColor: 'var(--surface)' }}
+          <div
+            className="border rounded-xl"
+            style={{ borderColor: 'var(--warning)', backgroundColor: 'transparent' }}
           >
-            <Card.Header className="flex items-center gap-3 pb-4">
-              <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+            <div className="flex items-center gap-3 pb-4 p-6">
+              <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
                 Business Context
-              </Card.Title>
-            </Card.Header>
-            <Card.Content className="p-0 overflow-x-auto">
+              </h3>
+            </div>
+            <div className="p-0 overflow-x-auto">
               <Table>
                 <Table.ScrollContainer>
                   <Table.Content aria-label="Business context comparison" className="min-w-150">
@@ -453,34 +445,29 @@ export function OverviewTab({
                   </Table.Content>
                 </Table.ScrollContainer>
               </Table>
-            </Card.Content>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Key Insights */}
       {insights && insights.length > 0 && (
-        <Card
-          className="border-2 shadow-md rounded-xl"
+        <div
+          className="border rounded-xl"
           style={{
             borderColor: 'var(--info)',
-            background: 'linear-gradient(to bottom right, var(--info-soft)/30, var(--background))',
+            backgroundColor: 'transparent',
           }}
         >
-          <Card.Header className="flex items-center gap-3 pb-4">
-            <div
-              className="p-2.5 rounded-lg"
-              style={{
-                background: 'linear-gradient(to bottom right, var(--info-soft), var(--info-soft))',
-              }}
-            >
+          <div className="flex items-center gap-3 pb-4 p-6">
+            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--info-soft)' }}>
               <Lightbulb style={{ color: 'var(--info)' }} size={20} />
             </div>
-            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+            <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
               Key Insights
-            </Card.Title>
-          </Card.Header>
-          <Card.Content className="gap-3 flex flex-col">
+            </h3>
+          </div>
+          <div className="gap-3 flex flex-col p-6 pt-0">
             {insights.map((insight, idx) => {
               const IconComponent = insight.icon;
               const colorClass =
@@ -500,7 +487,7 @@ export function OverviewTab({
                         ? 'var(--success-soft)'
                         : insight.type === 'negative'
                           ? 'var(--danger-soft)'
-                          : 'var(--surface)',
+                          : 'transparent',
                     borderLeftColor:
                       insight.type === 'positive'
                         ? 'var(--success)'
@@ -521,19 +508,24 @@ export function OverviewTab({
                 </div>
               );
             })}
-          </Card.Content>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Executive Summary & Score Highlights */}
-      <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-linear-to-br from-purple-50/30 to-white">
-        <Card.Header className="flex items-center gap-3 pb-4">
-          <div className="p-2.5 rounded-lg bg-linear-to-br from-purple-100 to-purple-200">
-            <Lightbulb className="text-purple-700" size={20} />
+      <div
+        className="border rounded-xl"
+        style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
+      >
+        <div className="flex items-center gap-3 pb-4 p-6">
+          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <Lightbulb style={{ color: 'var(--accent)' }} size={20} />
           </div>
-          <Card.Title className="font-bold text-lg text-slate-900">Executive Summary</Card.Title>
-        </Card.Header>
-        <Card.Content className="space-y-6">
+          <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+            Executive Summary
+          </h3>
+        </div>
+        <div className="space-y-6 p-6 pt-0">
           {/* Audit Verdicts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {[
@@ -670,23 +662,26 @@ export function OverviewTab({
               })}
             </div>
           </div>
-        </Card.Content>
-      </Card>
+        </div>
+      </div>
 
       {/* Change Snapshot */}
-      <Card className="border-2 border-orange-200 shadow-md rounded-xl bg-linear-to-br from-orange-50/30 to-white">
-        <Card.Header className="flex items-center gap-3 pb-4">
-          <div className="p-2.5 rounded-lg bg-linear-to-br from-orange-100 to-orange-200">
-            <Target className="text-orange-700" size={20} />
+      <div
+        className="border rounded-xl"
+        style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
+      >
+        <div className="flex items-center gap-3 pb-4 p-6">
+          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
+            <Target style={{ color: 'var(--accent)' }} size={20} />
           </div>
-          <Card.Title className="font-bold text-lg text-slate-900">
+          <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
             Scores & Change Snapshot
-          </Card.Title>
-        </Card.Header>
-        <Card.Content>
+          </h3>
+        </div>
+        <div className="p-6 pt-0">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Assessment 1 Score */}
-            <div className="p-5 bg-linear-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
               <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide truncate">
                 {assessment1.title}
               </p>
@@ -718,7 +713,7 @@ export function OverviewTab({
             </div>
 
             {/* Assessment 2 Score */}
-            <div className="p-5 bg-linear-to-br from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
               <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide truncate">
                 {assessment2.title}
               </p>
@@ -750,7 +745,7 @@ export function OverviewTab({
             </div>
 
             {/* Overall Change */}
-            <div className="p-5 bg-linear-to-br from-slate-50 to-white border-2 border-slate-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
               <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                 Overall Change
               </p>
@@ -772,7 +767,7 @@ export function OverviewTab({
             </div>
 
             {biggestGain && (
-              <div className="p-5 bg-linear-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
                 <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                   Biggest Gain
                 </p>
@@ -784,7 +779,7 @@ export function OverviewTab({
             )}
 
             {biggestDrop && (
-              <div className="p-5 bg-linear-to-br from-red-50 to-orange-50 border-2 border-red-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
                 <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                   Biggest Drop
                 </p>
@@ -795,7 +790,7 @@ export function OverviewTab({
               </div>
             )}
 
-            <div className="p-5 bg-linear-to-br from-purple-50 to-violet-50 border-2 border-purple-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
               <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
                 Avg Change
               </p>
@@ -816,16 +811,16 @@ export function OverviewTab({
               </div>
             </div>
           </div>
-        </Card.Content>
-      </Card>
+        </div>
+      </div>
 
       {/* Score Breakdown Comparison */}
       {scoringResult1?.score_breakdown && scoringResult2?.score_breakdown && (
-        <Card className="border-2 border-purple-200 shadow-md rounded-xl bg-white">
-          <Card.Header className="flex items-center gap-3 pb-4">
-            <Card.Title className="font-bold text-lg text-slate-900">Score Breakdown</Card.Title>
-          </Card.Header>
-          <Card.Content className="p-0">
+        <div className="border rounded-xl bg-white">
+          <div className="flex items-center gap-3 pb-4 p-6">
+            <h3 className="font-bold text-lg text-slate-900">Score Breakdown</h3>
+          </div>
+          <div className="p-0">
             <div className="space-y-4 p-4">
               {Object.keys(scoringResult1.score_breakdown).map((category) => {
                 const data1 = scoringResult1.score_breakdown[category];
@@ -848,8 +843,8 @@ export function OverviewTab({
                 );
               })}
             </div>
-          </Card.Content>
-        </Card>
+          </div>
+        </div>
       )}
     </>
   );

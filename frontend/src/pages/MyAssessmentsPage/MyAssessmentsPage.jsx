@@ -438,7 +438,7 @@ export default function MyAssessmentsPage() {
         <div
           className="border rounded-xl px-6 py-5 shadow-sm"
           style={{
-            backgroundColor: 'var(--surface)',
+            backgroundColor: 'transparent',
             borderColor: 'var(--border)',
           }}
         >
@@ -470,7 +470,7 @@ export default function MyAssessmentsPage() {
         <div
           className="border-2 shadow-sm rounded-xl"
           style={{
-            backgroundColor: 'var(--surface)',
+            backgroundColor: 'transparent',
             borderColor: 'var(--border)',
           }}
         >
@@ -532,20 +532,13 @@ export default function MyAssessmentsPage() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <p className="label-overline mb-1">YOUR HISTORY</p>
-          <h1 className="text-[28px] font-semibold" style={{ color: 'var(--foreground)' }}>
+          <h1 className="heading-display text-[28px]" style={{ color: 'var(--foreground)' }}>
             Saved Assessments
           </h1>
         </div>
-        <button
-          onClick={() => navigate('/')}
-          className="text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-150"
-          style={{
-            backgroundColor: 'var(--accent)',
-            color: 'var(--accent-foreground)',
-          }}
-        >
+        <Button variant="primary" size="sm" onClick={() => navigate('/')}>
           + New Assessment
-        </button>
+        </Button>
       </div>
 
       {/* INITIAL LOAD: Show all skeletons until data arrives */}
@@ -583,9 +576,8 @@ export default function MyAssessmentsPage() {
               <div
                 className="border rounded-xl px-6 py-5"
                 style={{
-                  backgroundColor: 'var(--surface)',
+                  backgroundColor: 'transparent',
                   borderColor: 'var(--border)',
-                  borderWidth: '1px',
                 }}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -655,7 +647,7 @@ export default function MyAssessmentsPage() {
               <div
                 className="border rounded-xl px-6 py-5"
                 style={{
-                  backgroundColor: 'var(--surface)',
+                  backgroundColor: 'transparent',
                   borderColor: 'var(--border)',
                 }}
               >

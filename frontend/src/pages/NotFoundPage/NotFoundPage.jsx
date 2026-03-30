@@ -39,7 +39,7 @@ export default function NotFoundPage() {
         <div className="grid sm:grid-cols-2 gap-4 mb-8 text-left">
           <div
             className="flex items-start gap-3 p-4 rounded-xl border"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
           >
             <div
               className="p-2 rounded-md mt-0.5 flex-shrink-0"
@@ -59,7 +59,7 @@ export default function NotFoundPage() {
 
           <div
             className="flex items-start gap-3 p-4 rounded-xl border"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}
+            style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
           >
             <div
               className="p-2 rounded-md mt-0.5 flex-shrink-0"

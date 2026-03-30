@@ -1,8 +1,8 @@
-import { Skeleton } from '@heroui/react';
+import { Skeleton, Tooltip } from '@heroui/react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import { Button } from '@/components/common';
 import CopyButton from '@/components/modern-ui/copy-button';
 import { formatTimestamp } from '@/lib/formatting';
 
@@ -101,7 +101,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
             />
             <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
-              Select
+              Compare
             </span>
           </label>
 
@@ -178,45 +178,63 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         )}
 
         {/* Actions menu */}
-        {/* Keep EXACTLY the existing dropdown/menu implementation — only ensure
-            the trigger button is a 32×32px ghost button with MoreVertical icon */}
-        <div onClick={(e) => e.stopPropagation()}>
-          {/* existing actions dropdown here */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onPress={(e) => {
-                if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-                onView(assessment.public_id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              View
-            </Button>
-            <Button
-              size="sm"
-              variant="tertiary"
-              onPress={(e) => {
-                if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-                onRename(assessment.id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Rename
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onPress={(e) => {
-                if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
-                onDelete(assessment.id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Delete
-            </Button>
-          </div>
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <Tooltip delay={300} placement="top">
+            <Tooltip.Trigger>
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-[var(--accent-soft)]"
+                style={{ color: 'var(--muted)' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(assessment.public_id);
+                }}
+                aria-label="View assessment"
+              >
+                <Eye size={16} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <p className="text-xs">View</p>
+            </Tooltip.Content>
+          </Tooltip>
+
+          <Tooltip delay={300} placement="top">
+            <Tooltip.Trigger>
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-[var(--accent-soft)]"
+                style={{ color: 'var(--muted)' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRename(assessment.id);
+                }}
+                aria-label="Rename assessment"
+              >
+                <Pencil size={15} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <p className="text-xs">Rename</p>
+            </Tooltip.Content>
+          </Tooltip>
+
+          <Tooltip delay={300} placement="top">
+            <Tooltip.Trigger>
+              <button
+                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-[var(--danger-soft)]"
+                style={{ color: 'var(--danger)' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(assessment.id);
+                }}
+                aria-label="Delete assessment"
+              >
+                <Trash2 size={15} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <p className="text-xs">Delete</p>
+            </Tooltip.Content>
+          </Tooltip>
         </div>
       </div>
     </div>
