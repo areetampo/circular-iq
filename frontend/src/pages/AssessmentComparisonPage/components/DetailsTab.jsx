@@ -1,4 +1,5 @@
 import { Card, Chip, Table } from '@heroui/react';
+// TODO: Migrate Chip.Label compound component - requires custom implementation
 import {
   ArrowRight,
   Award,

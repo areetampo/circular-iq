@@ -1,4 +1,4 @@
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/common';
 
 export default function ScoreOverview({ scoringResult }) {
   return (
@@ -50,41 +50,26 @@ export default function ScoreOverview({ scoringResult }) {
             )}
             <div className="flex flex-wrap gap-2 mt-2">
               {scoringResult?.metadata?.industry && (
-                <Chip variant="secondary" size="sm">
-                  {scoringResult.metadata.industry}
-                </Chip>
+                <Chip variant="default">{scoringResult.metadata.industry}</Chip>
               )}
               {scoringResult?.metadata?.scale && (
-                <Chip variant="secondary" size="sm">
-                  {scoringResult.metadata.scale}
-                </Chip>
+                <Chip variant="default">{scoringResult.metadata.scale}</Chip>
               )}
               {scoringResult?.metadata?.r_strategy && (
-                <Chip variant="secondary" size="sm">
-                  {scoringResult.metadata.r_strategy}
-                </Chip>
+                <Chip variant="default">{scoringResult.metadata.r_strategy}</Chip>
               )}
               {scoringResult?.metadata?.primary_material && (
-                <Chip variant="secondary" size="sm">
-                  {scoringResult.metadata.primary_material}
-                </Chip>
+                <Chip variant="default">{scoringResult.metadata.primary_material}</Chip>
               )}
               {scoringResult?.metadata?.geographic_focus && (
-                <Chip variant="secondary" size="sm">
-                  {scoringResult.metadata.geographic_focus}
-                </Chip>
+                <Chip variant="default">{scoringResult.metadata.geographic_focus}</Chip>
               )}
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
             {scoringResult?.confidence_level != null && (
-              <Chip
-                variant="soft"
-                color="warning"
-                size="sm"
-                className="font-semibold text-xs px-3 py-1"
-              >
+              <Chip variant="warning" size="sm" className="font-semibold text-xs px-3 py-1">
                 Confidence: {scoringResult.confidence_level}%
               </Chip>
             )}

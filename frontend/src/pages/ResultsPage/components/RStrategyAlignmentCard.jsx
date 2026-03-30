@@ -1,6 +1,6 @@
-import { Chip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 import ScoreCard from './ScoreCard';
@@ -36,8 +36,7 @@ export function RStrategyAlignmentCard({ actualResult }) {
             {misaligned_factors.map((f) => (
               <Chip
                 key={f}
-                size="sm"
-                variant="soft"
+                variant="default"
                 className="text-xs"
                 style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger)' }}
               >
@@ -56,8 +55,7 @@ export function RStrategyAlignmentCard({ actualResult }) {
             {well_aligned_factors.map((f) => (
               <Chip
                 key={f}
-                size="sm"
-                variant="soft"
+                variant="default"
                 className="text-xs"
                 style={{ backgroundColor: 'var(--success-soft)', color: 'var(--success)' }}
               >

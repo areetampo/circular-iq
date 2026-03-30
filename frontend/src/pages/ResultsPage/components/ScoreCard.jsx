@@ -1,6 +1,7 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export default function ScoreCard({
@@ -44,10 +45,7 @@ export default function ScoreCard({
           </div>
           {score != null && (
             <div className="text-right">
-              <div
-                className="text-3xl font-bold"
-                style={{ color: scoreColor }}
-              >
+              <div className="text-3xl font-bold" style={{ color: scoreColor }}>
                 {score}
                 <span className="text-sm" style={{ color: 'var(--muted)' }}>
                   /100
@@ -61,7 +59,7 @@ export default function ScoreCard({
             </div>
           )}
         </div>
-        
+
         {message && (
           <p className="text-sm mb-3" style={{ color: 'var(--foreground)' }}>
             {message}
@@ -75,8 +73,7 @@ export default function ScoreCard({
               return (
                 <Chip
                   key={f}
-                  size="sm"
-                  variant="soft"
+                  variant="default"
                   className="text-xs"
                   style={{ backgroundColor: factorColor.bg, color: factorColor.color }}
                 >

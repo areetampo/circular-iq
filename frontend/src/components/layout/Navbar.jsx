@@ -117,43 +117,40 @@ export default function Navbar() {
 
   return (
     <>
-      <nav
-        ref={navRef}
-        data-navbar
-        className="sticky top-0 z-50 w-full transition-all duration-300"
-        style={{
-          backgroundColor: 'oklch(0.97 0.012 80 / 0.82)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--border)',
-        }}
+      {/* Floating pill wrapper — sits above content, doesn't push it */}
+      <div
+        className="sticky top-0 z-50 w-full flex justify-center px-4 pt-3 pb-1"
+        style={{ pointerEvents: 'none' }}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
+        <nav
+          ref={navRef}
+          data-navbar
+          className="navbar-pill w-full max-w-4xl"
+          style={{ pointerEvents: 'auto' }}
+        >
+          <div className="flex items-center justify-between h-12 px-4">
             {/* LEFT: Brand */}
             <button
               onClick={() => navigate('/')}
               aria-label="Navigate to home page"
-              className="flex items-center gap-2.5 group"
+              className="flex items-center gap-2 shrink-0"
             >
-              {/* Logo mark: small accent circle with RefreshCw icon */}
               <div
-                className="w-7 h-7 rounded-md flex items-center justify-center
-                           transition-transform duration-200 group-hover:rotate-[-15deg]"
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: 'var(--accent)' }}
               >
-                <RefreshCw size={14} strokeWidth={2.5} className="text-white" />
+                <RefreshCw size={13} strokeWidth={2.5} className="text-white" />
               </div>
               <span
-                className="font-serif text-[15px] font-semibold tracking-tight hidden xs:inline"
+                className="font-serif text-[14px] font-semibold tracking-tight hidden xs:inline"
                 style={{ color: 'var(--foreground)' }}
               >
                 {SITE_NAME}
               </span>
             </button>
 
-            {/* CENTER: nav links (hidden below md) */}
-            <div className="hidden md:flex items-center gap-7">
+            {/* CENTER: nav links */}
+            <div className="hidden md:flex items-center gap-1">
               {navigationItems.map((item) => {
                 const isActive = isActivePath(item.path);
                 return (
@@ -161,14 +158,16 @@ export default function Navbar() {
                     key={item.id}
                     onClick={() => handleNavigation(item)}
                     aria-label={`Navigate to ${item.name}`}
-                    className="relative text-[13px] font-medium transition-colors duration-150 py-1"
-                    style={{ color: isActive ? 'var(--foreground)' : 'var(--muted)' }}
+                    className="relative px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors duration-150"
+                    style={{
+                      color: isActive ? 'var(--foreground)' : 'var(--muted)',
+                      backgroundColor: isActive ? 'var(--accent-soft)' : 'transparent',
+                    }}
                   >
                     {item.name}
-                    {/* Active underline indicator */}
                     {isActive && (
                       <span
-                        className="absolute -bottom-0.5 left-0 w-full h-[1.5px] rounded-full"
+                        className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
                         style={{ backgroundColor: 'var(--accent)' }}
                       />
                     )}
@@ -177,15 +176,15 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* RIGHT: auth state */}
-            <div className="flex items-center gap-3">
+            {/* RIGHT: auth */}
+            <div className="flex items-center gap-2 shrink-0">
               {isAuthenticated ? (
                 <>
-                  {/* Desktop User Dropdown */}
+                  {/* Desktop dropdown — keep Dropdown.Popover/Menu contents exactly as before */}
                   <div className="hidden md:block">
                     <Dropdown isOpen={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                       <Dropdown.Trigger
-                        className="flex items-center gap-2 cursor-pointer transition-colors duration-150"
+                        className="flex items-center gap-2 cursor-pointer"
                         onClick={() => setIsDropdownOpen((prev) => !prev)}
                         aria-label="User menu"
                         aria-expanded={isDropdownOpen}
@@ -205,12 +204,8 @@ export default function Navbar() {
                       <Dropdown.Popover>
                         <Dropdown.Menu
                           aria-label="User menu"
-                          classNames={{
-                            base: 'min-w-[200px]',
-                            content: 'p-1',
-                          }}
+                          classNames={{ base: 'min-w-[200px]', content: 'p-1' }}
                         >
-                          {/* User info header — non-interactive */}
                           <div
                             className="px-3 py-2 border-b"
                             style={{ borderColor: 'var(--border)' }}
@@ -231,11 +226,7 @@ export default function Navbar() {
                               textValue={item.name}
                               onClick={item.onClick}
                               variant={item.variant}
-                              classNames={{
-                                base: 'gap-3 px-3 py-2',
-                                title: 'text-sm font-medium',
-                                description: 'text-xs',
-                              }}
+                              classNames={{ base: 'gap-3 px-3 py-2', title: 'text-sm font-medium' }}
                             >
                               <div className="flex items-center gap-3">
                                 <item.icon
@@ -265,32 +256,30 @@ export default function Navbar() {
                     </Dropdown>
                   </div>
 
-                  {/* Mobile hamburger button */}
+                  {/* Mobile hamburger */}
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     aria-label={`${isMenuOpen ? 'Close' : 'Open'} mobile navigation menu`}
                     aria-expanded={isMenuOpen}
-                    className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg
-                               transition-colors duration-150"
+                    className="md:hidden w-8 h-8 flex items-center justify-center rounded-full transition-colors duration-150"
                     style={{
                       backgroundColor: isMenuOpen ? 'var(--accent-soft)' : 'transparent',
                       color: 'var(--foreground)',
                     }}
                   >
-                    {/* Animated hamburger → X using CSS transitions */}
-                    <div className="w-5 flex flex-col gap-[5px] relative">
+                    <div className="w-4 flex flex-col gap-[4px] relative">
                       <span
                         className="block h-[1.5px] w-full rounded-full transition-all duration-300 origin-center"
                         style={{
                           backgroundColor: 'var(--foreground)',
-                          transform: isMenuOpen ? 'translateY(6.5px) rotate(45deg)' : 'none',
+                          transform: isMenuOpen ? 'translateY(5.5px) rotate(45deg)' : 'none',
                         }}
                       />
                       <span
                         className="block h-[1.5px] rounded-full transition-all duration-300"
                         style={{
                           backgroundColor: 'var(--foreground)',
-                          width: isMenuOpen ? '0%' : '75%',
+                          width: isMenuOpen ? '0%' : '70%',
                           opacity: isMenuOpen ? 0 : 1,
                         }}
                       />
@@ -298,28 +287,27 @@ export default function Navbar() {
                         className="block h-[1.5px] w-full rounded-full transition-all duration-300 origin-center"
                         style={{
                           backgroundColor: 'var(--foreground)',
-                          transform: isMenuOpen ? 'translateY(-6.5px) rotate(-45deg)' : 'none',
+                          transform: isMenuOpen ? 'translateY(-5.5px) rotate(-45deg)' : 'none',
                         }}
                       />
                     </div>
                   </button>
                 </>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigate('/auth')}
-                    aria-label="Sign in to your account"
-                    className="text-[13px] font-medium transition-colors text-[var(--muted)]
-                               hover:text-[var(--foreground)]"
+                    aria-label="Sign in"
+                    className="text-[13px] font-medium transition-colors"
+                    style={{ color: 'var(--muted)' }}
                   >
                     Sign in
                   </button>
                   <button
                     onClick={() => navigate('/auth')}
-                    aria-label="Get started with your account"
-                    className="text-[13px] font-medium px-4 py-1.5 rounded-lg
-                               transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
-                    style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
+                    aria-label="Get started"
+                    className="text-[13px] font-medium px-3 py-1.5 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
                   >
                     Get started
                   </button>
@@ -327,10 +315,10 @@ export default function Navbar() {
               )}
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
-      {/* Mobile overlay backdrop */}
+      {/* Mobile overlay */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 z-40 md:hidden"
@@ -339,13 +327,12 @@ export default function Navbar() {
         />
       )}
 
-      {/* Mobile slide-in panel — from the right */}
+      {/* Mobile slide-in panel */}
       <div
-        className={`fixed top-0 right-0 h-full z-50 md:hidden
-                    flex flex-col transition-transform duration-300 ease-out`}
+        className={`fixed top-0 right-0 h-full z-50 md:hidden flex flex-col transition-transform duration-300 ease-out`}
         style={{
           width: 'min(280px, 85vw)',
-          backgroundColor: 'var(--surface)',
+          backgroundColor: 'var(--background)',
           borderLeft: '1px solid var(--border)',
           boxShadow: '-8px 0 32px oklch(0.18 0.015 60 / 0.12)',
           transform: isMenuOpen ? 'translateX(0)' : 'translateX(100%)',
@@ -356,16 +343,15 @@ export default function Navbar() {
           className="flex items-center justify-between px-5 py-4 border-b"
           style={{ borderColor: 'var(--border)' }}
         >
-          {/* Brand in panel */}
           <div className="flex items-center gap-2">
             <div
-              className="w-6 h-6 rounded-md flex items-center justify-center"
+              className="w-6 h-6 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: 'var(--accent)' }}
             >
-              <RefreshCw size={12} strokeWidth={2.5} className="text-white" />
+              <RefreshCw size={11} strokeWidth={2.5} className="text-white" />
             </div>
             <span
-              className="font-serif text-[14px] font-semibold"
+              className="font-serif text-[13px] font-semibold"
               style={{ color: 'var(--foreground)' }}
             >
               {SITE_NAME}
@@ -373,24 +359,22 @@ export default function Navbar() {
           </div>
           <button
             onClick={() => setIsMenuOpen(false)}
-            aria-label="Close mobile navigation menu"
-            className="w-7 h-7 flex items-center justify-center rounded-md
-                       transition-colors hover:bg-[var(--accent-soft)]"
+            aria-label="Close menu"
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors hover:bg-[var(--accent-soft)]"
             style={{ color: 'var(--muted)' }}
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
-        {/* User info (if authenticated) */}
+        {/* User info */}
         {isAuthenticated && (
           <div
-            className="flex items-center gap-3 px-5 py-4 border-b"
+            className="flex items-center gap-3 px-5 py-3 border-b"
             style={{ borderColor: 'var(--border)' }}
           >
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center
-                         text-[13px] font-semibold flex-shrink-0"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold flex-shrink-0"
               style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-soft-fg)' }}
             >
               {getUserInitials()}
@@ -407,33 +391,23 @@ export default function Navbar() {
         )}
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto py-3">
-          <p className="label-overline px-5 mb-2">NAVIGATE</p>
+        <nav className="flex-1 overflow-y-auto py-2">
           {navigationItems.map((item) => {
             const isActive = isActivePath(item.path);
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavigation(item)}
-                aria-label={`Navigate to ${item.name}`}
-                className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium
-                            text-left transition-colors duration-150 relative`}
+                className="w-full flex items-center justify-between px-5 py-3 text-[14px] font-medium text-left transition-colors duration-150"
                 style={{
                   color: isActive ? 'var(--foreground)' : 'var(--muted)',
                   backgroundColor: isActive ? 'var(--accent-soft)' : 'transparent',
                 }}
               >
-                {/* Accent bar for active */}
-                {isActive && (
-                  <span
-                    className="absolute left-0 w-0.5 h-8 rounded-r"
-                    style={{ backgroundColor: 'var(--accent)' }}
-                  />
-                )}
                 {item.name}
                 {isActive && (
                   <span
-                    className="ml-auto w-1.5 h-1.5 rounded-full"
+                    className="w-1.5 h-1.5 rounded-full"
                     style={{ backgroundColor: 'var(--accent)' }}
                   />
                 )}
@@ -442,18 +416,15 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Bottom: auth actions */}
-        <div className="border-t p-4 space-y-2" style={{ borderColor: 'var(--border)' }}>
+        {/* Bottom auth */}
+        <div className="border-t p-4" style={{ borderColor: 'var(--border)' }}>
           {isAuthenticated ? (
             <button
               onClick={() => {
                 handleSignOut();
                 setIsMenuOpen(false);
               }}
-              aria-label="Sign out of your account"
-              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg
-                         text-sm font-medium transition-colors duration-150
-                         hover:bg-[var(--danger-soft)]"
+              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-[var(--danger-soft)]"
               style={{ color: 'var(--danger)' }}
             >
               <LogOut size={15} />
@@ -465,10 +436,8 @@ export default function Navbar() {
                 navigate('/auth');
                 setIsMenuOpen(false);
               }}
-              aria-label="Sign in to your account"
-              className="w-full py-2.5 rounded-lg text-sm font-medium
-                         transition-all duration-150 hover:opacity-90"
-              style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}
+              className="w-full py-2.5 rounded-full text-sm font-medium transition-colors"
+              style={{ backgroundColor: 'var(--accent)', color: 'white' }}
             >
               Sign in
             </button>

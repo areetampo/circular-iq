@@ -1,4 +1,4 @@
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/common';
 
 export default function DerivedMetricsCard({ scoringResult }) {
   if (!scoringResult?.derived_metrics) return null;
@@ -68,7 +68,7 @@ export default function DerivedMetricsCard({ scoringResult }) {
               Risk Level
             </p>
             <Chip
-              variant="soft"
+              variant="default"
               className="text-xs font-bold"
               style={{
                 color:

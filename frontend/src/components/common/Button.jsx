@@ -8,12 +8,12 @@ import PropTypes from 'prop-types';
  * HeroUI's own size prop is bypassed so we have full control over sizing.
  */
 const sizeStyles = {
-  xs: 'h-6  px-2  text-[11px] font-medium   rounded-lg  gap-1   [&>svg]:size-3',
-  sm: 'h-7  px-3  text-xs     font-medium   rounded-lg  gap-1.5 [&>svg]:size-3.5',
-  md: 'h-9  px-4  text-sm     font-semibold rounded-lg  gap-2   [&>svg]:size-4', // default
-  lg: 'h-11 px-4  text-base   font-semibold rounded-lg  gap-2   [&>svg]:size-[18px]',
-  xl: 'h-13 px-5  text-xl     font-semibold rounded-lg  gap-2.5 [&>svg]:size-5',
-  '2xl': 'h-16 px-6  text-2xl  font-bold     rounded-lg  gap-3   [&>svg]:size-6',
+  xs: 'h-6  px-2  text-[11px] font-medium   rounded-md  gap-1   [&>svg]:size-3',
+  sm: 'h-7  px-3  text-xs     font-medium   rounded-md  gap-1.5 [&>svg]:size-3.5',
+  md: 'h-9  px-4  text-sm     font-semibold rounded-md  gap-2   [&>svg]:size-4', // default
+  lg: 'h-11 px-4  text-base   font-semibold rounded-md  gap-2   [&>svg]:size-[18px]',
+  xl: 'h-13 px-5  text-xl     font-semibold rounded-md  gap-2.5 [&>svg]:size-5',
+  '2xl': 'h-16 px-6  text-2xl  font-bold     rounded-md  gap-3   [&>svg]:size-6',
 };
 
 /**
@@ -119,7 +119,7 @@ export function Button({
         className={clsx(
           customVariantStyles[variant],
           resolvedSize,
-          'data-[disabled=true]:cursor-not-allowed',
+          'data-[disabled=true]:cursor-not-allowed focus:outline-none',
           className,
         )}
         variant={undefined}

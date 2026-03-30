@@ -1,4 +1,5 @@
-import { Card, Chip } from '@heroui/react';
+import { Chip } from '@/components/common';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -117,7 +118,7 @@ export default function InteractiveChartWrapper({
             {showControls && (
               <div className="flex items-center gap-2 mt-2 sm:mt-0">
                 {selectedPoints.size > 0 && (
-                  <Chip size="sm" variant="flat" color="primary" onClose={clearSelection}>
+                  <Chip variant="info" onClose={clearSelection}>
                     {selectedPoints.size} selected
                   </Chip>
                 )}

@@ -1,4 +1,5 @@
 import { Button, Chip } from '@heroui/react';
+// TODO: Migrate Chip.Label compound component - requires custom implementation
 import {
   AlertTriangle,
   ArrowLeft,

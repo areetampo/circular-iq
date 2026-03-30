@@ -1,6 +1,5 @@
-import { BarChart3, CheckCircle2, Leaf, Zap } from 'lucide-react';
-
-import Brand from '@/components/common/Brand';
+import { SITE_NAME } from '@/components/common';
+import { BarChart3, CheckCircle2, Leaf, RefreshCw, Zap } from 'lucide-react';
 
 const TRUST_SIGNALS = [
   { icon: CheckCircle2, text: '40,000+ case studies indexed' },
@@ -12,17 +11,16 @@ const TRUST_SIGNALS = [
 export default function AuthLeftPanel() {
   return (
     <div
-      className="hidden md:flex flex-col justify-between h-full w-[52%] p-12 relative overflow-hidden"
+      className="hidden md:flex flex-col justify-between w-1/2 h-full p-12 relative overflow-hidden"
       style={{ backgroundColor: 'var(--background)' }}
     >
-      {/* Subtle decorative gradient blob — top right */}
+      {/* Decorative blobs */}
       <div
         className="absolute -top-24 -right-24 w-80 h-80 rounded-full pointer-events-none"
         style={{
           background: 'radial-gradient(circle, oklch(0.68 0.08 68 / 0.12) 0%, transparent 70%)',
         }}
       />
-      {/* Subtle gradient blob — bottom left */}
       <div
         className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none"
         style={{
@@ -30,12 +28,23 @@ export default function AuthLeftPanel() {
         }}
       />
 
-      {/* Top: Brand */}
-      <div className="relative z-10">
-        <Brand />
+      {/* Top: inline logo mark — replaces <Brand /> */}
+      <div className="relative z-10 flex items-center gap-2">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: 'var(--accent)' }}
+        >
+          <RefreshCw size={13} strokeWidth={2.5} className="text-white" />
+        </div>
+        <span
+          className="font-serif text-[15px] font-semibold tracking-tight"
+          style={{ color: 'var(--foreground)' }}
+        >
+          {SITE_NAME}
+        </span>
       </div>
 
-      {/* Middle: editorial headline + trust signals */}
+      {/* Middle: headline + trust signals */}
       <div className="relative z-10 space-y-8">
         <div>
           <p className="label-overline mb-4" style={{ color: 'var(--accent)' }}>
@@ -43,7 +52,7 @@ export default function AuthLeftPanel() {
           </p>
           <h1
             className="heading-display"
-            style={{ fontSize: 'clamp(28px, 3vw, 44px)', lineHeight: 1.1 }}
+            style={{ fontSize: 'clamp(26px, 2.8vw, 42px)', lineHeight: 1.1 }}
           >
             Where circular economy
             <br />
@@ -53,15 +62,13 @@ export default function AuthLeftPanel() {
             </em>
           </h1>
           <p
-            className="mt-5 text-[15px] leading-relaxed max-w-xs"
+            className="mt-5 text-[14px] leading-relaxed max-w-xs"
             style={{ color: 'var(--muted)' }}
           >
             AI-powered evaluation grounded in 40,000+ real circular economy case studies and
             projects.
           </p>
         </div>
-
-        {/* Trust signal list */}
         <ul className="space-y-3">
           {TRUST_SIGNALS.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3">
@@ -79,7 +86,7 @@ export default function AuthLeftPanel() {
         </ul>
       </div>
 
-      {/* Bottom: thin divider + tagline */}
+      {/* Bottom tagline */}
       <div className="relative z-10">
         <div className="w-8 h-[1.5px] mb-4" style={{ backgroundColor: 'var(--accent)' }} />
         <p className="text-xs" style={{ color: 'var(--subtle)' }}>

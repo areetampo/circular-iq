@@ -1,5 +1,7 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
+
+import { Chip } from '@/components/common';
 
 export default function SimilarCasesCard({ scoringResult }) {
   if (!scoringResult?.similar_cases || scoringResult.similar_cases.length === 0) return null;
@@ -37,20 +39,19 @@ export default function SimilarCasesCard({ scoringResult }) {
                     </p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {caseItem.industry && (
-                        <Chip variant="secondary" size="sm" className="text-xs">
+                        <Chip variant="default" className="text-xs">
                           {caseItem.industry}
                         </Chip>
                       )}
                       {caseItem.category && (
-                        <Chip variant="secondary" size="sm" className="text-xs">
+                        <Chip variant="default" className="text-xs">
                           {caseItem.category}
                         </Chip>
                       )}
                     </div>
                   </div>
                   <Chip
-                    variant="soft"
-                    size="sm"
+                    variant="default"
                     className="text-xs shrink-0"
                     style={{
                       color: barColor,
@@ -79,17 +80,12 @@ export default function SimilarCasesCard({ scoringResult }) {
                 {/* Metadata chips */}
                 <div className="flex flex-wrap gap-1 mt-2">
                   {caseItem.circular_strategy && (
-                    <Chip
-                      variant="soft"
-                      size="sm"
-                      className="text-xs"
-                      style={{ color: 'var(--success)' }}
-                    >
+                    <Chip variant="default" className="text-xs" style={{ color: 'var(--success)' }}>
                       {caseItem.circular_strategy}
                     </Chip>
                   )}
                   {caseItem.materials && (
-                    <Chip variant="secondary" size="sm" className="text-xs">
+                    <Chip variant="default" className="text-xs">
                       {caseItem.materials}
                     </Chip>
                   )}

@@ -1,6 +1,7 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export default function AuditSummaryCard({ scoringResult }) {
@@ -29,7 +30,7 @@ export default function AuditSummaryCard({ scoringResult }) {
               {audit.integrity_gaps.map((gap, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <Chip
-                    variant="soft"
+                    variant="default"
                     className="text-xs"
                     style={{
                       backgroundColor:
@@ -157,8 +158,7 @@ export default function AuditSummaryCard({ scoringResult }) {
                     <div className="flex flex-wrap gap-2 mt-1.5">
                       {item.target_factor && (
                         <Chip
-                          size="sm"
-                          variant="soft"
+                          variant="default"
                           className="text-xs"
                           style={{ color: 'var(--muted)' }}
                         >
@@ -167,8 +167,7 @@ export default function AuditSummaryCard({ scoringResult }) {
                       )}
                       {item.impact && (
                         <Chip
-                          size="sm"
-                          variant="soft"
+                          variant="default"
                           className="text-xs"
                           style={{
                             color:
@@ -184,8 +183,7 @@ export default function AuditSummaryCard({ scoringResult }) {
                       )}
                       {item.effort && (
                         <Chip
-                          size="sm"
-                          variant="soft"
+                          variant="default"
                           className="text-xs"
                           style={{
                             color:
@@ -201,8 +199,7 @@ export default function AuditSummaryCard({ scoringResult }) {
                       )}
                       {item.timeframe && (
                         <Chip
-                          size="sm"
-                          variant="soft"
+                          variant="default"
                           className="text-xs"
                           style={{ color: 'var(--subtle)' }}
                         >

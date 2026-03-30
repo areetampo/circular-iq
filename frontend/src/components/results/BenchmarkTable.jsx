@@ -1,4 +1,5 @@
-import { Chip, Table } from '@heroui/react';
+import { Chip } from '@/components/common';
+import { Table } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 function formatFactorName(factor) {
@@ -54,7 +55,15 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
                   <Table.Cell>{row.p50 ?? '—'}</Table.Cell>
                   <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
                   <Table.Cell>
-                    <Chip color={row.statusColor} size="sm">
+                    <Chip
+                      variant={
+                        row.statusColor === 'error'
+                          ? 'danger'
+                          : row.statusColor === 'success'
+                            ? 'success'
+                            : 'default'
+                      }
+                    >
                       {row.statusLabel}
                     </Chip>
                   </Table.Cell>
@@ -84,7 +93,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               </div>
               <div className="flex flex-wrap gap-2">
                 {opportunities.map((text) => (
-                  <Chip key={text} color="warning" size="sm">
+                  <Chip key={text} variant="warning">
                     {text}
                   </Chip>
                 ))}
@@ -104,7 +113,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               </div>
               <div className="flex flex-wrap gap-2">
                 {strengths.map((text) => (
-                  <Chip key={text} color="success" size="sm">
+                  <Chip key={text} variant="success">
                     {text}
                   </Chip>
                 ))}

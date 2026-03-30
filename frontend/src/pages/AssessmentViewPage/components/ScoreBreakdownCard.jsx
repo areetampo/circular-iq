@@ -1,4 +1,6 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
+
+import { Chip } from '@/components/common';
 
 export default function ScoreBreakdownCard({ scoringResult }) {
   if (!scoringResult?.score_breakdown) return null;
@@ -35,7 +37,7 @@ export default function ScoreBreakdownCard({ scoringResult }) {
               </p>
               <div className="flex flex-wrap gap-1">
                 {data.factors?.map((factor, i) => (
-                  <Chip key={i} variant="secondary" size="sm" className="text-xs">
+                  <Chip key={i} variant="default" className="text-xs">
                     {factor.name}: {factor.score}
                   </Chip>
                 ))}

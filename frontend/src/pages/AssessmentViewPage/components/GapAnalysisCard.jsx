@@ -1,5 +1,6 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 
+import { Chip } from '@/components/common';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { formatFactorName } from '@/lib/scoring';
 
@@ -22,12 +23,12 @@ export default function GapAnalysisCard({ scoringResult }) {
         />
         <div className="flex flex-wrap gap-2 mt-4">
           {scoringResult.gap_analysis.opportunities?.map((factor) => (
-            <Chip key={factor} variant="soft" color="warning" size="sm">
+            <Chip key={factor} variant="warning">
               ↑ {formatFactorName(factor)}
             </Chip>
           ))}
           {scoringResult.gap_analysis.strengths?.map((factor) => (
-            <Chip key={factor} variant="soft" color="success" size="sm">
+            <Chip key={factor} variant="success">
               ✓ {formatFactorName(factor)}
             </Chip>
           ))}

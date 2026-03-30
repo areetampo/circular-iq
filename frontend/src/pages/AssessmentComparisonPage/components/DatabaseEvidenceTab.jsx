@@ -1,7 +1,8 @@
-import { Button, Card, Chip } from '@heroui/react';
+import { Button, Card } from '@heroui/react';
 import { ArrowRight, FileText, Frown } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export function DatabaseEvidenceTab({
@@ -84,36 +85,34 @@ export function DatabaseEvidenceTab({
                             </p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {caseItem.year && (
-                                <Chip size="sm" variant="secondary" className="text-xs">
+                                <Chip variant="default" className="text-xs">
                                   {caseItem.year}
                                 </Chip>
                               )}
                               {caseItem.location && (
-                                <Chip size="sm" variant="secondary" className="text-xs">
+                                <Chip variant="default" className="text-xs">
                                   {caseItem.location}
                                 </Chip>
                               )}
                               {caseItem.use_type && (
-                                <Chip size="sm" variant="secondary" className="text-xs">
+                                <Chip variant="default" className="text-xs">
                                   {caseItem.use_type}
                                 </Chip>
                               )}
                               {caseItem.circular_strategy && (
-                                <Chip size="sm" variant="flat" color="success" className="text-xs">
+                                <Chip variant="success" className="text-xs">
                                   {caseItem.circular_strategy}
                                 </Chip>
                               )}
                               {caseItem.materials && (
-                                <Chip size="sm" variant="secondary" className="text-xs">
+                                <Chip variant="default" className="text-xs">
                                   {caseItem.materials}
                                 </Chip>
                               )}
                             </div>
                           </div>
                           <Chip
-                            size="sm"
-                            variant="flat"
-                            color={pct >= 70 ? 'success' : pct >= 50 ? 'primary' : 'warning'}
+                            variant={pct >= 70 ? 'success' : pct >= 50 ? 'accent' : 'warning'}
                             className="shrink-0 text-xs"
                             style={{
                               color:

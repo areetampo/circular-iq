@@ -1,5 +1,6 @@
 export { SITE_FULL_NAME, SITE_NAME, SiteFullName, SiteLogo, SiteName } from './Brand';
 export { default as Button } from './Button';
+export { default as Chip } from './Chip';
 export { default as ChoiceCardSwitch } from './ChoiceCardSwitch';
 export { default as ErrorDisplay } from './ErrorDisplay';
 export { default as LoaderIcon } from './LoaderIcon';

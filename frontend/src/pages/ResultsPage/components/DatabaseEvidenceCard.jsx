@@ -1,8 +1,8 @@
-import { Card, Chip, ProgressBar } from '@heroui/react';
+import { Card, ProgressBar } from '@heroui/react';
 import { ArrowRight, ExternalLink, FileText, Frown, Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Button } from '@/components/common';
+import { Button, Chip } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 
@@ -61,17 +61,17 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                           {/* Year + Location + Use type */}
                           <div className="flex flex-wrap gap-1 mt-1">
                             {caseItem.year && (
-                              <Chip size="sm" variant="secondary" className="text-xs">
+                              <Chip variant="default" className="text-xs">
                                 {caseItem.year}
                               </Chip>
                             )}
                             {caseItem.location && (
-                              <Chip size="sm" variant="secondary" className="text-xs">
+                              <Chip variant="default" className="text-xs">
                                 {caseItem.location}
                               </Chip>
                             )}
                             {caseItem.use_type && (
-                              <Chip size="sm" variant="secondary" className="text-xs">
+                              <Chip variant="default" className="text-xs">
                                 {caseItem.use_type}
                               </Chip>
                             )}
@@ -90,9 +90,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <Chip size="sm" variant="flat" color="secondary">
-                            {matchPercentage}% similar
-                          </Chip>
+                          <Chip variant="info">{matchPercentage}% similar</Chip>
                         </div>
                       </div>
                     </div>
@@ -240,20 +238,10 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                     {/* Metadata chips row */}
                     <div className="flex flex-wrap gap-2 mb-3">
                       {caseItem.circular_strategy && (
-                        <Chip size="sm" variant="flat" color="success">
-                          {caseItem.circular_strategy}
-                        </Chip>
+                        <Chip variant="success">{caseItem.circular_strategy}</Chip>
                       )}
-                      {caseItem.materials && (
-                        <Chip size="sm" variant="flat" color="default">
-                          {caseItem.materials}
-                        </Chip>
-                      )}
-                      {caseItem.industry && (
-                        <Chip size="sm" variant="flat" color="primary">
-                          {caseItem.industry}
-                        </Chip>
-                      )}
+                      {caseItem.materials && <Chip variant="default">{caseItem.materials}</Chip>}
+                      {caseItem.industry && <Chip variant="accent">{caseItem.industry}</Chip>}
                     </div>
                     <div className="flex justify-end">
                       <Button

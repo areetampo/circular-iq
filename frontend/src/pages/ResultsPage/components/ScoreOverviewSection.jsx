@@ -1,7 +1,8 @@
-import { Card, Chip, ProgressBar } from '@heroui/react';
+import { Card, ProgressBar } from '@heroui/react';
 import { BarChart3, Globe, Lock, Target, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { titleize } from '@/lib/formatting';
 
 export function ScoreOverviewSection({
@@ -33,7 +34,7 @@ export function ScoreOverviewSection({
                 Executive Summary
               </h2>
               {isViewFromMyAssessments && currentData && (
-                <Chip variant="secondary" size="sm" className="gap-1 ml-1">
+                <Chip variant="default" className="gap-1 ml-1">
                   {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) ===
                   false ? (
                     <>
@@ -59,16 +60,11 @@ export function ScoreOverviewSection({
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <Chip
-              variant="soft"
-              color="warning"
-              size="sm"
-              className="font-semibold text-xs px-3 py-1"
-            >
+            <Chip variant="warning" size="sm" className="font-semibold text-xs px-3 py-1">
               Confidence: {actualResult.confidence_level || 0}%
             </Chip>
             {actualResult.processing_info?.processing_time_ms && (
-              <Chip variant="secondary" size="sm" className="text-xs">
+              <Chip variant="default" className="text-xs">
                 Analysed in {(actualResult.processing_info.processing_time_ms / 1000).toFixed(1)}s
               </Chip>
             )}
@@ -347,7 +343,7 @@ export function ScoreOverviewSection({
                     Risk Level
                   </div>
                   <Chip
-                    variant="soft"
+                    variant="default"
                     className="text-xs font-bold"
                     style={{
                       color:

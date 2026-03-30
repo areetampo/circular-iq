@@ -1,6 +1,7 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export function AuditSummaryCard({ actualResult }) {
@@ -28,7 +29,7 @@ export function AuditSummaryCard({ actualResult }) {
               {actualResult.audit.integrity_gaps.map((gap, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <Chip
-                    variant="soft"
+                    variant="default"
                     className="text-xs"
                     style={{
                       backgroundColor:
@@ -122,8 +123,7 @@ export function AuditSummaryCard({ actualResult }) {
                       <div className="flex flex-wrap gap-2 mt-1.5">
                         {item.target_factor && (
                           <Chip
-                            size="sm"
-                            variant="soft"
+                            variant="default"
                             className="text-xs"
                             style={{
                               backgroundColor: 'var(--surface)',

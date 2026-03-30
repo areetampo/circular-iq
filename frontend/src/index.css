@@ -606,7 +606,7 @@
       transform: rotate(45deg) translate(0, 0);
     }
     to {
-      transform: rotate(45deg) translate(26px, 26px);
+      transform: rotate(45deg) translate(-26px, -26px);
     }
   }
 
@@ -624,9 +624,9 @@
   .skeleton {
     background: linear-gradient(
       90deg,
-      oklch(0.93 0.016 78) 25%,
-      oklch(0.95 0.02 80) 50%,
-      oklch(0.93 0.016 78) 75%
+      oklch(0.9 0.018 78) 25%,
+      oklch(0.93 0.022 80) 50%,
+      oklch(0.9 0.018 78) 75%
     ) !important;
     background-size: 200% 100% !important;
     animation: warm-shimmer 2.2s ease-in-out infinite !important;
@@ -659,7 +659,12 @@
     font-size: 14px;
     letter-spacing: 0.01em;
     border-radius: var(--radius-md);
-    transition: all 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      opacity 0.15s ease;
+    transform: none !important;
   }
   /* Solid/primary variant */
   .button[data-variant='solid'],
@@ -844,7 +849,7 @@
   .dialog__base {
     background-color: var(--background) !important;
     border: 1px solid var(--border) !important;
-    border-radius: var(--radius-xl) !important;
+    border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-modal) !important;
   }
 
@@ -856,16 +861,16 @@
 
   [data-slot='dialog-body'],
   .alert-dialog__body {
-    padding: 20px 24px !important;
+    padding: 16px 24px !important;
     font-size: 14px !important;
     color: var(--muted) !important;
-    line-height: 1.7 !important;
+    line-height: 1.6 !important;
   }
 
   [data-slot='dialog-footer'],
   .alert-dialog__footer {
     border-top: 1px solid var(--border) !important;
-    padding: 16px 24px !important;
+    padding: 12px 24px !important;
   }
 
   /* Backdrop */
@@ -905,9 +910,12 @@
 
   /* Drawer backdrop */
   [data-slot='drawer-backdrop'],
-  .drawer__backdrop {
-    background-color: oklch(0.18 0.015 60 / 0.3) !important;
-    backdrop-filter: blur(4px) !important;
+  [data-slot='backdrop'],
+  .drawer__backdrop,
+  .drawer__overlay {
+    background-color: oklch(0.18 0.015 60 / 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
   }
 }
 
@@ -947,12 +955,9 @@
 
   /* Card hover lift */
   .card-lift {
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+    transition: box-shadow 0.15s ease;
   }
   .card-lift:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-card-hover);
   }
 
@@ -1001,5 +1006,26 @@
   nav[data-scrolled='true'] {
     box-shadow: 0 1px 20px oklch(0.18 0.015 60 / 0.08);
     background-color: oklch(0.97 0.012 80 / 0.96) !important;
+  }
+
+  /* ── Floating pill navbar ── */
+  .navbar-pill {
+    background: oklch(0.97 0.012 80 / 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid oklch(0.89 0.016 75 / 0.7);
+    border-radius: 9999px;
+    box-shadow:
+      0 1px 3px oklch(0.18 0.015 60 / 0.06),
+      0 4px 20px oklch(0.18 0.015 60 / 0.07);
+    transition:
+      box-shadow 0.2s ease,
+      background 0.2s ease;
+  }
+  .navbar-pill[data-scrolled='true'] {
+    background: oklch(0.97 0.012 80 / 0.96) !important;
+    box-shadow:
+      0 2px 8px oklch(0.18 0.015 60 / 0.1),
+      0 8px 32px oklch(0.18 0.015 60 / 0.08) !important;
   }
 }

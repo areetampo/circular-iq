@@ -151,7 +151,8 @@ export function LoginForm({ onSwitchToSignup }) {
         {/* Submit */}
         <Button
           variant="primary"
-          className="w-full"
+          size="lg"
+          className="w-full mt-2"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -160,7 +161,10 @@ export function LoginForm({ onSwitchToSignup }) {
       </Form>
 
       {/* Switch to Signup */}
-      <div className="text-center text-sm mt-6">
+      <div
+        className="text-center text-sm mt-6 pt-5 border-t"
+        style={{ borderColor: 'var(--border)' }}
+      >
         <span style={{ color: 'var(--muted)' }}>Don&apos;t have an account? </span>
         <button
           type="button"

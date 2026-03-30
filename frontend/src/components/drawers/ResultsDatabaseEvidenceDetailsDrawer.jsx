@@ -1,10 +1,10 @@
-import { Chip, Drawer } from '@heroui/react';
+import { Drawer } from '@heroui/react';
 import { ExternalLink, Lightbulb, MapPin, NotebookText, Target, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
-import { cn } from '@/utils/cn';
 
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
   // if data is {} return null
@@ -89,13 +89,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className={cn(
-                      'p-2 rounded-lg shrink-0',
-                      'transition-[transform,box-shadow] duration-300 ease-out',
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                    )}
+                    className="p-2 rounded-lg shrink-0"
                     style={{
                       backgroundColor: 'var(--surface-raised)',
                     }}
@@ -135,10 +129,12 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                       </div>
                       <span style={{ color: 'var(--border)' }}>•</span>
                       <Chip
-                        size="sm"
-                        variant="secondary"
-                        className="text-xs font-bold text-white"
-                        style={{ backgroundColor: derivedMatchColor }}
+                        variant="default"
+                        className="font-bold text-white"
+                        style={{
+                          backgroundColor: derivedMatchColor,
+                          borderColor: derivedMatchColor,
+                        }}
                       >
                         {derivedMatchPercentage}% Similar
                       </Chip>
@@ -155,41 +151,21 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                   {/* Year + Location + Use type */}
                   {(year || location || useType) && (
                     <div className="flex flex-wrap gap-2 mt-1 w-full">
-                      {year && (
-                        <Chip size="sm" variant="secondary" className="text-xs">
-                          {year}
-                        </Chip>
-                      )}
+                      {year && <Chip variant="default">{year}</Chip>}
                       {location && (
-                        <Chip
-                          size="sm"
-                          variant="secondary"
-                          className="text-xs flex items-center gap-1"
-                        >
+                        <Chip variant="default" className="flex items-center gap-1">
                           <MapPin size={10} />
                           {location}
                         </Chip>
                       )}
-                      {useType && (
-                        <Chip size="sm" variant="secondary" className="text-xs">
-                          {useType}
-                        </Chip>
-                      )}
+                      {useType && <Chip variant="default">{useType}</Chip>}
                     </div>
                   )}
 
                   {/* Strategy + Materials + Source */}
                   <div className="flex flex-wrap gap-2 mt-1 w-full">
-                    {circularStrategy && (
-                      <Chip size="sm" variant="flat" color="success" className="text-xs">
-                        {circularStrategy}
-                      </Chip>
-                    )}
-                    {materials && (
-                      <Chip size="sm" variant="flat" color="default" className="text-xs">
-                        {materials}
-                      </Chip>
-                    )}
+                    {circularStrategy && <Chip variant="success">{circularStrategy}</Chip>}
+                    {materials && <Chip variant="default">{materials}</Chip>}
                     {sourceDisplay && (
                       <a
                         href={sourceUrl || '#'}
@@ -243,11 +219,8 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                       </h3>
                     </div>
                     <div
-                      className="p-4 rounded-xl border"
-                      style={{
-                        backgroundColor: 'var(--warning-soft)',
-                        borderColor: 'var(--warning)',
-                      }}
+                      className="p-4 rounded-lg border-l-4"
+                      style={{ borderLeftColor: 'var(--warning)', backgroundColor: 'transparent' }}
                     >
                       <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>
                         {problem}
@@ -276,11 +249,8 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                       </h3>
                     </div>
                     <div
-                      className="p-4 rounded-xl border"
-                      style={{
-                        backgroundColor: 'var(--success-soft)',
-                        borderColor: 'var(--success)',
-                      }}
+                      className="p-4 rounded-lg border-l-4"
+                      style={{ borderLeftColor: 'var(--success)', backgroundColor: 'transparent' }}
                     >
                       <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>
                         {solution}
@@ -309,11 +279,8 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data = {} }) {
                       </h3>
                     </div>
                     <div
-                      className="p-4 rounded-xl border"
-                      style={{
-                        backgroundColor: 'var(--info-soft)',
-                        borderColor: 'var(--info)',
-                      }}
+                      className="p-4 rounded-lg border-l-4"
+                      style={{ borderLeftColor: 'var(--info)', backgroundColor: 'transparent' }}
                     >
                       <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>
                         {impact}

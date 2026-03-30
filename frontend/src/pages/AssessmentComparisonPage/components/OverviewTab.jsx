@@ -1,7 +1,8 @@
-import { Card, Chip, ProgressBar, Table } from '@heroui/react';
+import { Card, ProgressBar, Table } from '@heroui/react';
 import { Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { titleize } from '@/lib/formatting';
 import { getRiskBadgeColor } from '@/lib/scoring';
 
@@ -245,13 +246,13 @@ export function OverviewTab({
                   </div>
                   <div className="flex items-center justify-between">
                     <Chip
-                      variant="soft"
+                      variant="default"
                       className={`text-xs ${getRiskBadgeColor(scoringResult1?.derived_metrics?.risk_level)}`}
                     >
                       A1: {scoringResult1?.derived_metrics?.risk_level || 'N/A'}
                     </Chip>
                     <Chip
-                      variant="soft"
+                      variant="default"
                       className={`text-xs ${getRiskBadgeColor(scoringResult2?.derived_metrics?.risk_level)}`}
                     >
                       A2: {scoringResult2?.derived_metrics?.risk_level || 'N/A'}

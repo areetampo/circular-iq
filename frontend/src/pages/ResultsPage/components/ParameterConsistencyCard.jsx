@@ -1,6 +1,6 @@
-import { Chip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 import ScoreCard from './ScoreCard';
@@ -41,8 +41,7 @@ export function ParameterConsistencyCard({ actualResult }) {
                 {issue.factors.map((f) => (
                   <Chip
                     key={f}
-                    size="sm"
-                    variant="soft"
+                    variant="default"
                     className="text-xs"
                     style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}
                   >

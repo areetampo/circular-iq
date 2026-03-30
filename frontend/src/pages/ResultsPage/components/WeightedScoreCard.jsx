@@ -1,6 +1,7 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export function WeightedScoreCard({ actualResult }) {
@@ -61,8 +62,7 @@ export function WeightedScoreCard({ actualResult }) {
                   +{factor.contribution}
                 </div>
                 <Chip
-                  variant="soft"
-                  size="sm"
+                  variant="default"
                   className="text-xs shrink-0"
                   style={{
                     backgroundColor:

@@ -1,4 +1,4 @@
-import { Accordion, Chip, Input, toast, Tooltip } from '@heroui/react';
+import { Accordion, Input, toast, Tooltip } from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -23,7 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import RadarChart from '@/components/charts/RadarChart';
-import { Button, Switch } from '@/components/common';
+import { Button, Chip, Switch } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import CopyButton from '@/components/modern-ui/copy-button';
 import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -858,7 +858,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         >
           {/* Show public share notice for public viewers */}
           {isPublicShare && (
-            <Chip variant="soft" color="accent" size="lg" className="gap-1">
+            <Chip variant="accent" className="gap-1">
               <Globe size={12} />
               Public Shared Assessment
             </Chip>
@@ -1859,12 +1859,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         >
                           Strengths Validated
                         </span>
-                        <Chip
-                          variant="primary"
-                          color="success"
-                          size="sm"
-                          className="ml-2 font-bold"
-                        >
+                        <Chip variant="success" size="sm" className="ml-2 font-bold">
                           {strengths.length}
                         </Chip>
                       </div>
@@ -1895,7 +1890,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 {strength.issue || strength}
                               </p>
                               {strength.evidence_source_id && (
-                                <Chip variant="secondary" size="sm" className="mt-1 text-xs">
+                                <Chip variant="default" className="mt-1 text-xs">
                                   Validated by Case #{strength.evidence_source_id}
                                 </Chip>
                               )}
@@ -1928,12 +1923,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         >
                           Areas for Improvement
                         </span>
-                        <Chip
-                          variant="primary"
-                          color="warning"
-                          size="sm"
-                          className="ml-2 font-bold"
-                        >
+                        <Chip variant="warning" size="sm" className="ml-2 font-bold">
                           {gaps.length}
                         </Chip>
                       </div>
@@ -1973,8 +1963,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 </p>
                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                   <Chip
-                                    variant="primary"
-                                    color={
+                                    variant={
                                       severity === 'high'
                                         ? 'danger'
                                         : severity === 'medium'
@@ -1987,7 +1976,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                     {severity.charAt(0).toUpperCase() + severity.slice(1)} severity
                                   </Chip>
                                   {gap.evidence_source_id && (
-                                    <Chip variant="secondary" size="sm" className="text-xs">
+                                    <Chip variant="default" className="text-xs">
                                       Case #{gap.evidence_source_id}
                                     </Chip>
                                   )}
@@ -2061,7 +2050,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           >
                             {strength.issue || strength}
                             {strength.evidence_source_id && (
-                              <Chip size="sm" variant="secondary" className="ml-2 text-xs">
+                              <Chip variant="default" className="ml-2 text-xs">
                                 Case #{strength.evidence_source_id}
                               </Chip>
                             )}
@@ -2151,7 +2140,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           >
                             {gap.issue || gap}
                             {gap.evidence_source_id && (
-                              <Chip size="sm" variant="secondary" className="ml-2 text-xs">
+                              <Chip variant="default" className="ml-2 text-xs">
                                 Case #{gap.evidence_source_id}
                               </Chip>
                             )}

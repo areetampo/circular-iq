@@ -1,5 +1,7 @@
-import { Card, Chip } from '@heroui/react';
+import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
+
+import { Chip } from '@/components/common';
 
 export function ScoreCategoryBreakdown({ actualResult }) {
   if (!actualResult?.score_breakdown) return null;
@@ -40,7 +42,7 @@ export function ScoreCategoryBreakdown({ actualResult }) {
               </p>
               <div className="space-y-1">
                 {data.factors?.map((factor, i) => (
-                  <Chip key={i} variant="secondary" size="sm" className="text-xs">
+                  <Chip key={i} variant="default" className="text-xs">
                     {factor.name}: {factor.score}
                   </Chip>
                 ))}

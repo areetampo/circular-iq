@@ -6,11 +6,8 @@ export default function AuthPage() {
   const [view, setView] = useState('login');
 
   return (
-    <div className="md:h-screen flex md:overflow-hidden">
-      {/* LEFT PANEL — hidden on mobile */}
+    <div className="h-screen flex overflow-hidden">
       <AuthLeftPanel />
-
-      {/* RIGHT PANEL — form */}
       <AuthRightPanel view={view} setView={setView} />
     </div>
   );
