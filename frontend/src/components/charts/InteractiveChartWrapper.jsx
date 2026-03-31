@@ -1,7 +1,8 @@
-import { Chip } from '@/components/common';
 import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { useCallback, useMemo, useState } from 'react';
+
+import { Chip } from '@/components/common';
 
 import ChartErrorBoundary from './ChartErrorBoundary';
 

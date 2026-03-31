@@ -33,7 +33,7 @@ export default function ChoiceCardSwitch({
       unselected:
         'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--success)] hover:bg-[var(--success-soft)]/50',
       iconSelected: 'text-[var(--success)]',
-      iconUnselected: 'text-[var(--muted)] group-hover/toggle:text-[var(--success)]',
+      iconUnselected: 'text-muted group-hover/toggle:text-[var(--success)]',
     },
     blue: {
       selected:
@@ -41,14 +41,14 @@ export default function ChoiceCardSwitch({
       unselected:
         'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--info)] hover:bg-[var(--info-soft)]/50',
       iconSelected: 'text-[var(--info)]',
-      iconUnselected: 'text-[var(--muted)] group-hover/toggle:text-[var(--info)]',
+      iconUnselected: 'text-muted group-hover/toggle:text-[var(--info)]',
     },
     default: {
       selected: 'bg-[var(--surface)] border-[var(--border)] shadow-sm',
       unselected:
         'bg-[var(--surface)] border-[var(--border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--surface-raised)]/50',
-      iconSelected: 'text-[var(--foreground)]',
-      iconUnselected: 'text-[var(--muted)]',
+      iconSelected: 'text-foreground',
+      iconUnselected: 'text-muted',
     },
   };
 
@@ -96,12 +96,12 @@ export default function ChoiceCardSwitch({
             )}
 
             <div className="flex-1 min-w-0">
-              <div className="text-sm sm:text-base font-semibold text-[var(--foreground)] truncate">
+              <div className="text-sm sm:text-base font-semibold text-foreground truncate">
                 {title}
               </div>
               <div className="flex items-center gap-0.5">
                 {description && (
-                  <div className="text-xs sm:text-sm text-[var(--muted)] whitespace-normal">
+                  <div className="text-xs sm:text-sm text-muted whitespace-normal">
                     {description}
                   </div>
                 )}

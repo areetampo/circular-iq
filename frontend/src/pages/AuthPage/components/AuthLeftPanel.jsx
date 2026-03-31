@@ -1,5 +1,6 @@
-import { SITE_NAME } from '@/components/common';
 import { BarChart3, CheckCircle2, Leaf, RefreshCw, Zap } from 'lucide-react';
+
+import { SITE_NAME } from '@/components/common';
 
 const TRUST_SIGNALS = [
   { icon: CheckCircle2, text: '40,000+ case studies indexed' },
@@ -73,7 +74,7 @@ export default function AuthLeftPanel() {
           {TRUST_SIGNALS.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3">
               <div
-                className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
                 style={{ backgroundColor: 'var(--accent-soft)' }}
               >
                 <Icon size={14} style={{ color: 'var(--accent)' }} strokeWidth={2} />

@@ -192,7 +192,7 @@ export default function Navbar() {
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center
                                      text-[12px] font-semibold cursor-pointer
-                                     transition-all duration-150 hover:ring-2 hover:ring-[var(--accent)]/40"
+                                     transition-all duration-150 hover:ring-2 hover:ring-accent/40"
                           style={{
                             backgroundColor: 'var(--accent-soft)',
                             color: 'var(--accent-soft-fg)',
@@ -232,9 +232,7 @@ export default function Navbar() {
                                 <item.icon
                                   size={16}
                                   className={
-                                    item.variant === 'danger'
-                                      ? 'text-[var(--danger)]'
-                                      : 'text-[var(--muted)]'
+                                    item.variant === 'danger' ? 'text-danger' : 'text-muted'
                                   }
                                 />
                                 <span
@@ -267,7 +265,7 @@ export default function Navbar() {
                       color: 'var(--foreground)',
                     }}
                   >
-                    <div className="w-4 flex flex-col gap-[4px] relative">
+                    <div className="w-4 flex flex-col gap-1 relative">
                       <span
                         className="block h-[1.5px] w-full rounded-full transition-all duration-300 origin-center"
                         style={{
@@ -360,7 +358,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsMenuOpen(false)}
             aria-label="Close menu"
-            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors hover:bg-[var(--accent-soft)]"
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors hover:bg-accent-soft"
             style={{ color: 'var(--muted)' }}
           >
             <X size={15} />
@@ -374,7 +372,7 @@ export default function Navbar() {
             style={{ borderColor: 'var(--border)' }}
           >
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold flex-shrink-0"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0"
               style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-soft-fg)' }}
             >
               {getUserInitials()}
@@ -424,7 +422,7 @@ export default function Navbar() {
                 handleSignOut();
                 setIsMenuOpen(false);
               }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-[var(--danger-soft)]"
+              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-danger-soft"
               style={{ color: 'var(--danger)' }}
             >
               <LogOut size={15} />

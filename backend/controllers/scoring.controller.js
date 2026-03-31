@@ -27,17 +27,9 @@ import {
   getIdentifierFromRequest,
   MAX_FREE_TRIES,
 } from '#utils/anonymousTracking.js';
-import { logger } from '#utils/logger.js';
+import { logOperation } from '#utils/controller-helpers.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
-
-/**
- * Log API operation
- * @private
- */
-function logOperation(operation, status, duration) {
-  logger.logOperation(operation, status, duration);
-}
 
 /**
  * Enforce anonymous usage limits

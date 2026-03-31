@@ -110,7 +110,7 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label={`${isMobileMenuOpen ? 'Close' : 'Open'} section navigation menu`}
           aria-expanded={isMobileMenuOpen}
-          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-[var(--accent-soft)]"
+          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-accent-soft"
         >
           <div className="flex items-center gap-3">
             <div className="relative w-6 h-6 shrink-0">

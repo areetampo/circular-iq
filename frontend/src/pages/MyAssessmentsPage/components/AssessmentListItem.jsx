@@ -42,7 +42,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <div className="flex items-center gap-2 mb-1">
           {/* CE tier chip */}
           <span
-            className="text-[10px] font-bold uppercase tracking-widest
+            className="text-xs font-bold uppercase tracking-widest
                            px-2 py-0.5 rounded"
             style={{
               backgroundColor: 'var(--accent-soft)',
@@ -52,7 +52,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             {assessment.metadata?.tier || 'UNRATED'}
           </span>
           {/* Title */}
-          <span className="text-[15px] font-medium truncate" style={{ color: 'var(--foreground)' }}>
+          <span className="text-base font-medium truncate" style={{ color: 'var(--foreground)' }}>
             {assessment.title}
           </span>
         </div>
@@ -61,7 +61,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <div className="flex items-center gap-2 flex-wrap">
           {assessment.industry && (
             <span
-              className="text-[11px] px-2 py-0.5 rounded border"
+              className="text-sm px-2 py-0.5 rounded border"
               style={{
                 backgroundColor: 'var(--surface)',
                 borderColor: 'var(--border)',
@@ -98,9 +98,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 e.stopPropagation();
                 onToggleSelect(assessment.id);
               }}
-              className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
+              className="w-3.5 h-3.5 rounded accent-accent"
             />
-            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+            <span className="text-sm" style={{ color: 'var(--muted)' }}>
               Compare
             </span>
           </label>
@@ -114,9 +114,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 e.stopPropagation();
                 onToggleBenchmarks(assessment.id);
               }}
-              className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
+              className="w-3.5 h-3.5 rounded accent-accent"
             />
-            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+            <span className="text-sm" style={{ color: 'var(--muted)' }}>
               Benchmarks
             </span>
           </label>
@@ -130,9 +130,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 e.stopPropagation();
                 onTogglePublic(assessment.id);
               }}
-              className="w-3.5 h-3.5 rounded accent-[var(--accent)]"
+              className="w-3.5 h-3.5 rounded accent-accent"
             />
-            <span className="text-[11px]" style={{ color: 'var(--muted)' }}>
+            <span className="text-sm" style={{ color: 'var(--muted)' }}>
               Public
             </span>
           </label>
@@ -150,7 +150,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         {/* Score */}
         <div className="text-right">
           <span
-            className="font-mono text-[22px] font-semibold leading-none"
+            className="font-mono text-2xl font-semibold leading-none"
             style={{
               color:
                 assessment.overall_score >= 75
@@ -170,7 +170,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         {/* Confidence (if available) */}
         {assessment.confidence_level != null && (
           <div className="text-right hidden md:block">
-            <p className="font-mono text-[13px]" style={{ color: 'var(--muted)' }}>
+            <p className="font-mono text-xs" style={{ color: 'var(--muted)' }}>
               {assessment.confidence_level}%
             </p>
             <p className="label-overline">CONF.</p>
@@ -182,7 +182,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           <Tooltip delay={300} placement="top">
             <Tooltip.Trigger>
               <button
-                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-[var(--accent-soft)]"
+                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-accent-soft"
                 style={{ color: 'var(--muted)' }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -201,7 +201,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           <Tooltip delay={300} placement="top">
             <Tooltip.Trigger>
               <button
-                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-[var(--accent-soft)]"
+                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-accent-soft"
                 style={{ color: 'var(--muted)' }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -220,7 +220,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           <Tooltip delay={300} placement="top">
             <Tooltip.Trigger>
               <button
-                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-[var(--danger-soft)]"
+                className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-danger-soft"
                 style={{ color: 'var(--danger)' }}
                 onClick={(e) => {
                   e.stopPropagation();

@@ -4,13 +4,7 @@
  * public sharing, market analysis per assessment.
  */
 
-/**
- * Log API operation
- * @private
- */
-function logOperation(operation, status, duration) {
-  logger.logOperation(operation, status, duration);
-}
+import { logOperation } from '#utils/controller-helpers.js';
 
 /**
  * Save a new assessment

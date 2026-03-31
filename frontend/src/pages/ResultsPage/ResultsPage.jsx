@@ -1011,10 +1011,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             {/* Toggle row */}
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
+                <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>
                   Public sharing
                 </p>
-                <p className="text-[12px] mt-0.5" style={{ color: 'var(--muted)' }}>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
                   {isResultsRoute
                     ? 'Save assessment to enable sharing'
                     : 'Allow others to view this assessment via link'}
@@ -1077,7 +1077,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Problem Item --- */}
                 <Accordion.Item id="problem" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
                       <div className="flex items-center gap-3">
                         <Target
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1120,7 +1120,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Solution Item --- */}
                 <Accordion.Item id="solution" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
                       <div className="flex items-center gap-3">
                         <Lightbulb
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1163,7 +1163,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Business Context Item --- */}
                 <Accordion.Item id="context" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
                       <div className="flex items-center gap-3">
                         <Globe
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1246,7 +1246,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Evaluation Parameters Item --- */}
                 <Accordion.Item id="parameters" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[var(--accent-soft)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
                       <div className="flex items-center gap-3">
                         <BarChart3
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1358,11 +1358,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   color: 'var(--foreground)',
                 }}
               >
-                <ClipboardList
-                  className="flex-shrink-0"
-                  size={20}
-                  style={{ color: 'var(--success)' }}
-                />
+                <ClipboardList className="shrink-0" size={20} style={{ color: 'var(--success)' }} />
                 Project Classification
               </h3>
               <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
@@ -1740,7 +1736,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       borderColor: 'var(--success)',
                     }}
                   >
-                    <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--success-soft)] transition-colors">
+                    <Accordion.Trigger className="px-4 py-3 hover:bg-success-soft transition-colors">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 size={20} style={{ color: 'var(--success)' }} />
                         <span
@@ -1804,7 +1800,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       borderColor: 'var(--warning)',
                     }}
                   >
-                    <Accordion.Trigger className="px-4 py-3 hover:bg-[var(--warning-soft)] transition-colors">
+                    <Accordion.Trigger className="px-4 py-3 hover:bg-warning-soft transition-colors">
                       <div className="flex items-center gap-2">
                         <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
                         <span
@@ -1833,7 +1829,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           return (
                             <div
                               key={i}
-                              className={`flex gap-2 p-3 rounded-lg border bg-[var(--surface)]`}
+                              className={`flex gap-2 p-3 rounded-lg border bg-surface`}
                               style={{
                                 backgroundColor: 'var(--surface)',
                                 borderColor: severityColors[severity],

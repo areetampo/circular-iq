@@ -11,44 +11,12 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
 import { documentsRepository } from '#database/index.js';
 import { filterSchema } from '#middleware/validation.middleware.js';
-
-// -- helper utilities copied from former route file --------------------------------
-
-// Validate that request query filter values are simple strings or null
-function sanitizeFilter(val) {
-  if (val == null) return null;
-  if (Array.isArray(val)) return null;
-  if (typeof val === 'object') return null;
-  const str = String(val).trim();
-  if (str === '' || str.toLowerCase() === 'all') return null;
-  return str;
-}
-
-function safeNumber(value) {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : 0;
-}
-
-function formatMonthKey(date) {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
-}
-
-function buildRecentMonths(count = 6) {
-  const now = new Date();
-  const months = [];
-
-  for (let i = count - 1; i >= 0; i -= 1) {
-    const monthDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
-    months.push({
-      key: formatMonthKey(monthDate),
-      label: monthDate.toISOString().slice(0, 7),
-    });
-  }
-
-  return months;
-}
+import {
+  buildRecentMonths,
+  formatMonthKey,
+  safeNumber,
+  sanitizeFilter,
+} from '#utils/analyticsHelpers.js';
 
 function parseTimeRange(timeRange) {
   if (!timeRange) return null;

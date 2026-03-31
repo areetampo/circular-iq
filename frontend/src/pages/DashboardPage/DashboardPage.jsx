@@ -19,6 +19,22 @@ import { useDocumentStats } from '@/features/assessments/hooks/useDocumentStats'
 import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  RISK_COLORS,
+  SCALE_COLORS,
+  SCORE_COLORS,
+  TIER_COLORS,
+  transformGeoDistribution,
+  transformIndustryDistribution,
+  transformMaterialDistribution,
+  transformRiskDistribution,
+  transformScaleDistribution,
+  transformScoreDistribution,
+  transformTierDistribution,
+  transformWeeklyTrend,
+  usableBar,
+  usablePie,
+} from '@/utils/chartHelpers';
 
 import {
   ChartPanel,
@@ -28,39 +44,6 @@ import {
   SolutionCard,
   StatCard,
 } from './components';
-
-// ─── Colours ──────────────────────────────────────────────────────────────────
-const TIER_COLORS = [
-  'var(--success)',
-  'var(--info)',
-  'var(--warning)',
-  'var(--danger)',
-  'var(--muted)',
-];
-const RISK_COLORS = ['var(--success)', 'var(--warning)', 'var(--danger)', 'var(--muted)'];
-const SCORE_COLORS = ['var(--danger)', 'var(--warning)', 'var(--info)', 'var(--success)'];
-const SCALE_COLORS = [
-  'var(--danger)',
-  'var(--warning)',
-  'var(--info)',
-  'var(--success)',
-  'var(--accent)',
-  'var(--muted)',
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Only show a PieChart when we have ≥ 2 distinct values with total ≥ 2 */
-function usablePie(data) {
-  if (!data || data.length < 2) return false;
-  const total = data.reduce((s, d) => s + (d.value ?? 0), 0);
-  return total >= 2;
-}
-
-/** Only show a BarChart when we have ≥ 1 bar with count/value > 0 */
-function usableBar(data, key = 'count') {
-  return data && data.length > 0 && data.some((d) => (d[key] ?? 0) > 0);
-}
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
@@ -153,30 +136,17 @@ export default function DashboardPage() {
   // ── Chart data (all memoised) ─────────────────────────────────────────────────
 
   const scoreDistData = useMemo(
-    () =>
-      Object.entries(scoreDistribution)
-        .map(([name, count]) => ({ name, value: Number(count) }))
-        .filter((d) => d.value > 0),
+    () => transformScoreDistribution(scoreDistribution),
     [scoreDistribution],
   );
 
   const tierDistData = useMemo(
-    () =>
-      Object.entries(tierDistribution)
-        .filter(([t]) => t && t !== 'Unknown')
-        .map(([tier, count]) => ({ name: tier, value: Number(count) }))
-        .sort((a, b) => b.value - a.value),
+    () => transformTierDistribution(tierDistribution),
     [tierDistribution],
   );
 
   const riskDistData = useMemo(
-    () =>
-      Object.entries(riskDistribution)
-        .filter(([r]) => r && r !== 'unknown')
-        .map(([risk, count]) => ({
-          name: risk.charAt(0).toUpperCase() + risk.slice(1),
-          value: Number(count),
-        })),
+    () => transformRiskDistribution(riskDistribution),
     [riskDistribution],
   );
 
@@ -190,23 +160,11 @@ export default function DashboardPage() {
   );
 
   const industryBarData = useMemo(
-    () =>
-      industryDistribution
-        .filter((d) => d.industry && d.industry !== 'other' && d.industry !== 'general')
-        .slice(0, 10)
-        .map((d) => ({ name: d.industry, count: Number(d.count) })),
+    () => transformIndustryDistribution(industryDistribution, 10),
     [industryDistribution],
   );
 
-  const weeklyData = useMemo(
-    () =>
-      weeklyTrend.map((w) => ({
-        period: w.week,
-        count: Number(w.count),
-        averageScore: w.avg_score != null ? Number(w.avg_score) : 0,
-      })),
-    [weeklyTrend],
-  );
+  const weeklyData = useMemo(() => transformWeeklyTrend(weeklyTrend), [weeklyTrend]);
 
   const marketTableRows = useMemo(
     () => marketDataByIndustry.filter((m) => m.industry).slice(0, 15),
@@ -214,29 +172,14 @@ export default function DashboardPage() {
   );
 
   const materialData = useMemo(
-    () =>
-      (materialDistribution || [])
-        .filter((d) => d.material && d.material !== 'unknown')
-        .slice(0, 8)
-        .map((d) => ({ name: d.material, value: Number(d.count) })),
+    () => transformMaterialDistribution(materialDistribution, 8),
     [materialDistribution],
   );
 
-  const geoData = useMemo(
-    () =>
-      (geoDistribution || [])
-        .filter((d) => d.geo && d.geo !== 'unknown')
-        .slice(0, 8)
-        .map((d) => ({ name: d.geo, value: Number(d.count) })),
-    [geoDistribution],
-  );
+  const geoData = useMemo(() => transformGeoDistribution(geoDistribution, 8), [geoDistribution]);
 
   const scaleData = useMemo(
-    () =>
-      (scaleDistribution || [])
-        .filter((d) => d.scale && d.scale !== 'unknown')
-        .slice(0, 6)
-        .map((d) => ({ name: d.scale, value: Number(d.count) })),
+    () => transformScaleDistribution(scaleDistribution, 6),
     [scaleDistribution],
   );
 
@@ -326,7 +269,7 @@ export default function DashboardPage() {
           type="button"
           onClick={refetchGlobal}
           disabled={globalLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--foreground)]"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40 hover:border-accent hover:bg-accent-soft hover:text-foreground"
           style={{
             borderColor: 'var(--border)',
             backgroundColor: 'var(--surface)',
@@ -540,7 +483,7 @@ export default function DashboardPage() {
                   {marketTableRows.map((row) => (
                     <tr
                       key={row.industry}
-                      className="hover:bg-[var(--accent-soft)] transition-colors"
+                      className="hover:bg-accent-soft transition-colors"
                       style={{ borderBottom: '1px solid var(--border)' }}
                     >
                       <td className="py-2 px-3 font-medium" style={{ color: 'var(--foreground)' }}>
@@ -779,7 +722,7 @@ export default function DashboardPage() {
                       industry: industryFilter,
                     })
                   }
-                  className="font-medium flex items-center gap-1 hover:text-[var(--foreground)]"
+                  className="font-medium flex items-center gap-1 hover:text-foreground"
                   style={{
                     color: 'var(--accent)',
                   }}
@@ -889,7 +832,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/auth')}
-            className="px-4 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 hover:bg-[var(--foreground)]"
+            className="px-4 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 hover:bg-foreground"
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--surface)',

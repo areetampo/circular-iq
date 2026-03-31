@@ -23,7 +23,7 @@ const variantStyles = {
   warning: 'bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning)]/20',
   danger: 'bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger)]/20',
   info: 'bg-[var(--info-soft)] text-[var(--info)] border border-[var(--info)]/20',
-  muted: 'bg-transparent text-[var(--muted)] border border-[var(--border)]',
+  muted: 'bg-transparent text-muted border border-[var(--border)]',
   industry:
     'bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent-soft-fg)] transition-colors duration-150 cursor-pointer select-none',
   'industry-active':

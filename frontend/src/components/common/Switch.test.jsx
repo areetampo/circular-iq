@@ -46,7 +46,7 @@ describe('Switch (wrapper)', () => {
     // make assertions against the serialized markup instead of querying
     expect(wrapper.outerHTML).toContain('lucide-lock');
     expect(wrapper.outerHTML).toContain('width="10"');
-    expect(wrapper.outerHTML).toContain('text-[var(--muted)]');
+    expect(wrapper.outerHTML).toContain('text-muted');
 
     // second render (mount new element), pick the new node
     render(

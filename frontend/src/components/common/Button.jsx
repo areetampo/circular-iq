@@ -31,7 +31,7 @@ const customVariantStyles = {
 
   // Ghost variant - No border, muted text
   ghost:
-    'bg-transparent text-[var(--muted)] border border-transparent hover:bg-[var(--accent-soft)] hover:text-[var(--foreground)] active:bg-[var(--accent-soft)] data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:opacity-50',
+    'bg-transparent text-muted border border-transparent hover:bg-[var(--accent-soft)] hover:text-[var(--foreground)] active:bg-[var(--accent-soft)] data-[focus-visible=true]:outline-[var(--accent)] data-[disabled=true]:opacity-50',
 
   // Tertiary variant - Surface background with border
   tertiary:
@@ -81,7 +81,7 @@ const customVariantStyles = {
 
   // Neutral-soft variant - Soft gray theme
   'neutral-soft':
-    'bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-raised)] hover:border-[var(--border)] active:bg-[var(--surface)] data-[focus-visible=true]:outline-[var(--foreground)] data-[disabled=true]:bg-[var(--surface)] data-[disabled=true]:text-[var(--muted)] data-[disabled=true]:opacity-70',
+    'bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-raised)] hover:border-[var(--border)] active:bg-[var(--surface)] data-[focus-visible=true]:outline-[var(--foreground)] data-[disabled=true]:bg-[var(--surface)] data-[disabled=true]:text-muted data-[disabled=true]:opacity-70',
 };
 
 /**

@@ -117,7 +117,9 @@ export default [
     languageOptions: {
       globals: {
         ...globals.vitest, // Adds all Vitest globals at once
+        ...globals.jest, // Add Jest globals for backend tests
         vi: 'readonly',
+        jest: 'readonly',
         describe: 'readonly',
         it: 'readonly',
         test: 'readonly',

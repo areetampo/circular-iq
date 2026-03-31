@@ -16,7 +16,7 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
       <div className="flex flex-col gap-1">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm w-fit hover:text-[var(--foreground)] transition-colors duration-150"
+          className="flex items-center gap-1 text-sm w-fit hover:text-foreground transition-colors duration-150"
           style={{ color: 'var(--muted)' }}
         >
           ← Back

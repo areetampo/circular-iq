@@ -70,7 +70,7 @@ export function OverviewTab({
                         <Table.Column className="w-1/2">Assessment 2</Table.Column>
                       </Table.Header>
                       <Table.Body>
-                        <Table.Row className="transition-colors duration-150 hover:bg-[var(--accent-soft)]">
+                        <Table.Row className="transition-colors duration-150 hover:bg-accent-soft">
                           <Table.Cell>
                             <div>
                               <p
@@ -140,7 +140,7 @@ export function OverviewTab({
                         <Table.Column className="w-1/2">Assessment 2</Table.Column>
                       </Table.Header>
                       <Table.Body>
-                        <Table.Row className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                        <Table.Row className="hover:bg-surface-hover transition-colors duration-150">
                           <Table.Cell className="align-top">
                             <div>
                               <p
@@ -310,7 +310,7 @@ export function OverviewTab({
                         return (
                           <Table.Row
                             key={key}
-                            className="hover:bg-[var(--surface-hover)] transition-colors duration-150"
+                            className="hover:bg-surface-hover transition-colors duration-150"
                           >
                             <Table.Cell
                               className="font-medium capitalize"
@@ -409,8 +409,8 @@ export function OverviewTab({
                           return (
                             <Table.Row
                               key={key}
-                              className={`hover:bg-[var(--surface-hover)] transition-colors duration-150 ${
-                                val1Str === val2Str ? '' : 'bg-[var(--warning-soft)]/30'
+                              className={`hover:bg-surface-hover transition-colors duration-150 ${
+                                val1Str === val2Str ? '' : 'bg-warning-soft/30'
                               }`}
                             >
                               <Table.Cell

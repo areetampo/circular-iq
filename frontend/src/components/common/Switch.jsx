@@ -24,7 +24,7 @@ const VARIANT_THEMES = {
     controlSelectedClass: '',
     controlUnselectedClass: 'bg-[var(--border)]',
     iconOnClass: 'text-[var(--foreground)]',
-    iconOffClass: 'text-[var(--muted)]',
+    iconOffClass: 'text-muted',
   },
   public: {
     iconOn: LockOpen,
@@ -32,7 +32,7 @@ const VARIANT_THEMES = {
     controlSelectedClass: 'bg-[var(--success)]/80',
     controlUnselectedClass: 'bg-[var(--border)]',
     iconOnClass: 'text-[var(--success-soft-fg)] opacity-100',
-    iconOffClass: 'text-[var(--muted)] opacity-70',
+    iconOffClass: 'text-muted opacity-70',
   },
   benchmarks: {
     iconOn: Check,
@@ -40,7 +40,7 @@ const VARIANT_THEMES = {
     controlSelectedClass: 'bg-[var(--info)]/80',
     controlUnselectedClass: 'bg-[var(--border)]',
     iconOnClass: 'text-[var(--info)] opacity-100',
-    iconOffClass: 'text-[var(--muted)] opacity-70',
+    iconOffClass: 'text-muted opacity-70',
   },
 };
 

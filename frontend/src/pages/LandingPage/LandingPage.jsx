@@ -31,6 +31,7 @@ import FeatureCards from '@/pages/LandingPage/components/FeatureCards';
 import HeroSection from '@/pages/LandingPage/components/HeroSection';
 import MethodologyButtons from '@/pages/LandingPage/components/MethodologyButtons';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
+import { inputsEqual, nonLetterDensity, uniqueWordRatio } from '@/utils/formHelpers';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -181,43 +182,6 @@ export default function LandingPage() {
     }
 
     // Helper to compare input shapes (supports both legacy and new naming)
-    const inputsEqual = (a = {}, b = {}) => {
-      try {
-        const aBP = (a.businessProblem || '').trim();
-        const bBP = (b.businessProblem || '').trim();
-        const aBS = (a.businessSolution || '').trim();
-        const bBS = (b.businessSolution || '').trim();
-        const aParams = a.evaluationParameters || {};
-        const bParams = b.evaluationParameters || {};
-        const aContext = a.businessContext || {};
-        const bContext = b.businessContext || {};
-
-        // Normalize context by removing undefined values for comparison
-        const normalizeContext = (ctx) => {
-          if (!ctx) return {};
-          const normalized = {};
-          Object.keys(ctx).forEach((key) => {
-            if (ctx[key] !== undefined) {
-              normalized[key] = ctx[key];
-            }
-          });
-          return normalized;
-        };
-
-        const aContextNorm = normalizeContext(aContext);
-        const bContextNorm = normalizeContext(bContext);
-
-        return (
-          aBP === bBP &&
-          aBS === bBS &&
-          JSON.stringify(aParams) === JSON.stringify(bParams) &&
-          JSON.stringify(aContextNorm) === JSON.stringify(bContextNorm)
-        );
-      } catch (err) {
-        return false;
-      }
-    };
-
     const currentForm = methods.getValues();
 
     // If the current form already matches session inputs, just update lastApplied
@@ -291,43 +255,7 @@ export default function LandingPage() {
         businessContext: {},
       };
 
-      const inputsEqualLocal = (a = {}, b = {}) => {
-        try {
-          const aBP = (a.businessProblem || '').trim();
-          const bBP = (b.businessProblem || '').trim();
-          const aBS = (a.businessSolution || '').trim();
-          const bBS = (b.businessSolution || '').trim();
-          // Normalize to evaluationParameters for the canonical persisted shape
-          const aParams = a.evaluationParameters || {};
-          const bParams = b.evaluationParameters || {};
-          const aContext = a.businessContext || {};
-          const bContext = b.businessContext || {};
-
-          // Normalize context by removing undefined values for comparison
-          const normalizeContext = (ctx) => {
-            if (!ctx) return {};
-            const normalized = {};
-            Object.keys(ctx).forEach((key) => {
-              if (ctx[key] !== undefined) {
-                normalized[key] = ctx[key];
-              }
-            });
-            return normalized;
-          };
-
-          const aContextNorm = normalizeContext(aContext);
-          const bContextNorm = normalizeContext(bContext);
-
-          return (
-            aBP === bBP &&
-            aBS === bBS &&
-            JSON.stringify(aParams) === JSON.stringify(bParams) &&
-            JSON.stringify(aContextNorm) === JSON.stringify(bContextNorm)
-          );
-        } catch (err) {
-          return false;
-        }
-      };
+      const inputsEqualLocal = inputsEqual;
 
       // If nothing changed vs persisted state, skip writing to storage
       if (inputsEqualLocal(current, stored)) return;
@@ -427,51 +355,7 @@ export default function LandingPage() {
 
   // Warn the user when they try to close/refresh the page with unsaved inputs.
   useEffect(() => {
-    const inputsEqual = (a = {}, b = {}) => {
-      const aBP = (a.businessProblem || '').trim();
-      const bBP = (b.businessProblem || '').trim();
-      const aBS = (a.businessSolution || '').trim();
-      const bBS = (b.businessSolution || '').trim();
-      const aParams = a.evaluationParameters || {};
-      const bParams = b.evaluationParameters || {};
-      const aContext = a.businessContext || {};
-      const bContext = b.businessContext || {};
-
-      // Normalize context by removing undefined values for comparison
-      const normalizeContext = (ctx) => {
-        if (!ctx) return {};
-        const normalized = {};
-        Object.keys(ctx).forEach((key) => {
-          if (ctx[key] !== undefined) {
-            normalized[key] = ctx[key];
-          }
-        });
-        return normalized;
-      };
-
-      const aContextNorm = normalizeContext(aContext);
-      const bContextNorm = normalizeContext(bContext);
-
-      const shallowEqual = (objA = {}, objB = {}) => {
-        const aKeys = Object.keys(objA);
-        const bKeys = Object.keys(objB);
-        if (aKeys.length !== bKeys.length) return false;
-        return aKeys.every(
-          (key) => Object.prototype.hasOwnProperty.call(objB, key) && objA[key] === objB[key],
-        );
-      };
-
-      try {
-        return (
-          aBP === bBP &&
-          aBS === bBS &&
-          shallowEqual(aParams, bParams) &&
-          shallowEqual(aContextNorm, bContextNorm)
-        );
-      } catch (err) {
-        return false;
-      }
-    };
+    const inputsEqual = inputsEqual;
 
     const shouldWarn = () => {
       const values = methods.getValues();
@@ -547,24 +431,6 @@ export default function LandingPage() {
     }
 
     // Client-side junk detection: low unique-word ratio or too many symbols
-    const uniqueWordRatio = (text) => {
-      const words = (text || '')
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, ' ')
-        .split(/\s+/)
-        .filter(Boolean);
-      if (words.length === 0) return 0;
-      const uniq = new Set(words);
-      return uniq.size / words.length;
-    };
-
-    const nonLetterDensity = (text) => {
-      const total = text.length || 1;
-      // Move the fallback into the parameter or a variable to avoid crashes
-      const matches = text.match(/[^a-z0-9\s.,_-]/gi) || [];
-      return matches.length / total;
-    };
-
     const probUniq = uniqueWordRatio(formData.businessProblem);
     const solUniq = uniqueWordRatio(formData.businessSolution);
     if (probUniq < 0.3 || solUniq < 0.3) {
@@ -719,7 +585,7 @@ export default function LandingPage() {
               >
                 <Accordion.Item id="business-context-heading">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
+                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
                       <BriefcaseBusiness
                         className="h-6 w-6 shrink-0 mr-1"
                         style={{ color: 'var(--accent)' }}
@@ -754,7 +620,7 @@ export default function LandingPage() {
                         </span>
                       </div>
 
-                      <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
+                      <Accordion.Indicator className="text-muted [&>svg]:size-4">
                         <ChevronDown />
                       </Accordion.Indicator>
                     </Accordion.Trigger>
@@ -783,7 +649,7 @@ export default function LandingPage() {
               >
                 <Accordion.Item id="evaluation-parameters-heading">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-[var(--accent-soft)]">
+                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
                       <SlidersHorizontal
                         className="h-6 w-6 shrink-0 mr-1"
                         style={{ color: 'var(--success)' }}
@@ -818,7 +684,7 @@ export default function LandingPage() {
                         </span>
                       </div>
 
-                      <Accordion.Indicator className="text-[var(--muted)] [&>svg]:size-4">
+                      <Accordion.Indicator className="text-muted [&>svg]:size-4">
                         <ChevronDown />
                       </Accordion.Indicator>
                     </Accordion.Trigger>
@@ -848,7 +714,7 @@ export default function LandingPage() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle
-                    className="flex-shrink-0"
+                    className="shrink-0"
                     style={{ color: 'var(--danger)' }}
                     strokeWidth={2.5}
                     size={16}

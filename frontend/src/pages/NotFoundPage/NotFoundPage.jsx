@@ -42,7 +42,7 @@ export default function NotFoundPage() {
             style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
           >
             <div
-              className="p-2 rounded-md mt-0.5 flex-shrink-0"
+              className="p-2 rounded-md mt-0.5 shrink-0"
               style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}
             >
               <Compass size={15} />
@@ -62,7 +62,7 @@ export default function NotFoundPage() {
             style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
           >
             <div
-              className="p-2 rounded-md mt-0.5 flex-shrink-0"
+              className="p-2 rounded-md mt-0.5 shrink-0"
               style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}
             >
               <BarChart3 size={15} />
