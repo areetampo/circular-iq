@@ -582,7 +582,9 @@ export function OverviewTab({
 
           {/* Score Highlights */}
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-4">Score Highlights</h4>
+            <h4 className="text-sm font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+              Score Highlights
+            </h4>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {[
                 { sr: scoringResult1, assessment: assessment1, color: 'emerald' },
@@ -621,8 +623,11 @@ export function OverviewTab({
 
                     <div className="space-y-3">
                       {/* Strongest Factor */}
-                      <div className="p-3 bg-white rounded-lg border border-slate-200">
-                        <p className="text-xs font-semibold text-slate-600 mb-1">
+                      <div
+                        className="p-3 rounded-lg border"
+                        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                      >
+                        <p className="text-xs font-semibold mb-1" style={{ color: 'var(--muted)' }}>
                           Strongest Factor
                         </p>
                         <p
@@ -630,25 +635,35 @@ export function OverviewTab({
                         >
                           {topFactor[0] !== 'N/A' ? titleize(topFactor[0]) : 'N/A'}
                         </p>
-                        <p className="text-sm text-slate-600 font-semibold">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--muted)' }}>
                           {topFactor[0] !== 'N/A' ? `${topFactor[1]}/100` : '—'}
                         </p>
                       </div>
 
                       {/* Focus Area */}
-                      <div className="p-3 bg-white rounded-lg border border-slate-200">
-                        <p className="text-xs font-semibold text-slate-600 mb-1">Focus Area</p>
+                      <div
+                        className="p-3 rounded-lg border"
+                        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                      >
+                        <p className="text-xs font-semibold mb-1" style={{ color: 'var(--muted)' }}>
+                          Focus Area
+                        </p>
                         <p className="text-lg font-bold text-orange-700">
                           {focusFactor[0] !== 'N/A' ? titleize(focusFactor[0]) : 'N/A'}
                         </p>
-                        <p className="text-sm text-slate-600 font-semibold">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--muted)' }}>
                           {focusFactor[0] !== 'N/A' ? `${focusFactor[1]}/100` : '—'}
                         </p>
                       </div>
 
                       {/* Average Score */}
-                      <div className="p-3 bg-white rounded-lg border border-slate-200">
-                        <p className="text-xs font-semibold text-slate-600 mb-1">Average Score</p>
+                      <div
+                        className="p-3 rounded-lg border"
+                        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                      >
+                        <p className="text-xs font-semibold mb-1" style={{ color: 'var(--muted)' }}>
+                          Average Score
+                        </p>
                         <p className="text-lg font-bold text-purple-700">{avgScore}/100</p>
                         <ProgressBar
                           value={avgScore}
@@ -682,7 +697,10 @@ export function OverviewTab({
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Assessment 1 Score */}
             <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
-              <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide truncate">
+              <p
+                className="text-xs mb-2 font-semibold uppercase tracking-wide truncate"
+                style={{ color: 'var(--muted)' }}
+              >
                 {assessment1.title}
               </p>
               <div className="flex items-baseline gap-1">
@@ -714,7 +732,10 @@ export function OverviewTab({
 
             {/* Assessment 2 Score */}
             <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
-              <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide truncate">
+              <p
+                className="text-xs mb-2 font-semibold uppercase tracking-wide truncate"
+                style={{ color: 'var(--muted)' }}
+              >
                 {assessment2.title}
               </p>
               <div className="flex items-baseline gap-1">
@@ -746,7 +767,10 @@ export function OverviewTab({
 
             {/* Overall Change */}
             <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
-              <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
+              <p
+                className="text-xs mb-2 font-semibold uppercase tracking-wide"
+                style={{ color: 'var(--muted)' }}
+              >
                 Overall Change
               </p>
               <div className="flex items-baseline gap-1">
@@ -768,11 +792,14 @@ export function OverviewTab({
 
             {biggestGain && (
               <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
-                <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
+                <p
+                  className="text-xs mb-2 font-semibold uppercase tracking-wide"
+                  style={{ color: 'var(--muted)' }}
+                >
                   Biggest Gain
                 </p>
                 <p className="text-4xl font-bold text-emerald-700">+{biggestGain.diff}</p>
-                <p className="text-xs text-slate-600 truncate mt-1 font-medium">
+                <p className="text-xs truncate mt-1 font-medium" style={{ color: 'var(--muted)' }}>
                   {biggestGain.label}
                 </p>
               </div>
@@ -780,18 +807,24 @@ export function OverviewTab({
 
             {biggestDrop && (
               <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
-                <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
+                <p
+                  className="text-xs mb-2 font-semibold uppercase tracking-wide"
+                  style={{ color: 'var(--muted)' }}
+                >
                   Biggest Drop
                 </p>
                 <p className="text-4xl font-bold text-red-700">{biggestDrop.diff}</p>
-                <p className="text-xs text-slate-600 truncate mt-1 font-medium">
+                <p className="text-xs truncate mt-1 font-medium" style={{ color: 'var(--muted)' }}>
                   {biggestDrop.label}
                 </p>
               </div>
             )}
 
             <div className="p-5 border rounded-xl hover:shadow-md transition-all duration-200">
-              <p className="text-xs text-slate-600 mb-2 font-semibold uppercase tracking-wide">
+              <p
+                className="text-xs mb-2 font-semibold uppercase tracking-wide"
+                style={{ color: 'var(--muted)' }}
+              >
                 Avg Change
               </p>
               <div className="flex items-baseline gap-1">
@@ -816,9 +849,11 @@ export function OverviewTab({
 
       {/* Score Breakdown Comparison */}
       {scoringResult1?.score_breakdown && scoringResult2?.score_breakdown && (
-        <div className="border rounded-xl bg-white">
+        <div className="border rounded-xl" style={{ backgroundColor: 'transparent' }}>
           <div className="flex items-center gap-3 pb-4 p-6">
-            <h3 className="font-bold text-lg text-slate-900">Score Breakdown</h3>
+            <h3 className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+              Score Breakdown
+            </h3>
           </div>
           <div className="p-0">
             <div className="space-y-4 p-4">
@@ -826,15 +861,23 @@ export function OverviewTab({
                 const data1 = scoringResult1.score_breakdown[category];
                 const data2 = scoringResult2.score_breakdown[category];
                 return (
-                  <div key={category} className="p-4 bg-slate-50 rounded-lg">
+                  <div
+                    key={category}
+                    className="p-4 rounded-lg"
+                    style={{ backgroundColor: 'var(--muted-soft)' }}
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-bold text-slate-900">{category}</div>
+                      <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                        {category}
+                      </div>
                       <div className="flex gap-4">
                         <div className="text-sm font-bold text-emerald-700">A1: {data1.score}</div>
                         <div className="text-sm font-bold text-blue-700">A2: {data2.score}</div>
                       </div>
                     </div>
-                    <div className="text-xs text-slate-600 mb-2">{data1.weight}</div>
+                    <div className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                      {data1.weight}
+                    </div>
                     <div className="flex gap-4">
                       <ProgressBar value={data1.score} className="flex-1 h-2" color="success" />
                       <ProgressBar value={data2.score} className="flex-1 h-2" color="primary" />
