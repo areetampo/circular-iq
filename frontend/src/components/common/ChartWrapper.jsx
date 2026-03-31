@@ -1,4 +1,4 @@
-import { Card, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
 import { ChartsTooltip } from '@mui/x-charts';
 import PropTypes from 'prop-types';
 
@@ -21,23 +21,29 @@ export function ChartContainer({
 
   if (isLoading) {
     return (
-      <Card className={cn('min-w-0', className)} style={mergedStyle}>
+      <div
+        className={cn(
+          'min-w-0 border border-(--color-border) rounded-md bg-transparent',
+          className,
+        )}
+        style={mergedStyle}
+      >
         <Skeleton className="w-full h-full" />
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card
+    <div
       className={cn(
-        'min-w-0',
+        'min-w-0 border border-(--color-border) rounded-md bg-transparent',
         className,
         overflow === 'auto' ? 'overflow-auto' : 'overflow-hidden',
       )}
       style={mergedStyle}
     >
       <div style={{ width: '100%', height: '100%' }}>{children}</div>
-    </Card>
+    </div>
   );
 }
 
@@ -74,20 +80,20 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
     <div
       className="rounded-lg border p-2 shadow-md backdrop-blur-sm"
       style={{
-        backgroundColor: 'var(--surface)',
-        borderColor: 'var(--border)',
+        backgroundColor: 'var(--color-bg-card)',
+        borderColor: 'var(--color-border)',
         fontSize: '0.875rem',
       }}
     >
       {label && (
-        <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+        <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
           {labelFormatter ? labelFormatter(label) : label}
         </div>
       )}
       <div className="space-y-1">
         {payload.map((entry, index) => {
           const value = formatter ? formatter(entry.value, entry.name) : entry.value;
-          const dotColor = entry.color || entry.fill || 'var(--accent)';
+          const dotColor = entry.color || entry.fill || 'var(--color-accent)';
           return (
             <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
               <div
@@ -97,8 +103,8 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
                   boxShadow: `0 0 4px ${dotColor}40`,
                 }}
               />
-              <span style={{ color: 'var(--muted)' }}>{entry.name}:</span>
-              <span className="font-medium" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>{entry.name}:</span>
+              <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
                 {value}
               </span>
             </div>

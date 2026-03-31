@@ -12,7 +12,7 @@ export default function NotFoundPage() {
         <p
           className="text-[120px] font-bold leading-none select-none"
           style={{
-            color: 'var(--border-strong)',
+            color: 'var(--color-border-strong)',
             fontFamily: 'Lora, serif',
             letterSpacing: '-0.04em',
           }}
@@ -21,57 +21,57 @@ export default function NotFoundPage() {
         </p>
 
         {/* Heading + description */}
-        <h1 className="heading-display text-[26px] mt-2" style={{ color: 'var(--foreground)' }}>
+        <h1
+          className="heading-display text-[26px] mt-2"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           Page Not Found
         </h1>
         <p
           className="mt-3 text-[15px] max-w-md mx-auto leading-relaxed"
-          style={{ color: 'var(--muted)' }}
+          style={{ color: 'var(--color-text-muted)' }}
         >
           The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
           deleted.
         </p>
 
         {/* Thin divider */}
-        <div className="w-12 h-[1.5px] mx-auto my-8" style={{ backgroundColor: 'var(--accent)' }} />
+        <div
+          className="w-12 h-[1.5px] mx-auto my-8"
+          style={{ backgroundColor: 'var(--color-accent)' }}
+        />
 
         {/* Navigation options */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8 text-left">
-          <div
-            className="flex items-start gap-3 p-4 rounded-xl border"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
-          >
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-(--color-border) bg-transparent">
             <div
               className="p-2 rounded-md mt-0.5 shrink-0"
-              style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}
+              style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
             >
               <Compass size={15} />
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                 Need guidance?
               </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                 Visit the home page to start a new assessment.
               </p>
             </div>
           </div>
 
-          <div
-            className="flex items-start gap-3 p-4 rounded-xl border"
-            style={{ borderColor: 'var(--border)', backgroundColor: 'transparent' }}
-          >
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-(--color-border) bg-transparent">
             <div
               className="p-2 rounded-md mt-0.5 shrink-0"
-              style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent)' }}
+              style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
             >
               <BarChart3 size={15} />
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                 Review past work
               </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                 Jump to your saved assessments and comparisons.
               </p>
             </div>

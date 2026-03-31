@@ -849,31 +849,36 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
 
         {/* Buttons Bar */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Show public share notice for public viewers */}
-          {isPublicShare && (
-            <Chip variant="accent" className="gap-1">
-              <Globe size={12} />
-              Public Shared Assessment
-            </Chip>
-          )}
+        <div className="flex items-center justify-between">
+          {/* Left side: Navigation buttons */}
+          <div className="flex items-center gap-3">
+            {/* Show public share notice for public viewers */}
+            {isPublicShare && (
+              <Chip variant="category" className="gap-1">
+                <Globe size={12} />
+                Public Shared Assessment
+              </Chip>
+            )}
 
-          {!isPublicShare && (
-            <>
-              <Button variant="secondary" onPress={handleViewHistory}>
-                <FileText size={16} />
-                My Assessments
-              </Button>
-              {currentData && (
-                <Button variant="tertiary" onPress={handleReevaluate}>
-                  <RefreshCw size={16} />
-                  Re-evaluate
+            {!isPublicShare && (
+              <>
+                <Button variant="results-action" onPress={handleViewHistory}>
+                  <FileText size={14} />
+                  My Assessments
                 </Button>
-              )}
-            </>
-          )}
-          {/* Export actions: visible to everyone but disabled for anonymous users. */}
-          <>
+                {currentData && (
+                  <Button variant="results-action" onPress={handleReevaluate}>
+                    <RefreshCw size={14} />
+                    Re-evaluate
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Right side: Export actions */}
+          <div className="flex items-center gap-3">
+            {/* Export actions: visible to everyone but disabled for anonymous users. */}
             <Tooltip delay={0} placement="top" isDisabled={!!user}>
               <Tooltip.Trigger>
                 <Button
@@ -923,86 +928,86 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 </p>
               </Tooltip.Content>
             </Tooltip>
-          </>
 
-          {!isViewFromMyAssessments && !isPublicShare && (
-            <Button
-              onPress={() => {
-                if (!user) {
-                  // Anonymous user: ensure the current result is persisted in the session
-                  // (results and inputs are independent), then redirect to auth so the
-                  // user can sign in and be returned to /results to confirm save.
-                  try {
-                    const formState = resolvedFormData || sessionSnapshot || getSession() || {};
-                    const formInputs = formState?.inputs ? formState.inputs : formState;
-
-                    const pendingResults =
-                      (navigationResult && (navigationResult.result || navigationResult)) ||
-                      sessionSnapshot?.results ||
-                      getSession()?.results ||
-                      null;
-
-                    // Persist the snapshot to session storage (do NOT set isResultUnsaved flag)
+            {!isViewFromMyAssessments && !isPublicShare && (
+              <Button
+                variant="primary"
+                onPress={() => {
+                  if (!user) {
+                    // Anonymous user: ensure the current result is persisted in the session
+                    // (results and inputs are independent), then redirect to auth so the
+                    // user can sign in and be returned to /results to confirm save.
                     try {
-                      saveSession({
-                        inputs: {
-                          businessProblem: formInputs?.businessProblem || '',
-                          businessSolution: formInputs?.businessSolution || '',
-                          evaluationParameters: formInputs?.evaluation_parameters || {},
-                          businessContext: formInputs?.businessContext || {},
-                        },
-                        results: pendingResults,
+                      const formState = resolvedFormData || sessionSnapshot || getSession() || {};
+                      const formInputs = formState?.inputs ? formState.inputs : formState;
+
+                      const pendingResults =
+                        (navigationResult && (navigationResult.result || navigationResult)) ||
+                        sessionSnapshot?.results ||
+                        getSession()?.results ||
+                        null;
+
+                      // Persist the snapshot to session storage (do NOT set isResultUnsaved flag)
+                      try {
+                        saveSession({
+                          inputs: {
+                            businessProblem: formInputs?.businessProblem || '',
+                            businessSolution: formInputs?.businessSolution || '',
+                            evaluationParameters: formInputs?.evaluation_parameters || {},
+                            businessContext: formInputs?.businessContext || {},
+                          },
+                          results: pendingResults,
+                        });
+                      } catch (e) {
+                        logger.warn('Failed to persist session for pending save:', e);
+                      }
+
+                      toast.info('Redirecting to sign in', {
+                        description: 'You will be returned to your evaluation after signing in',
+                        duration: 5000,
                       });
+
+                      setTimeout(() => {
+                        navigate('/auth', { state: { mode: 'signup', from: '/results' } });
+                      }, 500);
+
+                      return;
                     } catch (e) {
-                      logger.warn('Failed to persist session for pending save:', e);
+                      logger.error('Failed to prepare pending save', e);
+                      toast.error('Failed to prepare save');
+                      return;
                     }
-
-                    toast.info('Redirecting to sign in', {
-                      description: 'You will be returned to your evaluation after signing in',
-                      duration: 5000,
-                    });
-
-                    setTimeout(() => {
-                      navigate('/auth', { state: { mode: 'signup', from: '/results' } });
-                    }, 500);
-
-                    return;
-                  } catch (e) {
-                    logger.error('Failed to prepare pending save', e);
-                    toast.error('Failed to prepare save');
-                    return;
                   }
-                }
 
-                openSaveAssessmentDialog({
-                  defaultName: defaultAssessmentName,
-                  onSave: handleSave,
-                  scoringResult: actualResult,
-                });
-              }}
-              variant="primary"
-              isDisabled={isExporting}
-            >
-              <Save size={16} />
-              Save
-            </Button>
-          )}
-          {/* If this assessment belongs to the current user, show rename/delete */}
-          {isViewFromMyAssessments &&
-            currentData &&
-            currentData.user_id &&
-            user?.id === currentData.user_id && (
-              <>
-                <Button variant="secondary" onPress={handleOpenRename}>
-                  <FolderPen size={16} />
-                  Rename
-                </Button>
-                <Button variant="danger-soft" onPress={handleOpenDelete}>
-                  <CircleX size={16} />
-                  Delete
-                </Button>
-              </>
+                  openSaveAssessmentDialog({
+                    defaultName: defaultAssessmentName,
+                    onSave: handleSave,
+                    scoringResult: actualResult,
+                  });
+                }}
+                disabled={isExporting}
+              >
+                <Save size={16} />
+                Save
+              </Button>
             )}
+            {/* If this assessment belongs to the current user, show rename/delete */}
+            {isViewFromMyAssessments &&
+              currentData &&
+              currentData.user_id &&
+              user?.id === currentData.user_id && (
+                <>
+                  <Button variant="secondary" onPress={handleOpenRename}>
+                    <FolderPen size={16} />
+                    Rename
+                  </Button>
+                  <Button variant="danger-soft" onPress={handleOpenDelete}>
+                    <CircleX size={16} />
+                    Delete
+                  </Button>
+                </>
+              )}
+          </div>
         </div>
 
         {/* Share Assessment Section */}

@@ -82,17 +82,9 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   <BadgeInfo className="info-icon" size={20} />
                 </Label>
 
-                <NumberField.Group
-                  className="flex items-center gap-1 h-8 my-0.5"
-                  style={{ '--field-focus': '#4b5563' }}
-                >
+                <NumberField.Group className="flex items-center gap-1 h-8 my-0.5">
                   <NumberField.DecrementButton
-                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none"
-                    style={{ color: 'var(--muted)' }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none text-(--color-text-muted) hover:bg-(--color-accent-light) rounded-sm"
                     aria-label="Decrease value"
                   />
                   <NumberField.Input
@@ -143,16 +135,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         /* ignore */
                       }
                     }}
-                    className="w-17 text-center text-2xl font-bold bg-transparent focus:outline-none"
-                    style={{ color: 'var(--foreground)' }}
+                    className="w-20 text-center font-mono text-(--color-text-primary) text-sm bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md focus:border-(--color-accent) outline-none transition-colors"
                   />
                   <NumberField.IncrementButton
-                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none"
-                    style={{ color: 'var(--muted)' }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none text-(--color-text-muted) hover:bg-(--color-accent-light) rounded-sm"
                     aria-label="Increase value"
                   />
                 </NumberField.Group>

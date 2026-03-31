@@ -1,37 +1,63 @@
-import { Accordion, toast, Tooltip } from '@heroui/react';
+import { toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import {
-  AlertTriangle,
-  BadgeInfo,
-  BriefcaseBusiness,
-  ChevronDown,
-  ClipboardList,
-  SlidersHorizontal,
-} from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertTriangle, BarChart3, Lightbulb, RefreshCw } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-// Session restore is handled globally via AppSessionManager + SessionRestoreDialog
-import { Button } from '@/components/common';
-import LoaderIcon from '@/components/common/LoaderIcon';
+import { Button, Chip } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
-import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
-import BusinessInputField from '@/pages/LandingPage/components/BusinessInputField';
-import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
-import FeatureCards from '@/pages/LandingPage/components/FeatureCards';
-import HeroSection from '@/pages/LandingPage/components/HeroSection';
-import MethodologyButtons from '@/pages/LandingPage/components/MethodologyButtons';
-import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
-import { inputsEqual, nonLetterDensity, uniqueWordRatio } from '@/utils/formHelpers';
+
+// Sample test cases data
+const SAMPLE_TEST_CASES = [
+  {
+    id: 'packaging-reuse',
+    title: 'Packaging Reuse System',
+    businessProblem:
+      'Single-use packaging creates 8 million tons of ocean waste annually. Current solutions are expensive and lack scalability.',
+    businessSolution:
+      'A platform connecting businesses with surplus packaging to companies needing materials, using AI matching and circular design principles.',
+    evaluationParameters: {
+      material_efficiency: 4,
+      recyclability: 5,
+      renewable_content: 3,
+      business_model_innovation: 4,
+      stakeholder_engagement: 3,
+    },
+    businessContext: {
+      industry: 'packaging',
+      company_size: 'startup',
+      geographic_scope: 'global',
+    },
+  },
+  {
+    id: 'electronics-remanufacturing',
+    title: 'Electronics Remanufacturing',
+    businessProblem:
+      'Electronic waste is the fastest growing waste stream. Most devices are discarded while still functional.',
+    businessSolution:
+      'Certified remanufacturing facility that refurbishes electronics to original specifications, with buy-back guarantee programs.',
+    evaluationParameters: {
+      material_efficiency: 5,
+      recyclability: 4,
+      renewable_content: 4,
+      business_model_innovation: 4,
+      stakeholder_engagement: 4,
+    },
+    businessContext: {
+      industry: 'electronics',
+      company_size: 'medium',
+      geographic_scope: 'regional',
+    },
+  },
+];
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -47,43 +73,10 @@ export default function LandingPage() {
     clearSession,
   } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
-  const {
-    openAssessmentMethodologyDrawer,
-    openEvaluationCriteriaDrawer,
-    openBusinessProblemInfoDrawer,
-    openBusinessSolutionInfoDrawer,
-    openEvaluationParametersHeadingInfoDrawer,
-    openBusinessContextHeadingInfoDrawer,
-    openSampleTestCasesHeadingInfoDrawer,
-  } = useGlobalDrawer();
+  const { openAssessmentMethodologyDrawer, openEvaluationCriteriaDrawer } = useGlobalDrawer();
 
-  const [showEvaluationParameters, setShowEvaluationParameters] = useState(true);
   const [loading, setLoading] = useState(false);
-
-  // Controlled accordion state so we can imperatively open them (e.g. on test case select)
-  const [evalParamsExpandedKeys, setEvalParamsExpandedKeys] = useState(
-    new Set(['evaluation-parameters-heading']),
-  );
-  const [businessContextExpandedKeys, setBusinessContextExpandedKeys] = useState(
-    new Set(['business-context-heading']),
-  );
-  const ALL_INNER_KEYS = new Set(['Access Value', 'Embedded Value', 'Processing Value']);
-  const [innerExpandedKeys, setInnerExpandedKeys] = useState(new Set(ALL_INNER_KEYS));
-
-  const openEvalParams = () => {
-    setEvalParamsExpandedKeys(new Set(['evaluation-parameters-heading']));
-    setInnerExpandedKeys(new Set(ALL_INNER_KEYS));
-  };
-
-  const openBusinessContext = () => {
-    setBusinessContextExpandedKeys(new Set(['business-context-heading']));
-  };
-
   const [error, setError] = useState(null);
-  // session prompt handled globally in AppSessionManager
-  const skipAutosaveRef = useRef(false);
-  const businessProblemSectionRef = useRef(null);
-  // container ref used for focusout -> flush autosave
   const formContainerRef = useRef(null);
 
   const methods = useForm({
@@ -99,21 +92,14 @@ export default function LandingPage() {
     formState: { isValid },
   } = methods;
 
-  // Prefetch ResultsPage bundle when form becomes valid to reduce navigation delay
+  // Prefetch ResultsPage bundle when form becomes valid
   useEffect(() => {
     if (isValid) {
-      // Start prefetching the ResultsPage bundle in the background
       import('@/pages/ResultsPage/ResultsPage').catch((err) => {
-        logger.warn('Failed to prefetch ResultsPage:', err);
+        console.warn('Failed to prefetch ResultsPage:', err);
       });
     }
   }, [isValid]);
-
-  // Use refs + onChange handlers to debounce autosave without subscribing the whole
-  // component to form changes (avoids re-renders on each keystroke).
-  const autosaveTimerRef = useRef(null);
-
-  // Session restoration is handled globally; landing page listens for navigation-state restore
 
   // Pre-fill form with data from ResultsPage (reevaluate)
   useEffect(() => {
@@ -126,294 +112,17 @@ export default function LandingPage() {
         evaluation_parameters: evaluation_parameters || {},
         businessContext: businessContext || {},
       });
-      // Open the evaluation parameters panel
-      setShowEvaluationParameters(true);
-
-      // Scroll to business problem section after a short delay
-      setTimeout(() => {
-        businessProblemSectionRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-        // Show toast notification after scrolling starts
-        setTimeout(() => {
-          toast.info('Assessment Loaded', {
-            description: 'Your previous assessment has been loaded for re-evaluation.',
-            timeout: 3000,
-          });
-        }, 300);
-      }, 100);
-
-      // Clear the location state to prevent re-filling on subsequent visits
       window.history.replaceState({}, document.title);
     }
   }, [location.state, reset]);
 
-  // Ensure LandingPage inputs are always synced from persisted session state
-  // when navigating (SPA navigation). Navigation-state (location.state.formData)
-  // takes precedence and won't be overridden by the persisted session here.
-  // Sync persisted session inputs into the form, but do NOT overwrite
-  // when the user has local edits that are newer than the persisted state.
-  // This prevents stale session data from clobbering active edits.
-  const lastAppliedSessionRef = useRef(null);
-  // Timestamp of the last local save (set when persistInputs saves to localStorage).
-  // Used to prevent older persisted sessions from overwriting newer local edits.
-  const lastSavedLocalTimestampRef = useRef(null);
-
-  useEffect(() => {
-    if (location.state?.formData) return; // navigation state has priority
-    const sessionInputs = sessionData?.inputs;
-    if (!sessionInputs) return;
-
-    // If the persisted session is older than a local save we performed, ignore it.
-    // This prevents a timing window where persistInputs updates localStorage but
-    // the useSession hook hasn't refetched yet and an older sessionData value
-    // would otherwise overwrite the user's active edits.
-    try {
-      const persistedTs = sessionData?.timestamp ? new Date(sessionData.timestamp) : null;
-      const lastLocalSaveTs = lastSavedLocalTimestampRef.current
-        ? new Date(lastSavedLocalTimestampRef.current)
-        : null;
-      if (persistedTs && lastLocalSaveTs && persistedTs <= lastLocalSaveTs) {
-        return; // incoming persisted data is stale compared to our last local save
-      }
-    } catch (err) {
-      // ignore parsing errors and fall back to previous logic
-    }
-
-    // Helper to compare input shapes (supports both legacy and new naming)
-    const currentForm = methods.getValues();
-
-    // If the current form already matches session inputs, just update lastApplied
-    if (inputsEqual(currentForm, sessionInputs)) {
-      lastAppliedSessionRef.current = sessionInputs;
-      return;
-    }
-
-    // If we've never applied session state before, apply it now (initial load)
-    if (!lastAppliedSessionRef.current) {
-      reset({
-        businessProblem: sessionInputs.businessProblem || '',
-        businessSolution: sessionInputs.businessSolution || '',
-        evaluationParameters: sessionInputs.evaluationParameters || {},
-        businessContext: sessionInputs.businessContext || {},
-      });
-      setShowEvaluationParameters(true);
-      skipAutosaveRef.current = true;
-      lastAppliedSessionRef.current = sessionInputs;
-      return;
-    }
-
-    // If the current form equals the lastApplied snapshot, it means the user
-    // hasn't edited since we last synced — safe to overwrite with new sessionData.
-    if (inputsEqual(currentForm, lastAppliedSessionRef.current)) {
-      reset({
-        businessProblem: sessionInputs.businessProblem || '',
-        businessSolution: sessionInputs.businessSolution || '',
-        evaluationParameters: sessionInputs.evaluationParameters || {},
-        businessContext: sessionInputs.businessContext || {},
-      });
-      setShowEvaluationParameters(true);
-      skipAutosaveRef.current = true;
-      lastAppliedSessionRef.current = sessionInputs;
-      return;
-    }
-
-    // Otherwise: user has local edits more recent than persisted session — do nothing.
-  }, [sessionData, location.state, reset, methods]);
-
-  useEffect(() => {
-    // Session restore prompt display is handled globally via AppSessionManager
-  }, [hasEvaluationState, hasRestorableSession]);
-
   const { user } = useAuth();
-
-  // Debounced autosave using getValues inside delayed callback.
-  // IMPORTANT: session.inputs and session.results are independent entities:
-  // - session.inputs: Mutable user input (editable, changes on every keystroke)
-  // - session.results: Immutable snapshot (includes businessProblem/Solution/params used to calculate it)
-  // Reduced debounce to make UI feel more responsive and add a synchronous
-  // flush path for blur / beforeunload to eliminate perceived lag.
-  const AUTOSAVE_DEBOUNCE_MS = 150;
-
-  const persistInputs = useCallback(
-    (values) => {
-      // Normalized current values
-      const current = {
-        businessProblem: (values?.businessProblem || '').trim(),
-        businessSolution: (values?.businessSolution || '').trim(),
-        evaluationParameters: values?.evaluationParameters || {},
-        businessContext: values?.businessContext || {},
-      };
-
-      // Stored inputs (read directly from localStorage to avoid useSession timing races)
-      const storedState = loadEvaluationState();
-      const stored = storedState?.inputs || {
-        businessProblem: '',
-        businessSolution: '',
-        evaluationParameters: {},
-        businessContext: {},
-      };
-
-      const inputsEqualLocal = inputsEqual;
-
-      // If nothing changed vs persisted state, skip writing to storage
-      if (inputsEqualLocal(current, stored)) return;
-
-      // Persist current inputs (this intentionally writes empty strings when user cleared fields)
-      const savedAt = new Date().toISOString();
-      saveSession({
-        inputs: {
-          businessProblem: values.businessProblem || '',
-          businessSolution: values.businessSolution || '',
-          evaluationParameters: values.evaluationParameters || {},
-          businessContext: values.businessContext || {},
-        },
-        timestamp: savedAt,
-      });
-
-      try {
-        // mark when we last saved locally (used by the session-sync guard)
-        lastSavedLocalTimestampRef.current = savedAt;
-        // update lastApplied snapshot so new persisted sessions won't overwrite active edits
-        const snapshot = {
-          businessProblem: values.businessProblem || '',
-          businessSolution: values.businessSolution || '',
-          evaluationParameters: values.evaluationParameters || {},
-          businessContext: values.businessContext || {},
-        };
-        lastAppliedSessionRef.current = snapshot;
-      } catch (err) {
-        logger.warn('Failed to update lastAppliedSessionRef after saving session:', err);
-      }
-    },
-    [saveSession],
-  );
-
-  const scheduleAutosave = useCallback(() => {
-    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
-    autosaveTimerRef.current = setTimeout(() => {
-      if (skipAutosaveRef.current) {
-        skipAutosaveRef.current = false;
-        autosaveTimerRef.current = null;
-        return;
-      }
-
-      const values = methods.getValues();
-      persistInputs(values);
-      autosaveTimerRef.current = null;
-    }, AUTOSAVE_DEBOUNCE_MS);
-  }, [methods, persistInputs]);
-
-  // Synchronously persist current form values (used on blur / beforeunload)
-  const flushAutosave = useCallback(() => {
-    if (autosaveTimerRef.current) {
-      clearTimeout(autosaveTimerRef.current);
-      autosaveTimerRef.current = null;
-    }
-
-    // Persist synchronously
-    try {
-      const values = methods.getValues();
-      persistInputs(values);
-    } catch (err) {
-      // swallow - form may be unmounted
-      logger.warn('flushAutosave failed', err);
-    }
-  }, [methods, persistInputs]);
-
-  // Watch for form changes and trigger autosave
-  useEffect(() => {
-    if (!methods?.watch) return;
-    const subscription = methods.watch(() => {
-      scheduleAutosave();
-    });
-    return () => subscription?.unsubscribe?.();
-  }, [methods, scheduleAutosave]);
-
-  // Clean up autosave timer on unmount
-  useEffect(() => {
-    return () => {
-      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
-    };
-  }, []);
-
-  // Flush autosave on focus leave inside the landing page to avoid "invisible"
-  // delays between user edit and persistence.
-  useEffect(() => {
-    const el = formContainerRef.current;
-    if (!el) return undefined;
-
-    const onFocusOut = (ev) => {
-      // flush synchronously when user leaves an input inside the page
-      flushAutosave();
-    };
-
-    el.addEventListener('focusout', onFocusOut);
-    return () => el.removeEventListener('focusout', onFocusOut);
-  }, [flushAutosave]);
-
-  // Warn the user when they try to close/refresh the page with unsaved inputs.
-  useEffect(() => {
-    const shouldWarn = () => {
-      const values = methods.getValues();
-      const persisted = loadEvaluationState();
-      const stored = persisted?.inputs ||
-        sessionData?.inputs || {
-          businessProblem: '',
-          businessSolution: '',
-          evaluationParameters: {},
-          businessContext: {},
-        };
-
-      // If the current form already matches persisted inputs, DO NOT warn
-      if (inputsEqual(values, stored)) return false;
-
-      // Warn when there is a pending autosave OR unsaved edits are present.
-      return Boolean(autosaveTimerRef.current) || !inputsEqual(values, stored);
-    };
-
-    const handler = (e) => {
-      if (!shouldWarn()) return;
-
-      // Persist any pending work before deciding whether to show a browser prompt.
-      flushAutosave();
-
-      const values = methods.getValues();
-      const persisted = loadEvaluationState();
-      const stored = persisted?.inputs ||
-        sessionData?.inputs || {
-          businessProblem: '',
-          businessSolution: '',
-          evaluationParameters: {},
-          businessContext: {},
-        };
-
-      // If sync succeeded and inputs now match persisted state, no prompt needed.
-      if (!inputsEqual(values, stored)) {
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
-      }
-
-      return;
-    };
-
-    window.addEventListener('beforeunload', handler);
-    // pagehide gives us a chance to synchronously persist on SPA-style navigations
-    window.addEventListener('pagehide', flushAutosave);
-
-    return () => {
-      window.removeEventListener('beforeunload', handler);
-      window.removeEventListener('pagehide', flushAutosave);
-    };
-  }, [methods, sessionData, flushAutosave]);
 
   const handleFormSubmit = async (formData) => {
     // Validate minimum character requirements
     if (getCharacterCount(formData.businessProblem) < 200) {
       toast.danger('Business Problem is too short', {
-        description: 'Please provide at least 200 characters for the business problem description.',
+        description: 'Please provide at least 200 characters for business problem description.',
         timeout: 4000,
       });
       return;
@@ -421,32 +130,9 @@ export default function LandingPage() {
 
     if (getCharacterCount(formData.businessSolution) < 200) {
       toast.danger('Business Solution is too short', {
-        description:
-          'Please provide at least 200 characters for the business solution description.',
+        description: 'Please provide at least 200 characters for business solution description.',
         timeout: 4000,
       });
-      return;
-    }
-
-    // Client-side junk detection: low unique-word ratio or too many symbols
-    const probUniq = uniqueWordRatio(formData.businessProblem);
-    const solUniq = uniqueWordRatio(formData.businessSolution);
-    if (probUniq < 0.3 || solUniq < 0.3) {
-      const msg =
-        'Your inputs look repetitive or low-information. Please provide more specific detail in both problem and solution.';
-      setError(msg);
-      toast.danger('Input validation', { description: msg, timeout: 4000 });
-      return;
-    }
-
-    if (
-      nonLetterDensity(formData.businessProblem) > 0.25 ||
-      nonLetterDensity(formData.businessSolution) > 0.25
-    ) {
-      const msg =
-        'Your inputs contain excessive non-text characters. Please provide plain-language descriptions.';
-      setError(msg);
-      toast.danger('Input validation', { description: msg, timeout: 4000 });
       return;
     }
 
@@ -455,9 +141,7 @@ export default function LandingPage() {
       setError(null);
       const result = await scoreAssessment(formData);
 
-      // Persist inputs (unchanged behavior) and save the full result snapshot
-      // returned by the backend (the `result` now includes businessProblem,
-      // businessSolution and parameters so the snapshot is self-contained).
+      // Persist inputs and save the full result snapshot
       saveSession({
         inputs: {
           businessProblem: formData.businessProblem,
@@ -473,8 +157,6 @@ export default function LandingPage() {
         timeout: 3000,
       });
 
-      // Navigate to Results with only the `result` because it is now self-contained
-      // (frontend will read problem/solution/parameters from `result` if formData is not provided)
       navigate('/results', { state: { result } });
     } catch (err) {
       // Handle anonymous limit reached
@@ -486,9 +168,9 @@ export default function LandingPage() {
             `You've reached the limit of free evaluations. Create an account to continue assessing your circular economy initiatives!`,
         });
         try {
-          // clearSession();
+          clearSession();
         } catch (e) {
-          logger.error('Failed to clear session after limit reached:', e);
+          console.error('Failed to clear session after limit reached:', e);
         }
         return;
       }
@@ -504,313 +186,318 @@ export default function LandingPage() {
     }
   };
 
+  const handleSampleTestSelect = (testCase) => {
+    reset({
+      businessProblem: testCase.businessProblem,
+      businessSolution: testCase.businessSolution,
+      evaluationParameters: testCase.evaluationParameters,
+      businessContext: testCase.businessContext,
+    });
+
+    toast.success('Sample test case loaded', {
+      description: 'Form has been filled with the example data.',
+      timeout: 2000,
+    });
+  };
+
   return (
     <FormProvider {...methods}>
-      <div ref={formContainerRef} className="w-full max-w-4xl mx-auto space-y-8">
-        {/* Hero */}
-        <HeroSection />
+      <div className="min-h-screen bg-transparent">
+        {/* Hero Section */}
+        <section className="pt-16 pb-8">
+          <div className="max-w-6xl mx-auto px-6 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            >
+              {/* Eyebrow */}
+              <p className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body) mb-4">
+                AI-POWERED · EVIDENCE-BASED · 40,000+ CASES
+              </p>
 
-        {/* Methodology Buttons */}
-        <MethodologyButtons
-          openAssessmentMethodologyDrawer={openAssessmentMethodologyDrawer}
-          openEvaluationCriteriaDrawer={openEvaluationCriteriaDrawer}
-        />
+              {/* Main Headline */}
+              <h1 className="font-(--font-display) text-4xl lg:text-6xl text-(--color-text-primary) leading-tight mb-6">
+                Where circular economy
+                <br className="hidden lg:block" />
+                meets <em className="italic text-(--color-accent)">evidence.</em>
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-base text-(--color-text-secondary) text-center max-w-lg mx-auto mt-3 leading-relaxed">
+                Get an evidence-backed circularity score in minutes, grounded in real-world case
+                studies.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="px-8"
+                  onPress={() =>
+                    document
+                      .getElementById('assessment-form')
+                      ?.scrollIntoView({ behavior: 'smooth' })
+                  }
+                >
+                  Start Assessment
+                </Button>
+                {!user && (
+                  <Button variant="ghost" size="lg" onPress={() => navigate('/auth')}>
+                    Sign Up
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
         {/* Feature Cards */}
-        <FeatureCards />
-
-        {/* Input Form — no card wrapper, floats directly on page bg */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-        >
-          <div ref={businessProblemSectionRef} className="space-y-6">
-            {/* Section heading */}
-            <div className="border-b pb-4" style={{ borderColor: 'var(--border)' }}>
-              <h2
-                className="heading-display text-[22px] mb-1"
-                style={{ color: 'var(--foreground)' }}
-              >
-                Evaluate Your Circular Economy Business
-              </h2>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                Describe your business idea using the same structure as real circular economy
-                projects: what problem you solve, and how your solution addresses it.
-              </p>
-            </div>
-
-            {/* Business Problem and Solution — same grid layout, no card */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BusinessInputField
-                id="business-problem"
-                label="Business Problem"
-                description="What environmental or circular economy challenge does your business address?"
-                placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually..."
-                fieldName="businessProblem"
-                register={register}
-                onInfoClick={openBusinessProblemInfoDrawer}
-                loading={loading}
-                flushAutosave={flushAutosave}
-                rows={4}
-                minLength={200}
-              />
-              <BusinessInputField
-                id="business-solution"
-                label="Business Solution"
-                description="How does your business solve this problem? Include materials, processes, and circularity strategy."
-                placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste..."
-                fieldName="businessSolution"
-                register={register}
-                onInfoClick={openBusinessSolutionInfoDrawer}
-                loading={loading}
-                flushAutosave={flushAutosave}
-                rows={5}
-                minLength={200}
-              />
-            </div>
-
-            {/* Business Context — keep exactly as-is (accordion in its own bordered container) */}
-            <div
-              className="w-full rounded-lg border overflow-hidden"
-              style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+        <section className="py-8">
+          <div className="max-w-6xl mx-auto px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              viewport={{ once: true }}
             >
-              <Accordion
-                className="w-full"
-                variant="default"
-                expandedKeys={businessContextExpandedKeys}
-                onExpandedChange={setBusinessContextExpandedKeys}
-              >
-                <Accordion.Item id="business-context-heading">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
-                      <BriefcaseBusiness
-                        className="h-6 w-6 shrink-0 mr-1"
-                        style={{ color: 'var(--accent)' }}
-                        strokeWidth={1.75}
-                      />
-
-                      <div className="flex flex-col gap-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="font-semibold text-lg leading-6"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Business Context
-                          </span>
-                          <BadgeInfo
-                            className="info-icon cursor-pointer"
-                            size={22}
-                            style={{ color: 'var(--accent)' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openBusinessContextHeadingInfoDrawer();
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="text-xs font-normal leading-4"
-                          style={{ color: 'var(--muted)' }}
-                        >
-                          Optional — improves analysis quality
-                        </span>
-                      </div>
-
-                      <Accordion.Indicator className="text-muted [&>svg]:size-4">
-                        <ChevronDown />
-                      </Accordion.Indicator>
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-
-                  <Accordion.Panel>
-                    <Accordion.Body className="p-0 bg-transparent">
-                      <BusinessContextContainer loading={loading} />
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
-            </div>
-
-            {/* Evaluation Parameters — keep exactly as-is */}
-            <div
-              className="w-full rounded-lg border overflow-hidden"
-              style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-            >
-              <Accordion
-                className="w-full"
-                variant="default"
-                allowsMultipleExpanded
-                expandedKeys={evalParamsExpandedKeys}
-                onExpandedChange={setEvalParamsExpandedKeys}
-              >
-                <Accordion.Item id="evaluation-parameters-heading">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
-                      <SlidersHorizontal
-                        className="h-6 w-6 shrink-0 mr-1"
-                        style={{ color: 'var(--success)' }}
-                        strokeWidth={1.75}
-                      />
-
-                      <div className="flex flex-col gap-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="font-semibold text-lg leading-6"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Evaluation Parameters
-                          </span>
-                          <BadgeInfo
-                            className="info-icon cursor-pointer"
-                            size={22}
-                            style={{ color: 'var(--accent)' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEvaluationParametersHeadingInfoDrawer();
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="text-sm font-normal leading-4"
-                          style={{ color: 'var(--muted)' }}
-                        >
-                          Score each dimension of circular value
-                        </span>
-                      </div>
-
-                      <Accordion.Indicator className="text-muted [&>svg]:size-4">
-                        <ChevronDown />
-                      </Accordion.Indicator>
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-
-                  <Accordion.Panel>
-                    <Accordion.Body className="p-0 bg-transparent">
-                      <EvaluationParametersContainer
-                        loading={loading}
-                        innerExpandedKeys={innerExpandedKeys}
-                        onInnerExpandedChange={setInnerExpandedKeys}
-                      />
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
-            </div>
-
-            {/* Error and Submit — keep exactly as-is */}
-            {error && (
-              <div
-                className="p-3 sm:p-4 rounded-lg border"
-                style={{
-                  backgroundColor: 'var(--danger-soft)',
-                  borderColor: 'var(--danger-border)',
-                }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle
-                    className="shrink-0"
-                    style={{ color: 'var(--danger)' }}
-                    strokeWidth={2.5}
-                    size={16}
-                  />
-                  <strong className="font-semibold" style={{ color: 'var(--danger)' }}>
-                    Validation Error:
-                  </strong>
-                </div>
-                <p className="text-sm font-medium" style={{ color: 'var(--danger)' }}>
-                  {error}, please try again.
+              <div className="text-center mb-12">
+                <h2 className="font-(--font-display) text-3xl text-(--color-text-primary) mb-4">
+                  Why choose our assessment?
+                </h2>
+                <p className="text-lg text-(--color-text-secondary) max-w-2xl mx-auto">
+                  Comprehensive analysis powered by AI and grounded in circular economy principles.
                 </p>
               </div>
-            )}
 
-            {/* Submit Button — keep exactly as-is */}
-            <div className="w-full">
-              <Tooltip delay={0} isDisabled={isValid}>
-                <Tooltip.Trigger>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onPress={handleSubmit(handleFormSubmit)}
-                    isDisabled={loading || !isValid}
-                    fullWidth
-                    className="h-12 text-sm font-medium"
-                    style={{
-                      backgroundColor: loading || !isValid ? 'var(--muted)' : 'var(--accent)',
-                      color:
-                        loading || !isValid
-                          ? 'var(--muted-foreground)'
-                          : 'var(--accent-foreground)',
-                    }}
-                  >
-                    {loading ? (
-                      <LoaderIcon isButton={true} color="var(--surface)" />
-                    ) : (
-                      <span>Evaluate Circularity</span>
-                    )}
-                  </Button>
-                </Tooltip.Trigger>
-                <Tooltip.Content showArrow placement="top" className="text-center">
-                  <Tooltip.Arrow />
-                  <span>
-                    Please fill out business problem and solution fields (min. 200 chars each)
-                  </span>
-                </Tooltip.Content>
-              </Tooltip>
-            </div>
-
-            {/* Sample Test Cases — keep exactly as-is */}
-            <div
-              className="w-full rounded-lg border p-5"
-              style={{
-                backgroundColor: 'var(--surface)',
-                borderColor: 'var(--border)',
-              }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <ClipboardList
-                  className="h-6 w-6 shrink-0"
-                  style={{ color: 'var(--success)' }}
-                  strokeWidth={1.75}
-                />
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-semibold text-base leading-6"
-                      style={{
-                        color: 'var(--foreground)',
-                      }}
-                    >
-                      Sample Test Cases
-                    </span>
-                    <BadgeInfo
-                      className="info-icon cursor-pointer"
-                      size={22}
-                      style={{ color: 'var(--accent)' }}
-                      onClick={openSampleTestCasesHeadingInfoDrawer}
-                    />
+              <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
+                {/* AI-Powered */}
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center mb-3 mx-auto">
+                    <RefreshCw className="w-4 h-4 text-(--color-accent)" />
                   </div>
-                  <span
-                    className="text-xs font-normal leading-4 italic"
-                    style={{ color: 'var(--muted)' }}
-                  >
-                    Auto-fill the form with curated examples for quick testing
-                  </span>
+                  <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
+                    AI-Powered
+                  </h3>
+                  <p className="text-xs text-(--color-text-muted) leading-relaxed">
+                    Machine learning analysis grounded in circular economy principles and real-world
+                    data.
+                  </p>
+                </div>
+
+                {/* Multi-Dimensional */}
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center mb-3 mx-auto">
+                    <BarChart3 className="w-4 h-4 text-(--color-accent)" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
+                    Multi-Dimensional
+                  </h3>
+                  <p className="text-xs text-(--color-text-muted) leading-relaxed">
+                    Evaluates across key domains for clarity and depth of analysis.
+                  </p>
+                </div>
+
+                {/* Actionable */}
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center mb-3 mx-auto">
+                    <Lightbulb className="w-4 h-4 text-(--color-accent)" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
+                    Actionable
+                  </h3>
+                  <p className="text-xs text-(--color-text-muted) leading-relaxed">
+                    Clear recommendations you can apply immediately to improve circularity outcomes.
+                  </p>
                 </div>
               </div>
-
-              <SampleTestCasesContainer
-                setShowEvaluationParameters={setShowEvaluationParameters}
-                openEvalParams={openEvalParams}
-                openBusinessContext={openBusinessContext}
-              />
-            </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </section>
+
+        {/* Assessment Form */}
+        <section id="assessment-form" className="py-8">
+          <div className="max-w-4xl mx-auto px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              viewport={{ once: true }}
+            >
+              {/* Section divider */}
+              <div className="border-t border-(--color-border)" />
+
+              {/* Section header */}
+              <div className="pt-8">
+                <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-1">
+                  Evaluate Your Circular Economy Business
+                </h2>
+                <p className="text-sm text-(--color-text-muted) mb-8">
+                  Describe your business idea using the same structure as real circular economy
+                  projects.
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Business Problem */}
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 flex items-center gap-1">
+                      Business Problem *
+                    </label>
+                    <textarea
+                      {...register('businessProblem')}
+                      placeholder="What environmental or circular economy challenge does your business address?"
+                      className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize-none transition-all outline-none w-full min-h-35"
+                      rows={4}
+                    />
+                    <p className="text-xs text-(--color-text-muted) text-right mt-1">
+                      Minimum 200 characters
+                    </p>
+                  </div>
+
+                  {/* Business Solution */}
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 flex items-center gap-1">
+                      Business Solution *
+                    </label>
+                    <textarea
+                      {...register('businessSolution')}
+                      placeholder="How does your business solve this problem? Include materials, processes, and circularity strategy."
+                      className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize-none transition-all outline-none w-full min-h-35"
+                      rows={5}
+                    />
+                    <p className="text-xs text-(--color-text-muted) text-right mt-1">
+                      Minimum 200 characters
+                    </p>
+                  </div>
+                </div>
+
+                {/* Error Display */}
+                {error && (
+                  <div className="border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] rounded-md p-4 text-(--color-error) mb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      <strong className="font-semibold">Validation Error:</strong>
+                    </div>
+                    <p>{error}, please try again.</p>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <div className="text-center my-8">
+                  <Button
+                    variant="primary"
+                    className="py-3.5 text-base font-medium"
+                    isLoading={loading}
+                    isDisabled={!isValid}
+                    onPress={handleSubmit(handleFormSubmit)}
+                  >
+                    {loading ? 'Evaluating...' : 'Evaluate Circularity'}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Sample Test Cases */}
+        <section className="py-8">
+          <div className="max-w-6xl mx-auto px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              viewport={{ once: true }}
+            >
+              {/* Section header with info icon and collapse */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="font-(--font-display) text-lg text-(--color-text-primary) mb-1">
+                    Sample Test Cases
+                  </h2>
+                  <p className="text-sm text-(--color-text-muted)">
+                    Auto-fill the form with curated examples for quick testing
+                  </p>
+                </div>
+                <button className="text-(--color-text-muted) hover:text-(--color-text-primary)">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-(--color-border) mb-6" />
+
+              {/* Test cases grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {SAMPLE_TEST_CASES.map((testCase, index) => (
+                  <motion.div
+                    key={testCase.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className="bg-[rgba(245,240,232,0.5)] border border-(--color-border) rounded-md p-4 cursor-pointer hover:border-(--color-accent) hover:bg-(--color-accent-light) transition-all"
+                    onClick={() => handleSampleTestSelect(testCase)}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Number badge */}
+                      <div className="text-xs font-mono text-(--color-text-muted) bg-(--color-accent-light) rounded-sm px-1.5 py-0.5 mr-2">
+                        #{index + 1}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
+                          {testCase.title}
+                        </h3>
+                        <p className="text-xs text-(--color-text-muted) mt-1 line-clamp-2 leading-relaxed">
+                          {testCase.businessProblem}
+                        </p>
+
+                        {/* Score chips */}
+                        <div className="flex gap-2 mt-2">
+                          <Chip variant="score">
+                            {testCase.evaluationParameters.material_efficiency}/5
+                          </Chip>
+                          <Chip variant="score">
+                            {testCase.evaluationParameters.business_model_innovation}/5
+                          </Chip>
+                        </div>
+
+                        {/* View details link */}
+                        <button className="text-xs text-(--color-accent) hover:underline flex items-center gap-1 mt-2">
+                          View details
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
       </div>
     </FormProvider>
   );

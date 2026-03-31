@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 import { Chip } from '@/components/common';
 
 export default function DerivedMetricsCard({ scoringResult }) {
@@ -87,3 +89,7 @@ export default function DerivedMetricsCard({ scoringResult }) {
     </div>
   );
 }
+
+DerivedMetricsCard.propTypes = {
+  scoringResult: PropTypes.object.isRequired,
+};

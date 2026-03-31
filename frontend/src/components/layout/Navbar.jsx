@@ -1,19 +1,18 @@
-import { Dropdown } from '@heroui/react';
-import { HelpCircle, LogOut, RefreshCw, Settings, User, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { SITE_NAME } from '@/components/common';
+import { SITE_FULL_NAME } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
-  const navRef = useRef(null);
+  const dropdownRef = useRef(null);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
@@ -31,60 +30,22 @@ export default function Navbar() {
     }
   };
 
-  const userDropdownItems = [
-    {
-      id: 'assessments',
-      name: 'My Assessments',
-      icon: User,
-      onClick: () => navigate('/assessments'),
-    },
-    {
-      id: 'dashboard',
-      name: 'Dashboard',
-      icon: Settings,
-      onClick: () => navigate('/dashboard'),
-    },
-    {
-      id: 'compare',
-      name: 'Compare',
-      icon: Settings,
-      onClick: () => navigate('/assessments/compare'),
-    },
-    {
-      id: 'help',
-      name: 'Help & Support',
-      icon: HelpCircle,
-      onClick: () => navigate('/guide'),
-    },
-    {
-      id: 'signout',
-      name: 'Sign Out',
-      icon: LogOut,
-      onClick: handleSignOut,
-      variant: 'danger',
-    },
-  ];
-
-  // Close menu on route change
+  // Close dropdowns on outside click
   useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 10;
-      if (navRef.current) {
-        if (scrolled) {
-          navRef.current.setAttribute('data-scrolled', 'true');
-        } else {
-          navRef.current.removeAttribute('data-scrolled');
-        }
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const isActivePath = (path) => {
     const currentPath = location.pathname;
@@ -110,332 +71,239 @@ export default function Navbar() {
       .toUpperCase();
   };
 
-  const handleNavigation = (item) => {
-    navigate(item.path);
-    setIsMenuOpen(false);
+  const getUsername = () => {
+    return profile?.username || user?.username || 'User';
   };
 
   return (
     <>
-      {/* Floating pill wrapper — sits above content, doesn't push it */}
-      <div
-        className="sticky top-0 z-50 w-full flex justify-center px-4 pt-3 pb-1"
-        style={{ pointerEvents: 'none' }}
-      >
-        <nav
-          ref={navRef}
-          data-navbar
-          className="navbar-pill w-full max-w-4xl"
-          style={{ pointerEvents: 'auto' }}
-        >
-          <div className="flex items-center justify-between h-12 px-4">
-            {/* LEFT: Brand */}
-            <button
-              onClick={() => navigate('/')}
-              aria-label="Navigate to home page"
-              className="flex items-center gap-2 shrink-0"
-            >
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: 'var(--accent)' }}
-              >
-                <RefreshCw size={13} strokeWidth={2.5} className="text-white" />
-              </div>
-              <span
-                className="font-serif text-[14px] font-semibold tracking-tight hidden xs:inline"
-                style={{ color: 'var(--foreground)' }}
-              >
-                {SITE_NAME}
-              </span>
-            </button>
+      {/* Main Navbar - full width sticky top bar */}
+      <nav className="sticky top-0 z-50 bg-(--color-bg)/80 backdrop-blur-md border-b border-(--color-border) h-14">
+        <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
+          {/* Logo + Site Name */}
+          <button onClick={() => navigate('/')} className="flex items-center gap-3">
+            <img
+              src="/siteLogo.png"
+              alt="Site Logo"
+              className="h-7 w-auto"
+              style={{ height: '28px' }}
+            />
+            <span className="font-(--font-display) text-sm text-(--color-text-primary)">
+              {SITE_FULL_NAME}
+            </span>
+          </button>
 
-            {/* CENTER: nav links */}
-            <div className="hidden md:flex items-center gap-1">
-              {navigationItems.map((item) => {
-                const isActive = isActivePath(item.path);
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavigation(item)}
-                    aria-label={`Navigate to ${item.name}`}
-                    className="relative px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors duration-150"
-                    style={{
-                      color: isActive ? 'var(--foreground)' : 'var(--muted)',
-                      backgroundColor: isActive ? 'var(--accent-soft)' : 'transparent',
-                    }}
-                  >
-                    {item.name}
-                    {isActive && (
-                      <span
-                        className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                        style={{ backgroundColor: 'var(--accent)' }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-8">
+            {navigationItems.map((item) => {
+              const isActive = isActivePath(item.path);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.path)}
+                  className={`text-sm transition-colors relative ${
+                    isActive
+                      ? 'text-(--color-accent)'
+                      : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
+                  }`}
+                >
+                  {item.name}
+                  {isActive && (
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-(--color-accent) rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-            {/* RIGHT: auth */}
-            <div className="flex items-center gap-2 shrink-0">
-              {isAuthenticated ? (
-                <>
-                  {/* Desktop dropdown — keep Dropdown.Popover/Menu contents exactly as before */}
-                  <div className="hidden md:block">
-                    <Dropdown isOpen={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                      <Dropdown.Trigger
-                        className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => setIsDropdownOpen((prev) => !prev)}
-                        aria-label="User menu"
-                        aria-expanded={isDropdownOpen}
-                      >
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center
-                                     text-[12px] font-semibold cursor-pointer
-                                     transition-all duration-150 hover:ring-2 hover:ring-accent/40"
-                          style={{
-                            backgroundColor: 'var(--accent-soft)',
-                            color: 'var(--accent-soft-fg)',
-                          }}
-                        >
+          {/* Right side - Profile Avatar or Auth */}
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              /* Profile Avatar Button */
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center hover:border-(--color-accent) transition-colors"
+                  aria-label="Profile menu"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="true"
+                >
+                  {getUserInitials()}
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) overflow-hidden opacity-100 scale-100 transition-all duration-150">
+                    {/* User Info */}
+                    <div className="p-4 border-b border-(--color-border)">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center">
                           {getUserInitials()}
                         </div>
-                      </Dropdown.Trigger>
-                      <Dropdown.Popover>
-                        <Dropdown.Menu
-                          aria-label="User menu"
-                          classNames={{ base: 'min-w-[200px]', content: 'p-1' }}
-                        >
-                          <div
-                            className="px-3 py-2 border-b"
-                            style={{ borderColor: 'var(--border)' }}
-                          >
-                            <p
-                              className="text-xs font-semibold truncate"
-                              style={{ color: 'var(--foreground)' }}
-                            >
-                              {profile?.username || user?.username || 'User'}
-                            </p>
-                            <p className="text-[11px]" style={{ color: 'var(--muted)' }}>
-                              Circular Economy Assessor
-                            </p>
-                          </div>
-                          {userDropdownItems.map((item) => (
-                            <Dropdown.Item
-                              key={item.id}
-                              textValue={item.name}
-                              onClick={item.onClick}
-                              variant={item.variant}
-                              classNames={{ base: 'gap-3 px-3 py-2', title: 'text-sm font-medium' }}
-                            >
-                              <div className="flex items-center gap-3">
-                                <item.icon
-                                  size={16}
-                                  className={
-                                    item.variant === 'danger' ? 'text-danger' : 'text-muted'
-                                  }
-                                />
-                                <span
-                                  className="font-medium"
-                                  style={{
-                                    color:
-                                      item.variant === 'danger'
-                                        ? 'var(--danger)'
-                                        : 'var(--foreground)',
-                                  }}
-                                >
-                                  {item.name}
-                                </span>
-                              </div>
-                            </Dropdown.Item>
-                          ))}
-                        </Dropdown.Menu>
-                      </Dropdown.Popover>
-                    </Dropdown>
-                  </div>
-
-                  {/* Mobile hamburger */}
-                  <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    aria-label={`${isMenuOpen ? 'Close' : 'Open'} mobile navigation menu`}
-                    aria-expanded={isMenuOpen}
-                    className="md:hidden w-8 h-8 flex items-center justify-center rounded-full transition-colors duration-150"
-                    style={{
-                      backgroundColor: isMenuOpen ? 'var(--accent-soft)' : 'transparent',
-                      color: 'var(--foreground)',
-                    }}
-                  >
-                    <div className="w-4 flex flex-col gap-1 relative">
-                      <span
-                        className="block h-[1.5px] w-full rounded-full transition-all duration-300 origin-center"
-                        style={{
-                          backgroundColor: 'var(--foreground)',
-                          transform: isMenuOpen ? 'translateY(5.5px) rotate(45deg)' : 'none',
-                        }}
-                      />
-                      <span
-                        className="block h-[1.5px] rounded-full transition-all duration-300"
-                        style={{
-                          backgroundColor: 'var(--foreground)',
-                          width: isMenuOpen ? '0%' : '70%',
-                          opacity: isMenuOpen ? 0 : 1,
-                        }}
-                      />
-                      <span
-                        className="block h-[1.5px] w-full rounded-full transition-all duration-300 origin-center"
-                        style={{
-                          backgroundColor: 'var(--foreground)',
-                          transform: isMenuOpen ? 'translateY(-5.5px) rotate(-45deg)' : 'none',
-                        }}
-                      />
+                        <div>
+                          <p className="text-sm font-medium text-(--color-text-primary)">
+                            {getUsername()}
+                          </p>
+                          <p className="text-xs text-(--color-text-muted)">Signed in</p>
+                        </div>
+                      </div>
                     </div>
-                  </button>
-                </>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigate('/auth')}
-                    aria-label="Sign in"
-                    className="text-[13px] font-medium transition-colors"
-                    style={{ color: 'var(--muted)' }}
-                  >
-                    Sign in
-                  </button>
-                  <button
-                    onClick={() => navigate('/auth')}
-                    aria-label="Get started"
-                    className="text-[13px] font-medium px-3 py-1.5 rounded-full transition-colors"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                  >
-                    Get started
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </nav>
-      </div>
 
-      {/* Mobile overlay */}
-      {isMenuOpen && (
+                    {/* Navigation Links (shown in mobile dropdown) */}
+                    <div className="md:hidden py-2 border-b border-(--color-border)">
+                      {navigationItems.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsProfileDropdownOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors"
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setIsProfileDropdownOpen(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-(--color-error) hover:bg-[rgba(139,58,58,0.07)] transition-colors flex items-center gap-2"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Auth Buttons */
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="text-sm text-(--color-text-primary) bg-(--color-accent) hover:bg-(--color-accent-hover) px-4 py-2 rounded-md transition-colors"
+                >
+                  Get started
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Hamburger Menu */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors"
+              aria-label={`${isMobileMenuOpen ? 'Close' : 'Open'} mobile menu`}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Backdrop */}
+      {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 md:hidden"
-          style={{ backgroundColor: 'oklch(0.18 0.015 60 / 0.3)', backdropFilter: 'blur(2px)' }}
-          onClick={() => setIsMenuOpen(false)}
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
-      {/* Mobile slide-in panel */}
+      {/* Mobile Slide-in Panel */}
       <div
-        className={`fixed top-0 right-0 h-full z-50 md:hidden flex flex-col transition-transform duration-300 ease-out`}
-        style={{
-          width: 'min(280px, 85vw)',
-          backgroundColor: 'var(--background)',
-          borderLeft: '1px solid var(--border)',
-          boxShadow: '-8px 0 32px oklch(0.18 0.015 60 / 0.12)',
-          transform: isMenuOpen ? 'translateX(0)' : 'translateX(100%)',
-        }}
+        id="mobile-menu"
+        className={`fixed top-0 right-0 h-full w-72 bg-(--color-bg) border-l border-(--color-border-strong) z-50 shadow-xl transform transition-transform duration-300 ease-out md:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
-        {/* Panel header */}
-        <div
-          className="flex items-center justify-between px-5 py-4 border-b"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: 'var(--accent)' }}
-            >
-              <RefreshCw size={11} strokeWidth={2.5} className="text-white" />
-            </div>
-            <span
-              className="font-serif text-[13px] font-semibold"
-              style={{ color: 'var(--foreground)' }}
-            >
-              {SITE_NAME}
+        {/* Panel Header */}
+        <div className="flex items-center justify-between p-6 border-b border-(--color-border)">
+          <div className="flex items-center gap-3">
+            <img src="/siteLogo.png" alt="Site Logo" className="h-7 w-auto" />
+            <span className="font-(--font-display) text-sm text-(--color-text-primary)">
+              {SITE_FULL_NAME}
             </span>
           </div>
           <button
-            onClick={() => setIsMenuOpen(false)}
-            aria-label="Close menu"
-            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors hover:bg-accent-soft"
-            style={{ color: 'var(--muted)' }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+            aria-label="Close mobile menu"
           >
-            <X size={15} />
+            <X size={20} />
           </button>
         </div>
 
-        {/* User info */}
-        {isAuthenticated && (
-          <div
-            className="flex items-center gap-3 px-5 py-3 border-b"
-            style={{ borderColor: 'var(--border)' }}
-          >
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0"
-              style={{ backgroundColor: 'var(--accent-soft)', color: 'var(--accent-soft-fg)' }}
-            >
-              {getUserInitials()}
+        {/* Panel Body */}
+        <div className="flex-1 overflow-y-auto">
+          {isAuthenticated && (
+            /* User Info */
+            <div className="p-6 border-b border-(--color-border)">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center">
+                  {getUserInitials()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-primary)">{getUsername()}</p>
+                  <p className="text-xs text-(--color-text-muted)">Signed in</p>
+                </div>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
-                {profile?.username || user?.username || 'User'}
-              </p>
-              <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                Signed in
-              </p>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto py-2">
-          {navigationItems.map((item) => {
-            const isActive = isActivePath(item.path);
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(item)}
-                className="w-full flex items-center justify-between px-5 py-3 text-[14px] font-medium text-left transition-colors duration-150"
-                style={{
-                  color: isActive ? 'var(--foreground)' : 'var(--muted)',
-                  backgroundColor: isActive ? 'var(--accent-soft)' : 'transparent',
-                }}
-              >
-                {item.name}
-                {isActive && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: 'var(--accent)' }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </nav>
+          {/* Navigation Links */}
+          <nav className="py-4">
+            {navigationItems.map((item) => {
+              const isActive = isActivePath(item.path);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    navigate(item.path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full px-6 py-3 text-left text-base border-b border-(--color-border) transition-colors ${
+                    isActive
+                      ? 'text-(--color-text-primary)'
+                      : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
+                  }`}
+                >
+                  {item.name}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
-        {/* Bottom auth */}
-        <div className="border-t p-4" style={{ borderColor: 'var(--border)' }}>
+        {/* Panel Footer */}
+        <div className="border-t border-(--color-border) p-6">
           {isAuthenticated ? (
             <button
               onClick={() => {
                 handleSignOut();
-                setIsMenuOpen(false);
+                setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-danger-soft"
-              style={{ color: 'var(--danger)' }}
+              className="w-full text-sm text-(--color-error) hover:text-(--color-text-primary) transition-colors"
             >
-              <LogOut size={15} />
               Sign out
             </button>
           ) : (
             <button
               onClick={() => {
                 navigate('/auth');
-                setIsMenuOpen(false);
+                setIsMobileMenuOpen(false);
               }}
-              className="w-full py-2.5 rounded-full text-sm font-medium transition-colors"
-              style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+              className="w-full text-sm text-(--color-text-primary) bg-(--color-accent) hover:bg-(--color-accent-hover) px-4 py-2.5 rounded-md transition-colors"
             >
               Sign in
             </button>

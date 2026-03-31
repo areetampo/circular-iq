@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 import { Chip } from '@/components/common';
 
 export default function ScoreOverview({ scoringResult }) {
@@ -79,3 +81,7 @@ export default function ScoreOverview({ scoringResult }) {
     </div>
   );
 }
+
+ScoreOverview.propTypes = {
+  scoringResult: PropTypes.object.isRequired,
+};

@@ -1,5 +1,4 @@
 import { toast } from '@heroui/react';
-import { CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -191,7 +190,7 @@ export default function SampleTestCasesContainer({
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
@@ -201,45 +200,45 @@ export default function SampleTestCasesContainer({
             onClick={() => requestSelectCase(testCase)}
             aria-label={`Select sample test case: ${testCase.title}`}
             aria-pressed={isSelected}
-            className="text-left rounded-lg border p-3 transition-colors duration-150 cursor-pointer"
-            style={{
-              backgroundColor: isSelected ? 'var(--accent-soft)' : 'transparent',
-              borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
-            }}
+            className="bg-[rgba(245,240,232,0.5)] border border-(--color-border) rounded-md p-4 cursor-pointer hover:border-(--color-accent) hover:bg-(--color-accent-light) transition-all text-left"
           >
-            <div className="flex items-start gap-2.5">
+            <div className="flex items-start gap-2">
               {/* Number badge */}
-              <span
-                className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
-                style={{
-                  backgroundColor: isSelected ? 'var(--accent)' : 'var(--surface)',
-                  color: isSelected ? 'white' : 'var(--muted)',
-                  border: '1px solid var(--border)',
-                }}
-              >
-                {index + 1}
+              <span className="text-xs font-mono text-(--color-text-muted) bg-(--color-accent-light) rounded-sm px-1.5 py-0.5 mr-2">
+                #{index + 1}
               </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p
-                    className="text-[13px] font-semibold leading-tight truncate"
-                    style={{ color: 'var(--foreground)' }}
-                  >
-                    {testCase.title}
-                  </p>
-                  {isSelected && (
-                    <CheckCircle2
-                      size={13}
-                      className="shrink-0"
-                      style={{ color: 'var(--accent)' }}
-                    />
-                  )}
-                </div>
-                {testCase.industry && (
-                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--muted)' }}>
-                    {testCase.industry}
-                  </p>
+
+              <div className="flex-1">
+                {/* Title */}
+                <p className="text-sm font-semibold text-(--color-text-primary)">
+                  {testCase.title}
+                </p>
+
+                {/* Description */}
+                <p className="text-xs text-(--color-text-muted) mt-1 line-clamp-2 leading-relaxed">
+                  {testCase.description || testCase.industry}
+                </p>
+
+                {/* Score chips */}
+                {testCase.scores && (
+                  <div className="flex gap-1 mt-2">
+                    {Object.entries(testCase.scores)
+                      .slice(0, 3)
+                      .map(([key, value]) => (
+                        <span
+                          key={key}
+                          className="text-xs text-(--color-text-secondary) px-2 py-0.5 font-mono"
+                        >
+                          {value}
+                        </span>
+                      ))}
+                  </div>
                 )}
+
+                {/* View details link */}
+                <div className="text-xs text-(--color-accent) hover:underline flex items-center gap-1 mt-2">
+                  View details
+                </div>
               </div>
             </div>
           </button>

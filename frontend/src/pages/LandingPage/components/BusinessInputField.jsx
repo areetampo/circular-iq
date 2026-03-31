@@ -18,29 +18,27 @@ export default function BusinessInputField({
   minLength = 200,
 }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center justify-start gap-2">
-            <Label
-              htmlFor={id}
-              className="text-base font-semibold"
-              style={{ color: 'var(--foreground)' }}
-            >
-              {label}
-            </Label>
-            <BadgeInfo
-              className="info-icon cursor-pointer"
-              size={22}
-              style={{ color: 'var(--accent)' }}
-              onClick={onInfoClick}
-            />
-          </div>
-          <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
-            {description}
-          </p>
-        </div>
+    <div className="space-y-2">
+      {/* Label */}
+      <div className="flex items-center gap-1">
+        <Label
+          htmlFor={id}
+          className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 flex items-center gap-1"
+        >
+          {label}
+        </Label>
+        <BadgeInfo
+          className="info-icon cursor-pointer"
+          size={16}
+          style={{ color: 'var(--color-text-muted)' }}
+          onClick={onInfoClick}
+          aria-label={`Get more information about ${label}`}
+          tabIndex={0}
+          role="button"
+        />
       </div>
+
+      {/* Textarea */}
       <Textarea
         id={id}
         rows={rows}
@@ -49,13 +47,10 @@ export default function BusinessInputField({
           onBlur: () => flushAutosave(),
         })}
         disabled={loading}
-        className="w-full rounded-md border placeholder:opacity-60 transition-all duration-200 font-medium"
-        style={{
-          borderColor: 'var(--field-border)',
-          backgroundColor: 'var(--field-bg)',
-          color: 'var(--foreground)',
-        }}
+        className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize-none transition-all outline-none w-full min-h-35"
       />
+
+      {/* Character counter */}
       <LiveCharacterCounter fieldName={fieldName} minLength={minLength} />
     </div>
   );

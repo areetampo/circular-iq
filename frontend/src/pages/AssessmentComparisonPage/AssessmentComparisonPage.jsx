@@ -277,20 +277,17 @@ export default function AssessmentComparisonPage() {
   return (
     <div className="space-y-0 w-full">
       {/* STICKY COMPARISON HEADER */}
-      <div
-        className="sticky top-0 z-40 w-full border-b transition-all duration-200 backdrop-blur-md py-3 px-4"
-        style={{ backgroundColor: 'oklch(0.97 0.012 80 / 0.9)', borderColor: 'var(--border)' }}
-      >
+      <div className="sticky top-0 z-40 w-full border-b border-(--color-border) transition-all duration-200 backdrop-blur-md py-3 px-4 bg-(--color-bg-header)">
         <div className="grid grid-cols-2 gap-4 max-w-6xl mx-auto">
-          <div className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
+          <div className="text-sm font-medium truncate text-(--color-text-primary)">
             {assessment1.title}
-            <span className="ml-2 font-mono text-xs" style={{ color: 'var(--muted)' }}>
+            <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
               {scoringResult1?.overall_score || 0}/100
             </span>
           </div>
-          <div className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
+          <div className="text-sm font-medium truncate text-(--color-text-primary)">
             {assessment2.title}
-            <span className="ml-2 font-mono text-xs" style={{ color: 'var(--muted)' }}>
+            <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
               {scoringResult2?.overall_score || 0}/100
             </span>
           </div>
@@ -300,23 +297,12 @@ export default function AssessmentComparisonPage() {
       {/* Assessment Headers */}
       <div className="w-full px-4 md:px-10 pt-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-          <div
-            className="border-2 rounded-xl"
-            style={{
-              backgroundColor: 'transparent',
-              borderColor: 'var(--border)',
-            }}
-          >
+          <div className="border-2 border-(--color-border) rounded-xl">
             <div className="gap-3 p-4">
-              <h2
-                className="text-lg font-bold wrap-break-word"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+              <h2 className="text-lg font-bold wrap-break-word text-(--color-text-primary)">
                 {assessment1.title}
               </h2>
-              <p className="text-xs font-medium italic" style={{ color: 'var(--muted)' }}>
+              <p className="text-xs font-medium italic text-(--color-text-muted)">
                 {formatTimestamp(assessment1.created_at)}
               </p>
               <div className="flex items-center gap-2 mt-2">
@@ -342,36 +328,18 @@ export default function AssessmentComparisonPage() {
 
           <div className="hidden md:flex items-center justify-center px-4">
             <div className="text-center">
-              <span
-                className="text-sm font-bold px-3 py-1.5 rounded-md"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  color: 'var(--accent)',
-                  border: '1px solid var(--accent)',
-                }}
-              >
+              <span className="text-sm font-bold px-3 py-1.5 rounded-md bg-(--color-accent-soft) text-(--color-accent) border border-(--color-accent)">
                 VS
               </span>
             </div>
           </div>
 
-          <div
-            className="border-2 rounded-xl"
-            style={{
-              backgroundColor: 'transparent',
-              borderColor: 'var(--border)',
-            }}
-          >
+          <div className="border-2 border-(--color-border) rounded-xl">
             <div className="gap-3 p-4">
-              <h2
-                className="text-lg font-bold wrap-break-word"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+              <h2 className="text-lg font-bold wrap-break-word text-(--color-text-primary)">
                 {assessment2.title}
               </h2>
-              <p className="text-xs font-medium italic" style={{ color: 'var(--muted)' }}>
+              <p className="text-xs font-medium italic text-(--color-text-muted)">
                 {formatTimestamp(assessment2.created_at)}
               </p>
               <div className="flex items-center gap-2 mt-2">
@@ -400,8 +368,10 @@ export default function AssessmentComparisonPage() {
       {/* Vertical Content - 2 column layout */}
       <div className="max-w-7xl mx-auto px-0 sm:px-6 space-y-8">
         {/* OVERVIEW SECTION */}
-        <div className="border-b border-[var(--border)] pb-3 mb-6">
-          <span className="label-overline">OVERVIEW</span>
+        <div className="border-b border-(--color-border) pb-3 mb-6">
+          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+            OVERVIEW
+          </span>
         </div>
         <OverviewTab
           assessment1={assessment1}
@@ -411,11 +381,13 @@ export default function AssessmentComparisonPage() {
           insights={insights}
         />
 
-        <div className="divider-warm my-10" />
+        <div className="border-t border-(--color-border) my-10" />
 
         {/* FACTOR ANALYSIS SECTION */}
-        <div className="border-b border-[var(--border)] pb-3 mb-6">
-          <span className="label-overline">FACTOR ANALYSIS</span>
+        <div className="border-b border-(--color-border) pb-3 mb-6">
+          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+            FACTOR ANALYSIS
+          </span>
         </div>
         <FactorAnalysisTab
           assessment1={assessment1}
@@ -430,11 +402,13 @@ export default function AssessmentComparisonPage() {
           getScoreColor={getScoreColor}
         />
 
-        <div className="divider-warm my-10" />
+        <div className="border-t border-(--color-border) my-10" />
 
         {/* DETAILS SECTION */}
-        <div className="border-b border-[var(--border)] pb-3 mb-6">
-          <span className="label-overline">DETAILS</span>
+        <div className="border-b border-(--color-border) pb-3 mb-6">
+          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+            DETAILS
+          </span>
         </div>
         <DetailsTab
           assessment1={assessment1}
@@ -443,11 +417,13 @@ export default function AssessmentComparisonPage() {
           scoringResult2={scoringResult2}
         />
 
-        <div className="divider-warm my-10" />
+        <div className="border-t border-(--color-border) my-10" />
 
         {/* DATABASE EVIDENCE SECTION */}
-        <div className="border-b border-[var(--border)] pb-3 mb-6">
-          <span className="label-overline">DATABASE EVIDENCE</span>
+        <div className="border-b border-(--color-border) pb-3 mb-6">
+          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+            DATABASE EVIDENCE
+          </span>
         </div>
         <DatabaseEvidenceTab
           assessment1={assessment1}
@@ -458,22 +434,19 @@ export default function AssessmentComparisonPage() {
         />
 
         {/* Footer */}
-        <div
-          className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+        <div className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2 border-(--color-border)">
+          <p className="text-xs font-medium text-(--color-text-muted)">
             Last updated: {getCurrentTimestampFormatted()}
           </p>
           <div className="flex gap-2">
             <Button
               variant="primary"
-              onClick={() => exportComparisonCSV([assessment1, assessment2])}
+              onPress={() => exportComparisonCSV([assessment1, assessment2])}
             >
               <Upload size={16} />
               Export CSV
             </Button>
-            <Button variant="tertiary" onClick={handleBack}>
+            <Button variant="tertiary" onPress={handleBack}>
               <ArrowLeft size={16} />
               Back to Assessments
             </Button>

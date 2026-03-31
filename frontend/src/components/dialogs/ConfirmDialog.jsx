@@ -111,20 +111,22 @@ export function ConfirmDialog({
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled={true}
+      className="backdrop-blur-sm bg-(--color-backdrop)"
     >
       <AlertDialog.Container size="md" placement="center">
-        <AlertDialog.Dialog aria-label={title}>
+        <AlertDialog.Dialog
+          aria-label={title}
+          className="bg-(--color-bg-card) border border-(--color-border)"
+        >
           <AlertDialog.Header>
             <AlertDialog.Icon status={status}>{icon}</AlertDialog.Icon>
-            <AlertDialog.Heading>{title}</AlertDialog.Heading>
+            <AlertDialog.Heading className="text-(--color-text-primary)">
+              {title}
+            </AlertDialog.Heading>
           </AlertDialog.Header>
 
           <AlertDialog.Body>
-            {description && (
-              <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-                {description}
-              </p>
-            )}
+            {description && <p className="text-[13px] text-(--color-text-muted)">{description}</p>}
           </AlertDialog.Body>
 
           <AlertDialog.Footer>

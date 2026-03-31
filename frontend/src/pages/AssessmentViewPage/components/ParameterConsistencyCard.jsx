@@ -1,4 +1,5 @@
 import { Card } from '@heroui/react';
+import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
@@ -81,3 +82,7 @@ export default function ParameterConsistencyCard({ scoringResult }) {
     </Card>
   );
 }
+
+ParameterConsistencyCard.propTypes = {
+  scoringResult: PropTypes.object.isRequired,
+};

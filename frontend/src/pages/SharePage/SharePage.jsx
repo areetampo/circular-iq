@@ -68,20 +68,10 @@ export default function SharePage() {
 
   return (
     <div className="min-h-[70vh] flex flex-col justify-center max-w-lg mx-auto px-6 py-12">
-      <h1
-        className="heading-display text-[24px] mb-4"
-        style={{
-          color: 'var(--foreground)',
-        }}
-      >
+      <h1 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-4 leading-tight">
         Open a Shared Assessment
       </h1>
-      <p
-        className="text-[14px] mb-8 max-w-md"
-        style={{
-          color: 'var(--muted)',
-        }}
-      >
+      <p className="text-sm mb-8 max-w-md text-(--color-text-secondary)">
         Enter the public ID for the assessment you want to view.
       </p>
 
@@ -89,10 +79,7 @@ export default function SharePage() {
         <div>
           <Label
             htmlFor="public-id"
-            className="text-[13px] font-medium"
-            style={{
-              color: 'var(--foreground)',
-            }}
+            className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 block"
           >
             Public ID
           </Label>
@@ -102,12 +89,12 @@ export default function SharePage() {
             onChange={(e) => setPublicId(e.target.value)}
             placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             size="lg"
-            className="mt-2 w-full"
+            className="mt-2 w-full bg-transparent border border-(--color-border-strong) rounded-md text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none"
           />
         </div>
 
         {error && (
-          <div className="flex items-center gap-2" style={{ color: 'var(--danger)' }}>
+          <div className="flex items-center gap-2 text-sm text-(--color-error)">
             <Frown size={20} />
             <span>{error}</span>
           </div>

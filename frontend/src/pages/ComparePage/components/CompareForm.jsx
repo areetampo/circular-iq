@@ -96,10 +96,10 @@ export default function CompareForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="heading-display text-[28px]" style={{ color: 'var(--foreground)' }}>
+        <h1 className="font-(--font-display) text-3xl text-(--color-text-primary) leading-tight">
           Compare Assessments
         </h1>
-        <p className="mt-2 text-[14px]" style={{ color: 'var(--muted)' }}>
+        <p className="mt-2 text-sm text-(--color-text-secondary)">
           Enter the public IDs of two assessments you want to compare side by side.
         </p>
       </div>
@@ -110,10 +110,7 @@ export default function CompareForm() {
           <div>
             <Label
               htmlFor="public-id-1"
-              className="text-[13px] font-medium mb-2 block"
-              style={{
-                color: 'var(--foreground)',
-              }}
+              className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 block"
             >
               First Assessment ID
             </Label>
@@ -123,12 +120,7 @@ export default function CompareForm() {
               onChange={(e) => setPublicId1(e.target.value)}
               placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
-              className="w-full mt-2"
-              style={{
-                backgroundColor: 'var(--field-bg)',
-                borderColor: 'var(--field-border)',
-                color: 'var(--foreground)',
-              }}
+              className="w-full mt-2 bg-transparent border border-(--color-border-strong) rounded-md text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none"
             />
           </div>
 
@@ -136,10 +128,7 @@ export default function CompareForm() {
           <div>
             <Label
               htmlFor="public-id-2"
-              className="text-[13px] font-medium mb-2 block"
-              style={{
-                color: 'var(--foreground)',
-              }}
+              className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 block"
             >
               Second Assessment ID
             </Label>
@@ -149,34 +138,15 @@ export default function CompareForm() {
               onChange={(e) => setPublicId2(e.target.value)}
               placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
-              className="w-full mt-2"
-              style={{
-                backgroundColor: 'var(--field-bg)',
-                borderColor: 'var(--field-border)',
-                color: 'var(--foreground)',
-              }}
+              className="w-full mt-2 bg-transparent border border-(--color-border-strong) rounded-md text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none"
             />
           </div>
         </div>
 
         {error && (
-          <div
-            className="flex items-start gap-3 p-4 rounded-lg"
-            style={{
-              backgroundColor: 'var(--danger-soft)',
-              borderColor: 'var(--danger)',
-              borderWidth: '1px',
-            }}
-          >
-            <Frown size={20} className="mt-0.5 shrink-0" style={{ color: 'var(--danger)' }} />
-            <span
-              className="text-sm"
-              style={{
-                color: 'var(--danger)',
-              }}
-            >
-              {error}
-            </span>
+          <div className="flex items-start gap-3 p-4 rounded-lg border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] text-sm text-(--color-error)">
+            <Frown size={20} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -187,7 +157,7 @@ export default function CompareForm() {
           <Button type="button" variant="secondary" onPress={handleClear}>
             Clear
           </Button>
-          <Button type="button" variant="tertiary" onPress={() => navigate('/assessments')}>
+          <Button type="button" variant="ghost" onPress={() => navigate('/assessments')}>
             <ArrowLeft size={14} />
             Back to Assessments
           </Button>
@@ -195,14 +165,8 @@ export default function CompareForm() {
       </form>
 
       {/* Info box */}
-      <div
-        className="mt-8 p-4 rounded-xl border"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-      >
-        <p
-          className="text-[12px] font-semibold uppercase tracking-wide mb-2"
-          style={{ color: 'var(--muted)' }}
-        >
+      <div className="mt-8 p-4 rounded-xl border border-(--color-border) bg-transparent">
+        <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-(--color-text-muted)">
           About Comparison
         </p>
         <ul className="space-y-1.5">
@@ -211,15 +175,8 @@ export default function CompareForm() {
             'You can compare public assessments from other users',
             'Use the Assessment IDs from your assessments list or shared links',
           ].map((item) => (
-            <li
-              key={item}
-              className="flex items-start gap-2 text-[13px]"
-              style={{ color: 'var(--muted)' }}
-            >
-              <span
-                className="shrink-0 mt-1.5 w-1 h-1 rounded-full"
-                style={{ backgroundColor: 'var(--accent)' }}
-              />
+            <li key={item} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
+              <span className="shrink-0 mt-1.5 w-1 h-1 rounded-full bg-(--color-accent)" />
               {item}
             </li>
           ))}

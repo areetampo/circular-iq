@@ -4,10 +4,7 @@ import PropTypes from 'prop-types';
 function StatCard({ title, value, subtext, loading }) {
   if (loading) {
     return (
-      <div
-        className="border rounded-xl p-5 card-lift"
-        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-      >
+      <div className="border border-(--color-border) rounded-md p-5 card-lift bg-transparent">
         <Skeleton className="h-7 w-16 rounded" />
         <Skeleton className="h-2.5 w-20 rounded" />
         {subtext && <Skeleton className="h-3.5 w-24 rounded" />}
@@ -16,19 +13,16 @@ function StatCard({ title, value, subtext, loading }) {
   }
 
   return (
-    <div
-      className="border rounded-xl p-5 card-lift"
-      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-    >
+    <div className="border border-(--color-border) rounded-md p-5 card-lift bg-transparent">
       <p className="label-overline">{title}</p>
       <p
         className="metric-value text-[28px] font-medium mt-2"
-        style={{ color: 'var(--foreground)' }}
+        style={{ color: 'var(--color-text-primary)' }}
       >
         {value ?? '—'}
       </p>
       {subtext && (
-        <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
           {subtext}
         </p>
       )}

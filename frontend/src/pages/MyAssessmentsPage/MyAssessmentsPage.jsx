@@ -1,6 +1,6 @@
-import { ListBox, Pagination, Popover, Select, Separator, Skeleton, toast } from '@heroui/react';
+import { ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Award, Building, Ghost, Plus } from 'lucide-react';
+import { ArrowLeft, Ghost, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -12,7 +12,6 @@ import { usePrefetchAssessment } from '@/features/assessments/hooks/useAssessmen
 import { useAssessments } from '@/features/assessments/hooks/useAssessments';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useDebounce } from '@/hooks/useDebounce';
-import { formatTruncatedList } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
 import { parseSortBy } from '@/utils/sortUtils';
 
@@ -435,13 +434,7 @@ export default function MyAssessmentsPage() {
     // SummaryCardSkeleton - Matches the actual Summary Card structure
     function SummaryCardSkeleton() {
       return (
-        <div
-          className="border rounded-xl px-6 py-5 shadow-sm"
-          style={{
-            backgroundColor: 'transparent',
-            borderColor: 'var(--border)',
-          }}
-        >
+        <div className="border border-(--color-border) rounded-xl px-6 py-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               {/* Label */}
@@ -467,13 +460,7 @@ export default function MyAssessmentsPage() {
     // FiltersCardSkeleton - Matches the actual Filters Card structure
     function FiltersCardSkeleton() {
       return (
-        <div
-          className="border-2 shadow-sm rounded-xl"
-          style={{
-            backgroundColor: 'transparent',
-            borderColor: 'var(--border)',
-          }}
-        >
+        <div className="border-2 border-(--color-border) shadow-sm rounded-xl">
           <div className="p-6 space-y-6">
             {/* Filter inputs */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -492,10 +479,7 @@ export default function MyAssessmentsPage() {
             </div>
 
             {/* Compare section */}
-            <div
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t-2"
-              style={{ borderColor: 'var(--border)' }}
-            >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t-2 border-(--color-border)">
               <Skeleton animationType="shimmer" className="h-4 w-64 rounded" />
               <Skeleton animationType="shimmer" className="h-10 w-44 rounded-lg" />
             </div>
@@ -531,12 +515,14 @@ export default function MyAssessmentsPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <p className="label-overline mb-1">YOUR HISTORY</p>
-          <h1 className="heading-display text-[28px]" style={{ color: 'var(--foreground)' }}>
+          <p className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body) mb-1">
+            YOUR HISTORY
+          </p>
+          <h1 className="font-(--font-display) text-4xl text-(--color-text-primary) leading-tight">
             Saved Assessments
           </h1>
         </div>
-        <Button variant="primary" size="sm" onClick={() => navigate('/')}>
+        <Button variant="primary" size="sm" onPress={() => navigate('/')}>
           + New Assessment
         </Button>
       </div>
@@ -555,12 +541,12 @@ export default function MyAssessmentsPage() {
           actions={[
             {
               label: 'Retry',
-              onClick: () => refetch(),
+              onPress: () => refetch(),
               variant: 'danger',
             },
             {
               label: 'Back to Home',
-              onClick: handleBack,
+              onPress: handleBack,
               variant: 'secondary',
             },
           ]}
@@ -569,151 +555,67 @@ export default function MyAssessmentsPage() {
       ) : (
         <>
           {/* AFTER INITIAL LOAD: Show actual content */}
-          {/* Summary Cards - Custom modern design */}
+          {/* Summary Stats - 4 smaller inline stats */}
           {stats_totalAssessments > 0 && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {/* Average Score Card */}
-              <div
-                className="border rounded-xl px-6 py-5"
-                style={{
-                  backgroundColor: 'transparent',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p
-                      className="text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ color: 'var(--muted)' }}
-                    >
-                      Average Score
-                    </p>
-                    <div className="flex items-baseline gap-3">
-                      <h3
-                        className="text-3xl font-black"
-                        style={{
-                          color: 'var(--foreground)',
-                        }}
-                      >
-                        {averageScore}
-                      </h3>
-                    </div>
-                    <p className="text-sm font-medium mt-2" style={{ color: 'var(--muted)' }}>
-                      Across {stats_totalAssessments} assessment
-                      {stats_totalAssessments !== 1 ? 's' : ''}
-                    </p>
-                    <div className="flex items-center gap-6 mt-3">
-                      <div>
-                        <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
-                          High
-                        </p>
-                        <p
-                          className="text-lg font-bold"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          {highestScore}
-                        </p>
-                      </div>
-                      <Separator
-                        orientation="vertical"
-                        style={{ backgroundColor: 'var(--border)' }}
-                      />
-                      <div>
-                        <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
-                          Low
-                        </p>
-                        <p
-                          className="text-lg font-bold"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          {lowestScore}
-                        </p>
-                      </div>
-                    </div>
+            <>
+              {/* Section divider */}
+              <div className="border-t border-(--color-border) my-6" />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                {/* Average Score */}
+                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
+                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                    Avg Score
                   </div>
-                  <div
-                    className="p-3 rounded-xl shrink-0"
-                    style={{ backgroundColor: 'var(--accent-soft)' }}
-                  >
-                    <Award size={24} style={{ color: 'var(--accent)' }} />
+                  <div className="text-xl font-(--font-display) text-(--color-text-primary)">
+                    {averageScore || 0}
+                  </div>
+                  <div className="text-xs text-(--color-text-muted)">
+                    Total: {stats_totalAssessments}
+                  </div>
+                </div>
+
+                {/* Total Assessments */}
+                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
+                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                    Total
+                  </div>
+                  <div className="text-xl font-(--font-display) text-(--color-text-primary)">
+                    {stats_totalAssessments}
+                  </div>
+                  <div className="text-xs text-(--color-text-muted)">Assessments</div>
+                </div>
+
+                {/* Highest Score */}
+                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
+                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                    Highest
+                  </div>
+                  <div className="text-xl font-(--font-display) text-(--color-text-primary)">
+                    {highestScore || 0}
+                  </div>
+                  <div className="text-xs text-(--color-text-muted)">Score</div>
+                </div>
+
+                {/* Primary Focus */}
+                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
+                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                    Primary Focus
+                  </div>
+                  <div className="text-xl font-(--font-display) text-(--color-text-primary) truncate">
+                    {topIndustries && topIndustries.length > 0
+                      ? topIndustries[0].industry
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, (l) => l.toUpperCase())
+                          .slice(0, 8)
+                      : '—'}
+                  </div>
+                  <div className="text-xs text-(--color-text-muted)">
+                    {topIndustries && topIndustries.length > 0 ? topIndustries[0].count : '—'}
                   </div>
                 </div>
               </div>
-              {/* Primary Focus Card */}
-              <div
-                className="border rounded-xl px-6 py-5"
-                style={{
-                  backgroundColor: 'transparent',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p
-                      className="text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ color: 'var(--accent)' }}
-                    >
-                      Primary Focus
-                    </p>
-                    <h3
-                      className="text-2xl font-bold leading-tight"
-                      style={{
-                        color: 'var(--foreground)',
-                      }}
-                    >
-                      {topIndustries && topIndustries.length > 0
-                        ? (() => {
-                            const { display } = formatTruncatedList(topIndustries, 3);
-                            const hasMore = topIndustries.length > 3;
-                            return hasMore ? `${display}...` : display;
-                          })()
-                        : '—'}
-                    </h3>
-                    {topIndustries && topIndustries.length > 3 && (
-                      <Popover>
-                        <Popover.Trigger>
-                          <Button size="xs" variant="ghost" className="mt-2">
-                            View All
-                          </Button>
-                        </Popover.Trigger>
-                        <Popover.Content className="max-w-xs">
-                          <Popover.Dialog>
-                            <div className="space-y-0.5">
-                              {topIndustries.map((industry, idx) => (
-                                <p
-                                  key={idx}
-                                  className="text-sm italic"
-                                  style={{ color: 'var(--accent)' }}
-                                >
-                                  {industry.industry
-                                    .replace(/_/g, ' ')
-                                    .replace(/\b\w/g, (l) => l.toUpperCase())}
-                                </p>
-                              ))}
-                            </div>
-                          </Popover.Dialog>
-                        </Popover.Content>
-                      </Popover>
-                    )}
-                    <p className="text-sm font-medium mt-2" style={{ color: 'var(--accent)' }}>
-                      {topIndustries && topIndustries.length > 0
-                        ? `${topIndustries[0].count} assessment${topIndustries[0].count !== 1 ? 's' : ''} ${topIndustries.length > 1 ? 'each' : ''}`
-                        : 'No data available'}
-                    </p>
-                  </div>
-                  <div
-                    className="p-3 rounded-xl shrink-0"
-                    style={{ backgroundColor: 'var(--accent-soft)' }}
-                  >
-                    <Building size={24} style={{ color: 'var(--accent)' }} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            </>
           )}
 
           {/* Filters & Controls Card - STATIC during filter changes - Beautiful spacing */}
@@ -748,49 +650,29 @@ export default function MyAssessmentsPage() {
                 actions={[
                   {
                     label: 'Retry',
-                    onClick: () => refetch(),
+                    onPress: () => refetch(),
                     variant: 'danger',
                   },
                   {
                     label: 'Back to Home',
-                    onClick: handleBack,
+                    onPress: handleBack,
                     variant: 'secondary',
                   },
                 ]}
                 showDefaultActions={false}
               />
             ) : stats_totalAssessments === 0 ? (
-              <div
-                className="border-2 border-dashed shadow-sm rounded-xl"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  borderColor: 'var(--border)',
-                }}
-              >
+              <div className="border-2 border-dashed border-(--color-border) rounded-xl bg-(--color-accent-soft)">
                 <div className="p-6 text-center">
                   <div className="flex justify-center mb-8">
-                    <div
-                      className="p-5 rounded-2xl shadow-inner"
-                      style={{
-                        background:
-                          'linear-gradient(to bottom right, var(--surface), var(--border))',
-                      }}
-                    >
-                      <Ghost strokeWidth={1.5} size={48} style={{ color: 'var(--muted)' }} />
+                    <div className="p-5 rounded-2xl shadow-inner bg-linear-to-br from-(--color-bg-card) to-(--color-border)">
+                      <Ghost strokeWidth={1.5} size={48} className="text-(--color-text-muted)" />
                     </div>
                   </div>
-                  <h3
-                    className="font-bold text-2xl mb-3"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
+                  <h3 className="font-bold text-2xl mb-3 text-(--color-text-primary)">
                     No assessments yet
                   </h3>
-                  <p
-                    className="text-base mb-8 max-w-md mx-auto leading-relaxed"
-                    style={{ color: 'var(--muted)' }}
-                  >
+                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed text-(--color-text-muted)">
                     Start your first assessment to track your circular economy progress and get
                     personalized recommendations.
                   </p>
@@ -801,37 +683,17 @@ export default function MyAssessmentsPage() {
                 </div>
               </div>
             ) : assessments.length === 0 ? (
-              <div
-                className="border-2 border-dashed shadow-sm rounded-xl"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  borderColor: 'var(--border)',
-                }}
-              >
+              <div className="border-2 border-dashed border-(--color-border) rounded-xl bg-(--color-accent-soft)">
                 <div className="p-6 text-center">
                   <div className="flex justify-center mb-8">
-                    <div
-                      className="p-5 rounded-2xl shadow-inner"
-                      style={{
-                        background:
-                          'linear-gradient(to bottom right, var(--surface), var(--border))',
-                      }}
-                    >
-                      <Ghost strokeWidth={1.5} size={48} style={{ color: 'var(--muted)' }} />
+                    <div className="p-5 rounded-2xl shadow-inner bg-linear-to-br from-(--color-bg-card) to-(--color-border)">
+                      <Ghost strokeWidth={1.5} size={48} className="text-(--color-text-muted)" />
                     </div>
                   </div>
-                  <h3
-                    className="font-bold text-2xl mb-3"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
+                  <h3 className="font-bold text-2xl mb-3 text-(--color-text-primary)">
                     No assessments found
                   </h3>
-                  <p
-                    className="text-base mb-8 max-w-md mx-auto leading-relaxed"
-                    style={{ color: 'var(--muted)' }}
-                  >
+                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed text-(--color-text-muted)">
                     Your current filters didn&apos;t match any assessments. Try selecting a
                     different industry or adjusting your search.
                   </p>
@@ -864,19 +726,13 @@ export default function MyAssessmentsPage() {
 
                 <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
                   {/* Pagination info text */}
-                  <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                  <p className="text-sm text-(--color-text-muted)">
                     Showing{' '}
-                    <span
-                      className="font-semibold inline-block text-center"
-                      style={{ color: 'var(--foreground)' }}
-                    >
+                    <span className="font-semibold inline-block text-center text-(--color-text-primary)">
                       {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
                     </span>{' '}
                     of{' '}
-                    <span
-                      className="font-semibold inline-block text-center"
-                      style={{ color: 'var(--foreground)' }}
-                    >
+                    <span className="font-semibold inline-block text-center text-(--color-text-primary)">
                       {total}
                     </span>{' '}
                     results
@@ -916,10 +772,7 @@ export default function MyAssessmentsPage() {
 
                     {/* HeroUI v3 Select for page size */}
                     <div className="flex items-center gap-2">
-                      <label
-                        className="text-sm whitespace-nowrap"
-                        style={{ color: 'var(--muted)' }}
-                      >
+                      <label className="text-sm whitespace-nowrap text-(--color-text-muted)">
                         Per page:
                       </label>
                       <Select

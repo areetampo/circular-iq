@@ -1,4 +1,5 @@
 import { Card } from '@heroui/react';
+import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
@@ -89,3 +90,7 @@ export default function RStrategyAlignmentCard({ scoringResult }) {
     </Card>
   );
 }
+
+RStrategyAlignmentCard.propTypes = {
+  scoringResult: PropTypes.object.isRequired,
+};

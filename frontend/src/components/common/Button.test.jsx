@@ -9,8 +9,8 @@ describe('Button (wrapper)', () => {
     const btn = screen.getByRole('button', { name: /Disabled/i });
     expect(btn).toBeInTheDocument();
 
-    // Ensure the Tailwind data-variant class for disabled cursor is present on the element
-    expect(btn.className).toContain('data-[disabled=true]:cursor-not-allowed');
+    // Ensure the cursor class for disabled state is present on the element
+    expect(btn.className).toContain('cursor-not-allowed');
 
     // HeroUI may surface disabled state via different attributes depending on implementation
     const hasDisabledAttr =

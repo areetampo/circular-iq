@@ -1,4 +1,4 @@
-import { Label, ListBox, Select } from '@heroui/react';
+import { Button, Label, ListBox, Select } from '@heroui/react';
 import { GitCompare, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -23,23 +23,22 @@ export function FilterBar({
       <div className="flex gap-3 flex-col sm:flex-row">
         {/* Search — use existing search state and handler */}
         <div className="relative flex-1">
+          <Label htmlFor="search-input" className="sr-only">
+            Search assessments
+          </Label>
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-(--color-text-muted)"
             size={15}
-            style={{ color: 'var(--muted)' }}
+            aria-hidden="true"
           />
           <input
+            id="search-input"
             type="text"
             placeholder="Search assessments..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border
-                   focus:outline-none transition-all duration-150"
-            style={{
-              backgroundColor: 'var(--field-bg)',
-              borderColor: 'var(--field-border)',
-              color: 'var(--foreground)',
-            }}
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-(--color-border-strong) bg-[rgba(245,240,232,0.5)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) focus:outline-none transition-all duration-150"
+            aria-label="Search assessments by title or description"
           />
         </div>
 
@@ -56,9 +55,7 @@ export function FilterBar({
             variant="bordered"
             size="md"
           >
-            <Label className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-              Sort by
-            </Label>
+            <Label className="text-sm font-semibold text-(--color-text-primary)">Sort by</Label>
             <Select.Trigger>
               <Select.Value />
               <Select.Indicator />
@@ -97,17 +94,11 @@ export function FilterBar({
 
       {/* Compare button — always visible */}
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant={selectedIds.size === 2 ? 'primary' : 'secondary'}
+          size="sm"
           onClick={handleCompareSelected}
           disabled={selectedIds.size !== 2}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium
-                     rounded-md border transition-colors duration-150
-                     disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            backgroundColor: selectedIds.size === 2 ? 'var(--accent)' : 'transparent',
-            color: selectedIds.size === 2 ? 'white' : 'var(--muted)',
-            borderColor: selectedIds.size === 2 ? 'var(--accent)' : 'var(--border)',
-          }}
           title={
             selectedIds.size !== 2 ? 'Select exactly 2 assessments to compare' : 'Compare selected'
           }
@@ -116,7 +107,7 @@ export function FilterBar({
           {selectedIds.size < 2
             ? `Select ${2 - selectedIds.size} more to compare`
             : 'Compare Selected'}
-        </button>
+        </Button>
       </div>
 
       {/* Industry filter chips */}

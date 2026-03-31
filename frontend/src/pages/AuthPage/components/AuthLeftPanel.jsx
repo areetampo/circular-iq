@@ -1,6 +1,6 @@
-import { BarChart3, CheckCircle2, Leaf, RefreshCw, Zap } from 'lucide-react';
+import { BarChart3, CheckCircle2, Leaf, Zap } from 'lucide-react';
 
-import { SITE_NAME } from '@/components/common';
+import { SITE_FULL_NAME } from '@/components/common';
 
 const TRUST_SIGNALS = [
   { icon: CheckCircle2, text: '40,000+ case studies indexed' },
@@ -11,86 +11,54 @@ const TRUST_SIGNALS = [
 
 export default function AuthLeftPanel() {
   return (
-    <div
-      className="hidden md:flex flex-col justify-between w-1/2 h-full p-12 relative overflow-hidden"
-      style={{ backgroundColor: 'var(--background)' }}
-    >
-      {/* Decorative blobs */}
-      <div
-        className="absolute -top-24 -right-24 w-80 h-80 rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, oklch(0.68 0.08 68 / 0.12) 0%, transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(circle, oklch(0.52 0.14 155 / 0.08) 0%, transparent 70%)',
-        }}
-      />
+    <div className="hidden lg:flex flex-col h-full bg-transparent relative">
+      {/* Subtle right border */}
+      <div className="absolute right-0 top-0 bottom-0 w-px bg-(--color-border)" />
 
-      {/* Top: inline logo mark — replaces <Brand /> */}
-      <div className="relative z-10 flex items-center gap-2">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: 'var(--accent)' }}
-        >
-          <RefreshCw size={13} strokeWidth={2.5} className="text-white" />
-        </div>
-        <span
-          className="font-serif text-[15px] font-semibold tracking-tight"
-          style={{ color: 'var(--foreground)' }}
-        >
-          {SITE_NAME}
+      {/* Top: Logo + Site Name */}
+      <div className="flex items-center gap-3 p-6">
+        <img src="/siteLogo.png" alt="Site Logo" className="h-7 w-auto" />
+        <span className="font-(--font-display) text-sm text-(--color-text-primary)">
+          {SITE_FULL_NAME}
         </span>
       </div>
 
-      {/* Middle: headline + trust signals */}
-      <div className="relative z-10 space-y-8">
-        <div>
-          <p className="label-overline mb-4" style={{ color: 'var(--accent)' }}>
-            CIRCULAR ECONOMY ASSESSOR
-          </p>
-          <h1
-            className="heading-display"
-            style={{ fontSize: 'clamp(26px, 2.8vw, 42px)', lineHeight: 1.1 }}
-          >
-            Where circular economy
-            <br />
-            meets{' '}
-            <em className="italic" style={{ color: 'var(--accent)' }}>
-              evidence.
-            </em>
-          </h1>
-          <p
-            className="mt-5 text-[14px] leading-relaxed max-w-xs"
-            style={{ color: 'var(--muted)' }}
-          >
-            AI-powered evaluation grounded in 40,000+ real circular economy case studies and
-            projects.
-          </p>
-        </div>
-        <ul className="space-y-3">
+      {/* Main content: vertically centered, left-aligned */}
+      <div className="flex-1 flex flex-col justify-center px-6">
+        {/* Eyebrow */}
+        <p className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body) mb-4">
+          CIRCULAR ECONOMY ASSESSOR
+        </p>
+
+        {/* Headline */}
+        <h1 className="font-(--font-display) text-4xl leading-tight text-(--color-text-primary) mb-3">
+          Where circular economy
+          <br />
+          meets <em className="italic text-(--color-accent)">evidence.</em>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-sm text-(--color-text-secondary) mt-3 max-w-xs leading-relaxed">
+          AI-powered evaluation grounded in 40,000+ real circular economy case studies and projects.
+        </p>
+
+        {/* Feature list */}
+        <ul className="space-y-3 mt-8">
           {TRUST_SIGNALS.map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-3">
-              <div
-                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'var(--accent-soft)' }}
-              >
-                <Icon size={14} style={{ color: 'var(--accent)' }} strokeWidth={2} />
+              <div className="w-6 h-6 rounded-full flex items-center justify-center bg-(--color-accent-light)">
+                <Icon size={12} className="text-(--color-accent)" strokeWidth={2} />
               </div>
-              <span className="text-[13px]" style={{ color: 'var(--foreground)' }}>
-                {text}
-              </span>
+              <span className="text-sm text-(--color-text-secondary)">{text}</span>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Bottom tagline */}
-      <div className="relative z-10">
-        <div className="w-8 h-[1.5px] mb-4" style={{ backgroundColor: 'var(--accent)' }} />
-        <p className="text-xs" style={{ color: 'var(--subtle)' }}>
+      {/* Bottom: Horizontal rule + tagline */}
+      <div className="p-6">
+        <div className="h-px bg-(--color-border) mb-4" />
+        <p className="text-xs text-(--color-text-muted)">
           Trusted by sustainability researchers and entrepreneurs worldwide.
         </p>
       </div>

@@ -12,6 +12,7 @@ import { logger } from '@/utils/logger';
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,137 +23,123 @@ export function LoginForm({ onSwitchToSignup }) {
     reset,
   } = useForm({
     resolver: zodResolver(loginSchema),
-    mode: 'onBlur', // Validate as soon as user leaves a field
+    mode: 'onBlur',
   });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
+    setSubmitError(null);
 
     try {
-      // Attempt to sign in with provided credentials
       const { data: authData, error } = await signInWithUsername(data.username, data.password);
 
       if (error) {
-        // Log authentication error for debugging
         logger.error('[LoginForm] sign in error:', { status: error.status });
-
-        // Show user-friendly error message
-        toast.danger('Sign in failed', {
-          description: 'Incorrect username or password.',
-          timeout: 3000,
-        });
+        setSubmitError('Incorrect username or password.');
         return;
       }
 
-      // Verify that authentication created a proper user session
       if (!authData?.user?.id) {
         throw new Error('Authentication succeeded but no user session was created.');
       }
 
-      // Show success message to user
       toast.success('Welcome back!', {
         description: 'You have successfully signed in.',
         timeout: 3000,
       });
 
       reset();
-
-      // Redirect user to their intended destination or default to home
       const returnTo = location.state?.from || '/';
       navigate(returnTo, { replace: true });
     } catch (err) {
-      // Handle unexpected errors during authentication
       logger.error('[LoginForm] unexpected error:', err);
-
-      toast.danger('Authentication failed', {
-        description: 'An unexpected error occurred. Please try again.',
-        timeout: 3000,
-      });
+      setSubmitError('An unexpected error occurred. Please try again.');
     } finally {
-      // Ensure loading state is reset regardless of outcome
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full">
       {/* Header */}
-      <div className="text-center space-y-2 mb-6">
-        <h2 className="heading-display text-[22px]" style={{ color: 'var(--foreground)' }}>
-          Welcome Back
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          Sign in to access your circular economy assessments
-        </p>
+      <div className="text-center mb-8">
+        <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-1">Sign in</h2>
+        <p className="text-sm text-(--color-text-muted)">Welcome back to your account</p>
       </div>
 
-      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {/* Error display */}
+      {submitError && (
+        <div className="border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] rounded-md p-3 text-sm text-(--color-error) mb-4">
+          {submitError}
+        </div>
+      )}
+
+      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
-        <Controller
-          name="username"
-          control={control}
-          render={({ field }) => (
-            <TextField isInvalid={!!errors.username}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
-                  Username
-                </Label>
+        <div className="mb-5">
+          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+            Username *
+          </Label>
+          <Controller
+            name="username"
+            control={control}
+            render={({ field }) => (
+              <TextField isInvalid={!!errors.username}>
+                <Input
+                  {...field}
+                  type="text"
+                  placeholder="your_username"
+                  disabled={isLoading}
+                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  autoComplete="username"
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  maxLength={30}
+                />
                 {errors.username && (
-                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
+                  <FieldError className="text-xs text-(--color-error) mt-1">
                     {errors.username.message}
                   </FieldError>
                 )}
-              </div>
-              <Input
-                {...field}
-                type="text"
-                placeholder="your_username"
-                disabled={isLoading}
-                className="mt-1.5"
-                autoComplete="username"
-                spellCheck={false}
-                autoCapitalize="none"
-                autoCorrect="off"
-                maxLength={30}
-              />
-            </TextField>
-          )}
-        />
+              </TextField>
+            )}
+          />
+        </div>
 
         {/* Password */}
-        <Controller
-          name="password"
-          control={control}
-          render={({ field }) => (
-            <TextField isInvalid={!!errors.password}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
-                  Password
-                </Label>
+        <div className="mb-5">
+          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+            Password *
+          </Label>
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <TextField isInvalid={!!errors.password}>
+                <Input
+                  {...field}
+                  type="password"
+                  placeholder="•••••"
+                  disabled={isLoading}
+                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  autoComplete="current-password"
+                  maxLength={30}
+                />
                 {errors.password && (
-                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
+                  <FieldError className="text-xs text-(--color-error) mt-1">
                     {errors.password.message}
                   </FieldError>
                 )}
-              </div>
-              <Input
-                {...field}
-                type="password"
-                placeholder="••••••"
-                disabled={isLoading}
-                className="mt-1.5"
-                autoComplete="current-password"
-                maxLength={30}
-              />
-            </TextField>
-          )}
-        />
+              </TextField>
+            )}
+          />
+        </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <Button
           variant="primary"
-          size="lg"
-          className="w-full mt-2"
+          className="w-full py-3"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -160,19 +147,13 @@ export function LoginForm({ onSwitchToSignup }) {
         </Button>
       </Form>
 
-      {/* Switch to Signup */}
-      <div
-        className="text-center text-sm mt-6 pt-5 border-t"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <span style={{ color: 'var(--muted)' }}>Don&apos;t have an account? </span>
+      {/* Toggle link */}
+      <div className="text-sm text-(--color-text-muted) text-center mt-6">
+        Don&apos;t have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="font-medium transition-colors hover:opacity-80 cursor-pointer"
-          style={{
-            color: 'var(--accent)',
-          }}
+          className="text-(--color-accent) hover:underline"
         >
           Sign up
         </button>

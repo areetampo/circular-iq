@@ -1,8 +1,7 @@
 import { Label, ListBox, Select, Switch } from '@heroui/react';
+import { ChevronDown, Info } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Controller, useFormContext } from 'react-hook-form';
-
-import { cn } from '@/utils/cn';
 
 const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
 
@@ -57,14 +56,10 @@ function BusinessContextContainer({ loading = false }) {
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+      <span className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)">
         {label}
       </span>
-      {description && (
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-          {description}
-        </span>
-      )}
+      {description && <span className="text-xs text-(--color-text-muted)">{description}</span>}
       <Controller
         name={`businessContext.${name}`}
         control={control}
@@ -77,8 +72,8 @@ function BusinessContextContainer({ loading = false }) {
             className="w-full"
           >
             <Label className="sr-only">{label}</Label>
-            <Select.Trigger>
-              <Select.Value />
+            <Select.Trigger className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md hover:border-(--color-accent) transition-colors">
+              <Select.Value className="text-sm text-(--color-text-primary)" />
               <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
@@ -88,6 +83,7 @@ function BusinessContextContainer({ loading = false }) {
                     key={item.value === null ? '__LEAVE_EMPTY__' : item.value}
                     id={item.value === null ? '__LEAVE_EMPTY__' : item.value}
                     textValue={item.label}
+                    className="text-sm text-(--color-text-primary) hover:bg-(--color-accent-light)"
                   >
                     {item.label}
                     <ListBox.ItemIndicator />
@@ -102,78 +98,90 @@ function BusinessContextContainer({ loading = false }) {
   );
 
   return (
-    <div className="px-4 pt-2 pb-6 space-y-5">
-      <p className="text-xs italic" style={{ color: 'var(--muted)' }}>
-        These optional fields help the AI generate more precise benchmarks and recommendations. Your
-        answers are never stored beyond this session unless you save the assessment.
-      </p>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {renderSelect(
-          'business_model_type',
-          'Business Model Type',
-          BUSINESS_MODEL_OPTIONS,
-          'What circular economy model best describes your approach?',
-        )}
-        {renderSelect(
-          'operational_stage',
-          'Operational Stage',
-          OPERATIONAL_STAGE_OPTIONS,
-          'Where is your business / project right now?',
-        )}
-        {renderSelect(
-          'target_geography',
-          'Target Geography',
-          GEOGRAPHY_OPTIONS,
-          'What is the intended geographic scope?',
-        )}
-        {renderSelect(
-          'annual_volume_estimate',
-          'Annual Material Volume',
-          VOLUME_OPTIONS,
-          'Approximate volume of material processed or recovered per year.',
-        )}
-        {renderSelect(
-          'material_complexity',
-          'Material Complexity',
-          MATERIAL_OPTIONS,
-          'What best describes the materials your solution handles?',
-        )}
+    <div className="w-full">
+      {/* Accordion header */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-(--color-border)">
+        <div className="w-9 h-9 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent)">
+          <Info className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-medium text-(--color-text-primary)">Business Context</h3>
+          <p className="text-xs text-(--color-text-muted)">— improves analysis quality</p>
+        </div>
+        <ChevronDown className="w-4 h-4 text-(--color-text-muted)" />
       </div>
 
-      {/* Boolean toggle — existing partnerships */}
-      <Controller
-        name="businessContext.has_existing_partnerships"
-        control={control}
-        render={({ field }) => (
-          <Switch
-            isSelected={field.value === true}
-            onChange={(checked) => field.onChange(checked)}
-            isDisabled={loading}
-            size="sm"
-            className="w-full"
-          >
-            <Switch.Content className="w-full">
-              <Label
-                className="cursor-pointer flex items-center justify-between p-3 rounded-lg border"
-                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-              >
-                <div className="flex flex-col gap-0.5 mr-2">
-                  <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                    Existing Supply Chain / Collection Partnerships
-                  </span>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                    Do you already have partners for collection, processing, or distribution?
-                  </p>
+      {/* Accordion content */}
+      <div className="px-6 py-4 space-y-5">
+        <p className="text-xs text-(--color-text-secondary) leading-relaxed">
+          These optional fields help the AI generate more precise benchmarks and recommendations.
+          Your answers are never stored beyond this session unless you save the assessment.
+        </p>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {renderSelect(
+            'business_model_type',
+            'Business Model Type',
+            BUSINESS_MODEL_OPTIONS,
+            'What circular economy model best describes your approach?',
+          )}
+          {renderSelect(
+            'operational_stage',
+            'Operational Stage',
+            OPERATIONAL_STAGE_OPTIONS,
+            'Where is your business / project right now?',
+          )}
+          {renderSelect(
+            'target_geography',
+            'Target Geography',
+            GEOGRAPHY_OPTIONS,
+            'What is the intended geographic scope?',
+          )}
+          {renderSelect(
+            'annual_volume_estimate',
+            'Annual Material Volume',
+            VOLUME_OPTIONS,
+            'Approximate volume of material processed or recovered per year.',
+          )}
+          {renderSelect(
+            'material_complexity',
+            'Material Complexity',
+            MATERIAL_OPTIONS,
+            'What best describes the materials your solution handles?',
+          )}
+        </div>
+
+        {/* Boolean toggle — existing partnerships */}
+        <Controller
+          name="businessContext.has_existing_partnerships"
+          control={control}
+          render={({ field }) => (
+            <Switch
+              isSelected={field.value === true}
+              onChange={(checked) => field.onChange(checked)}
+              isDisabled={loading}
+              size="sm"
+              className="w-full"
+            >
+              <Switch.Content className="w-full">
+                <div className="flex items-center justify-between p-3 rounded-md border border-(--color-border) hover:bg-(--color-accent-light) transition-colors cursor-pointer">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium text-(--color-text-primary)">
+                      Existing Supply Chain / Collection Partnerships
+                    </span>
+                    <p className="text-xs text-(--color-text-muted)">
+                      Do you already have partners for collection, processing, or distribution?
+                    </p>
+                  </div>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
                 </div>
-                <Switch.Control className={cn(field.value === true ? 'bg-rose-900' : '')}>
-                  <Switch.Thumb>{/* <Switch.Icon></Switch.Icon> */}</Switch.Thumb>
-                </Switch.Control>
-              </Label>
-            </Switch.Content>
-          </Switch>
-        )}
-      />
+              </Switch.Content>
+            </Switch>
+          )}
+        />
+      </div>
     </div>
   );
 }

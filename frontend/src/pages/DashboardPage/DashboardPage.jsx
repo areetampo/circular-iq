@@ -1,4 +1,4 @@
-import { Skeleton } from '@heroui/react';
+import { Label, Skeleton } from '@heroui/react';
 import {
   BarChart3,
   ChevronRight,
@@ -247,21 +247,11 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="pt-6 flex items-start justify-between gap-4">
         <div>
-          <h1
-            className="text-xl font-bold flex items-center gap-2"
-            style={{
-              color: 'var(--foreground)',
-            }}
-          >
-            <Globe size={20} style={{ color: 'var(--success)' }} strokeWidth={2.5} />
+          <h1 className="text-xl font-bold flex items-center gap-2 text-(--color-text-primary)">
+            <Globe size={20} className="text-(--color-success)" strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p
-            className="text-xs mt-0.5"
-            style={{
-              color: 'var(--muted)',
-            }}
-          >
+          <p className="text-xs mt-0.5 text-(--color-text-muted)">
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -269,12 +259,7 @@ export default function DashboardPage() {
           type="button"
           onClick={refetchGlobal}
           disabled={globalLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40 hover:border-accent hover:bg-accent-soft hover:text-foreground"
-          style={{
-            borderColor: 'var(--border)',
-            backgroundColor: 'var(--surface)',
-            color: 'var(--muted)',
-          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40 hover:border-(--color-accent) hover:bg-(--color-accent-soft) hover:text-(--color-text-primary) border-(--color-border) bg-(--color-bg-field) text-(--color-text-muted)"
         >
           <RefreshCw size={12} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
@@ -367,7 +352,7 @@ export default function DashboardPage() {
             <LineChart
               data={weeklyData}
               xAxisKey="period"
-              lines={[{ dataKey: 'count', stroke: 'var(--info)', name: 'Assessments' }]}
+              lines={[{ dataKey: 'count', stroke: 'var(--color-info)', name: 'Assessments' }]}
               height={240}
               showLegend={false}
             />
@@ -387,7 +372,7 @@ export default function DashboardPage() {
             <BarChart
               data={strategyData}
               xAxisKey="name"
-              barConfigs={[{ dataKey: 'value', fill: 'var(--accent)', name: 'Count' }]}
+              barConfigs={[{ dataKey: 'value', fill: 'var(--color-accent)', name: 'Count' }]}
               height={240}
               showGrid
             />
@@ -407,7 +392,7 @@ export default function DashboardPage() {
               <BarChart
                 data={industryBarData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: 'var(--secondary)', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'count', fill: 'var(--color-secondary)', name: 'Count' }]}
                 height={220}
                 showGrid
               />
@@ -427,7 +412,7 @@ export default function DashboardPage() {
               <BarChart
                 data={geoData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: 'var(--success)', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'value', fill: 'var(--color-success)', name: 'Count' }]}
                 height={200}
                 showGrid
               />
@@ -452,29 +437,17 @@ export default function DashboardPage() {
             {marketTableRows.length > 0 ? (
               <table className="w-full text-xs">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    <th
-                      className="text-left py-2 px-3 font-semibold"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                  <tr className="border-b border-(--color-border)">
+                    <th className="text-left py-2 px-3 font-semibold text-(--color-text-muted)">
                       Industry
                     </th>
-                    <th
-                      className="text-right py-2 px-3 font-semibold"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <th className="text-right py-2 px-3 font-semibold text-(--color-text-muted)">
                       Count
                     </th>
-                    <th
-                      className="text-right py-2 px-3 font-semibold"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <th className="text-right py-2 px-3 font-semibold text-(--color-text-muted)">
                       Avg Score
                     </th>
-                    <th
-                      className="text-right py-2 px-3 font-semibold"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <th className="text-right py-2 px-3 font-semibold text-(--color-text-muted)">
                       Market Share
                     </th>
                   </tr>
@@ -483,29 +456,29 @@ export default function DashboardPage() {
                   {marketTableRows.map((row) => (
                     <tr
                       key={row.industry}
-                      className="hover:bg-accent-soft transition-colors"
-                      style={{ borderBottom: '1px solid var(--border)' }}
+                      className="hover:bg-(--color-accent-soft) transition-colors border-b border-(--color-border)"
                     >
-                      <td className="py-2 px-3 font-medium" style={{ color: 'var(--foreground)' }}>
+                      <td className="py-2 px-3 font-medium text-(--color-text-primary)">
                         {row.industry}
                       </td>
-                      <td
-                        className="py-2 px-3 text-right tabular-nums"
-                        style={{ color: 'var(--muted)' }}
-                      >
+                      <td className="py-2 px-3 text-right tabular-nums text-(--color-text-muted)">
                         {row.count?.toLocaleString() ?? 0}
                       </td>
                       <td
                         className="py-2 px-3 text-right tabular-nums"
-                        style={{ color: 'var(--muted)' }}
+                        style={{
+                          color:
+                            row.avgScore >= 70
+                              ? 'var(--success)'
+                              : row.avgScore >= 50
+                                ? 'var(--warning)'
+                                : 'var(--danger)',
+                        }}
                       >
-                        {row.average_score ? `${row.average_score}%` : '—'}
+                        {row.avgScore?.toFixed(1) ?? 0}%
                       </td>
-                      <td
-                        className="py-2 px-3 text-right tabular-nums"
-                        style={{ color: 'var(--muted)' }}
-                      >
-                        {row.market_share ? `${row.market_share}%` : '—'}
+                      <td className="py-2 px-3 text-right tabular-nums text-(--color-text-muted)">
+                        {row.marketShare?.toFixed(1) ?? 0}%
                       </td>
                     </tr>
                   ))}
@@ -591,18 +564,24 @@ export default function DashboardPage() {
               {/* Search bar */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
+                  <Label htmlFor="solutions-search" className="sr-only">
+                    Search solutions
+                  </Label>
                   <Search
                     size={14}
                     className="absolute left-3 top-1/2 -translate-y-1/2"
                     style={{ color: 'var(--muted)' }}
+                    aria-hidden="true"
                   />
                   <input
+                    id="solutions-search"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                     placeholder="Search solutions..."
                     className="w-full pl-9 pr-9 py-1.5 text-sm rounded-lg focus:outline-none"
+                    aria-label="Search featured solutions"
                     style={{
                       border: '1px solid var(--field-border)',
                       backgroundColor: 'var(--field-bg)',
@@ -615,6 +594,7 @@ export default function DashboardPage() {
                       onClick={handleSearchClear}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       style={{ color: 'var(--muted)' }}
+                      aria-label="Clear search"
                     >
                       <X size={14} />
                     </button>

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import { Chip } from '@/components/common';
 import { getIndustryTheme } from '@/constants/industryThemes';
 
 const IndustryFilterChip = React.memo(function IndustryFilterChip({
@@ -12,18 +13,14 @@ const IndustryFilterChip = React.memo(function IndustryFilterChip({
   const theme = getIndustryTheme(industry);
 
   return (
-    <button
+    <Chip
+      variant={isSelected ? 'primary' : 'secondary'}
       onClick={() => onToggle(industry)}
-      className="px-3 py-1.5 rounded-md text-[12px] font-medium border transition-colors"
-      style={{
-        backgroundColor: isSelected ? 'var(--accent)' : 'var(--surface)',
-        color: isSelected ? 'white' : 'var(--foreground)',
-        borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
-      }}
+      className="cursor-pointer"
       aria-pressed={isSelected}
     >
       {label}
-    </button>
+    </Chip>
   );
 });
 

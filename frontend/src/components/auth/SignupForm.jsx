@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { SITE_NAME } from '@/components/common';
+import { SITE_FULL_NAME } from '@/components/common';
 import Button from '@/components/common/Button';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
@@ -13,6 +13,7 @@ import { logger } from '@/utils/logger';
 
 export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,22 +29,20 @@ export function SignupForm({ onSwitchToLogin }) {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
+    setSubmitError(null);
 
     try {
-      // Attempt to create new user account
       const { data: signupData, error: signupError } = await signUpWithUsername(
         data.username,
         data.password,
       );
 
       if (signupError) {
-        // Log signup error for debugging
         logger.error('[SignupForm] sign up error:', {
           status: signupError.status,
         });
 
         const msg = signupError.message ?? '';
-        // Handle specific error cases with user-friendly messages
         if (
           msg.includes('already registered') ||
           msg.includes('already exists') ||
@@ -51,39 +50,27 @@ export function SignupForm({ onSwitchToLogin }) {
           msg.includes('duplicate key') ||
           signupError.status === 422
         ) {
-          toast.danger('Sign up failed', {
-            description: 'This username is not available. Please choose another.',
-            timeout: 3000,
-          });
+          setSubmitError('This username is not available. Please choose another.');
           return;
         }
 
-        // Handle other signup errors with generic message
-        toast.danger('Sign up failed', {
-          description: 'Unable to create account. Please try again.',
-          timeout: 3000,
-        });
+        setSubmitError('Unable to create account. Please try again.');
         return;
       }
 
-      // Verify that signup created proper user data
       if (!signupData?.user?.id) {
         throw new Error('Sign up succeeded but no user data was returned.');
       }
 
-      // Auto-login immediately after successful signup for better UX
+      // Auto-login after successful signup
       const { data: loginData, error: loginError } = await signInWithUsername(
         data.username,
         data.password,
       );
 
       if (loginError) {
-        // Log auto-login failure for debugging
         logger.error('[SignupForm] auto-login failed:', { status: loginError.status });
-        toast.danger('Sign up failed', {
-          description: 'Unable to create account. Please try again.',
-          timeout: 3000,
-        });
+        setSubmitError('Unable to create account. Please try again.');
         return;
       }
 
@@ -91,144 +78,141 @@ export function SignupForm({ onSwitchToLogin }) {
         throw new Error('Auto-login succeeded but no session was created.');
       }
 
-      // Show success message to user
       toast.success('Account created!', {
-        description: `Welcome to ${SITE_NAME}.`,
+        description: `Welcome to ${SITE_FULL_NAME}.`,
         timeout: 3000,
       });
 
       reset();
-
-      // Redirect user to their intended destination or default to home
       const returnTo = location.state?.from || '/';
       navigate(returnTo, { replace: true });
     } catch (err) {
-      // Handle unexpected errors during signup process
       logger.error('[SignupForm] Unexpected error during sign up:', err?.message ?? err);
-
-      toast.danger('Sign up failed', {
-        description: 'Unable to create account. Please try again.',
-        timeout: 3000,
-      });
+      setSubmitError('Unable to create account. Please try again.');
     } finally {
-      // Ensure loading state is reset regardless of outcome
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full">
       {/* Header */}
-      <div className="text-center space-y-2 mb-6">
-        <h2 className="heading-display text-[22px]" style={{ color: 'var(--foreground)' }}>
+      <div className="text-center mb-8">
+        <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-1">
           Create Account
         </h2>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+        <p className="text-sm text-(--color-text-muted)">
           Join to start evaluating circular economy ideas
         </p>
       </div>
 
-      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {/* Error display */}
+      {submitError && (
+        <div className="border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] rounded-md p-3 text-sm text-(--color-error) mb-4">
+          {submitError}
+        </div>
+      )}
+
+      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
-        <Controller
-          name="username"
-          control={control}
-          render={({ field }) => (
-            <TextField isInvalid={!!errors.username}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
-                  Username
-                </Label>
+        <div className="mb-5">
+          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+            Username *
+          </Label>
+          <Controller
+            name="username"
+            control={control}
+            render={({ field }) => (
+              <TextField isInvalid={!!errors.username}>
+                <Input
+                  {...field}
+                  type="text"
+                  placeholder="your_username"
+                  disabled={isLoading}
+                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  autoComplete="username"
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                />
                 {errors.username && (
-                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
-                    Incorrect username format
+                  <FieldError className="text-xs text-(--color-error) mt-1">
+                    {errors.username.message}
                   </FieldError>
                 )}
-              </div>
-              <Input
-                {...field}
-                type="text"
-                placeholder="your_username"
-                disabled={isLoading}
-                className="mt-1.5"
-                autoComplete="username"
-                spellCheck={false}
-                autoCapitalize="none"
-                autoCorrect="off"
-              />
-              <div className="text-xs mt-1.5 px-2" style={{ color: 'var(--muted)' }}>
-                <p>{`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}</p>
-                <div className="whitespace-pre-line">{AUTH_VALIDATION.USERNAME.PATTERN_DESC}</div>
-              </div>
-            </TextField>
-          )}
-        />
+              </TextField>
+            )}
+          />
+          <div className="text-xs text-(--color-text-muted) mt-1 px-2">
+            <p>{`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}</p>
+            <div className="whitespace-pre-line">{AUTH_VALIDATION.USERNAME.PATTERN_DESC}</div>
+          </div>
+        </div>
 
         {/* Password */}
-        <Controller
-          name="password"
-          control={control}
-          render={({ field }) => (
-            <TextField isInvalid={!!errors.password}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
-                  Password
-                </Label>
+        <div className="mb-5">
+          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+            Password *
+          </Label>
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <TextField isInvalid={!!errors.password}>
+                <Input
+                  {...field}
+                  type="password"
+                  placeholder="•••••"
+                  disabled={isLoading}
+                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  autoComplete="new-password"
+                />
                 {errors.password && (
-                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
-                    Incorrect password format
+                  <FieldError className="text-xs text-(--color-error) mt-1">
+                    {errors.password.message}
                   </FieldError>
                 )}
-              </div>
-              <Input
-                {...field}
-                type="password"
-                placeholder="••••••"
-                disabled={isLoading}
-                className="mt-1.5"
-                autoComplete="new-password"
-              />
-              <div className="text-xs mt-1.5 px-2" style={{ color: 'var(--muted)' }}>
-                <p>{`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}</p>
-                <div className="whitespace-pre-line">{`${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}</div>
-              </div>
-            </TextField>
-          )}
-        />
+              </TextField>
+            )}
+          />
+          <div className="text-xs text-(--color-text-muted) mt-1 px-2">
+            <p>{`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}</p>
+            <div className="whitespace-pre-line">{`${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}</div>
+          </div>
+        </div>
 
         {/* Confirm Password */}
-        <Controller
-          name="confirmPassword"
-          control={control}
-          render={({ field }) => (
-            <TextField isInvalid={!!errors.confirmPassword}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[13px] font-medium" style={{ color: 'var(--foreground)' }}>
-                  Confirm Password
-                </Label>
+        <div className="mb-5">
+          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+            Confirm Password *
+          </Label>
+          <Controller
+            name="confirmPassword"
+            control={control}
+            render={({ field }) => (
+              <TextField isInvalid={!!errors.confirmPassword}>
+                <Input
+                  {...field}
+                  type="password"
+                  placeholder="••••••"
+                  disabled={isLoading}
+                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  autoComplete="new-password"
+                />
                 {errors.confirmPassword && (
-                  <FieldError className="text-xs" style={{ color: 'var(--danger)' }}>
+                  <FieldError className="text-xs text-(--color-error) mt-1">
                     {errors.confirmPassword.message}
                   </FieldError>
                 )}
-              </div>
-              <Input
-                {...field}
-                type="password"
-                placeholder="••••••••"
-                disabled={isLoading}
-                className="mt-1.5"
-                autoComplete="new-password"
-              />
-            </TextField>
-          )}
-        />
+              </TextField>
+            )}
+          />
+        </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <Button
           variant="primary"
-          size="lg"
-          className="w-full mt-2"
+          className="w-full py-3"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -236,19 +220,13 @@ export function SignupForm({ onSwitchToLogin }) {
         </Button>
       </Form>
 
-      {/* Switch to Login */}
-      <div
-        className="text-center text-sm mt-6 pt-5 border-t"
-        style={{ borderColor: 'var(--border)' }}
-      >
-        <span style={{ color: 'var(--muted)' }}>Already have an account? </span>
+      {/* Toggle link */}
+      <div className="text-sm text-(--color-text-muted) text-center mt-6">
+        Already have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="font-medium transition-colors hover:opacity-80 cursor-pointer"
-          style={{
-            color: 'var(--accent)',
-          }}
+          className="text-(--color-accent) hover:underline"
         >
           Sign in
         </button>

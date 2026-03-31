@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 
+import { Chip } from '@/components/common';
+
 /**
  * CaseSummary Component
  * Displays case/project information passed via props
@@ -12,48 +14,39 @@ export function CaseSummary({ caseInfo = {}, problemSolution = {} }) {
   const { problem, solution } = problemSolution;
 
   return (
-    <div>
-      {title && (
+    <div className="border-t border-(--color-border) pt-6 mt-6">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h3>{title}</h3>
-          {matchPercentage !== null && matchPercentage !== undefined && (
-            <span>{Math.round(matchPercentage)}% Match</span>
-          )}
+          <h3 className="text-lg font-bold text-(--color-text-primary) mb-1">
+            {title || 'Case Study'}
+          </h3>
+          <div className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
+            {industry && <span>{industry}</span>}
+            {scale && <span>• {scale}</span>}
+            {sourceCaseId && <span>• Case #{sourceCaseId}</span>}
+          </div>
         </div>
-      )}
+        {matchPercentage !== null && matchPercentage !== undefined && (
+          <Chip variant="score" className="font-mono">
+            {Math.round(matchPercentage)}% Match
+          </Chip>
+        )}
+      </div>
 
-      {(industry || scale || sourceCaseId) && (
-        <div>
-          {industry && (
-            <div>
-              <strong>Industry:</strong> {industry}
-            </div>
-          )}
-          {scale && (
-            <div>
-              <strong>Scale:</strong> {scale}
-            </div>
-          )}
-          {sourceCaseId && (
-            <div>
-              <strong>Case ID:</strong> #{sourceCaseId}
-            </div>
-          )}
-        </div>
-      )}
-
+      {/* Problem & Solution */}
       {(problem || solution) && (
-        <div>
+        <div className="space-y-4">
           {problem && (
             <div>
-              <h4>Problem:</h4>
-              <p>{problem}</p>
+              <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">Problem</h4>
+              <p className="text-sm text-(--color-text-secondary) leading-relaxed">{problem}</p>
             </div>
           )}
           {solution && (
             <div>
-              <h4>Solution:</h4>
-              <p>{solution}</p>
+              <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">Solution</h4>
+              <p className="text-sm text-(--color-text-secondary) leading-relaxed">{solution}</p>
             </div>
           )}
         </div>

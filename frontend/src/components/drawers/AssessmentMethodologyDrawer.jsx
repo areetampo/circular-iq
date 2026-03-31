@@ -18,32 +18,26 @@ export default function AssessmentMethodologyDrawer() {
         if (!open) onClose();
       }}
     >
-      <Drawer.Backdrop>
-        <Drawer.Content placement={direction}>
+      <Drawer.Backdrop className="backdrop-blur-sm bg-(--color-backdrop)">
+        <Drawer.Content
+          placement={direction}
+          className="bg-(--color-bg-card) border border-(--color-border)"
+        >
           <Drawer.Dialog>
-            {direction === 'bottom' && <Drawer.Handle />}
+            {direction === 'bottom' && <Drawer.Handle className="bg-(--color-border)" />}
             {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className={cn('p-2 rounded-xl shrink-0')}>
-                    <ChartSpline
-                      className="size-5"
-                      style={{ color: 'var(--accent)' }}
-                      strokeWidth={1.75}
-                    />
+                  <div className="p-2 rounded-xl shrink-0 bg-(--color-accent-soft)">
+                    <ChartSpline className="size-5 text-(--color-accent)" strokeWidth={1.75} />
                   </div>
                   <div>
-                    <Drawer.Heading
-                      className="text-lg font-semibold"
-                      style={{
-                        color: 'var(--foreground)',
-                      }}
-                    >
+                    <Drawer.Heading className="text-lg font-semibold text-(--color-text-primary)">
                       {ASSESSMENT_METHODOLOGY_CONTENT.title}
                     </Drawer.Heading>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs mt-0.5 text-(--color-text-muted)">
                       {ASSESSMENT_METHODOLOGY_CONTENT.subtitle}
                     </p>
                   </div>
@@ -54,15 +48,10 @@ export default function AssessmentMethodologyDrawer() {
             {/* ── BODY ───────────────────────────────────────────────── */}
             <Drawer.Body className="space-y-5">
               {/* Intro */}
-              <p
-                className="text-sm leading-relaxed"
-                style={{
-                  color: 'var(--muted)',
-                }}
-              >
+              <p className="text-sm leading-relaxed text-(--color-text-muted)">
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
-                <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                <strong className="font-semibold text-(--color-text-primary)">
                   6,000+ high-quality circular economy projects
                 </strong>
                 .
@@ -73,24 +62,10 @@ export default function AssessmentMethodologyDrawer() {
                 {ASSESSMENT_METHODOLOGY_CONTENT.items.map((item, idx) => (
                   <div
                     key={idx}
-                    className={cn(
-                      'flex items-start gap-3.5',
-                      'p-4 rounded-xl border',
-                      // No hover lift
-                      'transition-colors duration-300 ease-out cursor-default',
-                    )}
-                    style={{
-                      backgroundColor: 'var(--surface)',
-                      borderColor: 'var(--border)',
-                    }}
+                    className="flex items-start gap-3.5 p-4 rounded-xl border border-(--color-border) bg-(--color-bg-field) transition-colors duration-300 ease-out cursor-default"
                   >
                     {/* Animated icon */}
-                    <div
-                      className="shrink-0 p-2 rounded-lg mt-0.5"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                      }}
-                    >
+                    <div className="shrink-0 p-2 rounded-lg mt-0.5 bg-(--color-accent-soft)">
                       {React.createElement(item.icon, {
                         className: cn('size-4', item.iconColor),
                         strokeWidth: 1.75,
@@ -99,20 +74,10 @@ export default function AssessmentMethodologyDrawer() {
 
                     {/* Text */}
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <span
-                        className="text-sm font-bold leading-snug"
-                        style={{
-                          color: 'var(--foreground)',
-                        }}
-                      >
+                      <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
                         {item.title}
                       </span>
-                      <span
-                        className="text-xs leading-relaxed"
-                        style={{
-                          color: 'var(--muted)',
-                        }}
-                      >
+                      <span className="text-xs leading-relaxed text-(--color-text-muted)">
                         {item.description}
                       </span>
                     </div>
@@ -121,47 +86,20 @@ export default function AssessmentMethodologyDrawer() {
               </div>
 
               {/* Data source card */}
-              <div
-                className="flex items-start gap-3.5 p-4 rounded-xl border
-                          transition-colors duration-300 cursor-default select-none"
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <div
-                  className="shrink-0 p-2 rounded-lg mt-0.5"
-                  style={{
-                    backgroundColor: 'var(--success-soft)',
-                    color: 'var(--success)',
-                  }}
-                >
-                  <BookCopy
-                    className="size-4"
-                    style={{ color: 'var(--success)' }}
-                    strokeWidth={1.75}
-                  />
+              <div className="flex items-start gap-3.5 p-4 rounded-xl border border-(--color-border) bg-(--color-bg-field) transition-colors duration-300 cursor-default select-none">
+                <div className="shrink-0 p-2 rounded-lg mt-0.5 bg-(--color-success-soft)">
+                  <BookCopy className="size-4 text-(--color-success)" strokeWidth={1.75} />
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
-                  <span
-                    className="text-sm font-bold leading-snug"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
+                  <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
                     Data Source
                   </span>
-                  <p
-                    className="text-xs leading-relaxed"
-                    style={{
-                      color: 'var(--muted)',
-                    }}
-                  >
-                    <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  <p className="text-xs leading-relaxed text-(--color-text-muted)">
+                    <strong className="font-semibold text-(--color-text-primary)">
                       GreenTechGuardians AI EarthHack Dataset:
                     </strong>{' '}
                     A curated collection of{' '}
-                    <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                    <strong className="font-semibold text-(--color-text-primary)">
                       4,000+ high-quality
                     </strong>{' '}
                     circular economy solutions (filtered from 1,300) spanning waste reduction,
@@ -172,29 +110,17 @@ export default function AssessmentMethodologyDrawer() {
               </div>
 
               {/* Disclaimer */}
-              <div
-                className="flex items-start gap-3 p-4 rounded-xl border-l-4"
-                style={{
-                  backgroundColor: 'var(--danger-soft)',
-                  borderLeftColor: 'var(--danger)',
-                }}
-              >
+              <div className="flex items-start gap-3 p-4 rounded-xl border-l-4 bg-(--color-danger-soft) border-l-(--color-danger)">
                 <TriangleAlert
-                  className="size-4 shrink-0 mt-0.5"
-                  style={{ color: 'var(--danger)' }}
+                  className="size-4 shrink-0 mt-0.5 text-(--color-danger)"
                   strokeWidth={1.75}
                 />
-                <p
-                  className="text-xs leading-relaxed"
-                  style={{
-                    color: 'var(--muted)',
-                  }}
-                >
-                  <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                <p className="text-xs leading-relaxed text-(--color-text-muted)">
+                  <strong className="font-semibold text-(--color-text-primary)">
                     Disclaimer:{' '}
                   </strong>
                   This assessment is designed to provide{' '}
-                  <strong className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                  <strong className="font-semibold text-(--color-text-primary)">
                     constructive feedback for early-stage ideation
                   </strong>
                   . Scores reflect alignment with established circular economy principles and should

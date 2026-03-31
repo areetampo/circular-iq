@@ -1,8 +1,6 @@
-import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
-import { formatFactorName } from '@/lib/scoring';
 
 export function AuditSummaryCard({ result, variant = 'default' }) {
   const audit = result?.audit;
@@ -11,361 +9,262 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
   const isTransparent = variant === 'transparent';
 
   return (
-    <Card
-      className={`border rounded-xl ${variant === 'transparent' ? 'card-lift' : ''}`}
-      style={{
-        backgroundColor: isTransparent ? 'transparent' : 'var(--surface)',
-        borderColor: 'var(--border)',
-      }}
-    >
-      <div className={isTransparent ? 'p-1 sm:p-3' : 'p-4'}>
-        <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--foreground)' }}>
+    <div className="border-t border-(--color-border) pt-8 mt-8">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="w-5 h-5 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent)">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+        <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted)">
           AI Audit Summary
         </h3>
-        <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-          Comprehensive analysis and recommendations
-        </p>
+      </div>
 
-        {audit.integrity_gaps && audit.integrity_gaps.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-              Integrity Gaps
-            </h4>
-            <ul className="space-y-2">
-              {audit.integrity_gaps.map((gap, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <Chip
-                    variant="default"
-                    className="text-xs"
-                    style={{
-                      backgroundColor:
-                        gap.severity === 'high'
-                          ? 'var(--danger-soft)'
-                          : gap.severity === 'medium'
-                            ? 'var(--warning-soft)'
-                            : 'var(--info-soft)',
-                      color:
-                        gap.severity === 'high'
-                          ? 'var(--danger)'
-                          : gap.severity === 'medium'
-                            ? 'var(--warning)'
-                            : 'var(--info)',
-                    }}
-                  >
-                    {gap.severity || 'medium'}
-                  </Chip>
-                  <span className="text-sm" style={{ color: 'var(--foreground)' }}>
-                    {gap.issue}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      <p className="text-sm text-(--color-text-secondary) mb-6 leading-relaxed">
+        Comprehensive analysis and recommendations
+      </p>
 
-        {audit.strengths && audit.strengths.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-              Strengths
-            </h4>
-            <ul className="space-y-1">
-              {audit.strengths.map((strength, i) => (
-                <li key={i} className="text-sm" style={{ color: 'var(--foreground)' }}>
-                  • {strength.aspect || strength}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {audit.integrity_gaps && audit.integrity_gaps.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold mb-3 text-(--color-text-primary)">Integrity Gaps</h4>
+          <ul className="space-y-3">
+            {audit.integrity_gaps.map((gap, i) => (
+              <li key={i} className="flex items-center gap-3">
+                <Chip variant="status" className="text-[10px]">
+                  {gap.severity || 'medium'}
+                </Chip>
+                <span className="text-sm text-(--color-text-secondary)">{gap.issue}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-        {audit.technical_recommendations && audit.technical_recommendations.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-              Technical Recommendations
-            </h4>
-            <ul className="space-y-1">
-              {audit.technical_recommendations.map((rec, i) => (
-                <li key={i} className="text-sm" style={{ color: 'var(--foreground)' }}>
-                  • {rec}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {audit.strengths && audit.strengths.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold mb-3 text-(--color-text-primary)">Strengths</h4>
+          <ul className="space-y-2">
+            {audit.strengths.map((strength, i) => (
+              <li key={i} className="text-sm text-(--color-text-secondary) flex items-start gap-2">
+                <span className="text-(--color-accent) mt-1">•</span>
+                {strength.aspect || strength}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-        {audit.similar_cases_summaries && audit.similar_cases_summaries.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-              Similar Cases Summaries
-            </h4>
-            <ul className="space-y-1">
-              {audit.similar_cases_summaries.map((summary, i) => (
-                <li key={i} className="text-sm" style={{ color: 'var(--foreground)' }}>
-                  • {summary}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {audit.technical_recommendations && audit.technical_recommendations.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold mb-3 text-(--color-text-primary)">
+            Technical Recommendations
+          </h4>
+          <ul className="space-y-2">
+            {audit.technical_recommendations.map((rec, i) => (
+              <li key={i} className="text-sm text-(--color-text-secondary) flex items-start gap-2">
+                <span className="text-(--color-accent) mt-1">•</span>
+                {rec}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-        {audit.market_opportunity_summary && (
-          <div
-            className={`mb-4 p-3 border rounded-lg ${variant === 'assessment' ? 'border-l-4' : ''}`}
-            style={{
-              backgroundColor: 'var(--info-soft)',
-              borderColor: variant === 'assessment' ? 'var(--info)' : 'var(--info)',
-            }}
-          >
-            <h4
-              className="text-xs font-bold mb-1 uppercase tracking-wide"
-              style={{ color: 'var(--info)' }}
-            >
-              Market Opportunity
-            </h4>
-            <p className="text-sm" style={{ color: 'var(--foreground)' }}>
-              {audit.market_opportunity_summary}
-            </p>
-          </div>
-        )}
+      {audit.similar_cases_summaries && audit.similar_cases_summaries.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold mb-3 text-(--color-text-primary)">
+            Similar Cases Summaries
+          </h4>
+          <ul className="space-y-2">
+            {audit.similar_cases_summaries.map((summary, i) => (
+              <li key={i} className="text-sm text-(--color-text-secondary) flex items-start gap-2">
+                <span className="text-(--color-accent) mt-1">•</span>
+                {summary}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-        {audit.improvement_roadmap && audit.improvement_roadmap.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>
-              Improvement Roadmap
-            </h4>
-            <div className="space-y-3">
-              {audit.improvement_roadmap.map((item, i) => (
+      {audit.market_opportunity_summary && (
+        <div className="border-l-2 border-(--color-accent) pl-3 py-1 mb-6">
+          <h4 className="text-xs font-semibold uppercase mb-1 text-(--color-accent)">
+            Market Opportunity
+          </h4>
+          <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+            {audit.market_opportunity_summary}
+          </p>
+        </div>
+      )}
+
+      {audit.improvement_roadmap && audit.improvement_roadmap.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-sm font-semibold mb-3 text-(--color-text-primary)">
+            Improvement Roadmap
+          </h4>
+          <div className="space-y-3">
+            {audit.improvement_roadmap.map((item, i) => (
+              <div key={i} className="p-3 border border-(--color-border) rounded-md flex gap-3">
                 <div
-                  key={i}
-                  className="p-3 border rounded-lg flex gap-3"
-                  style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                    i === 0 || item.priority === 1 || item.priority === '1'
+                      ? 'bg-(--color-error) text-white'
+                      : i === 1 || item.priority === 2 || item.priority === '2'
+                        ? 'bg-(--color-warning) text-white'
+                        : 'bg-(--color-accent) text-white'
+                  }`}
                 >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{
-                      backgroundColor:
-                        i === 0 || item.priority === 1 || item.priority === '1'
-                          ? 'var(--danger-soft)'
-                          : i === 1 || item.priority === 2 || item.priority === '2'
-                            ? 'var(--warning-soft)'
-                            : 'var(--info-soft)',
-                      color:
-                        i === 0 || item.priority === 1 || item.priority === '1'
-                          ? 'var(--danger)'
-                          : i === 1 || item.priority === 2 || item.priority === '2'
-                            ? 'var(--warning)'
-                            : 'var(--info)',
-                    }}
-                  >
-                    {item.priority}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                      {item.action}
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-1.5">
-                      {item.target_factor && (
-                        <Chip
-                          variant="default"
-                          className="text-xs"
-                          style={{
-                            backgroundColor:
-                              variant === 'transparent' ? 'var(--surface)' : undefined,
-                            color: 'var(--muted)',
-                          }}
-                        >
-                          {formatFactorName(item.target_factor)}
-                        </Chip>
-                      )}
-                      {variant === 'transparent' && item.impact && (
-                        <Chip
-                          size="sm"
-                          variant="soft"
-                          className="text-xs"
-                          style={{
-                            backgroundColor:
-                              item.impact === 'high'
-                                ? 'var(--success-soft)'
-                                : item.impact === 'medium'
-                                  ? 'var(--info-soft)'
-                                  : 'var(--muted)',
-                            color:
-                              item.impact === 'high'
-                                ? 'var(--success)'
-                                : item.impact === 'medium'
-                                  ? 'var(--info)'
-                                  : 'var(--muted)',
-                          }}
-                        >
-                          {item.impact} impact
-                        </Chip>
-                      )}
-                      {variant === 'transparent' && item.effort && (
-                        <Chip
-                          size="sm"
-                          variant="soft"
-                          className="text-xs"
-                          style={{
-                            backgroundColor:
-                              item.effort === 'low'
-                                ? 'var(--success-soft)'
-                                : item.effort === 'high'
-                                  ? 'var(--danger-soft)'
-                                  : 'var(--warning-soft)',
-                            color:
-                              item.effort === 'low'
-                                ? 'var(--success)'
-                                : item.effort === 'high'
-                                  ? 'var(--danger)'
-                                  : 'var(--warning)',
-                          }}
-                        >
-                          {item.effort} effort
-                        </Chip>
-                      )}
-                      {variant === 'transparent' && item.timeframe && (
-                        <Chip
-                          size="sm"
-                          variant="soft"
-                          className="text-xs"
-                          style={{ backgroundColor: 'var(--subtle)', color: 'var(--subtle-fg)' }}
-                        >
-                          {item.timeframe}
-                        </Chip>
-                      )}
-                      {variant === 'assessment' && item.impact && (
-                        <Chip
-                          variant="default"
-                          className="text-xs"
-                          style={{
-                            color:
-                              item.impact === 'high'
-                                ? 'var(--success)'
-                                : item.impact === 'medium'
-                                  ? 'var(--info)'
-                                  : 'var(--muted)',
-                          }}
-                        >
-                          {item.impact} impact
-                        </Chip>
-                      )}
-                      {variant === 'assessment' && item.effort && (
-                        <Chip
-                          variant="default"
-                          className="text-xs"
-                          style={{
-                            color:
-                              item.effort === 'low'
-                                ? 'var(--success)'
-                                : item.effort === 'high'
-                                  ? 'var(--danger)'
-                                  : 'var(--warning)',
-                          }}
-                        >
-                          {item.effort} effort
-                        </Chip>
-                      )}
-                      {variant === 'assessment' && item.timeframe && (
-                        <Chip
-                          variant="default"
-                          className="text-xs"
-                          style={{ color: 'var(--subtle)' }}
-                        >
-                          {item.timeframe}
-                        </Chip>
-                      )}
-                    </div>
-                  </div>
+                  {i + 1}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {variant === 'transparent' && audit.sdg_alignment && audit.sdg_alignment.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>
-              UN Sustainable Development Goals
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {audit.sdg_alignment.map((sdg, i) => (
-                <div
-                  key={i}
-                  className="p-3 border rounded-lg flex gap-2"
-                  style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{
-                      backgroundColor: 'var(--info)',
-                      color: 'var(--surface)',
-                    }}
-                  >
-                    {sdg.sdg_number}
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-(--color-text-primary) mb-1">
+                    {item.title || item.step || `Step ${i + 1}`}
                   </div>
-                  <div>
-                    <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
-                      {sdg.sdg_name}
-                    </div>
-                    <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                      {sdg.rationale}
-                    </div>
+                  <div className="text-sm text-(--color-text-secondary)">
+                    {item.description || item.action}
+                  </div>
+                  {variant === 'transparent' && item.timeframe && (
                     <Chip
                       size="sm"
                       variant="soft"
-                      className="text-xs mt-1"
+                      className="text-xs"
+                      style={{ backgroundColor: 'var(--subtle)', color: 'var(--subtle-fg)' }}
+                    >
+                      {item.timeframe}
+                    </Chip>
+                  )}
+                  {variant === 'assessment' && item.impact && (
+                    <Chip
+                      variant="default"
+                      className="text-xs"
                       style={{
-                        backgroundColor:
-                          sdg.relevance === 'high'
-                            ? 'var(--success-soft)'
-                            : sdg.relevance === 'medium'
-                              ? 'var(--info-soft)'
-                              : 'var(--surface-raised)',
                         color:
-                          sdg.relevance === 'high'
+                          item.impact === 'high'
                             ? 'var(--success)'
-                            : sdg.relevance === 'medium'
+                            : item.impact === 'medium'
                               ? 'var(--info)'
-                              : 'var(--subtle)',
+                              : 'var(--muted)',
                       }}
                     >
-                      {sdg.relevance} relevance
+                      {item.impact} impact
                     </Chip>
-                  </div>
+                  )}
+                  {variant === 'assessment' && item.effort && (
+                    <Chip
+                      variant="default"
+                      className="text-xs"
+                      style={{
+                        color:
+                          item.effort === 'low'
+                            ? 'var(--success)'
+                            : item.effort === 'high'
+                              ? 'var(--danger)'
+                              : 'var(--warning)',
+                      }}
+                    >
+                      {item.effort} effort
+                    </Chip>
+                  )}
+                  {variant === 'assessment' && item.timeframe && (
+                    <Chip variant="default" className="text-xs" style={{ color: 'var(--subtle)' }}>
+                      {item.timeframe}
+                    </Chip>
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-        {variant === 'transparent' && audit.key_metrics_comparison && (
-          <div className="mb-4">
-            <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
-              Key Metrics Comparison
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(audit.key_metrics_comparison).map(([key, value]) => (
+      {variant === 'transparent' && audit.sdg_alignment && audit.sdg_alignment.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>
+            UN Sustainable Development Goals
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {audit.sdg_alignment.map((sdg, i) => (
+              <div
+                key={i}
+                className="p-3 border rounded-lg flex gap-2"
+                style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+              >
                 <div
-                  key={key}
-                  className="p-3 border rounded-lg"
-                  style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                  style={{
+                    backgroundColor: 'var(--info)',
+                    color: 'var(--surface)',
+                  }}
                 >
-                  <div
-                    className="text-xs font-bold capitalize"
-                    style={{ color: 'var(--foreground)' }}
-                  >
-                    {key.replace(/_/g, ' ')}
-                  </div>
-                  <div className="text-sm" style={{ color: 'var(--foreground)' }}>
-                    {value}
-                  </div>
+                  {sdg.sdg_number}
                 </div>
-              ))}
-            </div>
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+                    {sdg.sdg_name}
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                    {sdg.rationale}
+                  </div>
+                  <Chip
+                    size="sm"
+                    variant="soft"
+                    className="text-xs mt-1"
+                    style={{
+                      backgroundColor:
+                        sdg.relevance === 'high'
+                          ? 'var(--success-soft)'
+                          : sdg.relevance === 'medium'
+                            ? 'var(--info-soft)'
+                            : 'var(--surface-raised)',
+                      color:
+                        sdg.relevance === 'high'
+                          ? 'var(--success)'
+                          : sdg.relevance === 'medium'
+                            ? 'var(--info)'
+                            : 'var(--subtle)',
+                    }}
+                  >
+                    {sdg.relevance} relevance
+                  </Chip>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-    </Card>
+        </div>
+      )}
+
+      {variant === 'transparent' && audit.key_metrics_comparison && (
+        <div className="mb-4">
+          <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
+            Key Metrics Comparison
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(audit.key_metrics_comparison).map(([key, value]) => (
+              <div
+                key={key}
+                className="p-3 border rounded-lg"
+                style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+              >
+                <div
+                  className="text-xs font-bold capitalize"
+                  style={{ color: 'var(--foreground)' }}
+                >
+                  {key.replace(/_/g, ' ')}
+                </div>
+                <div className="text-sm" style={{ color: 'var(--foreground)' }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

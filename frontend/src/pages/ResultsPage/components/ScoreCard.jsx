@@ -1,4 +1,4 @@
-import { Card } from '@heroui/react';
+import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
@@ -29,64 +29,57 @@ export default function ScoreCard({
   };
 
   return (
-    <Card
-      className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-    >
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>
-              {title}
-            </h3>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              {description}
-            </p>
-          </div>
-          {score != null && (
-            <div className="text-right">
-              <div className="text-3xl font-bold" style={{ color: scoreColor }}>
-                {score}
-                <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                  /100
-                </span>
-              </div>
-              {rating && (
-                <div className="text-xs" style={{ color: 'var(--muted)' }}>
-                  {rating}
-                </div>
-              )}
-            </div>
-          )}
+    <div className="border-t border-(--color-border) pt-8 mt-8">
+      {/* Section heading with icon */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-(--color-accent)" />
+          <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted)">{title}</h3>
         </div>
-
-        {message && (
-          <p className="text-sm mb-3" style={{ color: 'var(--foreground)' }}>
-            {message}
-          </p>
-        )}
-
-        {factors.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {factors.map((f) => {
-              const factorColor = getFactorColor(factorType);
-              return (
-                <Chip
-                  key={f}
-                  variant="default"
-                  className="text-xs"
-                  style={{ backgroundColor: factorColor.bg, color: factorColor.color }}
-                >
-                  {formatFactorName(f)}
-                </Chip>
-              );
-            })}
+        {score != null && (
+          <div className="text-right">
+            <div
+              className="text-3xl font-bold text-(--color-text-primary)"
+              style={{ color: scoreColor }}
+            >
+              {score}
+              <span className="text-sm text-(--color-text-muted)">/100</span>
+            </div>
+            {rating && <div className="text-xs text-(--color-text-muted)">{rating}</div>}
           </div>
         )}
-
-        {children}
       </div>
-    </Card>
+
+      {/* Description */}
+      <p className="text-sm text-(--color-text-secondary) mb-4">{description}</p>
+
+      {/* Message */}
+      {message && (
+        <p className="text-sm text-(--color-text-secondary) mb-4 leading-relaxed">{message}</p>
+      )}
+
+      {/* Factors */}
+      {factors.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {factors.map((f) => {
+            const factorColor = getFactorColor(factorType);
+            return (
+              <Chip
+                key={f}
+                variant="tag"
+                className="text-xs"
+                style={{ backgroundColor: factorColor.bg, color: factorColor.color }}
+              >
+                {formatFactorName(f)}
+              </Chip>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Children content */}
+      {children}
+    </div>
   );
 }
 

@@ -123,9 +123,10 @@ export const parameterGuidance = {
   market_price: {
     name: 'Market Price',
     category: 'Embedded Value (Economic & Technical)',
-    weight: 0.20,
+    weight: 0.2,
     weightPercent: '20%',
-    definition: 'Economic value of recovered materials, revenue potential, and market demand strength.',
+    definition:
+      'Economic value of recovered materials, revenue potential, and market demand strength.',
     methodology:
       'Analyzes market prices for recovered materials, revenue potential, and demand stability.',
     calibration:
@@ -303,11 +304,10 @@ export const parameterGuidance = {
   size_efficiency: {
     name: 'Size Efficiency',
     category: 'Processing Value (Environmental & Technical)',
-    weight: 0.10,
+    weight: 0.1,
     weightPercent: '10%',
     definition: 'Physical footprint, storage requirements, and transportation efficiency.',
-    methodology:
-      'Measures space utilization, storage efficiency, and transportation optimization.',
+    methodology: 'Measures space utilization, storage efficiency, and transportation optimization.',
     calibration:
       'Consider: How much space is needed? Storage efficiency? Transportation optimization?',
     scale: [
@@ -363,7 +363,7 @@ export const parameterGuidance = {
   chemical_safety: {
     name: 'Chemical Safety',
     category: 'Processing Value (Environmental & Technical)',
-    weight: 0.10,
+    weight: 0.1,
     weightPercent: '10%',
     definition: 'Environmental hazards and health risks (scored as inverse: higher = safer).',
     methodology:
@@ -423,9 +423,10 @@ export const parameterGuidance = {
   tech_readiness: {
     name: 'Tech Readiness',
     category: 'Processing Value (Environmental & Technical)',
-    weight: 0.10,
+    weight: 0.1,
     weightPercent: '10%',
-    definition: 'Technology maturity level and implementation complexity (scored as inverse: higher = ready).',
+    definition:
+      'Technology maturity level and implementation complexity (scored as inverse: higher = ready).',
     methodology:
       'Assesses technology maturity, implementation complexity, and operational readiness.',
     calibration:

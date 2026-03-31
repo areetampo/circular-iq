@@ -1,18 +1,18 @@
 export default function HeroSection() {
   return (
-    <div className="text-center py-8 md:py-10">
-      <p className="label-overline mb-4">AI-Powered · Evidence-Based · 40,000+ Cases</p>
-      <h1
-        className="heading-display max-w-2xl mx-auto leading-[1.1]"
-        style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}
-      >
-        Evaluate your circular
-        <br className="hidden sm:block" /> economy initiative.
+    <div className="text-center pt-16 pb-8">
+      {/* Eyebrow text */}
+      <p className="text-xs tracking-widest text-(--color-text-muted) uppercase mb-4">
+        AI-POWERED · EVIDENCE-BASED · 40,000+ CASES
+      </p>
+
+      {/* Main headline */}
+      <h1 className="font-(--font-display) text-5xl md:text-6xl text-(--color-text-primary) leading-tight text-center max-w-4xl mx-auto">
+        Evaluate Your Circular Economy Business
       </h1>
-      <p
-        className="mt-4 text-[15px] max-w-md mx-auto leading-relaxed"
-        style={{ color: 'var(--muted)' }}
-      >
+
+      {/* Subheadline */}
+      <p className="text-base text-(--color-text-secondary) text-center max-w-lg mx-auto mt-3 leading-relaxed">
         Get an evidence-backed circularity score in minutes, grounded in real-world case studies.
       </p>
     </div>

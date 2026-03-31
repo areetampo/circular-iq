@@ -9,11 +9,7 @@ export default function LoaderComponent({
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-8">
       <LoaderIcon className="" />
-      {message && (
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          {message}
-        </p>
-      )}
+      {message && <p className="text-sm text-(--color-text-secondary)">{message}</p>}
     </div>
   );
 }
