@@ -99,7 +99,7 @@ export default function ErrorDisplay({
       } px-6 py-12 ${className}`}
     >
       <div
-        className="w-full max-w-lg border rounded-xl p-8"
+        className="w-full max-w-lg border-2 rounded-3xl p-8"
         style={{
           borderColor: style.cardBorderColor,
           backgroundColor: 'var(--background)',

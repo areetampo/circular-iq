@@ -138,9 +138,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           </label>
 
           {assessment.is_public && assessment.public_id && (
-            <CopyButton
-              value={`${window.location.origin}/assessments/share/${assessment.public_id}`}
-            />
+            <CopyButton value={`${assessment.public_id}`} />
           )}
         </div>
       </div>

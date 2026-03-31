@@ -355,8 +355,6 @@ export default function LandingPage() {
 
   // Warn the user when they try to close/refresh the page with unsaved inputs.
   useEffect(() => {
-    const inputsEqual = inputsEqual;
-
     const shouldWarn = () => {
       const values = methods.getValues();
       const persisted = loadEvaluationState();
