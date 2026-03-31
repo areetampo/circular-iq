@@ -6,7 +6,7 @@ function StatCard({ title, value, subtext, loading }) {
     return (
       <div
         className="border rounded-xl p-5 card-lift"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <Skeleton className="h-7 w-16 rounded" />
         <Skeleton className="h-2.5 w-20 rounded" />
@@ -18,7 +18,7 @@ function StatCard({ title, value, subtext, loading }) {
   return (
     <div
       className="border rounded-xl p-5 card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       <p className="label-overline">{title}</p>
       <p

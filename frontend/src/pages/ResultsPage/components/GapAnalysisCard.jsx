@@ -10,7 +10,7 @@ export function GapAnalysisCard({ actualResult }) {
   return actualResult.gap_analysis.has_benchmarks ? (
     <Card
       className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       <div className="p-1 sm:p-3">
         <h3

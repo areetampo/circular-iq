@@ -31,7 +31,7 @@ export default function ScoreCard({
   return (
     <Card
       className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">

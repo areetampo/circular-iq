@@ -25,7 +25,7 @@ export function ScoreOverviewSection({
       {/* Executive Summary */}
       <Card
         className="border rounded-2xl p-6 sm:p-8 mb-2"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
           <div>
@@ -102,7 +102,7 @@ export function ScoreOverviewSection({
         {/* Score hero block */}
         <div
           className="border rounded-2xl p-6 sm:p-8 mb-2"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           {/* CE tier badge */}
           <span className="chip chip-accent-soft inline-block mb-4">
@@ -154,9 +154,9 @@ export function ScoreOverviewSection({
           <div
             className="p-4 rounded-lg"
             style={{
-              background:
-                'linear-gradient(to bottom right, var(--info-soft), transparent, var(--info-soft))',
-              border: '2px solid var(--info)',
+              backgroundColor: 'var(--info-soft)',
+              border: '1px solid var(--info)',
+              borderRadius: 'var(--radius-md)',
             }}
           >
             <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
@@ -170,9 +170,9 @@ export function ScoreOverviewSection({
           <div
             className="p-4 rounded-lg"
             style={{
-              background:
-                'linear-gradient(to bottom right, var(--success-soft), transparent, var(--success-soft))',
-              border: '2px solid var(--success)',
+              backgroundColor: 'var(--success-soft)',
+              border: '1px solid var(--success)',
+              borderRadius: 'var(--radius-md)',
             }}
           >
             <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
@@ -186,9 +186,9 @@ export function ScoreOverviewSection({
           <div
             className="p-4 rounded-lg"
             style={{
-              background:
-                'linear-gradient(to bottom right, var(--warning-soft), transparent, var(--warning-soft))',
-              border: '2px solid var(--warning)',
+              backgroundColor: 'var(--warning-soft)',
+              border: '1px solid var(--warning)',
+              borderRadius: 'var(--radius-md)',
             }}
           >
             <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
@@ -204,7 +204,7 @@ export function ScoreOverviewSection({
       {/* Score Highlights */}
       <Card
         className="border rounded-xl card-lift"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
       >
         <div className="p-1 sm:p-3">
           <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--foreground)' }}>
@@ -288,7 +288,7 @@ export function ScoreOverviewSection({
       {actualResult.derived_metrics && (
         <Card
           className="border rounded-xl card-lift"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           <div className="p-1 sm:p-3">
             <h3
@@ -314,7 +314,7 @@ export function ScoreOverviewSection({
                   <div
                     key={key}
                     className="p-4 border rounded-lg"
-                    style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>
@@ -336,7 +336,7 @@ export function ScoreOverviewSection({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div
                 className="p-4 border rounded-lg"
-                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>

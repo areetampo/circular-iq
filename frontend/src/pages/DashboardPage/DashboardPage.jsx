@@ -413,39 +413,45 @@ export default function DashboardPage() {
           </ChartPanel>
         </div>
 
-        {/* Row B: Weekly trend + R-strategy bar */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <ChartPanel
-            title="Weekly Volume — last 12 weeks"
-            isLoading={globalLoading}
-            chartHeight="220px"
-          >
-            {weeklyData.some((d) => d.count > 0) ? (
-              <LineChart
-                data={weeklyData}
-                xAxisKey="period"
-                lines={[{ dataKey: 'count', stroke: 'var(--info)', name: 'Assessments' }]}
-                height={220}
-                showLegend={false}
-              />
-            ) : (
-              <EmptyChart />
-            )}
-          </ChartPanel>
-          <ChartPanel title="R-Strategy Distribution" isLoading={globalLoading} chartHeight="220px">
-            {usableBar(strategyData, 'value') ? (
-              <BarChart
-                data={strategyData}
-                xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: 'var(--accent)', name: 'Count' }]}
-                height={220}
-                showGrid
-              />
-            ) : (
-              <EmptyChart />
-            )}
-          </ChartPanel>
-        </div>
+        {/* Weekly trend — full width */}
+        <ChartPanel
+          title="Weekly Volume — last 12 weeks"
+          isLoading={globalLoading}
+          chartHeight="240px"
+          className="mb-4"
+        >
+          {weeklyData.some((d) => d.count > 0) ? (
+            <LineChart
+              data={weeklyData}
+              xAxisKey="period"
+              lines={[{ dataKey: 'count', stroke: 'var(--info)', name: 'Assessments' }]}
+              height={240}
+              showLegend={false}
+            />
+          ) : (
+            <EmptyChart />
+          )}
+        </ChartPanel>
+
+        {/* R-Strategy — full width */}
+        <ChartPanel
+          title="R-Strategy Distribution"
+          isLoading={globalLoading}
+          chartHeight="240px"
+          className="mb-4"
+        >
+          {usableBar(strategyData, 'value') ? (
+            <BarChart
+              data={strategyData}
+              xAxisKey="name"
+              barConfigs={[{ dataKey: 'value', fill: 'var(--accent)', name: 'Count' }]}
+              height={240}
+              showGrid
+            />
+          ) : (
+            <EmptyChart />
+          )}
+        </ChartPanel>
 
         {/* Row C: Industry bar (full width) */}
         {(globalLoading || industryBarData.length > 0) && (
@@ -627,7 +633,7 @@ export default function DashboardPage() {
         {/* ── Featured Solutions ───────────────────────────────────────────── */}
         <div
           className="rounded-xl border overflow-hidden"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
         >
           {/* Header + search */}
           <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -719,7 +725,7 @@ export default function DashboardPage() {
 
           {/* Solutions grid */}
           <div className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-56">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {featuredLoading ? (
                 Array.from({ length: 4 }).map((_, i) => (
                   <div
@@ -851,7 +857,7 @@ export default function DashboardPage() {
         <div
           className="rounded-xl border p-6 flex flex-col sm:flex-row items-center gap-4"
           style={{
-            background: 'linear-gradient(to right, var(--accent-soft), var(--surface))',
+            backgroundColor: 'transparent',
             borderColor: 'var(--border)',
           }}
         >

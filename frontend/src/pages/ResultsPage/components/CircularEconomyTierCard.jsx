@@ -16,14 +16,7 @@ export function CircularEconomyTierCard({ actualResult }) {
               : actualResult.circular_economy_tier.badge_color === 'amber'
                 ? 'var(--warning)'
                 : 'var(--danger)',
-        backgroundColor:
-          actualResult.circular_economy_tier.badge_color === 'green'
-            ? 'var(--success-soft)'
-            : actualResult.circular_economy_tier.badge_color === 'blue'
-              ? 'var(--info-soft)'
-              : actualResult.circular_economy_tier.badge_color === 'amber'
-                ? 'var(--warning-soft)'
-                : 'var(--danger-soft)',
+        backgroundColor: 'transparent',
       }}
     >
       <div className="p-4">

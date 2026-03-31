@@ -4,7 +4,7 @@ function SolutionCard({ title, preview, category, onView }) {
   return (
     <div
       className="border rounded-xl px-4 py-3 card-lift flex items-center gap-3"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       {/* Avatar */}
       <div
@@ -19,7 +19,10 @@ function SolutionCard({ title, preview, category, onView }) {
         <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
           {title}
         </p>
-        <p className="text-xs line-clamp-1 mt-0.5" style={{ color: 'var(--muted)' }}>
+        <p
+          className="text-xs line-clamp-2 mt-0.5 leading-relaxed"
+          style={{ color: 'var(--muted)' }}
+        >
           {preview}
         </p>
         {category && (

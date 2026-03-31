@@ -13,7 +13,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
     <Card
       data-export-section="database-evidence"
       className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       <div className="p-1 sm:p-3">
         <div className="flex items-center gap-2 mb-2">

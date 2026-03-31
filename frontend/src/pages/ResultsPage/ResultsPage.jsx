@@ -849,13 +849,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
 
         {/* Buttons Bar */}
-        <div
-          className="flex flex-wrap items-center gap-3 p-4 rounded-lg border"
-          style={{
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--border)',
-          }}
-        >
+        <div className="flex flex-wrap items-center gap-3">
           {/* Show public share notice for public viewers */}
           {isPublicShare && (
             <Chip variant="accent" className="gap-1">
@@ -1013,10 +1007,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div
-            className="border rounded-lg mb-3 p-4"
-            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-          >
+          <div className="border-t pt-4 mb-3" style={{ borderColor: 'var(--border)' }}>
             {/* Toggle row */}
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -1068,13 +1059,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
       {/* Case Summary */}
       <div data-export-section="case-summary">
-        <div
-          className="border rounded-lg mb-3"
-          style={{
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--border)',
-          }}
-        >
+        <div className="border-b mb-6 pb-4" style={{ borderColor: 'var(--border)' }}>
           <div className="p-1 sm:p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h3
@@ -1334,99 +1319,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       {/* Results Content */}
       {/* <ScrollShadow className="h-[calc(100vh-16rem)]"> */}
       <div id="results-content" className="max-w-7xl mx-auto px-0 sm:px-6 space-y-6">
-        {/* Page Header row: overline + Lora heading + export actions right */}
-        <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-3 mb-6">
-          <span className="label-overline">ASSESSMENT RESULTS</span>
-          <div className="flex items-center gap-2">{/* Export actions will go here */}</div>
-        </div>
-
-        {/* Score hero block — white card, border, rounded-2xl, p-8 */}
-        <div
-          className="border rounded-2xl p-6 sm:p-8 mb-2"
-          style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-        >
-          {/* CE tier badge */}
-          <span className="chip chip-accent-soft inline-block mb-4">
-            {actualResult?.metadata?.circularity_tier || 'UNRATED'}
-          </span>
-
-          {/* Big score */}
-          <div className="flex items-end gap-2 mb-6">
-            <span
-              className="metric-value text-[72px] leading-none"
-              style={{
-                color:
-                  overallScore >= 75
-                    ? 'var(--success)'
-                    : overallScore >= 50
-                      ? 'var(--warning)'
-                      : 'var(--danger)',
-              }}
-            >
-              {overallScore}
-            </span>
-            <span className="text-[20px] mb-2" style={{ color: 'var(--muted)' }}>
-              / 100
-            </span>
-          </div>
-
-          {/* 4 stat pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Confidence', value: actualResult?.confidence_level },
-              {
-                label: 'Tech Feasibility',
-                value: actualResult?.derived_metrics?.technical_feasibility,
-              },
-              {
-                label: 'Economic Viability',
-                value: actualResult?.derived_metrics?.economic_viability,
-              },
-              { label: 'Circularity', value: actualResult?.derived_metrics?.circularity_potential },
-            ].map(({ label, value }) => (
-              <div
-                key={label}
-                className="border rounded-xl p-3"
-                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface-raised)' }}
-              >
-                <div className="metric-value text-[18px]">{value ?? '—'}</div>
-                <div className="label-overline mt-1">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Action buttons row: Save · Compare → · Export PDF/CSV */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => {
-              /* Save functionality */
-            }}
-          >
-            Save
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              /* Compare functionality */
-            }}
-          >
-            Compare →
-          </Button>
-          <Button size="sm" variant="tertiary" onClick={() => exportAssessmentPDF(actualResult)}>
-            Export PDF
-          </Button>
-          <Button size="sm" variant="tertiary" onClick={() => exportAssessmentCSV(actualResult)}>
-            Export CSV
-          </Button>
-        </div>
-
-        {/* Divider */}
-        <div className="divider-warm my-8" />
-
         <ScoreOverviewSection
           actualResult={actualResult}
           overallScore={overallScore}

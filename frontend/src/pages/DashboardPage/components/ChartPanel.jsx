@@ -4,7 +4,7 @@ function ChartPanel({ title, children, isLoading, error, chartHeight }) {
   return (
     <div
       className="border rounded-xl overflow-hidden card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       {/* Header */}
       <div className="border-b px-5 py-3" style={{ borderColor: 'var(--border)' }}>

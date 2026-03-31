@@ -10,7 +10,7 @@ export function AuditSummaryCard({ actualResult }) {
   return (
     <Card
       className="border rounded-xl card-lift"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       <div className="p-1 sm:p-3">
         <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--foreground)' }}>

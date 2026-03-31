@@ -10,7 +10,7 @@ export function WeightedScoreCard({ actualResult }) {
   return (
     <Card
       className="border rounded-xl shadow-sm"
-      style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
     >
       <div className="p-4">
         <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--foreground)' }}>
