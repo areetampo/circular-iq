@@ -244,3 +244,4 @@ AssessmentList.propTypes = {
 };
 
 export default AssessmentListItem;
+export { AssessmentListItem };
