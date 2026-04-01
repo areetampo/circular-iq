@@ -26,20 +26,41 @@ export function OverviewTab({
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Assessment 1 */}
           <div>
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3">
+            <p className="text-xs font-semibold text-(--color-text-primary) mb-3 truncate">
+              {assessment1?.title || 'Assessment 1'}
+            </p>
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
               Business Problem
             </p>
-            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+            <p className="text-sm text-(--color-text-secondary) leading-relaxed mb-4">
               {assessment1?.business_problem || 'N/A'}
             </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3">
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
               Business Solution
             </p>
             <p className="text-sm text-(--color-text-secondary) leading-relaxed">
               {assessment1?.business_solution || 'N/A'}
+            </p>
+          </div>
+
+          {/* Assessment 2 */}
+          <div className="lg:border-l lg:border-(--color-border) lg:pl-8">
+            <p className="text-xs font-semibold text-(--color-text-primary) mb-3 truncate">
+              {assessment2?.title || 'Assessment 2'}
+            </p>
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
+              Business Problem
+            </p>
+            <p className="text-sm text-(--color-text-secondary) leading-relaxed mb-4">
+              {assessment2?.business_problem || 'N/A'}
+            </p>
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
+              Business Solution
+            </p>
+            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+              {assessment2?.business_solution || 'N/A'}
             </p>
           </div>
         </div>
