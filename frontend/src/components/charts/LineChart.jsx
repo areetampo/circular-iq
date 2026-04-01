@@ -1,7 +1,9 @@
-import { Card, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
 import { LineChart as MuiLineChart } from '@mui/x-charts/LineChart';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
+
+import { chartTheme } from '@/utils/chartTheme';
 
 /**
  * LineChart Component
@@ -30,8 +32,9 @@ export default function LineChart({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--muted-foreground)',
+            color: chartTheme.textColor,
             fontSize: '0.875rem',
+            fontFamily: chartTheme.fontFamily,
           }}
         >
           No data available
@@ -42,20 +45,40 @@ export default function LineChart({
     const series = lines.map((line, index) => ({
       dataKey: line.dataKey || line.id,
       label: line.name || line.dataKey || line.id,
-      color: line.stroke || line.color || colors?.[index] || 'var(--chart-1)',
+      color:
+        line.stroke ||
+        line.color ||
+        colors?.[index] ||
+        chartTheme.colors[index % chartTheme.colors.length],
       showMark: line.showMark !== undefined ? line.showMark : false,
       curve: line.curve || 'linear',
       strokeWidth: line.strokeWidth || 2,
     }));
 
     return (
-      <div style={{ width: '100%', height: '100%' }}>
+      <div style={{ width: '100%', height: '100%', background: 'transparent' }}>
         <MuiLineChart
           dataset={data}
-          xAxis={[{ scaleType: 'point', dataKey: xAxisKey }]}
+          xAxis={[
+            {
+              scaleType: 'point',
+              dataKey: xAxisKey,
+              tickLabelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+            },
+          ]}
           series={series}
           height={height}
-          slotProps={{ legend: { hidden: !showLegend } }}
+          colors={chartTheme.colors}
+          slotProps={{
+            legend: {
+              hidden: !showLegend,
+              labelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+            },
+          }}
+          grid={{
+            vertical: { stroke: showGrid ? chartTheme.gridColor : 'transparent' },
+            horizontal: { stroke: showGrid ? chartTheme.gridColor : 'transparent' },
+          }}
         />
       </div>
     );
@@ -63,18 +86,18 @@ export default function LineChart({
 
   if (isLoading) {
     return (
-      <Card className={className} style={{ height }}>
+      <div className={className} style={{ height }}>
         <Skeleton className="w-full h-full" />
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className={className} style={{ height }}>
+    <div className={className} style={{ height, background: 'transparent' }}>
       <div role="img" aria-label={ariaLabel}>
         {chartContent}
       </div>
-    </Card>
+    </div>
   );
 }
 

@@ -132,8 +132,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                     <Chip
                       size="sm"
                       variant="soft"
-                      className="text-xs"
-                      style={{ backgroundColor: 'var(--subtle)', color: 'var(--subtle-fg)' }}
+                      className="text-xs bg-(--color-bg-field) text-(--color-text-muted)"
                     >
                       {item.timeframe}
                     </Chip>
@@ -145,10 +144,10 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                       style={{
                         color:
                           item.impact === 'high'
-                            ? 'var(--success)'
+                            ? 'text-(--color-success)'
                             : item.impact === 'medium'
-                              ? 'var(--info)'
-                              : 'var(--muted)',
+                              ? 'text-(--color-info)'
+                              : 'text-(--color-text-muted)',
                       }}
                     >
                       {item.impact} impact
@@ -161,17 +160,17 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                       style={{
                         color:
                           item.effort === 'low'
-                            ? 'var(--success)'
+                            ? 'text-(--color-success)'
                             : item.effort === 'high'
-                              ? 'var(--danger)'
-                              : 'var(--warning)',
+                              ? 'text-(--color-error)'
+                              : 'text-(--color-warning)',
                       }}
                     >
                       {item.effort} effort
                     </Chip>
                   )}
                   {variant === 'assessment' && item.timeframe && (
-                    <Chip variant="default" className="text-xs" style={{ color: 'var(--subtle)' }}>
+                    <Chip variant="default" className="text-xs text-(--color-text-muted)">
                       {item.timeframe}
                     </Chip>
                   )}
@@ -184,50 +183,27 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {variant === 'transparent' && audit.sdg_alignment && audit.sdg_alignment.length > 0 && (
         <div className="mb-4">
-          <h4 className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>
+          <h4 className="text-sm font-bold mb-3 text-(--color-text-primary)">
             UN Sustainable Development Goals
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {audit.sdg_alignment.map((sdg, i) => (
               <div
                 key={i}
-                className="p-3 border rounded-lg flex gap-2"
-                style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                className="p-3 border rounded-lg flex gap-2 border-(--color-border) bg-transparent"
               >
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{
-                    backgroundColor: 'var(--info)',
-                    color: 'var(--surface)',
-                  }}
-                >
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 bg-(--color-info) text-(--color-bg)">
                   {sdg.sdg_number}
                 </div>
                 <div>
-                  <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+                  <div className="text-xs font-semibold text-(--color-text-primary)">
                     {sdg.sdg_name}
                   </div>
-                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                    {sdg.rationale}
-                  </div>
+                  <div className="text-xs mt-0.5 text-(--color-text-muted)">{sdg.rationale}</div>
                   <Chip
                     size="sm"
                     variant="soft"
-                    className="text-xs mt-1"
-                    style={{
-                      backgroundColor:
-                        sdg.relevance === 'high'
-                          ? 'var(--success-soft)'
-                          : sdg.relevance === 'medium'
-                            ? 'var(--info-soft)'
-                            : 'var(--surface-raised)',
-                      color:
-                        sdg.relevance === 'high'
-                          ? 'var(--success)'
-                          : sdg.relevance === 'medium'
-                            ? 'var(--info)'
-                            : 'var(--subtle)',
-                    }}
+                    className="text-xs mt-1 bg-(--color-success-light) text-(--color-success)"
                   >
                     {sdg.relevance} relevance
                   </Chip>
@@ -240,25 +216,19 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {variant === 'transparent' && audit.key_metrics_comparison && (
         <div className="mb-4">
-          <h4 className="text-sm font-bold mb-2" style={{ color: 'var(--foreground)' }}>
+          <h4 className="text-sm font-bold mb-2 text-(--color-text-primary)">
             Key Metrics Comparison
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {Object.entries(audit.key_metrics_comparison).map(([key, value]) => (
               <div
                 key={key}
-                className="p-3 border rounded-lg"
-                style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                className="p-3 border rounded-lg bg-transparent border-(--color-border)"
               >
-                <div
-                  className="text-xs font-bold capitalize"
-                  style={{ color: 'var(--foreground)' }}
-                >
+                <div className="text-xs font-bold capitalize text-(--color-text-primary)">
                   {key.replace(/_/g, ' ')}
                 </div>
-                <div className="text-sm" style={{ color: 'var(--foreground)' }}>
-                  {value}
-                </div>
+                <div className="text-sm text-(--color-text-primary)">{value}</div>
               </div>
             ))}
           </div>

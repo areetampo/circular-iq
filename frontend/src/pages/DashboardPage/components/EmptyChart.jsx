@@ -1,9 +1,10 @@
+import { BarChart3 } from 'lucide-react';
+
 function EmptyChart() {
   return (
-    <div className="flex items-center justify-center min-h-30">
-      <p className="text-sm text-center" style={{ color: 'var(--muted)' }}>
-        No data yet — run an assessment to see insights here.
-      </p>
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <BarChart3 className="w-8 h-8 text-(--color-border-strong) mb-3" />
+      <p className="text-sm text-(--color-text-muted)">No data available yet</p>
     </div>
   );
 }

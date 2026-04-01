@@ -2,29 +2,20 @@ import PropTypes from 'prop-types';
 
 function ChartPanel({ title, children, isLoading, error, chartHeight }) {
   return (
-    <div
-      className="border rounded-xl overflow-hidden card-lift"
-      style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-    >
-      {/* Header */}
-      <div className="border-b px-5 py-3" style={{ borderColor: 'var(--border)' }}>
-        <p className="text-[13px] font-medium" style={{ color: 'var(--muted)' }}>
-          {title}
-        </p>
-      </div>
+    <div className="w-full py-4">
+      {title && (
+        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">{title}</p>
+      )}
 
-      {/* Body */}
-      <div className="p-4">
-        {isLoading ? (
-          <div className="skeleton rounded-lg" style={{ height: chartHeight || '200px' }} />
-        ) : error ? (
-          <div className="text-center p-4">
-            <p style={{ color: 'var(--danger)' }}>Error loading chart</p>
-          </div>
-        ) : (
-          children
-        )}
-      </div>
+      {isLoading ? (
+        <div className="skeleton rounded-lg" style={{ height: chartHeight || '200px' }} />
+      ) : error ? (
+        <div className="text-center p-4">
+          <p className="text-(--color-error)">Error loading chart</p>
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }

@@ -108,80 +108,71 @@ export function SessionRestoreDialog(props) {
       onOpenChange={(open) => {
         if (!open) {
           if (!usingProps) onClose();
-          // Do not call propOnDismiss here to avoid parent-driven navigation,
-          // especially for Cancel close flows. Navigation is handled explicitly
-          // in Restore action only.
         }
       }}
       isDismissable={false}
       isKeyboardDismissDisabled={true}
+      className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="md">
-        <AlertDialog.Dialog>
+      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
+        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5">
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Icon status="success">
-                  <RefreshCw size={25} />
+                <AlertDialog.Icon
+                  status="accent"
+                  className="w-10 h-10 bg-(--color-accent-light) rounded-full flex items-center justify-center text-(--color-accent) mx-auto mb-3"
+                >
+                  <RefreshCw size={20} />
                 </AlertDialog.Icon>
-                <AlertDialog.Heading>
+                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
                   Restore Previous Session from {formatDate(sessionData?.timestamp)}?
                 </AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <AlertDialog.Body className="space-y-3">
-                <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                  Your inputs are already saved locally — you can restore calculated results below
-                  or continue from your saved inputs.
-                </p>
+              <div className="border-t border-(--color-border) my-4"></div>
 
-                <div
-                  className="p-3 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    borderColor: 'var(--border)',
-                  }}
-                >
-                  <p
-                    className="text-[13px] font-semibold flex items-center gap-2"
-                    style={{ color: 'var(--foreground)' }}
-                  >
-                    <FileCheck size={16} style={{ color: 'var(--accent)' }} />
-                    <span>Calculated results</span>
-                  </p>
-                  <p className="text-[13px] mt-1" style={{ color: 'var(--muted)' }}>
-                    {hasResults
-                      ? 'You have unsaved assessment results'
-                      : 'No calculated results found to restore.'}
-                  </p>
+              <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+                Your inputs are already saved locally — you can restore calculated results below or
+                continue from your saved inputs.
+                <div className="border border-(--color-border) rounded-md p-3 flex items-center gap-3 my-4">
+                  <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-(--color-text-primary)">
+                      Calculated results
+                    </p>
+                    <p className="text-xs text-(--color-text-muted) mt-0.5">
+                      {hasResults
+                        ? 'You have unsaved assessment results'
+                        : 'No calculated results found to restore.'}
+                    </p>
+                  </div>
                 </div>
               </AlertDialog.Body>
 
-              <AlertDialog.Footer>
-                <div className="flex flex-col sm:flex-row gap-2 w-full">
-                  <Button
-                    variant="tertiary"
-                    onPress={() => {
-                      handleCancel();
-                      close();
-                    }}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
+              <AlertDialog.Footer className="flex gap-3 mt-5">
+                <Button
+                  variant="dialog-secondary"
+                  onPress={() => {
+                    handleCancel();
+                    close();
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
 
-                  <Button
-                    variant="primary"
-                    onPress={() => {
-                      handleRestoreResults();
-                      close();
-                    }}
-                    isDisabled={!hasResults}
-                    className="flex-1"
-                  >
-                    Restore Results
-                  </Button>
-                </div>
+                <Button
+                  variant="dialog-primary"
+                  onPress={() => {
+                    handleRestoreResults();
+                    close();
+                  }}
+                  isDisabled={!hasResults}
+                  className="flex-1"
+                >
+                  Restore Results
+                </Button>
               </AlertDialog.Footer>
             </>
           )}

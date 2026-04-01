@@ -1,7 +1,9 @@
-import { Card, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
 import { PieChart as MuiPieChart } from '@mui/x-charts/PieChart';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
+
+import { chartTheme } from '@/utils/chartTheme';
 
 /**
  * PieChart Component
@@ -31,8 +33,9 @@ export default function PieChart({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--muted-foreground)',
+            color: chartTheme.textColor,
             fontSize: '0.875rem',
+            fontFamily: chartTheme.fontFamily,
           }}
         >
           No data available
@@ -44,7 +47,7 @@ export default function PieChart({
       id: i,
       value: typeof item[dataKey] === 'number' ? item[dataKey] : 0,
       label: item[nameKey] || `Item ${i + 1}`,
-      color: item.color || colors?.[i] || undefined,
+      color: item.color || colors?.[i] || chartTheme.colors[i % chartTheme.colors.length],
     }));
 
     const series = [
@@ -62,7 +65,13 @@ export default function PieChart({
         <MuiPieChart
           series={series}
           height={height}
-          slotProps={{ legend: { hidden: !showLegend } }}
+          colors={chartTheme.colors}
+          slotProps={{
+            legend: {
+              hidden: !showLegend,
+              labelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+            },
+          }}
         />
       </div>
     );
@@ -80,16 +89,16 @@ export default function PieChart({
 
   if (isLoading) {
     return (
-      <Card className={className} style={{ height }}>
+      <div className={className} style={{ height }}>
         <Skeleton className="w-full h-full" />
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className={className} style={{ height }}>
+    <div className={className} style={{ height }}>
       <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
-    </Card>
+    </div>
   );
 }
 

@@ -15,17 +15,10 @@ function StatCard({ title, value, subtext, loading }) {
   return (
     <div className="border border-(--color-border) rounded-md p-5 card-lift bg-transparent">
       <p className="label-overline">{title}</p>
-      <p
-        className="metric-value text-[28px] font-medium mt-2"
-        style={{ color: 'var(--color-text-primary)' }}
-      >
+      <p className="metric-value text-[28px] font-medium mt-2 text-(--color-text-primary)">
         {value ?? '—'}
       </p>
-      {subtext && (
-        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-          {subtext}
-        </p>
-      )}
+      {subtext && <p className="text-xs mt-1 text-(--color-text-muted)">{subtext}</p>}
     </div>
   );
 }

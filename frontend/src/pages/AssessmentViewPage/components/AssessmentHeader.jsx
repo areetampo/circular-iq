@@ -16,26 +16,15 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
       <div className="flex flex-col gap-1">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm w-fit hover:text-foreground transition-colors duration-150"
-          style={{ color: 'var(--muted)' }}
+          className="flex items-center gap-1 text-sm w-fit hover:text-(--color-text-primary) transition-colors duration-150 text-(--color-text-muted)"
         >
           ← Back
         </button>
-        <h1
-          className="text-2xl font-bold leading-tight"
-          style={{
-            color: 'var(--foreground)',
-          }}
-        >
+        <h1 className="text-2xl font-bold leading-tight text-(--color-text-primary)">
           {assessment?.title || 'Assessment'}
         </h1>
         {assessment?.created_at && (
-          <p
-            className="text-xs"
-            style={{
-              color: 'var(--muted)',
-            }}
-          >
+          <p className="text-xs text-(--color-text-muted)">
             Saved {formatTimestamp(assessment.created_at)}
           </p>
         )}

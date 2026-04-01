@@ -1057,3 +1057,56 @@ code,
       0 8px 32px oklch(0.18 0.015 60 / 0.08) !important;
   }
 }
+
+/* Final UI cleanup overrides for UI-31-35 */
+@layer components {
+  /* Remove residual var(--surface) references — map to our bg */
+  [style*='var(--surface)'] {
+    background-color: var(--color-bg-card) !important;
+  }
+
+  /* Ensure HeroUI input components inherit our styles */
+  [data-slot='input-wrapper'] {
+    background: rgba(245, 240, 232, 0.5) !important;
+    border: 1px solid var(--color-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+    transition: border-color 0.15s !important;
+  }
+  [data-slot='input-wrapper']:focus-within {
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 0 0 3px var(--color-accent-light) !important;
+  }
+  [data-slot='input'] {
+    color: var(--color-text-primary) !important;
+    font-family: var(--font-body) !important;
+  }
+
+  /* HeroUI Select */
+  [data-slot='trigger'] {
+    background: rgba(245, 240, 232, 0.5) !important;
+    border: 1px solid var(--color-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+  }
+  [data-slot='popover-content'] {
+    background: var(--color-bg) !important;
+    border: 1px solid var(--color-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-md) !important;
+  }
+
+  /* HeroUI Checkbox override */
+  [data-slot='wrapper'] [data-slot='thumb'] {
+    background: var(--color-accent) !important;
+  }
+
+  /* Remove any remaining white card slots */
+  [data-slot='card'] {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  [data-slot='card-body'],
+  [data-slot='card-header'],
+  [data-slot='card-footer'] {
+    background: transparent !important;
+  }
+}

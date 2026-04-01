@@ -31,41 +31,42 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
         if (!open) onClose();
       }}
     >
-      <Drawer.Backdrop>
-        <Drawer.Content placement={direction}>
+      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm">
+        <Drawer.Content
+          placement={direction}
+          className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
+        >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
             {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
             <Drawer.Header>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Icon
-                    className={cn(
-                      'h-6 w-6 shrink-0 transition-[transform,box-shadow] duration-300 ease-out',
-                      cfg.iconColor,
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                    )}
-                    strokeWidth={1.75}
-                  />
+              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent) shrink-0 mt-0.5">
+                    <Icon className="w-4 h-4" strokeWidth={1.75} />
+                  </div>
                   <div>
-                    <Drawer.Heading className="text-lg font-semibold">
+                    <h2 className="text-base font-semibold text-(--color-text-primary)">
                       {SPECIFIC_PARAMETER_CONTENT.heading}
-                    </Drawer.Heading>
+                    </h2>
+                    <p className="text-xs text-(--color-text-muted) mt-0.5">{guidance.name}</p>
                   </div>
                 </div>
+                <Drawer.CloseTrigger
+                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
+                  aria-label="Close"
+                />
               </div>
             </Drawer.Header>
-            <Drawer.Body>
+            <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <div className="px-4">
+                <div>
                   <div className="flex flex-col items-start justify-between gap-4 mb-5 xs:flex-row">
                     <div>
                       <h3 className={cn('mb-1 text-lg font-bold', cfg.paramTextColor)}>
                         {guidance.name}
                       </h3>
-                      <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
+                      <p className="text-sm font-medium text-(--color-text-muted)">
                         {guidance.category}
                       </p>
                     </div>
@@ -89,7 +90,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.definition}
                         </p>
-                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                        <p className="text-sm text-(--color-text-secondary) leading-relaxed">
                           {guidance.definition}
                         </p>
                       </div>
@@ -99,7 +100,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.methodology}
                         </p>
-                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                        <p className="text-sm text-(--color-text-secondary) leading-relaxed">
                           {guidance.methodology}
                         </p>
                       </div>
@@ -109,7 +110,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.calibration}
                         </p>
-                        <p className="text-sm" style={{ color: 'var(--foreground)' }}>
+                        <p className="text-sm text-(--color-text-primary) leading-relaxed">
                           {guidance.calibration}
                         </p>
                       </div>
@@ -118,7 +119,11 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 </div>
 
                 {guidance.scale && (
-                  <div className={cn('p-4 rounded-xl', cfg.panelBg, 'border', cfg.panelBorder)}>
+                  <div
+                    className={cn(
+                      'p-4 rounded-xl border-l-2 border-(--color-accent) pl-3 bg-(--color-accent-light) rounded-r-sm py-2',
+                    )}
+                  >
                     <h4 className={cn('mb-3 text-base font-bold', cfg.panelTitle)}>
                       {SPECIFIC_PARAMETER_CONTENT.sections.scoreGuide}
                     </h4>
@@ -131,7 +136,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                           <p className={cn('text-sm font-semibold', cfg.paramTextColor)}>
                             {score} - {label}
                           </p>
-                          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                          <p className="text-xs text-(--color-text-muted) italic mt-1">
                             {description}
                           </p>
                         </div>
@@ -141,31 +146,21 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 )}
 
                 {guidance.examples && (
-                  <div
-                    className="p-4 rounded-xl border"
-                    style={{
-                      backgroundColor: 'var(--info-soft)',
-                      borderColor: 'var(--info)',
-                    }}
-                  >
-                    <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--info)' }}>
+                  <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) italic leading-relaxed my-3">
+                    <h4 className="mb-3 text-base font-bold text-(--color-accent)">
                       {SPECIFIC_PARAMETER_CONTENT.sections.benchmarks}
                     </h4>
                     <div className="space-y-2">
                       {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
                         <div
                           key={`${exampleCase}-${score}-${idx}`}
-                          className="pl-3 border-l-4"
-                          style={{ borderLeftColor: 'var(--info)' }}
+                          className="pl-3 border-l-4 border-(--color-accent)"
                         >
-                          <p
-                            className="text-sm font-semibold"
-                            style={{ color: 'var(--foreground)' }}
-                          >
+                          <p className="text-sm font-semibold text-(--color-text-primary)">
                             {exampleCase} {score && `(${score})`}
                           </p>
                           {reason && (
-                            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                            <p className="text-xs text-(--color-text-muted) italic mt-1">
                               {reason}
                             </p>
                           )}

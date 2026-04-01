@@ -17,13 +17,11 @@
  */
 
 import { AlertDialog, Input, Label } from '@heroui/react';
-import { Edit } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { cn } from '@/utils/cn';
 
 /**
  * Specialized dialog for renaming assessments
@@ -93,27 +91,24 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled={true}
+      className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="md">
-        <AlertDialog.Dialog>
+      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
+        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-(--radius-lg) shadow-(--shadow-md) p-5">
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Icon status="warning">
-                  <Edit size={25} />
-                </AlertDialog.Icon>
-                <AlertDialog.Heading>Rename Assessment</AlertDialog.Heading>
+                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+                  Rename Assessment
+                </AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <AlertDialog.Body>
+              <AlertDialog.Body className="text-sm">
                 <Label
                   htmlFor="assessment-name"
-                  className="text-sm font-medium"
-                  style={{
-                    color: 'var(--muted)',
-                  }}
+                  className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-1.5 block"
                 >
-                  Update the assessment name to make it easier to find later.
+                  Assessment Name
                 </Label>
                 <div className="flex flex-col items-center gap-2 mt-2.5 px-2">
                   <Input
@@ -125,40 +120,34 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                       setError('');
                     }}
                     maxLength={100}
-                    className={cn(
-                      'rounded-lg mb-1',
-                      error && 'border-danger focus:ring-danger',
-                      'text-xs xs:text-sm',
-                    )}
+                    className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm w-full mt-1 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                     fullWidth
                   />
 
-                  {error && (
-                    <p className="text-sm mt-2" style={{ color: 'var(--danger)' }}>
-                      {error}
-                    </p>
-                  )}
+                  {error && <p className="text-sm mt-2 text-red-500">{error}</p>}
                 </div>
               </AlertDialog.Body>
 
-              <AlertDialog.Footer>
+              <AlertDialog.Footer className="flex gap-3 mt-5">
                 <Button
-                  variant="tertiary"
+                  variant="dialog-secondary"
                   onPress={() => {
                     close();
                     onClose();
                   }}
                   isDisabled={isLoading}
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
-                  variant="primary"
+                  variant="dialog-primary"
                   onPress={() => handleSubmit(close)}
                   isLoading={isLoading}
                   isDisabled={isLoading || name.trim() === (defaultName || '').trim()}
+                  className="flex-1"
                 >
-                  Rename
+                  Save
                 </Button>
               </AlertDialog.Footer>
             </>

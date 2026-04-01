@@ -1,4 +1,3 @@
-import { Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -92,27 +91,18 @@ export default function InteractiveChartWrapper({
 
   return (
     <ChartErrorBoundary height={height} className={className}>
-      <Card
+      <div
         className={`w-full ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''} ${className}`}
         style={{ height: isFullscreen ? '100vh' : height }}
       >
         {/* Header */}
         {(title || subtitle || showControls) && (
-          <div
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b"
-            style={{ borderColor: 'var(--border)' }}
-          >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-(--color-border)">
             <div className="flex-1">
               {title && (
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
-                  {title}
-                </h3>
+                <h3 className="text-lg font-semibold text-(--color-text-primary)">{title}</h3>
               )}
-              {subtitle && (
-                <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                  {subtitle}
-                </p>
-              )}
+              {subtitle && <p className="text-sm text-(--color-text-muted)">{subtitle}</p>}
             </div>
 
             {/* Controls */}
@@ -128,16 +118,14 @@ export default function InteractiveChartWrapper({
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleExport('png')}
-                      className="px-2 py-1 text-xs rounded hover:bg-default-100 transition-colors"
-                      style={{ color: 'var(--muted)' }}
+                      className="px-2 py-1 text-xs rounded hover:bg-(--color-accent-light) transition-colors text-(--color-text-muted)"
                       title="Export as PNG"
                     >
                       📷
                     </button>
                     <button
                       onClick={() => handleExport('svg')}
-                      className="px-2 py-1 text-xs rounded hover:bg-default-100 transition-colors"
-                      style={{ color: 'var(--muted)' }}
+                      className="px-2 py-1 text-xs rounded hover:bg-(--color-accent-light) transition-colors text-(--color-text-muted)"
                       title="Export as SVG"
                     >
                       📄
@@ -148,8 +136,7 @@ export default function InteractiveChartWrapper({
                 {enableFullscreen && (
                   <button
                     onClick={toggleFullscreen}
-                    className="px-2 py-1 text-xs rounded hover:bg-default-100 transition-colors"
-                    style={{ color: 'var(--muted)' }}
+                    className="px-2 py-1 text-xs rounded hover:bg-(--color-accent-light) transition-colors text-(--color-text-muted)"
                     title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                   >
                     {isFullscreen ? '✕' : '⛶'}
@@ -174,30 +161,26 @@ export default function InteractiveChartWrapper({
 
         {/* Footer with Data Stats */}
         {showDataStats && dataStats && (
-          <div className="p-4 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div className="p-4 border-t border-(--color-border)">
             <div className="flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--muted)' }}>Points:</span>
-                <span className="font-medium" style={{ color: 'var(--foreground)' }}>
-                  {dataStats.count}
-                </span>
+                <span className="text-(--color-text-muted)">Points:</span>
+                <span className="font-medium text-(--color-text-primary)">{dataStats.count}</span>
               </div>
               <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--muted)' }}>Avg:</span>
-                <span className="font-medium" style={{ color: 'var(--foreground)' }}>
-                  {dataStats.avg}
-                </span>
+                <span className="text-(--color-text-muted)">Avg:</span>
+                <span className="font-medium text-(--color-text-primary)">{dataStats.avg}</span>
               </div>
               <div className="flex items-center gap-1">
-                <span style={{ color: 'var(--muted)' }}>Range:</span>
-                <span className="font-medium" style={{ color: 'var(--foreground)' }}>
+                <span className="text-(--color-text-muted)">Range:</span>
+                <span className="font-medium text-(--color-text-primary)">
                   {dataStats.min} - {dataStats.max}
                 </span>
               </div>
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </ChartErrorBoundary>
   );
 }

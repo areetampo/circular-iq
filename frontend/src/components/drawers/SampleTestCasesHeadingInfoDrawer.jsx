@@ -17,14 +17,17 @@ export default function SampleTestCasesHeadingInfoDrawer() {
         if (!open) onClose();
       }}
     >
-      <Drawer.Backdrop>
-        <Drawer.Content placement={direction}>
+      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm">
+        <Drawer.Content
+          placement={direction}
+          className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
+        >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
             {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
             <Drawer.Header>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
+                <div className="flex items-start gap-3">
                   <div
                     className={cn(
                       'p-2 rounded-lg shrink-0',
@@ -32,76 +35,58 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
+                      'bg-(--color-info-light)',
                     )}
-                    style={{
-                      backgroundColor: 'var(--info-soft)',
-                    }}
                   >
-                    <ClipboardPenLine className="size-5" style={{ color: 'var(--info)' }} />
+                    <ClipboardPenLine className="size-5 text-(--color-info)" />
                   </div>
                   <div>
-                    <Drawer.Heading className="text-lg font-semibold">
+                    <h2 className="text-base font-semibold text-(--color-text-primary)">
                       {SAMPLE_TEST_CASES_HEADING_CONTENT.heading}
-                    </Drawer.Heading>
+                    </h2>
+                    <p className="text-xs text-(--color-text-muted) mt-0.5">
+                      Learn from real circular economy examples
+                    </p>
                   </div>
                 </div>
+                <Drawer.CloseTrigger
+                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
+                  aria-label="Close"
+                />
               </div>
             </Drawer.Header>
-            <Drawer.Body>
+            <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+                <p className="text-sm text-(--color-text-secondary) leading-relaxed">
                   {SAMPLE_TEST_CASES_HEADING_CONTENT.description}
                 </p>
                 <ul className="ml-3 space-y-2">
                   {SAMPLE_TEST_CASES_HEADING_CONTENT.benefits.map((benefit, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
-                      <span className="font-bold" style={{ color: 'var(--info)' }}>
-                        →
-                      </span>
-                      <span style={{ color: 'var(--muted)' }}>{benefit}</span>
+                      <span className="font-bold text-(--color-info)">→</span>
+                      <span className="text-(--color-text-muted)">{benefit}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className="pt-2">
-                  <h3 className="mb-3 text-base font-bold" style={{ color: 'var(--foreground)' }}>
+                  <h3 className="mb-3 text-base font-bold text-(--color-text-primary)">
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.title}
                   </h3>
                   <div className="space-y-2">
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.steps.map((step) => (
                       <div
                         key={step.num}
-                        className={[
-                          'group/card relative flex items-start gap-3.5',
-                          'p-3 rounded-xl border border-transparent',
-                          'border-l-4',
-                          'transition-colors duration-300 ease-out cursor-default select-none',
-                        ].join(' ')}
-                        style={{
-                          backgroundColor: 'var(--surface-raised)',
-                          borderLeftColor: 'var(--info)',
-                        }}
+                        className="group/card relative flex items-start gap-3.5 p-3 rounded-xl border-l-4 border-(--color-info) bg-(--color-bg-field) transition-colors duration-300 ease-out cursor-default select-none"
                       >
-                        <div
-                          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold"
-                          style={{
-                            backgroundColor: 'var(--info-soft)',
-                            color: 'var(--info)',
-                          }}
-                        >
+                        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold bg-(--color-info-light) text-(--color-info)">
                           {step.num}
                         </div>
                         <div className="flex flex-col gap-0.5 min-w-0">
-                          <span
-                            className="text-sm font-bold leading-snug"
-                            style={{ color: 'var(--foreground)' }}
-                          >
+                          <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
                             {step.title}
                           </span>
-                          <span
-                            className="text-xs leading-relaxed"
-                            style={{ color: 'var(--muted)' }}
-                          >
+                          <span className="text-xs leading-relaxed text-(--color-text-muted)">
                             {step.desc}
                           </span>
                         </div>
@@ -110,27 +95,16 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                   </div>
                 </div>
 
-                <div
-                  className="p-3 border rounded-lg"
-                  style={{
-                    backgroundColor: 'var(--info-soft)',
-                    borderColor: 'var(--info)',
-                  }}
-                >
-                  <p
-                    className="flex items-start gap-2 m-0 text-xs"
-                    style={{ color: 'var(--info)' }}
-                  >
-                    <Lightbulb
-                      className="mt-0.5 shrink-0"
-                      style={{ color: 'var(--info)' }}
-                      strokeWidth={2}
-                      size={16}
-                    />
-                    <span>
-                      <strong>Tip:</strong> {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.tip}
-                    </span>
-                  </p>
+                <div className="border-l-2 border-(--color-info) pl-3 py-1 text-xs text-(--color-info) italic leading-relaxed my-3">
+                  <Lightbulb
+                    className="mt-0.5 shrink-0 text-(--color-info)"
+                    strokeWidth={2}
+                    size={16}
+                  />
+                  <span>
+                    <strong className="text-(--color-text-primary)">Tip:</strong>{' '}
+                    {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.tip}
+                  </span>
                 </div>
               </div>
             </Drawer.Body>

@@ -1,7 +1,9 @@
-import { Card, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
 import { BarChart as MuiBarChart } from '@mui/x-charts/BarChart';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
+
+import { chartTheme } from '@/utils/chartTheme';
 
 /**
  * BarChart Component
@@ -36,8 +38,9 @@ export default function BarChart({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--muted-foreground)',
+            color: chartTheme.textColor,
             fontSize: '0.875rem',
+            fontFamily: chartTheme.fontFamily,
           }}
         >
           No data available
@@ -48,18 +51,46 @@ export default function BarChart({
     const series = barConfigs.map((cfg, index) => ({
       dataKey: cfg.dataKey,
       label: cfg.name || cfg.dataKey,
-      color: cfg.fill || cfg.color || colors?.[index] || 'var(--chart-1)',
+      color:
+        cfg.fill ||
+        cfg.color ||
+        colors?.[index] ||
+        chartTheme.colors[index % chartTheme.colors.length],
     }));
 
     return (
-      <div style={{ width: '100%', height: '100%' }}>
+      <div style={{ width: '100%', height: '100%', background: 'transparent' }}>
         <MuiBarChart
           dataset={data}
-          xAxis={[{ scaleType: 'band', dataKey: xAxisKey, label: xAxisLabel }]}
-          yAxis={[{ label: yAxisLabel }]}
+          xAxis={[
+            {
+              scaleType: 'band',
+              dataKey: xAxisKey,
+              label: xAxisLabel,
+              tickLabelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+              labelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize + 1 },
+            },
+          ]}
+          yAxis={[
+            {
+              label: yAxisLabel,
+              tickLabelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+              labelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize + 1 },
+            },
+          ]}
           series={series}
           height={height}
-          slotProps={{ legend: { hidden: !showLegend } }}
+          colors={chartTheme.colors}
+          slotProps={{
+            legend: {
+              hidden: !showLegend,
+              labelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+            },
+          }}
+          grid={{
+            vertical: { stroke: chartTheme.gridColor },
+            horizontal: { stroke: chartTheme.gridColor },
+          }}
         />
       </div>
     );
@@ -67,16 +98,16 @@ export default function BarChart({
 
   if (isLoading) {
     return (
-      <Card className={className} style={{ height }}>
+      <div className={className} style={{ height }}>
         <Skeleton className="w-full h-full" />
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className={className} style={{ height }}>
-      <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
-    </Card>
+    <div className={className} style={{ height, background: 'transparent' }}>
+      <div style={{ width: '100%', height: '100%', background: 'transparent' }}>{chartContent}</div>
+    </div>
   );
 }
 

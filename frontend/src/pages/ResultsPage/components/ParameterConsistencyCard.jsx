@@ -11,10 +11,10 @@ export function ParameterConsistencyCard({ actualResult }) {
   const { score, rating, interpretation, issues } = actualResult.parameter_consistency;
 
   const getScoreColor = (score) => {
-    if (score >= 85) return 'var(--success)';
-    if (score >= 65) return 'var(--info)';
-    if (score >= 40) return 'var(--warning)';
-    return 'var(--danger)';
+    if (score >= 85) return '#6b8f71';
+    if (score >= 65) return '#7a9eb5';
+    if (score >= 40) return '#d4b896';
+    return '#c4956a';
   };
 
   return (
@@ -31,20 +31,12 @@ export function ParameterConsistencyCard({ actualResult }) {
           {issues.map((issue, i) => (
             <div
               key={i}
-              className="p-2 border rounded-lg"
-              style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
+              className="p-2 border rounded-lg bg-(--color-warning-soft) border-(--color-warning)"
             >
-              <p className="text-xs" style={{ color: 'var(--warning)' }}>
-                {issue.issue}
-              </p>
+              <p className="text-xs text-(--color-warning)">{issue.issue}</p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {issue.factors.map((f) => (
-                  <Chip
-                    key={f}
-                    variant="default"
-                    className="text-xs"
-                    style={{ backgroundColor: 'var(--warning-soft)', color: 'var(--warning)' }}
-                  >
+                  <Chip key={f} variant="tag" className="text-xs">
                     {formatFactorName(f)}
                   </Chip>
                 ))}

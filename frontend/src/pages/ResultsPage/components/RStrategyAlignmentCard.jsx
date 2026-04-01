@@ -12,10 +12,10 @@ export function RStrategyAlignmentCard({ actualResult }) {
     actualResult.r_strategy_alignment;
 
   const getScoreColor = (score) => {
-    if (score >= 75) return 'var(--success)';
-    if (score >= 55) return 'var(--info)';
-    if (score >= 35) return 'var(--warning)';
-    return 'var(--danger)';
+    if (score >= 75) return '#6b8f71';
+    if (score >= 55) return '#7a9eb5';
+    if (score >= 35) return '#d4b896';
+    return '#c4956a';
   };
 
   return (
@@ -29,17 +29,12 @@ export function RStrategyAlignmentCard({ actualResult }) {
     >
       {misaligned_factors.length > 0 && (
         <div className="mb-2">
-          <span className="text-xs font-semibold" style={{ color: 'var(--danger)' }}>
+          <span className="text-xs font-semibold text-(--color-error)">
             Critical factors below threshold:
           </span>
           <div className="flex flex-wrap gap-1 mt-1">
             {misaligned_factors.map((f) => (
-              <Chip
-                key={f}
-                variant="default"
-                className="text-xs"
-                style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger)' }}
-              >
+              <Chip key={f} variant="tag" className="text-xs">
                 {formatFactorName(f)}
               </Chip>
             ))}
@@ -48,17 +43,10 @@ export function RStrategyAlignmentCard({ actualResult }) {
       )}
       {well_aligned_factors.length > 0 && (
         <div>
-          <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>
-            Well aligned:
-          </span>
+          <span className="text-xs font-semibold text-(--color-success)">Well aligned:</span>
           <div className="flex flex-wrap gap-1 mt-1">
             {well_aligned_factors.map((f) => (
-              <Chip
-                key={f}
-                variant="default"
-                className="text-xs"
-                style={{ backgroundColor: 'var(--success-soft)', color: 'var(--success)' }}
-              >
+              <Chip key={f} variant="tag" className="text-xs">
                 {formatFactorName(f)}
               </Chip>
             ))}

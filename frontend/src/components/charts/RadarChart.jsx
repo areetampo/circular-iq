@@ -1,6 +1,8 @@
-import { Card, ProgressCircle } from '@heroui/react';
+import { ProgressCircle } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { useCallback, useMemo } from 'react';
+
+import { chartTheme } from '@/utils/chartTheme';
 
 function RadarChartComponent({
   data,
@@ -15,18 +17,8 @@ function RadarChartComponent({
   interactive = true,
   animationDuration = 300,
 }) {
-  // Default color palette for charts - using warm design tokens
-  const defaultColors = useMemo(
-    () => [
-      'var(--chart-1)', // warm blue
-      'var(--chart-2)', // warm green
-      'var(--chart-3)', // warm amber
-      'var(--chart-4)', // warm red
-      'var(--chart-5)', // warm purple
-      'var(--chart-6)', // warm pink
-    ],
-    [],
-  );
+  // Default color palette for charts - using chart theme
+  const defaultColors = useMemo(() => chartTheme.colors, []);
 
   // Early return for invalid data
   if (
@@ -44,8 +36,9 @@ function RadarChartComponent({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--muted-foreground)',
+          color: chartTheme.textColor,
           fontSize: '0.875rem',
+          fontFamily: chartTheme.fontFamily,
         }}
       >
         No data available
@@ -121,27 +114,27 @@ function RadarChartComponent({
 
   if (isLoading) {
     return (
-      <Card className="w-full border border-default-200">
+      <div className="w-full" style={{ minHeight: height || 400 }}>
         <div
           className="flex items-center justify-center w-full"
           style={{ minHeight: height || 400 }}
         >
           <ProgressCircle size="lg" />
         </div>
-      </Card>
+      </div>
     );
   }
 
   if (!chartData || chartData.length === 0) {
     return (
-      <Card className="w-full border border-default-200">
+      <div className="w-full" style={{ minHeight: height || 400 }}>
         <div
-          className="flex items-center justify-center w-full text-default-400"
+          className="flex items-center justify-center w-full text-(--color-text-muted)"
           style={{ minHeight: height || 400 }}
         >
           <span className="text-sm">No data available</span>
         </div>
-      </Card>
+      </div>
     );
   }
 
@@ -150,10 +143,7 @@ function RadarChartComponent({
   const maxValue = 100;
 
   return (
-    <Card
-      className="w-full border border-default-200 overflow-hidden"
-      style={{ height: height || 400 }}
-    >
+    <div className="w-full overflow-hidden" style={{ height: height || 400 }}>
       <div className="w-full h-full flex flex-col items-center justify-center relative p-4">
         <svg width={size} height={size} style={{ overflow: 'visible' }}>
           <defs>
@@ -185,7 +175,7 @@ function RadarChartComponent({
                 cy={center}
                 r={r}
                 fill="none"
-                stroke="#d1d5db"
+                stroke={chartTheme.gridColor}
                 strokeWidth={1}
                 strokeDasharray="3 3"
                 opacity={0.3}
@@ -203,7 +193,7 @@ function RadarChartComponent({
                 y1={center}
                 x2={end.x}
                 y2={end.y}
-                stroke="#d1d5db"
+                stroke={chartTheme.gridColor}
                 strokeWidth={1}
                 opacity={0.3}
               />
@@ -260,7 +250,7 @@ function RadarChartComponent({
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={600}
-                fill="#6b7280"
+                fill={chartTheme.textColor}
               >
                 {subject}
               </text>
@@ -293,14 +283,16 @@ function RadarChartComponent({
               return (
                 <div key={config.dataKey} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-                  <span className="text-xs font-semibold text-default-500">{config.name}</span>
+                  <span className="text-xs font-semibold text-(--color-text-muted)">
+                    {config.name}
+                  </span>
                 </div>
               );
             })}
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
 

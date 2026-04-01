@@ -1,50 +1,22 @@
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 function ChangeIndicator({ diff }) {
   if (diff > 0) {
     return (
-      <div
-        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all duration-200"
-        style={{
-          background: 'var(--success-soft)',
-          color: 'var(--success)',
-          border: '1px solid var(--success)',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
-        <TrendingUp size={11} />+{diff}
-      </div>
+      <span className="text-xs text-(--color-success) flex items-center gap-0.5">
+        <TrendingUp size={10} />+{diff}
+      </span>
     );
   } else if (diff < 0) {
     return (
-      <div
-        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all duration-200"
-        style={{
-          background: 'var(--danger-soft)',
-          color: 'var(--danger)',
-          border: '1px solid var(--danger)',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
-        <TrendingDown size={11} />
+      <span className="text-xs text-(--color-danger) flex items-center gap-0.5">
+        <TrendingDown size={10} />
         {diff}
-      </div>
+      </span>
     );
   }
-  return (
-    <div
-      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all duration-200"
-      style={{
-        background: 'var(--surface-raised)',
-        color: 'var(--muted)',
-        border: '1px solid var(--border)',
-        fontFamily: 'JetBrains Mono, monospace',
-      }}
-    >
-      <Minus size={11} />0
-    </div>
-  );
+  return <span className="text-xs text-(--color-text-muted)">—</span>;
 }
 
 ChangeIndicator.propTypes = {

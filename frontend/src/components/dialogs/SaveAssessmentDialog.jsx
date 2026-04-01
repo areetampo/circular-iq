@@ -17,14 +17,12 @@
  */
 
 import { AlertDialog, Input, Label } from '@heroui/react';
-import { Save } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/common';
 import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { cn } from '@/utils/cn';
 
 /**
  * Content component for save assessment dialog
@@ -117,29 +115,28 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled={true}
+      className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="lg">
-        <AlertDialog.Dialog>
+      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
+        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5">
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Icon status="success">
-                  <Save size={25} />
-                </AlertDialog.Icon>
-                <AlertDialog.Heading>Save Assessment</AlertDialog.Heading>
+                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+                  Save Assessment
+                </AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <AlertDialog.Body>
+              <div className="border-t border-(--color-border) my-4"></div>
+
+              <AlertDialog.Body className="text-sm">
                 <Label
                   htmlFor="name"
-                  className="text-sm font-medium"
-                  style={{
-                    color: 'var(--muted)',
-                  }}
+                  className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-1.5 block"
                 >
-                  Give your assessment a memorable name and choose your privacy settings
+                  Name
                 </Label>
-                <div className="flex flex-col items-center gap-2 mt-2 mb-3 px-2">
+                <div className="flex flex-col items-center gap-2 mt-1 px-2">
                   <Input
                     id="name"
                     placeholder="e.g., Recycled Plastic Packaging Project"
@@ -149,19 +146,11 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       setError('');
                     }}
                     maxLength={100}
-                    className={cn(
-                      'rounded-lg',
-                      error && 'border-danger focus:ring-danger',
-                      'text-xs xs:text-sm',
-                    )}
+                    className="bg-(rgba(245,240,232,0.5)) border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm w-full focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) outline-none"
                     fullWidth
                   />
 
-                  {error && (
-                    <p className="text-sm" style={{ color: 'var(--danger)' }}>
-                      {error}
-                    </p>
-                  )}
+                  {error && <p className="text-sm mt-2 text-(--color-error)">{error}</p>}
                 </div>
 
                 <div className="space-y-3">
@@ -194,25 +183,27 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                 </div>
               </AlertDialog.Body>
 
-              <AlertDialog.Footer>
+              <AlertDialog.Footer className="flex gap-3 mt-5">
                 <Button
-                  variant="tertiary"
+                  variant="dialog-secondary"
                   onPress={() => {
                     close();
                     onClose();
                   }}
                   disabled={isSubmitting}
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
-                  variant="primary"
+                  variant="dialog-primary"
                   onPress={() => {
                     if (!isSubmitting) handleSubmit(close);
                   }}
                   disabled={isSubmitting}
+                  className="flex-1"
                 >
-                  {isSubmitting ? 'Saving...' : 'Save'}
+                  {isSubmitting ? 'Saving...' : 'Save Assessment'}
                 </Button>
               </AlertDialog.Footer>
             </>

@@ -352,7 +352,7 @@ export default function DashboardPage() {
             <LineChart
               data={weeklyData}
               xAxisKey="period"
-              lines={[{ dataKey: 'count', stroke: 'var(--color-info)', name: 'Assessments' }]}
+              lines={[{ dataKey: 'count', stroke: '#b8916a', name: 'Assessments' }]}
               height={240}
               showLegend={false}
             />
@@ -372,7 +372,7 @@ export default function DashboardPage() {
             <BarChart
               data={strategyData}
               xAxisKey="name"
-              barConfigs={[{ dataKey: 'value', fill: 'var(--color-accent)', name: 'Count' }]}
+              barConfigs={[{ dataKey: 'value', fill: '#b8916a', name: 'Count' }]}
               height={240}
               showGrid
             />
@@ -392,7 +392,7 @@ export default function DashboardPage() {
               <BarChart
                 data={industryBarData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: 'var(--color-secondary)', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'count', fill: '#8a6f52', name: 'Count' }]}
                 height={220}
                 showGrid
               />
@@ -412,7 +412,7 @@ export default function DashboardPage() {
               <BarChart
                 data={geoData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: 'var(--color-success)', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'value', fill: '#b8916a', name: 'Count' }]}
                 height={200}
                 showGrid
               />
@@ -469,10 +469,10 @@ export default function DashboardPage() {
                         style={{
                           color:
                             row.avgScore >= 70
-                              ? 'var(--success)'
+                              ? '#6b8f71'
                               : row.avgScore >= 50
-                                ? 'var(--warning)'
-                                : 'var(--danger)',
+                                ? '#d4b896'
+                                : '#c4956a',
                         }}
                       >
                         {row.avgScore?.toFixed(1) ?? 0}%
@@ -520,7 +520,7 @@ export default function DashboardPage() {
                     .slice(0, 8)
                     .map((d) => ({ name: d.industry, count: d.count }))}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: 'var(--chart-1)', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'count', fill: '#d4b896', name: 'Count' }]}
                   height={180}
                   showGrid
                 />
@@ -535,7 +535,7 @@ export default function DashboardPage() {
                     .slice(0, 8)
                     .map((d) => ({ name: d.source, count: d.count }))}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: 'var(--chart-2)', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'count', fill: '#8a6f52', name: 'Count' }]}
                   height={180}
                   showGrid
                 />
@@ -758,7 +758,7 @@ export default function DashboardPage() {
                 <BarChart
                   data={userIndustryData}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: 'var(--chart-3)', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'count', fill: '#d4b896', name: 'Count' }]}
                   height={220}
                   showGrid
                 />

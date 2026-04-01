@@ -17,14 +17,17 @@ export default function EvaluationCriteriaDrawer() {
         if (!open) onClose();
       }}
     >
-      <Drawer.Backdrop>
-        <Drawer.Content placement={direction}>
+      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm">
+        <Drawer.Content
+          placement={direction}
+          className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
+        >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
             {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
             <Drawer.Header>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
+                <div className="flex items-start gap-3">
                   <div
                     className={cn(
                       'p-2 rounded-lg shrink-0',
@@ -32,27 +35,29 @@ export default function EvaluationCriteriaDrawer() {
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
+                      'bg-(--color-success-light)',
                     )}
-                    style={{
-                      backgroundColor: 'var(--success-soft)',
-                    }}
                   >
-                    <ClipboardMinus className="size-5" style={{ color: 'var(--success)' }} />
+                    <ClipboardMinus className="size-5 text-(--color-success)" />
                   </div>
                   <div>
-                    <Drawer.Heading className="text-lg font-semibold">
+                    <h2 className="text-base font-semibold text-(--color-text-primary)">
                       {EVALUATION_CRITERIA_CONTENT.heading}
-                    </Drawer.Heading>
-                    <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                    </h2>
+                    <p className="text-xs text-(--color-text-muted) mt-0.5">
                       {EVALUATION_CRITERIA_CONTENT.subheading}
                     </p>
                   </div>
                 </div>
+                <Drawer.CloseTrigger
+                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
+                  aria-label="Close"
+                />
               </div>
             </Drawer.Header>
-            <Drawer.Body className="gap-6 mt-4">
+            <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                <p className="text-sm text-(--color-text-secondary) leading-relaxed">
                   {EVALUATION_CRITERIA_CONTENT.description}
                 </p>
 
@@ -61,22 +66,20 @@ export default function EvaluationCriteriaDrawer() {
                   {EVALUATION_CRITERIA_CONTENT.metrics.map((metric, idx) => (
                     <div
                       key={idx}
-                      className={`p-3 rounded-lg text-center border`}
-                      style={{
-                        backgroundColor:
-                          metric.color === 'blue' ? 'var(--info-soft)' : 'var(--success-soft)',
-                        borderColor: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
-                      }}
+                      className={`p-3 rounded-lg text-center border ${
+                        metric.color === 'blue'
+                          ? 'bg-(--color-info-light) border-(--color-info)'
+                          : 'bg-(--color-success-light) border-(--color-success)'
+                      }`}
                     >
                       <div
-                        className="text-2xl font-bold"
-                        style={{
-                          color: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
-                        }}
+                        className={`text-2xl font-bold ${
+                          metric.color === 'blue' ? 'text-(--color-info)' : 'text-(--color-success)'
+                        }`}
                       >
                         {metric.number}
                       </div>
-                      <div className="text-xs font-medium mt-1" style={{ color: 'var(--muted)' }}>
+                      <div className="text-xs font-medium mt-1 text-(--color-text-muted)">
                         {metric.label}
                       </div>
                     </div>
@@ -97,49 +100,39 @@ export default function EvaluationCriteriaDrawer() {
                     return (
                       <div
                         key={idx}
-                        className={`p-4 rounded-xl border-l-4`}
-                        style={{
-                          borderLeftColor:
-                            section.color === 'blue'
-                              ? 'var(--info)'
-                              : section.color === 'emerald'
-                                ? 'var(--success)'
-                                : 'var(--accent)',
-                          backgroundColor:
-                            section.color === 'blue'
-                              ? 'var(--info-soft)'
-                              : section.color === 'emerald'
-                                ? 'var(--success-soft)'
-                                : 'var(--accent-soft)',
-                        }}
+                        className={`p-4 rounded-xl border-l-4 ${
+                          section.color === 'blue'
+                            ? 'border-l-(--color-info) bg-(--color-info-light)'
+                            : section.color === 'emerald'
+                              ? 'border-l-(--color-success) bg-(--color-success-light)'
+                              : 'border-l-(--color-accent) bg-(--color-accent-light)'
+                        }`}
                       >
                         <div className="flex items-start gap-2 mb-2">
                           <div
-                            style={{
-                              color:
-                                section.color === 'blue'
-                                  ? 'var(--info)'
-                                  : section.color === 'emerald'
-                                    ? 'var(--success)'
-                                    : 'var(--accent)',
-                            }}
+                            className={`flex items-start gap-2 mb-2 ${
+                              section.color === 'blue'
+                                ? 'text-(--color-info)'
+                                : section.color === 'emerald'
+                                  ? 'text-(--color-success)'
+                                  : 'text-(--color-accent)'
+                            }`}
                           >
                             {icon}
                           </div>
                           <div className="flex-1">
                             <h4
-                              style={{
-                                color:
-                                  section.color === 'blue'
-                                    ? 'var(--info)'
-                                    : section.color === 'emerald'
-                                      ? 'var(--success)'
-                                      : 'var(--accent)',
-                              }}
+                              className={`font-semibold ${
+                                section.color === 'blue'
+                                  ? 'text-(--color-info)'
+                                  : section.color === 'emerald'
+                                    ? 'text-(--color-success)'
+                                    : 'text-(--color-accent)'
+                              }`}
                             >
                               {section.title}
                             </h4>
-                            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                            <p className="text-xs text-(--color-text-muted)">
                               {section.description}
                             </p>
                           </div>
@@ -148,18 +141,12 @@ export default function EvaluationCriteriaDrawer() {
                           {section.factors.map((factor, factorIdx) => (
                             <div
                               key={factorIdx}
-                              style={{
-                                backgroundColor: 'var(--surface)',
-                                borderColor: 'var(--border)',
-                              }}
+                              className="bg-(--color-bg-field) border border-(--color-border)"
                             >
-                              <p
-                                className="text-xs font-semibold"
-                                style={{ color: 'var(--foreground)' }}
-                              >
+                              <p className="text-xs font-semibold text-(--color-text-primary)">
                                 {factor.title}
                               </p>
-                              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                              <p className="text-xs mt-0.5 text-(--color-text-muted)">
                                 {factor.description}
                               </p>
                             </div>
@@ -171,33 +158,21 @@ export default function EvaluationCriteriaDrawer() {
                 </div>
 
                 {/* How We Calculate Section */}
-                <div
-                  className="p-4 rounded-xl border"
-                  style={{
-                    backgroundColor: 'var(--warning-soft)',
-                    borderColor: 'var(--warning)',
-                  }}
-                >
-                  <h4 className="font-bold mb-3 text-base" style={{ color: 'var(--warning)' }}>
+                <div className="border-l-2 border-(--color-warning) pl-3 py-1 text-sm text-(--color-text-secondary) italic leading-relaxed my-3">
+                  <h4 className="font-bold mb-3 text-base text-(--color-warning)">
                     {EVALUATION_CRITERIA_CONTENT.sections.howWeCalculate}
                   </h4>
                   <div className="space-y-2">
                     {EVALUATION_CRITERIA_CONTENT.calculationSteps.map((step) => (
                       <div key={step.number} className="flex items-start gap-3">
-                        <div
-                          className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full text-sm"
-                          style={{ backgroundColor: 'var(--warning)' }}
-                        >
+                        <div className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full text-sm bg-(--color-warning)">
                           {step.number}
                         </div>
                         <div className="flex-1">
-                          <p
-                            className="text-xs font-semibold"
-                            style={{ color: 'var(--foreground)' }}
-                          >
+                          <p className="text-xs font-semibold text-(--color-text-primary)">
                             {step.title}
                           </p>
-                          <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                          <p className="text-xs mt-0.5 text-(--color-text-muted)">
                             {step.description}
                           </p>
                         </div>

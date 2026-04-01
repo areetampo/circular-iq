@@ -29,13 +29,13 @@ export function DatabaseEvidenceTab({
           <Card
             key={assessment.id}
             className={`border-2 ${border} shadow-md rounded-xl`}
-            style={{ backgroundColor: 'var(--surface)' }}
+            style={{ backgroundColor: 'var(--color-bg-card)' }}
           >
             <Card.Header className="flex items-center gap-3 pb-3">
               <div
                 className="p-2.5 rounded-lg"
                 style={{
-                  background: `linear-gradient(to bottom right, var(--${color === 'emerald' ? 'success' : 'info'}-soft), var(--surface))`,
+                  background: `linear-gradient(to bottom right, var(--${color === 'emerald' ? 'success' : 'info'}-soft), var(--color-bg-card))`,
                 }}
               >
                 <FileText className={icon} size={20} />
@@ -61,18 +61,21 @@ export function DatabaseEvidenceTab({
                             : 'Weak Match';
                     const strengthColor =
                       pct >= 80
-                        ? '#22c55e'
+                        ? 'var(--color-success)'
                         : pct >= 60
-                          ? '#3b82f6'
+                          ? 'var(--color-info)'
                           : pct >= 40
-                            ? '#f59e0b'
-                            : '#ef4444';
+                            ? 'var(--color-warning)'
+                            : 'var(--color-danger)';
 
                     return (
                       <div
                         key={idx}
                         className="p-4 border rounded-xl"
-                        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                        style={{
+                          backgroundColor: 'var(--color-bg-card)',
+                          borderColor: 'var(--color-border)',
+                        }}
                       >
                         {/* Header */}
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -142,7 +145,7 @@ export function DatabaseEvidenceTab({
                           <div
                             className="p-3 border-l-4 rounded-lg"
                             style={{
-                              backgroundColor: 'var(--surface)',
+                              backgroundColor: 'var(--color-bg-card)',
                               borderColor: 'var(--info)',
                             }}
                           >

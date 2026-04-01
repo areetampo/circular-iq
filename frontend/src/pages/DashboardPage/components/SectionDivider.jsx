@@ -2,16 +2,9 @@ import PropTypes from 'prop-types';
 
 function SectionDivider({ label, count }) {
   return (
-    <div
-      className="flex items-baseline justify-between border-b pb-2 mb-5"
-      style={{ borderColor: 'var(--border)' }}
-    >
+    <div className="flex items-baseline justify-between border-t border-(--color-border) my-8">
       <span className="label-overline">{label}</span>
-      {count != null && (
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-          {count}
-        </span>
-      )}
+      {count != null && <span className="text-xs text-(--color-text-muted)">{count}</span>}
     </div>
   );
 }

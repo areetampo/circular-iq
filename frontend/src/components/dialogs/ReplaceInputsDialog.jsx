@@ -125,25 +125,36 @@ function ReplaceInputsDialogContent() {
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled
+      className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="md">
-        <AlertDialog.Dialog aria-label={title}>
+      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
+        <AlertDialog.Dialog
+          aria-label={title}
+          className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5"
+        >
           <AlertDialog.Header>
-            <AlertDialog.Icon status="success">
-              <AlertCircle />
+            <AlertDialog.Icon
+              status="accent"
+              className="w-10 h-10 bg-(--color-accent-light) rounded-full flex items-center justify-center text-(--color-accent) mx-auto mb-3"
+            >
+              <AlertCircle size={20} />
             </AlertDialog.Icon>
-            <AlertDialog.Heading>{title}</AlertDialog.Heading>
+            <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+              {title}
+            </AlertDialog.Heading>
           </AlertDialog.Header>
-          <AlertDialog.Body>
-            <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-              {description}
-            </p>
+
+          <div className="border-t border-(--color-border) my-4"></div>
+
+          <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+            {description}
           </AlertDialog.Body>
-          <AlertDialog.Footer>
-            <Button variant="tertiary" onPress={handleCancelClick}>
+
+          <AlertDialog.Footer className="flex gap-3 mt-5">
+            <Button variant="dialog-secondary" onPress={handleCancelClick} className="flex-1">
               {cancelText}
             </Button>
-            <Button variant="danger" onPress={handleConfirmClick}>
+            <Button variant="dialog-primary" onPress={handleConfirmClick} className="flex-1">
               {confirmText}
             </Button>
           </AlertDialog.Footer>
