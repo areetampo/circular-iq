@@ -145,7 +145,7 @@ export default function ErrorDisplay({
               return (
                 <Button
                   key={index}
-                  onPress={action.onPress}
+                  onPress={action.onPress || action.onClick}
                   variant={action.variant || 'secondary'}
                   size={action.size || 'md'}
                   className={`gap-2 ${action.className || ''}`}
