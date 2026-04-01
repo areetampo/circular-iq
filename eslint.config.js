@@ -1,3 +1,7 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { includeIgnoreFile } from '@eslint/compat';
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
@@ -8,14 +12,17 @@ import pluginReact from 'eslint-plugin-react';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const gitignorePath = path.resolve(__dirname, '.gitignore');
+
 export default [
   // Ignores
   {
+    ...includeIgnoreFile(gitignorePath),
+  },
+  {
     ignores: [
-      '**/dist/**',
-      '**/node_modules/**',
-      '**/backend/datasets/**',
-      '**/backend/database/migrations/**',
       // third party
       'frontend/src/components/base/dropdown/**/*.{ts,tsx}',
     ],
@@ -79,7 +86,7 @@ export default [
           groups: [
             'builtin', // Node.js built-ins (fs, path)
             'external', // npm packages (express, react)
-            'internal', // Your #aliases and @aliases
+            'internal', // #aliases and @aliases
             ['parent', 'sibling', 'index'], // Relative paths (../ , ./)
             'object',
             'type',
@@ -97,7 +104,7 @@ export default [
               position: 'after',
             },
           ],
-          pathGroupsExcludedImportTypes: ['builtin'],
+          pathGroupsExcludedImportTypes: ['builtin', 'external'],
           'newlines-between': 'always', // Adds a blank line between groups
           alphabetize: {
             order: 'asc',

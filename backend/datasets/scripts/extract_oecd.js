@@ -20,6 +20,12 @@
  * Output: CSV with standardized columns in datasets/processed/
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -29,10 +35,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.oecd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

@@ -23,6 +23,12 @@
  * Note: Aggregate regions like 'World', 'Arab States', regional groups are excluded
  */
 
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+
 import {
     DATASET_KEYS,
     getDatasetProcessedCsvPath,
@@ -30,10 +36,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.env;
 const rawDir = getDatasetRawDir(DATASET_KEY);

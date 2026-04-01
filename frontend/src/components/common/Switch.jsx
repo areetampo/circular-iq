@@ -21,26 +21,26 @@ const VARIANT_THEMES = {
   default: {
     iconOn: Check,
     iconOff: X,
-    controlSelectedClass: '',
-    controlUnselectedClass: 'bg-[var(--border)]',
-    iconOnClass: 'text-[var(--foreground)]',
-    iconOffClass: 'text-muted',
+    controlSelectedClass: 'bg-[var(--color-accent)]',
+    controlUnselectedClass: 'bg-[var(--color-border-strong)]',
+    iconOnClass: 'text-white',
+    iconOffClass: 'text-[var(--color-text-muted)]',
   },
   public: {
     iconOn: LockOpen,
     iconOff: Lock,
-    controlSelectedClass: 'bg-[var(--success)]/80',
-    controlUnselectedClass: 'bg-[var(--border)]',
-    iconOnClass: 'text-[var(--success-soft-fg)] opacity-100',
-    iconOffClass: 'text-muted opacity-70',
+    controlSelectedClass: 'bg-[var(--color-accent)]',
+    controlUnselectedClass: 'bg-[var(--color-border-strong)]',
+    iconOnClass: 'text-white',
+    iconOffClass: 'text-[var(--color-text-muted)]',
   },
   benchmarks: {
     iconOn: Check,
     iconOff: X,
-    controlSelectedClass: 'bg-[var(--info)]/80',
-    controlUnselectedClass: 'bg-[var(--border)]',
-    iconOnClass: 'text-[var(--info)] opacity-100',
-    iconOffClass: 'text-muted opacity-70',
+    controlSelectedClass: 'bg-[var(--color-accent)]',
+    controlUnselectedClass: 'bg-[var(--color-border-strong)]',
+    iconOnClass: 'text-white',
+    iconOffClass: 'text-[var(--color-text-muted)]',
   },
 };
 
@@ -94,7 +94,7 @@ Switch.Control = React.forwardRef(function Control({ className = '', ...props },
       ref={ref}
       className={cn(
         appliedClass,
-        'transition-colors duration-150 ease-out',
+        'rounded-full h-5 w-9 transition-all duration-200',
         'will-change-colors',
         className,
       )}

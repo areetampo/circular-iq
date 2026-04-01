@@ -23,6 +23,11 @@ import '#server/bootstrap.js';
  *   node scrape_emf.js --append-backup     # append to backup instead of clearing
  */
 
+import { fileURLToPath } from 'url';
+
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
     appendLogs,
@@ -43,9 +48,7 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { fileURLToPath } from 'url';
+
 
 puppeteerExtra.use(StealthPlugin());
 

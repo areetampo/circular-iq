@@ -61,15 +61,13 @@ export function ScoreOverviewSection({
 
       {/* Main Score Display */}
       <div className="text-center mb-8">
-        <div className="font-(--font-display) text-7xl text-(--color-text-primary)">
-          {overallScore || 0}
-        </div>
+        <div className="text-7xl font-bold text-(--color-text-primary)">{overallScore || 0}</div>
         <div className="text-2xl text-(--color-text-muted)">/100</div>
         <div className="text-sm text-(--color-text-muted) uppercase tracking-widest mt-2">
           Circularity Score
         </div>
         {actualResult.metadata?.short_description && (
-          <p className="text-sm text-(--color-text-secondary) mt-4 max-w-2xl mx-auto">
+          <p className="font-semibold text-lg text-(--color-text-primary) leading-snug mb-2 mt-6 max-w-2xl mx-auto">
             {actualResult.metadata.short_description}
           </p>
         )}

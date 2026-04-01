@@ -508,26 +508,9 @@ export default function MyAssessmentsPage() {
   }, []);
 
   // Render only assessment list skeleton - Beautiful spacing
-  const renderAssessmentListSkeleton = useCallback(() => <AssessmentListSkeleton />, []);
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <p className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body) mb-1">
-            YOUR HISTORY
-          </p>
-          <h1 className="font-(--font-display) text-4xl text-(--color-text-primary) leading-tight">
-            Saved Assessments
-          </h1>
-        </div>
-        <Button variant="primary" size="sm" onPress={() => navigate('/')}>
-          + New Assessment
-        </Button>
-      </div>
-
-      {/* INITIAL LOAD: Show all skeletons until data arrives */}
       {isAssessmentStatsLoading ? (
         renderInitialLoadPageSkeleton()
       ) : isAssessmentStatsError ? (
@@ -638,7 +621,7 @@ export default function MyAssessmentsPage() {
           {/* Assessment List Section - ONLY this shows loading during filter changes */}
           <div className="space-y-4">
             {isAssessmentsLoading ? (
-              renderAssessmentListSkeleton()
+              <AssessmentListSkeleton />
             ) : isAssessmentsError ? (
               <ErrorDisplay
                 variant="error"

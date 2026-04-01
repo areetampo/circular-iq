@@ -27,6 +27,14 @@
  * Regions: Asia, Europe, Africa, Americas, Oceania
  */
 
+import { Buffer } from 'buffer';
+import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { promisify } from 'util';
+
+import { parse } from 'csv-parse/sync';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -36,12 +44,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { Buffer } from 'buffer';
-import { exec } from 'child_process';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
 
 const execPromise = promisify(exec);
 

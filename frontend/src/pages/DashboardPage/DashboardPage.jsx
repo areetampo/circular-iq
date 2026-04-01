@@ -243,15 +243,15 @@ export default function DashboardPage() {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10 pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-16">
       {/* Header */}
-      <div className="pt-6 flex items-start justify-between gap-4">
+      <div className="pt-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold flex items-center gap-2 text-(--color-text-primary)">
-            <Globe size={20} className="text-(--color-success)" strokeWidth={2.5} />
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-(--color-text-primary)">
+            <Globe size={24} className="text-(--color-success)" strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p className="text-xs mt-0.5 text-(--color-text-muted)">
+          <p className="text-sm mt-2 text-(--color-text-secondary)">
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -259,9 +259,9 @@ export default function DashboardPage() {
           type="button"
           onClick={refetchGlobal}
           disabled={globalLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-40 hover:border-(--color-accent) hover:bg-(--color-accent-soft) hover:text-(--color-text-primary) border-(--color-border) bg-(--color-bg-field) text-(--color-text-muted)"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg border text-sm font-semibold transition-all disabled:opacity-40 hover:border-(--color-accent) hover:bg-(--color-accent-light) hover:text-(--color-text-primary) border-(--color-border) bg-(--color-bg-field) text-(--color-text-muted)"
         >
-          <RefreshCw size={12} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
+          <RefreshCw size={14} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
         </button>
       </div>
@@ -273,7 +273,7 @@ export default function DashboardPage() {
         <SectionDivider label="GLOBAL ACTIVITY" />
 
         {/* Headline 3 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <StatCard
             title="Total Scored"
             value={totalScoringCalls?.toLocaleString()}
@@ -295,7 +295,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Derived metrics 6-grid — SHORT labels to avoid truncation */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <StatCard
             title="Confidence"
             value={avgConfidence ? `${avgConfidence}%` : null}
@@ -329,14 +329,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Row A: 3 donuts with single-value fallback */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="192px">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+          <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="200px">
             {renderPieOrSingle(scoreDistData, SCORE_COLORS, 'Score data unavailable')}
           </ChartPanel>
-          <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="192px">
+          <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="200px">
             {renderPieOrSingle(tierDistData, TIER_COLORS, 'Tier data unavailable')}
           </ChartPanel>
-          <ChartPanel title="Risk Distribution" isLoading={globalLoading} chartHeight="192px">
+          <ChartPanel title="Risk Distribution" isLoading={globalLoading} chartHeight="200px">
             {renderPieOrSingle(riskDistData, RISK_COLORS, 'Risk data unavailable')}
           </ChartPanel>
         </div>
@@ -402,28 +402,38 @@ export default function DashboardPage() {
           </ChartPanel>
         )}
 
-        {/* Row D: Material + Geography + Scale */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <ChartPanel title="Primary Material" isLoading={globalLoading} chartHeight="192px">
-            {renderPieOrSingle(materialData, undefined, 'No material data')}
-          </ChartPanel>
-          <ChartPanel title="Geographic Focus" isLoading={globalLoading} chartHeight="192px">
-            {geoData.length > 0 ? (
-              <BarChart
-                data={geoData}
-                xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: '#b8916a', name: 'Count' }]}
-                height={200}
-                showGrid
-              />
-            ) : (
-              <EmptyChart />
-            )}
-          </ChartPanel>
-          <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="192px">
-            {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
-          </ChartPanel>
-        </div>
+        {/* Row D: Material + Geography + Scale — each full width */}
+        <ChartPanel
+          title="Primary Material"
+          isLoading={globalLoading}
+          chartHeight="192px"
+          className="mb-4"
+        >
+          {renderPieOrSingle(materialData, undefined, 'No material data')}
+        </ChartPanel>
+
+        <ChartPanel
+          title="Geographic Focus"
+          isLoading={globalLoading}
+          chartHeight="192px"
+          className="mb-4"
+        >
+          {geoData.length > 0 ? (
+            <BarChart
+              data={geoData}
+              xAxisKey="name"
+              barConfigs={[{ dataKey: 'value', fill: '#d4b896', name: 'Count' }]}
+              height={200}
+              showGrid
+            />
+          ) : (
+            <EmptyChart />
+          )}
+        </ChartPanel>
+
+        <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="192px">
+          {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
+        </ChartPanel>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -509,18 +519,20 @@ export default function DashboardPage() {
           <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
         </div>
 
-        {/* Doc distribution charts */}
+        {/* Doc distribution charts — each full width */}
         {!docLoading && docStats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-            <ChartPanel title="Documents by Industry" isLoading={docLoading} chartHeight="180px">
+          <>
+            <ChartPanel
+              title="Documents by Industry"
+              isLoading={docLoading}
+              chartHeight="180px"
+              className="mb-4"
+            >
               {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
                 <BarChart
-                  data={docStats.byIndustry
-                    .filter((d) => d.industry && d.industry !== 'unknown')
-                    .slice(0, 8)
-                    .map((d) => ({ name: d.industry, count: d.count }))}
+                  data={transformIndustryDistribution(docStats.byIndustry)}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: '#d4b896', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'value', fill: '#b8916a', name: 'Documents' }]}
                   height={180}
                   showGrid
                 />
@@ -528,14 +540,13 @@ export default function DashboardPage() {
                 <EmptyChart />
               )}
             </ChartPanel>
-            <ChartPanel title="Documents by Source" isLoading={docLoading} chartHeight="180px">
-              {docStats.bySources && docStats.bySources.length > 0 ? (
+
+            <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="180px">
+              {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
                 <BarChart
-                  data={docStats.bySources
-                    .slice(0, 8)
-                    .map((d) => ({ name: d.source, count: d.count }))}
+                  data={transformMaterialDistribution(docStats.byMaterial)}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: '#8a6f52', name: 'Count' }]}
+                  barConfigs={[{ dataKey: 'value', fill: '#8a6f52', name: 'Documents' }]}
                   height={180}
                   showGrid
                 />
@@ -543,7 +554,7 @@ export default function DashboardPage() {
                 <EmptyChart />
               )}
             </ChartPanel>
-          </div>
+          </>
         )}
 
         {/* ── Featured Solutions ───────────────────────────────────────────── */}
@@ -747,34 +758,33 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Your charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ChartPanel
-              title="Your Assessments by Industry"
-              isLoading={userStatsLoading}
-              chartHeight="220px"
-            >
-              {userIndustryData.length > 0 ? (
-                <BarChart
-                  data={userIndustryData}
-                  xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: '#d4b896', name: 'Count' }]}
-                  height={220}
-                  showGrid
-                />
-              ) : (
-                <EmptyChart />
-              )}
-            </ChartPanel>
+          {/* Your charts — each full width */}
+          <ChartPanel
+            title="Your Assessments by Industry"
+            isLoading={userStatsLoading}
+            chartHeight="220px"
+            className="mb-4"
+          >
+            {userIndustryData.length > 0 ? (
+              <BarChart
+                data={userIndustryData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'count', fill: '#d4b896', name: 'Count' }]}
+                height={220}
+                showGrid
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartPanel>
 
-            <ChartPanel
-              title="Your Assessments by Risk"
-              isLoading={userStatsLoading}
-              chartHeight="220px"
-            >
-              {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
-            </ChartPanel>
-          </div>
+          <ChartPanel
+            title="Your Assessments by Risk"
+            isLoading={userStatsLoading}
+            chartHeight="220px"
+          >
+            {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
+          </ChartPanel>
         </section>
       ) : (
         <div

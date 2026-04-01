@@ -21,6 +21,11 @@
  * For detailed logs, see the path printed at the start of the run.
  */
 
+import { fileURLToPath } from 'url';
+
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
 import {
     appendLogs,
     cleanText,
@@ -40,9 +45,7 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { fileURLToPath } from 'url';
+
 
 puppeteerExtra.use(StealthPlugin());
 

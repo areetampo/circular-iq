@@ -25,6 +25,12 @@
  * Configuration: Target row count (TARGET_ROWS), regional filters, environmental indicators
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -34,10 +40,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.unep;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

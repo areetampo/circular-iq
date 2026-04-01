@@ -22,6 +22,15 @@
  * Output: datasets/processed/dataeu_processed.csv
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+import translate from 'google-translate-api-x';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
+
 import {
     DATASET_KEYS,
     DATASET_LOOKUP,
@@ -30,12 +39,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs';
-import translate from 'google-translate-api-x';
-import path from 'path';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.dataeu;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

@@ -1,12 +1,12 @@
 import { toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import { AlertTriangle, BarChart3, Lightbulb, RefreshCw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, BookOpen, ChevronDown, Target } from 'lucide-react';
+import { debounce, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, Chip } from '@/components/common';
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
@@ -14,6 +14,10 @@ import { assessmentSchema, defaultValues } from '@/features/assessments/validati
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
 import { getCharacterCount } from '@/lib/validation';
+import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
+import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
+import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
+import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 
 // Sample test cases data
 const SAMPLE_TEST_CASES = [
@@ -77,6 +81,9 @@ export default function LandingPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showBusinessContext, setShowBusinessContext] = useState(false);
+  const [showEvaluationParameters, setShowEvaluationParameters] = useState(false);
+  const [innerExpandedKeys, setInnerExpandedKeys] = useState({});
   const formContainerRef = useRef(null);
 
   const methods = useForm({
@@ -89,8 +96,44 @@ export default function LandingPage() {
     register,
     reset,
     handleSubmit,
+    watch,
     formState: { isValid },
   } = methods;
+
+  // Debounced autosave for form data
+  const debouncedSave = useRef(
+    debounce((formData) => {
+      if (isValid) {
+        saveSession({
+          inputs: {
+            businessProblem: formData.businessProblem,
+            businessSolution: formData.businessSolution,
+            evaluationParameters: formData.evaluationParameters || {},
+            businessContext: formData.businessContext || {},
+          },
+        });
+      }
+    }, 1000),
+  ).current;
+
+  // Watch form changes and trigger autosave
+  useEffect(() => {
+    const subscription = watch((formData) => {
+      debouncedSave(formData);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, debouncedSave]);
+
+  // Callbacks for SampleTestCasesContainer
+  const openEvalParams = () => {
+    setShowEvaluationParameters(true);
+    setShowBusinessContext(false);
+  };
+
+  const openBusinessContext = () => {
+    setShowBusinessContext(true);
+    setShowEvaluationParameters(false);
+  };
 
   // Prefetch ResultsPage bundle when form becomes valid
   useEffect(() => {
@@ -204,7 +247,7 @@ export default function LandingPage() {
     <FormProvider {...methods}>
       <div className="min-h-screen bg-transparent">
         {/* Hero Section */}
-        <section className="pt-16 pb-8">
+        <section className="pt-16 pb-10">
           <div className="max-w-6xl mx-auto px-6 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -217,10 +260,9 @@ export default function LandingPage() {
               </p>
 
               {/* Main Headline */}
-              <h1 className="font-(--font-display) text-4xl lg:text-6xl text-(--color-text-primary) leading-tight mb-6">
-                Where circular economy
-                <br className="hidden lg:block" />
-                meets <em className="italic text-(--color-accent)">evidence.</em>
+              <h1 className="font-(--font-display) text-5xl md:text-6xl text-(--color-text-primary) text-center leading-tight mb-6">
+                Where circular economy meets{' '}
+                <em className="not-italic text-(--color-accent)">evidence.</em>
               </h1>
 
               {/* Subtitle */}
@@ -230,7 +272,7 @@ export default function LandingPage() {
               </p>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
                 <Button
                   variant="primary"
                   size="lg"
@@ -253,71 +295,40 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Feature Cards */}
-        <section className="py-8">
-          <div className="max-w-6xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              viewport={{ once: true }}
-            >
-              <div className="text-center mb-12">
-                <h2 className="font-(--font-display) text-3xl text-(--color-text-primary) mb-4">
-                  Why choose our assessment?
-                </h2>
-                <p className="text-lg text-(--color-text-secondary) max-w-2xl mx-auto">
-                  Comprehensive analysis powered by AI and grounded in circular economy principles.
-                </p>
-              </div>
+        {/* Compact Feature Strip */}
+        <div className="flex items-center justify-center gap-8 flex-wrap mb-10 py-6 border-y border-(--color-border)">
+          {/* Assessment Methodology button */}
+          <button
+            onClick={openAssessmentMethodologyDrawer}
+            className="flex items-center gap-2 text-xs text-(--color-text-muted) uppercase tracking-widest hover:text-(--color-accent) transition-colors"
+          >
+            <BookOpen size={14} />
+            Assessment Methodology
+          </button>
 
-              <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
-                {/* AI-Powered */}
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center mb-3 mx-auto">
-                    <RefreshCw className="w-4 h-4 text-(--color-accent)" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
-                    AI-Powered
-                  </h3>
-                  <p className="text-xs text-(--color-text-muted) leading-relaxed">
-                    Machine learning analysis grounded in circular economy principles and real-world
-                    data.
-                  </p>
-                </div>
+          <span className="text-(--color-border-strong)">·</span>
 
-                {/* Multi-Dimensional */}
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center mb-3 mx-auto">
-                    <BarChart3 className="w-4 h-4 text-(--color-accent)" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
-                    Multi-Dimensional
-                  </h3>
-                  <p className="text-xs text-(--color-text-muted) leading-relaxed">
-                    Evaluates across key domains for clarity and depth of analysis.
-                  </p>
-                </div>
+          {/* 3 feature pills inline */}
+          <span className="text-xs text-(--color-text-muted)">AI-Powered Analysis</span>
+          <span className="text-(--color-border-strong)">·</span>
+          <span className="text-xs text-(--color-text-muted)">Multi-Dimensional Scoring</span>
+          <span className="text-(--color-border-strong)">·</span>
+          <span className="text-xs text-(--color-text-muted)">Actionable Results</span>
 
-                {/* Actionable */}
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center mb-3 mx-auto">
-                    <Lightbulb className="w-4 h-4 text-(--color-accent)" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
-                    Actionable
-                  </h3>
-                  <p className="text-xs text-(--color-text-muted) leading-relaxed">
-                    Clear recommendations you can apply immediately to improve circularity outcomes.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+          <span className="text-(--color-border-strong)">·</span>
+
+          {/* Evaluation Criteria button */}
+          <button
+            onClick={openEvaluationCriteriaDrawer}
+            className="flex items-center gap-2 text-xs text-(--color-text-muted) uppercase tracking-widest hover:text-(--color-accent) transition-colors"
+          >
+            <Target size={14} />
+            Evaluation Criteria
+          </button>
+        </div>
 
         {/* Assessment Form */}
-        <section id="assessment-form" className="py-8">
+        <section id="assessment-form" className="py-16">
           <div className="max-w-4xl mx-auto px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -325,54 +336,92 @@ export default function LandingPage() {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               viewport={{ once: true }}
             >
-              {/* Section divider */}
-              <div className="border-t border-(--color-border)" />
-
               {/* Section header */}
-              <div className="pt-8">
+              <div className="border-t border-(--color-border) pt-12 mb-8">
                 <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-1">
                   Evaluate Your Circular Economy Business
                 </h2>
-                <p className="text-sm text-(--color-text-muted) mb-8">
+                <p className="text-sm text-(--color-text-muted)">
                   Describe your business idea using the same structure as real circular economy
                   projects.
                 </p>
               </div>
 
               <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Business Problem + Solution textareas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Business Problem */}
                   <div>
-                    <label className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 flex items-center gap-1">
-                      Business Problem *
+                    <label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-2 items-center gap-1.5 flex">
+                      Business Problem
                     </label>
                     <textarea
                       {...register('businessProblem')}
                       placeholder="What environmental or circular economy challenge does your business address?"
-                      className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize-none transition-all outline-none w-full min-h-35"
+                      className="bg-transparent border border-(--color-border-strong) rounded-lg p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none resize-none w-full min-h-40 transition-colors duration-150 font-(--font-body)"
                       rows={4}
                     />
-                    <p className="text-xs text-(--color-text-muted) text-right mt-1">
-                      Minimum 200 characters
-                    </p>
+                    <LiveCharacterCounter name="businessProblem" />
                   </div>
 
                   {/* Business Solution */}
                   <div>
-                    <label className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 flex items-center gap-1">
-                      Business Solution *
+                    <label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-2 items-center gap-1.5 flex">
+                      Business Solution
                     </label>
                     <textarea
                       {...register('businessSolution')}
                       placeholder="How does your business solve this problem? Include materials, processes, and circularity strategy."
-                      className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize-none transition-all outline-none w-full min-h-35"
+                      className="bg-transparent border border-(--color-border-strong) rounded-lg p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none resize-none w-full min-h-40 transition-colors duration-150 font-(--font-body)"
                       rows={5}
                     />
-                    <p className="text-xs text-(--color-text-muted) text-right mt-1">
-                      Minimum 200 characters
-                    </p>
+                    <LiveCharacterCounter name="businessSolution" />
                   </div>
                 </div>
+
+                {/* Business Context accordion */}
+                <div
+                  className="flex items-center justify-between py-4 border-t border-(--color-border) cursor-pointer group"
+                  onClick={() => setShowBusinessContext(!showBusinessContext)}
+                >
+                  <div>
+                    <span className="text-sm font-medium text-(--color-text-primary)">
+                      Business Context
+                    </span>
+                    <span className="text-xs text-(--color-text-muted) ml-2">
+                      — improves analysis quality
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-(--color-text-muted) transition-transform ${showBusinessContext ? 'rotate-180' : ''}`}
+                  />
+                </div>
+                {showBusinessContext && <BusinessContextContainer loading={loading} />}
+
+                {/* Evaluation Parameters accordion */}
+                <div
+                  className="flex items-center justify-between py-4 border-t border-(--color-border) cursor-pointer group"
+                  onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
+                >
+                  <div>
+                    <span className="text-sm font-medium text-(--color-text-primary)">
+                      Evaluation Parameters
+                    </span>
+                    <span className="text-xs text-(--color-text-muted) ml-2">
+                      — fine-tune scoring weights
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-(--color-text-muted) transition-transform ${showEvaluationParameters ? 'rotate-180' : ''}`}
+                  />
+                </div>
+                {showEvaluationParameters && (
+                  <EvaluationParametersContainer
+                    loading={loading}
+                    expandedKeys={innerExpandedKeys}
+                    setExpandedKeys={setInnerExpandedKeys}
+                  />
+                )}
 
                 {/* Error Display */}
                 {error && (
@@ -385,17 +434,16 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <div className="text-center my-8">
-                  <Button
-                    variant="primary"
-                    className="py-3.5 text-base font-medium"
-                    isLoading={loading}
-                    isDisabled={!isValid}
-                    onPress={handleSubmit(handleFormSubmit)}
+                {/* Evaluate Circularity button */}
+                <div className="mt-8 mb-12">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 bg-(--color-accent) text-white text-sm rounded-lg hover:bg-(--color-accent-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-(--font-body)"
+                    onClick={handleSubmit(handleFormSubmit)}
                   >
                     {loading ? 'Evaluating...' : 'Evaluate Circularity'}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -405,97 +453,11 @@ export default function LandingPage() {
         {/* Sample Test Cases */}
         <section className="py-8">
           <div className="max-w-6xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              viewport={{ once: true }}
-            >
-              {/* Section header with info icon and collapse */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="font-(--font-display) text-lg text-(--color-text-primary) mb-1">
-                    Sample Test Cases
-                  </h2>
-                  <p className="text-sm text-(--color-text-muted)">
-                    Auto-fill the form with curated examples for quick testing
-                  </p>
-                </div>
-                <button className="text-(--color-text-muted) hover:text-(--color-text-primary)">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-(--color-border) mb-6" />
-
-              {/* Test cases grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {SAMPLE_TEST_CASES.map((testCase, index) => (
-                  <motion.div
-                    key={testCase.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="bg-[rgba(245,240,232,0.5)] border border-(--color-border) rounded-md p-4 cursor-pointer hover:border-(--color-accent) hover:bg-(--color-accent-light) transition-all"
-                    onClick={() => handleSampleTestSelect(testCase)}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Number badge */}
-                      <div className="text-xs font-mono text-(--color-text-muted) bg-(--color-accent-light) rounded-sm px-1.5 py-0.5 mr-2">
-                        #{index + 1}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">
-                          {testCase.title}
-                        </h3>
-                        <p className="text-xs text-(--color-text-muted) mt-1 line-clamp-2 leading-relaxed">
-                          {testCase.businessProblem}
-                        </p>
-
-                        {/* Score chips */}
-                        <div className="flex gap-2 mt-2">
-                          <Chip variant="score">
-                            {testCase.evaluationParameters.material_efficiency}/5
-                          </Chip>
-                          <Chip variant="score">
-                            {testCase.evaluationParameters.business_model_innovation}/5
-                          </Chip>
-                        </div>
-
-                        {/* View details link */}
-                        <button className="text-xs text-(--color-accent) hover:underline flex items-center gap-1 mt-2">
-                          View details
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+            <SampleTestCasesContainer
+              setShowEvaluationParameters={setShowEvaluationParameters}
+              openEvalParams={openEvalParams}
+              openBusinessContext={openBusinessContext}
+            />
           </div>
         </section>
       </div>

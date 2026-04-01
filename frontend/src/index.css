@@ -1,5 +1,4 @@
-/* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Google Fonts - loaded in index.html */
 
 @import 'tailwindcss';
 
@@ -173,6 +172,42 @@
   .dark body {
     background-color: #0a0a0a;
     color: #fafafa;
+  }
+
+  /* Kill all default browser focus outlines */
+  *:focus {
+    outline: none !important;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-accent) !important;
+    outline-offset: 2px !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  /* HeroUI specific — kill their internal focus rings */
+  [data-focus-visible],
+  [data-focused],
+  [data-focus-visible='true'] {
+    outline: none !important;
+    box-shadow: none !important;
+    ring: none !important;
+  }
+  [data-slot='base']:focus,
+  [data-slot='trigger']:focus,
+  [data-slot='item']:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Kill the rectangular focus indicator on nav links specifically */
+  a:focus,
+  button:focus,
+  [role='button']:focus,
+  [role='link']:focus,
+  [role='tab']:focus,
+  [role='menuitem']:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
 }
 
@@ -502,26 +537,121 @@
   .font-mono {
     font-family: var(--font-mono);
   }
+
+  /* Restrict display font — only for true headings and hero text */
+  /* Reset body to DM Sans */
+  body,
+  p,
+  span,
+  li,
+  td,
+  th,
+  label,
+  input,
+  textarea,
+  select,
+  button {
+    font-family: var(--font-body) !important;
+  }
+
+  /* Allow display font only on explicitly marked headings */
+  h1.display,
+  h2.display,
+  .font-display,
+  [class*='font-display'] {
+    font-family: var(--font-display);
+  }
+
+  /* Specifically — score numbers, hero text, page titles should use display */
+  /* Everything in dialogs, drawers, tables, data rows = body font */
+  [data-slot='dialog'] *,
+  [data-slot='drawer'] *,
+  .drawer-content * {
+    font-family: var(--font-body) !important;
+  }
+
+  /* Remove HeroUI's internal focus rings completely */
+  [class*='ring-'] {
+    --tw-ring-shadow: none !important;
+  }
+
+  /* Ensure no element shows browser default blue focus box */
+  *:focus:not(:focus-visible) {
+    outline: none !important;
+  }
+
+  /* Fix rounded-full buttons — HeroUI applies this by default */
+  [data-slot='base'].rounded-full {
+    border-radius: var(--radius-lg) !important;
+  }
+
+  /* HeroUI Accordion — remove focus ring on trigger */
+  [data-slot='trigger']:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Landing page selects */
+  .landing-select [data-slot='trigger'] {
+    background: transparent !important;
+    border: 1px solid var(--color-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--color-text-primary) !important;
+    font-family: var(--font-body) !important;
+  }
+
+  /* Number field inputs */
+  .number-field-input {
+    background: transparent !important;
+    border: 1px solid var(--color-border-strong) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--color-text-primary) !important;
+    font-family: var(--font-body) !important;
+    text-align: center;
+  }
+
+  /* Tab focus */
+  [role='tab']:focus-visible {
+    outline: none !important;
+  }
 }
 
 /* Animated diagonal grid */
 @keyframes gridMove {
   0% {
-    background-position: 0 0;
+    background-position:
+      0 0,
+      0 0;
   }
   100% {
-    background-position: -60px 60px;
+    background-position:
+      -60px 60px,
+      -60px 60px;
   }
 }
 
-body,
-#root {
-  background-color: var(--color-bg);
+html,
+body {
+  min-height: 100%;
+  background-color: #f5f0e8;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background-image:
-    linear-gradient(rgba(180, 160, 130, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(180, 160, 130, 0.1) 1px, transparent 1px);
+    linear-gradient(rgba(180, 160, 130, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 160, 130, 0.09) 1px, transparent 1px);
   background-size: 60px 60px;
-  animation: gridMove 18s linear infinite;
+  animation: gridMove 20s linear infinite;
+  pointer-events: none;
+}
+
+#root {
+  background: transparent;
+  min-height: 100vh;
 }
 
 /* Scrollbar styles */
@@ -1108,5 +1238,59 @@ code,
   [data-slot='card-header'],
   [data-slot='card-footer'] {
     background: transparent !important;
+  }
+
+  /* Kill all default browser focus outlines */
+  *:focus {
+    outline: none !important;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-accent) !important;
+    outline-offset: 2px !important;
+    border-radius: var(--radius-sm) !important;
+  }
+
+  /* HeroUI specific — kill their internal focus rings */
+  [data-focus-visible],
+  [data-focused],
+  [data-focus-visible='true'] {
+    outline: none !important;
+    box-shadow: none !important;
+    ring: none !important;
+  }
+  [data-slot='base']:focus,
+  [data-slot='trigger']:focus,
+  [data-slot='item']:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Kill the rectangular focus indicator on nav links specifically */
+  a:focus,
+  button:focus,
+  [role='button']:focus,
+  [role='link']:focus,
+  [role='tab']:focus,
+  [role='menuitem']:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Dialog font usage — enforce body font everywhere */
+  [data-slot='dialog'],
+  [data-slot='alert-dialog'],
+  [data-slot='modal'],
+  [data-slot='drawer'],
+  [data-slot='popover'],
+  [data-slot='tooltip'] {
+    font-family: var(--font-body) !important;
+  }
+  [data-slot='dialog'] *,
+  [data-slot='alert-dialog'] *,
+  [data-slot='modal'] *,
+  [data-slot='drawer'] *,
+  [data-slot='popover'] *,
+  [data-slot='tooltip'] * {
+    font-family: inherit !important;
   }
 }

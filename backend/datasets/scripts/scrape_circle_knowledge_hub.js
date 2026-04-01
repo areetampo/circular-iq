@@ -21,6 +21,11 @@
  *   node scrape_circle_knowledge_hub.js --append-backup     # append to backup instead of clearing on start
  */
 
+import { fileURLToPath } from 'url';
+
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
 import {
     appendLogs,
     cleanText,
@@ -40,9 +45,7 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { fileURLToPath } from 'url';
+
 
 // Add stealth plugin to avoid detection
 puppeteerExtra.use(StealthPlugin());

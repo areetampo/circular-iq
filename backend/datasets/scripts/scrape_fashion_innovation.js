@@ -26,6 +26,13 @@
  *   node scrape_fashion_innovation.js --append-backup     # append to backup instead of clearing
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
 import {
     appendLogs,
     cleanText,
@@ -46,11 +53,6 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import fs from 'fs';
-import path from 'path';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { fileURLToPath } from 'url';
 
 puppeteerExtra.use(StealthPlugin());
 

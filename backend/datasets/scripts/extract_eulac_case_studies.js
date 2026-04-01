@@ -25,6 +25,12 @@
  * Configuration: Field headers defined in FIELD_HEADERS array for parsing
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -33,10 +39,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import fs from 'fs';
-import path from 'path';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.eulac;
 const RAW_PDF = path.join(getDatasetRawDir(DATASET_KEY), 'eulac_case_studies.pdf');

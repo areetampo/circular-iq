@@ -1,15 +1,19 @@
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignupForm } from '@/components/auth/SignupForm';
-
-import AuthMobileHeader from './AuthMobileHeader';
+import { SITE_FULL_NAME } from '@/components/common';
 
 export default function AuthRightPanel({ view, setView }) {
   return (
-    <div className="bg-transparent flex flex-col items-center justify-center h-full overflow-y-auto px-8">
-      <div className="w-full max-w-sm mx-auto">
-        {/* Mobile header - logo + site name above form on mobile */}
-        <div className="lg:hidden mb-8">
-          <AuthMobileHeader />
+    <div className="flex flex-col items-center justify-center min-h-screen px-8 md:px-12 lg:px-16">
+      <div className="w-full max-w-sm">
+        {/* Mobile only: small logo + site name at top */}
+        <div className="mb-8 md:hidden">
+          <div className="flex items-center gap-3">
+            <img src="/siteLogo.png" alt="Site Logo" className="h-7 w-auto" />
+            <span className="text-sm font-medium text-(--color-text-primary)">
+              {SITE_FULL_NAME}
+            </span>
+          </div>
         </div>
 
         {/* Form directly on background - no card wrapper */}

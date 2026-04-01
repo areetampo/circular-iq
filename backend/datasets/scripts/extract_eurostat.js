@@ -24,6 +24,12 @@
  * Configuration: Raw file names defined in DATASET_LOOKUP[DATASET_KEYS.eurostat].raw_folder_contents
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -34,10 +40,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.eurostat;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

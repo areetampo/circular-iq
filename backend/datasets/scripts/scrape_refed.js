@@ -23,6 +23,10 @@
  * Output: datasets/processed/refed_processed.csv
  */
 
+import { fileURLToPath } from 'url';
+
+import axios from 'axios';
+
 import {
     appendLogs,
     cleanText,
@@ -37,8 +41,6 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import axios from 'axios';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.refed;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

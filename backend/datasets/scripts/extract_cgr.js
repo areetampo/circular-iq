@@ -16,6 +16,12 @@
  * Output: datasets/processed/cgr_processed.csv
  */
 
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -25,10 +31,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import fs from 'fs/promises';
-import path from 'path';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { fileURLToPath } from 'url';
 
 // =============================================================================
 // CONFIGURATION

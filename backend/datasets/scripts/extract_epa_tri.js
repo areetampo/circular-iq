@@ -24,6 +24,12 @@
  * Scoring dimensions: Total Release (40%), Recovery Activity (35%), Disposal Inefficiency (25%)
  */
 
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -32,10 +38,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.epa;
 const rawDir = getDatasetRawDir(DATASET_KEY);

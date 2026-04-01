@@ -4,23 +4,71 @@ import PropTypes from 'prop-types';
 
 /**
  * Variant styles for the luxury minimal button system
- * Based on UI 21 specifications
+ * Based on UI 39-42 specifications
  */
 const variantStyles = {
-  primary:
-    'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] border border-transparent',
-  secondary:
-    'bg-transparent text-[var(--color-text-primary)] border border-[var(--color-border-strong)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
-  ghost:
-    'bg-transparent text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-accent-light)]',
-  danger:
-    'bg-transparent text-[var(--color-error)] border border-[rgba(139,58,58,0.25)] hover:bg-[rgba(139,58,58,0.07)]',
-  'dialog-primary':
-    'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] w-full',
-  'dialog-secondary':
-    'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border-strong)] hover:bg-[var(--color-accent-light)] w-full',
-  'results-action':
-    'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] text-xs tracking-wide uppercase',
+  // Primary — used for main CTAs. Warm but lighter, not heavy dark brown.
+  primary: [
+    'bg-[var(--color-accent)] text-white',
+    'hover:bg-[var(--color-accent-hover)]',
+    'border border-transparent',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Secondary — bordered, no fill. Used for secondary actions.
+  secondary: [
+    'bg-transparent text-[var(--color-text-primary)]',
+    'border border-[var(--color-border-strong)]',
+    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Ghost — no border, minimal. Used for tertiary/icon actions.
+  ghost: [
+    'bg-transparent text-[var(--color-text-secondary)]',
+    'border border-transparent',
+    'hover:text-[var(--color-text-primary)] hover:bg-[var(--color-accent-light)]',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Danger — for destructive actions.
+  danger: [
+    'bg-transparent text-[var(--color-error)]',
+    'border border-[rgba(139,58,58,0.3)]',
+    'hover:bg-[rgba(139,58,58,0.06)]',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Results-action — top of results/comparison page. Small, uppercase, minimal.
+  'results-action': [
+    'bg-transparent text-[var(--color-text-secondary)]',
+    'border border-[var(--color-border)]',
+    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+    'text-xs tracking-wide uppercase',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Dialog variants
+  'dialog-primary': [
+    'bg-[var(--color-accent)] text-white w-full',
+    'hover:bg-[var(--color-accent-hover)]',
+    'transition-colors duration-150',
+  ].join(' '),
+  'dialog-secondary': [
+    'bg-transparent text-[var(--color-text-secondary)] w-full',
+    'border border-[var(--color-border-strong)]',
+    'hover:bg-[var(--color-accent-light)]',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Eco-soft — used on test case cards
+  'eco-soft': [
+    'bg-transparent text-[var(--color-accent)]',
+    'border border-[var(--color-border)]',
+    'hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-light)]',
+    'text-xs',
+    'transition-colors duration-150',
+  ].join(' '),
 };
 
 /**
@@ -58,7 +106,7 @@ export function Button({
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
   const isButtonDisabled = isDisabled || disabled || isLoading;
   const baseClasses =
-    'transition-colors duration-150 rounded-[var(--radius-md)] font-medium inline-flex items-center justify-center gap-2 outline-none focus:ring-2 focus:ring-[var(--color-accent-light)] focus:ring-offset-1';
+    'transition-colors duration-150 rounded-lg font-[var(--font-body)] inline-flex items-center justify-center gap-2 outline-none';
 
   const buttonContent = isLoading ? (
     <span className="flex items-center justify-center gap-2 w-full">
@@ -97,6 +145,7 @@ Button.propTypes = {
     'dialog-primary',
     'dialog-secondary',
     'results-action',
+    'eco-soft',
   ]),
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   className: PropTypes.string,

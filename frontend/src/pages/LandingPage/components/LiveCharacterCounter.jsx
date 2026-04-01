@@ -1,6 +1,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { getCharacterCount } from '@/lib/validation';
+import { cn } from '@/utils/cn';
 
 /**
  * LiveCharacterCounter - Isolated character counter component
@@ -22,7 +23,12 @@ export default function LiveCharacterCounter({ fieldName, minLength = 200 }) {
   const isValid = charCount >= minLength;
 
   return (
-    <div className="text-xs text-(--color-text-muted) text-right mt-1">
+    <div
+      className={cn(
+        'text-xs font-medium transition-colors text-right mt-1',
+        isValid ? 'text-(--color-success)' : 'text-(--color-text-muted)',
+      )}
+    >
       {charCount} / {minLength} characters
     </div>
   );

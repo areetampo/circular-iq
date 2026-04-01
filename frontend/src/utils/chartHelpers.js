@@ -4,24 +4,24 @@
 
 // ─── Colours ──────────────────────────────────────────────────────────────────
 export const TIER_COLORS = [
-  'var(--success)',
-  'var(--info)',
-  'var(--warning)',
-  'var(--danger)',
-  'var(--muted)',
+  '#4a7c59', // success green
+  '#5a4f42', // text secondary
+  '#b07d3a', // warning amber
+  '#8b3a3a', // error red
+  '#9a8f82', // text muted
 ];
 
-export const RISK_COLORS = ['var(--success)', 'var(--warning)', 'var(--danger)', 'var(--muted)'];
+export const RISK_COLORS = ['#4a7c59', '#b07d3a', '#8b3a3a', '#9a8f82'];
 
-export const SCORE_COLORS = ['var(--danger)', 'var(--warning)', 'var(--info)', 'var(--success)'];
+export const SCORE_COLORS = ['#8b3a3a', '#b07d3a', '#5a4f42', '#4a7c59'];
 
 export const SCALE_COLORS = [
-  'var(--danger)',
-  'var(--warning)',
-  'var(--info)',
-  'var(--success)',
-  'var(--accent)',
-  'var(--muted)',
+  '#8b3a3a', // error red
+  '#b07d3a', // warning amber
+  '#5a4f42', // text secondary
+  '#4a7c59', // success green
+  '#b8916a', // warm accent brown
+  '#9a8f82', // text muted
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -98,10 +98,10 @@ export function SignupForm({ onSwitchToLogin }) {
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-1">
+        <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) text-center mb-1">
           Create Account
         </h2>
-        <p className="text-sm text-(--color-text-muted)">
+        <p className="text-sm text-(--color-text-muted) text-center">
           Join to start evaluating circular economy ideas
         </p>
       </div>
@@ -116,7 +116,7 @@ export function SignupForm({ onSwitchToLogin }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+          <Label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
             Username *
           </Label>
           <Controller
@@ -129,7 +129,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="text"
                   placeholder="your_username"
                   disabled={isLoading}
-                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-3 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none transition-colors duration-150 font-(--font-body)"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -151,7 +151,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+          <Label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
             Password *
           </Label>
           <Controller
@@ -164,7 +164,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="password"
                   placeholder="•••••"
                   disabled={isLoading}
-                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-3 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none transition-colors duration-150 font-(--font-body)"
                   autoComplete="new-password"
                 />
                 {errors.password && (
@@ -183,7 +183,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
         {/* Confirm Password */}
         <div className="mb-5">
-          <Label className="text-xs font-medium text-(--color-text-secondary) uppercase tracking-wide mb-1.5 block">
+          <Label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
             Confirm Password *
           </Label>
           <Controller
@@ -196,7 +196,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="password"
                   placeholder="••••••"
                   disabled={isLoading}
-                  className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none w-full"
+                  className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-3 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none transition-colors duration-150 font-(--font-body)"
                   autoComplete="new-password"
                 />
                 {errors.confirmPassword && (
@@ -221,16 +221,16 @@ export function SignupForm({ onSwitchToLogin }) {
       </Form>
 
       {/* Toggle link */}
-      <div className="text-sm text-(--color-text-muted) text-center mt-6">
+      <p className="text-sm text-(--color-text-muted) text-center mt-6">
         Already have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-(--color-accent) hover:underline"
+          className="text-(--color-accent) hover:underline font-medium"
         >
           Sign in
         </button>
-      </div>
+      </p>
     </div>
   );
 }

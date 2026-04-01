@@ -1,4 +1,4 @@
-import { Accordion, Input, toast, Tooltip } from '@heroui/react';
+import { Accordion, Input, toast } from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -8,11 +8,9 @@ import {
   CircleX,
   ClipboardList,
   Download,
-  FileText,
   FolderPen,
   Globe,
   Lightbulb,
-  MonitorDown,
   RefreshCw,
   Save,
   Target,
@@ -849,9 +847,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
 
         {/* Buttons Bar */}
-        <div className="flex items-center justify-between">
-          {/* Left side: Navigation buttons */}
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          {/* Left group - navigation */}
+          <div className="flex items-center gap-2">
             {/* Show public share notice for public viewers */}
             {isPublicShare && (
               <Chip variant="category" className="gap-1">
@@ -862,76 +860,40 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
             {!isPublicShare && (
               <>
-                <Button variant="results-action" onPress={handleViewHistory}>
-                  <FileText size={14} />
-                  My Assessments
+                <Button variant="ghost" size="sm" onPress={handleViewHistory}>
+                  <ArrowLeft size={14} className="mr-1" /> My Assessments
                 </Button>
                 {currentData && (
-                  <Button variant="results-action" onPress={handleReevaluate}>
-                    <RefreshCw size={14} />
-                    Re-evaluate
+                  <Button variant="ghost" size="sm" onPress={handleReevaluate}>
+                    <RefreshCw size={14} className="mr-1" /> Re-evaluate
                   </Button>
                 )}
               </>
             )}
           </div>
 
-          {/* Right side: Export actions */}
-          <div className="flex items-center gap-3">
-            {/* Export actions: visible to everyone but disabled for anonymous users. */}
-            <Tooltip delay={0} placement="top" isDisabled={!!user}>
-              <Tooltip.Trigger>
-                <Button
-                  variant="tertiary"
-                  onPress={user ? handleDownloadPDF : undefined}
-                  isDisabled={!user || isExporting}
-                  disabled={!user || isExporting}
-                  title={!user ? 'Sign in to get access to them' : undefined}
-                >
-                  <MonitorDown size={16} />
-                  Download PDF
-                </Button>
-              </Tooltip.Trigger>
-              <Tooltip.Content showArrow placement="top">
-                <Tooltip.Arrow />
-                <p className="text-xs font-bold">
-                  {user
-                    ? isExporting
-                      ? 'Export in progress'
-                      : 'Download result as PDF'
-                    : 'Sign in to get access to them'}
-                </p>
-              </Tooltip.Content>
-            </Tooltip>
-
-            <Tooltip delay={0} placement="top" isDisabled={!!user}>
-              <Tooltip.Trigger>
-                <Button
-                  variant="tertiary"
-                  onPress={user ? handleDownloadCSV : undefined}
-                  isDisabled={!user || isExporting}
-                  disabled={!user || isExporting}
-                  title={!user ? 'Sign in to get access to them' : undefined}
-                >
-                  <Download size={16} />
-                  Cases CSV
-                </Button>
-              </Tooltip.Trigger>
-              <Tooltip.Content showArrow placement="top">
-                <Tooltip.Arrow />
-                <p className="text-xs font-bold">
-                  {user
-                    ? isExporting
-                      ? 'Export in progress'
-                      : 'Export cases as CSV'
-                    : 'Sign in to get access to them'}
-                </p>
-              </Tooltip.Content>
-            </Tooltip>
-
+          {/* Right group - actions, pushed to end */}
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <Button
+              variant="results-action"
+              size="sm"
+              onPress={user ? handleDownloadPDF : undefined}
+              isDisabled={!user || isExporting}
+            >
+              <Download size={14} className="mr-1" /> PDF
+            </Button>
+            <Button
+              variant="results-action"
+              size="sm"
+              onPress={user ? handleDownloadCSV : undefined}
+              isDisabled={!user || isExporting}
+            >
+              <Download size={14} className="mr-1" /> CSV
+            </Button>
             {!isViewFromMyAssessments && !isPublicShare && (
               <Button
-                variant="primary"
+                variant="secondary"
+                size="sm"
                 onPress={() => {
                   if (!user) {
                     // Anonymous user: ensure the current result is persisted in the session
@@ -987,8 +949,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 }}
                 disabled={isExporting}
               >
-                <Save size={16} />
-                Save
+                <Save size={14} className="mr-1" /> Save
               </Button>
             )}
             {/* If this assessment belongs to the current user, show rename/delete */}

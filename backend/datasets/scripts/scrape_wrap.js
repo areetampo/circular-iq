@@ -34,6 +34,15 @@
  *   • Backup in datasets/archives/scrape_backup/wrap_scrape_backup/
  */
 
+import fs from 'fs';
+import path from 'path';
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
+import { fileURLToPath } from 'url';
+
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
 import {
     appendLogs,
     cleanText,
@@ -56,13 +65,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import fs from 'fs';
-import path from 'path';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
-import { fileURLToPath } from 'url';
 
 puppeteerExtra.use(StealthPlugin());
 

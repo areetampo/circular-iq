@@ -1,10 +1,10 @@
-import { Tooltip } from '@heroui/react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import { Chip, Switch } from '@/components/common';
 import { formatTimestamp } from '@/lib/formatting';
+import { cn } from '@/utils/cn';
 
 const AssessmentListItem = React.memo(function AssessmentListItem({
   assessment,
@@ -21,9 +21,12 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 
   return (
     <div
-      className={`bg-transparent border-(--color-border) rounded-md hover:border-(--color-accent) transition-all duration-200 mb-3 cursor-pointer ${
-        isSelected ? 'border-(--color-accent) bg-(--color-accent-light)' : ''
-      }`}
+      className={cn(
+        'border rounded-lg p-4 mb-3 transition-colors',
+        isSelected
+          ? 'border-(--color-accent) bg-(--color-accent-light)'
+          : 'border-(--color-border) bg-transparent hover:border-(--color-border-strong)',
+      )}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
       onClick={() => onView(assessment.public_id)}
       role="button"
@@ -36,132 +39,88 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       }}
       aria-label={`View assessment: ${assessment.title || 'Untitled'}`}
     >
-      {/* Top row */}
+      {/* Top row: checkbox + status + name + score + conf + icons */}
       <div className="flex items-center gap-3 mb-2">
-        {/* Checkbox for compare */}
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id={`select-${assessment.id}`}
-            checked={isSelected}
-            onChange={(e) => {
-              e.stopPropagation();
-              onToggleSelect(assessment.id);
-            }}
-            className="w-4 h-4 rounded border-(--color-border-strong) text-(--color-accent) focus:ring-(--color-accent-light)"
-            onClick={(e) => e.stopPropagation()}
-            aria-label={`Select assessment: ${assessment.title || 'Untitled'} for comparison`}
-          />
-        </div>
-
-        {/* Status chip */}
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onToggleSelect}
+          className="w-4 h-4 accent-(--color-accent) shrink-0"
+          title="Select for comparison"
+          onClick={(e) => e.stopPropagation()}
+        />
         <Chip variant="status">{assessment.metadata?.tier || 'UNRATED'}</Chip>
-
-        {/* Assessment name */}
         <span className="text-sm font-semibold text-(--color-text-primary) flex-1 truncate">
           {assessment.title || 'Untitled Assessment'}
         </span>
-
-        {/* Score */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-(--color-text-primary)">
-            {assessment.score || 0}
-          </span>
-          <span className="text-xs text-(--color-text-muted)">/100</span>
-        </div>
-
-        {/* Confidence */}
+        <span className="text-xl font-(--font-display) text-(--color-text-primary)">
+          {assessment.score || 0}
+          <span className="text-xs text-(--color-text-muted) font-normal">/100</span>
+        </span>
         <span className="text-xs text-(--color-text-muted)">
           {assessment.confidence_level || 0}% CONF.
         </span>
-
-        {/* Action icons */}
-        <div className="flex items-center gap-2 ml-3">
-          <Tooltip content="View">
-            <button
-              className="text-(--color-text-muted) hover:text-(--color-text-primary) w-4 h-4 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                onView(assessment.public_id);
-              }}
-            >
-              <Eye size={16} />
-            </button>
-          </Tooltip>
-          <Tooltip content="Rename">
-            <button
-              className="text-(--color-text-muted) hover:text-(--color-text-primary) w-4 h-4 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRename(assessment.id);
-              }}
-            >
-              <Pencil size={16} />
-            </button>
-          </Tooltip>
-          <Tooltip content="Delete">
-            <button
-              className="text-(--color-text-muted) hover:text-(--color-text-primary) w-4 h-4 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(assessment.id);
-              }}
-            >
-              <Trash2 size={16} />
-            </button>
-          </Tooltip>
+        {/* Icon actions */}
+        <div className="flex items-center gap-1 ml-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(assessment.public_id);
+            }}
+            title="View"
+            className="p-1.5 text-(--color-text-muted) hover:text-(--color-text-primary) rounded transition-colors"
+          >
+            <Eye size={15} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRename(assessment.id);
+            }}
+            title="Rename"
+            className="p-1.5 text-(--color-text-muted) hover:text-(--color-text-primary) rounded transition-colors"
+          >
+            <Pencil size={15} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(assessment.id);
+            }}
+            title="Delete"
+            className="p-1.5 text-(--color-text-muted) hover:text-(--color-error) rounded transition-colors"
+          >
+            <Trash2 size={15} />
+          </button>
         </div>
       </div>
 
-      {/* Bottom row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* Industry chip */}
-          {assessment.industry && <Chip variant="category">{assessment.industry}</Chip>}
+      {/* Bottom row: industry + date + preview */}
+      <div className="flex items-center gap-3 flex-wrap mb-2">
+        <Chip variant="category">{assessment.industry}</Chip>
+        <span className="text-xs text-(--color-text-muted)">{formattedDate}</span>
+        <span className="text-xs text-(--color-text-muted) truncate max-w-xs">
+          {assessment.problem || assessment.description}
+        </span>
+      </div>
 
-          {/* Date */}
-          <span className="text-xs text-(--color-text-muted)">{formattedDate}</span>
-
-          {/* Preview text */}
-          {assessment.business_problem && (
-            <span className="text-xs text-(--color-text-muted) truncate max-w-xs">
-              {assessment.business_problem}
-            </span>
-          )}
-        </div>
-
-        {/* Toggles */}
-        <div className="flex items-center gap-3">
-          {/* Benchmarks toggle */}
-          <div className="flex items-center gap-1">
-            <Switch
-              size="sm"
-              isSelected={assessment.contribute_to_global_benchmarks}
-              onValueChange={(value) => {
-                onToggleBenchmarks(assessment.id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <span className="text-xs text-(--color-text-muted)">Benchmarks</span>
-          </div>
-
-          {/* Public toggle */}
-          <div className="flex items-center gap-1">
-            <Switch
-              size="sm"
-              isSelected={assessment.is_public}
-              onValueChange={(value) => {
-                onTogglePublic(assessment.id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <span className="text-xs text-(--color-text-muted)">Public</span>
-          </div>
-        </div>
+      {/* Toggle row: Benchmarks + Public switches */}
+      <div className="flex items-center gap-4 pt-2 border-t border-(--color-border)">
+        <Switch
+          size="sm"
+          isSelected={assessment.contribute_to_benchmarks}
+          onChange={onToggleBenchmarks}
+        >
+          <span className="text-xs text-(--color-text-muted)">Benchmarks</span>
+        </Switch>
+        <Switch size="sm" isSelected={assessment.is_public} onChange={onTogglePublic}>
+          <span className="text-xs text-(--color-text-muted)">Public</span>
+        </Switch>
       </div>
     </div>
   );
 });
+
 AssessmentListItem.propTypes = {
   assessment: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,

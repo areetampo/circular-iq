@@ -26,6 +26,8 @@
  * Note: Requires active internet connection to access Open Beauty Facts API
  */
 
+import { fileURLToPath } from 'url';
+
 import {
     appendLogs,
     cleanText,
@@ -41,7 +43,6 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.obf;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

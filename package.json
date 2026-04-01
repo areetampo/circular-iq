@@ -16,10 +16,11 @@
     "frontend": "npm run dev -w frontend",
     "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules package-lock.json",
     "rei": "npm run clean && npm install",
-    "format": "prettier --write .",
     "lint": "eslint .",
     "lint:errors": "eslint . --quiet",
-    "lint:fix": "eslint . --fix --quiet && npm run format",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "fix-all": "npm run lint:fix && npm run format",
     "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL) { try { require('husky').install() } catch (e) { console.log('Husky not available, skipping'); } }\"",
     "build": "npm run build --workspaces --if-present",
     "test": "npm test --workspaces --if-present"
@@ -50,6 +51,7 @@
   },
   "homepage": "https://github.com/areetampo/circular-economy#readme",
   "devDependencies": {
+    "@eslint/compat": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
     "concurrently": "^9.2.1",

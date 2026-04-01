@@ -20,6 +20,8 @@
  *   node scrape_open_products_facts.js --append-backup     # append to backup instead of clearing
  */
 
+import { fileURLToPath } from 'url';
+
 import {
     appendLogs,
     clearLogs,
@@ -34,7 +36,6 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.opf;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

@@ -25,6 +25,13 @@
  * Configuration: Max rows limit (MAX_ROWS) and year/scope definitions
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { parse } from 'csv-parse/sync';
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -34,11 +41,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import { parse } from 'csv-parse/sync';
-import fs from 'fs';
-import path from 'path';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { fileURLToPath } from 'url';
 
 const DATASET_KEY = DATASET_KEYS.fashion_transparency;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

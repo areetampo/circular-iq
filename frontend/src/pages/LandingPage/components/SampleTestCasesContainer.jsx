@@ -1,12 +1,15 @@
 import { toast } from '@heroui/react';
+import { CheckCircle2, Eye } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { Button } from '@/components/common';
 import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
+import { cn } from '@/utils/cn';
 
 // Helper function to validate and normalize business model type values
 const normalizeBusinessModelType = (value) => {
@@ -200,23 +203,35 @@ export default function SampleTestCasesContainer({
             onClick={() => requestSelectCase(testCase)}
             aria-label={`Select sample test case: ${testCase.title}`}
             aria-pressed={isSelected}
-            className="bg-[rgba(245,240,232,0.5)] border border-(--color-border) rounded-md p-4 cursor-pointer hover:border-(--color-accent) hover:bg-(--color-accent-light) transition-all text-left"
+            className={cn(
+              'group relative flex flex-col gap-3 rounded-lg p-4 cursor-pointer border transition-colors duration-150',
+              isSelected
+                ? 'border-(--color-accent) bg-(--color-accent-light)'
+                : 'border-(--color-border) bg-transparent hover:border-(--color-border-strong) hover:bg-[rgba(245,240,232,0.5)]',
+            )}
           >
             <div className="flex items-start gap-2">
               {/* Number badge */}
-              <span className="text-xs font-mono text-(--color-text-muted) bg-(--color-accent-light) rounded-sm px-1.5 py-0.5 mr-2">
+              <span
+                className={cn(
+                  'text-xs font-mono px-1.5 py-0.5 rounded-md shrink-0',
+                  isSelected
+                    ? 'bg-(--color-accent) text-white'
+                    : 'bg-(--color-accent-light) text-(--color-text-muted)',
+                )}
+              >
                 #{index + 1}
               </span>
 
               <div className="flex-1">
                 {/* Title */}
-                <p className="text-sm font-semibold text-(--color-text-primary)">
+                <h4 className="text-sm font-semibold text-(--color-text-primary) truncate">
                   {testCase.title}
-                </p>
+                </h4>
 
-                {/* Description */}
-                <p className="text-xs text-(--color-text-muted) mt-1 line-clamp-2 leading-relaxed">
-                  {testCase.description || testCase.industry}
+                {/* Problem excerpt */}
+                <p className="text-xs text-(--color-text-muted) line-clamp-2 leading-relaxed grow">
+                  {testCase.problem || testCase.description || testCase.industry}
                 </p>
 
                 {/* Score chips */}
@@ -227,17 +242,31 @@ export default function SampleTestCasesContainer({
                       .map(([key, value]) => (
                         <span
                           key={key}
-                          className="text-xs text-(--color-text-secondary) px-2 py-0.5 font-mono"
+                          className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)"
                         >
-                          {value}
+                          {key.replace(/_/g, ' ')}: {value}
                         </span>
                       ))}
                   </div>
                 )}
 
-                {/* View details link */}
-                <div className="text-xs text-(--color-accent) hover:underline flex items-center gap-1 mt-2">
-                  View details
+                {/* View details button */}
+                <div className="flex items-center justify-between mt-3">
+                  <Button
+                    variant="eco-soft"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openSpecificSampleTestCaseViewDetailsDrawer(testCase);
+                    }}
+                  >
+                    <Eye size={14} className="mr-1" />
+                    View Details
+                  </Button>
+
+                  {isSelected && (
+                    <CheckCircle2 className="text-(--color-accent) shrink-0" size={16} />
+                  )}
                 </div>
               </div>
             </div>

@@ -22,6 +22,15 @@
  *   node scrape_metabolic.js --clear-logs    # clear log file
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import axios from 'axios';
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+
 import {
     appendLogs,
     clearLogs,
@@ -36,12 +45,6 @@ import {
     isBackupRecoveryMode,
     randomDelay,
 } from '#utils/datasetsUtils.js';
-import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { fileURLToPath } from 'url';
 
 puppeteerExtra.use(StealthPlugin());
 

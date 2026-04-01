@@ -1,47 +1,26 @@
 import PropTypes from 'prop-types';
 
-function SolutionCard({ title, preview, category, onView }) {
+import { Chip } from '@/components/common';
+
+function SolutionCard({ title, preview, category, score, onView }) {
   return (
-    <div className="border border-(--color-border) rounded-md px-4 py-3 card-lift flex items-center gap-3 bg-transparent">
-      {/* Avatar */}
-      <div
-        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-[15px] font-bold"
-        style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
-      >
-        {title?.[0]?.toUpperCase() || '?'}
-      </div>
+    <div
+      className="border border-(--color-border) rounded-lg p-4 bg-transparent hover:border-(--color-border-strong) cursor-pointer transition-colors"
+      onClick={onView}
+    >
+      {/* Title */}
+      <h4 className="text-sm font-semibold text-(--color-text-primary) mb-1 truncate">{title}</h4>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>
-          {title}
-        </p>
-        <p
-          className="text-xs line-clamp-2 mt-0.5 leading-relaxed"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          {preview}
-        </p>
-        {category && (
-          <span
-            className="inline-block text-[10px] font-semibold uppercase tracking-wide
-                           px-2 py-0.5 rounded mt-1"
-            style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
-          >
-            {category}
-          </span>
-        )}
-      </div>
+      {/* Description */}
+      <p className="text-xs text-(--color-text-muted) leading-relaxed line-clamp-3 mb-2">
+        {preview}
+      </p>
 
-      {/* View link */}
-      <button
-        onClick={onView}
-        className="text-xs shrink-0 transition-colors duration-150
-                   hover:text-(--color-accent)"
-        style={{ color: 'var(--color-text-muted)' }}
-      >
-        View →
-      </button>
+      {/* Industry chip */}
+      {category && <Chip variant="category">{category}</Chip>}
+
+      {/* Score */}
+      {score && <div className="font-mono text-sm text-(--color-accent) mt-2">Score: {score}</div>}
     </div>
   );
 }
@@ -53,6 +32,8 @@ SolutionCard.propTypes = {
   preview: PropTypes.string,
   /** Category label */
   category: PropTypes.string,
+  /** Score value */
+  score: PropTypes.number,
   /** Callback function invoked when view is clicked */
   onView: PropTypes.func.isRequired,
 };

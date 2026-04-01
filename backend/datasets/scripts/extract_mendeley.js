@@ -25,6 +25,12 @@
  * Sampling: Configurable sample sizes per research category (SME_SAMPLE_SIZE, SBM_SAMPLE_SIZE)
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import XLSX from 'xlsx';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -35,10 +41,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import XLSX from 'xlsx';
 
 const DATASET_KEY = DATASET_KEYS.mnd;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

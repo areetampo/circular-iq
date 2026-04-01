@@ -14,9 +14,8 @@ const IndustryFilterChip = React.memo(function IndustryFilterChip({
 
   return (
     <Chip
-      variant={isSelected ? 'primary' : 'secondary'}
+      variant={isSelected ? 'filter-active' : 'filter'}
       onClick={() => onToggle(industry)}
-      className="cursor-pointer"
       aria-pressed={isSelected}
     >
       {label}

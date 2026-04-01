@@ -18,6 +18,13 @@
  *   node datasets/scripts/extract_wrap.js
  */
 
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import {
     cleanText,
     DATASET_KEYS,
@@ -27,11 +34,6 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-import fs from 'fs';
-import { createRequire } from 'module';
-import path from 'path';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { fileURLToPath, pathToFileURL } from 'url';
 
 const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');

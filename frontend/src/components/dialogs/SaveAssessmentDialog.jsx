@@ -16,12 +16,11 @@
  * });
  */
 
-import { AlertDialog, Input, Label } from '@heroui/react';
+import { AlertDialog, Input } from '@heroui/react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button } from '@/components/common';
-import ChoiceCardSwitch from '@/components/common/ChoiceCardSwitch';
+import Switch from '@/components/common/Switch';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
@@ -118,27 +117,22 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
       className="bg-black/20 backdrop-blur-sm"
     >
       <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5">
+        <AlertDialog.Dialog className="bg-(--color-bg-elevated) border border-(--color-border) rounded-lg shadow-(--shadow-md) p-5">
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+                <AlertDialog.Heading className="text-base text-(--color-text-primary) text-center mb-4 font-(--font-body)">
                   Save Assessment
                 </AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <div className="border-t border-(--color-border) my-4"></div>
-
               <AlertDialog.Body className="text-sm">
-                <Label
-                  htmlFor="name"
-                  className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-1.5 block"
-                >
-                  Name
-                </Label>
-                <div className="flex flex-col items-center gap-2 mt-1 px-2">
+                {/* Name input */}
+                <div className="mb-4">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
+                    Name
+                  </label>
                   <Input
-                    id="name"
                     placeholder="e.g., Recycled Plastic Packaging Project"
                     value={name}
                     onChange={(e) => {
@@ -146,65 +140,66 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       setError('');
                     }}
                     maxLength={100}
-                    className="bg-(rgba(245,240,232,0.5)) border border-(--color-border-strong) rounded-md px-4 py-2.5 text-sm w-full focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) outline-none"
+                    className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-2.5 text-sm text-(--color-text-primary) focus:border-(--color-accent) focus:outline-none transition-colors"
                     fullWidth
                   />
-
-                  {error && <p className="text-sm mt-2 text-(--color-error)">{error}</p>}
+                  {error && <p className="text-xs text-(--color-error) mt-1">{error}</p>}
                 </div>
 
-                <div className="space-y-3">
-                  {/* Public Access Toggle (Choice-card) */}
-                  <ChoiceCardSwitch
-                    isSelected={isPublic}
-                    onChange={setIsPublic}
-                    size="lg"
-                    variant="emerald"
-                    title="Public Access"
-                    description={
-                      <>
-                        Make this assessment publicly viewable.{' '}
-                        <span className="italic font-semibold">
-                          Share link available on your assessments page once saved.
-                        </span>
-                      </>
-                    }
-                  />
+                {/* Toggle rows */}
+                <div className="space-y-0 mb-5">
+                  {/* Public Access toggle */}
+                  <div className="flex items-center justify-between py-3 border-b border-(--color-border)">
+                    <div>
+                      <p className="text-sm font-medium text-(--color-text-primary)">
+                        Public Access
+                      </p>
+                      <p className="text-xs text-(--color-text-muted)">
+                        Make this assessment publicly viewable
+                      </p>
+                    </div>
+                    <Switch isSelected={isPublic} onChange={setIsPublic} size="sm" />
+                  </div>
 
-                  {/* Global Benchmarks Toggle (Choice-card) */}
-                  <ChoiceCardSwitch
-                    isSelected={contributeToGlobalBenchmarks}
-                    onChange={setContributeToGlobalBenchmarks}
-                    size="lg"
-                    variant="blue"
-                    title="Global Benchmarks"
-                    description="Allow your anonymized score to contribute to industry-wide benchmarks."
-                  />
+                  {/* Global Benchmarks toggle */}
+                  <div className="flex items-center justify-between py-3">
+                    <div>
+                      <p className="text-sm font-medium text-(--color-text-primary)">
+                        Global Benchmarks
+                      </p>
+                      <p className="text-xs text-(--color-text-muted)">
+                        Allow anonymized score to contribute to benchmarks
+                      </p>
+                    </div>
+                    <Switch
+                      isSelected={contributeToGlobalBenchmarks}
+                      onChange={setContributeToGlobalBenchmarks}
+                      size="sm"
+                    />
+                  </div>
                 </div>
               </AlertDialog.Body>
 
-              <AlertDialog.Footer className="flex gap-3 mt-5">
-                <Button
-                  variant="dialog-secondary"
-                  onPress={() => {
+              <AlertDialog.Footer className="flex gap-3">
+                <button
+                  onClick={() => {
                     close();
                     onClose();
                   }}
                   disabled={isSubmitting}
-                  className="flex-1"
+                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant="dialog-primary"
-                  onPress={() => {
+                </button>
+                <button
+                  onClick={() => {
                     if (!isSubmitting) handleSubmit(close);
                   }}
                   disabled={isSubmitting}
-                  className="flex-1"
+                  className="flex-1 bg-(--color-accent) text-white rounded-lg py-2.5 text-sm hover:bg-(--color-accent-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Saving...' : 'Save Assessment'}
-                </Button>
+                </button>
               </AlertDialog.Footer>
             </>
           )}
