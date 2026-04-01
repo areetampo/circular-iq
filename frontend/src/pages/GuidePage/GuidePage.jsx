@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  BookCopy,
   ChartSpline,
   ChevronDown,
   ChevronUp,
@@ -10,7 +9,7 @@ import {
   Settings,
   Target,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { GUIDE_PAGE_CONTENT } from '@/constants/drawers/GuidePageContent';
 
@@ -49,16 +48,13 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
             aria-label={`Navigate to ${section.title}`}
             className={`group flex items-center gap-3 w-full py-2 text-left transition-all duration-200 relative ${
               isActive ? 'font-medium' : ''
-            }`}
-            style={{ color: isActive ? 'var(--foreground)' : 'var(--muted)' }}
+            } ${isActive ? 'text-(--color-text-primary)' : 'text-(--color-text-muted)'}`}
           >
             {/* Active indicator line */}
             <div
-              className={`absolute left-0 top-0 bottom-0 w-0.5 transition-all duration-200`}
-              style={{
-                backgroundColor: 'var(--accent)',
-                opacity: isActive ? '1' : '0',
-              }}
+              className={`absolute left-0 top-0 bottom-0 w-0.5 transition-all duration-200 bg-(--color-accent) ${
+                isActive ? 'opacity-100' : 'opacity-0'
+              }`}
             />
 
             <span
@@ -81,36 +77,25 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
         <div className="sticky top-6">
           <div className="flex items-center gap-2 mb-6">
             <div className="flex items-center justify-center w-1 h-1">
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--muted)' }} />
+              <div className="w-1 h-1 rounded-full bg-(--color-text-muted)" />
             </div>
-            <span
-              className="text-xs font-semibold uppercase tracking-wider"
-              style={{
-                color: 'var(--muted)',
-              }}
-            >
+            <span className="text-xs font-semibold uppercase tracking-wider text-(--color-text-muted)">
               On this page
             </span>
           </div>
-          <div className="space-y-0.5 border-l" style={{ borderColor: 'var(--border)' }}>
+          <div className="space-y-0.5 border-l border-(--color-border)">
             <NavContent />
           </div>
         </div>
       </nav>
 
       {/* Mobile Dropdown Navigation */}
-      <div
-        className="lg:hidden sticky top-0 z-40 border-b mb-8"
-        style={{
-          backgroundColor: 'var(--surface)',
-          borderColor: 'var(--border)',
-        }}
-      >
+      <div className="lg:hidden sticky top-0 z-40 border-b mb-8 border-(--color-border) bg-(--color-bg)">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label={`${isMobileMenuOpen ? 'Close' : 'Open'} section navigation menu`}
           aria-expanded={isMobileMenuOpen}
-          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-accent-soft"
+          className="flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-(--color-accent-light)"
         >
           <div className="flex items-center gap-3">
             <div className="relative w-6 h-6 shrink-0">
@@ -122,7 +107,7 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
                   r="10"
                   fill="none"
                   strokeWidth="2"
-                  style={{ stroke: 'var(--border)' }}
+                  className="stroke-(--color-border)"
                 />
                 <circle
                   cx="12"
@@ -133,47 +118,32 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
                   strokeDasharray={`${2 * Math.PI * 10}`}
                   strokeDashoffset={`${2 * Math.PI * 10 * (1 - getProgress(activeSection) / 100)}`}
                   strokeLinecap="round"
-                  className="transition-all duration-300"
-                  style={{ stroke: 'var(--accent)' }}
+                  className="transition-all duration-300 stroke-(--color-accent)"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 {SECTIONS.find((s) => s.id === activeSection) &&
                   React.createElement(SECTIONS.find((s) => s.id === activeSection).icon, {
-                    style: { color: 'var(--accent)' },
+                    className: 'text-(--color-accent)',
                     size: 12,
                   })}
               </div>
             </div>
-            <span
-              className="text-sm font-medium"
-              style={{
-                color: 'var(--foreground)',
-              }}
-            >
+            <span className="text-sm font-medium text-(--color-text-primary)">
               {SECTIONS.find((s) => s.id === activeSection)?.title}
             </span>
           </div>
           {isMobileMenuOpen ? (
-            <ChevronUp size={20} style={{ color: 'var(--muted)' }} />
+            <ChevronUp size={20} className="text-(--color-text-muted)" />
           ) : (
-            <ChevronDown size={20} style={{ color: 'var(--muted)' }} />
+            <ChevronDown size={20} className="text-(--color-text-muted)" />
           )}
         </button>
 
         {/* Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div
-            className="border-t shadow-lg"
-            style={{
-              borderColor: 'var(--border)',
-              backgroundColor: 'var(--surface)',
-            }}
-          >
-            <div
-              className="py-2 px-4 space-y-0.5 max-h-[60vh] overflow-y-auto border-l ml-4"
-              style={{ borderColor: 'var(--border)' }}
-            >
+          <div className="border-t shadow-lg border-(--color-border) bg-(--color-bg)">
+            <div className="py-2 px-4 space-y-0.5 max-h-[60vh] overflow-y-auto border-l ml-4 border-(--color-border)">
               <NavContent isMobile={true} />
             </div>
           </div>
@@ -187,21 +157,16 @@ const Navigation = ({ activeSection, onSectionClick, isMobileMenuOpen, setIsMobi
 const AssessmentMethodologySection = () => {
   return (
     <section id="assessment-methodology" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <BookCopy className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Assessment Methodology</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              How our AI evaluates circular economy initiatives
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Assessment Methodology
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">
+          How our AI evaluates circular economy initiatives
+        </p>
 
         <div className="space-y-6">
-          <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <p className="text-sm text-(--color-text-secondary) leading-relaxed">
             Our evaluation combines <strong>semantic analysis</strong>,{' '}
             <strong>AI reasoning</strong>, and <strong>multi-dimensional scoring</strong> to provide
             accurate, evidence-based assessments of circular economy initiatives.
@@ -211,35 +176,30 @@ const AssessmentMethodologySection = () => {
             {GUIDE_PAGE_CONTENT.assessmentMethodology.items.map((item, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-xl border-l-4"
-                style={{ backgroundColor: item.bgColor, borderLeftColor: item.borderColor }}
+                className={`border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 border-l-4 ${item.bgColor} border-l-[${item.borderColor}]`}
               >
                 <div className="flex items-start gap-3">
-                  <div
-                    className="shrink-0 p-2 rounded-lg"
-                    style={{ backgroundColor: 'var(--surface-raised)' }}
-                  >
+                  <div className="shrink-0 p-2 rounded-lg bg-(--color-surface-raised)">
                     <item.icon
                       size={20}
-                      style={{
-                        color:
-                          item.borderColor === 'var(--info)'
-                            ? 'var(--info)'
-                            : item.borderColor === 'var(--success)'
-                              ? 'var(--success)'
-                              : item.borderColor === 'var(--warning)'
-                                ? 'var(--warning)'
-                                : item.borderColor === 'var(--accent)'
-                                  ? 'var(--accent)'
-                                  : 'var(--foreground)',
-                      }}
+                      className={
+                        item.borderColor === 'var(--info)'
+                          ? 'text-(--color-info)'
+                          : item.borderColor === 'var(--success)'
+                            ? 'text-(--color-success)'
+                            : item.borderColor === 'var(--warning)'
+                              ? 'text-(--color-warning)'
+                              : item.borderColor === 'var(--accent)'
+                                ? 'text-(--color-accent)'
+                                : 'text-(--color-text-primary)'
+                      }
                     />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)' }}>
+                    <h3 className="text-base font-bold mb-1 text-(--color-text-primary)">
                       {item.title}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    <p className="text-sm leading-relaxed text-(--color-text-secondary)">
                       {item.description}
                     </p>
                   </div>
@@ -248,14 +208,9 @@ const AssessmentMethodologySection = () => {
             ))}
           </div>
 
-          <div
-            className="p-4 rounded-xl border"
-            style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
-          >
-            <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--warning)' }}>
-              Important Note
-            </h4>
-            <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <div className="p-4 rounded-xl border border-(--color-warning) bg-(--color-warning-soft)">
+            <h4 className="mb-3 text-base font-bold text-(--color-warning)">Important Note</h4>
+            <p className="leading-relaxed text-(--color-text-secondary)">
               This assessment is designed to provide{' '}
               <strong>constructive feedback for early-stage ideation</strong>. Scores reflect
               alignment with established circular economy principles and should be used as guidance,
@@ -272,65 +227,36 @@ const AssessmentMethodologySection = () => {
 const BusinessProblemSection = () => {
   return (
     <section id="business-problem" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <Target className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Business Problem Guide</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Environmental or circular economy challenge
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Business Problem Guide
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">
+          Environmental or circular economy challenge
+        </p>
 
         <div className="space-y-6">
-          <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <p className="leading-relaxed text-(--color-text-secondary)">
             Describe <strong>environmental or circular economy challenge</strong> your business
             addresses.
           </p>
 
-          <div
-            className="p-4 rounded-xl border-l-4"
-            style={{
-              backgroundColor: 'var(--success-soft)',
-              borderColor: 'var(--success)',
-              border: '1px solid var(--success)',
-            }}
-          >
-            <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--success)' }}>
-              Essential Elements
-            </h4>
+          <div className="border-t border-(--color-success) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 border-l-4 bg-(--color-success-soft)">
+            <h4 className="mb-3 text-base font-bold text-(--color-success)">Essential Elements</h4>
             <div className="space-y-2">
               {GUIDE_PAGE_CONTENT.businessProblem.elements.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3.5 p-4 rounded-xl border-l-4 cursor-default select-none"
-                  style={{
-                    backgroundColor: 'var(--surface-raised)',
-                    borderColor: 'var(--success)',
-                    border: '1px solid var(--success)',
-                  }}
+                  className="border-t border-(--color-success) pt-3 mt-3 first:border-0 first:pt-0 first:mt-0 cursor-default select-none bg-(--color-surface-raised) border-l-4"
                 >
-                  <div
-                    className="shrink-0 p-2 rounded-lg mt-0.5"
-                    style={{ backgroundColor: 'var(--success-soft)' }}
-                  >
-                    <ClipboardMinus
-                      className="size-4"
-                      style={{ color: 'var(--success)' }}
-                      strokeWidth={1.75}
-                    />
+                  <div className="shrink-0 p-2 rounded-lg mt-0.5 bg-(--color-success-soft)">
+                    <ClipboardMinus className="size-4 text-(--color-success)" strokeWidth={1.75} />
                   </div>
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span
-                      className="text-sm font-bold leading-snug"
-                      style={{ color: 'var(--foreground)' }}
-                    >
+                    <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
                       {item.title}
                     </span>
-                    <span className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    <span className="text-xs leading-relaxed text-(--color-text-muted)">
                       {item.description}
                     </span>
                   </div>
@@ -339,53 +265,26 @@ const BusinessProblemSection = () => {
             </div>
           </div>
 
-          <div
-            className="p-4 rounded-xl border-l-4"
-            style={{
-              backgroundColor: 'var(--info-soft)',
-              borderColor: 'var(--info)',
-              border: '1px solid var(--info)',
-            }}
-          >
-            <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--info)' }}>
-              Writing Tips
-            </h4>
+          <div className="border-t border-(--color-info) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 border-l-4 bg-(--color-info-soft)">
+            <h4 className="mb-3 text-base font-bold text-(--color-info)">Writing Tips</h4>
             <ul className="space-y-1">
               {GUIDE_PAGE_CONTENT.businessProblem.writingTips.map((tip) => (
                 <li key={tip} className="flex items-start gap-2 text-sm">
-                  <span className="font-bold" style={{ color: 'var(--info)' }}>
-                    •
-                  </span>
-                  <span style={{ color: 'var(--muted)' }}>{tip}</span>
+                  <span className="font-bold text-(--color-info)">•</span>
+                  <span className="text-(--color-text-muted)">{tip}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-2 text-base font-bold" style={{ color: 'var(--accent)' }}>
-              Example Statement
-            </h4>
-            <p
-              className="p-3 text-sm italic leading-relaxed rounded-lg border-l-4"
-              style={{
-                color: 'var(--muted)',
-                backgroundColor: 'var(--accent-soft)',
-                borderColor: 'var(--accent)',
-                border: '1px solid var(--accent)',
-              }}
-            >
+            <h4 className="mb-2 text-base font-bold text-(--color-accent)">Example Statement</h4>
+            <p className="p-3 text-sm italic leading-relaxed rounded-lg border-l-4 text-(--color-text-muted) bg-(--color-accent-light) border-(--color-accent)">
               {GUIDE_PAGE_CONTENT.businessProblem.example}
             </p>
           </div>
 
-          <p
-            className="p-3 text-xs italic rounded-lg"
-            style={{
-              color: 'var(--muted)',
-              backgroundColor: 'var(--surface-raised)',
-            }}
-          >
+          <p className="p-3 text-xs italic rounded-lg text-(--color-text-muted) bg-(--color-surface-raised)">
             ‼ ️ <strong>Minimum 200 characters required</strong>
           </p>
         </div>
@@ -398,93 +297,50 @@ const BusinessProblemSection = () => {
 const BusinessSolutionSection = () => {
   return (
     <section id="business-solution" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <Lightbulb className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Business Solution Guide</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              How your business solves problem
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Business Solution Guide
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">How your business solves problem</p>
 
         <div className="space-y-6">
-          <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <p className="leading-relaxed text-(--color-text-secondary)">
             Describe <strong>how your business solves the problem</strong> with technical details
             about materials, processes, partnerships, and outcomes.
           </p>
 
-          <div
-            className="p-4 rounded-xl"
-            style={{ backgroundColor: 'var(--info-soft)', borderColor: 'var(--info)' }}
-          >
-            <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--info)' }}>
-              Critical Components
-            </h4>
+          <div className="border-t border-(--color-info) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 bg-(--color-info-soft) border-l-4">
+            <h4 className="mb-3 text-base font-bold text-(--color-info)">Critical Components</h4>
             <ul className="space-y-2">
               {GUIDE_PAGE_CONTENT.businessSolution.components.map(({ title, description }) => (
-                <li
-                  key={title}
-                  className="border-l-2 pl-3 text-sm"
-                  style={{ borderColor: 'var(--info)' }}
-                >
-                  <strong className="font-semibold" style={{ color: 'var(--info)' }}>
-                    {title}
-                  </strong>
-                  <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
-                    {description}
-                  </p>
+                <li key={title} className="border-l-2 pl-3 text-sm border-(--color-info)">
+                  <strong className="font-semibold text-(--color-info)">{title}</strong>
+                  <p className="text-sm mt-0.5 text-(--color-text-muted)">{description}</p>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div
-            className="p-4 rounded-xl"
-            style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
-          >
-            <h4 className="mb-3 text-base font-bold" style={{ color: 'var(--warning)' }}>
-              Common Pitfalls
-            </h4>
+          <div className="border-t border-(--color-warning) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 bg-(--color-warning-soft) border-l-4">
+            <h4 className="mb-3 text-base font-bold text-(--color-warning)">Common Pitfalls</h4>
             <ul className="space-y-1">
               {GUIDE_PAGE_CONTENT.businessSolution.pitfalls.map(({ title, description }) => (
                 <li key={title} className="flex items-start gap-3 text-sm">
-                  <span className="font-semibold" style={{ color: 'var(--warning)' }}>
-                    {title}
-                  </span>
-                  <span style={{ color: 'var(--muted)' }}>{description}</span>
+                  <span className="font-semibold text-(--color-warning)">{title}</span>
+                  <span className="text-(--color-text-muted)">{description}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-2 text-base font-bold" style={{ color: 'var(--accent)' }}>
-              Example Statement
-            </h4>
-            <p
-              className="p-3 text-sm italic leading-relaxed rounded-lg border-l-4"
-              style={{
-                color: 'var(--muted)',
-                backgroundColor: 'var(--accent-soft)',
-                borderColor: 'var(--accent)',
-                border: '1px solid var(--accent)',
-              }}
-            >
+            <h4 className="mb-2 text-base font-bold text-(--color-accent)">Example Statement</h4>
+            <p className="p-3 text-sm italic leading-relaxed rounded-lg border-l-4 text-(--color-text-muted) bg-(--color-accent-light) border-(--color-accent)">
               {GUIDE_PAGE_CONTENT.businessSolution.example}
             </p>
           </div>
 
-          <p
-            className="p-3 text-xs italic rounded-lg"
-            style={{
-              color: 'var(--muted)',
-              backgroundColor: 'var(--surface-raised)',
-            }}
-          >
+          <p className="p-3 text-xs italic rounded-lg text-(--color-text-muted) bg-(--color-surface-raised)">
             ‼ ️ <strong>Minimum 200 characters required</strong>
           </p>
         </div>
@@ -518,21 +374,16 @@ const EvaluationCriteriaSection = () => {
 
   return (
     <section id="evaluation-criteria" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <ClipboardMinus className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Evaluation Criteria</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Three core value dimensions with specific factors
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Evaluation Criteria
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">
+          Three core value dimensions with specific factors
+        </p>
 
         <div className="space-y-6">
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <p className="text-sm leading-relaxed text-(--color-text-secondary)">
             Our AI-powered evaluation framework assesses business ideas across{' '}
             <strong>three core value dimensions</strong>, each comprising specific factors.
           </p>
@@ -541,50 +392,38 @@ const EvaluationCriteriaSection = () => {
             {GUIDE_PAGE_CONTENT.evaluationCriteria.metrics.map((metric, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-lg text-center border"
-                style={{
-                  backgroundColor:
-                    metric.color === 'blue' ? 'var(--info-soft)' : 'var(--success-soft)',
-                  borderColor: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
-                }}
+                className={`p-3 rounded-lg text-center border ${
+                  metric.color === 'blue'
+                    ? 'bg-(--color-info-soft) border-(--color-info)'
+                    : 'bg-(--color-success-soft) border-(--color-success)'
+                }`}
               >
                 <div
-                  className={`text-2xl font-bold`}
-                  style={{
-                    color: metric.color === 'blue' ? 'var(--info)' : 'var(--success)',
-                  }}
+                  className={`text-2xl font-bold ${metric.color === 'blue' ? 'text-(--color-info)' : 'text-(--color-success)'}`}
                 >
                   {metric.title}
                 </div>
-                <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
-                  {metric.description}
-                </p>
+                <p className="text-xs mt-1 text-(--color-text-muted)">{metric.description}</p>
               </div>
             ))}
           </div>
 
           {VALUE_SECTIONS.map((section) => (
             <div key={section.title} className="space-y-4">
-              <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--foreground)' }}>
+              <h3 className="text-lg font-bold mb-3 text-(--color-text-primary)">
                 {section.title}
               </h3>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                {section.description}
-              </p>
+              <p className="text-sm mb-4 text-(--color-text-muted)">{section.description}</p>
               <div className="grid gap-2 md:grid-cols-2">
                 {section.factors.map((factor) => (
                   <div
                     key={factor}
-                    className="p-3 rounded-lg border"
-                    style={{
-                      backgroundColor: 'var(--surface)',
-                      borderColor: 'var(--border)',
-                    }}
+                    className="p-3 rounded-lg border bg-(--color-surface) border-(--color-border)"
                   >
-                    <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+                    <p className="text-xs font-semibold text-(--color-text-primary)">
                       {GUIDE_PAGE_CONTENT.evaluationParameters.factors[factor]?.name || factor}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs mt-0.5 text-(--color-text-muted)">
                       {GUIDE_PAGE_CONTENT.evaluationParameters.factors[factor]?.category || 'N/A'}
                     </p>
                   </div>
@@ -593,34 +432,19 @@ const EvaluationCriteriaSection = () => {
             </div>
           ))}
 
-          <div
-            className="p-4 rounded-xl border"
-            style={{ backgroundColor: 'var(--warning-soft)', borderColor: 'var(--warning)' }}
-          >
-            <h4
-              className="font-bold text-amber-900 mb-3 text-base"
-              style={{ color: 'var(--warning)' }}
-            >
+          <div className="p-4 rounded-xl border border-(--color-warning) bg-(--color-warning-soft)">
+            <h4 className="font-bold mb-3 text-base text-(--color-warning)">
               How We Calculate Your Score
             </h4>
             <div className="space-y-2">
               {GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.map((step) => (
                 <div key={step.number} className="flex items-start gap-3">
-                  <div
-                    className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full text-sm"
-                    style={{
-                      backgroundColor: 'var(--warning)',
-                    }}
-                  >
+                  <div className="flex items-center justify-center shrink-0 w-6 h-6 font-bold text-white rounded-full text-sm bg-(--color-warning)">
                     {step.number}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold" style={{ color: 'var(--warning)' }}>
-                      {step.title}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                      {step.description}
-                    </p>
+                    <p className="text-sm font-semibold text-(--color-warning)">{step.title}</p>
+                    <p className="text-xs mt-0.5 text-(--color-text-muted)">{step.description}</p>
                   </div>
                 </div>
               ))}
@@ -636,21 +460,16 @@ const EvaluationCriteriaSection = () => {
 const EvaluationParametersSection = () => {
   return (
     <section id="evaluation-parameters" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <BarChart3 className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Evaluation Parameters Guide</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Factors used to evaluate circularity potential
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Evaluation Parameters Guide
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">
+          Factors used to evaluate circularity potential
+        </p>
 
         <div className="space-y-6">
-          <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <p className="leading-relaxed text-(--color-text-secondary)">
             These are the factors we use to evaluate circularity potential. Use the definitions to
             align your self-assessed scores with our scoring model.
           </p>
@@ -660,16 +479,15 @@ const EvaluationParametersSection = () => {
               ([key, factor]) => (
                 <div
                   key={key}
-                  className="p-4 rounded-xl border"
-                  style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  className="p-4 rounded-xl border bg-(--color-surface) border-(--color-border)"
                 >
-                  <h4 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)' }}>
+                  <h4 className="text-base font-bold mb-1 text-(--color-text-primary)">
                     {factor.title}
                   </h4>
-                  <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted)' }}>
+                  <p className="text-xs font-medium mb-2 text-(--color-text-muted)">
                     Category: {factor.category}
                   </p>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                  <p className="text-sm leading-relaxed text-(--color-text-secondary)">
                     {factor.desc}
                   </p>
                 </div>
@@ -686,56 +504,47 @@ const EvaluationParametersSection = () => {
 const ParameterDetailsSection = () => {
   return (
     <section id="parameter-details" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <Settings className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Parameter Details</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Detailed scoring guidelines for each evaluation factor
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Parameter Details
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">
+          Detailed scoring guidelines for each evaluation factor
+        </p>
 
         <div className="space-y-6">
           {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.factors).map(
             ([key, guidance]) => (
               <div key={key} className="space-y-6">
-                <div className="border-l-4 pl-6" style={{ borderLeftColor: 'var(--accent)' }}>
-                  <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+                <div className="border-l-4 pl-6 border-l-(--color-accent)">
+                  <h3 className="text-xl font-bold mb-4 text-(--color-text-primary)">
                     {guidance.name}
                   </h3>
-                  <p className="text-sm font-medium mb-2" style={{ color: 'var(--muted)' }}>
+                  <p className="text-sm font-medium mb-2 text-(--color-text-muted)">
                     <strong>Category:</strong> {guidance.category} | <strong>Weight:</strong>{' '}
                     {guidance.weightPercent}
                   </p>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>
+                  <p className="text-sm leading-relaxed mb-4 text-(--color-text-secondary)">
                     {guidance.definition}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   <div className="space-y-4">
-                    <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
+                    <h4 className="text-base font-bold mb-2 text-(--color-accent)">
                       Scoring Scale
                     </h4>
                     <div className="space-y-2">
                       {guidance.scale.map((level) => (
                         <div
                           key={level.score}
-                          className="flex items-start gap-3 p-3 rounded-lg border"
-                          style={{
-                            backgroundColor: 'var(--surface)',
-                            borderColor: 'var(--border)',
-                          }}
+                          className="flex items-start gap-3 p-3 rounded-lg border bg-(--color-surface) border-(--color-border)"
                         >
                           <div className="flex-1">
-                            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                            <p className="text-sm font-bold text-(--color-text-primary)">
                               {level.score} - {level.label}
                             </p>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                            <p className="text-xs mt-0.5 text-(--color-text-muted)">
                               {level.description}
                             </p>
                           </div>
@@ -745,36 +554,30 @@ const ParameterDetailsSection = () => {
                   </div>
 
                   <div className="space-y-4">
-                    <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
-                      Methodology
-                    </h4>
-                    <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--muted)' }}>
+                    <h4 className="text-base font-bold mb-2 text-(--color-accent)">Methodology</h4>
+                    <p className="text-sm leading-relaxed mb-4 text-(--color-text-secondary)">
                       {guidance.methodology}
                     </p>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    <p className="text-sm leading-relaxed text-(--color-text-secondary)">
                       <strong>Calibration:</strong> {guidance.calibration}
                     </p>
                   </div>
 
                   <div className="space-y-4">
-                    <h4 className="text-base font-bold mb-2" style={{ color: 'var(--accent)' }}>
+                    <h4 className="text-base font-bold mb-2 text-(--color-accent)">
                       Example Cases
                     </h4>
                     <div className="space-y-2">
                       {guidance.examples.map((example, idx) => (
                         <div
                           key={idx}
-                          className="flex items-start gap-3 p-3 rounded-lg border"
-                          style={{
-                            backgroundColor: 'var(--surface)',
-                            borderColor: 'var(--border)',
-                          }}
+                          className="flex items-start gap-3 p-3 rounded-lg border bg-(--color-surface) border-(--color-border)"
                         >
                           <div className="flex-1">
-                            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                            <p className="text-sm font-bold text-(--color-text-primary)">
                               Score: {example.score} - {example.case}
                             </p>
-                            <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                            <p className="text-xs mt-0.5 text-(--color-text-muted)">
                               {example.reason}
                             </p>
                           </div>
@@ -798,21 +601,16 @@ const SampleTestCasesSection = () => {
 
   return (
     <section id="sample-test-cases" className="scroll-mt-20 lg:scroll-mt-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <ClipboardPenLine className="" style={{ color: 'var(--accent)' }} size={24} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Sample Test Cases</h2>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Real circular economy business examples for reference
-            </p>
-          </div>
-        </div>
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <h2 className="font-(--font-display) text-xl text-(--color-text-primary) mb-4 border-t border-(--color-border) pt-8 mt-8">
+          Sample Test Cases
+        </h2>
+        <p className="text-sm text-(--color-text-muted) mb-10">
+          Real circular economy business examples for reference
+        </p>
 
         <div className="space-y-6">
-          <p className="leading-relaxed" style={{ color: 'var(--muted)' }}>
+          <p className="leading-relaxed text-(--color-text-secondary)">
             Study these real circular economy initiatives to understand how successful businesses
             structure their problems and solutions. Use them as inspiration for your own circular
             economy business idea.
@@ -830,106 +628,38 @@ const SampleTestCasesSection = () => {
               },
               {
                 id: 'textile-recycling',
-                title: 'Textile Circular Economy',
-                industry: 'Fashion & Textiles',
-                problem: 'Fast fashion waste and limited recycling options for consumers',
-                solution: 'Take-back and recycling program for used clothing and textiles',
-                score: 68,
-              },
-              {
-                id: 'construction-materials',
-                title: 'Construction Materials Loop',
-                industry: 'Construction',
-                problem: 'Construction waste and lack of material recovery systems',
-                solution: 'Marketplace for reclaimed and surplus construction materials',
-                score: 72,
-              },
-              {
-                id: 'electronics-recovery',
-                title: 'Electronics Recovery System',
-                industry: 'Electronics',
-                problem: 'E-waste toxicity and low recycling rates for valuable materials',
-                solution: 'Specialized recovery and refurbishing service for electronic waste',
-                score: 70,
+                title: 'Textile Recycling Platform',
+                industry: 'Fashion',
+                problem: 'Fast fashion waste and lack of recycling infrastructure',
+                solution: 'Digital platform connecting textile waste with recycling facilities',
+                score: 82,
               },
             ].map((testCase) => (
               <div
                 key={testCase.id}
-                className="p-4 rounded-xl border cursor-pointer transition-colors duration-200"
-                style={{
-                  borderColor: activeCase === testCase.id ? 'var(--info)' : 'var(--border)',
-                  backgroundColor:
-                    activeCase === testCase.id ? 'var(--info-soft)' : 'var(--surface)',
-                  outlineColor: activeCase === testCase.id ? 'var(--info)' : 'transparent',
-                  outlineWidth: activeCase === testCase.id ? '2px' : '0',
-                  outlineOffset: activeCase === testCase.id ? '2px' : '0',
-                }}
+                className="p-4 rounded-xl border border-(--color-border) hover:border-(--color-accent) transition-colors cursor-pointer"
                 onClick={() => setActiveCase(activeCase === testCase.id ? null : testCase.id)}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <h4 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)' }}>
-                      {testCase.title}
-                    </h4>
-                    <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted)' }}>
-                      Industry: {testCase.industry}
-                    </p>
-                    <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--muted)' }}>
-                      <strong>Problem:</strong> {testCase.problem}
-                    </p>
-                    <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                      <strong>Solution:</strong> {testCase.solution}
-                    </p>
+                <h3 className="text-base font-bold mb-2 text-(--color-text-primary)">
+                  {testCase.title}
+                </h3>
+                <p className="text-xs font-medium mb-2 text-(--color-text-muted)">
+                  Industry: {testCase.industry} | Score: {testCase.score}/100
+                </p>
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-xs text-(--color-accent)">Problem:</strong>
+                    <p className="text-xs text-(--color-text-secondary) mt-1">{testCase.problem}</p>
                   </div>
-                  <div className="shrink-0">
-                    <div
-                      className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold text-white"
-                      style={{
-                        backgroundColor:
-                          activeCase === testCase.id ? 'var(--info)' : 'var(--muted)',
-                      }}
-                    >
-                      {testCase.score}
-                    </div>
+                  <div>
+                    <strong className="text-xs text-(--color-accent)">Solution:</strong>
+                    <p className="text-xs text-(--color-text-secondary) mt-1">
+                      {testCase.solution}
+                    </p>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-
-          <div
-            className="p-4 rounded-lg border-l-4"
-            style={{ backgroundColor: 'var(--info-soft)', borderLeftColor: 'var(--info)' }}
-          >
-            <h4 className="mb-2 text-base font-bold" style={{ color: 'var(--info)' }}>
-              How to Use These Examples
-            </h4>
-            <ul className="space-y-1 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="font-bold" style={{ color: 'var(--info)' }}>
-                  1.
-                </span>
-                <span style={{ color: 'var(--muted)' }}>
-                  Study the problem-solution structure and scoring level.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="font-bold" style={{ color: 'var(--info)' }}>
-                  2.
-                </span>
-                <span style={{ color: 'var(--muted)' }}>
-                  Adapt the language and focus areas to your specific business.
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="font-bold" style={{ color: 'var(--info)' }}>
-                  3.
-                </span>
-                <span style={{ color: 'var(--muted)' }}>
-                  Use these as reference points, not templates to copy exactly.
-                </span>
-              </li>
-            </ul>
           </div>
         </div>
       </div>
@@ -937,83 +667,82 @@ const SampleTestCasesSection = () => {
   );
 };
 
-// Main GuidePage Component
+// Main GuidePage component
 export default function GuidePage() {
   const [activeSection, setActiveSection] = useState('assessment-methodology');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const sectionRefs = useRef({});
 
+  // Handle scroll-based section detection
   useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '-80px 0px -60% 0px',
-      threshold: 0.1,
-    };
+    const handleScroll = () => {
+      const sections = document.querySelectorAll('section[id]');
+      const scrollPosition = window.scrollY + 100;
 
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const sectionId = entry.target.id;
-          if (sectionId && activeSection !== sectionId) {
-            setActiveSection(sectionId);
-          }
+      for (const section of sections) {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+          setActiveSection(section.id);
+          break;
         }
-      });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    // Observe all sections
-    SECTIONS.forEach((section) => {
-      const element = document.getElementById(section.id);
-      if (element) {
-        observer.observe(element);
       }
-    });
-
-    return () => {
-      SECTIONS.forEach((section) => {
-        const element = document.getElementById(section.id);
-        if (element) {
-          observer.unobserve(element);
-        }
-      });
     };
-  }, [activeSection]);
 
-  const handleSectionClick = (sectionId) => {
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const offset = window.innerWidth < 1024 ? 80 : 24; // Account for mobile sticky header
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      const offset = 80; // Account for sticky header
+      const elementPosition = element.offsetTop - offset;
       window.scrollTo({
-        top: offsetPosition,
+        top: elementPosition,
         behavior: 'smooth',
       });
     }
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Navigation */}
-      <Navigation
-        activeSection={activeSection}
-        onSectionClick={handleSectionClick}
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-      />
+    <div className="min-h-screen bg-(--color-bg)">
+      {/* Header */}
+      <div className="sticky top-0 z-30 border-b border-(--color-border) bg-(--color-bg)">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <h1 className="font-(--font-display) text-3xl text-(--color-text-primary)">
+              Circular Economy Assessment Guide
+            </h1>
+          </div>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <main>
-        <AssessmentMethodologySection />
-        <BusinessProblemSection />
-        <BusinessSolutionSection />
-        <EvaluationCriteriaSection />
-        <EvaluationParametersSection />
-        <ParameterDetailsSection />
-        <SampleTestCasesSection />
-      </main>
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-8 py-8">
+          {/* Navigation */}
+          <Navigation
+            activeSection={activeSection}
+            onSectionClick={scrollToSection}
+            isMobileMenuOpen={isMobileMenuOpen}
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
+          />
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <AssessmentMethodologySection />
+            <BusinessProblemSection />
+            <BusinessSolutionSection />
+            <EvaluationCriteriaSection />
+            <EvaluationParametersSection />
+            <ParameterDetailsSection />
+            <SampleTestCasesSection />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -140,15 +140,13 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                   {variant === 'assessment' && item.impact && (
                     <Chip
                       variant="default"
-                      className="text-xs"
-                      style={{
-                        color:
-                          item.impact === 'high'
-                            ? 'text-(--color-success)'
-                            : item.impact === 'medium'
-                              ? 'text-(--color-info)'
-                              : 'text-(--color-text-muted)',
-                      }}
+                      className={`text-xs ${
+                        item.impact === 'high'
+                          ? 'text-(--color-success)'
+                          : item.impact === 'medium'
+                            ? 'text-(--color-info)'
+                            : 'text-(--color-text-muted)'
+                      }`}
                     >
                       {item.impact} impact
                     </Chip>
@@ -156,15 +154,13 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                   {variant === 'assessment' && item.effort && (
                     <Chip
                       variant="default"
-                      className="text-xs"
-                      style={{
-                        color:
-                          item.effort === 'low'
-                            ? 'text-(--color-success)'
-                            : item.effort === 'high'
-                              ? 'text-(--color-error)'
-                              : 'text-(--color-warning)',
-                      }}
+                      className={`text-xs ${
+                        item.effort === 'low'
+                          ? 'text-(--color-success)'
+                          : item.effort === 'high'
+                            ? 'text-(--color-error)'
+                            : 'text-(--color-warning)'
+                      }`}
                     >
                       {item.effort} effort
                     </Chip>
@@ -203,7 +199,13 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                   <Chip
                     size="sm"
                     variant="soft"
-                    className="text-xs mt-1 bg-(--color-success-light) text-(--color-success)"
+                    className={`text-xs mt-1 ${
+                      sdg.relevance === 'high'
+                        ? 'bg-(--color-accent-light) text-(--color-success)'
+                        : sdg.relevance === 'medium'
+                          ? 'bg-(--color-accent-light) text-(--color-accent)'
+                          : 'bg-(--color-border) text-(--color-text-muted)'
+                    }`}
                   >
                     {sdg.relevance} relevance
                   </Chip>

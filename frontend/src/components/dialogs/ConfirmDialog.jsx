@@ -12,7 +12,6 @@ import { AlertCircle, TriangleAlert } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useEffect, useRef } from 'react';
 
-import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
@@ -113,30 +112,56 @@ export function ConfirmDialog({
       isKeyboardDismissDisabled={true}
       className="backdrop-blur-sm bg-(--color-backdrop)"
     >
-      <AlertDialog.Container size="md" placement="center">
-        <AlertDialog.Dialog
-          aria-label={title}
-          className="bg-(--color-bg-card) border border-(--color-border)"
-        >
-          <AlertDialog.Header>
-            <AlertDialog.Icon status={status}>{icon}</AlertDialog.Icon>
-            <AlertDialog.Heading className="text-(--color-text-primary)">
-              {title}
-            </AlertDialog.Heading>
-          </AlertDialog.Header>
-
-          <AlertDialog.Body>
-            {description && <p className="text-[13px] text-(--color-text-muted)">{description}</p>}
-          </AlertDialog.Body>
-
-          <AlertDialog.Footer>
-            <Button variant="tertiary" onPress={handleCancelClick} isDisabled={isLoading}>
-              {cancelText}
-            </Button>
-            <Button variant={buttonVariant} onPress={handleConfirmClick} isLoading={isLoading}>
-              {confirmText}
-            </Button>
-          </AlertDialog.Footer>
+      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
+        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-(--radius-lg) shadow-(--shadow-md) p-5">
+          {({ close }) => (
+            <>
+              {/* Icon */}
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                  variant === 'destructive'
+                    ? 'bg-[rgba(139,58,58,0.1)] text-(--color-error)'
+                    : 'bg-(--color-accent-light) text-(--color-accent)'
+                }`}
+              >
+                {variant === 'destructive' ? (
+                  <TriangleAlert size={18} />
+                ) : (
+                  <AlertCircle size={18} />
+                )}
+              </div>
+              {/* Title */}
+              <h2 className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+                {title}
+              </h2>
+              {/* Body */}
+              <div className="border-t border-(--color-border) my-4" />
+              <p className="text-sm text-(--color-text-secondary) text-center leading-relaxed mb-5">
+                {description}
+              </p>
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelClick}
+                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-md py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
+                  disabled={isLoading}
+                >
+                  {cancelText}
+                </button>
+                <button
+                  onClick={handleConfirmClick}
+                  className={`flex-1 rounded-md py-2.5 text-sm transition-opacity ${
+                    variant === 'destructive'
+                      ? 'bg-(--color-error) text-white hover:opacity-90'
+                      : 'bg-(--color-accent) text-white hover:opacity-90'
+                  }`}
+                  disabled={isLoading}
+                >
+                  {confirmText}
+                </button>
+              </div>
+            </>
+          )}
         </AlertDialog.Dialog>
       </AlertDialog.Container>
     </AlertDialog.Backdrop>

@@ -1,4 +1,3 @@
-import { Card, Table } from '@heroui/react';
 import {
   ArrowRight,
   Award,
@@ -16,215 +15,128 @@ import { formatFactorName } from '@/lib/scoring';
 
 export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringResult2 }) {
   return (
-    <>
-      {/* Project Details */}
-      <Card
-        className="border-2 rounded-xl"
-        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-      >
-        <Card.Header className="flex items-center gap-3 pb-4">
-          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <FileText style={{ color: 'var(--accent)' }} size={20} />
-          </div>
-          <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+      <div className="border-r border-(--color-border) pr-8">
+        {/* Project Details */}
+        <div className="border-t border-(--color-border) pt-6 mt-6 first:border-0 first:pt-0 first:mt-0">
+          <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4 flex items-center gap-2">
+            <FileText size={14} />
             Project Details
-          </Card.Title>
-        </Card.Header>
-        <Card.Content className="p-0">
-          <Table>
-            <Table.ScrollContainer>
-              <Table.Content aria-label="Project details table" className="min-w-md">
-                <Table.Header>
-                  <Table.Column className="w-1/3" isRowHeader>
-                    ATTRIBUTE
-                  </Table.Column>
-                  <Table.Column className="text-center">{assessment1.title}</Table.Column>
-                  <Table.Column className="text-center">{assessment2.title}</Table.Column>
-                </Table.Header>
-                <Table.Body>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
-                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                      Industry
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult1?.metadata?.industry || assessment1.industry || '')}
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult2?.metadata?.industry || assessment2.industry || '')}
-                      </Chip>
-                    </Table.Cell>
-                  </Table.Row>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
-                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                      Scale
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult1?.metadata?.scale)}
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult2?.metadata?.scale)}
-                      </Chip>
-                    </Table.Cell>
-                  </Table.Row>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
-                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                      Strategy
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult1?.metadata?.r_strategy)}
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult2?.metadata?.r_strategy)}
-                      </Chip>
-                    </Table.Cell>
-                  </Table.Row>
-                  <Table.Row className="hover:bg-accent-soft transition-colors duration-150">
-                    <Table.Cell className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                      Material
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult1?.metadata?.primary_material)}
-                      </Chip>
-                    </Table.Cell>
-                    <Table.Cell className="text-center">
-                      <Chip variant="default" size="sm" className="transition-all duration-200">
-                        {titleize(scoringResult2?.metadata?.primary_material)}
-                      </Chip>
-                    </Table.Cell>
-                  </Table.Row>
-                </Table.Body>
-              </Table.Content>
-            </Table.ScrollContainer>
-          </Table>
-        </Card.Content>
-      </Card>
+          </p>
+          <div className="space-y-2">
+            {[
+              {
+                label: 'Industry',
+                value1: titleize(scoringResult1?.metadata?.industry || assessment1.industry || ''),
+                value2: titleize(scoringResult2?.metadata?.industry || assessment2.industry || ''),
+              },
+              {
+                label: 'Scale',
+                value1: titleize(scoringResult1?.metadata?.scale),
+                value2: titleize(scoringResult2?.metadata?.scale),
+              },
+              {
+                label: 'Strategy',
+                value1: titleize(scoringResult1?.metadata?.r_strategy),
+                value2: titleize(scoringResult2?.metadata?.r_strategy),
+              },
+              {
+                label: 'Material',
+                value1: titleize(scoringResult1?.metadata?.primary_material),
+                value2: titleize(scoringResult2?.metadata?.primary_material),
+              },
+            ].map(({ label, value1, value2 }) => (
+              <div
+                key={label}
+                className="flex justify-between items-start py-2 border-b border-(--color-border) last:border-0 text-sm gap-4"
+              >
+                <span className="text-(--color-text-muted) shrink-0">{label}</span>
+                <div className="flex gap-2 items-center flex-1 justify-end">
+                  <Chip variant="default" size="sm" className="transition-all duration-200">
+                    {value1}
+                  </Chip>
+                  <span className="text-(--color-text-muted)">vs</span>
+                  <Chip variant="default" size="sm" className="transition-all duration-200">
+                    {value2}
+                  </Chip>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* Gap Analysis Comparison */}
-      {(scoringResult1?.gap_analysis?.has_benchmarks ||
-        scoringResult2?.gap_analysis?.has_benchmarks) && (
-        <Card
-          className="border-2 rounded-xl"
-          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-        >
-          <Card.Header className="flex items-center gap-3 pb-4">
-            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-              <Award style={{ color: 'var(--accent)' }} size={20} />
-            </div>
-            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+        {/* Gap Analysis Comparison */}
+        {(scoringResult1?.gap_analysis?.has_benchmarks ||
+          scoringResult2?.gap_analysis?.has_benchmarks) && (
+          <div className="border-t border-(--color-border) pt-6 mt-6">
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4 flex items-center gap-2">
+              <Award size={14} />
               Gap Analysis vs Similar Projects
-            </Card.Title>
-          </Card.Header>
-          <Card.Content className="p-0 overflow-x-auto">
-            <Table>
-              <Table.ScrollContainer>
-                <Table.Content aria-label="Gap analysis comparison" className="min-w-md">
-                  <Table.Header>
-                    <Table.Column className="w-[35%]" isRowHeader>
-                      FACTOR
-                    </Table.Column>
-                    <Table.Column className="text-center">{assessment1.title}</Table.Column>
-                    <Table.Column className="text-center">{assessment2.title}</Table.Column>
-                  </Table.Header>
-                  <Table.Body>
-                    {Object.keys(
-                      scoringResult1?.sub_scores || scoringResult2?.sub_scores || {},
-                    ).map((factor) => {
-                      const comp1 = scoringResult1?.gap_analysis?.comparisons?.[factor];
-                      const comp2 = scoringResult2?.gap_analysis?.comparisons?.[factor];
-                      const statusStyle = (s) => ({
-                        color:
-                          s === 'above_average'
-                            ? 'var(--success)'
-                            : s === 'below_average'
-                              ? 'var(--danger)'
-                              : 'var(--info)',
-                      });
-                      return (
-                        <Table.Row key={factor}>
-                          <Table.Cell
-                            className="font-medium"
-                            style={{ color: 'var(--foreground)' }}
-                          >
-                            {formatFactorName(factor)}
-                          </Table.Cell>
-                          <Table.Cell className="text-center">
-                            {comp1 ? (
-                              <div className="flex flex-col items-center gap-1">
-                                <span
-                                  className="text-sm font-bold"
-                                  style={{ color: 'var(--foreground)' }}
-                                >
-                                  {comp1.userScore}
-                                </span>
-                                <span
-                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                                  style={statusStyle(comp1.status)}
-                                >
-                                  {comp1.status?.replace(/_/g, ' ') || '—'}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                                —
-                              </span>
-                            )}
-                          </Table.Cell>
-                          <Table.Cell className="text-center">
-                            {comp2 ? (
-                              <div className="flex flex-col items-center gap-1">
-                                <span
-                                  className="text-sm font-bold"
-                                  style={{ color: 'var(--foreground)' }}
-                                >
-                                  {comp2.userScore}
-                                </span>
-                                <span
-                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                                  style={statusStyle(comp2.status)}
-                                >
-                                  {comp2.status?.replace(/_/g, ' ') || '—'}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                                —
-                              </span>
-                            )}
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </Table.Body>
-                </Table.Content>
-              </Table.ScrollContainer>
-            </Table>
-          </Card.Content>
-        </Card>
-      )}
+            </p>
+            <div className="space-y-2">
+              {Object.keys(scoringResult1?.sub_scores || scoringResult2?.sub_scores || {}).map(
+                (factor) => {
+                  const comp1 = scoringResult1?.gap_analysis?.comparisons?.[factor];
+                  const comp2 = scoringResult2?.gap_analysis?.comparisons?.[factor];
+                  const getStatusColor = (s) =>
+                    s === 'above_average'
+                      ? 'text-(--color-success)'
+                      : s === 'below_average'
+                        ? 'text-(--color-danger)'
+                        : 'text-(--color-info)';
+                  return (
+                    <div
+                      key={factor}
+                      className="flex justify-between items-start py-2 border-b border-(--color-border) last:border-0 text-sm gap-4"
+                    >
+                      <span className="text-(--color-text-muted) shrink-0">
+                        {formatFactorName(factor)}
+                      </span>
+                      <div className="flex gap-4 items-center flex-1 justify-end">
+                        {comp1 ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm font-bold text-(--color-text-primary)">
+                              {comp1.userScore}
+                            </span>
+                            <span
+                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${getStatusColor(comp1.status)}`}
+                            >
+                              {comp1.status?.replace(/_/g, ' ') || '—'}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-(--color-text-muted)">—</span>
+                        )}
+                        {comp2 ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm font-bold text-(--color-text-primary)">
+                              {comp2.userScore}
+                            </span>
+                            <span
+                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${getStatusColor(comp2.status)}`}
+                            >
+                              {comp2.status?.replace(/_/g, ' ') || '—'}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-(--color-text-muted)">—</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                },
+              )}
+            </div>
+          </div>
+        )}
 
-      {/* Circular Economy Tier Comparison */}
-      {(scoringResult1?.circular_economy_tier || scoringResult2?.circular_economy_tier) && (
-        <Card
-          className="border-2 rounded-xl"
-          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-        >
-          <Card.Header className="flex items-center gap-3 pb-3">
-            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+        {/* Circular Economy Tier Comparison */}
+        {(scoringResult1?.circular_economy_tier || scoringResult2?.circular_economy_tier) && (
+          <div className="border-t border-(--color-border) pt-6 mt-6">
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">
               Circular Economy Tier
-            </Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </p>
+            <div className="space-y-4">
               {[
                 { sr: scoringResult1, title: assessment1.title },
                 { sr: scoringResult2, title: assessment2.title },
@@ -234,75 +146,57 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   return (
                     <div
                       key={title}
-                      className="p-4 rounded-xl border text-sm"
-                      style={{
-                        backgroundColor: 'transparent',
-                        borderColor: 'var(--border)',
-                        color: 'var(--muted)',
-                      }}
+                      className="border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 text-sm text-(--color-text-muted)"
                     >
                       No tier data
                     </div>
                   );
                 const tierColor =
                   tier.badge_color === 'green'
-                    ? 'var(--success)'
+                    ? 'text-(--color-success)'
                     : tier.badge_color === 'blue'
-                      ? 'var(--info)'
+                      ? 'text-(--color-info)'
                       : tier.badge_color === 'amber'
-                        ? 'var(--warning)'
-                        : 'var(--danger)';
+                        ? 'text-(--color-warning)'
+                        : 'text-(--color-danger)';
                 const tierBg =
                   tier.badge_color === 'green'
-                    ? 'var(--success-soft)'
+                    ? 'bg-(--color-success-soft)'
                     : tier.badge_color === 'blue'
-                      ? 'var(--info-soft)'
+                      ? 'bg-(--color-info-soft)'
                       : tier.badge_color === 'amber'
-                        ? 'var(--warning-soft)'
-                        : 'var(--danger-soft)';
+                        ? 'bg-(--color-warning-soft)'
+                        : 'bg-(--color-danger-soft)';
                 return (
                   <div
                     key={title}
-                    className="p-4 rounded-xl border-2"
-                    style={{ borderColor: tierColor, backgroundColor: tierBg }}
+                    className={`border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 ${tierBg}`}
                   >
-                    <p
-                      className="text-xs font-semibold uppercase tracking-wide mb-1"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-1 text-(--color-text-muted)">
                       {title}
                     </p>
-                    <p className="text-2xl font-bold" style={{ color: tierColor }}>
-                      {tier.tier}
-                    </p>
-                    <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                    <p className={`text-2xl font-bold ${tierColor}`}>{tier.tier}</p>
+                    <p className="text-xs mb-2 text-(--color-text-muted)">
                       {tier.range} · {tier.percentile_estimate}
                     </p>
-                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs leading-relaxed text-(--color-text-muted)">
                       {tier.next_milestone}
                     </p>
                   </div>
                 );
               })}
             </div>
-          </Card.Content>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* R-Strategy Alignment Comparison */}
-      {(scoringResult1?.r_strategy_alignment?.alignment_score != null ||
-        scoringResult2?.r_strategy_alignment?.alignment_score != null) && (
-        <Card
-          className="border-2 rounded-xl"
-          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-        >
-          <Card.Header className="flex items-center gap-3 pb-3">
-            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+        {/* R-Strategy Alignment Comparison */}
+        {(scoringResult1?.r_strategy_alignment?.alignment_score != null ||
+          scoringResult2?.r_strategy_alignment?.alignment_score != null) && (
+          <div className="border-t border-(--color-border) pt-6 mt-6">
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">
               R-Strategy Alignment
-            </Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </p>
+            <div className="space-y-4">
               {[
                 { sr: scoringResult1, title: assessment1.title },
                 { sr: scoringResult2, title: assessment2.title },
@@ -312,69 +206,49 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   return (
                     <div
                       key={title}
-                      className="p-4 rounded-xl border text-sm"
-                      style={{
-                        backgroundColor: 'transparent',
-                        borderColor: 'var(--border)',
-                        color: 'var(--muted)',
-                      }}
+                      className="border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 text-sm text-(--color-text-muted)"
                     >
                       No alignment data
                     </div>
                   );
-                const sc =
+                const scoreColor =
                   ra.alignment_score >= 75
-                    ? 'var(--success)'
+                    ? 'text-(--color-success)'
                     : ra.alignment_score >= 55
-                      ? 'var(--info)'
-                      : 'var(--warning)';
+                      ? 'text-(--color-info)'
+                      : 'text-(--color-warning)';
                 return (
                   <div
                     key={title}
-                    className="p-4 rounded-xl border"
-                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                    className="border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0"
                   >
-                    <p
-                      className="text-xs font-semibold uppercase tracking-wide mb-1"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-1 text-(--color-text-muted)">
                       {title}
                     </p>
                     <div className="flex items-baseline gap-1 mb-1">
-                      <span className="text-2xl font-bold" style={{ color: sc }}>
+                      <span className={`text-2xl font-bold ${scoreColor}`}>
                         {ra.alignment_score}
                       </span>
-                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                        /100
-                      </span>
+                      <span className="text-sm text-(--color-text-muted)">/100</span>
                     </div>
-                    <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
-                      {ra.rating}
-                    </p>
-                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs mb-1 text-(--color-text-muted)">{ra.rating}</p>
+                    <p className="text-xs leading-relaxed text-(--color-text-muted)">
                       {ra.message}
                     </p>
                   </div>
                 );
               })}
             </div>
-          </Card.Content>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Parameter Consistency Comparison */}
-      {(scoringResult1?.parameter_consistency || scoringResult2?.parameter_consistency) && (
-        <Card
-          className="border-2 rounded-xl"
-          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-        >
-          <Card.Header className="flex items-center gap-3 pb-3">
-            <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+        {/* Parameter Consistency Comparison */}
+        {(scoringResult1?.parameter_consistency || scoringResult2?.parameter_consistency) && (
+          <div className="border-t border-(--color-border) pt-6 mt-6">
+            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">
               Self-Assessment Reliability
-            </Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </p>
+            <div className="space-y-4">
               {[
                 { sr: scoringResult1, title: assessment1.title },
                 { sr: scoringResult2, title: assessment2.title },
@@ -384,50 +258,37 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                   return (
                     <div
                       key={title}
-                      className="p-4 rounded-xl border text-sm"
-                      style={{
-                        backgroundColor: 'transparent',
-                        borderColor: 'var(--border)',
-                        color: 'var(--muted)',
-                      }}
+                      className="border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 text-sm text-(--color-text-muted)"
                     >
                       No data
                     </div>
                   );
-                const sc =
+                const scoreColor =
                   pc.score >= 85
-                    ? 'var(--success)'
+                    ? 'text-(--color-success)'
                     : pc.score >= 65
-                      ? 'var(--info)'
-                      : 'var(--warning)';
+                      ? 'text-(--color-info)'
+                      : 'text-(--color-warning)';
                 return (
                   <div
                     key={title}
-                    className="p-4 rounded-xl border"
-                    style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
+                    className="border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0"
                   >
-                    <p
-                      className="text-xs font-semibold uppercase tracking-wide mb-2"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-(--color-text-muted)">
                       {title}
                     </p>
                     <div className="flex items-baseline gap-1 mb-1">
-                      <span className="text-2xl font-bold" style={{ color: sc }}>
-                        {pc.score}
-                      </span>
-                      <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                        /100
-                      </span>
+                      <span className={`text-2xl font-bold ${scoreColor}`}>{pc.score}</span>
+                      <span className="text-sm text-(--color-text-muted)">/100</span>
                     </div>
-                    <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs mb-1 text-(--color-text-muted)">
                       {pc.rating} Consistency
                     </p>
-                    <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs leading-relaxed text-(--color-text-muted)">
                       {pc.interpretation}
                     </p>
                     {pc.issues?.length > 0 && (
-                      <p className="text-xs mt-1" style={{ color: 'var(--warning)' }}>
+                      <p className="text-xs mt-1 text-(--color-warning)">
                         {pc.issues_found} issue{pc.issues_found !== 1 ? 's' : ''} detected
                       </p>
                     )}
@@ -435,75 +296,49 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
                 );
               })}
             </div>
-          </Card.Content>
-        </Card>
-      )}
-
-      {/* Auditor's Verdict */}
-      <Card
-        className="border-2 rounded-xl"
-        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-      >
-        <Card.Header className="flex gap-3 items-center pb-3">
-          <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-            <Lightbulb style={{ color: 'var(--accent)' }} size={20} />
           </div>
-          <Card.Title className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>
+        )}
+      </div>
+
+      <div className="pl-8">
+        {/* Auditor's Verdict */}
+        <div className="border-t border-(--color-border) pt-6 mt-6 first:border-0 first:pt-0 first:mt-0">
+          <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4 flex items-center gap-2">
+            <Lightbulb size={14} />
             Auditor&apos;s Verdict
-          </Card.Title>
-        </Card.Header>
-        <Card.Content>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div
-              className="p-5 pl-4 border-l-4 rounded-r-lg"
-              style={{ borderLeftColor: 'var(--success)', backgroundColor: 'var(--success-soft)' }}
-            >
-              <p
-                className="text-sm font-bold uppercase mb-2 tracking-wide"
-                style={{ color: 'var(--success)' }}
-              >
+          </p>
+          <div className="space-y-4">
+            <div className="p-5 pl-4 border-l-4 rounded-r-lg border-(--color-success) bg-(--color-success-soft)">
+              <p className="text-sm font-bold uppercase mb-2 tracking-wide text-(--color-success)">
                 {assessment1.title}
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+              <p className="text-sm leading-relaxed text-(--color-text-muted)">
                 {scoringResult1?.audit?.audit_verdict || 'No verdict available'}
               </p>
             </div>
 
-            <div
-              className="p-5 pl-4 border-l-4 rounded-r-lg"
-              style={{ borderLeftColor: 'var(--info)', backgroundColor: 'var(--info-soft)' }}
-            >
-              <p
-                className="text-sm font-bold uppercase mb-2 tracking-wide"
-                style={{ color: 'var(--info)' }}
-              >
+            <div className="p-5 pl-4 border-l-4 rounded-r-lg border-(--color-info) bg-(--color-info-soft)">
+              <p className="text-sm font-bold uppercase mb-2 tracking-wide text-(--color-info)">
                 {assessment2.title}
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+              <p className="text-sm leading-relaxed text-(--color-text-muted)">
                 {scoringResult2?.audit?.audit_verdict || 'No verdict available'}
               </p>
             </div>
           </div>
-        </Card.Content>
-      </Card>
+        </div>
 
-      {/* Summary */}
-      <Card
-        className="border-2 rounded-xl"
-        style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-      >
-        <Card.Content className="gap-4 p-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--accent-soft)' }}>
-              <Lightbulb style={{ color: 'var(--accent)' }} size={20} />
+        {/* Summary */}
+        <div className="border-t border-(--color-border) pt-6 mt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-lg bg-(--color-accent-light)">
+              <Lightbulb className="text-(--color-accent)" size={20} />
             </div>
-            <h3 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
-              Summary
-            </h3>
+            <h3 className="text-xl font-bold text-(--color-text-primary)">Summary</h3>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
-              <strong style={{ color: 'var(--foreground)' }}>Score Trend:</strong>
+              <strong className="text-(--color-text-primary)">Score Trend:</strong>
               {scoringResult2?.overall_score > scoringResult1?.overall_score ? (
                 <Chip
                   color="success"
@@ -543,11 +378,8 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
               if (a1 && a2 && a1 !== a2) {
                 return (
                   <div className="flex items-center gap-2">
-                    <strong style={{ color: 'var(--foreground)' }}>Industry Change:</strong>
-                    <span
-                      className="flex items-center gap-1 font-medium"
-                      style={{ color: 'var(--muted)' }}
-                    >
+                    <strong className="text-(--color-text-primary)">Industry Change:</strong>
+                    <span className="flex items-center gap-1 font-medium text-(--color-text-muted)">
                       {titleize(a1)}
                       <ArrowRight size={12} />
                       {titleize(a2)}
@@ -558,9 +390,9 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
               return null;
             })()}
 
-            <div className="pt-2 border-t" style={{ borderTopColor: 'var(--border)' }}>
-              <strong style={{ color: 'var(--foreground)' }}>Compared: </strong>
-              <span className="text-md font-bold" style={{ color: 'var(--foreground)' }}>
+            <div className="pt-2 border-t border-(--color-border)">
+              <strong className="text-(--color-text-primary)">Compared: </strong>
+              <span className="text-md font-bold text-(--color-text-primary)">
                 {assessment1.title}
                 <span className="italic font-normal">
                   {' '}
@@ -574,9 +406,9 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
               </span>
             </div>
           </div>
-        </Card.Content>
-      </Card>
-    </>
+        </div>
+      </div>
+    </div>
   );
 }
 

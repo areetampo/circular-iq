@@ -12,45 +12,38 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
   const isTransparent = variant === 'transparent';
 
   return (
-    <div className="border border-(--color-border) rounded-md card-lift bg-transparent">
-      <div className={isTransparent ? 'p-1 sm:p-3' : 'p-4'}>
-        <h3
-          className={`font-bold flex items-center gap-2 mb-1 ${isTransparent ? 'text-lg' : 'text-lg mb-4'}`}
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {variant === 'transparent' && (
-            <BarChart3 style={{ color: 'var(--color-info)' }} size={20} />
-          )}{' '}
-          Gap Analysis
-        </h3>
+    <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
+      <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6 flex items-center gap-2">
+        <BarChart3 size={14} />
+        Gap Analysis
+      </p>
 
-        {variant === 'transparent' && (
-          <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
-            {gapAnalysis.message}
-          </p>
-        )}
+      {variant === 'transparent' && (
+        <p className="text-sm text-(--color-text-secondary) mb-6 leading-relaxed">
+          {gapAnalysis.message}
+        </p>
+      )}
 
-        <BenchmarkTable
-          comparisons={gapAnalysis.comparisons}
-          opportunities={gapAnalysis.opportunities}
-          strengths={gapAnalysis.strengths}
-        />
+      <BenchmarkTable
+        comparisons={gapAnalysis.comparisons}
+        opportunities={gapAnalysis.opportunities}
+        strengths={gapAnalysis.strengths}
+      />
 
-        {variant === 'assessment' && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {gapAnalysis.opportunities?.map((factor) => (
-              <Chip key={factor} variant="warning">
-                ↑ {formatFactorName(factor)}
-              </Chip>
-            ))}
-            {gapAnalysis.strengths?.map((factor) => (
-              <Chip key={factor} variant="success">
-                ↓ {formatFactorName(factor)}
-              </Chip>
-            ))}
-          </div>
-        )}
-      </div>
+      {variant === 'assessment' && (
+        <div className="flex flex-wrap gap-2 mt-6">
+          {gapAnalysis.opportunities?.map((factor) => (
+            <Chip key={factor} variant="warning">
+              ↑ {formatFactorName(factor)}
+            </Chip>
+          ))}
+          {gapAnalysis.strengths?.map((factor) => (
+            <Chip key={factor} variant="success">
+              ↓ {formatFactorName(factor)}
+            </Chip>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

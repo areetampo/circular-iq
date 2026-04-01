@@ -380,7 +380,7 @@ export function FactorAnalysisTab({
                             {gapsOnly.map((gap, i) => (
                               <div
                                 key={i}
-                                className="p-3 border rounded-lg"
+                                className="p-3 rounded-lg"
                                 style={{
                                   backgroundColor:
                                     gap.severity === 'high'
