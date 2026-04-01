@@ -17,7 +17,7 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  * Specialized dialog for confirming assessment deletion
  * Uses compact dialog pattern
  */
-function DeleteAssessmentDialogContent({ assessmentTitle = '' }) {
+function DeleteAssessmentDialogContent({ assessmentName = '' }) {
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
   // Get callback from dialog data with stable references
@@ -46,7 +46,7 @@ function DeleteAssessmentDialogContent({ assessmentTitle = '' }) {
       className="backdrop-blur-sm bg-(--color-backdrop)"
     >
       <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-(--radius-lg) shadow-(--shadow-md) p-5">
+        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5">
           {({ close }) => (
             <>
               {/* Icon */}
@@ -62,7 +62,7 @@ function DeleteAssessmentDialogContent({ assessmentTitle = '' }) {
               <p className="text-sm text-(--color-text-secondary) text-center leading-relaxed mb-5">
                 This will permanently delete{' '}
                 <span className="font-medium text-(--color-text-primary)">
-                  &ldquo;{assessmentTitle}&rdquo;
+                  &ldquo;{assessmentName}&rdquo;
                 </span>
                 . This action cannot be undone.
               </p>
@@ -94,7 +94,7 @@ function DeleteAssessmentDialogContent({ assessmentTitle = '' }) {
 }
 
 DeleteAssessmentDialogContent.propTypes = {
-  assessmentTitle: PropTypes.string,
+  assessmentName: PropTypes.string,
 };
 
 // Memoized content to prevent duplicate renders
@@ -102,7 +102,7 @@ const MemoizedContent = React.memo(DeleteAssessmentDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
 export const DeleteAssessmentDialog = React.memo(function DeleteAssessmentDialog({
-  assessmentTitle = '',
+  assessmentName = '',
 }) {
   const { isDialogOpen } = useGlobalDialog();
 
@@ -111,9 +111,9 @@ export const DeleteAssessmentDialog = React.memo(function DeleteAssessmentDialog
     return null;
   }
 
-  return <MemoizedContent key="delete-assessment-dialog" assessmentTitle={assessmentTitle} />;
+  return <MemoizedContent key="delete-assessment-dialog" assessmentName={assessmentName} />;
 });
 
 DeleteAssessmentDialog.propTypes = {
-  assessmentTitle: PropTypes.string,
+  assessmentName: PropTypes.string,
 };
