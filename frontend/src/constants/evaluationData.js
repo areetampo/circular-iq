@@ -687,74 +687,34 @@ export const categoryMapping = {
  */
 export const TIER_CONFIG = [
   {
-    minScore: 90,
+    minScore: 75,
+    // Selected: warm sage border + very subtle sage tint
     selected:
-      'border-[var(--color-success)]/70 bg-[var(--color-success-soft)]/50 text-[var(--color-success)] shadow-sm',
+      'border-[var(--color-success)] bg-[oklch(0.97_0.012_145/_0.25)] text-[var(--color-success)]',
+    // Unselected: barely visible, just a thin hint
     unselected:
-      'border-[var(--color-success)]/25 hover:border-[var(--color-success)]/40 hover:bg-[var(--color-success-soft)]/25 text-[var(--color-text-secondary)]',
+      'border-[oklch(0.88_0.01_145/_0.35)] bg-[oklch(0.99_0.006_145/_0.1)] text-[var(--color-success)]',
   },
   {
-    minScore: 80,
+    minScore: 55,
     selected:
-      'border-[var(--color-success)]/60 bg-[var(--color-success-soft)]/45 text-[var(--color-success)]/95 shadow-sm',
+      'border-[var(--color-accent)] bg-[oklch(0.97_0.012_68/_0.2)] text-[var(--color-accent)]',
     unselected:
-      'border-[var(--color-success)]/20 hover:border-[var(--color-success)]/35 hover:bg-[var(--color-success-soft)]/20 text-[var(--color-text-secondary)]',
+      'border-[oklch(0.90_0.01_68/_0.35)] bg-[oklch(0.99_0.006_68/_0.1)] text-[var(--color-text-secondary)]',
   },
   {
-    minScore: 70,
+    minScore: 35,
     selected:
-      'border-[var(--color-accent)]/70 bg-[var(--color-accent-soft)]/50 text-[var(--color-accent)] shadow-sm',
+      'border-[var(--color-warning)] bg-[oklch(0.97_0.012_60/_0.2)] text-[var(--color-warning)]',
     unselected:
-      'border-[var(--color-accent)]/25 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-accent-soft)]/25 text-[var(--color-text-secondary)]',
-  },
-  {
-    minScore: 60,
-    selected:
-      'border-[var(--color-accent)]/60 bg-[var(--color-accent-soft)]/45 text-[var(--color-accent)]/95 shadow-sm',
-    unselected:
-      'border-[var(--color-accent)]/20 hover:border-[var(--color-accent)]/35 hover:bg-[var(--color-accent-soft)]/20 text-[var(--color-text-secondary)]',
-  },
-  {
-    minScore: 50,
-    selected:
-      'border-[var(--color-warning)]/70 bg-[var(--color-warning-soft)]/50 text-[var(--color-warning)] shadow-sm',
-    unselected:
-      'border-[var(--color-warning)]/25 hover:border-[var(--color-warning)]/40 hover:bg-[var(--color-warning-soft)]/25 text-[var(--color-text-secondary)]',
-  },
-  {
-    minScore: 40,
-    selected:
-      'border-[var(--color-warning)]/60 bg-[var(--color-warning-soft)]/45 text-[var(--color-warning)]/95 shadow-sm',
-    unselected:
-      'border-[var(--color-warning)]/20 hover:border-[var(--color-warning)]/35 hover:bg-[var(--color-warning-soft)]/20 text-[var(--color-text-secondary)]',
-  },
-  {
-    minScore: 30,
-    selected:
-      'border-[var(--color-warning)]/50 bg-[var(--color-warning-soft)]/40 text-[var(--color-warning)]/90 shadow-sm',
-    unselected:
-      'border-[var(--color-warning)]/18 hover:border-[var(--color-warning)]/30 hover:bg-[var(--color-warning-soft)]/18 text-[var(--color-text-secondary)]',
-  },
-  {
-    minScore: 20,
-    selected:
-      'border-[var(--color-error)]/70 bg-[var(--color-error-soft)]/50 text-[var(--color-error)] shadow-sm',
-    unselected:
-      'border-[var(--color-error)]/25 hover:border-[var(--color-error)]/40 hover:bg-[var(--color-error-soft)]/25 text-[var(--color-text-secondary)]',
-  },
-  {
-    minScore: 10,
-    selected:
-      'border-[var(--color-error)]/60 bg-[var(--color-error-soft)]/45 text-[var(--color-error)]/95 shadow-sm',
-    unselected:
-      'border-[var(--color-error)]/20 hover:border-[var(--color-error)]/35 hover:bg-[var(--color-error-soft)]/20 text-[var(--color-text-secondary)]',
+      'border-[oklch(0.91_0.01_60/_0.35)] bg-[oklch(0.99_0.006_60/_0.1)] text-[var(--color-text-secondary)]',
   },
   {
     minScore: 0,
     selected:
-      'border-[var(--color-error)]/50 bg-[var(--color-error-soft)]/40 text-[var(--color-error)]/90 shadow-sm',
+      'border-[var(--color-error)] bg-[oklch(0.97_0.012_20/_0.15)] text-[var(--color-error)]',
     unselected:
-      'border-[var(--color-error)]/18 hover:border-[var(--color-error)]/30 hover:bg-[var(--color-error-soft)]/18 text-[var(--color-text-secondary)]',
+      'border-[oklch(0.92_0.008_20/_0.3)] bg-[oklch(0.99_0.004_20/_0.08)] text-[var(--color-text-muted)]',
   },
 ];
 

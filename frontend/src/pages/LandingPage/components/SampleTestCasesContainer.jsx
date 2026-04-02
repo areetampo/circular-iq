@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { Button } from '@/components/common';
 import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
@@ -13,13 +12,29 @@ import { cn } from '@/utils/cn';
 
 // Helper function to get score styling with elegant colors
 const getScoreStyle = (score) => {
-  if (score >= 80)
-    return 'bg-[var(--color-success-soft)]/80 text-[var(--color-success)] border-[var(--color-success)]/30';
-  if (score >= 60)
-    return 'bg-[var(--color-accent-soft)]/80 text-[var(--color-accent)] border-[var(--color-accent)]/30';
-  if (score >= 40)
-    return 'bg-[var(--color-warning-soft)]/80 text-[var(--color-warning)] border-[var(--color-warning)]/30';
-  return 'bg-[var(--color-error-soft)]/80 text-[var(--color-error)] border-[var(--color-error)]/30';
+  if (score >= 75)
+    return {
+      bg: 'oklch(0.97 0.012 145 / 0.22)',
+      color: 'var(--color-success)',
+      border: 'var(--color-success)',
+    };
+  if (score >= 55)
+    return {
+      bg: 'oklch(0.97 0.012 68 / 0.18)',
+      color: 'var(--color-accent)',
+      border: 'var(--color-accent)',
+    };
+  if (score >= 35)
+    return {
+      bg: 'oklch(0.97 0.012 60 / 0.18)',
+      color: 'var(--color-warning)',
+      border: 'var(--color-warning)',
+    };
+  return {
+    bg: 'oklch(0.97 0.008 20 / 0.15)',
+    color: 'var(--color-error)',
+    border: 'var(--color-error)',
+  };
 };
 
 // Helper function to validate and normalize business model type values
@@ -213,11 +228,12 @@ export default function SampleTestCasesContainer({
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer transition-all duration-300',
-              'border border-[var(--color-border)] bg-[var(--color-bg-card)] backdrop-blur-sm',
-              'hover:border-[var(--color-border-strong)] hover:bg-[var(--color-bg-elevated)] hover:shadow-lg hover:shadow-[var(--shadow-md)]',
-              isSelected &&
-                'border-[var(--color-accent)]/60 bg-[var(--color-accent-soft)]/40 shadow-lg shadow-[var(--color-accent)]/20',
+              'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer',
+              'border transition-all duration-200',
+              isSelected
+                ? 'border-[var(--color-accent)] bg-[oklch(0.97_0.014_68/_0.18)] shadow-sm'
+                : 'border-[var(--color-border-strong)] bg-[var(--color-bg-card)]' +
+                    ' hover:border-[var(--color-accent)] hover:bg-[oklch(0.98_0.01_68/_0.12)] hover:shadow-sm',
             )}
           >
             {/* Header: index pill + title + check */}
@@ -225,29 +241,36 @@ export default function SampleTestCasesContainer({
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className={cn(
-                    'text-xs font-bold px-2 py-0.5 rounded-full shrink-0 transition-all duration-200',
+                    'text-xs font-semibold px-2 py-0.5 rounded shrink-0', // not pill/rounded-full
                     isSelected
-                      ? 'bg-[var(--color-accent)]/90 text-white shadow-sm'
-                      : 'bg-[var(--color-bg-elevated)]/80 text-[var(--color-text-secondary)] group-hover:bg-[var(--color-bg-elevated)]',
+                      ? 'bg-[var(--color-accent)] text-white'
+                      : 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
                   )}
                 >
                   #{index + 1}
                 </span>
-                <h4 className="text-sm font-semibold leading-snug text-[var(--color-text-primary)] truncate group-hover:text-[var(--color-text-primary)] transition-colors duration-200">
+                <h4
+                  className="text-sm font-semibold leading-snug truncate"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
                   {testCase.title}
                 </h4>
               </div>
               {isSelected && (
                 <CheckCircle2
-                  className="text-[var(--color-accent)] shrink-0 mt-0.5"
+                  size={15}
+                  className="shrink-0 mt-0.5"
+                  style={{ color: 'var(--color-accent)' }}
                   strokeWidth={2}
-                  size={16}
                 />
               )}
             </div>
 
             {/* Problem excerpt */}
-            <p className="text-xs leading-relaxed text-[var(--color-text-secondary)] line-clamp-2 grow group-hover:text-[var(--color-text-primary)] transition-colors duration-200">
+            <p
+              className="text-xs leading-relaxed line-clamp-2 grow"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               {testCase.problem.substring(0, 110)}…
             </p>
 
@@ -255,33 +278,39 @@ export default function SampleTestCasesContainer({
             <div className="flex flex-wrap gap-1.5">
               {Object.entries(testCase.evaluationParameters || {})
                 .slice(0, 3)
-                .map(([key, value]) => (
-                  <span
-                    key={key}
-                    className={cn(
-                      'text-[10px] font-medium px-2 py-0.5 rounded-md border',
-                      getScoreStyle(value),
-                    )}
-                  >
-                    {key.replace(/_/g, ' ')}: {value}
-                  </span>
-                ))}
+                .map(([key, value]) => {
+                  const style = getScoreStyle(value);
+                  return (
+                    <span
+                      key={key}
+                      className="text-[10px] font-medium px-2 py-0.5 rounded border"
+                      style={{
+                        backgroundColor: style.bg,
+                        color: style.color,
+                        borderColor: `oklch(from ${style.border} l c h / 0.4)`,
+                      }}
+                    >
+                      {key.replace(/_/g, ' ')}: {value}
+                    </span>
+                  );
+                })}
             </div>
 
-            {/* View details — no divider, just the button flush to bottom */}
-            <div className="flex justify-end">
-              <Button
+            {/* "View details" button — make it a subtle text link, not a button */}
+            <div className="flex justify-end mt-1">
+              <button
+                type="button"
                 onClick={(e) => {
                   openSpecificSampleTestCaseViewDetailsDrawer(testCase);
                   e.stopPropagation();
                 }}
-                variant="eco-soft"
-                size="sm"
-                className="flex items-center gap-2 text-xs"
+                className="text-[11px] font-medium flex items-center gap-1
+                           transition-colors duration-150 hover:opacity-80"
+                style={{ color: 'var(--color-accent)' }}
               >
                 View details
-                <BookOpen />
-              </Button>
+                <BookOpen size={11} />
+              </button>
             </div>
           </div>
         );

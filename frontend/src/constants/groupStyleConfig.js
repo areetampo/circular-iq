@@ -1,74 +1,37 @@
-import { Coins, RadioTower, Recycle } from 'lucide-react';
+import { CircleDollarSign, Cpu, Users } from 'lucide-react';
 
 // Shared group style configuration for parameter-themed UI (icons + Tailwind classes)
 export const GROUP_STYLE_CONFIG = {
   'Access Value': {
-    Icon: RadioTower,
-    iconColor: 'text-[var(--color-accent)]',
-    headerBg: 'bg-[var(--color-accent-soft)]/40',
-    headerIconColor: 'text-[var(--color-accent)]',
+    Icon: Users,
+    // Icon colour — use a token class or inline style
+    // We can't use arbitrary tokens as class names easily, so use a data attr approach:
+    iconColor: 'text-[var(--color-info)]',
     subtitle: 'Reach and participation across stakeholders',
-    paramBg: 'bg-[var(--color-accent-soft)]/25',
-    paramTextColor: 'text-[var(--color-text-primary)]',
-    panelBg: 'bg-[var(--color-accent-soft)]/15',
-    panelBorder: 'border-[var(--color-accent)]/20',
-    panelTitle: 'text-[var(--color-text-primary)]',
-    panelItemBorder: 'border-[var(--color-border)]/40',
-    badgeBg: 'bg-[var(--color-accent-soft)]/50',
-    badgeBorder: 'border-[var(--color-accent)]/25',
-    badgeText: 'text-[var(--color-accent)]',
-    panelItemText: 'text-[var(--color-text-secondary)]',
+    // Label chip for the parameter (e.g. "Public Participation")
+    paramBg: 'bg-[oklch(0.94_0.01_220/_0.18)]', // cool subtle blue-grey
+    paramTextColor: 'text-[var(--color-info)]',
   },
   'Embedded Value': {
-    Icon: Coins,
-    iconColor: 'text-[var(--color-success)]',
-    headerBg: 'bg-[var(--color-success-soft)]/40',
-    headerIconColor: 'text-[var(--color-success)]',
-    subtitle: 'Intrinsic worth retained within system',
-    paramBg: 'bg-[var(--color-success-soft)]/25',
-    paramTextColor: 'text-[var(--color-text-primary)]',
-    panelBg: 'bg-[var(--color-success-soft)]/15',
-    panelBorder: 'border-[var(--color-success)]/20',
-    panelTitle: 'text-[var(--color-text-primary)]',
-    panelItemBorder: 'border-[var(--color-border)]/40',
-    badgeBg: 'bg-[var(--color-success-soft)]/50',
-    badgeBorder: 'border-[var(--color-success)]/25',
-    badgeText: 'text-[var(--color-success)]',
-    panelItemText: 'text-[var(--color-text-secondary)]',
+    Icon: CircleDollarSign,
+    iconColor: 'text-[var(--color-accent)]',
+    subtitle: 'Material worth retained within the system',
+    paramBg: 'bg-[oklch(0.96_0.014_68/_0.18)]', // warm amber-cream
+    paramTextColor: 'text-[var(--color-accent)]',
   },
   'Processing Value': {
-    Icon: Recycle,
-    iconColor: 'text-[var(--color-warning)]',
-    headerBg: 'bg-[var(--color-warning-soft)]/40',
-    headerIconColor: 'text-[var(--color-warning)]',
+    Icon: Cpu,
+    iconColor: 'text-[var(--color-success)]',
     subtitle: 'Efficiency and safety of circularity processes',
-    paramBg: 'bg-[var(--color-warning-soft)]/25',
-    paramTextColor: 'text-[var(--color-text-primary)]',
-    panelBg: 'bg-[var(--color-warning-soft)]/15',
-    panelBorder: 'border-[var(--color-warning)]/20',
-    panelTitle: 'text-[var(--color-text-primary)]',
-    panelItemBorder: 'border-[var(--color-border)]/40',
-    badgeBg: 'bg-[var(--color-warning-soft)]/50',
-    badgeBorder: 'border-[var(--color-warning)]/25',
-    badgeText: 'text-[var(--color-warning)]',
-    panelItemText: 'text-[var(--color-text-secondary)]',
+    paramBg: 'bg-[oklch(0.95_0.012_145/_0.15)]', // muted sage
+    paramTextColor: 'text-[var(--color-success)]',
   },
 };
 
 export const DEFAULT_CONFIG = {
-  Icon: Coins,
-  iconColor: 'text-[var(--muted)]',
-  headerBg: 'bg-[var(--surface)]',
-  headerIconColor: 'text-[var(--muted)]',
+  Icon: Cpu,
+  iconColor: 'text-[var(--color-text-muted)]',
   subtitle: '',
-  paramBg: 'bg-[var(--surface)]',
-  paramTextColor: 'text-[var(--foreground)]',
-  panelBg: 'bg-[var(--surface)]',
-  panelBorder: 'border-[var(--border)]',
-  panelTitle: 'text-[var(--foreground)]',
-  panelItemBorder: 'border-[var(--border)]',
-  badgeBg: 'bg-[var(--surface)]',
-  badgeBorder: 'border-[var(--border)]',
-  badgeText: 'text-[var(--foreground)]',
-  panelItemText: 'text-[var(--foreground)]',
+  paramBg: 'bg-[var(--color-accent-soft)]',
+  paramTextColor: 'text-[var(--color-text-secondary)]',
 };

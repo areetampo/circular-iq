@@ -78,19 +78,22 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                 </Label>
 
                 <NumberField.Group
-                  className="flex items-center gap-2 h-10 my-2"
+                  className="flex items-center gap-2 h-9 my-1.5"
                   style={{
-                    backgroundColor: 'oklch(0.985 0.01 80 / 0.6)',
-                    border: '1.5px solid var(--border)',
+                    backgroundColor: 'oklch(0.985 0.008 80 / 0.6)',
+                    border: '1.5px solid var(--color-border-strong)',
                     borderRadius: '10px',
-                    padding: '0 6px',
-                    boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+                    padding: '0 4px',
                   }}
                 >
                   <NumberField.DecrementButton
-                    className="w-8 h-8 flex items-center justify-center transition-all duration-200 text-lg select-none rounded-lg
-                               hover:bg-(--accent-soft) hover:scale-110 active:scale-95"
-                    style={{ color: 'var(--muted)' }}
+                    className="w-7 h-7 flex items-center justify-center text-base select-none
+               rounded-md transition-colors duration-100"
+                    style={{ color: 'var(--color-text-muted)' }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)')
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Decrease value"
                   />
                   <NumberField.Input
@@ -126,10 +129,18 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         // Do NOT persist here — rely on LandingPage debounced autosave.
                       }
                     }}
-                    className="w-20 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
+                    className="w-14 text-center text-xl font-bold bg-transparent
+               focus:outline-none font-mono"
+                    style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono)' }}
                   />
                   <NumberField.IncrementButton
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none"
+                    className="w-7 h-7 flex items-center justify-center text-base select-none
+               rounded-md transition-colors duration-100"
+                    style={{ color: 'var(--color-text-muted)' }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)')
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Increase value"
                   />
                 </NumberField.Group>
@@ -149,11 +160,11 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       disabled={loading}
                       onClick={() => field.onChange(option.score)}
                       className={cn(
-                        'cursor-pointer flex-1 p-2.5 rounded-lg border-2 text-left transition-all duration-100',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
-                        isSelected ? 'shadow-sm opacity-80' : 'bg-white opacity-60',
+                        'cursor-pointer flex-1 p-2.5 rounded-lg border text-left transition-all duration-150',
+                        'focus:outline-none',
+                        isSelected ? 'opacity-90 shadow-sm' : 'opacity-55 hover:opacity-75',
                         tierClass,
-                        loading && 'opacity-50 cursor-not-allowed',
+                        loading && 'opacity-40 cursor-not-allowed',
                       )}
                     >
                       <div className="text-xs font-bold leading-tight mb-1">
@@ -233,41 +244,39 @@ function EvaluationParametersContainer({
             >
               <Accordion.Heading>
                 <Accordion.Trigger
-                  className="group flex items-center gap-3 px-5 py-3 transition-colors duration-200"
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
-                  }
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  className="group/grp flex items-center gap-3 px-5 py-3
+                              transition-colors duration-150
+                              hover:bg-[var(--color-accent-soft)]"
                 >
                   <cfg.Icon
                     className={cn(
                       cfg.iconColor,
-                      'h-5 w-5 shrink-0 mr-1.5 transition-all duration-200 ease-out',
-                      'hover:rotate-12 hover:scale-110 hover:drop-shadow-md',
+                      'h-5 w-5 shrink-0 mr-1.5',
+                      'transition-[transform,filter] duration-300 ease-out',
+                      'group-hover/grp:scale-110 group-hover/grp:-rotate-6 group-hover/grp:drop-shadow-sm',
                     )}
                     strokeWidth={1.75}
                   />
 
                   <div className="flex flex-col gap-0.5 text-left">
                     <span
-                      className="font-semibold text-[16px] leading-5"
-                      style={{ color: 'var(--foreground)' }}
+                      className="font-semibold text-[15px] leading-5"
+                      style={{ color: 'var(--color-text-primary)' }}
                     >
                       {groupName}
                     </span>
                     <span
                       className="text-xs font-normal leading-4"
-                      style={{ color: 'var(--muted)' }}
+                      style={{ color: 'var(--color-text-muted)' }}
                     >
                       {cfg.subtitle}
                     </span>
                   </div>
-
                   <Accordion.Indicator
-                    className="transition-transform duration-200 ease-out"
-                    style={{ color: 'var(--muted)' }}
+                    className="[&>svg]:size-4"
+                    style={{ color: 'var(--color-text-muted)' }}
                   >
-                    <ChevronDown className="transition-transform duration-200 ease-out" />
+                    <ChevronDown />
                   </Accordion.Indicator>
                 </Accordion.Trigger>
               </Accordion.Heading>

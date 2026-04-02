@@ -605,17 +605,15 @@ select:focus {
   .number-field__group[data-focus-within='true']::after {
     outline: none !important;
     box-shadow: none !important;
-    border-color: #000000 !important;
+    border-color: var(--color-accent) !important;
     --tw-ring-offset-shadow: 0 0 #0000 !important;
     --tw-ring-shadow: 0 0 #0000 !important;
     --tw-shadow: 0 0 #0000 !important;
   }
   .number-field__group[data-focus-within='true'] {
-    --field-focus: #000000;
-    border-color: var(--field-focus) !important;
-    box-shadow:
-      0 0 0 1px #ffffff,
-      0 0 0 2.5px var(--field-focus) !important;
+    --field-focus: var(--color-accent);
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 0 0 3px oklch(0.68 0.08 68 / 0.12) !important;
     outline: none !important;
   }
   .number-field__input:focus,
@@ -835,8 +833,9 @@ select:focus {
     box-shadow: none !important;
   }
   [data-slot='trigger']:focus-within {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 2px oklch(0.94 0.018 80 / 0.2) !important;
+    border-color: var(--color-accent) !important;
+    box-shadow: 0 0 0 3px oklch(0.68 0.08 68 / 0.12) !important;
+    outline: none !important;
   }
   [data-slot='trigger'][data-open='true'] {
     border-color: var(--accent) !important;
@@ -855,7 +854,7 @@ select:focus {
   [data-slot='popover-content'] {
     background: oklch(0.99 0.006 80 / 0.98) !important;
     border: 1px solid oklch(0.88 0.012 80 / 0.3) !important;
-    border-radius: 12px !important;
+    border-radius: var(--radius-md) !important; /* change from 12px hardcode */
     box-shadow: 0 8px 20px -2px rgb(0 0 0 / 0.08) !important;
     backdrop-filter: none !important;
     padding: 6px !important;
@@ -882,9 +881,12 @@ select:focus {
     transform: none !important;
   }
   [data-slot='option'][data-selected='true'] {
-    background: oklch(0.94 0.02 80 / 0.4) !important;
-    color: var(--accent) !important;
+    background: oklch(0.96 0.016 68 / 0.25) !important;
+    color: var(--color-accent) !important;
     font-weight: 600 !important;
+  }
+  [data-slot='option']:hover:not([data-selected='true']) {
+    background: oklch(0.97 0.01 80 / 0.5) !important;
   }
   [data-slot='option'][data-focused='true'] {
     background: oklch(0.96 0.016 80 / 0.2) !important;

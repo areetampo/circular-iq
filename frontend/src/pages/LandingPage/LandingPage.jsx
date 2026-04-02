@@ -23,6 +23,7 @@ import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
+import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
 import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
 import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
@@ -136,43 +137,74 @@ export default function LandingPage() {
   const persistInputs = useCallback(
     (values) => {
       if (skipAutosaveRef.current) return;
+
+      const current = {
+        businessProblem: (values?.businessProblem || '').trim(),
+        businessSolution: (values?.businessSolution || '').trim(),
+        evaluationParameters: values?.evaluationParameters || {},
+        businessContext: values?.businessContext || {},
+      };
+
+      // Read directly from localStorage to avoid useSession timing race
+      let stored;
       try {
-        saveSession({
-          inputs: {
-            businessProblem: values.businessProblem || '',
-            businessSolution: values.businessSolution || '',
-            evaluationParameters: values.evaluationParameters || {},
-            businessContext: values.businessContext || {},
-          },
-        });
-        lastSavedLocalTimestampRef.current = Date.now();
-      } catch (e) {
-        console.warn('Failed to persist inputs:', e);
+        const storedState = loadEvaluationState();
+        stored = storedState?.inputs || {
+          businessProblem: '',
+          businessSolution: '',
+          evaluationParameters: {},
+          businessContext: {},
+        };
+      } catch {
+        stored = {
+          businessProblem: '',
+          businessSolution: '',
+          evaluationParameters: {},
+          businessContext: {},
+        };
+      }
+
+      // Skip write if nothing changed
+      const same = (a, b) => {
+        try {
+          return (
+            (a.businessProblem || '').trim() === (b.businessProblem || '').trim() &&
+            (a.businessSolution || '').trim() === (b.businessSolution || '').trim() &&
+            JSON.stringify(a.evaluationParameters || {}) ===
+              JSON.stringify(b.evaluationParameters || {}) &&
+            JSON.stringify(a.businessContext || {}) === JSON.stringify(b.businessContext || {})
+          );
+        } catch {
+          return false;
+        }
+      };
+
+      if (same(current, stored)) return;
+
+      const savedAt = new Date().toISOString();
+      saveSession({
+        inputs: {
+          businessProblem: values.businessProblem || '',
+          businessSolution: values.businessSolution || '',
+          evaluationParameters: values.evaluationParameters || {},
+          businessContext: values.businessContext || {},
+        },
+        timestamp: savedAt,
+      });
+
+      try {
+        lastSavedLocalTimestampRef.current = savedAt;
+        lastAppliedSessionRef.current = {
+          businessProblem: values.businessProblem || '',
+          businessSolution: values.businessSolution || '',
+          evaluationParameters: values.evaluationParameters || {},
+          businessContext: values.businessContext || {},
+        };
+      } catch {
+        /* ignore */
       }
     },
     [saveSession],
-  );
-
-  // Instant save on input change
-  const instantSave = useCallback(
-    (fieldName, value) => {
-      const currentValues = methods.getValues();
-      const updatedValues = { ...currentValues };
-
-      // Handle nested paths
-      if (fieldName.includes('.')) {
-        const [parent, child] = fieldName.split('.');
-        updatedValues[parent] = {
-          ...updatedValues[parent],
-          [child]: value,
-        };
-      } else {
-        updatedValues[fieldName] = value;
-      }
-
-      persistInputs(updatedValues);
-    },
-    [methods, persistInputs],
   );
 
   const scheduleAutosave = useCallback(() => {
@@ -277,13 +309,60 @@ export default function LandingPage() {
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       const values = methods.getValues();
-      const hasUnsavedWork =
-        values.businessProblem?.trim() ||
-        values.businessSolution?.trim() ||
-        Object.keys(values.evaluationParameters || {}).length > 0 ||
-        Object.keys(values.businessContext || {}).length > 0;
 
-      if (hasUnsavedWork) {
+      // Get current form values
+      const currentFormState = {
+        businessProblem: (values?.businessProblem || '').trim(),
+        businessSolution: (values?.businessSolution || '').trim(),
+        evaluationParameters: values?.evaluationParameters || {},
+        businessContext: values?.businessContext || {},
+      };
+
+      // Get saved session state
+      let savedState = null;
+      try {
+        savedState = loadEvaluationState()?.inputs || {
+          businessProblem: '',
+          businessSolution: '',
+          evaluationParameters: {},
+          businessContext: {},
+        };
+      } catch {
+        savedState = {
+          businessProblem: '',
+          businessSolution: '',
+          evaluationParameters: {},
+          businessContext: {},
+        };
+      }
+
+      // Compare current form state with saved state
+      const hasUnsavedChanges =
+        currentFormState.businessProblem !== savedState.businessProblem ||
+        currentFormState.businessSolution !== savedState.businessSolution ||
+        JSON.stringify(currentFormState.evaluationParameters) !==
+          JSON.stringify(savedState.evaluationParameters) ||
+        JSON.stringify(currentFormState.businessContext) !==
+          JSON.stringify(savedState.businessContext);
+
+      // Only show alert if there are unsaved changes AND there's actually content to lose
+      const hasContentToLose =
+        currentFormState.businessProblem ||
+        currentFormState.businessSolution ||
+        Object.keys(currentFormState.evaluationParameters).length > 0 ||
+        Object.keys(currentFormState.businessContext).length > 0;
+
+      // Debug logging (remove in production)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('BeforeUnload Debug:', {
+          currentFormState,
+          savedState,
+          hasUnsavedChanges,
+          hasContentToLose,
+        });
+      }
+
+      if (hasUnsavedChanges && hasContentToLose) {
         e.preventDefault();
         e.returnValue = '';
         return '';
@@ -291,7 +370,13 @@ export default function LandingPage() {
     };
 
     const handlePageHide = () => {
-      flushAutosave();
+      // Force immediate save without debounce
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+      const values = methods.getValues();
+      persistInputs(values);
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -301,7 +386,7 @@ export default function LandingPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
     };
-  }, [methods, flushAutosave]);
+  }, [methods, flushAutosave, loadEvaluationState, persistInputs]);
 
   // Prefetch ResultsPage bundle when form becomes valid
   useEffect(() => {
@@ -320,7 +405,7 @@ export default function LandingPage() {
       reset({
         businessProblem: businessProblem || '',
         businessSolution: businessSolution || '',
-        evaluation_parameters: evaluation_parameters || {},
+        evaluationParameters: evaluation_parameters || {},
         businessContext: businessContext || {},
       });
       window.history.replaceState({}, document.title);
@@ -440,7 +525,7 @@ export default function LandingPage() {
                 className="text-[17px] leading-relaxed max-w-lg mx-auto mb-10 font-normal"
                 style={{ color: 'var(--muted)' }}
               >
-                Get an evidence-backed circularity score in minutes, grounded in real-world case
+                Get an evidence-backed circularity score in seconds, grounded in real-world case
                 studies.
               </p>
 
@@ -501,17 +586,14 @@ export default function LandingPage() {
             {/* Section heading */}
             <div className="mb-10">
               <h2
-                className="text-[24px] font-semibold mb-3 tracking-tight"
-                style={{
-                  color: 'var(--foreground)',
-                  fontFamily: 'var(--font-display, Lora, serif)',
-                }}
+                className="font-display text-[22px] font-semibold mb-2 tracking-tight"
+                style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)' }}
               >
                 Evaluate Your Circular Economy Business
               </h2>
               <p
-                className="text-[15px] leading-relaxed font-normal max-w-2xl"
-                style={{ color: 'var(--muted)' }}
+                className="text-[14px] leading-relaxed"
+                style={{ color: 'var(--color-text-muted)' }}
               >
                 Describe your business idea using the same structure as real circular economy
                 projects: what problem you solve, and how your solution addresses it.
@@ -529,21 +611,24 @@ export default function LandingPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 ml-1">
                     <span
-                      className="text-[15px] font-semibold tracking-wide"
-                      style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}
+                      className="text-[13px] font-semibold uppercase tracking-[0.06em]"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        fontFamily: 'var(--font-body)',
+                      }}
                     >
                       Business Problem
                     </span>
                     <BadgeInfo
-                      className="info-icon cursor-pointer transition-colors duration-200 hover:text-amber-600"
+                      className="info-icon cursor-pointer transition-colors duration-200 hover:opacity-80"
                       size={18}
-                      style={{ color: '#b8916a' }}
+                      style={{ color: 'var(--color-accent)' }}
                       onClick={openBusinessProblemInfoDrawer}
                     />
                   </div>
                   <p
-                    className="text-[13px] ml-1 leading-relaxed font-medium"
-                    style={{ color: 'var(--muted)', fontFamily: 'var(--font-soft)' }}
+                    className="text-[12px] leading-relaxed mt-0.5"
+                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
                   >
                     What environmental or circular economy challenge does your business address?
                   </p>
@@ -553,28 +638,25 @@ export default function LandingPage() {
                     placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually..."
                     {...register('businessProblem', {
                       onBlur: () => flushAutosave(),
-                      onChange: (e) => instantSave('businessProblem', e.target.value),
                     })}
                     disabled={loading}
-                    className="w-full px-4 py-4 text-[15px] rounded-2xl border resize-none
-                               focus:outline-none transition-all duration-200 font-sans
-                               placeholder:opacity-60 leading-relaxed"
+                    className="w-full px-4 py-3.5 text-[14px] rounded-xl border resize-none
+           focus:outline-none transition-colors duration-150 font-sans
+           placeholder:opacity-50 leading-relaxed"
                     style={{
-                      backgroundColor: 'oklch(0.982 0.012 80 / 0.9)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--foreground)',
-                      borderWidth: '1.5px',
+                      backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
+                      borderColor: 'var(--color-border-strong)',
+                      color: 'var(--color-text-primary)',
+                      fontFamily: 'var(--font-body)',
                       lineHeight: '1.7',
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = 'var(--accent)';
-                      e.target.style.boxShadow = '0 0 0 4px oklch(0.97 0.014 80 / 0.25)';
-                      e.target.style.transform = 'scale(1.008)';
+                      e.target.style.borderColor = 'var(--color-accent)';
+                      e.target.style.boxShadow = '0 0 0 3px oklch(0.68 0.08 68 / 0.1)';
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = 'var(--border)';
+                      e.target.style.borderColor = 'var(--color-border-strong)';
                       e.target.style.boxShadow = 'none';
-                      e.target.style.transform = 'scale(1)';
                       flushAutosave();
                     }}
                   />
@@ -585,21 +667,24 @@ export default function LandingPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 ml-1">
                     <span
-                      className="text-[15px] font-semibold tracking-wide"
-                      style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}
+                      className="text-[13px] font-semibold uppercase tracking-[0.06em]"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        fontFamily: 'var(--font-body)',
+                      }}
                     >
                       Business Solution
                     </span>
                     <BadgeInfo
-                      className="info-icon cursor-pointer transition-colors duration-200 hover:text-amber-600"
+                      className="info-icon cursor-pointer transition-colors duration-200 hover:opacity-80"
                       size={18}
-                      style={{ color: '#b8916a' }}
+                      style={{ color: 'var(--color-accent)' }}
                       onClick={openBusinessSolutionInfoDrawer}
                     />
                   </div>
                   <p
-                    className="text-[13px] ml-1 leading-relaxed font-medium"
-                    style={{ color: 'var(--muted)', fontFamily: 'var(--font-soft)' }}
+                    className="text-[12px] leading-relaxed mt-0.5"
+                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
                   >
                     How does your business solve this problem? Include materials, processes, and
                     circularity strategy.
@@ -610,28 +695,25 @@ export default function LandingPage() {
                     placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste..."
                     {...register('businessSolution', {
                       onBlur: () => flushAutosave(),
-                      onChange: (e) => instantSave('businessSolution', e.target.value),
                     })}
                     disabled={loading}
-                    className="w-full px-4 py-4 text-[15px] rounded-2xl border resize-none
-                               focus:outline-none transition-all duration-200 font-sans
-                               placeholder:opacity-60 leading-relaxed"
+                    className="w-full px-4 py-3.5 text-[14px] rounded-xl border resize-none
+           focus:outline-none transition-colors duration-150 font-sans
+           placeholder:opacity-50 leading-relaxed"
                     style={{
-                      backgroundColor: 'oklch(0.982 0.012 80 / 0.9)',
-                      borderColor: 'var(--border)',
-                      color: 'var(--foreground)',
-                      borderWidth: '1.5px',
+                      backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
+                      borderColor: 'var(--color-border-strong)',
+                      color: 'var(--color-text-primary)',
+                      fontFamily: 'var(--font-body)',
                       lineHeight: '1.7',
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = 'var(--accent)';
-                      e.target.style.boxShadow = '0 0 0 4px oklch(0.97 0.014 80 / 0.25)';
-                      e.target.style.transform = 'scale(1.008)';
+                      e.target.style.borderColor = 'var(--color-accent)';
+                      e.target.style.boxShadow = '0 0 0 3px oklch(0.68 0.08 68 / 0.1)';
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = 'var(--border)';
+                      e.target.style.borderColor = 'var(--color-border-strong)';
                       e.target.style.boxShadow = 'none';
-                      e.target.style.transform = 'scale(1)';
                       flushAutosave();
                     }}
                   />
@@ -640,9 +722,9 @@ export default function LandingPage() {
 
                 {/* Business Context */}
                 <div
-                  className="w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+                  className="w-full rounded-xl overflow-hidden shadow-sm hover:shadow-sm transition-shadow duration-300"
                   style={{
-                    border: '1.5px solid var(--border)',
+                    border: '1px solid var(--color-border-strong)',
                     backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
                   }}
                 >
@@ -654,27 +736,29 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="business-context-heading">
                       <Accordion.Heading>
-                        <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-100">
+                        <Accordion.Trigger
+                          className="group/tc flex items-center gap-3 px-5 py-3
+                              transition-colors duration-150
+                              hover:bg-[var(--color-accent-soft)]"
+                        >
                           <BriefcaseBusiness
-                            className="h-6 w-6 shrink-0 transition-all duration-200 ease-out
-                                       hover:scale-110 hover:-rotate-6 hover:drop-shadow-md
-                                       group-hover/parent:scale-110 group-hover/parent:-rotate-6 group-hover/parent:drop-shadow-md"
-                            style={{ color: 'var(--color-accent)' }}
+                            className="h-6 w-6 shrink-0 mr-1 text-[var(--color-accent)]
+               transition-[transform,filter] duration-300 ease-out
+               group-hover/tc:scale-110 group-hover/tc:-rotate-6
+               group-hover/tc:drop-shadow-md"
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-bold text-lg leading-6 transition-colors duration-200"
+                                className="font-semibold text-[15px] leading-6"
                                 style={{ color: 'var(--color-text-primary)' }}
                               >
                                 Business Context
                               </span>
                               <BadgeInfo
-                                className="info-icon transition-all duration-200 ease-out
-                                         hover:scale-110 hover:drop-shadow-sm
-                                         group-hover/parent:scale-110 group-hover/parent:drop-shadow-sm"
-                                size={22}
+                                className="info-icon cursor-pointer"
+                                size={18}
                                 style={{ color: 'var(--color-accent)' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -683,14 +767,14 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-xs font-normal leading-4 transition-colors duration-200"
+                              className="text-xs leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Optional — improves analysis quality
                             </span>
                           </div>
                           <Accordion.Indicator
-                            className="[&>svg]:size-4 transition-transform duration-200 ease-out group-hover/parent:scale-110"
+                            className="[&>svg]:size-4"
                             style={{ color: 'var(--color-text-muted)' }}
                           >
                             <ChevronDown />
@@ -708,9 +792,9 @@ export default function LandingPage() {
 
                 {/* Evaluation Parameters */}
                 <div
-                  className="w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+                  className="w-full rounded-xl overflow-hidden shadow-sm hover:shadow-sm transition-shadow duration-300"
                   style={{
-                    border: '1.5px solid var(--border)',
+                    border: '1px solid var(--color-border-strong)',
                     backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
                   }}
                 >
@@ -723,27 +807,29 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="evaluation-parameters-heading">
                       <Accordion.Heading>
-                        <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-100">
+                        <Accordion.Trigger
+                          className="group/ep flex items-center gap-3 px-5 py-3
+                              transition-colors duration-150
+                              hover:bg-[var(--color-accent-soft)]"
+                        >
                           <SlidersHorizontal
-                            className="h-6 w-6 shrink-0 transition-all duration-200 ease-out
-                                       hover:scale-110 hover:-rotate-6 hover:drop-shadow-md
-                                       group-hover/parent:scale-110 group-hover/parent:-rotate-6 group-hover/parent:drop-shadow-md"
-                            style={{ color: 'var(--color-success)' }}
+                            className="h-6 w-6 shrink-0 mr-1 text-[var(--color-success)]
+               transition-[transform,filter] duration-300 ease-out
+               group-hover/ep:scale-110 group-hover/ep:-rotate-6
+               group-hover/ep:drop-shadow-md"
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-bold text-lg leading-6 transition-colors duration-200"
+                                className="font-semibold text-[15px] leading-6"
                                 style={{ color: 'var(--color-text-primary)' }}
                               >
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
-                                className="info-icon transition-all duration-200 ease-out
-                                         hover:scale-110 hover:drop-shadow-sm
-                                         group-hover/parent:scale-110 group-hover/parent:drop-shadow-sm"
-                                size={22}
+                                className="info-icon cursor-pointer"
+                                size={18}
                                 style={{ color: 'var(--color-success)' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -752,14 +838,14 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-sm font-normal leading-4 transition-colors duration-200"
+                              className="text-xs leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Score each dimension of circular value
                             </span>
                           </div>
                           <Accordion.Indicator
-                            className="[&>svg]:size-4 transition-transform duration-200 ease-out group-hover/parent:scale-110"
+                            className="[&>svg]:size-4"
                             style={{ color: 'var(--color-text-muted)' }}
                           >
                             <ChevronDown />
@@ -820,9 +906,9 @@ export default function LandingPage() {
 
                 {/* Sample Test Cases */}
                 <div
-                  className="w-full rounded-2xl overflow-hidden group/tc shadow-sm hover:shadow-md transition-shadow duration-300"
+                  className="w-full rounded-xl overflow-hidden shadow-sm hover:shadow-sm transition-shadow duration-300"
                   style={{
-                    border: '1.5px solid var(--border)',
+                    border: '1px solid var(--color-border-strong)',
                     backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
                   }}
                 >
@@ -833,28 +919,31 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="test-cases" defaultExpanded={true}>
                       <Accordion.Heading>
-                        <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-100">
+                        <Accordion.Trigger
+                          className="group/stc flex items-center gap-3 px-5 py-3
+                              transition-colors duration-150
+                              hover:bg-[var(--color-accent-soft)]"
+                        >
                           <ClipboardList
-                            className="h-6 w-6 shrink-0 transition-all duration-200 ease-out
-                                       hover:scale-110 hover:-rotate-6 hover:drop-shadow-md
-                                       group-hover/parent:scale-110 group-hover/parent:-rotate-6 group-hover/parent:drop-shadow-md"
-                            style={{ color: 'var(--color-secondary)' }}
+                            className="h-6 w-6 shrink-0 mr-1
+               transition-[transform,filter] duration-300 ease-out
+               group-hover/stc:scale-110 group-hover/stc:-rotate-6
+               group-hover/stc:drop-shadow-md"
+                            style={{ color: 'var(--color-accent)' }}
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-bold text-lg leading-6 transition-colors duration-200"
+                                className="font-semibold text-[15px] leading-6"
                                 style={{ color: 'var(--color-text-primary)' }}
                               >
                                 Sample Test Cases
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer transition-all duration-200 ease-out
-                                         hover:scale-110 hover:drop-shadow-sm
-                                         group-hover/parent:scale-110 group-hover/parent:drop-shadow-sm"
-                                size={22}
-                                style={{ color: 'var(--color-secondary)' }}
+                                className="info-icon cursor-pointer"
+                                size={18}
+                                style={{ color: 'var(--color-accent)' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openSampleTestCasesHeadingInfoDrawer();
@@ -862,14 +951,14 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-xs italic leading-4 transition-colors duration-200"
+                              className="text-xs leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Auto-fill form with curated examples for quick testing
                             </span>
                           </div>
                           <Accordion.Indicator
-                            className="[&>svg]:size-4 transition-transform duration-200 ease-out group-hover/parent:scale-110"
+                            className="[&>svg]:size-4"
                             style={{ color: 'var(--color-text-muted)' }}
                           >
                             <ChevronDown />
