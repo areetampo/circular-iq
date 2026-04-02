@@ -38,7 +38,7 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => {
+              onPress={() => {
                 const shareUrl = `${window.location.origin}/share/${assessment.public_id}`;
                 navigator.clipboard?.writeText(shareUrl).catch(() => {});
               }}
@@ -48,7 +48,7 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
           )}
 
           {/* Export PDF */}
-          <Button size="sm" variant="secondary" onClick={() => exportAssessmentPDF(assessment)}>
+          <Button size="sm" variant="secondary" onPress={() => exportAssessmentPDF(assessment)}>
             Export PDF
           </Button>
 
@@ -56,7 +56,7 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
           <Button
             size="sm"
             variant="danger-soft"
-            onClick={() =>
+            onPress={() =>
               openDialog(DIALOGS.DELETE_ASSESSMENT, {
                 assessmentName: assessment?.title,
                 assessmentId: assessment?.id,

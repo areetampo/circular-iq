@@ -165,7 +165,7 @@ export default function CompareForm() {
       </form>
 
       {/* Info box */}
-      <div className="mt-8 p-4 rounded-xl border border-(--color-border) bg-transparent">
+      <div className="mt-8 p-4 rounded-xl border-3 border-(--color-border) bg-transparent">
         <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-(--color-text-muted)">
           About Comparison
         </p>
@@ -176,7 +176,7 @@ export default function CompareForm() {
             'Use the Assessment IDs from your assessments list or shared links',
           ].map((item) => (
             <li key={item} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
-              <span className="shrink-0 mt-1.5 w-1 h-1 rounded-full bg-(--color-accent)" />
+              <span className="shrink-0 mt-2 w-1 h-1 rounded-full bg-(--color-accent)" />
               {item}
             </li>
           ))}

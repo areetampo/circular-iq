@@ -27,9 +27,8 @@ export function ExportActions({
       <Tooltip placement="top" delay={0} isDisabled={!!user}>
         <Tooltip.Trigger>
           <Button
-            onClick={user ? onExportCSV : undefined}
+            onPress={user ? onExportCSV : undefined}
             isDisabled={!user || isExporting}
-            disabled={!user || isExporting}
             variant="neutral-soft"
             aria-label="Export assessment data as CSV"
             title={
@@ -60,9 +59,8 @@ export function ExportActions({
       <Tooltip placement="top" delay={0} isDisabled={!!user}>
         <Tooltip.Trigger>
           <Button
-            onClick={user ? onExportPDF : undefined}
+            onPress={user ? onExportPDF : undefined}
             isDisabled={!user || isExporting}
-            disabled={!user || isExporting}
             variant="neutral-soft"
             aria-label="Export assessment as PDF"
             title={

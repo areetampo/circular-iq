@@ -116,7 +116,7 @@ export default function Navbar() {
                 >
                   {item.name}
                   {isActive && (
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-(--color-accent) rounded-full" />
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2/3 h-0.5 bg-(--color-accent) rounded-full" />
                   )}
                 </button>
               );

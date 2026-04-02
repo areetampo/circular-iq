@@ -24,13 +24,13 @@ export default function Footer() {
   const navigate = useNavigate();
 
   return (
-    <footer className="relative mt-auto border-t border-(--color-border) bg-(--color-bg)">
+    <footer className="relative mt-auto border-t-2 border-(--color-border) bg-(--color-bg)">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-(--color-bg) to-(--color-bg) opacity-90" />
 
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 xs_sm:grid-cols-2 md:grid-cols-3 gap-8">
             {/* Brand Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -55,7 +55,7 @@ export default function Footer() {
 
               <p className="text-sm text-(--color-text-secondary) leading-relaxed max-w-xs">
                 AI-powered circular economy evaluation platform. Get evidence-backed scores in
-                minutes.
+                seconds.
               </p>
 
               <div className="flex flex-col items-start gap-2">
@@ -70,7 +70,7 @@ export default function Footer() {
                   </a>
                 ))}
                 <p className="text-xs italic text-(--color-text-secondary) leading-relaxed max-w-xs">
-                  Made by Areeb and Mahit UwU
+                  ~ Made by Areeb and Mahit UwU ~
                 </p>
               </div>
             </motion.div>
@@ -80,7 +80,7 @@ export default function Footer() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
-              className="space-y-4"
+              className="space-y-4 xs_sm:ml-8"
             >
               <h3 className="text-sm font-(--font-body) text-(--color-text-primary) uppercase tracking-wider">
                 Navigation
@@ -132,7 +132,7 @@ export default function Footer() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-            className="mt-12 pt-8 border-t border-(--color-border)"
+            className="mt-12 pt-8 border-t-2 border-(--color-border)"
           >
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-xs text-(--color-text-muted) font-(--font-body)">

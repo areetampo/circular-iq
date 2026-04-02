@@ -120,7 +120,7 @@ class ChartErrorBoundary extends Component {
               </details>
             )}
           </div>
-          <Button onClick={this.handleRetry} size="sm" variant="flat" color="primary">
+          <Button onPress={this.handleRetry} size="sm" variant="flat" color="primary">
             Retry {this.state.retryCount > 0 && `(${this.state.retryCount})`}
           </Button>
         </Card>

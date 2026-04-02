@@ -686,35 +686,37 @@ export const categoryMapping = {
  * Each tier defines minScore and color classes for selected/unselected states
  */
 export const TIER_CONFIG = [
+  // ≥75 — Sage/forest (high score, positive)
   {
     minScore: 75,
-    // Selected: warm sage border + very subtle sage tint
     selected:
-      'border-[var(--color-success)] bg-[oklch(0.97_0.012_145/_0.25)] text-[var(--color-success)]',
-    // Unselected: barely visible, just a thin hint
+      'border-l-4 border-[var(--color-success)] bg-[oklch(0.96_0.018_145/_0.35)] text-[var(--color-success)] shadow-sm',
     unselected:
-      'border-[oklch(0.88_0.01_145/_0.35)] bg-[oklch(0.99_0.006_145/_0.1)] text-[var(--color-success)]',
+      'border border-[oklch(0.88_0.01_145/_0.3)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
   },
+  // ≥55 — Warm tan/accent (decent)
   {
     minScore: 55,
     selected:
-      'border-[var(--color-accent)] bg-[oklch(0.97_0.012_68/_0.2)] text-[var(--color-accent)]',
+      'border-l-4 border-[var(--color-accent)] bg-[oklch(0.96_0.018_68/_0.3)] text-[var(--color-accent)] shadow-sm',
     unselected:
-      'border-[oklch(0.90_0.01_68/_0.35)] bg-[oklch(0.99_0.006_68/_0.1)] text-[var(--color-text-secondary)]',
+      'border border-[oklch(0.90_0.012_68/_0.3)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
   },
+  // ≥35 — Warm amber/warning
   {
     minScore: 35,
     selected:
-      'border-[var(--color-warning)] bg-[oklch(0.97_0.012_60/_0.2)] text-[var(--color-warning)]',
+      'border-l-4 border-[var(--color-warning)] bg-[oklch(0.96_0.016_60/_0.28)] text-[var(--color-warning)] shadow-sm',
     unselected:
-      'border-[oklch(0.91_0.01_60/_0.35)] bg-[oklch(0.99_0.006_60/_0.1)] text-[var(--color-text-secondary)]',
+      'border border-[oklch(0.91_0.01_60/_0.3)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
   },
+  // ≥0 — Terracotta/error (low score)
   {
     minScore: 0,
     selected:
-      'border-[var(--color-error)] bg-[oklch(0.97_0.012_20/_0.15)] text-[var(--color-error)]',
+      'border-l-4 border-[var(--color-error)] bg-[oklch(0.96_0.014_20/_0.22)] text-[var(--color-error)] shadow-sm',
     unselected:
-      'border-[oklch(0.92_0.008_20/_0.3)] bg-[oklch(0.99_0.004_20/_0.08)] text-[var(--color-text-muted)]',
+      'border border-[oklch(0.92_0.008_20/_0.25)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
   },
 ];
 

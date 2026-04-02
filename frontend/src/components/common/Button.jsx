@@ -69,6 +69,22 @@ const variantStyles = {
     'text-xs',
     'transition-colors duration-150',
   ].join(' '),
+
+  // Teal — special variant for main CTA on landing page
+  teal: [
+    'bg-[var(--color-success)] text-white',
+    'hover:bg-[var(--color-success-hover)]',
+    'border border-transparent',
+    'transition-colors duration-150',
+  ].join(' '),
+
+  // Neutral-soft — used for export buttons
+  'neutral-soft': [
+    'bg-transparent text-[var(--color-text-secondary)]',
+    'border border-[var(--color-border)]',
+    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+    'transition-colors duration-150',
+  ].join(' '),
 };
 
 /**
@@ -101,6 +117,8 @@ export function Button({
   disabled = false,
   isLoading = false,
   children,
+  onPress,
+  onClick,
   ...props
 }) {
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
@@ -116,6 +134,9 @@ export function Button({
     children
   );
 
+  // Handle both onPress and onClick for compatibility
+  const handlePress = onPress || onClick;
+
   return (
     <HeroButton
       className={clsx(
@@ -129,6 +150,7 @@ export function Button({
       size={undefined}
       isDisabled={isButtonDisabled}
       disabled={isButtonDisabled}
+      onPress={handlePress}
       {...props}
     >
       {buttonContent}
@@ -146,6 +168,8 @@ Button.propTypes = {
     'dialog-secondary',
     'results-action',
     'eco-soft',
+    'teal',
+    'neutral-soft',
   ]),
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   className: PropTypes.string,
@@ -153,6 +177,8 @@ Button.propTypes = {
   isDisabled: PropTypes.bool,
   disabled: PropTypes.bool,
   isLoading: PropTypes.bool,
+  onPress: PropTypes.func,
+  onClick: PropTypes.func,
 };
 
 export default Button;

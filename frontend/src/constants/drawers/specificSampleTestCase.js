@@ -2,6 +2,8 @@
  * Constants for Specific Sample Test Case View Details Drawer
  */
 
+import { Briefcase, Globe, Layers, Package, TrendingUp } from 'lucide-react';
+
 export const TEST_CASE_DETAIL_CONTENT = {
   subheading: 'Detailed assessment results and business information',
   headings: {
@@ -74,18 +76,17 @@ export const getContextValueLabel = (key, value) => {
     .replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
-// Helper function to get context field icons
 export const getContextFieldIcon = (key) => {
   const normalizedKey = key.toLowerCase().replace(/_/g, '');
   const iconMap = {
-    businessmodeltype: 'Package',
-    operationalstage: 'TrendingUp',
-    targetgeography: 'Globe',
-    annualvolume: 'Layers',
-    annualvolumeestimate: 'Layers',
-    materialcomplexity: 'Layers',
-    hasexistingpartnerships: 'Briefcase',
-    partnerships: 'Briefcase',
+    businessmodeltype: Package,
+    operationalstage: TrendingUp,
+    targetgeography: Globe,
+    annualvolume: Layers,
+    annualvolumeestimate: Layers,
+    materialcomplexity: Layers,
+    hasexistingpartnerships: Briefcase,
+    partnerships: Briefcase,
   };
   return iconMap[normalizedKey] || null;
 };

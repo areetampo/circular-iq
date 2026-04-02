@@ -1,4 +1,5 @@
 import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
+import { motion } from 'framer-motion';
 import { BadgeInfo, ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -63,37 +64,30 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                 }}
               >
                 <Label
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    color: 'var(--foreground)',
-                  }}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
+                    'cursor-pointer transition-opacity duration-150 hover:opacity-80',
+                    'text-[12px] font-semibold uppercase tracking-[0.06em]',
+                    (() => {
+                      const cfg =
+                        GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
+                        DEFAULT_CONFIG;
+                      return cn(cfg.paramBg, cfg.paramTextColor);
+                    })(),
+                  )}
                   onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
                   aria-label={`View details for ${parameterLabels[paramKey].label}`}
                 >
-                  <span className="font-semibold text-sm whitespace-nowrap">
-                    {parameterLabels[paramKey].label}
-                  </span>
-                  <BadgeInfo className="info-icon" size={16} style={{ color: 'var(--accent)' }} />
+                  {parameterLabels[paramKey].label}
+                  <BadgeInfo className="info-icon shrink-0" size={14} />
                 </Label>
 
-                <NumberField.Group
-                  className="flex items-center gap-2 h-9 my-1.5"
-                  style={{
-                    backgroundColor: 'oklch(0.985 0.008 80 / 0.6)',
-                    border: '1.5px solid var(--color-border-strong)',
-                    borderRadius: '10px',
-                    padding: '0 4px',
-                  }}
-                >
+                <NumberField.Group className="flex items-center gap-1 h-9 my-1">
                   <NumberField.DecrementButton
-                    className="w-7 h-7 flex items-center justify-center text-base select-none
-               rounded-md transition-colors duration-100"
+                    className="w-8 h-8 flex items-center justify-center
+               transition-colors duration-100 text-base select-none
+               rounded-md hover:bg-[var(--color-accent-light)]"
                     style={{ color: 'var(--color-text-muted)' }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Decrease value"
                   />
                   <NumberField.Input
@@ -129,18 +123,20 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         // Do NOT persist here — rely on LandingPage debounced autosave.
                       }
                     }}
-                    className="w-14 text-center text-xl font-bold bg-transparent
-               focus:outline-none font-mono"
-                    style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono)' }}
+                    className="w-16 text-center text-2xl font-bold
+               bg-[rgba(245,240,232,0.5)] border rounded-lg
+               focus:outline-none outline-none transition-colors"
+                    style={{
+                      borderColor: 'var(--color-border-strong)',
+                      color: 'var(--color-text-primary)',
+                      fontFamily: 'var(--font-mono)',
+                    }}
                   />
                   <NumberField.IncrementButton
-                    className="w-7 h-7 flex items-center justify-center text-base select-none
-               rounded-md transition-colors duration-100"
+                    className="w-8 h-8 flex items-center justify-center
+               transition-colors duration-100 text-base select-none
+               rounded-md hover:bg-[var(--color-accent-light)]"
                     style={{ color: 'var(--color-text-muted)' }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'var(--color-accent-soft)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Increase value"
                   />
                 </NumberField.Group>
@@ -160,17 +156,20 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       disabled={loading}
                       onClick={() => field.onChange(option.score)}
                       className={cn(
-                        'cursor-pointer flex-1 p-2.5 rounded-lg border text-left transition-all duration-150',
+                        'cursor-pointer w-full p-3 rounded-lg text-left transition-all duration-150',
                         'focus:outline-none',
-                        isSelected ? 'opacity-90 shadow-sm' : 'opacity-55 hover:opacity-75',
+                        isSelected ? 'opacity-100' : 'bg-transparent',
                         tierClass,
                         loading && 'opacity-40 cursor-not-allowed',
                       )}
                     >
-                      <div className="text-xs font-bold leading-tight mb-1">
-                        {option.label} <span className={cn('tabular-nums')}>(~{option.score})</span>
+                      <div className="text-xs font-bold leading-tight mb-0.5">
+                        {option.label}
+                        <span className="font-normal tabular-nums ml-1 opacity-70">
+                          (~{option.score})
+                        </span>
                       </div>
-                      <div className="text-[10px] leading-tight opacity-80">
+                      <div className="text-[10px] leading-snug opacity-75">
                         {option.description}
                       </div>
                     </button>
@@ -196,11 +195,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
 
               {guidance?.examples?.[0] && (
                 <p
-                  className="text-[11px] italic text-center leading-relaxed px-2"
-                  style={{ color: 'var(--muted)' }}
+                  className="text-[11px] italic text-center leading-relaxed px-2 mt-1"
+                  style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
                 >
-                  Example: {guidance.examples[0].case} = {guidance.examples[0].score}
-                  {guidance.examples[0].reason && ` (${guidance.examples[0].reason})`}
+                  e.g. {guidance.examples[0].case} ≈ {guidance.examples[0].score}
                 </p>
               )}
             </div>
@@ -240,11 +238,11 @@ function EvaluationParametersContainer({
               key={groupIdx}
               id={groupName}
               className={cn('group/item', groupIdx > 0 && 'border-t')}
-              style={{ borderTopColor: 'var(--border)' }}
+              style={{ borderTopColor: 'var(--color-border)' }}
             >
               <Accordion.Heading>
                 <Accordion.Trigger
-                  className="group/grp flex items-center gap-3 px-5 py-3
+                  className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
                               hover:bg-[var(--color-accent-soft)]"
                 >
@@ -252,21 +250,26 @@ function EvaluationParametersContainer({
                     className={cn(
                       cfg.iconColor,
                       'h-5 w-5 shrink-0 mr-1.5',
-                      'transition-[transform,filter] duration-300 ease-out',
-                      'group-hover/grp:scale-110 group-hover/grp:-rotate-6 group-hover/grp:drop-shadow-sm',
+                      'transition-[scale,rotate] duration-300 ease-out',
+                      'group-hover/item:scale-[1.2]',
+                      'group-hover/item:-rotate-10',
+                      'group-hover/item:drop-shadow-md',
                     )}
                     strokeWidth={1.75}
                   />
 
                   <div className="flex flex-col gap-0.5 text-left">
                     <span
-                      className="font-semibold text-[15px] leading-5"
-                      style={{ color: 'var(--color-text-primary)' }}
+                      className="font-semibold text-[14px] tracking-[-0.01em] leading-5"
+                      style={{
+                        color: 'var(--color-text-primary)',
+                        fontFamily: 'var(--font-display)',
+                      }}
                     >
                       {groupName}
                     </span>
                     <span
-                      className="text-xs font-normal leading-4"
+                      className="text-[11px] font-normal leading-4"
                       style={{ color: 'var(--color-text-muted)' }}
                     >
                       {cfg.subtitle}
@@ -283,7 +286,13 @@ function EvaluationParametersContainer({
 
               <Accordion.Panel>
                 <Accordion.Body className="px-2 pt-1 pb-6 bg-transparent">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-0">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="flex flex-col gap-4 md:flex-row md:items-start md:gap-0"
+                  >
                     {group.map((key, idx) => (
                       <React.Fragment key={idx}>
                         <div className="flex-1 flex flex-col items-center py-1 px-2">
@@ -300,7 +309,7 @@ function EvaluationParametersContainer({
                         )}
                       </React.Fragment>
                     ))}
-                  </div>
+                  </motion.div>
                 </Accordion.Body>
               </Accordion.Panel>
             </Accordion.Item>

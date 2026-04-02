@@ -100,7 +100,9 @@ export default function LandingPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [innerExpandedKeys, setInnerExpandedKeys] = useState({});
+  const [innerExpandedKeys, setInnerExpandedKeys] = useState(
+    new Set(['Access Value', 'Embedded Value', 'Processing Value']),
+  );
 
   // State and refs for full session autosave logic
   const skipAutosaveRef = useRef(false);
@@ -115,7 +117,15 @@ export default function LandingPage() {
     new Set(['business-context-heading']),
   );
   const [evalParamsExpandedKeys, setEvalParamsExpandedKeys] = useState(
-    new Set(['evaluation-parameters-heading']),
+    new Set([
+      'evaluation-parameters-heading',
+      'Access Value',
+      'Embedded Value',
+      'Processing Value',
+    ]),
+  );
+  const [sampleTestCasesExpandedKeys, setSampleTestCasesExpandedKeys] = useState(
+    new Set(['test-cases']),
   );
   const formContainerRef = useRef(null);
 
@@ -228,7 +238,14 @@ export default function LandingPage() {
 
   // Callbacks for SampleTestCasesContainer
   const openEvalParams = () => {
-    setEvalParamsExpandedKeys(new Set(['evaluation-parameters-heading']));
+    setEvalParamsExpandedKeys(
+      new Set([
+        'evaluation-parameters-heading',
+        'Access Value',
+        'Embedded Value',
+        'Processing Value',
+      ]),
+    );
     setInnerExpandedKeys(new Set(['Access Value', 'Embedded Value', 'Processing Value']));
   };
 
@@ -490,6 +507,18 @@ export default function LandingPage() {
       businessContext: testCase.businessContext,
     });
 
+    // Ensure all accordions are open when sample test case is selected
+    setEvalParamsExpandedKeys(
+      new Set([
+        'evaluation-parameters-heading',
+        'Access Value',
+        'Embedded Value',
+        'Processing Value',
+      ]),
+    );
+    setInnerExpandedKeys(new Set(['Access Value', 'Embedded Value', 'Processing Value']));
+    setBusinessContextExpandedKeys(new Set(['business-context-heading']));
+
     toast.success('Sample test case loaded', {
       description: 'Form has been filled with the example data.',
       timeout: 2000,
@@ -611,10 +640,10 @@ export default function LandingPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 ml-1">
                     <span
-                      className="text-[13px] font-semibold uppercase tracking-[0.06em]"
+                      className="text-[15px] font-semibold tracking-[-0.01em]"
                       style={{
-                        color: 'var(--color-text-secondary)',
-                        fontFamily: 'var(--font-body)',
+                        color: 'var(--color-text-primary)',
+                        fontFamily: 'var(--font-display)',
                       }}
                     >
                       Business Problem
@@ -627,7 +656,7 @@ export default function LandingPage() {
                     />
                   </div>
                   <p
-                    className="text-[12px] leading-relaxed mt-0.5"
+                    className="text-[13px] leading-relaxed mt-1 mb-2"
                     style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
                   >
                     What environmental or circular economy challenge does your business address?
@@ -640,23 +669,22 @@ export default function LandingPage() {
                       onBlur: () => flushAutosave(),
                     })}
                     disabled={loading}
-                    className="w-full px-4 py-3.5 text-[14px] rounded-xl border resize-none
-           focus:outline-none transition-colors duration-150 font-sans
-           placeholder:opacity-50 leading-relaxed"
+                    className="w-full px-4 py-3.5 text-[15px] rounded-xl border resize-none
+           focus:outline-none transition-colors duration-150
+           placeholder:opacity-40 leading-[1.75]"
                     style={{
                       backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
                       borderColor: 'var(--color-border-strong)',
                       color: 'var(--color-text-primary)',
                       fontFamily: 'var(--font-body)',
-                      lineHeight: '1.7',
+                      letterSpacing: '0.005em',
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = 'var(--color-accent)';
-                      e.target.style.boxShadow = '0 0 0 3px oklch(0.68 0.08 68 / 0.1)';
+                      // No box-shadow, no outline
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = 'var(--color-border-strong)';
-                      e.target.style.boxShadow = 'none';
                       flushAutosave();
                     }}
                   />
@@ -667,10 +695,10 @@ export default function LandingPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 ml-1">
                     <span
-                      className="text-[13px] font-semibold uppercase tracking-[0.06em]"
+                      className="text-[15px] font-semibold tracking-[-0.01em]"
                       style={{
-                        color: 'var(--color-text-secondary)',
-                        fontFamily: 'var(--font-body)',
+                        color: 'var(--color-text-primary)',
+                        fontFamily: 'var(--font-display)',
                       }}
                     >
                       Business Solution
@@ -683,7 +711,7 @@ export default function LandingPage() {
                     />
                   </div>
                   <p
-                    className="text-[12px] leading-relaxed mt-0.5"
+                    className="text-[13px] leading-relaxed mt-1 mb-2"
                     style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
                   >
                     How does your business solve this problem? Include materials, processes, and
@@ -697,23 +725,22 @@ export default function LandingPage() {
                       onBlur: () => flushAutosave(),
                     })}
                     disabled={loading}
-                    className="w-full px-4 py-3.5 text-[14px] rounded-xl border resize-none
-           focus:outline-none transition-colors duration-150 font-sans
-           placeholder:opacity-50 leading-relaxed"
+                    className="w-full px-4 py-3.5 text-[15px] rounded-xl border resize-none
+           focus:outline-none transition-colors duration-150
+           placeholder:opacity-40 leading-[1.75]"
                     style={{
                       backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
                       borderColor: 'var(--color-border-strong)',
                       color: 'var(--color-text-primary)',
                       fontFamily: 'var(--font-body)',
-                      lineHeight: '1.7',
+                      letterSpacing: '0.005em',
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = 'var(--color-accent)';
-                      e.target.style.boxShadow = '0 0 0 3px oklch(0.68 0.08 68 / 0.1)';
+                      // No box-shadow, no outline
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = 'var(--color-border-strong)';
-                      e.target.style.boxShadow = 'none';
                       flushAutosave();
                     }}
                   />
@@ -722,14 +749,14 @@ export default function LandingPage() {
 
                 {/* Business Context */}
                 <div
-                  className="w-full rounded-xl overflow-hidden shadow-sm hover:shadow-sm transition-shadow duration-300"
+                  className="group/bcacc w-full rounded-xl overflow-hidden shadow-sm transition-shadow duration-300"
                   style={{
                     border: '1px solid var(--color-border-strong)',
                     backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
                   }}
                 >
                   <Accordion
-                    className="w-full group/accordion"
+                    className="w-full"
                     variant="default"
                     expandedKeys={businessContextExpandedKeys}
                     onExpandedChange={setBusinessContextExpandedKeys}
@@ -737,22 +764,26 @@ export default function LandingPage() {
                     <Accordion.Item id="business-context-heading">
                       <Accordion.Heading>
                         <Accordion.Trigger
-                          className="group/tc flex items-center gap-3 px-5 py-3
+                          className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
                               hover:bg-[var(--color-accent-soft)]"
                         >
                           <BriefcaseBusiness
-                            className="h-6 w-6 shrink-0 mr-1 text-[var(--color-accent)]
-               transition-[transform,filter] duration-300 ease-out
-               group-hover/tc:scale-110 group-hover/tc:-rotate-6
-               group-hover/tc:drop-shadow-md"
+                            className="h-6 w-6 shrink-0 mr-1
+               transition-[scale,rotate] duration-300 ease-out
+               group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10
+               group-hover/bcacc:drop-shadow-md"
+                            style={{ color: 'var(--color-accent)' }}
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[15px] leading-6"
-                                style={{ color: 'var(--color-text-primary)' }}
+                                className="font-semibold text-[15px] tracking-[-0.01em] leading-6"
+                                style={{
+                                  color: 'var(--color-text-primary)',
+                                  fontFamily: 'var(--font-display)',
+                                }}
                               >
                                 Business Context
                               </span>
@@ -783,7 +814,14 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="p-0 bg-transparent">
-                          <BusinessContextContainer loading={loading} />
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                          >
+                            <BusinessContextContainer loading={loading} />
+                          </motion.div>
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
@@ -792,14 +830,14 @@ export default function LandingPage() {
 
                 {/* Evaluation Parameters */}
                 <div
-                  className="w-full rounded-xl overflow-hidden shadow-sm hover:shadow-sm transition-shadow duration-300"
+                  className="group/epacc w-full rounded-xl overflow-hidden shadow-sm transition-shadow duration-300"
                   style={{
                     border: '1px solid var(--color-border-strong)',
                     backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
                   }}
                 >
                   <Accordion
-                    className="w-full group/accordion"
+                    className="w-full"
                     variant="default"
                     allowsMultipleExpanded
                     expandedKeys={evalParamsExpandedKeys}
@@ -808,22 +846,26 @@ export default function LandingPage() {
                     <Accordion.Item id="evaluation-parameters-heading">
                       <Accordion.Heading>
                         <Accordion.Trigger
-                          className="group/ep flex items-center gap-3 px-5 py-3
+                          className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
                               hover:bg-[var(--color-accent-soft)]"
                         >
                           <SlidersHorizontal
-                            className="h-6 w-6 shrink-0 mr-1 text-[var(--color-success)]
-               transition-[transform,filter] duration-300 ease-out
-               group-hover/ep:scale-110 group-hover/ep:-rotate-6
-               group-hover/ep:drop-shadow-md"
+                            className="h-6 w-6 shrink-0 mr-1
+               transition-[scale,rotate] duration-300 ease-out
+               group-hover/epacc:scale-[1.2] group-hover/epacc:-rotate-10
+               group-hover/epacc:drop-shadow-md"
+                            style={{ color: 'var(--color-success)' }}
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[15px] leading-6"
-                                style={{ color: 'var(--color-text-primary)' }}
+                                className="font-semibold text-[15px] tracking-[-0.01em] leading-6"
+                                style={{
+                                  color: 'var(--color-text-primary)',
+                                  fontFamily: 'var(--font-display)',
+                                }}
                               >
                                 Evaluation Parameters
                               </span>
@@ -854,11 +896,18 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="p-0 bg-transparent">
-                          <EvaluationParametersContainer
-                            loading={loading}
-                            innerExpandedKeys={innerExpandedKeys}
-                            onInnerExpandedChange={setInnerExpandedKeys}
-                          />
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                          >
+                            <EvaluationParametersContainer
+                              loading={loading}
+                              innerExpandedKeys={innerExpandedKeys}
+                              onInnerExpandedChange={setInnerExpandedKeys}
+                            />
+                          </motion.div>
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
@@ -906,37 +955,41 @@ export default function LandingPage() {
 
                 {/* Sample Test Cases */}
                 <div
-                  className="w-full rounded-xl overflow-hidden shadow-sm hover:shadow-sm transition-shadow duration-300"
+                  className="group/stcacc w-full rounded-xl overflow-hidden shadow-sm transition-shadow duration-300"
                   style={{
                     border: '1px solid var(--color-border-strong)',
                     backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
                   }}
                 >
                   <Accordion
-                    className="w-full group/accordion"
+                    className="w-full"
                     variant="default"
-                    defaultExpandedKeys={['test-cases']}
+                    expandedKeys={sampleTestCasesExpandedKeys}
+                    onExpandedChange={setSampleTestCasesExpandedKeys}
                   >
                     <Accordion.Item id="test-cases" defaultExpanded={true}>
                       <Accordion.Heading>
                         <Accordion.Trigger
-                          className="group/stc flex items-center gap-3 px-5 py-3
+                          className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
                               hover:bg-[var(--color-accent-soft)]"
                         >
                           <ClipboardList
                             className="h-6 w-6 shrink-0 mr-1
-               transition-[transform,filter] duration-300 ease-out
-               group-hover/stc:scale-110 group-hover/stc:-rotate-6
-               group-hover/stc:drop-shadow-md"
+               transition-[scale,rotate] duration-300 ease-out
+               group-hover/stcacc:scale-[1.2] group-hover/stcacc:-rotate-10
+               group-hover/stcacc:drop-shadow-md"
                             style={{ color: 'var(--color-accent)' }}
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[15px] leading-6"
-                                style={{ color: 'var(--color-text-primary)' }}
+                                className="font-semibold text-[15px] tracking-[-0.01em] leading-6"
+                                style={{
+                                  color: 'var(--color-text-primary)',
+                                  fontFamily: 'var(--font-display)',
+                                }}
                               >
                                 Sample Test Cases
                               </span>
@@ -967,10 +1020,17 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="pt-2 bg-transparent">
-                          <SampleTestCasesContainer
-                            openEvalParams={openEvalParams}
-                            openBusinessContext={openBusinessContext}
-                          />
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                          >
+                            <SampleTestCasesContainer
+                              openEvalParams={openEvalParams}
+                              openBusinessContext={openBusinessContext}
+                            />
+                          </motion.div>
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
