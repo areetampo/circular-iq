@@ -2,8 +2,9 @@ import { Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { SITE_FULL_NAME } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
+
+import { SITE_NAME } from '../common/Brand';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Navbar() {
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
+    { id: 'share', name: 'Share', path: '/assessments/share' },
     { id: 'compare', name: 'Compare', path: '/assessments/compare' },
     { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
     { id: 'guide', name: 'Guide', path: '/guide' },
@@ -49,12 +51,17 @@ export default function Navbar() {
 
   const isActivePath = (path) => {
     const currentPath = location.pathname;
+    if (path === '/assessments/share') {
+      return currentPath.startsWith('/assessments/share');
+    }
     if (path === '/assessments/compare') {
       return currentPath.startsWith('/assessments/compare');
     }
     if (path === '/assessments') {
       return (
-        currentPath.startsWith('/assessments') && !currentPath.startsWith('/assessments/compare')
+        currentPath.startsWith('/assessments') &&
+        !currentPath.startsWith('/assessments/compare') &&
+        !currentPath.startsWith('/assessments/share')
       );
     }
     return currentPath.startsWith(path);
@@ -89,7 +96,7 @@ export default function Navbar() {
               style={{ height: '28px' }}
             />
             <span className="font-(--font-display) text-sm text-(--color-text-primary)">
-              {SITE_FULL_NAME}
+              {SITE_NAME}
             </span>
           </button>
 
@@ -185,15 +192,9 @@ export default function Navbar() {
               <div className="hidden md:flex items-center gap-3">
                 <button
                   onClick={() => navigate('/auth')}
-                  className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors"
+                  className="text-sm text-(--color-text-primary) bg-[#edd6bdc4] hover:bg-[#b8916a] px-4 py-2 rounded-md transition-colors"
                 >
                   Sign in
-                </button>
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="text-sm text-(--color-text-primary) bg-(--color-accent) hover:bg-(--color-accent-hover) px-4 py-2 rounded-md transition-colors"
-                >
-                  Get started
                 </button>
               </div>
             )}
@@ -228,13 +229,7 @@ export default function Navbar() {
         }`}
       >
         {/* Panel Header */}
-        <div className="flex items-center justify-between p-6 border-b border-(--color-border)">
-          <div className="flex items-center gap-3">
-            <img src="/siteLogo.png" alt="Site Logo" className="h-7 w-auto" />
-            <span className="font-(--font-display) text-sm text-(--color-text-primary)">
-              {SITE_FULL_NAME}
-            </span>
-          </div>
+        <div className="flex items-center justify-center p-6 border-b border-(--color-border)">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"

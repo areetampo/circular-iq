@@ -1,12 +1,22 @@
-import { toast } from '@heroui/react';
+import { Accordion, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import { AlertTriangle, BookOpen, ChevronDown, Target } from 'lucide-react';
-import { debounce, useEffect, useRef, useState } from 'react';
+import {
+  AlertTriangle,
+  BadgeInfo,
+  BookOpen,
+  BriefcaseBusiness,
+  ChevronDown,
+  ClipboardList,
+  SlidersHorizontal,
+  Target,
+} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
+import LoaderIcon from '@/components/common/LoaderIcon';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
@@ -77,13 +87,35 @@ export default function LandingPage() {
     clearSession,
   } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
-  const { openAssessmentMethodologyDrawer, openEvaluationCriteriaDrawer } = useGlobalDrawer();
+  const {
+    openAssessmentMethodologyDrawer,
+    openEvaluationCriteriaDrawer,
+    openBusinessProblemInfoDrawer,
+    openBusinessSolutionInfoDrawer,
+    openEvaluationParametersHeadingInfoDrawer,
+    openBusinessContextHeadingInfoDrawer,
+    openSampleTestCasesHeadingInfoDrawer,
+  } = useGlobalDrawer();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showBusinessContext, setShowBusinessContext] = useState(false);
-  const [showEvaluationParameters, setShowEvaluationParameters] = useState(false);
   const [innerExpandedKeys, setInnerExpandedKeys] = useState({});
+
+  // State and refs for full session autosave logic
+  const skipAutosaveRef = useRef(false);
+  const businessProblemSectionRef = useRef(null);
+  const lastAppliedSessionRef = useRef(null);
+  const lastSavedLocalTimestampRef = useRef(null);
+  const autosaveTimerRef = useRef(null);
+  const AUTOSAVE_DEBOUNCE_MS = 150;
+
+  // Accordion state management
+  const [businessContextExpandedKeys, setBusinessContextExpandedKeys] = useState(
+    new Set(['business-context-heading']),
+  );
+  const [evalParamsExpandedKeys, setEvalParamsExpandedKeys] = useState(
+    new Set(['evaluation-parameters-heading']),
+  );
   const formContainerRef = useRef(null);
 
   const methods = useForm({
@@ -100,40 +132,176 @@ export default function LandingPage() {
     formState: { isValid },
   } = methods;
 
-  // Debounced autosave for form data
-  const debouncedSave = useRef(
-    debounce((formData) => {
-      if (isValid) {
+  // Full session autosave logic implementation
+  const persistInputs = useCallback(
+    (values) => {
+      if (skipAutosaveRef.current) return;
+      try {
         saveSession({
           inputs: {
-            businessProblem: formData.businessProblem,
-            businessSolution: formData.businessSolution,
-            evaluationParameters: formData.evaluationParameters || {},
-            businessContext: formData.businessContext || {},
+            businessProblem: values.businessProblem || '',
+            businessSolution: values.businessSolution || '',
+            evaluationParameters: values.evaluationParameters || {},
+            businessContext: values.businessContext || {},
           },
         });
+        lastSavedLocalTimestampRef.current = Date.now();
+      } catch (e) {
+        console.warn('Failed to persist inputs:', e);
       }
-    }, 1000),
-  ).current;
+    },
+    [saveSession],
+  );
 
-  // Watch form changes and trigger autosave
-  useEffect(() => {
-    const subscription = watch((formData) => {
-      debouncedSave(formData);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, debouncedSave]);
+  // Instant save on input change
+  const instantSave = useCallback(
+    (fieldName, value) => {
+      const currentValues = methods.getValues();
+      const updatedValues = { ...currentValues };
+
+      // Handle nested paths
+      if (fieldName.includes('.')) {
+        const [parent, child] = fieldName.split('.');
+        updatedValues[parent] = {
+          ...updatedValues[parent],
+          [child]: value,
+        };
+      } else {
+        updatedValues[fieldName] = value;
+      }
+
+      persistInputs(updatedValues);
+    },
+    [methods, persistInputs],
+  );
+
+  const scheduleAutosave = useCallback(() => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+    autosaveTimerRef.current = setTimeout(() => {
+      const values = methods.getValues();
+      persistInputs(values);
+    }, AUTOSAVE_DEBOUNCE_MS);
+  }, [methods, persistInputs, AUTOSAVE_DEBOUNCE_MS]);
+
+  const flushAutosave = useCallback(() => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+    const values = methods.getValues();
+    persistInputs(values);
+  }, [methods, persistInputs]);
 
   // Callbacks for SampleTestCasesContainer
   const openEvalParams = () => {
-    setShowEvaluationParameters(true);
-    setShowBusinessContext(false);
+    setEvalParamsExpandedKeys(new Set(['evaluation-parameters-heading']));
+    setInnerExpandedKeys(new Set(['Access Value', 'Embedded Value', 'Processing Value']));
   };
 
   const openBusinessContext = () => {
-    setShowBusinessContext(true);
-    setShowEvaluationParameters(false);
+    setBusinessContextExpandedKeys(new Set(['business-context-heading']));
   };
+
+  const ALL_INNER_KEYS = new Set(['Access Value', 'Embedded Value', 'Processing Value']);
+
+  // Session sync useEffect
+  useEffect(() => {
+    const sessionToApply = sessionData;
+    if (!sessionToApply) return;
+
+    // Skip if we already applied this session
+    if (lastAppliedSessionRef.current === sessionToApply) return;
+
+    // Skip if local changes are newer
+    if (
+      lastSavedLocalTimestampRef.current &&
+      sessionToApply.timestamp &&
+      lastSavedLocalTimestampRef.current > sessionToApply.timestamp
+    ) {
+      return;
+    }
+
+    skipAutosaveRef.current = true;
+    try {
+      const inputs = sessionToApply.inputs || {};
+      reset({
+        businessProblem: inputs.businessProblem || '',
+        businessSolution: inputs.businessSolution || '',
+        evaluationParameters: inputs.evaluationParameters || {},
+        businessContext: inputs.businessContext || {},
+      });
+      lastAppliedSessionRef.current = sessionToApply;
+    } finally {
+      skipAutosaveRef.current = false;
+    }
+  }, [sessionData, location.state, reset, methods]);
+
+  // Watch subscription useEffect
+  useEffect(() => {
+    const subscription = watch(() => {
+      scheduleAutosave();
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, scheduleAutosave]);
+
+  // Cleanup useEffect for timer
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Focusout useEffect on formContainerRef
+  useEffect(() => {
+    const handleFocusOut = (e) => {
+      // Only flush if focus is leaving the form container
+      if (!formContainerRef.current?.contains(e.relatedTarget)) {
+        flushAutosave();
+      }
+    };
+
+    const container = formContainerRef.current;
+    if (container) {
+      container.addEventListener('focusout', handleFocusOut, true);
+      return () => {
+        container.removeEventListener('focusout', handleFocusOut, true);
+      };
+    }
+  }, [flushAutosave]);
+
+  // Beforeunload + pagehide useEffect
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const values = methods.getValues();
+      const hasUnsavedWork =
+        values.businessProblem?.trim() ||
+        values.businessSolution?.trim() ||
+        Object.keys(values.evaluationParameters || {}).length > 0 ||
+        Object.keys(values.businessContext || {}).length > 0;
+
+      if (hasUnsavedWork) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    const handlePageHide = () => {
+      flushAutosave();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [methods, flushAutosave]);
 
   // Prefetch ResultsPage bundle when form becomes valid
   useEffect(() => {
@@ -246,182 +414,370 @@ export default function LandingPage() {
   return (
     <FormProvider {...methods}>
       <div className="min-h-screen bg-transparent">
-        {/* Hero Section */}
-        <section className="pt-16 pb-10">
-          <div className="max-w-6xl mx-auto px-6 text-center">
+        {/* Hero */}
+        <section className="pt-20 pb-0">
+          <div className="max-w-3xl mx-auto px-6 text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              transition={{ duration: 0.55, ease: 'easeOut' }}
             >
-              {/* Eyebrow */}
-              <p className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body) mb-4">
-                AI-POWERED · EVIDENCE-BASED · 40,000+ CASES
-              </p>
-
-              {/* Main Headline */}
-              <h1 className="font-(--font-display) text-5xl md:text-6xl text-(--color-text-primary) text-center leading-tight mb-6">
-                Where circular economy meets{' '}
-                <em className="not-italic text-(--color-accent)">evidence.</em>
+              {/* Main heading — DO NOT CHANGE THIS TEXT */}
+              <h1
+                className="heading-display leading-[1.08] mb-6"
+                style={{ fontSize: 'clamp(38px, 5.5vw, 60px)' }}
+              >
+                Where circular economy
+                <br />
+                meets{' '}
+                <em className="italic" style={{ color: 'var(--color-accent-700)' }}>
+                  evidence.
+                </em>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-base text-(--color-text-secondary) text-center max-w-lg mx-auto mt-3 leading-relaxed">
+              <p
+                className="text-[17px] leading-relaxed max-w-lg mx-auto mb-10 font-normal"
+                style={{ color: 'var(--muted)' }}
+              >
                 Get an evidence-backed circularity score in minutes, grounded in real-world case
                 studies.
               </p>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="px-8"
-                  onPress={() =>
-                    document
-                      .getElementById('assessment-form')
-                      ?.scrollIntoView({ behavior: 'smooth' })
-                  }
-                >
-                  Start Assessment
-                </Button>
+              {/* CTA + Sign Up */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-10">
                 {!user && (
-                  <Button variant="ghost" size="lg" onPress={() => navigate('/auth')}>
+                  <button
+                    onClick={() => navigate('/auth')}
+                    className="px-8 py-3 text-sm font-semibold rounded-3xl border
+                               transition-all duration-200 hover:border-(--accent)
+                               hover:text-(--foreground) hover:scale-[1.02] active:scale-[0.98] hover:shadow-md"
+                    style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
+                  >
                     Sign Up
-                  </Button>
+                  </button>
                 )}
               </div>
+
+              <p className="label-overline mb-6 tracking-[0.15em] font-medium">
+                AI-POWERED · EVIDENCE-BASED · 40,000+ CASES
+              </p>
             </motion.div>
           </div>
         </section>
 
-        {/* Compact Feature Strip */}
-        <div className="flex items-center justify-center gap-8 flex-wrap mb-10 py-6 border-y border-(--color-border)">
-          {/* Assessment Methodology button */}
-          <button
-            onClick={openAssessmentMethodologyDrawer}
-            className="flex items-center gap-2 text-xs text-(--color-text-muted) uppercase tracking-widest hover:text-(--color-accent) transition-colors"
-          >
-            <BookOpen size={14} />
-            Assessment Methodology
-          </button>
-
-          <span className="text-(--color-border-strong)">·</span>
-
-          {/* 3 feature pills inline */}
-          <span className="text-xs text-(--color-text-muted)">AI-Powered Analysis</span>
-          <span className="text-(--color-border-strong)">·</span>
-          <span className="text-xs text-(--color-text-muted)">Multi-Dimensional Scoring</span>
-          <span className="text-(--color-border-strong)">·</span>
-          <span className="text-xs text-(--color-text-muted)">Actionable Results</span>
-
-          <span className="text-(--color-border-strong)">·</span>
-
-          {/* Evaluation Criteria button */}
-          <button
-            onClick={openEvaluationCriteriaDrawer}
-            className="flex items-center gap-2 text-xs text-(--color-text-muted) uppercase tracking-widest hover:text-(--color-accent) transition-colors"
-          >
-            <Target size={14} />
-            Evaluation Criteria
-          </button>
+        {/* Meta strip — Assessment Methodology · features · Evaluation Criteria */}
+        <div className="flex items-center justify-center gap-10 flex-wrap py-5 mb-2 border-b-[1.5px] border-border">
+          {[
+            {
+              key: 'assessment',
+              label: 'Assessment Methodology',
+              icon: BookOpen,
+              onClick: openAssessmentMethodologyDrawer,
+            },
+            {
+              key: 'evaluation',
+              label: 'Evaluation Criteria',
+              icon: Target,
+              onClick: openEvaluationCriteriaDrawer,
+            },
+          ].map(({ key, label, icon: Icon, onClick }) => (
+            <button
+              key={key}
+              onClick={onClick}
+              className="flex items-center gap-1.5 text-[11px] tracking-widest cursor-pointer uppercase bg-accent-50 px-3 py-2 rounded-xl
+               transition-colors hover:text-[var(--foreground)] hover:bg-slate-50/50 hover:shadow-sm"
+              style={{ color: 'var(--muted)' }}
+            >
+              <Icon size={12} />
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Assessment Form */}
-        <section id="assessment-form" className="py-16">
-          <div className="max-w-4xl mx-auto px-6">
+        <section id="assessment-form" className="py-12">
+          <div className="max-w-4xl mx-auto px-6" ref={formContainerRef}>
+            {/* Section heading */}
+            <div className="mb-10">
+              <h2
+                className="text-[24px] font-semibold mb-3 tracking-tight"
+                style={{
+                  color: 'var(--foreground)',
+                  fontFamily: 'var(--font-display, Lora, serif)',
+                }}
+              >
+                Evaluate Your Circular Economy Business
+              </h2>
+              <p
+                className="text-[15px] leading-relaxed font-normal max-w-2xl"
+                style={{ color: 'var(--muted)' }}
+              >
+                Describe your business idea using the same structure as real circular economy
+                projects: what problem you solve, and how your solution addresses it.
+              </p>
+            </div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
               viewport={{ once: true }}
             >
-              {/* Section header */}
-              <div className="border-t border-(--color-border) pt-12 mb-8">
-                <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-1">
-                  Evaluate Your Circular Economy Business
-                </h2>
-                <p className="text-sm text-(--color-text-muted)">
-                  Describe your business idea using the same structure as real circular economy
-                  projects.
-                </p>
-              </div>
-
               <div className="space-y-8">
-                {/* Business Problem + Solution textareas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  {/* Business Problem */}
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-2 items-center gap-1.5 flex">
+                {/* Business Problem */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 ml-1">
+                    <span
+                      className="text-[15px] font-semibold tracking-wide"
+                      style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}
+                    >
                       Business Problem
-                    </label>
-                    <textarea
-                      {...register('businessProblem')}
-                      placeholder="What environmental or circular economy challenge does your business address?"
-                      className="bg-transparent border border-(--color-border-strong) rounded-lg p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none resize-none w-full min-h-40 transition-colors duration-150 font-(--font-body)"
-                      rows={4}
+                    </span>
+                    <BadgeInfo
+                      className="info-icon cursor-pointer transition-colors duration-200 hover:text-amber-600"
+                      size={18}
+                      style={{ color: '#b8916a' }}
+                      onClick={openBusinessProblemInfoDrawer}
                     />
-                    <LiveCharacterCounter name="businessProblem" />
                   </div>
+                  <p
+                    className="text-[13px] ml-1 leading-relaxed font-medium"
+                    style={{ color: 'var(--muted)', fontFamily: 'var(--font-soft)' }}
+                  >
+                    What environmental or circular economy challenge does your business address?
+                  </p>
+                  <textarea
+                    id="business-problem"
+                    rows={5}
+                    placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually..."
+                    {...register('businessProblem', {
+                      onBlur: () => flushAutosave(),
+                      onChange: (e) => instantSave('businessProblem', e.target.value),
+                    })}
+                    disabled={loading}
+                    className="w-full px-4 py-4 text-[15px] rounded-2xl border resize-none
+                               focus:outline-none transition-all duration-200 font-sans
+                               placeholder:opacity-60 leading-relaxed"
+                    style={{
+                      backgroundColor: 'oklch(0.982 0.012 80 / 0.9)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--foreground)',
+                      borderWidth: '1.5px',
+                      lineHeight: '1.7',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--accent)';
+                      e.target.style.boxShadow = '0 0 0 4px oklch(0.97 0.014 80 / 0.25)';
+                      e.target.style.transform = 'scale(1.008)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'var(--border)';
+                      e.target.style.boxShadow = 'none';
+                      e.target.style.transform = 'scale(1)';
+                      flushAutosave();
+                    }}
+                  />
+                  <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
+                </div>
 
-                  {/* Business Solution */}
-                  <div>
-                    <label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-2 items-center gap-1.5 flex">
+                {/* Business Solution */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 ml-1">
+                    <span
+                      className="text-[15px] font-semibold tracking-wide"
+                      style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}
+                    >
                       Business Solution
-                    </label>
-                    <textarea
-                      {...register('businessSolution')}
-                      placeholder="How does your business solve this problem? Include materials, processes, and circularity strategy."
-                      className="bg-transparent border border-(--color-border-strong) rounded-lg p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none resize-none w-full min-h-40 transition-colors duration-150 font-(--font-body)"
-                      rows={5}
+                    </span>
+                    <BadgeInfo
+                      className="info-icon cursor-pointer transition-colors duration-200 hover:text-amber-600"
+                      size={18}
+                      style={{ color: '#b8916a' }}
+                      onClick={openBusinessSolutionInfoDrawer}
                     />
-                    <LiveCharacterCounter name="businessSolution" />
                   </div>
+                  <p
+                    className="text-[13px] ml-1 leading-relaxed font-medium"
+                    style={{ color: 'var(--muted)', fontFamily: 'var(--font-soft)' }}
+                  >
+                    How does your business solve this problem? Include materials, processes, and
+                    circularity strategy.
+                  </p>
+                  <textarea
+                    id="business-solution"
+                    rows={6}
+                    placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste..."
+                    {...register('businessSolution', {
+                      onBlur: () => flushAutosave(),
+                      onChange: (e) => instantSave('businessSolution', e.target.value),
+                    })}
+                    disabled={loading}
+                    className="w-full px-4 py-4 text-[15px] rounded-2xl border resize-none
+                               focus:outline-none transition-all duration-200 font-sans
+                               placeholder:opacity-60 leading-relaxed"
+                    style={{
+                      backgroundColor: 'oklch(0.982 0.012 80 / 0.9)',
+                      borderColor: 'var(--border)',
+                      color: 'var(--foreground)',
+                      borderWidth: '1.5px',
+                      lineHeight: '1.7',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--accent)';
+                      e.target.style.boxShadow = '0 0 0 4px oklch(0.97 0.014 80 / 0.25)';
+                      e.target.style.transform = 'scale(1.008)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'var(--border)';
+                      e.target.style.boxShadow = 'none';
+                      e.target.style.transform = 'scale(1)';
+                      flushAutosave();
+                    }}
+                  />
+                  <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
                 </div>
 
-                {/* Business Context accordion */}
+                {/* Business Context */}
                 <div
-                  className="flex items-center justify-between py-4 border-t border-(--color-border) cursor-pointer group"
-                  onClick={() => setShowBusinessContext(!showBusinessContext)}
+                  className="w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+                  style={{
+                    border: '1.5px solid var(--border)',
+                    backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
+                  }}
                 >
-                  <div>
-                    <span className="text-sm font-medium text-(--color-text-primary)">
-                      Business Context
-                    </span>
-                    <span className="text-xs text-(--color-text-muted) ml-2">
-                      — improves analysis quality
-                    </span>
-                  </div>
-                  <ChevronDown
-                    className={`w-4 h-4 text-(--color-text-muted) transition-transform ${showBusinessContext ? 'rotate-180' : ''}`}
-                  />
+                  <Accordion
+                    className="w-full group/accordion"
+                    variant="default"
+                    expandedKeys={businessContextExpandedKeys}
+                    onExpandedChange={setBusinessContextExpandedKeys}
+                  >
+                    <Accordion.Item id="business-context-heading">
+                      <Accordion.Heading>
+                        <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-100">
+                          <BriefcaseBusiness
+                            className="h-6 w-6 shrink-0 transition-all duration-200 ease-out
+                                       hover:scale-110 hover:-rotate-6 hover:drop-shadow-md
+                                       group-hover/parent:scale-110 group-hover/parent:-rotate-6 group-hover/parent:drop-shadow-md"
+                            style={{ color: 'var(--color-accent)' }}
+                            strokeWidth={1.75}
+                          />
+                          <div className="flex flex-col gap-0.5 text-left flex-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="font-bold text-lg leading-6 transition-colors duration-200"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
+                                Business Context
+                              </span>
+                              <BadgeInfo
+                                className="info-icon transition-all duration-200 ease-out
+                                         hover:scale-110 hover:drop-shadow-sm
+                                         group-hover/parent:scale-110 group-hover/parent:drop-shadow-sm"
+                                size={22}
+                                style={{ color: 'var(--color-accent)' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openBusinessContextHeadingInfoDrawer();
+                                }}
+                              />
+                            </div>
+                            <span
+                              className="text-xs font-normal leading-4 transition-colors duration-200"
+                              style={{ color: 'var(--color-text-muted)' }}
+                            >
+                              Optional — improves analysis quality
+                            </span>
+                          </div>
+                          <Accordion.Indicator
+                            className="[&>svg]:size-4 transition-transform duration-200 ease-out group-hover/parent:scale-110"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            <ChevronDown />
+                          </Accordion.Indicator>
+                        </Accordion.Trigger>
+                      </Accordion.Heading>
+                      <Accordion.Panel>
+                        <Accordion.Body className="p-0 bg-transparent">
+                          <BusinessContextContainer loading={loading} />
+                        </Accordion.Body>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  </Accordion>
                 </div>
-                {showBusinessContext && <BusinessContextContainer loading={loading} />}
 
-                {/* Evaluation Parameters accordion */}
+                {/* Evaluation Parameters */}
                 <div
-                  className="flex items-center justify-between py-4 border-t border-(--color-border) cursor-pointer group"
-                  onClick={() => setShowEvaluationParameters(!showEvaluationParameters)}
+                  className="w-full rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+                  style={{
+                    border: '1.5px solid var(--border)',
+                    backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
+                  }}
                 >
-                  <div>
-                    <span className="text-sm font-medium text-(--color-text-primary)">
-                      Evaluation Parameters
-                    </span>
-                    <span className="text-xs text-(--color-text-muted) ml-2">
-                      — fine-tune scoring weights
-                    </span>
-                  </div>
-                  <ChevronDown
-                    className={`w-4 h-4 text-(--color-text-muted) transition-transform ${showEvaluationParameters ? 'rotate-180' : ''}`}
-                  />
+                  <Accordion
+                    className="w-full group/accordion"
+                    variant="default"
+                    allowsMultipleExpanded
+                    expandedKeys={evalParamsExpandedKeys}
+                    onExpandedChange={setEvalParamsExpandedKeys}
+                  >
+                    <Accordion.Item id="evaluation-parameters-heading">
+                      <Accordion.Heading>
+                        <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-100">
+                          <SlidersHorizontal
+                            className="h-6 w-6 shrink-0 transition-all duration-200 ease-out
+                                       hover:scale-110 hover:-rotate-6 hover:drop-shadow-md
+                                       group-hover/parent:scale-110 group-hover/parent:-rotate-6 group-hover/parent:drop-shadow-md"
+                            style={{ color: 'var(--color-success)' }}
+                            strokeWidth={1.75}
+                          />
+                          <div className="flex flex-col gap-0.5 text-left flex-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="font-bold text-lg leading-6 transition-colors duration-200"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
+                                Evaluation Parameters
+                              </span>
+                              <BadgeInfo
+                                className="info-icon transition-all duration-200 ease-out
+                                         hover:scale-110 hover:drop-shadow-sm
+                                         group-hover/parent:scale-110 group-hover/parent:drop-shadow-sm"
+                                size={22}
+                                style={{ color: 'var(--color-success)' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEvaluationParametersHeadingInfoDrawer();
+                                }}
+                              />
+                            </div>
+                            <span
+                              className="text-sm font-normal leading-4 transition-colors duration-200"
+                              style={{ color: 'var(--color-text-muted)' }}
+                            >
+                              Score each dimension of circular value
+                            </span>
+                          </div>
+                          <Accordion.Indicator
+                            className="[&>svg]:size-4 transition-transform duration-200 ease-out group-hover/parent:scale-110"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            <ChevronDown />
+                          </Accordion.Indicator>
+                        </Accordion.Trigger>
+                      </Accordion.Heading>
+                      <Accordion.Panel>
+                        <Accordion.Body className="p-0 bg-transparent">
+                          <EvaluationParametersContainer
+                            loading={loading}
+                            innerExpandedKeys={innerExpandedKeys}
+                            onInnerExpandedChange={setInnerExpandedKeys}
+                          />
+                        </Accordion.Body>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  </Accordion>
                 </div>
-                {showEvaluationParameters && (
-                  <EvaluationParametersContainer
-                    loading={loading}
-                    expandedKeys={innerExpandedKeys}
-                    setExpandedKeys={setInnerExpandedKeys}
-                  />
-                )}
 
                 {/* Error Display */}
                 {error && (
@@ -434,30 +790,105 @@ export default function LandingPage() {
                   </div>
                 )}
 
-                {/* Evaluate Circularity button */}
-                <div className="mt-8 mb-12">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 bg-(--color-accent) text-white text-sm rounded-lg hover:bg-(--color-accent-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-(--font-body)"
-                    onClick={handleSubmit(handleFormSubmit)}
+                {/* Submit button */}
+                <div className="w-full">
+                  <Tooltip delay={0} isDisabled={isValid}>
+                    <Tooltip.Trigger>
+                      <Button
+                        size="lg"
+                        onPress={handleSubmit(handleFormSubmit)}
+                        isDisabled={loading || !isValid}
+                        variant="teal"
+                        fullWidth
+                        className="h-12"
+                      >
+                        {loading ? (
+                          <LoaderIcon isButton={true} color="#ffffff" />
+                        ) : (
+                          <span>Evaluate Circularity</span>
+                        )}
+                      </Button>
+                    </Tooltip.Trigger>
+                    <Tooltip.Content showArrow placement="top">
+                      <Tooltip.Arrow />
+                      <span>
+                        Please fill out business problem and solution fields (min. 200 chars each)
+                      </span>
+                    </Tooltip.Content>
+                  </Tooltip>
+                </div>
+
+                {/* Sample Test Cases */}
+                <div
+                  className="w-full rounded-2xl overflow-hidden group/tc shadow-sm hover:shadow-md transition-shadow duration-300"
+                  style={{
+                    border: '1.5px solid var(--border)',
+                    backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
+                  }}
+                >
+                  <Accordion
+                    className="w-full group/accordion"
+                    variant="default"
+                    defaultExpandedKeys={['test-cases']}
                   >
-                    {loading ? 'Evaluating...' : 'Evaluate Circularity'}
-                  </button>
+                    <Accordion.Item id="test-cases" defaultExpanded={true}>
+                      <Accordion.Heading>
+                        <Accordion.Trigger className="group/parent flex items-center gap-3 px-5 py-3 transition-colors duration-100">
+                          <ClipboardList
+                            className="h-6 w-6 shrink-0 transition-all duration-200 ease-out
+                                       hover:scale-110 hover:-rotate-6 hover:drop-shadow-md
+                                       group-hover/parent:scale-110 group-hover/parent:-rotate-6 group-hover/parent:drop-shadow-md"
+                            style={{ color: 'var(--color-secondary)' }}
+                            strokeWidth={1.75}
+                          />
+                          <div className="flex flex-col gap-0.5 text-left flex-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="font-bold text-lg leading-6 transition-colors duration-200"
+                                style={{ color: 'var(--color-text-primary)' }}
+                              >
+                                Sample Test Cases
+                              </span>
+                              <BadgeInfo
+                                className="info-icon cursor-pointer transition-all duration-200 ease-out
+                                         hover:scale-110 hover:drop-shadow-sm
+                                         group-hover/parent:scale-110 group-hover/parent:drop-shadow-sm"
+                                size={22}
+                                style={{ color: 'var(--color-secondary)' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openSampleTestCasesHeadingInfoDrawer();
+                                }}
+                              />
+                            </div>
+                            <span
+                              className="text-xs italic leading-4 transition-colors duration-200"
+                              style={{ color: 'var(--color-text-muted)' }}
+                            >
+                              Auto-fill form with curated examples for quick testing
+                            </span>
+                          </div>
+                          <Accordion.Indicator
+                            className="[&>svg]:size-4 transition-transform duration-200 ease-out group-hover/parent:scale-110"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            <ChevronDown />
+                          </Accordion.Indicator>
+                        </Accordion.Trigger>
+                      </Accordion.Heading>
+                      <Accordion.Panel>
+                        <Accordion.Body className="pt-2 bg-transparent">
+                          <SampleTestCasesContainer
+                            openEvalParams={openEvalParams}
+                            openBusinessContext={openBusinessContext}
+                          />
+                        </Accordion.Body>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  </Accordion>
                 </div>
               </div>
             </motion.div>
-          </div>
-        </section>
-
-        {/* Sample Test Cases */}
-        <section className="py-8">
-          <div className="max-w-6xl mx-auto px-6">
-            <SampleTestCasesContainer
-              setShowEvaluationParameters={setShowEvaluationParameters}
-              openEvalParams={openEvalParams}
-              openBusinessContext={openBusinessContext}
-            />
           </div>
         </section>
       </div>

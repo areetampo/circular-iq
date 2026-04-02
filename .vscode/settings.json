@@ -3,7 +3,7 @@
     "**/backend/database/migrations/**": true,
     "**/backend/datasets/{archives,manual_entries,out,processed,raw}/**": true,
     "**/*.{csv,jsonl,pdf,sql}": true,
-    "**/prompts/**": true
+    "**/.scratch/**": true
   },
 
   "files.exclude": {
@@ -18,16 +18,10 @@
     "**/backend/datasets/**": true,
     "**/frontend/dist/**": true,
     "**/backend/tests/**": true,
-    "**/prompts/**": true
+    "**/.scratch/**": true
   },
 
   "eslint.workingDirectories": [{ "mode": "auto" }],
-
-  "js/ts.tsserver.watchOptions": {
-    "watchFile": "useFsEvents",
-    "watchDirectory": "useFsEvents",
-    "fallbackPolling": "dynamicPriorityPolling"
-  },
 
   "editor.quickSuggestions": {
     "other": true,

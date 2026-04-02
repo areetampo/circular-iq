@@ -9,8 +9,9 @@ import { z } from 'zod';
  * @returns {number} Character count
  */
 export function getCharacterCount(text) {
-  if (!text) return 0;
-  return text.replace(/\s+/g, '').trim().length;
+  if (!text && text !== 0) return 0;
+  const stringText = String(text);
+  return stringText.replace(/\s+/g, '').trim().length;
 }
 
 /**

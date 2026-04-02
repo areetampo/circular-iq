@@ -1,5 +1,5 @@
-import { toast } from '@heroui/react';
-import { CheckCircle2, Eye } from 'lucide-react';
+import { ScrollShadow, toast } from '@heroui/react';
+import { BookOpen, CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -10,6 +10,17 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
 import { cn } from '@/utils/cn';
+
+// Helper function to get score styling with elegant colors
+const getScoreStyle = (score) => {
+  if (score >= 80)
+    return 'bg-[var(--color-success-soft)]/80 text-[var(--color-success)] border-[var(--color-success)]/30';
+  if (score >= 60)
+    return 'bg-[var(--color-accent-soft)]/80 text-[var(--color-accent)] border-[var(--color-accent)]/30';
+  if (score >= 40)
+    return 'bg-[var(--color-warning-soft)]/80 text-[var(--color-warning)] border-[var(--color-warning)]/30';
+  return 'bg-[var(--color-error-soft)]/80 text-[var(--color-error)] border-[var(--color-error)]/30';
+};
 
 // Helper function to validate and normalize business model type values
 const normalizeBusinessModelType = (value) => {
@@ -193,87 +204,89 @@ export default function SampleTestCasesContainer({
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
       {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
         return (
-          <button
+          <div
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
-            aria-label={`Select sample test case: ${testCase.title}`}
-            aria-pressed={isSelected}
             className={cn(
-              'group relative flex flex-col gap-3 rounded-lg p-4 cursor-pointer border transition-colors duration-150',
-              isSelected
-                ? 'border-(--color-accent) bg-(--color-accent-light)'
-                : 'border-(--color-border) bg-transparent hover:border-(--color-border-strong) hover:bg-[rgba(245,240,232,0.5)]',
+              'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer transition-all duration-300',
+              'border border-[var(--color-border)] bg-[var(--color-bg-card)] backdrop-blur-sm',
+              'hover:border-[var(--color-border-strong)] hover:bg-[var(--color-bg-elevated)] hover:shadow-lg hover:shadow-[var(--shadow-md)]',
+              isSelected &&
+                'border-[var(--color-accent)]/60 bg-[var(--color-accent-soft)]/40 shadow-lg shadow-[var(--color-accent)]/20',
             )}
           >
-            <div className="flex items-start gap-2">
-              {/* Number badge */}
-              <span
-                className={cn(
-                  'text-xs font-mono px-1.5 py-0.5 rounded-md shrink-0',
-                  isSelected
-                    ? 'bg-(--color-accent) text-white'
-                    : 'bg-(--color-accent-light) text-(--color-text-muted)',
-                )}
-              >
-                #{index + 1}
-              </span>
-
-              <div className="flex-1">
-                {/* Title */}
-                <h4 className="text-sm font-semibold text-(--color-text-primary) truncate">
+            {/* Header: index pill + title + check */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={cn(
+                    'text-xs font-bold px-2 py-0.5 rounded-full shrink-0 transition-all duration-200',
+                    isSelected
+                      ? 'bg-[var(--color-accent)]/90 text-white shadow-sm'
+                      : 'bg-[var(--color-bg-elevated)]/80 text-[var(--color-text-secondary)] group-hover:bg-[var(--color-bg-elevated)]',
+                  )}
+                >
+                  #{index + 1}
+                </span>
+                <h4 className="text-sm font-semibold leading-snug text-[var(--color-text-primary)] truncate group-hover:text-[var(--color-text-primary)] transition-colors duration-200">
                   {testCase.title}
                 </h4>
-
-                {/* Problem excerpt */}
-                <p className="text-xs text-(--color-text-muted) line-clamp-2 leading-relaxed grow">
-                  {testCase.problem || testCase.description || testCase.industry}
-                </p>
-
-                {/* Score chips */}
-                {testCase.scores && (
-                  <div className="flex gap-1 mt-2">
-                    {Object.entries(testCase.scores)
-                      .slice(0, 3)
-                      .map(([key, value]) => (
-                        <span
-                          key={key}
-                          className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)"
-                        >
-                          {key.replace(/_/g, ' ')}: {value}
-                        </span>
-                      ))}
-                  </div>
-                )}
-
-                {/* View details button */}
-                <div className="flex items-center justify-between mt-3">
-                  <Button
-                    variant="eco-soft"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openSpecificSampleTestCaseViewDetailsDrawer(testCase);
-                    }}
-                  >
-                    <Eye size={14} className="mr-1" />
-                    View Details
-                  </Button>
-
-                  {isSelected && (
-                    <CheckCircle2 className="text-(--color-accent) shrink-0" size={16} />
-                  )}
-                </div>
               </div>
+              {isSelected && (
+                <CheckCircle2
+                  className="text-[var(--color-accent)] shrink-0 mt-0.5"
+                  strokeWidth={2}
+                  size={16}
+                />
+              )}
             </div>
-          </button>
+
+            {/* Problem excerpt */}
+            <p className="text-xs leading-relaxed text-[var(--color-text-secondary)] line-clamp-2 grow group-hover:text-[var(--color-text-primary)] transition-colors duration-200">
+              {testCase.problem.substring(0, 110)}…
+            </p>
+
+            {/* Score pills */}
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(testCase.evaluationParameters || {})
+                .slice(0, 3)
+                .map(([key, value]) => (
+                  <span
+                    key={key}
+                    className={cn(
+                      'text-[10px] font-medium px-2 py-0.5 rounded-md border',
+                      getScoreStyle(value),
+                    )}
+                  >
+                    {key.replace(/_/g, ' ')}: {value}
+                  </span>
+                ))}
+            </div>
+
+            {/* View details — no divider, just the button flush to bottom */}
+            <div className="flex justify-end">
+              <Button
+                onClick={(e) => {
+                  openSpecificSampleTestCaseViewDetailsDrawer(testCase);
+                  e.stopPropagation();
+                }}
+                variant="eco-soft"
+                size="sm"
+                className="flex items-center gap-2 text-xs"
+              >
+                View details
+                <BookOpen />
+              </Button>
+            </div>
+          </div>
         );
       })}
-    </div>
+    </ScrollShadow>
   );
 }
 

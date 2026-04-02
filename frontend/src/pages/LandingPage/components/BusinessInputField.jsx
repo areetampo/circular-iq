@@ -18,19 +18,20 @@ export default function BusinessInputField({
   minLength = 200,
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* Label */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <Label
           htmlFor={id}
-          className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 flex items-center gap-1"
+          className="text-sm font-medium tracking-wide text-[var(--color-text-primary)] mb-1 flex items-center gap-2"
+          style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.025em' }}
         >
           {label}
         </Label>
         <BadgeInfo
-          className="info-icon cursor-pointer"
+          className="info-icon cursor-pointer transition-all duration-200 hover:scale-110"
           size={16}
-          style={{ color: 'var(--color-text-muted)' }}
+          style={{ color: 'var(--color-accent)' }}
           onClick={onInfoClick}
           aria-label={`Get more information about ${label}`}
           tabIndex={0}
@@ -47,7 +48,12 @@ export default function BusinessInputField({
           onBlur: () => flushAutosave(),
         })}
         disabled={loading}
-        className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md p-4 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize-none transition-all outline-none w-full min-h-35"
+        className="bg-[var(--color-bg-field)] border border-[var(--color-border-strong)] rounded-lg p-4 text-[15px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent-light)] resize-none transition-all duration-200 outline-none w-full min-h-35"
+        style={{
+          fontFamily: 'var(--font-body)',
+          lineHeight: '1.6',
+          letterSpacing: '0.01em',
+        }}
       />
 
       {/* Character counter */}

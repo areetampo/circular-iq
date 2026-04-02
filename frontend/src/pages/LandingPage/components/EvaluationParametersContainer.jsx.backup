@@ -1,5 +1,5 @@
-import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
-import { BadgeInfo, ChevronDown } from 'lucide-react';
+import { cn, Label, NumberField } from '@heroui/react';
+import { BadgeInfo } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -63,34 +63,28 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                 }}
               >
                 <Label
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    color: 'var(--foreground)',
-                  }}
+                  className={cn(
+                    'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium',
+                    'cursor-pointer transition-all duration-150',
+                    (() => {
+                      const cfg =
+                        GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
+                        DEFAULT_CONFIG;
+                      return cn(cfg.paramBg, cfg.paramTextColor);
+                    })(),
+                  )}
                   onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
                   aria-label={`View details for ${parameterLabels[paramKey].label}`}
                 >
                   <span className="font-semibold text-sm whitespace-nowrap">
                     {parameterLabels[paramKey].label}
                   </span>
-                  <BadgeInfo className="info-icon" size={16} style={{ color: 'var(--accent)' }} />
+                  <BadgeInfo className="info-icon" size={20} />
                 </Label>
 
-                <NumberField.Group
-                  className="flex items-center gap-2 h-10 my-2"
-                  style={{
-                    backgroundColor: 'oklch(0.985 0.01 80 / 0.6)',
-                    border: '1.5px solid var(--border)',
-                    borderRadius: '10px',
-                    padding: '0 6px',
-                    boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
-                  }}
-                >
+                <NumberField.Group className="flex items-center gap-1 h-8 my-0.5">
                   <NumberField.DecrementButton
-                    className="w-8 h-8 flex items-center justify-center transition-all duration-200 text-lg select-none rounded-lg
-                               hover:bg-(--accent-soft) hover:scale-110 active:scale-95"
-                    style={{ color: 'var(--muted)' }}
+                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none text-(--color-text-muted) hover:bg-(--color-accent-light) rounded-sm"
                     aria-label="Decrease value"
                   />
                   <NumberField.Input
@@ -126,10 +120,25 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         // Do NOT persist here — rely on LandingPage debounced autosave.
                       }
                     }}
-                    className="w-20 text-center text-2xl font-bold text-slate-800 bg-transparent focus:outline-none"
+                    onBlur={() => {
+                      try {
+                        const values = getValues();
+                        saveSession({
+                          inputs: {
+                            businessProblem: values.businessProblem || '',
+                            businessSolution: values.businessSolution || '',
+                            evaluationParameters: values.evaluationParameters || {},
+                            businessContext: values.businessContext || {},
+                          },
+                        });
+                      } catch (e) {
+                        /* ignore */
+                      }
+                    }}
+                    className="w-20 text-center font-mono text-(--color-text-primary) text-sm bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md focus:border-(--color-accent) outline-none transition-colors"
                   />
                   <NumberField.IncrementButton
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors text-lg select-none"
+                    className="w-8 h-8 flex items-center justify-center transition-colors text-lg select-none text-(--color-text-muted) hover:bg-(--color-accent-light) rounded-sm"
                     aria-label="Increase value"
                   />
                 </NumberField.Group>
@@ -149,9 +158,9 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       disabled={loading}
                       onClick={() => field.onChange(option.score)}
                       className={cn(
-                        'cursor-pointer flex-1 p-2.5 rounded-lg border-2 text-left transition-all duration-100',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
-                        isSelected ? 'shadow-sm opacity-80' : 'bg-white opacity-60',
+                        'cursor-pointer flex-1 p-2.5 rounded-lg border-2 text-left transition-all duration-150',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                        isSelected ? 'shadow-sm opacity-80' : 'opacity-60',
                         tierClass,
                         loading && 'opacity-50 cursor-not-allowed',
                       )}
@@ -198,108 +207,6 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
       />
     </div>
   );
-});
-
-ParameterBox.displayName = 'ParameterBox';
-
-function EvaluationParametersContainer({
-  loading,
-  innerExpandedKeys,
-  onInnerExpandedChange,
-  evalParamsExpandedKeys,
-  setEvalParamsExpandedKeys,
-}) {
-  const groupEntries = Object.entries(parameterGroups);
-
-  return (
-    <div className="w-full">
-      <Accordion
-        className="w-full"
-        variant="default"
-        allowsMultipleExpanded
-        defaultExpandedKeys={evalParamsExpandedKeys}
-        expandedKeys={evalParamsExpandedKeys}
-        onExpandedChange={setEvalParamsExpandedKeys}
-      >
-        {groupEntries.map(([groupName, group], groupIdx) => {
-          const cfg = GROUP_STYLE_CONFIG[groupName] ?? DEFAULT_CONFIG;
-
-          return (
-            <Accordion.Item
-              key={groupIdx}
-              id={groupName}
-              className={cn('group/item', groupIdx > 0 && 'border-t')}
-              style={{ borderTopColor: 'var(--border)' }}
-            >
-              <Accordion.Heading>
-                <Accordion.Trigger
-                  className="group flex items-center gap-3 px-5 py-3 transition-colors duration-200"
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'var(--surface-hover)')
-                  }
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <cfg.Icon
-                    className={cn(
-                      cfg.iconColor,
-                      'h-5 w-5 shrink-0 mr-1.5 transition-all duration-200 ease-out',
-                      'hover:rotate-12 hover:scale-110 hover:drop-shadow-md',
-                    )}
-                    strokeWidth={1.75}
-                  />
-
-                  <div className="flex flex-col gap-0.5 text-left">
-                    <span
-                      className="font-semibold text-[16px] leading-5"
-                      style={{ color: 'var(--foreground)' }}
-                    >
-                      {groupName}
-                    </span>
-                    <span
-                      className="text-xs font-normal leading-4"
-                      style={{ color: 'var(--muted)' }}
-                    >
-                      {cfg.subtitle}
-                    </span>
-                  </div>
-
-                  <Accordion.Indicator
-                    className="transition-transform duration-200 ease-out"
-                    style={{ color: 'var(--muted)' }}
-                  >
-                    <ChevronDown className="transition-transform duration-200 ease-out" />
-                  </Accordion.Indicator>
-                </Accordion.Trigger>
-              </Accordion.Heading>
-
-              <Accordion.Panel>
-                <Accordion.Body className="px-2 pt-1 pb-6 bg-transparent">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-0">
-                    {group.map((key, idx) => (
-                      <React.Fragment key={idx}>
-                        <div className="flex-1 flex flex-col items-center py-1 px-2">
-                          <ParameterBox paramGroupIdx={groupIdx} paramKey={key} loading={loading} />
-                        </div>
-                        {idx < group.length - 1 && (
-                          <div className="flex justify-center items-center">
-                            <div
-                              className="hidden md:block w-px self-stretch my-2"
-                              style={{ backgroundColor: 'var(--border)' }}
-                            />
-                            <Separator orientation="horizontal" className="md:hidden w-5/6" />
-                          </div>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </Accordion.Body>
-              </Accordion.Panel>
-            </Accordion.Item>
-          );
-        })}
-      </Accordion>
-    </div>
-  );
 }
 
 EvaluationParametersContainer.displayName = 'EvaluationParametersContainer';
@@ -311,5 +218,3 @@ EvaluationParametersContainer.propTypes = {
   evalParamsExpandedKeys: PropTypes.object,
   setEvalParamsExpandedKeys: PropTypes.func,
 };
-
-export default EvaluationParametersContainer;

@@ -98,7 +98,7 @@ export default function ErrorDisplay({
         fullScreen ? 'min-h-screen' : 'min-h-[40vh]'
       } px-6 py-12 ${className}`}
     >
-      <div className="w-full max-w-lg border-2 border-(--color-border) rounded-3xl p-8 bg-transparent">
+      <div className="w-full max-w-lg border-3 border-(--color-border) rounded-3xl p-8 bg-transparent">
         {/* Icon + title */}
         <div className="text-center mb-6">
           <div className="flex justify-center mb-4">

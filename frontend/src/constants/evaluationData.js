@@ -688,54 +688,73 @@ export const categoryMapping = {
 export const TIER_CONFIG = [
   {
     minScore: 90,
-    selected: 'border-emerald-600 bg-emerald-50 text-emerald-900',
+    selected:
+      'border-[var(--color-success)]/70 bg-[var(--color-success-soft)]/50 text-[var(--color-success)] shadow-sm',
     unselected:
-      'border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 text-emerald-800',
+      'border-[var(--color-success)]/25 hover:border-[var(--color-success)]/40 hover:bg-[var(--color-success-soft)]/25 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 80,
-    selected: 'border-green-600 bg-green-50 text-green-900',
-    unselected: 'border-green-200 hover:border-green-400 hover:bg-green-50/50 text-green-700',
+    selected:
+      'border-[var(--color-success)]/60 bg-[var(--color-success-soft)]/45 text-[var(--color-success)]/95 shadow-sm',
+    unselected:
+      'border-[var(--color-success)]/20 hover:border-[var(--color-success)]/35 hover:bg-[var(--color-success-soft)]/20 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 70,
-    selected: 'border-lime-600 bg-lime-50 text-lime-900',
-    unselected: 'border-lime-200 hover:border-lime-400 hover:bg-lime-50/50 text-lime-700',
+    selected:
+      'border-[var(--color-accent)]/70 bg-[var(--color-accent-soft)]/50 text-[var(--color-accent)] shadow-sm',
+    unselected:
+      'border-[var(--color-accent)]/25 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-accent-soft)]/25 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 60,
-    selected: 'border-yellow-600 bg-yellow-50 text-yellow-900',
-    unselected: 'border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50/50 text-yellow-700',
+    selected:
+      'border-[var(--color-accent)]/60 bg-[var(--color-accent-soft)]/45 text-[var(--color-accent)]/95 shadow-sm',
+    unselected:
+      'border-[var(--color-accent)]/20 hover:border-[var(--color-accent)]/35 hover:bg-[var(--color-accent-soft)]/20 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 50,
-    selected: 'border-amber-600 bg-amber-50 text-amber-900',
-    unselected: 'border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 text-amber-700',
+    selected:
+      'border-[var(--color-warning)]/70 bg-[var(--color-warning-soft)]/50 text-[var(--color-warning)] shadow-sm',
+    unselected:
+      'border-[var(--color-warning)]/25 hover:border-[var(--color-warning)]/40 hover:bg-[var(--color-warning-soft)]/25 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 40,
-    selected: 'border-orange-600 bg-orange-50 text-orange-900',
-    unselected: 'border-orange-200 hover:border-orange-400 hover:bg-orange-50/50 text-orange-700',
+    selected:
+      'border-[var(--color-warning)]/60 bg-[var(--color-warning-soft)]/45 text-[var(--color-warning)]/95 shadow-sm',
+    unselected:
+      'border-[var(--color-warning)]/20 hover:border-[var(--color-warning)]/35 hover:bg-[var(--color-warning-soft)]/20 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 30,
-    selected: 'border-red-600 bg-red-50 text-red-900',
-    unselected: 'border-red-200 hover:border-red-400 hover:bg-red-50/50 text-red-700',
+    selected:
+      'border-[var(--color-warning)]/50 bg-[var(--color-warning-soft)]/40 text-[var(--color-warning)]/90 shadow-sm',
+    unselected:
+      'border-[var(--color-warning)]/18 hover:border-[var(--color-warning)]/30 hover:bg-[var(--color-warning-soft)]/18 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 20,
-    selected: 'border-red-700 bg-red-50 text-red-900',
-    unselected: 'border-red-200 hover:border-red-500 hover:bg-red-50/50 text-red-700',
+    selected:
+      'border-[var(--color-error)]/70 bg-[var(--color-error-soft)]/50 text-[var(--color-error)] shadow-sm',
+    unselected:
+      'border-[var(--color-error)]/25 hover:border-[var(--color-error)]/40 hover:bg-[var(--color-error-soft)]/25 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 10,
-    selected: 'border-red-800 bg-red-50 text-red-900',
-    unselected: 'border-red-200 hover:border-red-600 hover:bg-red-50/50 text-red-700',
+    selected:
+      'border-[var(--color-error)]/60 bg-[var(--color-error-soft)]/45 text-[var(--color-error)]/95 shadow-sm',
+    unselected:
+      'border-[var(--color-error)]/20 hover:border-[var(--color-error)]/35 hover:bg-[var(--color-error-soft)]/20 text-[var(--color-text-secondary)]',
   },
   {
     minScore: 0,
-    selected: 'border-red-900 bg-red-50 text-red-900',
-    unselected: 'border-red-200 hover:border-red-700 hover:bg-red-50/50 text-red-700',
+    selected:
+      'border-[var(--color-error)]/50 bg-[var(--color-error-soft)]/40 text-[var(--color-error)]/90 shadow-sm',
+    unselected:
+      'border-[var(--color-error)]/18 hover:border-[var(--color-error)]/30 hover:bg-[var(--color-error-soft)]/18 text-[var(--color-text-secondary)]',
   },
 ];
 

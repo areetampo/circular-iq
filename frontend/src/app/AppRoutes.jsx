@@ -9,6 +9,8 @@ import AppContainer from '@/components/layout/AppContainer';
 import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 
+import Footer from '../components/layout/Footer';
+
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
@@ -190,6 +192,7 @@ export default function AppRoutes() {
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </AppContainer>
+                <Footer />
               </div>
             }
           />

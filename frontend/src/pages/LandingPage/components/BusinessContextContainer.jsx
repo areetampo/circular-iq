@@ -1,7 +1,8 @@
 import { Label, ListBox, Select, Switch } from '@heroui/react';
-import { ChevronDown, Info } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Controller, useFormContext } from 'react-hook-form';
+
+import { cn } from '@/utils/cn';
 
 const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
 
@@ -51,15 +52,17 @@ const MATERIAL_OPTIONS = [
   { value: 'biological', label: 'Biological / Organic' },
 ];
 
-function BusinessContextContainer({ loading = false }) {
+function BusinessContextContainer({
+  loading = false,
+  businessContextExpandedKeys,
+  setBusinessContextExpandedKeys,
+}) {
   const { control } = useFormContext();
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary)">
-        {label}
-      </span>
-      {description && <span className="text-xs text-(--color-text-muted)">{description}</span>}
+      <span className="text-sm font-semibold text-amber-800">{label}</span>
+      {description && <span className="text-xs text-amber-600">{description}</span>}
       <Controller
         name={`businessContext.${name}`}
         control={control}
@@ -70,10 +73,17 @@ function BusinessContextContainer({ loading = false }) {
             isDisabled={loading}
             placeholder="Select (optional)"
             className="w-full"
+            classNames={{
+              trigger:
+                'bg-amber-50/50 border-amber-200 hover:border-amber-400 hover:bg-amber-50/70 transition-all duration-200',
+              selectorIcon: 'text-amber-600',
+              listbox: 'bg-amber-50/95 border-amber-200 backdrop-blur-sm',
+              popoverContent: 'bg-amber-50/95 border-amber-200 backdrop-blur-sm',
+            }}
           >
             <Label className="sr-only">{label}</Label>
-            <Select.Trigger className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-md hover:border-(--color-accent) transition-colors">
-              <Select.Value className="text-sm text-(--color-text-primary)" />
+            <Select.Trigger>
+              <Select.Value />
               <Select.Indicator />
             </Select.Trigger>
             <Select.Popover>
@@ -83,7 +93,6 @@ function BusinessContextContainer({ loading = false }) {
                     key={item.value === null ? '__LEAVE_EMPTY__' : item.value}
                     id={item.value === null ? '__LEAVE_EMPTY__' : item.value}
                     textValue={item.label}
-                    className="text-sm text-(--color-text-primary) hover:bg-(--color-accent-light)"
                   >
                     {item.label}
                     <ListBox.ItemIndicator />
@@ -98,26 +107,13 @@ function BusinessContextContainer({ loading = false }) {
   );
 
   return (
-    <div className="w-full">
-      {/* Accordion header */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-(--color-border)">
-        <div className="w-9 h-9 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent)">
-          <Info className="w-4 h-4" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-medium text-(--color-text-primary)">Business Context</h3>
-          <p className="text-xs text-(--color-text-muted)">— improves analysis quality</p>
-        </div>
-        <ChevronDown className="w-4 h-4 text-(--color-text-muted)" />
-      </div>
+    <div className="px-4 pt-2 pb-6 space-y-5">
+      <p className="text-xs text-amber-600 italic">
+        These optional fields help to AI generate more precise benchmarks and recommendations. Your
+        answers are never stored beyond this session unless you save the assessment.
+      </p>
 
-      {/* Accordion content */}
-      <div className="px-6 py-4 space-y-5">
-        <p className="text-xs text-(--color-text-secondary) leading-relaxed">
-          These optional fields help the AI generate more precise benchmarks and recommendations.
-          Your answers are never stored beyond this session unless you save the assessment.
-        </p>
-
+      <>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {renderSelect(
             'business_model_type',
@@ -164,24 +160,26 @@ function BusinessContextContainer({ loading = false }) {
               className="w-full"
             >
               <Switch.Content className="w-full">
-                <div className="flex items-center justify-between p-3 rounded-md border border-(--color-border) hover:bg-(--color-accent-light) transition-colors cursor-pointer">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium text-(--color-text-primary)">
+                <Label className="cursor-pointer flex items-center justify-between p-3 bg-amber-50/50 rounded-lg border border-amber-200 hover:bg-amber-50/70 transition-all duration-200">
+                  <div className="flex flex-col gap-0.5 mr-2">
+                    <span className="text-sm font-semibold text-amber-800">
                       Existing Supply Chain / Collection Partnerships
                     </span>
-                    <p className="text-xs text-(--color-text-muted)">
+                    <p className="text-xs text-amber-600 mt-0.5">
                       Do you already have partners for collection, processing, or distribution?
                     </p>
                   </div>
-                  <Switch.Control>
-                    <Switch.Thumb />
+                  <Switch.Control
+                    className={cn(field.value === true ? 'bg-amber-700' : 'bg-amber-200')}
+                  >
+                    <Switch.Thumb>{/* <Switch.Icon></Switch.Icon> */}</Switch.Thumb>
                   </Switch.Control>
-                </div>
+                </Label>
               </Switch.Content>
             </Switch>
           )}
         />
-      </div>
+      </>
     </div>
   );
 }
