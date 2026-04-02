@@ -22,10 +22,10 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   return (
     <div
       className={cn(
-        'border rounded-lg p-4 mb-3 transition-colors',
+        'border rounded-xl p-4 mb-2.5 transition-colors bg-[rgba(245,240,232,0.5)]',
         isSelected
-          ? 'border-(--color-accent) bg-(--color-accent-light)'
-          : 'border-(--color-border) bg-transparent hover:border-(--color-border-strong)',
+          ? 'border-[rgba(184,145,106,0.4)] bg-[rgba(245,240,232,0.7)]'
+          : 'border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.4)] hover:bg-[rgba(245,240,232,0.6)]',
       )}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
       onClick={() => onView(assessment.public_id)}
@@ -39,8 +39,8 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       }}
       aria-label={`View assessment: ${assessment.title || 'Untitled'}`}
     >
-      {/* Top row: checkbox + status + name + score + conf + icons */}
-      <div className="flex items-center gap-3 mb-2">
+      {/* Top row: checkbox + title + date + score/UNRATED + confidence + icons */}
+      <div className="flex items-center gap-3 mb-3">
         <input
           type="checkbox"
           checked={isSelected}
@@ -49,19 +49,26 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           title="Select for comparison"
           onClick={(e) => e.stopPropagation()}
         />
-        <Chip variant="status">{assessment.metadata?.tier || 'UNRATED'}</Chip>
-        <span className="text-sm font-semibold text-(--color-text-primary) flex-1 truncate">
-          {assessment.title || 'Untitled Assessment'}
-        </span>
-        <span className="text-xl font-(--font-display) text-(--color-text-primary)">
-          {assessment.score || 0}
-          <span className="text-xs text-(--color-text-muted) font-normal">/100</span>
-        </span>
-        <span className="text-xs text-(--color-text-muted)">
-          {assessment.confidence_level || 0}% CONF.
-        </span>
+        <div className="flex-1">
+          <span className="text-[15px] font-semibold text-(--color-text-primary)">
+            {assessment.title || 'Untitled Assessment'}
+          </span>
+          <div className="text-[12px] text-(--color-text-muted) mt-0.5">{formattedDate}</div>
+        </div>
+        <div className="flex items-center gap-2">
+          {assessment.score ? (
+            <span className="font-(--font-mono) text-lg text-(--color-text-primary)">
+              {assessment.score}
+            </span>
+          ) : (
+            <Chip variant="status">UNRATED</Chip>
+          )}
+          <span className="text-[12px] text-(--color-text-muted)">
+            {assessment.confidence_level || 0}% CONF.
+          </span>
+        </div>
         {/* Icon actions */}
-        <div className="flex items-center gap-1 ml-1">
+        <div className="flex items-center gap-2 ml-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -95,26 +102,28 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         </div>
       </div>
 
-      {/* Bottom row: industry + date + preview */}
-      <div className="flex items-center gap-3 flex-wrap mb-2">
-        <Chip variant="category">{assessment.industry}</Chip>
-        <span className="text-xs text-(--color-text-muted)">{formattedDate}</span>
-        <span className="text-xs text-(--color-text-muted) truncate max-w-xs">
-          {assessment.problem || assessment.description}
-        </span>
+      {/* Middle row: industry tag */}
+      <div className="flex items-center gap-3 mb-3">
+        <Chip variant="tag">{assessment.industry}</Chip>
       </div>
 
-      {/* Toggle row: Benchmarks + Public switches */}
-      <div className="flex items-center gap-4 pt-2 border-t border-(--color-border)">
+      {/* Bottom row: Public and Benchmarks switches */}
+      <div className="flex items-center gap-6 pt-3 border-t border-[rgba(180,160,130,0.18)]">
         <Switch
+          variant="benchmark"
           size="sm"
           isSelected={assessment.contribute_to_benchmarks}
-          onChange={onToggleBenchmarks}
+          onChange={() => onToggleBenchmarks(assessment.id)}
         >
-          <span className="text-xs text-(--color-text-muted)">Benchmarks</span>
+          <Switch.Label>Benchmarks</Switch.Label>
         </Switch>
-        <Switch size="sm" isSelected={assessment.is_public} onChange={onTogglePublic}>
-          <span className="text-xs text-(--color-text-muted)">Public</span>
+        <Switch
+          variant="public"
+          size="sm"
+          isSelected={assessment.is_public}
+          onChange={() => onTogglePublic(assessment.id)}
+        >
+          <Switch.Label>Public</Switch.Label>
         </Switch>
       </div>
     </div>
@@ -148,33 +157,40 @@ AssessmentListItem.propTypes = {
 
 // Skeleton Components
 export const AssessmentCardSkeleton = () => (
-  <div className="bg-transparent border-(--color-border) rounded-md transition-all duration-200 mb-3">
-    <div className="flex items-center gap-3 mb-2">
-      <div className="w-4 h-4 rounded bg-gray-200 animate-pulse" />
-      <div className="h-6 w-20 rounded-md bg-gray-200 animate-pulse" />
-      <div className="h-4 w-32 flex-1 rounded-md bg-gray-200 animate-pulse" />
-      <div className="h-8 w-12 rounded-md bg-gray-200 animate-pulse" />
-      <div className="h-3 w-16 rounded-md bg-gray-200 animate-pulse" />
-      <div className="flex items-center gap-2 ml-3">
-        <div className="w-4 h-4 rounded bg-gray-200 animate-pulse" />
-        <div className="w-4 h-4 rounded bg-gray-200 animate-pulse" />
-        <div className="w-4 h-4 rounded bg-gray-200 animate-pulse" />
-      </div>
-    </div>
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-4 w-16 rounded-md bg-gray-200 animate-pulse" />
-        <div className="h-3 w-20 rounded-md bg-gray-200 animate-pulse" />
-        <div className="h-3 w-40 rounded-md bg-gray-200 animate-pulse" />
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1">
-          <div className="w-8 h-4 rounded bg-gray-200 animate-pulse" />
-          <div className="h-3 w-16 rounded-md bg-gray-200 animate-pulse" />
+  <div className="border border-[rgba(180,160,130,0.22)] rounded-xl bg-[rgba(245,240,232,0.5)] transition-all duration-200 mb-2.5 h-[78px]">
+    <div className="p-4">
+      {/* Top row skeleton */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-4 h-4 rounded bg-[rgba(180,160,130,0.2)] animate-pulse" />
+        <div className="flex-1">
+          <div className="h-5 w-32 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse mb-1" />
+          <div className="h-3 w-16 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-8 h-4 rounded bg-gray-200 animate-pulse" />
-          <div className="h-3 w-12 rounded-md bg-gray-200 animate-pulse" />
+        <div className="flex items-center gap-2">
+          <div className="h-5 w-8 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse font-(--font-mono)" />
+          <div className="h-3 w-12 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+        </div>
+        <div className="flex items-center gap-2 ml-2">
+          <div className="w-6 h-6 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+          <div className="w-6 h-6 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+          <div className="w-6 h-6 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+        </div>
+      </div>
+
+      {/* Middle row skeleton */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="h-5 w-20 rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
+      </div>
+
+      {/* Bottom row skeleton */}
+      <div className="flex items-center gap-6 pt-3 border-t border-[rgba(180,160,130,0.18)]">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-4 rounded-full bg-[rgba(180,160,130,0.2)] animate-pulse" />
+          <div className="h-3 w-16 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-4 rounded-full bg-[rgba(180,160,130,0.2)] animate-pulse" />
+          <div className="h-3 w-12 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
         </div>
       </div>
     </div>

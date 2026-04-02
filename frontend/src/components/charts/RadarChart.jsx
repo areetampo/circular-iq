@@ -143,8 +143,11 @@ function RadarChartComponent({
   const maxValue = 100;
 
   return (
-    <div className="w-full overflow-hidden" style={{ height: height || 400 }}>
-      <div className="w-full h-full flex flex-col items-center justify-center relative p-4">
+    <div
+      className="w-full overflow-hidden rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)]"
+      style={{ height: height || 400 }}
+    >
+      <div className="w-full h-full flex flex-col items-center justify-center relative p-6">
         <svg width={size} height={size} style={{ overflow: 'visible' }}>
           <defs>
             {radarConfigs.map((config) => {
@@ -158,8 +161,8 @@ function RadarChartComponent({
                   x2="0%"
                   y2="100%"
                 >
-                  <stop offset="0%" stopColor={color} stopOpacity={config.fillOpacity || 0.3} />
-                  <stop offset="100%" stopColor={color} stopOpacity={config.fillOpacity || 0.1} />
+                  <stop offset="0%" stopColor={color} stopOpacity={config.fillOpacity || 0.25} />
+                  <stop offset="100%" stopColor={color} stopOpacity={config.fillOpacity || 0.08} />
                 </linearGradient>
               );
             })}
@@ -177,8 +180,8 @@ function RadarChartComponent({
                 fill="none"
                 stroke={chartTheme.gridColor}
                 strokeWidth={1}
-                strokeDasharray="3 3"
-                opacity={0.3}
+                strokeDasharray="4 4"
+                opacity={0.4}
               />
             );
           })}
@@ -195,7 +198,7 @@ function RadarChartComponent({
                 y2={end.y}
                 stroke={chartTheme.gridColor}
                 strokeWidth={1}
-                opacity={0.3}
+                opacity={0.4}
               />
             );
           })}
@@ -206,7 +209,7 @@ function RadarChartComponent({
             const path = getPath(values, maxValue);
             const color = colorMap[config.dataKey];
             const fillOpacity = config.fillOpacity || 0.2;
-            const strokeWidth = config.strokeWidth || 2;
+            const strokeWidth = config.strokeWidth || 2.5;
 
             return (
               <g key={config.dataKey}>
@@ -217,7 +220,7 @@ function RadarChartComponent({
                   strokeWidth={strokeWidth}
                   opacity={fillOpacity > 0.2 ? 1 : fillOpacity}
                 />
-                <path d={path} fill="none" stroke={color} strokeWidth={strokeWidth} opacity={0.8} />
+                <path d={path} fill="none" stroke={color} strokeWidth={strokeWidth} opacity={0.9} />
                 {chartData.map((item, idx) => {
                   const val = Number(item[config.dataKey]) || 0;
                   const point = getPoint(angles[idx], val, maxValue);
@@ -226,10 +229,10 @@ function RadarChartComponent({
                       key={idx}
                       cx={point.x}
                       cy={point.y}
-                      r={3}
+                      r={3.5}
                       fill={color}
-                      stroke="#ffffff"
-                      strokeWidth={1}
+                      stroke="rgba(245,240,232,0.8)"
+                      strokeWidth={1.5}
                     />
                   );
                 })}
@@ -239,7 +242,7 @@ function RadarChartComponent({
 
           {/* Labels */}
           {angles.map((angle, idx) => {
-            const labelPoint = getPoint(angle, maxValue * 1.15);
+            const labelPoint = getPoint(angle, maxValue * 1.18);
             const subject = chartData[idx]?.subject || '';
             return (
               <text
@@ -248,9 +251,10 @@ function RadarChartComponent({
                 y={labelPoint.y}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fontSize={11}
+                fontSize={12}
                 fontWeight={600}
                 fill={chartTheme.textColor}
+                fontFamily={chartTheme.fontFamily}
               >
                 {subject}
               </text>
@@ -263,11 +267,12 @@ function RadarChartComponent({
             return (
               <text
                 key={level}
-                x={center + 5}
-                y={center - (radius * (level + 1)) / gridLevels}
-                fontSize={9}
-                fill="#6b7280"
+                x={center + 6}
+                y={center - (radius * (level + 1)) / gridLevels + 2}
+                fontSize={10}
+                fill={chartTheme.textColor}
                 fontWeight={500}
+                fontFamily={chartTheme.fontFamily}
               >
                 {value}
               </text>
@@ -277,13 +282,19 @@ function RadarChartComponent({
 
         {/* Legend */}
         {showLegend && (
-          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-2">
+          <div className="flex flex-wrap justify-center gap-5 mt-6 pt-3 border-t border-[rgba(180,160,130,0.12)]">
             {radarConfigs.map((config) => {
               const color = colorMap[config.dataKey];
               return (
-                <div key={config.dataKey} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-                  <span className="text-xs font-semibold text-(--color-text-muted)">
+                <div key={config.dataKey} className="flex items-center gap-2.5">
+                  <div
+                    className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span
+                    className="text-[11px] font-semibold text-(--color-text-muted)"
+                    style={{ fontFamily: chartTheme.fontFamily }}
+                  >
                     {config.name}
                   </span>
                 </div>

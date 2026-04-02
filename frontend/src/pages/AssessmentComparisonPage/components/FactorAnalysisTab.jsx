@@ -94,7 +94,7 @@ export function FactorAnalysisTab({
                 </span>
                 <div className="flex-1 bg-(--color-border) h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-(--color-success) rounded-full"
+                    className="h-full bg-[rgba(74,124,89,0.7)] rounded-full"
                     style={{ width: `${factor.a1}%` }}
                   />
                 </div>
@@ -143,13 +143,13 @@ export function FactorAnalysisTab({
                 <div className="flex items-center gap-4 w-2/3 justify-end">
                   <Chip
                     variant="tag"
-                    className={`text-xs ${getScoreColor(val1) === 'success' ? 'text-(--color-success)' : getScoreColor(val1) === 'warning' ? 'text-(--color-warning)' : 'text-(--color-danger)'}`}
+                    className={`text-xs ${getScoreColor(val1) === 'success' ? 'text-(--color-success)' : getScoreColor(val1) === 'warning' ? 'text-(--color-warning)' : 'text-(--color-error)'}`}
                   >
                     {val1}
                   </Chip>
                   <Chip
                     variant="tag"
-                    className={`text-xs ${getScoreColor(val2) === 'success' ? 'text-(--color-success)' : getScoreColor(val2) === 'warning' ? 'text-(--color-warning)' : 'text-(--color-danger)'}`}
+                    className={`text-xs ${getScoreColor(val2) === 'success' ? 'text-(--color-success)' : getScoreColor(val2) === 'warning' ? 'text-(--color-warning)' : 'text-(--color-error)'}`}
                   >
                     {val2}
                   </Chip>
@@ -201,10 +201,7 @@ export function FactorAnalysisTab({
                               key={i}
                               className="py-2.5 border-b border-(--color-border) last:border-0 flex items-start gap-3"
                             >
-                              <CheckCircle2
-                                size={16}
-                                className="shrink-0 mt-0.5 text-(--color-success)"
-                              />
+                              <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-[#4a7c59]" />
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-(--color-text-primary)">
                                   {strength.gap}
@@ -309,10 +306,7 @@ export function FactorAnalysisTab({
                               key={i}
                               className="text-sm flex items-start gap-2 text-(--color-text-secondary)"
                             >
-                              <CheckCircle2
-                                size={14}
-                                className="shrink-0 mt-0.5 text-(--color-success)"
-                              />
+                              <CheckCircle2 size={14} className="shrink-0 mt-0.5 text-[#4a7c59]" />
                               <span>{strength.aspect || strength}</span>
                             </li>
                           ))}
@@ -324,7 +318,7 @@ export function FactorAnalysisTab({
                     {audit.technical_recommendations &&
                       audit.technical_recommendations.length > 0 && (
                         <div>
-                          <p className="text-xs font-semibold text-(--color-info) mb-2">
+                          <p className="text-xs font-semibold text-[#5a7a9a] mb-2">
                             Technical Recommendations
                           </p>
                           <ul className="space-y-1">
@@ -344,7 +338,7 @@ export function FactorAnalysisTab({
                     {/* Market Opportunity */}
                     {audit.market_opportunity_summary && (
                       <div>
-                        <p className="text-xs font-bold mb-1 uppercase tracking-wide text-(--color-info)">
+                        <p className="text-xs font-bold mb-1 uppercase tracking-wide text-[#5a7a9a]">
                           Market Opportunity
                         </p>
                         <p className="text-sm text-(--color-text-primary) leading-relaxed">

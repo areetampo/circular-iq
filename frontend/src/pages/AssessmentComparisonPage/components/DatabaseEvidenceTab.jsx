@@ -20,10 +20,13 @@ export function DatabaseEvidenceTab({
       ].map(({ sr, assessment, color }) => {
         const cases = sr?.similar_cases;
         const summaries = sr?.audit?.similar_cases_summaries || [];
-        const border = color === 'emerald' ? 'border-emerald-200' : 'border-blue-200';
+        const border =
+          color === 'emerald' ? 'border-[var(--color-success)]' : 'border-[var(--color-info)]';
         const grad =
-          color === 'emerald' ? 'from-emerald-100 to-emerald-200' : 'from-blue-100 to-blue-200';
-        const icon = color === 'emerald' ? 'text-emerald-700' : 'text-blue-700';
+          color === 'emerald'
+            ? 'from-[var(--color-success-soft)] to-[var(--color-success)]'
+            : 'from-[var(--color-info-soft)] to-[var(--color-info)]';
+        const icon = color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)';
 
         return (
           <Card

@@ -1,79 +1,73 @@
-import { clsx } from 'clsx';
+import { Chip as HeroChip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 /**
- * Variant styles for luxury minimal chip system
- * Based on UI 39-42 specifications
+ * Custom Chip component wrapping HeroUI Chip with UI-48 variants
+ * Variants: filter, tag, info, status
  */
-const variantStyles = {
-  // Industry filter chips on MyAssessments
-  filter:
-    'bg-transparent border border-[var(--color-border-strong)] text-[var(--color-text-secondary)] text-xs px-3 py-1 rounded-md cursor-pointer hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors',
-  'filter-active':
-    'bg-[var(--color-accent)] border border-[var(--color-accent)] text-white text-xs px-3 py-1 rounded-md cursor-pointer',
+export function Chip({ variant = 'tag', color, children, className, onClick, active, ...props }) {
+  // Map UI-48 variants to HeroUI props
+  const getChipProps = () => {
+    switch (variant) {
+      case 'filter':
+        return {
+          variant: 'flat',
+          radius: 'full',
+          size: 'sm',
+          className: 'font-medium',
+          color: active ? 'primary' : 'default',
+        };
 
-  // Informational tags in drawers/cards
-  tag: 'bg-[var(--color-accent-light)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-[11px] px-2 py-0.5 rounded-md',
+      case 'tag':
+        return {
+          variant: 'flat',
+          radius: 'sm',
+          size: 'sm',
+          className: 'font-medium text-xs',
+        };
 
-  // Score/metric display
-  score:
-    'bg-transparent border border-[var(--color-border)] text-[var(--color-text-secondary)] text-[11px] px-2 py-0.5 rounded-md font-mono',
+      case 'info':
+        return {
+          variant: 'flat',
+          radius: 'sm',
+          size: 'sm',
+          className: 'font-medium text-xs',
+          color: color || 'default',
+        };
 
-  // Status (UNRATED, PUBLIC etc)
-  status:
-    'bg-transparent border border-[var(--color-border-strong)] text-[var(--color-text-muted)] text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider',
+      case 'status':
+        return {
+          variant: 'flat',
+          radius: 'sm',
+          size: 'sm',
+          className: 'font-semibold text-xs tracking-wider uppercase',
+        };
 
-  // Category labels
-  category:
-    'bg-[var(--color-accent-light)] text-[var(--color-accent)] text-[11px] px-2 py-0.5 rounded-md',
+      default:
+        return {
+          variant: 'flat',
+          radius: 'sm',
+          size: 'sm',
+        };
+    }
+  };
 
-  // Default fallback
-  default:
-    'bg-[var(--color-accent-light)] text-[var(--color-text-secondary)] text-xs px-2 py-0.5 rounded-md',
-};
-
-/**
- * Custom Chip component with luxury minimal variant system
- * Replaces old complex variant system with new simplified one
- *
- * @param {Object} props - Chip props
- * @param {string} props.variant - Chip variant (filter, filter-active, tag, score, status, category)
- * @param {ReactNode} props.children - Chip content
- * @param {string} props.className - Additional CSS classes
- * @param {Function} props.onClick - Click handler
- */
-export function Chip({ variant = 'tag', children, className, onClick, ...props }) {
-  const baseClasses = 'inline-flex items-center font-[var(--font-body)]';
+  const chipProps = getChipProps();
 
   return (
-    <span
-      className={clsx(
-        baseClasses,
-        variantStyles[variant] || variantStyles.default,
-        onClick && 'cursor-pointer',
-        className,
-      )}
-      onClick={onClick}
-      {...props}
-    >
+    <HeroChip {...chipProps} {...props} className={className} onClick={onClick}>
       {children}
-    </span>
+    </HeroChip>
   );
 }
 
 Chip.propTypes = {
-  variant: PropTypes.oneOf([
-    'filter',
-    'filter-active',
-    'tag',
-    'score',
-    'status',
-    'category',
-    'default',
-  ]),
+  variant: PropTypes.oneOf(['filter', 'tag', 'info', 'status']),
+  color: PropTypes.oneOf(['default', 'accent', 'success', 'warning', 'danger']),
   children: PropTypes.node,
   className: PropTypes.string,
   onClick: PropTypes.func,
+  active: PropTypes.bool, // for filter variant
 };
 
 export default Chip;

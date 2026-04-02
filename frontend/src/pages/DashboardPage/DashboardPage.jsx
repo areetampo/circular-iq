@@ -1,4 +1,4 @@
-import { Label, Skeleton } from '@heroui/react';
+import { Label } from '@heroui/react';
 import {
   BarChart3,
   ChevronRight,
@@ -35,6 +35,7 @@ import {
   usableBar,
   usablePie,
 } from '@/utils/chartHelpers';
+import { chartTheme } from '@/utils/chartTheme';
 
 import {
   ChartPanel,
@@ -247,11 +248,11 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="pt-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-(--color-text-primary)">
-            <Globe size={24} className="text-(--color-success)" strokeWidth={2.5} />
+          <h1 className="font-(--font-display) text-[32px] text-(--color-text-primary) tracking-[-0.02em] flex items-center gap-3">
+            <Globe size={28} className="text-(--color-success)" strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p className="text-sm mt-2 text-(--color-text-secondary)">
+          <p className="text-[14px] mt-3 text-(--color-text-secondary) leading-relaxed">
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -259,9 +260,9 @@ export default function DashboardPage() {
           type="button"
           onClick={refetchGlobal}
           disabled={globalLoading}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg border text-sm font-semibold transition-all disabled:opacity-40 hover:border-(--color-accent) hover:bg-(--color-accent-light) hover:text-(--color-text-primary) border-(--color-border) bg-(--color-bg-field) text-(--color-text-muted)"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-[13px] font-semibold transition-all disabled:opacity-40 hover:border-[rgba(184,145,106,0.4)] hover:bg-[rgba(184,145,106,0.1)] hover:text-(--color-text-primary) border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.6)] text-(--color-text-muted)"
         >
-          <RefreshCw size={14} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
+          <RefreshCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
         </button>
       </div>
@@ -352,7 +353,7 @@ export default function DashboardPage() {
             <LineChart
               data={weeklyData}
               xAxisKey="period"
-              lines={[{ dataKey: 'count', stroke: '#b8916a', name: 'Assessments' }]}
+              lines={[{ dataKey: 'count', stroke: chartTheme.colors[0], name: 'Assessments' }]}
               height={240}
               showLegend={false}
             />
@@ -372,7 +373,7 @@ export default function DashboardPage() {
             <BarChart
               data={strategyData}
               xAxisKey="name"
-              barConfigs={[{ dataKey: 'value', fill: '#b8916a', name: 'Count' }]}
+              barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Count' }]}
               height={240}
               showGrid
             />
@@ -392,7 +393,7 @@ export default function DashboardPage() {
               <BarChart
                 data={industryBarData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: '#8a6f52', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[1], name: 'Count' }]}
                 height={220}
                 showGrid
               />
@@ -422,7 +423,7 @@ export default function DashboardPage() {
             <BarChart
               data={geoData}
               xAxisKey="name"
-              barConfigs={[{ dataKey: 'value', fill: '#d4b896', name: 'Count' }]}
+              barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[2], name: 'Count' }]}
               height={200}
               showGrid
             />
@@ -478,11 +479,11 @@ export default function DashboardPage() {
                         className="py-2 px-3 text-right tabular-nums"
                         style={{
                           color:
-                            row.avgScore >= 70
-                              ? '#6b8f71'
+                            row.avgScore >= 75
+                              ? '#4a7c59' // muted green
                               : row.avgScore >= 50
-                                ? '#d4b896'
-                                : '#c4956a',
+                                ? '#b07d3a' // muted amber
+                                : '#8b3a3a', // muted red
                         }}
                       >
                         {row.avgScore?.toFixed(1) ?? 0}%
@@ -532,7 +533,7 @@ export default function DashboardPage() {
                 <BarChart
                   data={transformIndustryDistribution(docStats.byIndustry)}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'value', fill: '#b8916a', name: 'Documents' }]}
+                  barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' }]}
                   height={180}
                   showGrid
                 />
@@ -546,7 +547,7 @@ export default function DashboardPage() {
                 <BarChart
                   data={transformMaterialDistribution(docStats.byMaterial)}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'value', fill: '#8a6f52', name: 'Documents' }]}
+                  barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' }]}
                   height={180}
                   showGrid
                 />
@@ -558,30 +559,26 @@ export default function DashboardPage() {
         )}
 
         {/* ── Featured Solutions ───────────────────────────────────────────── */}
-        <div
-          className="rounded-xl border overflow-hidden"
-          style={{ backgroundColor: 'transparent', borderColor: 'var(--border)' }}
-        >
+        <div className="rounded-xl border border-[rgba(180,160,130,0.25)] bg-transparent overflow-hidden">
           {/* Header + search */}
-          <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-            <h3
-              className="text-sm font-semibold mb-3 flex items-center gap-2"
-              style={{ color: 'var(--foreground)' }}
-            >
-              <Lightbulb size={14} style={{ color: 'var(--accent)' }} />
+          <div className="px-6 py-5 border-b border-[rgba(180,160,130,0.18)]">
+            <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-3 flex items-center gap-2.5">
+              <Lightbulb size={16} className="text-(--color-accent)" />
               Featured Solutions
             </h3>
+            <p className="text-[14px] text-(--color-text-secondary) mb-4">
+              Explore successful circular economy projects and innovations
+            </p>
             <div className="space-y-3">
               {/* Search bar */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <div className="relative flex-1">
                   <Label htmlFor="solutions-search" className="sr-only">
                     Search solutions
                   </Label>
                   <Search
-                    size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--muted)' }}
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
                     aria-hidden="true"
                   />
                   <input
@@ -591,11 +588,11 @@ export default function DashboardPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                     placeholder="Search solutions..."
-                    className="w-full pl-9 pr-9 py-1.5 text-sm rounded-lg focus:outline-none"
+                    className="w-full pl-10 pr-10 py-2 text-[13px] rounded-2xl focus:outline-none focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
                     aria-label="Search featured solutions"
                     style={{
-                      border: '1px solid var(--field-border)',
-                      backgroundColor: 'var(--field-bg)',
+                      border: '1px solid rgba(180,160,130,0.3)',
+                      backgroundColor: 'rgba(245,240,232,0.6)',
                       color: 'var(--foreground)',
                     }}
                   />
@@ -603,18 +600,17 @@ export default function DashboardPage() {
                     <button
                       type="button"
                       onClick={handleSearchClear}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                      style={{ color: 'var(--muted)' }}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
                       aria-label="Clear search"
                     >
-                      <X size={14} />
+                      <X size={15} />
                     </button>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors shrink-0"
+                  className="px-4 py-2 text-[12px] font-semibold rounded-2xl transition-colors shrink-0"
                   style={{ backgroundColor: 'var(--accent)', color: 'white' }}
                 >
                   Search
@@ -623,15 +619,15 @@ export default function DashboardPage() {
 
               {/* Category filters */}
               {availableCategories.length > 1 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => setCategoryFilter(undefined)}
-                    className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                    className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
                     style={{
-                      backgroundColor: !categoryFilter ? 'var(--accent)' : 'var(--surface)',
-                      color: !categoryFilter ? 'white' : 'var(--muted)',
-                      border: '1px solid var(--border)',
+                      backgroundColor: !categoryFilter ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
+                      color: !categoryFilter ? 'white' : 'var(--color-text-muted)',
+                      border: '1px solid rgba(180,160,130,0.25)',
                     }}
                   >
                     All
@@ -641,12 +637,12 @@ export default function DashboardPage() {
                       key={cat}
                       type="button"
                       onClick={() => setCategoryFilter(cat)}
-                      className="px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors"
+                      className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
                       style={{
                         backgroundColor:
-                          categoryFilter === cat ? 'var(--accent)' : 'var(--surface)',
-                        color: categoryFilter === cat ? 'white' : 'var(--muted)',
-                        border: '1px solid var(--border)',
+                          categoryFilter === cat ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
+                        color: categoryFilter === cat ? 'white' : 'var(--color-text-muted)',
+                        border: '1px solid rgba(180,160,130,0.25)',
                       }}
                     >
                       {cat}
@@ -658,21 +654,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Solutions grid */}
-          <div className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
               {featuredLoading ? (
-                Array.from({ length: 4 }).map((_, i) => (
+                Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border p-4 space-y-3"
-                    style={{
-                      borderColor: 'var(--border)',
-                      backgroundColor: 'var(--surface)',
-                    }}
+                    className="rounded-[14px] border border-[rgba(180,160,130,0.25)] p-5 space-y-3 bg-transparent"
                   >
-                    <Skeleton className="h-4 w-3/4 rounded" />
-                    <Skeleton className="h-3 w-full rounded" />
-                    <Skeleton className="h-3 w-2/3 rounded" />
+                    <div className="h-5 w-3/4 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+                    <div className="h-4 w-full rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
+                    <div className="h-4 w-2/3 rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
+                    <div className="h-6 w-12 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
                   </div>
                 ))
               ) : filteredSolutions?.length > 0 ? (
@@ -682,26 +675,21 @@ export default function DashboardPage() {
                     title={solution.title}
                     preview={solution.solution || solution.problem || ''}
                     category={solution.category}
+                    score={solution.score}
                     onView={() => handleOpenSolution(solution)}
                   />
                 ))
               ) : (
-                <div
-                  className="col-span-full flex flex-col items-center justify-center h-40"
-                  style={{ color: 'var(--muted)' }}
-                >
+                <div className="col-span-full flex flex-col items-center justify-center h-40 text-(--color-text-muted)">
                   <BarChart3 size={32} strokeWidth={1} />
-                  <p className="text-sm font-medium mt-2">No solutions found</p>
+                  <p className="text-[13px] font-semibold mt-2">No solutions found</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div
-              className="mt-4 pt-4 border-t flex items-center justify-between text-xs"
-              style={{ borderColor: 'var(--border)' }}
-            >
-              <span style={{ color: 'var(--muted)' }}>
+            <div className="mt-5 pt-4 border-t border-[rgba(180,160,130,0.18)] flex items-center justify-between text-[12px]">
+              <span className="text-(--color-text-muted)">
                 Showing {filteredSolutions?.length ?? 0} solutions
               </span>
               {filteredSolutions?.length > 0 && (
@@ -713,13 +701,13 @@ export default function DashboardPage() {
                       industry: industryFilter,
                     })
                   }
-                  className="font-medium flex items-center gap-1 hover:text-foreground"
+                  className="font-semibold flex items-center gap-1.5 hover:text-(--color-text-primary) transition-colors"
                   style={{
                     color: 'var(--accent)',
                   }}
                 >
                   Explore all
-                  <ChevronRight size={12} />
+                  <ChevronRight size={13} />
                 </button>
               )}
             </div>
@@ -769,7 +757,7 @@ export default function DashboardPage() {
               <BarChart
                 data={userIndustryData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: '#d4b896', name: 'Count' }]}
+                barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[2], name: 'Count' }]}
                 height={220}
                 showGrid
               />
@@ -787,34 +775,15 @@ export default function DashboardPage() {
           </ChartPanel>
         </section>
       ) : (
-        <div
-          className="rounded-xl border p-6 flex flex-col sm:flex-row items-center gap-4"
-          style={{
-            backgroundColor: 'transparent',
-            borderColor: 'var(--border)',
-          }}
-        >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: 'var(--accent-soft)' }}
-          >
-            <Users size={18} strokeWidth={2} style={{ color: 'var(--accent)' }} />
+        <div className="rounded-3xl border border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.5)] p-6 flex flex-col sm:flex-row items-center gap-4">
+          <div className="w-12 h-12 rounded-3xl flex items-center justify-center shrink-0 bg-[rgba(184,145,106,0.1)]">
+            <Users size={20} strokeWidth={2} className="text-(--color-accent)" />
           </div>
           <div className="flex-1">
-            <h3
-              className="font-semibold mb-0.5"
-              style={{
-                color: 'var(--foreground)',
-              }}
-            >
+            <h3 className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em] mb-1">
               Track Your Progress
             </h3>
-            <p
-              className="text-xs"
-              style={{
-                color: 'var(--muted)',
-              }}
-            >
+            <p className="text-[13px] text-(--color-text-secondary) leading-relaxed">
               Sign in to save assessments, track your evaluation history, and compare with global
               benchmarks.
             </p>
@@ -822,10 +791,10 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => navigate('/auth')}
-            className="px-4 py-2 text-xs font-medium rounded-lg transition-colors shrink-0 hover:bg-foreground"
+            className="px-5 py-2.5 text-[13px] font-semibold rounded-2xl transition-colors shrink-0 hover:bg-[rgba(184,145,106,0.9)]"
             style={{
               backgroundColor: 'var(--accent)',
-              color: 'var(--surface)',
+              color: 'white',
             }}
           >
             Sign In

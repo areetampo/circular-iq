@@ -14,7 +14,8 @@ const IndustryFilterChip = React.memo(function IndustryFilterChip({
 
   return (
     <Chip
-      variant={isSelected ? 'filter-active' : 'filter'}
+      variant="filter"
+      active={isSelected}
       onClick={() => onToggle(industry)}
       aria-pressed={isSelected}
     >

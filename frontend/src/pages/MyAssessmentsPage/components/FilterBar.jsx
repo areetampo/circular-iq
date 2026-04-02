@@ -37,7 +37,7 @@ export function FilterBar({
             placeholder="Search assessments..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-(--color-border-strong) bg-[rgba(245,240,232,0.5)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) focus:outline-none transition-all duration-150"
+            className="w-full h-10 pl-9 pr-4 text-[14px] rounded-[10px] border border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
             aria-label="Search assessments by title or description"
           />
         </div>

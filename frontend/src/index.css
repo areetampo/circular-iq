@@ -579,55 +579,193 @@ select:focus {
   }
 
   /* ----- CHIP ----- */
-  .chip {
-    @apply px-2;
-  }
+  /* Base chip styling */
   [data-slot='base'].chip {
-    font-family: 'Inter', sans-serif !important;
+    font-family: var(--font-body) !important;
     font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+    border-radius: 6px !important;
+    transition: all 0.15s ease !important;
+  }
+
+  /* Filter variant - for industry filter chips */
+  [data-slot='base'].chip[data-variant='filter'] {
+    border-radius: 9999px !important;
+    height: 28px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    border: 1px solid rgba(180, 160, 130, 0.35) !important;
+    color: var(--color-text-secondary) !important;
+  }
+  [data-slot='base'].chip[data-variant='filter'][data-active='true'] {
+    background: rgba(184, 145, 106, 0.15) !important;
+    border: 1px solid var(--color-accent) !important;
+    color: var(--color-accent) !important;
     font-weight: 600 !important;
-    letter-spacing: 0.04em !important;
+  }
+
+  /* Tag variant - for industry/category tags */
+  [data-slot='base'].chip[data-variant='tag'] {
+    height: 22px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    background: rgba(180, 160, 130, 0.1) !important;
+    border: 1px solid rgba(180, 160, 130, 0.25) !important;
+    color: var(--color-text-secondary) !important;
+    border-radius: 6px !important;
+    text-transform: none !important;
+  }
+
+  /* Info variant - for informational chips */
+  [data-slot='base'].chip[data-variant='info'] {
+    height: 24px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    background: rgba(180, 160, 130, 0.1) !important;
+    border: 1px solid rgba(180, 160, 130, 0.25) !important;
+    color: var(--color-text-secondary) !important;
+  }
+  [data-slot='base'].chip[data-variant='info'][data-color='success'] {
+    background: rgba(74, 124, 89, 0.1) !important;
+    border: 1px solid rgba(74, 124, 89, 0.25) !important;
+    color: #4a7c59 !important;
+  }
+  [data-slot='base'].chip[data-variant='info'][data-color='warning'] {
+    background: rgba(176, 125, 58, 0.1) !important;
+    border: 1px solid rgba(176, 125, 58, 0.25) !important;
+    color: #b07d3a !important;
+  }
+  [data-slot='base'].chip[data-variant='info'][data-color='danger'] {
+    background: rgba(139, 58, 58, 0.1) !important;
+    border: 1px solid rgba(139, 58, 58, 0.25) !important;
+    color: #8b3a3a !important;
+  }
+
+  /* Status variant - for status indicators */
+  [data-slot='base'].chip[data-variant='status'] {
+    height: 20px !important;
+    padding: 0 7px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
-    border-radius: 5px !important;
+    background: rgba(180, 160, 130, 0.08) !important;
+    border: 1px solid rgba(180, 160, 130, 0.2) !important;
+    color: var(--color-text-secondary) !important;
+    border-radius: 6px !important;
   }
 
   /* ----- DRAWER ----- */
-  .drawer__handle [data-slot='drawer-handle-bar'] {
-    @apply h-2 w-20 bg-gray-200 text-transparent mb-2 cursor-pointer;
-  }
-  .drawer__dialog.drawer__dialog--right {
-    @apply w-150;
-  }
-  [data-slot='drawer'],
-  .drawer__content {
-    background-color: var(--color-bg-elevated) !important;
-    border: 1px solid var(--color-border) !important;
-    border-radius: var(--radius-lg) !important;
-  }
-  [data-slot='drawer-header'],
-  .drawer__header {
-    border-bottom: 1px solid var(--color-border) !important;
-    padding: 20px 24px !important;
-  }
-  [data-slot='drawer-body'],
-  .drawer__body {
-    padding: 20px 24px !important;
-    font-size: 14px !important;
-    color: var(--color-text-secondary) !important;
-    line-height: 1.7 !important;
-  }
-  [data-slot='drawer-footer'],
-  .drawer__footer {
-    border-top: 1px solid var(--color-border) !important;
-    padding: 16px 24px !important;
-  }
+  /* Drawer backdrop - subtle blur, not opaque */
   [data-slot='drawer-backdrop'],
   [data-slot='backdrop'],
   .drawer__backdrop,
   .drawer__overlay {
-    background-color: rgba(26, 21, 16, 0.4) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
+    background-color: rgba(26, 21, 16, 0.15) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* Remove double close buttons - only show one X */
+  .drawer__close-trigger:not(:first-child),
+  [data-slot='close-button']:not(:first-child) {
+    display: none !important;
+  }
+
+  /* Dialog panel - warm beige with subtle border */
+  [data-slot='drawer'],
+  .drawer__content {
+    background-color: rgba(245, 240, 232, 0.97) !important;
+    border: 1px solid rgba(180, 160, 130, 0.25) !important;
+    border-radius: 16px 0 0 16px !important;
+    box-shadow: -4px 0 20px rgba(26, 21, 16, 0.08) !important;
+    max-width: 420px !important;
+  }
+
+  /* Header styling */
+  [data-slot='drawer-header'],
+  .drawer__header {
+    padding: 20px 24px 16px !important;
+    border-bottom: 1px solid rgba(180, 160, 130, 0.18) !important;
+  }
+  [data-slot='drawer-header'] h2,
+  [data-slot='drawer-header'] h3,
+  .drawer__header h2,
+  .drawer__header h3 {
+    font-family: var(--font-display) !important;
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    color: var(--color-text-primary) !important;
+  }
+  [data-slot='drawer-header'] p,
+  .drawer__header p {
+    font-family: var(--font-body) !important;
+    font-size: 13px !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  /* Body styling */
+  [data-slot='drawer-body'],
+  .drawer__body {
+    padding: 20px 24px !important;
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+    font-family: var(--font-body) !important;
+    color: var(--color-text-secondary) !important;
+  }
+  [data-slot='drawer-body'] h3,
+  [data-slot='drawer-body'] h4,
+  .drawer__body h3,
+  .drawer__body h4 {
+    font-family: var(--font-display) !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--color-accent) !important;
+    margin: 16px 0 8px !important;
+  }
+  [data-slot='drawer-body'] .content-card,
+  .drawer__body .content-card {
+    border: 1px solid rgba(180, 160, 130, 0.25) !important;
+    border-radius: 10px !important;
+    padding: 12px 14px !important;
+    background: rgba(180, 160, 130, 0.05) !important;
+    margin: 8px 0 !important;
+  }
+
+  /* Footer styling */
+  [data-slot='drawer-footer'],
+  .drawer__footer {
+    padding: 14px 24px !important;
+    border-top: 1px solid rgba(180, 160, 130, 0.18) !important;
+  }
+
+  /* Handle bar - slim and centered */
+  .drawer__handle [data-slot='drawer-handle-bar'] {
+    height: 4px !important;
+    width: 40px !important;
+    border-radius: 2px !important;
+    background: rgba(180, 160, 130, 0.4) !important;
+    margin: 8px auto 16px !important;
+    cursor: pointer !important;
+  }
+
+  /* Width for right/left placement */
+  .drawer__dialog.drawer__dialog--right,
+  .drawer__dialog.drawer__dialog--left {
+    width: 420px !important;
+    max-width: 420px !important;
+  }
+
+  /* Remove aggressive padding and colored headers */
+  [data-slot='drawer-*'] {
+    padding: 0 !important;
+    background: transparent !important;
   }
 
   /* ----- DROPDOWN ----- */
@@ -1083,46 +1221,138 @@ select:focus {
     border-radius: var(--radius-xl) !important;
     box-shadow: var(--shadow-modal) !important;
   }
+  /* ----- ALERT DIALOG ----- */
+  /* Dialog backdrop - subtle blur, not opaque */
+  [data-slot='backdrop'],
+  .alert-dialog__backdrop {
+    background-color: rgba(26, 21, 16, 0.25) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  /* Remove opaque backdrop class */
+  .alert-dialog__backdrop--opaque {
+    background-color: rgba(26, 21, 16, 0.25) !important;
+  }
+
+  /* Dialog styling */
   [data-slot='dialog'],
   .alert-dialog__dialog,
   .dialog__base {
-    background-color: var(--color-bg-elevated) !important;
-    border: 1px solid var(--color-border) !important;
-    border-radius: var(--radius-lg) !important;
-    box-shadow: var(--shadow-md) !important;
+    background: rgba(245, 240, 232, 0.98) !important;
+    border: 1px solid rgba(180, 160, 130, 0.3) !important;
+    border-radius: 16px !important;
+    padding: 0 !important;
+    max-width: 400px !important;
+    box-shadow: 0 8px 32px rgba(26, 21, 16, 0.12) !important;
   }
+
+  /* Header styling - no border-bottom */
   [data-slot='dialog-header'],
   .alert-dialog__header {
-    border-bottom: 1px solid var(--color-border) !important;
-    padding: 20px 24px !important;
+    padding: 20px 24px 14px !important;
+    border-bottom: none !important;
   }
+  [data-slot='dialog-header'] h2,
+  [data-slot='dialog-header'] h3,
+  .alert-dialog__header h2,
+  .alert-dialog__header h3 {
+    font-family: var(--font-display) !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: var(--color-text-primary) !important;
+  }
+
+  /* Body styling */
   [data-slot='dialog-body'],
   .alert-dialog__body {
-    padding: 16px 24px !important;
+    padding: 0 24px 16px !important;
+    font-family: var(--font-body) !important;
     font-size: 14px !important;
-    color: var(--color-text-secondary) !important;
     line-height: 1.6 !important;
+    color: var(--color-text-secondary) !important;
   }
+
+  /* Footer styling - no border-top */
   [data-slot='dialog-footer'],
   .alert-dialog__footer {
-    border-top: 1px solid var(--color-border) !important;
-    padding: 12px 24px !important;
+    padding: 0 24px 20px !important;
+    border-top: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    justify-content: flex-end !important;
   }
-  [data-slot='backdrop'],
-  .alert-dialog__backdrop {
-    background-color: rgba(26, 21, 16, 0.3) !important;
-    backdrop-filter: blur(4px) !important;
+
+  /* Icon styling */
+  [data-slot='icon'],
+  .alert-dialog__icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  [data-slot='icon'][data-color='success'],
+  .alert-dialog__icon.success {
+    background: rgba(74, 124, 89, 0.12) !important;
+    color: #4a7c59 !important;
+  }
+  [data-slot='icon'][data-color='danger'],
+  .alert-dialog__icon.danger {
+    background: rgba(139, 58, 58, 0.12) !important;
+    color: #8b3a3a !important;
+  }
+  [data-slot='icon'][data-color='warning'],
+  .alert-dialog__icon.warning {
+    background: rgba(176, 125, 58, 0.12) !important;
+    color: #b07d3a !important;
+  }
+  [data-slot='icon'][data-color='default'],
+  .alert-dialog__icon.default {
+    background: rgba(180, 160, 130, 0.12) !important;
+    color: var(--color-text-muted) !important;
   }
 
   /* ----- SWITCH ----- */
+  /* Default switch styling */
   [data-slot='wrapper'].switch {
-    background-color: var(--border) !important;
+    background: rgba(180, 160, 130, 0.3) !important;
+    border-radius: 9999px !important;
   }
   [data-slot='wrapper'].switch[data-selected='true'] {
-    background-color: var(--accent) !important;
+    background: var(--color-accent) !important;
   }
   [data-slot='wrapper'] [data-slot='thumb'] {
-    background: var(--color-accent) !important;
+    background: white !important;
+    width: 18px !important;
+    height: 18px !important;
+    transition: transform 0.2s ease !important;
+  }
+
+  /* Public variant - muted green when on */
+  [data-slot='wrapper'].switch[data-variant='public'][data-selected='true'] {
+    background: #4a7c59 !important;
+  }
+
+  /* Benchmark variant - muted steel blue when on */
+  [data-slot='wrapper'].switch[data-variant='benchmark'][data-selected='true'] {
+    background: #5a7a9a !important;
+  }
+
+  /* Switch label styling */
+  [data-slot='label'].switch {
+    font-size: 13px !important;
+    font-family: var(--font-body) !important;
+    color: var(--color-text-secondary) !important;
+  }
+
+  /* Icon in switch label slots */
+  [data-slot='label'].switch svg {
+    width: 14px !important;
+    height: 14px !important;
+    margin-right: 4px !important;
   }
 
   /* ----- PROGRESS / SLIDER ----- */

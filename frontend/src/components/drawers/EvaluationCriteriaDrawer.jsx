@@ -35,10 +35,10 @@ export default function EvaluationCriteriaDrawer() {
                       isDrawerOpen
                         ? 'scale-[1.12] -rotate-6 drop-shadow-md'
                         : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                      'bg-(--color-success-light)',
+                      'bg-[rgba(74,124,89,0.1)]',
                     )}
                   >
-                    <ClipboardMinus className="size-5 text-(--color-success)" />
+                    <ClipboardMinus className="size-5 text-[#4a7c59]" />
                   </div>
                   <div>
                     <h2 className="text-base font-semibold text-(--color-text-primary)">
@@ -50,7 +50,7 @@ export default function EvaluationCriteriaDrawer() {
                   </div>
                 </div>
                 <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
+                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(184,145,106,0.1)] transition-colors shrink-0"
                   aria-label="Close"
                 />
               </div>
@@ -68,13 +68,13 @@ export default function EvaluationCriteriaDrawer() {
                       key={idx}
                       className={`p-3 rounded-lg text-center border ${
                         metric.color === 'blue'
-                          ? 'bg-(--color-info-light) border-(--color-info)'
-                          : 'bg-(--color-success-light) border-(--color-success)'
+                          ? 'bg-[rgba(90,122,154,0.1)] border-[#5a7a9a]'
+                          : 'bg-[rgba(74,124,89,0.1)] border-[#4a7c59]'
                       }`}
                     >
                       <div
                         className={`text-2xl font-bold ${
-                          metric.color === 'blue' ? 'text-(--color-info)' : 'text-(--color-success)'
+                          metric.color === 'blue' ? 'text-[#5a7a9a]' : 'text-[#4a7c59]'
                         }`}
                       >
                         {metric.number}
@@ -102,20 +102,20 @@ export default function EvaluationCriteriaDrawer() {
                         key={idx}
                         className={`p-4 rounded-xl border-l-4 ${
                           section.color === 'blue'
-                            ? 'border-l-(--color-info) bg-(--color-info-light)'
+                            ? 'border-l-[#5a7a9a] bg-[rgba(90,122,154,0.1)]'
                             : section.color === 'emerald'
-                              ? 'border-l-(--color-success) bg-(--color-success-light)'
-                              : 'border-l-(--color-accent) bg-(--color-accent-light)'
+                              ? 'border-l-[#4a7c59] bg-[rgba(74,124,89,0.1)]'
+                              : 'border-l-[#b8916a] bg-[rgba(184,145,106,0.1)]'
                         }`}
                       >
                         <div className="flex items-start gap-2 mb-2">
                           <div
                             className={`flex items-start gap-2 mb-2 ${
                               section.color === 'blue'
-                                ? 'text-(--color-info)'
+                                ? 'text-[#5a7a9a]'
                                 : section.color === 'emerald'
-                                  ? 'text-(--color-success)'
-                                  : 'text-(--color-accent)'
+                                  ? 'text-[#4a7c59]'
+                                  : 'text-[#b8916a]'
                             }`}
                           >
                             {icon}
@@ -124,10 +124,10 @@ export default function EvaluationCriteriaDrawer() {
                             <h4
                               className={`font-semibold ${
                                 section.color === 'blue'
-                                  ? 'text-(--color-info)'
+                                  ? 'text-[#5a7a9a]'
                                   : section.color === 'emerald'
-                                    ? 'text-(--color-success)'
-                                    : 'text-(--color-accent)'
+                                    ? 'text-[#4a7c59]'
+                                    : 'text-[#b8916a]'
                               }`}
                             >
                               {section.title}

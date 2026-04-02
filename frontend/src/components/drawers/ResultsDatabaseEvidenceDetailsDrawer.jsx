@@ -1,134 +1,134 @@
-import { Drawer } from '@heroui/react';
+import { Drawer, useOverlayState } from '@heroui/react';
 import { ExternalLink, FileText, X } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+import DRAWERS from '@/components/drawers/drawerTypes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
-  const { isDrawerOpen, onClose } = useGlobalDrawer();
+  const { drawer, onClose } = useGlobalDrawer();
+
+  // Check if this specific drawer is open
+  const isThisDrawerOpen =
+    drawer?.type === DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS && drawer?.isOpen;
+
+  // Use HeroUI v3 useOverlayState for proper state management
+  const drawerState = useOverlayState({
+    defaultOpen: isThisDrawerOpen,
+    onOpenChange: (open) => {
+      if (!open) onClose();
+    },
+  });
 
   if (!data) return null;
 
   return (
-    <Drawer
-      isOpen={isDrawerOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-      placement="right"
-    >
-      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm" />
-      <Drawer.Content className="bg-(--color-bg) border-l border-(--color-border-strong) w-full sm:w-130 overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 bg-(--color-accent-light) rounded-md flex items-center justify-center text-(--color-accent) shrink-0">
-              <FileText size={16} />
+    <Drawer state={drawerState}>
+      <Drawer.Backdrop variant="blur" />
+      <Drawer.Content
+        placement="right"
+        className="bg-(--color-bg) border-l border-(--color-border-strong) w-full sm:w-130 overflow-y-auto"
+      >
+        <Drawer.Dialog>
+          <Drawer.Header>
+            <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-(--color-accent-light) rounded-2xl flex items-center justify-center text-(--color-accent) shrink-0">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <Drawer.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
+                    {data.title || data.case_id || 'Case Details'}
+                  </Drawer.Heading>
+                  <p className="text-[12px] text-(--color-text-muted) mt-1">
+                    Detailed evidence and matched case context
+                  </p>
+                </div>
+              </div>
+              <Drawer.CloseTrigger
+                aria-label="Close drawer"
+                className="w-9 h-9 flex items-center justify-center rounded-2xl text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(184,145,106,0.1)] transition-colors"
+              >
+                <X size={14} />
+              </Drawer.CloseTrigger>
             </div>
-            <div>
-              <h2 className="text-base text-(--color-text-primary) font-(--font-body)">
-                {data.title || data.case_id || 'Case Details'}
-              </h2>
-              <p className="text-xs text-(--color-text-muted) mt-0.5">
-                Detailed evidence and matched case context
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors"
-          >
-            <X size={16} />
-          </button>
-        </div>
+          </Drawer.Header>
 
-        {/* Body */}
-        <div className="p-6 space-y-6">
-          {/* Meta tags */}
-          <div className="flex flex-wrap gap-2">
-            {data.case_id && (
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
-                {data.case_id}
-              </span>
+          <Drawer.Body className="p-6 space-y-6">
+            {/* Meta tags */}
+            <div className="flex flex-wrap gap-2">
+              {data.case_id && (
+                <span className="text-[11px] px-3 py-1 rounded-xl bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
+                  {data.case_id}
+                </span>
+              )}
+              {data.match_quality && (
+                <span className="text-[11px] px-3 py-1 rounded-xl bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border) uppercase tracking-widest">
+                  {data.match_quality}
+                </span>
+              )}
+              {data.year && (
+                <span className="text-[11px] px-3 py-1 rounded-xl bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
+                  {data.year}
+                </span>
+              )}
+              {data.location && (
+                <span className="text-[11px] px-3 py-1 rounded-xl bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
+                  {data.location}
+                </span>
+              )}
+              {data.industry && (
+                <span className="text-[11px] px-3 py-1 rounded-xl bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
+                  {data.industry}
+                </span>
+              )}
+            </div>
+
+            {/* Summary / description */}
+            {(data.description || data.summary) && (
+              <div className="border-l-3 border-(--color-accent) pl-4 py-2 bg-(--color-accent-light) rounded-r-2xl">
+                <p className="text-[13px] text-(--color-text-secondary) leading-relaxed italic">
+                  {data.description || data.summary}
+                </p>
+              </div>
             )}
-            {data.match_quality && (
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border) uppercase tracking-wide">
-                {data.match_quality}
-              </span>
+
+            {/* Problem */}
+            {data.problem && (
+              <div>
+                <h3 className="text-[14px] font-semibold text-(--color-text-primary) mb-2">
+                  Problem Statement
+                </h3>
+                <p className="text-[13px] text-(--color-text-secondary) leading-relaxed">
+                  {data.problem}
+                </p>
+              </div>
             )}
-            {data.year && (
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
-                {data.year}
-              </span>
+
+            {/* Solution */}
+            {data.solution && (
+              <div>
+                <h3 className="text-[14px] font-semibold text-(--color-text-primary) mb-2">
+                  Solution Approach
+                </h3>
+                <p className="text-[13px] text-(--color-text-secondary) leading-relaxed">
+                  {data.solution}
+                </p>
+              </div>
             )}
-            {data.location && (
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
-                {data.location}
-              </span>
+
+            {/* Materials */}
+            {data.materials && (
+              <div>
+                <p className="text-[10px] tracking-widest text-(--color-text-muted) mb-2 border-t border-(--color-border) pt-4 font-semibold">
+                  Materials
+                </p>
+                <p className="text-[13px] text-(--color-text-secondary)">
+                  {Array.isArray(data.materials) ? data.materials.join(', ') : data.materials}
+                </p>
+              </div>
             )}
-            {data.industry && (
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
-                {data.industry}
-              </span>
-            )}
-          </div>
-
-          {/* Summary / description */}
-          {(data.description || data.summary) && (
-            <div className="border-l-2 border-(--color-accent) pl-3 py-1">
-              <p className="text-sm text-(--color-text-secondary) leading-relaxed italic">
-                {data.description || data.summary}
-              </p>
-            </div>
-          )}
-
-          {/* Problem Addressed */}
-          {data.problem_addressed && (
-            <div>
-              <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-2 border-t border-(--color-border) pt-4">
-                Problem Addressed
-              </p>
-              <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                {data.problem_addressed}
-              </p>
-            </div>
-          )}
-
-          {/* Solution Approach */}
-          {data.solution_approach && (
-            <div>
-              <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-2 border-t border-(--color-border) pt-4">
-                Solution Approach
-              </p>
-              <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                {data.solution_approach}
-              </p>
-            </div>
-          )}
-
-          {/* R-Strategy */}
-          {data.r_strategy && (
-            <div>
-              <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-2 border-t border-(--color-border) pt-4">
-                R-Strategy
-              </p>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-(--color-accent-light) text-(--color-text-secondary) border border-(--color-border)">
-                {data.r_strategy}
-              </span>
-            </div>
-          )}
-
-          {/* Materials */}
-          {data.materials && (
-            <div>
-              <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-2 border-t border-(--color-border) pt-4">
-                Materials
-              </p>
-              <p className="text-sm text-(--color-text-secondary)">
-                {Array.isArray(data.materials) ? data.materials.join(', ') : data.materials}
-              </p>
-            </div>
-          )}
+          </Drawer.Body>
 
           {/* Source link */}
           {data.source_url && (
@@ -137,14 +137,14 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                 href={data.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-(--color-accent) hover:underline flex items-center gap-1.5"
+                className="text-[13px] text-(--color-accent) hover:underline flex items-center gap-1.5 font-semibold"
               >
-                <ExternalLink size={13} />
+                <ExternalLink size={14} />
                 View Source
               </a>
             </div>
           )}
-        </div>
+        </Drawer.Dialog>
       </Drawer.Content>
     </Drawer>
   );

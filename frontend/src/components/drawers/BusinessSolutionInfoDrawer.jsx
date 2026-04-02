@@ -27,7 +27,7 @@ export default function BusinessSolutionInfoDrawer() {
             <Drawer.Header>
               <div className="flex items-start justify-between p-6 border-b border-(--color-border)">
                 <div className="flex items-start gap-3">
-                  <div className="shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-(--color-accent) mt-0.5">
+                  <div className="shrink-0 w-12 h-12 rounded-full bg-[rgba(74,124,89,0.12)] flex items-center justify-center text-(--color-accent) mt-0.5">
                     <ClipboardMinus size={16} strokeWidth={1.75} />
                   </div>
                   <div>

@@ -251,11 +251,16 @@ export default function AssessmentComparisonPage() {
   const radarConfigs = [
     {
       dataKey: assessment1.title,
-      stroke: 'var(--success)',
-      fill: 'var(--success)',
-      fillOpacity: 0.2,
+      stroke: '#b8916a', // primary - warm brown/tan
+      fill: '#b8916a',
+      fillOpacity: 0.12,
     },
-    { dataKey: assessment2.title, stroke: 'var(--info)', fill: 'var(--info)', fillOpacity: 0.2 },
+    {
+      dataKey: assessment2.title,
+      stroke: '#4a7c59', // secondary - muted sage green
+      fill: '#4a7c59',
+      fillOpacity: 0.12,
+    },
   ];
 
   // Prepare data for Bar Chart (Changes)
@@ -270,24 +275,24 @@ export default function AssessmentComparisonPage() {
       : [];
 
   const barConfigs = [
-    { dataKey: 'Assessment 1', name: assessment1.title, fill: 'var(--success)' },
-    { dataKey: 'Assessment 2', name: assessment2.title, fill: 'var(--info)' },
+    { dataKey: 'Assessment 1', name: assessment1.title, fill: '#b8916a' }, // primary
+    { dataKey: 'Assessment 2', name: assessment2.title, fill: '#4a7c59' }, // secondary
   ];
 
   return (
     <div className="space-y-0 w-full">
       {/* STICKY COMPARISON HEADER */}
-      <div className="sticky top-0 z-40 w-full border-b border-(--color-border) transition-all duration-200 backdrop-blur-md py-3 px-4 bg-(--color-bg-header)">
+      <div className="sticky top-0 z-40 w-full border-b border-[rgba(180,160,130,0.18)] transition-all duration-200 backdrop-blur-md py-3 px-4 bg-[rgba(245,240,232,0.95)]">
         <div className="grid grid-cols-2 gap-4 max-w-6xl mx-auto">
-          <div className="text-sm font-medium truncate text-(--color-text-primary)">
+          <div className="text-sm font-semibold truncate text-(--color-text-primary)">
             {assessment1.title}
-            <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
+            <span className="ml-2 font-(--font-mono) text-xs text-(--color-text-muted)">
               {scoringResult1?.overall_score || 0}/100
             </span>
           </div>
-          <div className="text-sm font-medium truncate text-(--color-text-primary)">
+          <div className="text-sm font-semibold truncate text-(--color-text-primary)">
             {assessment2.title}
-            <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
+            <span className="ml-2 font-(--font-mono) text-xs text-(--color-text-muted)">
               {scoringResult2?.overall_score || 0}/100
             </span>
           </div>
@@ -297,30 +302,30 @@ export default function AssessmentComparisonPage() {
       {/* Assessment Headers */}
       <div className="w-full px-4 md:px-10 pt-8">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-          <div className="border-2 border-(--color-border) rounded-xl">
-            <div className="gap-3 p-4">
-              <h2 className="text-lg font-bold wrap-break-word text-(--color-text-primary)">
+          <div className="border border-[rgba(180,160,130,0.25)] rounded-xl bg-[rgba(245,240,232,0.5)]">
+            <div className="gap-3 p-5">
+              <h2 className="font-(--font-display) text-[20px] text-(--color-text-primary) tracking-[-0.02em] wrap-break-word">
                 {assessment1.title}
               </h2>
-              <p className="text-xs font-medium italic text-(--color-text-muted)">
+              <p className="text-[12px] font-medium italic text-(--color-text-muted)">
                 {formatTimestamp(assessment1.created_at)}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <Chip variant="success">Score: {scoringResult1?.overall_score || 0}/100</Chip>
-                <Chip variant="warning">Conf: {scoringResult1?.confidence_level || 0}%</Chip>
+              <div className="flex items-center gap-2 mt-3">
+                <Chip variant="status">Score: {scoringResult1?.overall_score || 0}/100</Chip>
+                <Chip variant="info">Conf: {scoringResult1?.confidence_level || 0}%</Chip>
               </div>
               <div className="flex flex-wrap gap-1 mt-2">
                 {scoringResult1?.metadata?.industry && (
-                  <Chip variant="default">{scoringResult1.metadata.industry}</Chip>
+                  <Chip variant="tag">{scoringResult1.metadata.industry}</Chip>
                 )}
                 {scoringResult1?.metadata?.scale && (
-                  <Chip variant="default">{scoringResult1.metadata.scale}</Chip>
+                  <Chip variant="tag">{scoringResult1.metadata.scale}</Chip>
                 )}
                 {scoringResult1?.metadata?.r_strategy && (
-                  <Chip variant="default">{scoringResult1.metadata.r_strategy}</Chip>
+                  <Chip variant="tag">{scoringResult1.metadata.r_strategy}</Chip>
                 )}
               </div>
-              <Chip variant="success" className="w-fit mt-1 font-semibold">
+              <Chip variant="status" className="w-fit mt-2 font-semibold">
                 Assessment 1
               </Chip>
             </div>
@@ -328,36 +333,36 @@ export default function AssessmentComparisonPage() {
 
           <div className="hidden md:flex items-center justify-center px-4">
             <div className="text-center">
-              <span className="text-sm font-bold px-3 py-1.5 rounded-md bg-(--color-accent-soft) text-(--color-accent) border border-(--color-accent)">
+              <span className="text-sm font-bold px-3 py-1.5 rounded-md bg-[rgba(184,145,106,0.1)] text-(--color-accent) border border-[rgba(184,145,106,0.3)]">
                 VS
               </span>
             </div>
           </div>
 
-          <div className="border-2 border-(--color-border) rounded-xl">
-            <div className="gap-3 p-4">
-              <h2 className="text-lg font-bold wrap-break-word text-(--color-text-primary)">
+          <div className="border border-[rgba(180,160,130,0.25)] rounded-xl bg-[rgba(245,240,232,0.5)]">
+            <div className="gap-3 p-5">
+              <h2 className="font-(--font-display) text-[20px] text-(--color-text-primary) tracking-[-0.02em] wrap-break-word">
                 {assessment2.title}
               </h2>
-              <p className="text-xs font-medium italic text-(--color-text-muted)">
+              <p className="text-[12px] font-medium italic text-(--color-text-muted)">
                 {formatTimestamp(assessment2.created_at)}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <Chip variant="info">Score: {scoringResult2?.overall_score || 0}/100</Chip>
-                <Chip variant="warning">Conf: {scoringResult2?.confidence_level || 0}%</Chip>
+              <div className="flex items-center gap-2 mt-3">
+                <Chip variant="status">Score: {scoringResult2?.overall_score || 0}/100</Chip>
+                <Chip variant="info">Conf: {scoringResult2?.confidence_level || 0}%</Chip>
               </div>
               <div className="flex flex-wrap gap-1 mt-2">
                 {scoringResult2?.metadata?.industry && (
-                  <Chip variant="default">{scoringResult2.metadata.industry}</Chip>
+                  <Chip variant="tag">{scoringResult2.metadata.industry}</Chip>
                 )}
                 {scoringResult2?.metadata?.scale && (
-                  <Chip variant="default">{scoringResult2.metadata.scale}</Chip>
+                  <Chip variant="tag">{scoringResult2.metadata.scale}</Chip>
                 )}
                 {scoringResult2?.metadata?.r_strategy && (
-                  <Chip variant="default">{scoringResult2.metadata.r_strategy}</Chip>
+                  <Chip variant="tag">{scoringResult2.metadata.r_strategy}</Chip>
                 )}
               </div>
-              <Chip variant="info" className="w-fit mt-1 font-semibold">
+              <Chip variant="status" className="w-fit mt-2 font-semibold">
                 Assessment 2
               </Chip>
             </div>
@@ -368,8 +373,8 @@ export default function AssessmentComparisonPage() {
       {/* Vertical Content - 2 column layout */}
       <div className="max-w-7xl mx-auto px-0 sm:px-6 space-y-8">
         {/* OVERVIEW SECTION */}
-        <div className="border-b border-(--color-border) pb-3 mb-6">
-          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
+          <span className="text-[10px] tracking-widest text-(--color-text-muted) uppercase font-semibold">
             OVERVIEW
           </span>
         </div>
@@ -381,11 +386,11 @@ export default function AssessmentComparisonPage() {
           insights={insights}
         />
 
-        <div className="border-t border-(--color-border) my-10" />
+        <div className="border-t border-[rgba(180,160,130,0.18)] my-10" />
 
         {/* FACTOR ANALYSIS SECTION */}
-        <div className="border-b border-(--color-border) pb-3 mb-6">
-          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
+          <span className="text-[10px] tracking-[0.1em] text-(--color-text-muted) uppercase font-semibold">
             FACTOR ANALYSIS
           </span>
         </div>
@@ -402,11 +407,11 @@ export default function AssessmentComparisonPage() {
           getScoreColor={getScoreColor}
         />
 
-        <div className="border-t border-(--color-border) my-10" />
+        <div className="border-t border-[rgba(180,160,130,0.18)] my-10" />
 
         {/* DETAILS SECTION */}
-        <div className="border-b border-(--color-border) pb-3 mb-6">
-          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
+          <span className="text-[10px] tracking-[0.1em] text-(--color-text-muted) uppercase font-semibold">
             DETAILS
           </span>
         </div>
@@ -417,11 +422,11 @@ export default function AssessmentComparisonPage() {
           scoringResult2={scoringResult2}
         />
 
-        <div className="border-t border-(--color-border) my-10" />
+        <div className="border-t border-[rgba(180,160,130,0.18)] my-10" />
 
         {/* DATABASE EVIDENCE SECTION */}
-        <div className="border-b border-(--color-border) pb-3 mb-6">
-          <span className="text-xs tracking-widest text-(--color-text-muted) uppercase font-(--font-body)">
+        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
+          <span className="text-[10px] tracking-[0.1em] text-(--color-text-muted) uppercase font-semibold">
             DATABASE EVIDENCE
           </span>
         </div>
@@ -434,8 +439,8 @@ export default function AssessmentComparisonPage() {
         />
 
         {/* Footer */}
-        <div className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2 border-(--color-border)">
-          <p className="text-xs font-medium text-(--color-text-muted)">
+        <div className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2 border-[rgba(180,160,130,0.18)]">
+          <p className="text-[12px] font-medium text-(--color-text-muted)">
             Last updated: {getCurrentTimestampFormatted()}
           </p>
           <div className="flex gap-2">

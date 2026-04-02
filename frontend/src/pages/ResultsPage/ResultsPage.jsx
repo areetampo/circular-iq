@@ -834,26 +834,23 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   return (
     <>
       {/* Action Buttons & Share Section */}
-      <div className="mb-6 mt-4 px-4 sm:px-6 space-y-4">
+      <div className="mb-8 mt-4 px-4 sm:px-6 space-y-4">
         {isViewFromMyAssessments && currentData?.title && (
-          <div
-            className="mb-3 text-2xl font-semibold truncate"
-            style={{
-              color: 'var(--foreground)',
-            }}
-          >
-            {currentData.title}
+          <div className="mb-4">
+            <h1 className="font-(--font-display) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
+              {currentData.title}
+            </h1>
           </div>
         )}
 
         {/* Buttons Bar */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           {/* Left group - navigation */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Show public share notice for public viewers */}
             {isPublicShare && (
-              <Chip variant="category" className="gap-1">
-                <Globe size={12} />
+              <Chip variant="info" color="default">
+                <Globe size={14} className="mr-1" />
                 Public Shared Assessment
               </Chip>
             )}
@@ -873,7 +870,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           </div>
 
           {/* Right group - actions, pushed to end */}
-          <div className="flex items-center gap-2 ml-auto flex-wrap">
+          <div className="flex items-center gap-3 ml-auto flex-wrap">
             <Button
               variant="results-action"
               size="sm"
@@ -973,14 +970,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div className="border-t pt-4 mb-3" style={{ borderColor: 'var(--border)' }}>
+          <div className="border-t border-[rgba(180,160,130,0.18)] pt-4 mb-3">
             {/* Toggle row */}
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>
+                <p className="text-[13px] font-semibold text-(--color-text-primary)">
                   Public sharing
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                <p className="text-[12px] mt-0.5 text-(--color-text-muted)">
                   {isResultsRoute
                     ? 'Save assessment to enable sharing'
                     : 'Allow others to view this assessment via link'}
@@ -1000,10 +997,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             {/* Share URL — shown only when public and public_id exists */}
             {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
               currentData?.public_id && (
-                <div
-                  className="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t"
-                  style={{ borderColor: 'var(--border)' }}
-                >
+                <div className="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t border-[rgba(180,160,130,0.18)]">
                   <Input
                     readOnly
                     value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
@@ -1025,15 +1019,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
       {/* Case Summary */}
       <div data-export-section="case-summary">
-        <div className="border-b mb-6 pb-4" style={{ borderColor: 'var(--border)' }}>
+        <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 pb-4">
           <div className="p-1 sm:p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <h3
-                className="text-lg font-semibold"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+              <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
                 Case Summary
               </h3>
             </div>
@@ -1043,7 +1032,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Problem Item --- */}
                 <Accordion.Item id="problem" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[rgba(245,240,232,0.5)] transition-colors">
                       <div className="flex items-center gap-3">
                         <Target
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1051,15 +1040,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           style={{ color: 'var(--success)' }}
                         />
                         <div>
-                          <h4
-                            className="font-semibold"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Problem
-                          </h4>
-                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          <h4 className="font-semibold text-(--color-text-primary)">Problem</h4>
+                          <p className="text-sm text-(--color-text-muted)">
                             What the assessment identifies as the problem
                           </p>
                         </div>
@@ -1070,12 +1052,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Panel>
                     <Accordion.Body>
                       <div className="py-2">
-                        <p
-                          className="text-sm leading-relaxed"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
+                        <p className="text-sm leading-relaxed text-(--color-text-primary)">
                           {problemText}
                         </p>
                       </div>
@@ -1086,7 +1063,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Solution Item --- */}
                 <Accordion.Item id="solution" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[rgba(245,240,232,0.5)] transition-colors">
                       <div className="flex items-center gap-3">
                         <Lightbulb
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1094,15 +1071,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           style={{ color: 'var(--warning)' }}
                         />
                         <div>
-                          <h4
-                            className="font-semibold"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Solution
-                          </h4>
-                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          <h4 className="font-semibold text-(--color-text-primary)">Solution</h4>
+                          <p className="text-sm text-(--color-text-muted)">
                             Proposed solution summary
                           </p>
                         </div>
@@ -1113,12 +1083,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Accordion.Panel>
                     <Accordion.Body>
                       <div className="py-2">
-                        <p
-                          className="text-sm leading-relaxed"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
+                        <p className="text-sm leading-relaxed text-(--color-text-primary)">
                           {solutionText}
                         </p>
                       </div>
@@ -1129,7 +1094,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Business Context Item --- */}
                 <Accordion.Item id="context" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[rgba(245,240,232,0.5)] transition-colors">
                       <div className="flex items-center gap-3">
                         <Globe
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1137,15 +1102,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           style={{ color: 'var(--info)' }}
                         />
                         <div>
-                          <h4
-                            className="font-semibold"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
+                          <h4 className="font-semibold text-(--color-text-primary)">
                             Business Context
                           </h4>
-                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          <p className="text-sm text-(--color-text-muted)">
                             Operational and contextual details
                           </p>
                         </div>
@@ -1177,22 +1137,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                               return (
                                 <div
                                   key={key}
-                                  className="flex items-center justify-between rounded-lg border px-3 py-2"
-                                  style={{
-                                    backgroundColor: 'var(--accent-soft)',
-                                    borderColor: 'var(--border)',
-                                  }}
+                                  className="flex items-center justify-between rounded-lg border px-3 py-2 bg-[rgba(245,240,232,0.5)] border-[rgba(180,160,130,0.18)]"
                                 >
-                                  <span
-                                    className="text-xs font-semibold"
-                                    style={{ color: 'var(--foreground)' }}
-                                  >
+                                  <span className="text-xs font-semibold text-(--color-text-primary)">
                                     {labelKey}
                                   </span>
-                                  <span
-                                    className="text-xs font-bold"
-                                    style={{ color: 'var(--accent)' }}
-                                  >
+                                  <span className="text-xs text-(--color-text-secondary)">
                                     {displayValue}
                                   </span>
                                 </div>
@@ -1200,8 +1150,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                             })}
                           </div>
                         ) : (
-                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                            No business context data available.
+                          <p className="text-sm text-(--color-text-muted)">
+                            No business context information available
                           </p>
                         )}
                       </div>
@@ -1437,23 +1387,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
 
         {/* Category Analysis */}
-        <div
-          className="border rounded-lg"
-          style={{
-            backgroundColor: 'var(--surface)',
-            borderColor: 'var(--border)',
-          }}
-        >
+        <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
           <div className="p-1 sm:p-3">
-            <h3
-              className="text-lg font-semibold mb-1"
-              style={{
-                color: 'var(--foreground)',
-              }}
-            >
+            <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-1">
               Category Analysis
             </h3>
-            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+            <p className="text-sm text-(--color-text-muted) mb-4">
               Detailed breakdown across all evaluation criteria
             </p>
             <div className="space-y-3">
@@ -1467,61 +1406,44 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 const numValue = value != null && !isNaN(value) ? Number(value) : 0;
                 const barColor =
                   numValue >= 75
-                    ? 'var(--success)'
+                    ? '#4a7c59' // muted green
                     : numValue >= 50
-                      ? 'var(--accent)'
-                      : 'var(--warning)';
+                      ? '#b07d3a' // muted amber
+                      : '#8b3a3a'; // muted red
                 const badgeColor =
                   numValue >= 75
-                    ? 'var(--success)'
+                    ? '#4a7c59' // muted green
                     : numValue >= 50
-                      ? 'var(--accent)'
-                      : 'var(--warning)';
+                      ? '#b07d3a' // muted amber
+                      : '#8b3a3a'; // muted red
 
                 return (
                   <div
                     key={key}
-                    className="p-4 rounded-lg border"
-                    style={{
-                      backgroundColor: 'var(--accent-soft)',
-                      borderColor: 'var(--border)',
-                    }}
+                    className="p-4 rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
-                        <h4
-                          className="text-sm font-semibold"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
+                        <h4 className="text-sm font-semibold text-(--color-text-primary)">
                           {category.name}
                         </h4>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                          {category.desc}
-                        </p>
+                        <p className="text-xs mt-0.5 text-(--color-text-muted)">{category.desc}</p>
                       </div>
                       <div
-                        className="ml-4 px-3 py-1 rounded-lg font-bold text-sm"
-                        style={{
-                          backgroundColor: 'var(--surface)',
-                          color: badgeColor,
-                          border: '1px solid var(--border)',
-                        }}
+                        className="ml-4 px-3 py-1 rounded-lg font-bold text-sm bg-transparent border border-[rgba(180,160,130,0.18)]"
+                        style={{ color: badgeColor }}
                       >
                         {numValue}
                       </div>
                     </div>
 
-                    <div
-                      className="w-full rounded-full h-2 overflow-hidden"
-                      style={{ backgroundColor: 'var(--border)' }}
-                    >
+                    <div className="w-full rounded-full h-2 overflow-hidden bg-[rgba(180,160,130,0.2)]">
                       <div
                         className="h-full transition-all duration-500 rounded-full"
                         style={{
                           width: `${Math.min(100, Math.max(0, numValue))}%`,
                           backgroundColor: barColor,
+                          opacity: numValue >= 75 ? 0.7 : numValue >= 50 ? 0.6 : 0.6,
                         }}
                       />
                     </div>
@@ -1529,58 +1451,43 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 );
               })}
               {/* Business Viability Category */}
-              <div
-                className="p-4 rounded-lg border"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  borderColor: 'var(--border)',
-                }}
-              >
+              <div className="p-4 rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex-1">
-                    <h4
-                      className="text-sm font-semibold"
-                      style={{
-                        color: 'var(--foreground)',
-                      }}
-                    >
+                    <h4 className="text-sm font-semibold text-(--color-text-primary)">
                       Business Viability
                     </h4>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
+                    <p className="text-xs mt-0.5 text-(--color-text-muted)">
                       Economic feasibility and scalability
                     </p>
                   </div>
                   <div
-                    className="ml-4 px-3 py-1 rounded-lg font-bold text-sm"
+                    className="ml-4 px-3 py-1 rounded-lg font-bold text-sm bg-transparent border border-[rgba(180,160,130,0.18)]"
                     style={{
-                      backgroundColor: 'var(--surface)',
                       color:
                         resolvedBusinessViabilityScore >= 75
-                          ? 'var(--success)'
+                          ? '#4a7c59' // muted green
                           : resolvedBusinessViabilityScore >= 50
-                            ? 'var(--accent)'
-                            : 'var(--warning)',
-                      border: '1px solid var(--border)',
+                            ? '#b07d3a' // muted amber
+                            : '#8b3a3a', // muted red
                     }}
                   >
                     {resolvedBusinessViabilityScore}
                   </div>
                 </div>
 
-                <div
-                  className="w-full rounded-full h-2 overflow-hidden"
-                  style={{ backgroundColor: 'var(--border)' }}
-                >
+                <div className="w-full rounded-full h-2 overflow-hidden bg-[rgba(180,160,130,0.2)]">
                   <div
                     className="h-full transition-all duration-500 rounded-full"
                     style={{
                       width: `${resolvedBusinessViabilityScore}%`,
                       backgroundColor:
                         resolvedBusinessViabilityScore >= 75
-                          ? 'var(--success)'
+                          ? '#4a7c59' // muted green
                           : resolvedBusinessViabilityScore >= 50
-                            ? 'var(--accent)'
-                            : 'var(--warning)',
+                            ? '#b07d3a' // muted amber
+                            : '#8b3a3a', // muted red
+                      opacity: resolvedBusinessViabilityScore >= 75 ? 0.7 : 0.6,
                     }}
                   />
                 </div>
@@ -1591,32 +1498,21 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Performance Comparison */}
         {resolvedRadarData && resolvedRadarData.length > 0 ? (
-          <div
-            className="rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
+          <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
             <div className="p-1 sm:p-3">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
                 <div>
-                  <h3
-                    className="text-lg font-semibold mb-1"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
+                  <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-1">
                     Performance Comparison
                   </h3>
-                  <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                  <p className="text-sm text-(--color-text-muted)">
                     How your idea compares to similar projects in the database
                   </p>
                 </div>
               </div>
 
               <div
-                className="w-full rounded-xl p-4"
+                className="w-full rounded-3xl p-4 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.18)]"
                 style={{
                   '--color-userValue': 'var(--success)',
                   '--color-marketAvg': 'var(--accent)',
@@ -1634,37 +1530,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             </div>
           </div>
         ) : (
-          <div
-            className="border rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
+          <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
             <div className="p-5 sm:p-6">
-              <h3
-                className="text-lg font-semibold mb-1"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+              <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-1">
                 Performance Comparison
               </h3>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                How your idea compares to similar projects in the database
+              <p className="text-sm text-(--color-text-muted)">
+                No comparison data available. Check that sub-scores are present in the assessment
+                result.
               </p>
-              <div
-                className="p-6 rounded-lg border"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  borderColor: 'var(--border)',
-                }}
-              >
-                <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                  No comparison data available. Check that sub-scores are present in the assessment
-                  result.
-                </p>
-              </div>
             </div>
           </div>
         )}

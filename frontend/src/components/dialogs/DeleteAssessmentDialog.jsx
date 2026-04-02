@@ -43,25 +43,25 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
       onOpenChange={handleOpenChange}
       isDismissable={false}
       isKeyboardDismissDisabled={true}
-      className="backdrop-blur-sm bg-(--color-backdrop)"
+      className="bg-black/20 backdrop-blur-sm"
     >
       <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5">
+        <AlertDialog.Dialog className="bg-(--color-bg-elevated) border border-(--color-border) rounded-3xl shadow-(--shadow-md) p-6">
           {({ close }) => (
             <>
               {/* Icon */}
-              <div className="w-10 h-10 bg-[rgba(139,58,58,0.1)] rounded-full flex items-center justify-center text-(--color-error) mx-auto mb-3">
-                <Trash2 size={18} />
+              <div className="w-12 h-12 bg-(--color-error-light) rounded-2xl flex items-center justify-center text-(--color-error) mx-auto mb-4">
+                <Trash2 size={20} />
               </div>
               {/* Title */}
-              <h2 className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+              <h2 className="font-(--font-display) text-[18px] text-(--color-text-primary) text-center tracking-[-0.02em] mb-2">
                 Delete Assessment?
               </h2>
               {/* Body */}
               <div className="border-t border-(--color-border) my-4" />
-              <p className="text-sm text-(--color-text-secondary) text-center leading-relaxed mb-5">
+              <p className="text-[13px] text-(--color-text-secondary) text-center leading-relaxed mb-6">
                 This will permanently delete{' '}
-                <span className="font-medium text-(--color-text-primary)">
+                <span className="font-semibold text-(--color-text-primary)">
                   &ldquo;{assessmentName}&rdquo;
                 </span>
                 . This action cannot be undone.
@@ -70,7 +70,7 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
               <div className="flex gap-3">
                 <button
                   onClick={close}
-                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-md py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
+                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-2xl py-2.5 text-[13px] font-semibold hover:bg-(--color-accent-light) transition-colors"
                 >
                   Cancel
                 </button>
@@ -79,7 +79,7 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
                     if (onConfirm) onConfirm();
                     close();
                   }}
-                  className="flex-1 bg-(--color-error) text-white rounded-md py-2.5 text-sm hover:opacity-90 transition-opacity"
+                  className="flex-1 bg-(--color-error) text-white rounded-2xl py-2.5 text-[13px] font-semibold hover:opacity-90 transition-opacity"
                   disabled={isLoading}
                 >
                   Delete

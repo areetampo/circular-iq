@@ -87,15 +87,19 @@ export default function LineChart({
   if (isLoading) {
     return (
       <div className={className} style={{ height }}>
-        <Skeleton className="w-full h-full" />
+        <div className="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4">
+          <Skeleton className="w-full h-full" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className={className} style={{ height, background: 'transparent' }}>
-      <div role="img" aria-label={ariaLabel}>
-        {chartContent}
+      <div className="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4">
+        <div role="img" aria-label={ariaLabel}>
+          {chartContent}
+        </div>
       </div>
     </div>
   );

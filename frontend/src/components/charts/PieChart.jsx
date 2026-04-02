@@ -90,14 +90,18 @@ export default function PieChart({
   if (isLoading) {
     return (
       <div className={className} style={{ height }}>
-        <Skeleton className="w-full h-full" />
+        <div className="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4">
+          <Skeleton className="w-full h-full" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className={className} style={{ height }}>
-      <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
+      <div className="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4">
+        <div style={{ width: '100%', height: '100%' }}>{chartContent}</div>
+      </div>
     </div>
   );
 }

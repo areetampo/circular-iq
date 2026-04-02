@@ -63,10 +63,10 @@ export function LoginForm({ onSwitchToSignup }) {
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="font-(--font-display) text-2xl text-(--color-text-primary) text-center mb-1">
+        <h2 className="font-(--font-display) text-[24px] text-(--color-text-primary) text-center mb-1">
           Sign in
         </h2>
-        <p className="text-sm text-(--color-text-muted) text-center">
+        <p className="text-[14px] text-(--color-text-muted) text-center">
           Welcome back to your account
         </p>
       </div>
@@ -81,7 +81,7 @@ export function LoginForm({ onSwitchToSignup }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
+          <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 block">
             Username *
           </Label>
           <Controller
@@ -94,7 +94,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   type="text"
                   placeholder="your_username"
                   disabled={isLoading}
-                  className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-3 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none transition-colors duration-150 font-(--font-body)"
+                  className="w-full h-11 bg-[rgba(245,240,232,0.6)] border border-[rgba(180,160,130,0.3)] rounded-[10px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -113,7 +113,7 @@ export function LoginForm({ onSwitchToSignup }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
+          <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 block">
             Password *
           </Label>
           <Controller
@@ -126,7 +126,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   type="password"
                   placeholder="•••••"
                   disabled={isLoading}
-                  className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-3 text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none transition-colors duration-150 font-(--font-body)"
+                  className="w-full h-11 bg-[rgba(245,240,232,0.6)] border border-[rgba(180,160,130,0.3)] rounded-[10px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="current-password"
                   maxLength={30}
                 />
@@ -143,7 +143,7 @@ export function LoginForm({ onSwitchToSignup }) {
         {/* Submit Button */}
         <Button
           variant="primary"
-          className="w-full py-3"
+          className="w-full h-11 bg-(--color-accent) hover:bg-(--color-accent-hover) text-white text-[14px] rounded-[10px] transition-colors"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -152,7 +152,7 @@ export function LoginForm({ onSwitchToSignup }) {
       </Form>
 
       {/* Toggle link */}
-      <p className="text-sm text-(--color-text-muted) text-center mt-6">
+      <p className="text-[13px] text-(--color-text-muted) text-center mt-6">
         Don&apos;t have an account?{' '}
         <button
           type="button"

@@ -1,24 +1,27 @@
-import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 function StatCard({ title, value, subtext, loading }) {
   if (loading) {
     return (
-      <div className="border border-(--color-border) rounded-md p-5 card-lift bg-transparent">
-        <Skeleton className="h-7 w-16 rounded" />
-        <Skeleton className="h-2.5 w-20 rounded" />
-        {subtext && <Skeleton className="h-3.5 w-24 rounded" />}
+      <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+        <div className="h-7 w-16 rounded-md bg-[rgba(180,160,130,0.2)] animate-pulse" />
+        <div className="h-2.5 w-20 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse mt-2" />
+        {subtext && (
+          <div className="h-3.5 w-24 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse mt-1" />
+        )}
       </div>
     );
   }
 
   return (
-    <div className="border border-(--color-border) rounded-md p-5 card-lift bg-transparent">
-      <p className="label-overline">{title}</p>
-      <p className="metric-value text-[28px] font-medium mt-2 text-(--color-text-primary)">
+    <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+        {title}
+      </p>
+      <p className="font-(--font-mono) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mt-2">
         {value ?? '—'}
       </p>
-      {subtext && <p className="text-xs mt-1 text-(--color-text-muted)">{subtext}</p>}
+      {subtext && <p className="text-[12px] mt-1 text-(--color-text-muted)">{subtext}</p>}
     </div>
   );
 }

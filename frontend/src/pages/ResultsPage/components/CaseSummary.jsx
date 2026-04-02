@@ -28,7 +28,7 @@ export function CaseSummary({ caseInfo = {}, problemSolution = {} }) {
           </div>
         </div>
         {matchPercentage !== null && matchPercentage !== undefined && (
-          <Chip variant="score" className="font-mono">
+          <Chip variant="info" color="default" className="font-mono">
             {Math.round(matchPercentage)}% Match
           </Chip>
         )}

@@ -1,4 +1,4 @@
-import { Drawer } from '@heroui/react';
+import { Drawer, useOverlayState } from '@heroui/react';
 import { Star } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
@@ -15,11 +15,19 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
   const { isDrawerOpen, onClose, openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
   const direction = useDrawerDirection();
 
+  // Use HeroUI v3 useOverlayState for proper state management
+  const drawerState = useOverlayState({
+    defaultOpen: isDrawerOpen,
+    onOpenChange: (open) => {
+      if (!open) onClose();
+    },
+  });
+
   const { solutions = [], isLoading } = useFeaturedSolutions({
     limit: 10,
     industry,
     q,
-    enabled: isDrawerOpen,
+    enabled: drawerState.isOpen,
   });
 
   const grouped = useMemo(() => {
@@ -34,74 +42,73 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
   }, [solutions]);
 
   return (
-    <Drawer
-      isOpen={isDrawerOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm">
+    <Drawer state={drawerState}>
+      <Drawer.Backdrop variant="blur">
         <Drawer.Content
           placement={direction}
           className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger
+              aria-label="Close drawer"
+              className="w-9 h-9 flex items-center justify-center rounded-2xl text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(184,145,106,0.1)] transition-colors shrink-0"
+            />
+
             <Drawer.Header>
               <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
                 <div className="flex items-start gap-3">
-                  <div className="shrink-0 w-10 h-10 rounded-sm bg-gray-100 flex items-center justify-center text-(--color-accent) mt-0.5">
-                    <Star size={16} />
+                  <div className="shrink-0 w-11 h-11 rounded-2xl bg-(--color-accent-light) flex items-center justify-center text-(--color-accent) mt-0.5">
+                    <Star size={18} />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-(--color-text-primary)">
+                    <Drawer.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
                       Explore Featured Solutions
-                    </h2>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">
+                    </Drawer.Heading>
+                    <p className="text-[12px] text-(--color-text-muted) mt-1">
                       Browse featured solutions matching your query
                     </p>
                   </div>
                 </div>
-                <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
-                  aria-label="Close"
-                />
               </div>
             </Drawer.Header>
 
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4 max-h-[70vh] overflow-auto">
                 {isLoading ? (
-                  <div className="py-6 text-center text-(--color-text-muted)">Loading...</div>
+                  <div className="py-6 text-center text-(--color-text-muted) text-[13px]">
+                    Loading...
+                  </div>
                 ) : solutions.length === 0 ? (
-                  <div className="py-6 text-center text-(--color-text-muted)">No results</div>
+                  <div className="py-6 text-center text-(--color-text-muted) text-[13px]">
+                    No results
+                  </div>
                 ) : (
                   Array.from(grouped.entries()).map(([cat, list]) => (
                     <div key={cat}>
-                      <div className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3 border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0">
+                      <div className="text-[10px] tracking-widest text-(--color-text-muted) mb-3 border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 font-semibold">
                         {cat}
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {list.map((s) => (
                           <div
                             key={s.id}
                             className="py-3 border-b border-(--color-border) transition-all duration-200"
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <h4 className="text-sm font-semibold truncate text-(--color-text-primary) mb-1">
+                              <h4 className="text-[13px] font-semibold truncate text-(--color-text-primary) mb-1">
                                 {s.title}
                               </h4>
-                              <span className="text-xs text-(--color-text-muted)">
+                              <span className="text-[11px] text-(--color-text-muted)">
                                 {s.wordCount || 0} words
                               </span>
                             </div>
-                            <p className="text-xs leading-relaxed line-clamp-2 mb-2 text-(--color-text-secondary)">
+                            <p className="text-[11px] leading-relaxed line-clamp-2 mb-2 text-(--color-text-secondary)">
                               {s.solution || s.problem || ''}
                             </p>
                             <a
                               href="#"
-                              className="text-xs font-medium inline-flex items-center gap-1 hover:gap-1.5 transition-all duration-150 text-(--color-accent) hover:underline"
+                              className="text-[11px] font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all duration-150 text-(--color-accent) hover:underline"
                               onClick={(e) => {
                                 e.preventDefault();
                                 openResultsDatabaseEvidenceDetailsDrawer({

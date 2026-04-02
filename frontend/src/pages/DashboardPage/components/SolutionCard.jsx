@@ -5,22 +5,28 @@ import { Chip } from '@/components/common';
 function SolutionCard({ title, preview, category, score, onView }) {
   return (
     <div
-      className="border border-(--color-border) rounded-lg p-4 bg-transparent hover:border-(--color-border-strong) cursor-pointer transition-colors"
+      className="border border-[rgba(180,160,130,0.25)] rounded-[14px] p-5 bg-transparent hover:border-[rgba(184,145,106,0.4)] cursor-pointer transition-colors"
       onClick={onView}
     >
-      {/* Title */}
-      <h4 className="text-sm font-semibold text-(--color-text-primary) mb-1 truncate">{title}</h4>
+      {/* Title - no truncation, let it wrap to 2 lines max */}
+      <h4 className="text-[15px] font-semibold text-(--color-text-primary) mb-1 leading-[1.35] line-clamp-2">
+        {title}
+      </h4>
 
-      {/* Description */}
-      <p className="text-xs text-(--color-text-muted) leading-relaxed line-clamp-3 mb-2">
+      {/* Description - clamp to 3 lines */}
+      <p className="text-[13px] text-(--color-text-secondary) leading-[1.6] line-clamp-3 mb-2">
         {preview}
       </p>
 
       {/* Industry chip */}
-      {category && <Chip variant="category">{category}</Chip>}
+      {category && <Chip variant="tag">{category}</Chip>}
 
       {/* Score */}
-      {score && <div className="font-mono text-sm text-(--color-accent) mt-2">Score: {score}</div>}
+      {score && (
+        <div className="font-(--font-mono) text-[22px] font-semibold text-(--color-accent) mt-2">
+          {score}
+        </div>
+      )}
     </div>
   );
 }

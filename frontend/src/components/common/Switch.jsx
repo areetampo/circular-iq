@@ -1,118 +1,103 @@
-import { Switch as HeroSwitch } from '@heroui/react';
-import { Check, Lock, LockOpen, X } from 'lucide-react';
+import { Switch as HeroSwitch, Label } from '@heroui/react';
+import { BarChart3, Check, Globe, Lock, X } from 'lucide-react';
 import PropTypes from 'prop-types';
-import React, { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext } from 'react';
 
-import { ResponsiveSizeWrapper } from '@/components/common';
 import { cn } from '@/utils/cn';
 
-// our own context allows subcomponents to know which variant and
-// what pixel icon size should be used.  the responsive wrapper only
-// gives the computed size to the immediate HeroSwitch element, so we
-// expose it here via context so Icon/Control wrappers can consume it.
+// Switch context for variant, icon size, and theme
 const SwitchContext = createContext({
   variant: 'default',
-  iconSize: 14,
-  theme: {},
+  iconSize: 16,
+  theme: null,
 });
 
-// variant themes for the two special cases we care about plus a default
+// variant themes for UI-48 specifications
 const VARIANT_THEMES = {
   default: {
     iconOn: Check,
     iconOff: X,
     controlSelectedClass: 'bg-[var(--color-accent)]',
-    controlUnselectedClass: 'bg-[var(--color-border-strong)]',
+    controlUnselectedClass: 'bg-[rgba(180,160,130,0.3)]',
     iconOnClass: 'text-white',
     iconOffClass: 'text-[var(--color-text-muted)]',
   },
   public: {
-    iconOn: LockOpen,
+    iconOn: Globe,
     iconOff: Lock,
-    controlSelectedClass: 'bg-[var(--color-accent)]',
-    controlUnselectedClass: 'bg-[var(--color-border-strong)]',
+    controlSelectedClass: 'bg-[#4a7c59]', // muted green when on
+    controlUnselectedClass: 'bg-[rgba(180,160,130,0.3)]',
     iconOnClass: 'text-white',
     iconOffClass: 'text-[var(--color-text-muted)]',
   },
-  benchmarks: {
-    iconOn: Check,
+  benchmark: {
+    iconOn: BarChart3,
     iconOff: X,
-    controlSelectedClass: 'bg-[var(--color-accent)]',
-    controlUnselectedClass: 'bg-[var(--color-border-strong)]',
+    controlSelectedClass: 'bg-[#5a7a9a]', // muted steel blue when on
+    controlUnselectedClass: 'bg-[rgba(180,160,130,0.3)]',
     iconOnClass: 'text-white',
     iconOffClass: 'text-[var(--color-text-muted)]',
   },
 };
 
-function computeIconSize(size) {
-  // match the logic previously spelled out in ChoiceCardSwitch comments
-  if (size === 'sm') return 10;
-  if (size === 'md') return 16;
-  if (size === 'lg') return 17;
-  return 14; // fallback for unexpected sizes
+export function Switch({
+  variant = 'default',
+  size = 'md',
+  iconSize = 16,
+  children,
+  className = '',
+  ...props
+}) {
+  const theme = VARIANT_THEMES[variant] || VARIANT_THEMES.default;
+  const contextValue = {
+    variant,
+    iconSize,
+    theme,
+  };
+
+  return (
+    <SwitchContext.Provider value={contextValue}>
+      <HeroSwitch size={size} className={cn('switch', className)} {...props}>
+        {children}
+      </HeroSwitch>
+    </SwitchContext.Provider>
+  );
 }
 
-const Switch = React.forwardRef(function Switch(
-  { size = 'sm xxs:md sm:lg', variant = 'default', children, ...props },
-  ref,
-) {
-  // derive current selection value: prefer controlled prop, fallback to
-  // defaultSelected (uncontrolled) if provided.  we don't track selection
-  // ourselves; our consumer pattern always passes isSelected as needed.
-  const internalSelected = props.defaultSelected || false;
-  const isSelectedValue = props.isSelected != null ? props.isSelected : internalSelected;
+// Subcomponents using HeroUI v3 structure
+Switch.Control = HeroSwitch.Control;
+Switch.Thumb = HeroSwitch.Thumb;
 
+Switch.Content = function Content({ children, className = '', ...props }) {
   return (
-    <ResponsiveSizeWrapper size={size}>
-      {(computedSize) => {
-        const iconSize = computeIconSize(computedSize);
-        const theme = VARIANT_THEMES[variant] || VARIANT_THEMES.default;
-        const contextValue = useMemo(
-          () => ({ variant, iconSize, theme, isSelected: isSelectedValue }),
-          [variant, iconSize, theme, isSelectedValue],
-        );
-
-        return (
-          <SwitchContext.Provider value={contextValue}>
-            {/* forward ref so parent components can access the underlying input */}
-            <HeroSwitch ref={ref} size={computedSize} {...props}>
-              {children}
-            </HeroSwitch>
-          </SwitchContext.Provider>
-        );
-      }}
-    </ResponsiveSizeWrapper>
+    <HeroSwitch.Content className={cn('', className)} {...props}>
+      {children}
+    </HeroSwitch.Content>
   );
-});
+};
 
-// wrappers that automatically apply variant-specific styling/icons
-Switch.Control = React.forwardRef(function Control({ className = '', ...props }, ref) {
-  const { theme, isSelected } = useContext(SwitchContext);
-  const appliedClass = isSelected ? theme.controlSelectedClass : theme.controlUnselectedClass || '';
+Switch.Label = function SwitchLabel({ children, className = '', ...props }) {
   return (
-    <HeroSwitch.Control
-      ref={ref}
+    <Label
       className={cn(
-        appliedClass,
-        'rounded-full h-5 w-9 transition-all duration-200',
-        'will-change-colors',
+        'text-(--color-text-secondary) font-(--font-body)',
+        'flex items-center gap-1',
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </Label>
   );
-});
+};
 
-Switch.Thumb = HeroSwitch.Thumb;
-
-Switch.Icon = React.forwardRef(function Icon({ children, className = '', ...props }, ref) {
+Switch.Icon = function Icon({ children, className = '', ...props }) {
   const { theme, iconSize, isSelected } = useContext(SwitchContext);
 
   // if user supplied their own children, just forward them unchanged
   if (children) {
     return (
       <HeroSwitch.Icon
-        ref={ref}
         className={cn('transition-all duration-150 ease-out will-change-transform', className)}
         {...props}
       >
@@ -124,22 +109,23 @@ Switch.Icon = React.forwardRef(function Icon({ children, className = '', ...prop
   // otherwise render the appropriate icon based on current selection
   const IconComp = isSelected ? theme.iconOn : theme.iconOff;
   const colorClass = isSelected ? theme.iconOnClass : theme.iconOffClass;
+
   return (
     <HeroSwitch.Icon
-      ref={ref}
       className={cn('transition-all duration-150 ease-out will-change-colors', className)}
       {...props}
     >
       <IconComp size={iconSize} className={cn(colorClass, 'transition-colors duration-150')} />
     </HeroSwitch.Icon>
   );
-});
+};
 
 Switch.propTypes = {
-  // responsive size string (same semantics as before)
-  size: PropTypes.string,
-  // theme variants offered by this wrapper (defaults to "default")
-  variant: PropTypes.oneOf(['default', 'public', 'benchmarks']),
+  variant: PropTypes.oneOf(['default', 'public', 'benchmark']),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  iconSize: PropTypes.number,
+  children: PropTypes.node,
+  className: PropTypes.string,
 
   // props forwarded to HeroSwitch
   isSelected: PropTypes.bool,
@@ -149,9 +135,7 @@ Switch.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func,
   onPress: PropTypes.func,
-  children: PropTypes.node,
   render: PropTypes.func,
-  className: PropTypes.string,
 };
 
 export default Switch;

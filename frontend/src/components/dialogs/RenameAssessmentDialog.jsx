@@ -94,60 +94,61 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
       className="bg-black/20 backdrop-blur-sm"
     >
       <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-(--radius-lg) shadow-(--shadow-md) p-5">
+        <AlertDialog.Dialog className="bg-(--color-bg-elevated) border border-(--color-border) rounded-3xl shadow-(--shadow-md) p-6">
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+                <AlertDialog.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
                   Rename Assessment
                 </AlertDialog.Heading>
+                <AlertDialog.Description className="text-[12px] text-(--color-text-muted) mt-1">
+                  Enter a new name for this assessment
+                </AlertDialog.Description>
               </AlertDialog.Header>
 
-              <AlertDialog.Body className="text-sm">
-                <Label
-                  htmlFor="assessment-name"
-                  className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-1.5 block"
-                >
-                  Assessment Name
-                </Label>
-                <div className="flex flex-col items-center gap-2 mt-2.5 px-2">
+              <AlertDialog.Body className="space-y-4">
+                <div>
+                  <Label
+                    htmlFor="assessment-name"
+                    className="text-[11px] font-semibold uppercase tracking-widest text-(--color-text-secondary)"
+                  >
+                    Assessment Name
+                  </Label>
                   <Input
                     id="assessment-name"
-                    placeholder="e.g., Circular Packaging Review"
                     value={name}
                     onChange={(e) => {
                       setName(e.target.value);
                       setError('');
                     }}
-                    maxLength={100}
-                    className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm w-full mt-1 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                    fullWidth
+                    placeholder="Enter assessment name"
+                    className="w-full mt-2"
+                    style={{
+                      backgroundColor: 'rgba(245,240,232,0.6)',
+                      borderColor: 'rgba(180,160,130,0.3)',
+                    }}
+                    isInvalid={!!error}
+                    errorMessage={error}
                   />
-
-                  {error && <p className="text-sm mt-2 text-red-500">{error}</p>}
                 </div>
               </AlertDialog.Body>
 
-              <AlertDialog.Footer className="flex gap-3 mt-5">
+              <AlertDialog.Footer className="flex gap-3 pt-2">
                 <Button
-                  variant="dialog-secondary"
-                  onPress={() => {
-                    close();
-                    onClose();
-                  }}
+                  variant="tertiary"
+                  onPress={() => close()}
                   isDisabled={isLoading}
                   className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
-                  variant="dialog-primary"
+                  variant="primary"
                   onPress={() => handleSubmit(close)}
                   isLoading={isLoading}
-                  isDisabled={isLoading || name.trim() === (defaultName || '').trim()}
                   className="flex-1"
                 >
-                  Save
+                  Rename
                 </Button>
               </AlertDialog.Footer>
             </>

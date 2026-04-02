@@ -546,46 +546,46 @@ export default function MyAssessmentsPage() {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {/* Average Score */}
-                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
-                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
                     Avg Score
                   </div>
-                  <div className="text-xl font-(--font-display) text-(--color-text-primary)">
+                  <div className="font-(--font-mono) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
                     {averageScore || 0}
                   </div>
-                  <div className="text-xs text-(--color-text-muted)">
+                  <div className="text-[12px] text-(--color-text-muted)">
                     Total: {stats_totalAssessments}
                   </div>
                 </div>
 
                 {/* Total Assessments */}
-                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
-                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
                     Total
                   </div>
-                  <div className="text-xl font-(--font-display) text-(--color-text-primary)">
+                  <div className="font-(--font-mono) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
                     {stats_totalAssessments}
                   </div>
-                  <div className="text-xs text-(--color-text-muted)">Assessments</div>
+                  <div className="text-[12px] text-(--color-text-muted)">Assessments</div>
                 </div>
 
                 {/* Highest Score */}
-                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
-                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
                     Highest
                   </div>
-                  <div className="text-xl font-(--font-display) text-(--color-text-primary)">
+                  <div className="font-(--font-mono) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
                     {highestScore || 0}
                   </div>
-                  <div className="text-xs text-(--color-text-muted)">Score</div>
+                  <div className="text-[12px] text-(--color-text-muted)">Score</div>
                 </div>
 
                 {/* Primary Focus */}
-                <div className="border border-(--color-border) rounded-md px-4 py-3 bg-transparent">
-                  <div className="text-xs uppercase tracking-wide text-(--color-text-muted) mb-1">
+                <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
                     Primary Focus
                   </div>
-                  <div className="text-xl font-(--font-display) text-(--color-text-primary) truncate">
+                  <div className="font-(--font-mono) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em] truncate">
                     {topIndustries && topIndustries.length > 0
                       ? topIndustries[0].industry
                           .replace(/_/g, ' ')
@@ -593,7 +593,7 @@ export default function MyAssessmentsPage() {
                           .slice(0, 8)
                       : '—'}
                   </div>
-                  <div className="text-xs text-(--color-text-muted)">
+                  <div className="text-[12px] text-(--color-text-muted)">
                     {topIndustries && topIndustries.length > 0 ? topIndustries[0].count : '—'}
                   </div>
                 </div>

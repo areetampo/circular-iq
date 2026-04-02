@@ -113,7 +113,7 @@ export function OverviewTab({
                     ? 'text-(--color-success)'
                     : scoringResult1?.derived_metrics?.risk_level === 'medium'
                       ? 'text-(--color-warning)'
-                      : 'text-(--color-danger)'
+                      : 'text-(--color-error)'
                 }`}
               >
                 A1: {scoringResult1?.derived_metrics?.risk_level || 'N/A'}
@@ -125,7 +125,7 @@ export function OverviewTab({
                     ? 'text-(--color-success)'
                     : scoringResult2?.derived_metrics?.risk_level === 'medium'
                       ? 'text-(--color-warning)'
-                      : 'text-(--color-danger)'
+                      : 'text-(--color-error)'
                 }`}
               >
                 A2: {scoringResult2?.derived_metrics?.risk_level || 'N/A'}
@@ -264,10 +264,10 @@ export function OverviewTab({
                   key={idx}
                   className={`flex items-center gap-3 p-4 rounded-r-lg transition-all duration-200 hover:shadow-md border-l-4 ${
                     insight.type === 'positive'
-                      ? 'bg-(--color-success-soft) border-(--color-success) text-(--color-success)'
+                      ? 'border-l-[3px] border-[rgba(74,124,89,0.5)] bg-transparent text-(--color-text-primary)'
                       : insight.type === 'negative'
-                        ? 'bg-(--color-danger-soft) border-(--color-danger) text-(--color-danger)'
-                        : 'bg-transparent border-(--color-border) text-(--color-text-primary)'
+                        ? 'border-l-[3px] border-[rgba(176,125,58,0.5)] bg-transparent text-(--color-text-primary)'
+                        : 'border-l-[3px] border-[rgba(180,160,130,0.5)] bg-transparent text-(--color-text-primary)'
                   }`}
                 >
                   <IconComponent className="shrink-0" strokeWidth={2.5} size={20} />
@@ -295,17 +295,13 @@ export function OverviewTab({
             return (
               <div
                 key={assessment.id}
-                className={`p-5 pl-4 border-l-4 ${
+                className={`p-5 pl-4 border-l-[3px] rounded-r-lg hover:shadow-md transition-all duration-200 ${
                   color === 'emerald'
-                    ? 'border-(--color-success) bg-(--color-success-soft)'
-                    : 'border-(--color-info) bg-(--color-info-soft)'
-                } rounded-r-lg hover:shadow-md transition-all duration-200`}
+                    ? 'border-[rgba(74,124,89,0.5)] bg-transparent'
+                    : 'border-[rgba(90,122,154,0.5)] bg-transparent'
+                }`}
               >
-                <p
-                  className={`text-sm font-bold ${
-                    color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
-                  } uppercase mb-2 tracking-wide`}
-                >
+                <p className="text-sm font-bold text-(--color-text-primary) uppercase mb-2 tracking-wide">
                   {assessment.title}
                 </p>
                 <p className="text-sm text-(--color-text-primary) leading-relaxed">
@@ -319,8 +315,8 @@ export function OverviewTab({
         {/* Comparative Analysis */}
         {(scoringResult1?.audit?.comparative_analysis ||
           scoringResult2?.audit?.comparative_analysis) && (
-          <div className="p-5 pl-4 border-l-4 border-(--color-info) bg-(--color-info-soft) rounded-r-lg mb-8">
-            <p className="text-xs font-semibold text-(--color-info) uppercase mb-2 tracking-wide">
+          <div className="p-5 pl-4 border-l-[3px] border-[rgba(90,122,154,0.5)] bg-transparent rounded-r-lg mb-8">
+            <p className="text-xs font-semibold text-(--color-text-primary) uppercase mb-2 tracking-wide">
               Key Findings
             </p>
             <div className="space-y-3">
@@ -373,7 +369,7 @@ export function OverviewTab({
                 <div key={assessment.id} className="space-y-4">
                   <p
                     className={`text-xs font-bold ${
-                      color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
+                      color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'`
                     } uppercase tracking-wide`}
                   >
                     {assessment.title}
@@ -387,7 +383,7 @@ export function OverviewTab({
                       </p>
                       <p
                         className={`text-lg font-bold ${
-                          color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
+                          color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'`
                         }`}
                       >
                         {topFactor[0] !== 'N/A' ? titleize(topFactor[0]) : 'N/A'}
@@ -450,7 +446,7 @@ export function OverviewTab({
                     ? 'text-(--color-success)'
                     : (scoringResult1?.overall_score || 0) >= 50
                       ? 'text-(--color-warning)'
-                      : 'text-(--color-danger)'
+                      : 'text-(--color-error)'`
                 }`}
               >
                 {scoringResult1?.overall_score || 0}
@@ -461,10 +457,10 @@ export function OverviewTab({
               value={scoringResult1?.overall_score || 0}
               className={`mt-2 h-2 rounded-full ${
                 (scoringResult1?.overall_score || 0) >= 75
-                  ? 'bg-(--color-success)'
+                  ? 'bg-[rgba(74,124,89,0.7)]'
                   : (scoringResult1?.overall_score || 0) >= 50
-                    ? 'bg-(--color-warning)'
-                    : 'bg-(--color-danger)'
+                    ? 'bg-[rgba(176,125,58,0.6)]'
+                    : 'bg-[rgba(139,58,58,0.6)]'
               }`}
               aria-label="Assessment 1 score"
             />
@@ -481,7 +477,7 @@ export function OverviewTab({
                   (overallDelta || 0) > 0
                     ? 'text-(--color-success)'
                     : (overallDelta || 0) < 0
-                      ? 'text-(--color-danger)'
+                      ? 'text-(--color-error)'
                       : 'text-(--color-text-muted)'
                 }`}
               >
@@ -507,7 +503,7 @@ export function OverviewTab({
                     ? 'text-(--color-success)'
                     : (scoringResult2?.overall_score || 0) >= 50
                       ? 'text-(--color-warning)'
-                      : 'text-(--color-danger)'
+                      : 'text-(--color-error)'`
                 }`}
               >
                 {scoringResult2?.overall_score || 0}
@@ -518,10 +514,10 @@ export function OverviewTab({
               value={scoringResult2?.overall_score || 0}
               className={`mt-2 h-2 rounded-full ${
                 (scoringResult2?.overall_score || 0) >= 75
-                  ? 'bg-(--color-success)'
+                  ? 'bg-[rgba(74,124,89,0.7)]'
                   : (scoringResult2?.overall_score || 0) >= 50
-                    ? 'bg-(--color-warning)'
-                    : 'bg-(--color-danger)'
+                    ? 'bg-[rgba(176,125,58,0.6)]'
+                    : 'bg-[rgba(139,58,58,0.6)]'
               }`}
               aria-label="Assessment 2 score"
             />
@@ -545,9 +541,7 @@ export function OverviewTab({
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-bold text-(--color-text-primary)">{category}</div>
                     <div className="flex gap-4">
-                      <div className="text-sm font-bold text-(--color-success)">
-                        A1: {data1.score}
-                      </div>
+                      <div className="text-sm font-bold text-(--color-success)">A1: {data1.score}</div>
                       <div className="text-sm font-bold text-(--color-info)">A2: {data2.score}</div>
                     </div>
                   </div>
