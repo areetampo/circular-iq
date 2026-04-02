@@ -133,7 +133,7 @@ Simple confirmation dialog.
 
 Access global dialog state via `useDialog()`:
 
-```jsx
+````jsx
 import { useDialog } from '@/hooks/useDialog';
 
 const { open, close, isOpen } = useDialog();
@@ -144,13 +144,13 @@ open({
   description: 'Are you sure?',
   onConfirm: () => handleConfirm(),
 });
-```
+```jsx
 
 ## Styling
 
 Dialogs use Tailwind CSS and inherit HeroUI styling:
 
-```jsx
+```javascript
 // Dialog container
 <div className="rounded-lg border border-slate-200 bg-white shadow-lg">
   {/* Title */}
@@ -165,7 +165,7 @@ Dialogs use Tailwind CSS and inherit HeroUI styling:
     <Button color="danger">Delete</Button>
   </div>
 </div>
-```
+````
 
 ## Best Practices
 
@@ -235,8 +235,7 @@ const { isOpen, onOpen, onOpenChange } = useDisclosure();
   onConfirm={handleDelete}
   />;
 
-````
-
+````jsx
 #### `InputDialog`
 
 Modal for text input with validation.

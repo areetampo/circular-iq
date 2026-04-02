@@ -1,6 +1,7 @@
 import { Button as HeroButton, Spinner } from '@heroui/react';
-import { clsx } from 'clsx';
 import PropTypes from 'prop-types';
+
+import { cn } from '@/utils/cn';
 
 /**
  * Variant styles for the luxury minimal button system
@@ -110,7 +111,7 @@ const sizeStyles = {
  * @param {ReactNode} props.children - Button content
  */
 export function Button({
-  className,
+  className = '',
   variant = 'primary',
   size = 'md',
   isDisabled = false,
@@ -139,7 +140,7 @@ export function Button({
 
   return (
     <HeroButton
-      className={clsx(
+      className={cn(
         baseClasses,
         variantStyles[variant] || variantStyles.primary,
         resolvedSize,

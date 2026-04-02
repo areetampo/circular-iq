@@ -26,8 +26,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
 import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
+import BusinessInputField from '@/pages/LandingPage/components/BusinessInputField';
 import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
-import LiveCharacterCounter from '@/pages/LandingPage/components/LiveCharacterCounter';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 
 // Sample test cases data
@@ -507,7 +507,12 @@ export default function LandingPage() {
       businessContext: testCase.businessContext,
     });
 
-    // Ensure all accordions are open when sample test case is selected
+    // Open all 5 accordions above Sample Test Cases when a test case is selected:
+    // 1. Business Context accordion
+    // 2. Evaluation Parameters accordion
+    // 3. Access Value accordion
+    // 4. Embedded Value accordion
+    // 5. Processing Value accordion
     setEvalParamsExpandedKeys(
       new Set([
         'evaluation-parameters-heading',
@@ -600,7 +605,7 @@ export default function LandingPage() {
               key={key}
               onClick={onClick}
               className="flex items-center gap-1.5 text-[11px] tracking-widest cursor-pointer uppercase bg-accent-50 px-3 py-2 rounded-xl
-               transition-colors hover:text-[var(--foreground)] hover:bg-slate-50/50 hover:shadow-sm"
+               transition-colors hover:text-(--foreground) hover:bg-slate-50/50 hover:shadow-sm"
               style={{ color: 'var(--muted)' }}
             >
               <Icon size={12} />
@@ -637,115 +642,34 @@ export default function LandingPage() {
             >
               <div className="space-y-8">
                 {/* Business Problem */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 ml-1">
-                    <span
-                      className="text-[15px] font-semibold tracking-[-0.01em]"
-                      style={{
-                        color: 'var(--color-text-primary)',
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      Business Problem
-                    </span>
-                    <BadgeInfo
-                      className="info-icon cursor-pointer transition-colors duration-200 hover:opacity-80"
-                      size={18}
-                      style={{ color: 'var(--color-accent)' }}
-                      onClick={openBusinessProblemInfoDrawer}
-                    />
-                  </div>
-                  <p
-                    className="text-[13px] leading-relaxed mt-1 mb-2"
-                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
-                  >
-                    What environmental or circular economy challenge does your business address?
-                  </p>
-                  <textarea
-                    id="business-problem"
-                    rows={5}
-                    placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually..."
-                    {...register('businessProblem', {
-                      onBlur: () => flushAutosave(),
-                    })}
-                    disabled={loading}
-                    className="w-full px-4 py-3.5 text-[15px] rounded-xl border resize-none
-           focus:outline-none transition-colors duration-150
-           placeholder:opacity-40 leading-[1.75]"
-                    style={{
-                      backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
-                      borderColor: 'var(--color-border-strong)',
-                      color: 'var(--color-text-primary)',
-                      fontFamily: 'var(--font-body)',
-                      letterSpacing: '0.005em',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = 'var(--color-accent)';
-                      // No box-shadow, no outline
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = 'var(--color-border-strong)';
-                      flushAutosave();
-                    }}
-                  />
-                  <LiveCharacterCounter fieldName="businessProblem" minLength={200} />
-                </div>
+                <BusinessInputField
+                  id="business-problem"
+                  label="Business Problem"
+                  description="What environmental or circular economy challenge does your business address?"
+                  placeholder="Example: Single-use plastic packaging creates 8 million tons of ocean waste annually..."
+                  fieldName="businessProblem"
+                  register={register}
+                  onInfoClick={openBusinessProblemInfoDrawer}
+                  loading={loading}
+                  flushAutosave={flushAutosave}
+                  rows={5}
+                  minLength={200}
+                />
 
                 {/* Business Solution */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 ml-1">
-                    <span
-                      className="text-[15px] font-semibold tracking-[-0.01em]"
-                      style={{
-                        color: 'var(--color-text-primary)',
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      Business Solution
-                    </span>
-                    <BadgeInfo
-                      className="info-icon cursor-pointer transition-colors duration-200 hover:opacity-80"
-                      size={18}
-                      style={{ color: 'var(--color-accent)' }}
-                      onClick={openBusinessSolutionInfoDrawer}
-                    />
-                  </div>
-                  <p
-                    className="text-[13px] leading-relaxed mt-1 mb-2"
-                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
-                  >
-                    How does your business solve this problem? Include materials, processes, and
-                    circularity strategy.
-                  </p>
-                  <textarea
-                    id="business-solution"
-                    rows={6}
-                    placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste..."
-                    {...register('businessSolution', {
-                      onBlur: () => flushAutosave(),
-                    })}
-                    disabled={loading}
-                    className="w-full px-4 py-3.5 text-[15px] rounded-xl border resize-none
-           focus:outline-none transition-colors duration-150
-           placeholder:opacity-40 leading-[1.75]"
-                    style={{
-                      backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
-                      borderColor: 'var(--color-border-strong)',
-                      color: 'var(--color-text-primary)',
-                      fontFamily: 'var(--font-body)',
-                      letterSpacing: '0.005em',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = 'var(--color-accent)';
-                      // No box-shadow, no outline
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = 'var(--color-border-strong)';
-                      flushAutosave();
-                    }}
-                  />
-                  <LiveCharacterCounter fieldName="businessSolution" minLength={200} />
-                </div>
+                <BusinessInputField
+                  id="business-solution"
+                  label="Business Solution"
+                  description="How does your business solve this problem? Include materials, processes, and circularity strategy."
+                  placeholder="Example: Our platform uses compostable packaging from agricultural hemp waste..."
+                  fieldName="businessSolution"
+                  register={register}
+                  onInfoClick={openBusinessSolutionInfoDrawer}
+                  loading={loading}
+                  flushAutosave={flushAutosave}
+                  rows={6}
+                  minLength={200}
+                />
 
                 {/* Business Context */}
                 <div
@@ -766,7 +690,7 @@ export default function LandingPage() {
                         <Accordion.Trigger
                           className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
-                              hover:bg-[var(--color-accent-soft)]"
+                              hover:bg-(--color-accent-soft)"
                         >
                           <BriefcaseBusiness
                             className="h-6 w-6 shrink-0 mr-1
@@ -848,7 +772,7 @@ export default function LandingPage() {
                         <Accordion.Trigger
                           className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
-                              hover:bg-[var(--color-accent-soft)]"
+                              hover:bg-(--color-accent-soft)"
                         >
                           <SlidersHorizontal
                             className="h-6 w-6 shrink-0 mr-1
@@ -904,6 +828,8 @@ export default function LandingPage() {
                           >
                             <EvaluationParametersContainer
                               loading={loading}
+                              evalParamsExpandedKeys={evalParamsExpandedKeys}
+                              setEvalParamsExpandedKeys={setEvalParamsExpandedKeys}
                               innerExpandedKeys={innerExpandedKeys}
                               onInnerExpandedChange={setInnerExpandedKeys}
                             />
@@ -935,7 +861,7 @@ export default function LandingPage() {
                         isDisabled={loading || !isValid}
                         variant="teal"
                         fullWidth
-                        className="h-12"
+                        className="rounded-4xl h-12"
                       >
                         {loading ? (
                           <LoaderIcon isButton={true} color="#ffffff" />
@@ -967,12 +893,12 @@ export default function LandingPage() {
                     expandedKeys={sampleTestCasesExpandedKeys}
                     onExpandedChange={setSampleTestCasesExpandedKeys}
                   >
-                    <Accordion.Item id="test-cases" defaultExpanded={true}>
+                    <Accordion.Item id="test-cases">
                       <Accordion.Heading>
                         <Accordion.Trigger
                           className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
-                              hover:bg-[var(--color-accent-soft)]"
+                              hover:bg-(--color-accent-soft)"
                         >
                           <ClipboardList
                             className="h-6 w-6 shrink-0 mr-1

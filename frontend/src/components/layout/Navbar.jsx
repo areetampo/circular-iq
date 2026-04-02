@@ -1,3 +1,4 @@
+import { Avatar } from '@heroui/react';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -85,7 +86,7 @@ export default function Navbar() {
   return (
     <>
       {/* Main Navbar - full width sticky top bar */}
-      <nav className="sticky top-0 z-50 bg-(--color-bg)/80 backdrop-blur-md border-b border-(--color-border) h-14">
+      <nav className="sticky top-0 z-50 bg-(--color-bg)/80 backdrop-blur-md border-b border-border h-14">
         <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
           {/* Logo + Site Name */}
           <button onClick={() => navigate('/')} className="flex items-center gap-3">
@@ -108,7 +109,7 @@ export default function Navbar() {
                 <button
                   key={item.id}
                   onClick={() => navigate(item.path)}
-                  className={`text-sm transition-colors relative ${
+                  className={`text-sm cursor-pointer transition-colors relative ${
                     isActive
                       ? 'text-(--color-accent)'
                       : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
@@ -128,25 +129,54 @@ export default function Navbar() {
             {isAuthenticated ? (
               /* Profile Avatar Button */
               <div className="relative" ref={dropdownRef}>
-                <button
+                <Avatar
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center hover:border-(--color-accent) transition-colors"
+                  className="cursor-pointer transition-all duration-200 hover:scale-105"
+                  size="sm"
+                  style={{
+                    backgroundColor: 'var(--color-accent-light)',
+                    border: '2px solid var(--color-border-strong)',
+                    color: 'var(--color-accent)',
+                  }}
                   aria-label="Profile menu"
                   aria-expanded={isProfileDropdownOpen}
                   aria-haspopup="true"
                 >
-                  {getUserInitials()}
-                </button>
+                  <Avatar.Fallback
+                    style={{
+                      backgroundColor: 'var(--color-accent-light)',
+                      color: 'var(--color-accent)',
+                      fontWeight: '500',
+                    }}
+                  >
+                    {getUserInitials()}
+                  </Avatar.Fallback>
+                </Avatar>
 
                 {/* Profile Dropdown */}
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) overflow-hidden opacity-100 scale-100 transition-all duration-150">
                     {/* User Info */}
-                    <div className="p-4 border-b border-(--color-border)">
+                    <div className="p-4 border-b border-border">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center">
-                          {getUserInitials()}
-                        </div>
+                        <Avatar
+                          size="sm"
+                          style={{
+                            backgroundColor: 'var(--color-accent-light)',
+                            border: '2px solid var(--color-border-strong)',
+                            color: 'var(--color-accent)',
+                          }}
+                        >
+                          <Avatar.Fallback
+                            style={{
+                              backgroundColor: 'var(--color-accent-light)',
+                              color: 'var(--color-accent)',
+                              fontWeight: '500',
+                            }}
+                          >
+                            {getUserInitials()}
+                          </Avatar.Fallback>
+                        </Avatar>
                         <div>
                           <p className="text-sm font-medium text-(--color-text-primary)">
                             {getUsername()}
@@ -157,7 +187,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Navigation Links (shown in mobile dropdown) */}
-                    <div className="md:hidden py-2 border-b border-(--color-border)">
+                    <div className="md:hidden py-2 border-b border-border">
                       {navigationItems.map((item) => (
                         <button
                           key={item.id}
@@ -165,7 +195,7 @@ export default function Navbar() {
                             navigate(item.path);
                             setIsProfileDropdownOpen(false);
                           }}
-                          className="w-full px-4 py-2 text-left text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors"
+                          className="w-full px-4 py-2 text-left text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors cursor-pointer"
                         >
                           {item.name}
                         </button>
@@ -179,7 +209,7 @@ export default function Navbar() {
                           handleSignOut();
                           setIsProfileDropdownOpen(false);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-(--color-error) hover:bg-[rgba(139,58,58,0.07)] transition-colors flex items-center gap-2"
+                        className="w-full px-4 py-2 text-left text-sm text-(--color-error) hover:bg-[rgba(139,58,58,0.07)] transition-colors flex items-center gap-2 cursor-pointer"
                       >
                         Sign out
                       </button>
@@ -192,7 +222,7 @@ export default function Navbar() {
               <div className="hidden md:flex items-center gap-3">
                 <button
                   onClick={() => navigate('/auth')}
-                  className="text-sm text-(--color-text-primary) bg-[#edd6bdc4] hover:bg-[#b8916a] px-4 py-2 rounded-md transition-colors"
+                  className="text-sm text-(--color-text-primary) bg-[#edd6bdc4] hover:bg-[#b8916a] px-4 py-2 rounded-md transition-colors cursor-pointer"
                 >
                   Sign in
                 </button>
@@ -202,7 +232,7 @@ export default function Navbar() {
             {/* Mobile Hamburger Menu */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors"
+              className="md:hidden text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors cursor-pointer"
               aria-label={`${isMobileMenuOpen ? 'Close' : 'Open'} mobile menu`}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
@@ -229,7 +259,7 @@ export default function Navbar() {
         }`}
       >
         {/* Panel Header */}
-        <div className="flex items-center justify-center p-6 border-b border-(--color-border)">
+        <div className="flex items-center justify-center p-6 border-b border-border">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
@@ -243,7 +273,7 @@ export default function Navbar() {
         <div className="flex-1 overflow-y-auto">
           {isAuthenticated && (
             /* User Info */
-            <div className="p-6 border-b border-(--color-border)">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center">
                   {getUserInitials()}
@@ -267,7 +297,7 @@ export default function Navbar() {
                     navigate(item.path);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full px-6 py-3 text-left text-base border-b border-(--color-border) transition-colors ${
+                  className={`w-full px-6 py-3 text-left text-base border-b border-border transition-colors cursor-pointer ${
                     isActive
                       ? 'text-(--color-text-primary)'
                       : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
@@ -281,14 +311,14 @@ export default function Navbar() {
         </div>
 
         {/* Panel Footer */}
-        <div className="border-t border-(--color-border) p-6">
+        <div className="border-t border-border p-6">
           {isAuthenticated ? (
             <button
               onClick={() => {
                 handleSignOut();
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full text-sm text-(--color-error) hover:text-(--color-text-primary) transition-colors"
+              className="w-full text-sm text-(--color-error) hover:text-(--color-text-primary) transition-colors cursor-pointer"
             >
               Sign out
             </button>
@@ -298,7 +328,7 @@ export default function Navbar() {
                 navigate('/auth');
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full text-sm text-(--color-text-primary) bg-(--color-accent) hover:bg-(--color-accent-hover) px-4 py-2.5 rounded-md transition-colors"
+              className="w-full text-sm text-(--color-text-primary) bg-(--color-accent) hover:bg-accent-hover px-4 py-2.5 rounded-md transition-colors cursor-pointer"
             >
               Sign in
             </button>

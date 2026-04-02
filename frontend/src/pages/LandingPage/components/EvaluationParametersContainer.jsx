@@ -86,7 +86,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   <NumberField.DecrementButton
                     className="w-8 h-8 flex items-center justify-center
                transition-colors duration-100 text-base select-none
-               rounded-md hover:bg-[var(--color-accent-light)]"
+               rounded-md hover:bg-(--color-accent-light)"
                     style={{ color: 'var(--color-text-muted)' }}
                     aria-label="Decrease value"
                   />
@@ -135,7 +135,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   <NumberField.IncrementButton
                     className="w-8 h-8 flex items-center justify-center
                transition-colors duration-100 text-base select-none
-               rounded-md hover:bg-[var(--color-accent-light)]"
+               rounded-md hover:bg-(--color-accent-light)"
                     style={{ color: 'var(--color-text-muted)' }}
                     aria-label="Increase value"
                   />
@@ -226,7 +226,6 @@ function EvaluationParametersContainer({
         className="w-full"
         variant="default"
         allowsMultipleExpanded
-        defaultExpandedKeys={evalParamsExpandedKeys}
         expandedKeys={evalParamsExpandedKeys}
         onExpandedChange={setEvalParamsExpandedKeys}
       >
@@ -244,7 +243,7 @@ function EvaluationParametersContainer({
                 <Accordion.Trigger
                   className="flex items-center gap-3 px-5 py-3
                               transition-colors duration-150
-                              hover:bg-[var(--color-accent-soft)]"
+                              hover:bg-(--color-accent-soft)"
                 >
                   <cfg.Icon
                     className={cn(

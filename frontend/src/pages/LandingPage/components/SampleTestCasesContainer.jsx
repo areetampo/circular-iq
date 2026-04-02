@@ -190,8 +190,13 @@ export default function SampleTestCasesContainer({
       timeout: 4000,
     });
     setShowEvaluationParameters(true);
-    openEvalParams();
-    openBusinessContext();
+
+    // Add a small delay to ensure form reset completes before opening accordions
+    setTimeout(() => {
+      // Open all 5 accordions above Sample Test Cases
+      openEvalParams();
+      openBusinessContext();
+    }, 100);
   };
 
   const hasUserInput = () => {
@@ -231,9 +236,9 @@ export default function SampleTestCasesContainer({
               'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer',
               'border transition-all duration-200',
               isSelected
-                ? 'border-[var(--color-accent)] bg-[oklch(0.97_0.014_68/_0.18)] shadow-sm'
-                : 'border-[var(--color-border-strong)] bg-[var(--color-bg-card)]' +
-                    ' hover:border-[var(--color-accent)] hover:bg-[oklch(0.98_0.01_68/_0.12)] hover:shadow-sm',
+                ? 'border-(--color-accent) shadow-sm bg-accent-100/10'
+                : 'border-(--color-border-strong) bg-(--color-bg-card)' +
+                    ' hover:border-(--color-accent) hover:bg-[oklch(0.98_0.01_68/_0.12)] hover:shadow-sm',
             )}
           >
             {/* Header: index pill + title + check */}
@@ -241,10 +246,7 @@ export default function SampleTestCasesContainer({
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className={cn(
-                    'text-xs font-semibold px-2 py-0.5 rounded shrink-0', // not pill/rounded-full
-                    isSelected
-                      ? 'bg-[var(--color-accent)] text-white'
-                      : 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
+                    'text-xs font-semibold px-2 py-0.5 rounded shrink-0 bg-(--color-accent-soft) text-(--color-accent)',
                   )}
                 >
                   #{index + 1}
@@ -258,7 +260,7 @@ export default function SampleTestCasesContainer({
               </div>
               {isSelected && (
                 <CheckCircle2
-                  size={15}
+                  size={18}
                   className="shrink-0 mt-0.5"
                   style={{ color: 'var(--color-accent)' }}
                   strokeWidth={2}

@@ -187,9 +187,7 @@ function BusinessContextContainer({
                   </div>
                   <Switch.Control
                     className={cn(
-                      field.value === true
-                        ? 'bg-[var(--color-accent)]'
-                        : 'bg-[var(--color-border-strong)]',
+                      field.value === true ? 'bg-(--color-accent)' : 'bg-(--color-border-strong)',
                     )}
                   >
                     <Switch.Thumb />
