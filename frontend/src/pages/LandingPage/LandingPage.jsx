@@ -563,24 +563,32 @@ export default function LandingPage() {
                 studies.
               </p>
 
-              {/* CTA + Sign Up */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-10">
-                {!user && (
-                  <button
-                    onClick={() => navigate('/auth')}
-                    className="px-8 py-3 text-sm font-semibold rounded-3xl border
-                               transition-all duration-200 hover:border-(--accent)
-                               hover:text-(--foreground) hover:scale-[1.02] active:scale-[0.98] hover:shadow-md"
-                    style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
-                  >
-                    Sign Up
-                  </button>
-                )}
+              {/* Trust signal strip — 3 statistics, editorial style */}
+              <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap mt-10 mb-8">
+                {[
+                  { value: '40K+', label: 'Circular economy\ncases analysed' },
+                  { value: '97%', label: 'Confidence\nscore accuracy' },
+                  { value: '8', label: 'Weighted evaluation\ndimensions' },
+                ].map(({ value, label }) => (
+                  <div key={value} className="text-center">
+                    <p
+                      className="text-[28px] font-semibold leading-none mb-1"
+                      style={{
+                        color: 'var(--color-text-primary)',
+                        fontFamily: 'var(--font-display)',
+                      }}
+                    >
+                      {value}
+                    </p>
+                    <p
+                      className="text-[11px] leading-snug whitespace-pre-line"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      {label}
+                    </p>
+                  </div>
+                ))}
               </div>
-
-              <p className="label-overline mb-6 tracking-[0.15em] font-medium">
-                AI-POWERED · EVIDENCE-BASED · 40,000+ CASES
-              </p>
             </motion.div>
           </div>
         </section>
@@ -620,13 +628,13 @@ export default function LandingPage() {
             {/* Section heading */}
             <div className="mb-10">
               <h2
-                className="font-display text-[22px] font-semibold mb-2 tracking-tight"
+                className="text-[21px] font-semibold mb-2 tracking-tight"
                 style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)' }}
               >
                 Evaluate Your Circular Economy Business
               </h2>
               <p
-                className="text-[14px] leading-relaxed"
+                className="text-[13px] leading-relaxed"
                 style={{ color: 'var(--color-text-muted)' }}
               >
                 Describe your business idea using the same structure as real circular economy
@@ -703,10 +711,10 @@ export default function LandingPage() {
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[15px] tracking-[-0.01em] leading-6"
+                                className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
                                 style={{
                                   color: 'var(--color-text-primary)',
-                                  fontFamily: 'var(--font-display)',
+                                  fontFamily: 'var(--font-body)',
                                 }}
                               >
                                 Business Context
@@ -722,7 +730,7 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-xs leading-4"
+                              className="text-[11px] leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Optional — improves analysis quality
@@ -785,10 +793,10 @@ export default function LandingPage() {
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[15px] tracking-[-0.01em] leading-6"
+                                className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
                                 style={{
                                   color: 'var(--color-text-primary)',
-                                  fontFamily: 'var(--font-display)',
+                                  fontFamily: 'var(--font-body)',
                                 }}
                               >
                                 Evaluation Parameters
@@ -804,7 +812,7 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-xs leading-4"
+                              className="text-[11px] leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Score each dimension of circular value
@@ -911,10 +919,10 @@ export default function LandingPage() {
                           <div className="flex flex-col gap-0.5 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[15px] tracking-[-0.01em] leading-6"
+                                className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
                                 style={{
                                   color: 'var(--color-text-primary)',
-                                  fontFamily: 'var(--font-display)',
+                                  fontFamily: 'var(--font-body)',
                                 }}
                               >
                                 Sample Test Cases
@@ -930,7 +938,7 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-xs leading-4"
+                              className="text-[11px] leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Auto-fill form with curated examples for quick testing

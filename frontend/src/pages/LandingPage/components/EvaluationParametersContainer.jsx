@@ -18,7 +18,8 @@ import { useSession } from '@/features/session/hooks/useSession';
 // ─── ParameterBox ─────────────────────────────────────────────────────────────
 const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
   const { control, getValues } = useFormContext();
-  const { openSpecificEvaluationParameterInfoDrawer } = useGlobalDrawer();
+  const { openSpecificEvaluationParameterInfoDrawer, openEvaluationParametersHeadingInfoDrawer } =
+    useGlobalDrawer();
   const { saveSession } = useSession();
 
   const getTierClass = (score, isSelected) => {
@@ -82,12 +83,15 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   <BadgeInfo className="info-icon shrink-0" size={14} />
                 </Label>
 
-                <NumberField.Group className="flex items-center gap-1 h-9 my-1">
+                <NumberField.Group className="flex items-center gap-1 h-8 my-0.5">
                   <NumberField.DecrementButton
                     className="w-8 h-8 flex items-center justify-center
-               transition-colors duration-100 text-base select-none
-               rounded-md hover:bg-(--color-accent-light)"
+               text-base select-none rounded-sm transition-colors duration-100"
                     style={{ color: 'var(--color-text-muted)' }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--color-accent-light)')
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Decrease value"
                   />
                   <NumberField.Input
@@ -123,10 +127,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         // Do NOT persist here — rely on LandingPage debounced autosave.
                       }
                     }}
-                    className="w-16 text-center text-2xl font-bold
-               bg-[rgba(245,240,232,0.5)] border rounded-lg
-               focus:outline-none outline-none transition-colors"
+                    className="w-20 text-center font-semibold bg-[rgba(245,240,232,0.5)]
+               border rounded-md focus:outline-none outline-none transition-colors"
                     style={{
+                      fontSize: '18px' /* between sm and 2xl — readable but not huge */,
                       borderColor: 'var(--color-border-strong)',
                       color: 'var(--color-text-primary)',
                       fontFamily: 'var(--font-mono)',
@@ -134,9 +138,12 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   />
                   <NumberField.IncrementButton
                     className="w-8 h-8 flex items-center justify-center
-               transition-colors duration-100 text-base select-none
-               rounded-md hover:bg-(--color-accent-light)"
+               text-base select-none rounded-sm transition-colors duration-100"
                     style={{ color: 'var(--color-text-muted)' }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'var(--color-accent-light)')
+                    }
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     aria-label="Increase value"
                   />
                 </NumberField.Group>
@@ -158,7 +165,6 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       className={cn(
                         'cursor-pointer w-full p-3 rounded-lg text-left transition-all duration-150',
                         'focus:outline-none',
-                        isSelected ? 'opacity-100' : 'bg-transparent',
                         tierClass,
                         loading && 'opacity-40 cursor-not-allowed',
                       )}
@@ -257,16 +263,27 @@ function EvaluationParametersContainer({
                     strokeWidth={1.75}
                   />
 
-                  <div className="flex flex-col gap-0.5 text-left">
-                    <span
-                      className="font-semibold text-[14px] tracking-[-0.01em] leading-5"
-                      style={{
-                        color: 'var(--color-text-primary)',
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      {groupName}
-                    </span>
+                  <div className="flex flex-col gap-0.5 text-left flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
+                        style={{
+                          color: 'var(--color-text-primary)',
+                          fontFamily: 'var(--font-body)',
+                        }}
+                      >
+                        {groupName}
+                      </span>
+                      <BadgeInfo
+                        className="info-icon cursor-pointer shrink-0 transition-opacity hover:opacity-70"
+                        size={14}
+                        style={{ color: 'var(--color-accent)' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEvaluationParametersHeadingInfoDrawer?.();
+                        }}
+                      />
+                    </div>
                     <span
                       className="text-[11px] font-normal leading-4"
                       style={{ color: 'var(--color-text-muted)' }}

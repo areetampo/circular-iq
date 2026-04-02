@@ -663,8 +663,12 @@ select:focus {
     border-radius: var(--radius-sm) !important;
     color: var(--color-text-primary) !important;
     font-family: var(--font-mono) !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
     text-align: center !important;
     transition: border-color 0.12s ease !important;
+    height: 32px !important;
+    padding: 0 4px !important;
   }
 
   .number-field__input:focus,
@@ -944,11 +948,11 @@ select:focus {
     font-size: 14px !important;
   }
 
-  /* ----- SELECT ----- */
-  /* Select trigger — target by role to avoid collision with accordion */
-  [role='combobox'][data-slot='trigger'],
-  [data-slot='trigger'][aria-haspopup='listbox'] {
-    background-color: rgba(245, 240, 232, 0.6) !important;
+  /* ----- SELECT — BEM class targeting (bypasses specificity issues) ─────── */
+
+  /* Trigger */
+  .select__trigger {
+    background-color: rgba(245, 240, 232, 0.65) !important;
     border: 1px solid var(--color-border-strong) !important;
     border-radius: var(--radius-md) !important;
     color: var(--color-text-primary) !important;
@@ -956,49 +960,58 @@ select:focus {
     font-size: 13px !important;
     font-weight: 500 !important;
     letter-spacing: 0.01em !important;
-    padding: 8px 12px !important;
-    height: auto !important;
-    min-height: 38px !important;
-    transition:
-      border-color 0.12s ease,
-      box-shadow 0.12s ease !important;
+    min-height: 36px !important;
+    padding: 6px 10px !important;
     box-shadow: none !important;
+    transition: border-color 0.12s ease !important;
   }
-
-  [role='combobox'][data-slot='trigger']:hover,
-  [data-slot='trigger'][aria-haspopup='listbox']:hover {
+  .select__trigger:hover,
+  .select__trigger[data-hovered='true'] {
     border-color: var(--color-accent) !important;
-    background-color: rgba(245, 240, 232, 0.8) !important;
+    background-color: rgba(245, 240, 232, 0.85) !important;
     box-shadow: none !important;
     transform: none !important;
   }
-
-  [role='combobox'][data-slot='trigger']:focus-within,
-  [role='combobox'][data-slot='trigger'][data-open='true'],
-  [data-slot='trigger'][aria-haspopup='listbox']:focus-within,
-  [data-slot='trigger'][aria-haspopup='listbox'][data-open='true'] {
+  .select__trigger[data-focus-visible='true'],
+  .select__trigger[data-open='true'] {
     border-color: var(--color-accent) !important;
-    box-shadow: none !important; /* no glow on select, consistent with textarea */
+    box-shadow: none !important;
     outline: none !important;
   }
-  /* Select value and placeholder typography */
-  [data-slot='value'] {
+  .select__trigger[data-disabled='true'] {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+  }
+
+  /* Value */
+  .select__value {
     color: var(--color-text-primary) !important;
     font-family: var(--font-body) !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     letter-spacing: 0.01em !important;
   }
-
-  [data-slot='placeholder'] {
+  .select__value[data-placeholder='true'] {
     color: var(--color-text-muted) !important;
-    font-family: var(--font-body) !important;
-    font-size: 13px !important;
     font-weight: 400 !important;
-    opacity: 0.7 !important;
+    opacity: 0.65 !important;
   }
-  /* Listbox / popover content */
-  [data-slot='popover-content'] {
+
+  /* Indicator (dropdown chevron) */
+  .select__indicator {
+    color: var(--color-text-muted) !important;
+    opacity: 0.5 !important;
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease !important;
+  }
+  .select__indicator[data-open='true'] {
+    transform: rotate(180deg) !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Popover / listbox container */
+  .select__popover {
     background-color: var(--color-bg) !important;
     border: 1px solid var(--color-border-strong) !important;
     border-radius: var(--radius-md) !important;
@@ -1008,12 +1021,7 @@ select:focus {
     padding: 4px !important;
   }
 
-  [data-slot='listbox'] {
-    background: transparent !important;
-    border: none !important;
-    padding: 2px !important;
-  }
-
+  /* Listbox options */
   [data-slot='option'] {
     border-radius: var(--radius-sm) !important;
     padding: 7px 10px !important;
@@ -1026,47 +1034,31 @@ select:focus {
     margin: 1px 0 !important;
     transition: background-color 0.08s ease !important;
   }
-
-  [data-slot='option']:hover:not([data-selected='true']) {
-    background-color: rgba(
-      184,
-      145,
-      106,
-      0.08
-    ) !important; /* var(--color-accent-light) equivalent */
+  [data-slot='option']:hover:not([data-selected='true']),
+  [data-slot='option'][data-hovered='true']:not([data-selected='true']) {
+    background-color: var(--color-accent-light) !important;
     color: var(--color-text-primary) !important;
   }
-
   [data-slot='option'][data-selected='true'] {
-    background-color: rgba(184, 145, 106, 0.14) !important;
+    background-color: rgba(184, 145, 106, 0.18) !important;
     color: var(--color-accent) !important;
     font-weight: 600 !important;
   }
-
   [data-slot='option'][data-focused='true']:not([data-selected='true']) {
-    background-color: rgba(184, 145, 106, 0.06) !important;
+    background-color: rgba(184, 145, 106, 0.08) !important;
   }
 
-  [data-slot='selector-icon'] {
-    color: var(--color-text-muted) !important;
-    opacity: 0.5 !important;
-    transition:
-      transform 0.15s ease,
-      opacity 0.15s ease !important;
-  }
-
-  [data-slot='trigger'][data-open='true'] [data-slot='selector-icon'] {
-    transform: rotate(180deg) !important;
-    opacity: 0.8 !important;
-  }
-
-  /* Landing page selects */
-  .landing-select [data-slot='trigger'] {
-    background: transparent !important;
+  /* Also keep the combobox/aria fallback selectors for any HeroUI internal use */
+  [role='combobox'][data-slot='trigger'],
+  [data-slot='trigger'][aria-haspopup='listbox'] {
+    background-color: rgba(245, 240, 232, 0.65) !important;
     border: 1px solid var(--color-border-strong) !important;
     border-radius: var(--radius-md) !important;
-    color: var(--color-text-primary) !important;
     font-family: var(--font-body) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    min-height: 36px !important;
+    box-shadow: none !important;
   }
 
   /* ----- POPOVER / LISTBOX ----- */

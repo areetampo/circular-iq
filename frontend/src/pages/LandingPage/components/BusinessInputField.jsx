@@ -23,8 +23,8 @@ export default function BusinessInputField({
       <div className="flex items-center gap-2">
         <Label
           htmlFor={id}
-          className="text-sm font-medium tracking-wide text-(--color-text-primary) mb-1 flex items-center gap-2"
-          style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.025em' }}
+          className="text-[14px] font-semibold leading-snug tracking-[-0.01em] mb-1 flex items-center gap-2"
+          style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-body)' }}
         >
           {label}
         </Label>
@@ -41,7 +41,7 @@ export default function BusinessInputField({
 
       {/* Description */}
       <p
-        className="text-[13px] leading-relaxed"
+        className="text-[13px] leading-relaxed mt-0.5 mb-1"
         style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
       >
         {description}
@@ -56,11 +56,24 @@ export default function BusinessInputField({
           onBlur: () => flushAutosave(),
         })}
         disabled={loading}
-        className="bg-(--color-bg-field) border border-(--color-border-strong) rounded-lg p-4 text-[15px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) resize transition-all duration-200 outline-none w-full min-h-35"
+        className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-lg p-4 text-(--color-text-primary) placeholder:text-(--color-text-muted) resize-y transition-all duration-200 outline-none w-full min-h-35"
         style={{
+          backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
+          borderColor: 'var(--color-border-strong)',
+          color: 'var(--color-text-primary)',
           fontFamily: 'var(--font-body)',
-          lineHeight: '1.6',
-          letterSpacing: '0.01em',
+          fontSize: '14.5px',
+          lineHeight: '1.8',
+          letterSpacing: '0.008em',
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = 'var(--color-accent)';
+          e.target.style.borderWidth = '1.5px';
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = 'var(--color-border-strong)';
+          e.target.style.borderWidth = '1px';
+          flushAutosave();
         }}
       />
 

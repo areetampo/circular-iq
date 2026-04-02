@@ -686,37 +686,37 @@ export const categoryMapping = {
  * Each tier defines minScore and color classes for selected/unselected states
  */
 export const TIER_CONFIG = [
-  // ≥75 — Sage/forest (high score, positive)
+  // ≥75 — Sage/forest (high score) — SELECTED has strong readable text
   {
     minScore: 75,
     selected:
-      'border-l-4 border-[var(--color-success)] bg-[oklch(0.96_0.018_145/_0.35)] text-[var(--color-success)] shadow-sm',
+      'border-l-4 border-[var(--color-success)] bg-[oklch(0.95_0.022_145/_0.25)] text-[var(--color-success)]',
     unselected:
-      'border border-[oklch(0.88_0.01_145/_0.3)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
+      'border border-[oklch(0.82_0.02_145/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.01_145/_0.1)]',
   },
-  // ≥55 — Warm tan/accent (decent)
+  // ≥55 — Warm tan/accent
   {
     minScore: 55,
     selected:
-      'border-l-4 border-[var(--color-accent)] bg-[oklch(0.96_0.018_68/_0.3)] text-[var(--color-accent)] shadow-sm',
+      'border-l-4 border-[var(--color-accent)] bg-[oklch(0.95_0.022_68/_0.22)] text-[var(--color-accent)]',
     unselected:
-      'border border-[oklch(0.90_0.012_68/_0.3)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
+      'border border-[oklch(0.82_0.018_68/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.012_68/_0.1)]',
   },
-  // ≥35 — Warm amber/warning
+  // ≥35 — Amber/warning
   {
     minScore: 35,
     selected:
-      'border-l-4 border-[var(--color-warning)] bg-[oklch(0.96_0.016_60/_0.28)] text-[var(--color-warning)] shadow-sm',
+      'border-l-4 border-[var(--color-warning)] bg-[oklch(0.95_0.02_55/_0.22)] text-[var(--color-warning)]',
     unselected:
-      'border border-[oklch(0.91_0.01_60/_0.3)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
+      'border border-[oklch(0.82_0.016_55/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.01_55/_0.1)]',
   },
-  // ≥0 — Terracotta/error (low score)
+  // ≥0 — Terracotta (low score)
   {
     minScore: 0,
     selected:
-      'border-l-4 border-[var(--color-error)] bg-[oklch(0.96_0.014_20/_0.22)] text-[var(--color-error)] shadow-sm',
+      'border-l-4 border-[var(--color-error)] bg-[oklch(0.95_0.018_20/_0.18)] text-[var(--color-error)]',
     unselected:
-      'border border-[oklch(0.92_0.008_20/_0.25)] bg-transparent text-[var(--color-text-muted)] opacity-55 hover:opacity-75',
+      'border border-[oklch(0.82_0.014_20/_0.35)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.008_20/_0.08)]',
   },
 ];
 

@@ -163,6 +163,7 @@ Button.propTypes = {
   variant: PropTypes.oneOf([
     'primary',
     'secondary',
+    'tertiary',
     'ghost',
     'danger',
     'dialog-primary',

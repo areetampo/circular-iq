@@ -222,7 +222,7 @@ export default function Navbar() {
               <div className="hidden md:flex items-center gap-3">
                 <button
                   onClick={() => navigate('/auth')}
-                  className="text-sm text-(--color-text-primary) bg-[#edd6bdc4] hover:bg-[#b8916a] px-4 py-2 rounded-md transition-colors cursor-pointer"
+                  className="text-sm text-slate-500 hover:text-black px-4 py-2 rounded-md transition-colors cursor-pointer"
                 >
                   Sign in
                 </button>
