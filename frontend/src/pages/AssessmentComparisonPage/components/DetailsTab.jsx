@@ -1,141 +1,108 @@
 import {
   ArrowRight,
-  Award,
   FileText,
   Lightbulb,
   Minus,
+  Target,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
+import { Chip, SectionHeading } from '@/components/common';
+import { GapAnalysisCard } from '@/components/results/shared/GapAnalysisCard';
 import { formatTimestamp, titleize } from '@/lib/formatting';
-import { formatFactorName } from '@/lib/scoring';
 
 export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringResult2 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-      <div className="border-r border-(--color-border) pr-8">
+    <div className="space-y-8">
+      {/* Full-width comparison sections */}
+      <div className="space-y-8">
         {/* Project Details */}
-        <div className="border-t border-(--color-border) pt-6 mt-6 first:border-0 first:pt-0 first:mt-0">
-          <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4 flex items-center gap-2">
-            <FileText size={14} />
+        <div>
+          <SectionHeading
+            variant="small"
+            icon={<FileText className="w-4 h-4 text-(--color-accent)" />}
+          >
             Project Details
-          </p>
-          <div className="space-y-2">
-            {[
-              {
-                label: 'Industry',
-                value1: titleize(scoringResult1?.metadata?.industry || assessment1.industry || ''),
-                value2: titleize(scoringResult2?.metadata?.industry || assessment2.industry || ''),
-              },
-              {
-                label: 'Scale',
-                value1: titleize(scoringResult1?.metadata?.scale),
-                value2: titleize(scoringResult2?.metadata?.scale),
-              },
-              {
-                label: 'Strategy',
-                value1: titleize(scoringResult1?.metadata?.r_strategy),
-                value2: titleize(scoringResult2?.metadata?.r_strategy),
-              },
-              {
-                label: 'Material',
-                value1: titleize(scoringResult1?.metadata?.primary_material),
-                value2: titleize(scoringResult2?.metadata?.primary_material),
-              },
-            ].map(({ label, value1, value2 }) => (
-              <div
-                key={label}
-                className="flex justify-between items-start py-2 border-b border-(--color-border) last:border-0 text-sm gap-4"
-              >
-                <span className="text-(--color-text-muted) shrink-0">{label}</span>
-                <div className="flex gap-2 items-center flex-1 justify-end">
-                  <Chip variant="default" size="sm" className="transition-all duration-200">
-                    {value1}
-                  </Chip>
-                  <span className="text-(--color-text-muted)">vs</span>
-                  <Chip variant="default" size="sm" className="transition-all duration-200">
-                    {value2}
-                  </Chip>
-                </div>
-              </div>
-            ))}
+          </SectionHeading>
+
+          <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-center">
+            <span className="text-sm font-medium text-(--color-text-muted)">Industry</span>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult1?.metadata?.industry || assessment1.industry || '')}
+            </Chip>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult2?.metadata?.industry || assessment2.industry || '')}
+            </Chip>
+          </div>
+
+          <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-center">
+            <span className="text-sm font-medium text-(--color-text-muted)">Scale</span>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult1?.metadata?.scale)}
+            </Chip>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult2?.metadata?.scale)}
+            </Chip>
+          </div>
+
+          <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-center">
+            <span className="text-sm font-medium text-(--color-text-muted)">Strategy</span>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult1?.metadata?.r_strategy)}
+            </Chip>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult2?.metadata?.r_strategy)}
+            </Chip>
+          </div>
+
+          <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-center">
+            <span className="text-sm font-medium text-(--color-text-muted)">Material</span>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult1?.metadata?.primary_material)}
+            </Chip>
+            <Chip variant="tag" className="text-xs">
+              {titleize(scoringResult2?.metadata?.primary_material)}
+            </Chip>
+          </div>
+
+          <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-center">
+            <span className="text-sm font-medium text-(--color-text-muted)">Geography</span>
+            <Chip variant="tag" className="text-xs">
+              {titleize(
+                scoringResult1?.metadata?.geographic_focus || assessment1.geographic_focus || '',
+              )}
+            </Chip>
+            <Chip variant="tag" className="text-xs">
+              {titleize(
+                scoringResult2?.metadata?.geographic_focus || assessment2.geographic_focus || '',
+              )}
+            </Chip>
           </div>
         </div>
 
         {/* Gap Analysis Comparison */}
-        {(scoringResult1?.gap_analysis?.has_benchmarks ||
-          scoringResult2?.gap_analysis?.has_benchmarks) && (
-          <div className="border-t border-(--color-border) pt-6 mt-6">
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4 flex items-center gap-2">
-              <Award size={14} />
-              Gap Analysis vs Similar Projects
-            </p>
-            <div className="space-y-2">
-              {Object.keys(scoringResult1?.sub_scores || scoringResult2?.sub_scores || {}).map(
-                (factor) => {
-                  const comp1 = scoringResult1?.gap_analysis?.comparisons?.[factor];
-                  const comp2 = scoringResult2?.gap_analysis?.comparisons?.[factor];
-                  const getStatusColor = (s) =>
-                    s === 'above_average'
-                      ? 'text-(--color-success)'
-                      : s === 'below_average'
-                        ? 'text-(--color-danger)'
-                        : 'text-(--color-info)';
-                  return (
-                    <div
-                      key={factor}
-                      className="flex justify-between items-start py-2 border-b border-(--color-border) last:border-0 text-sm gap-4"
-                    >
-                      <span className="text-(--color-text-muted) shrink-0">
-                        {formatFactorName(factor)}
-                      </span>
-                      <div className="flex gap-4 items-center flex-1 justify-end">
-                        {comp1 ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-sm font-bold text-(--color-text-primary)">
-                              {comp1.userScore}
-                            </span>
-                            <span
-                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${getStatusColor(comp1.status)}`}
-                            >
-                              {comp1.status?.replace(/_/g, ' ') || '—'}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-(--color-text-muted)">—</span>
-                        )}
-                        {comp2 ? (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-sm font-bold text-(--color-text-primary)">
-                              {comp2.userScore}
-                            </span>
-                            <span
-                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${getStatusColor(comp2.status)}`}
-                            >
-                              {comp2.status?.replace(/_/g, ' ') || '—'}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-(--color-text-muted)">—</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                },
-              )}
+        <div className="border-t border-(--color-border) pt-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div className="border-r border-(--color-border) pr-8">
+              <GapAnalysisCard result={scoringResult1} variant="transparent" />
+            </div>
+            <div className="pl-8">
+              <GapAnalysisCard result={scoringResult2} variant="transparent" />
             </div>
           </div>
-        )}
+        </div>
 
         {/* Circular Economy Tier Comparison */}
         {(scoringResult1?.circular_economy_tier || scoringResult2?.circular_economy_tier) && (
-          <div className="border-t border-(--color-border) pt-6 mt-6">
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">
+          <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
+            <SectionHeading
+              variant="small"
+              icon={<Target className="w-4 h-4 text-(--color-accent)" />}
+            >
               Circular Economy Tier
-            </p>
+            </SectionHeading>
             <div className="space-y-4">
               {[
                 { sr: scoringResult1, title: assessment1.title },
@@ -192,10 +159,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
         {/* R-Strategy Alignment Comparison */}
         {(scoringResult1?.r_strategy_alignment?.alignment_score != null ||
           scoringResult2?.r_strategy_alignment?.alignment_score != null) && (
-          <div className="border-t border-(--color-border) pt-6 mt-6">
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">
+          <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
+            <SectionHeading
+              variant="small"
+              icon={<Target className="w-4 h-4 text-(--color-accent)" />}
+            >
               R-Strategy Alignment
-            </p>
+            </SectionHeading>
             <div className="space-y-4">
               {[
                 { sr: scoringResult1, title: assessment1.title },
@@ -244,10 +214,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
 
         {/* Parameter Consistency Comparison */}
         {(scoringResult1?.parameter_consistency || scoringResult2?.parameter_consistency) && (
-          <div className="border-t border-(--color-border) pt-6 mt-6">
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4">
+          <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
+            <SectionHeading
+              variant="small"
+              icon={<Target className="w-4 h-4 text-(--color-accent)" />}
+            >
               Self-Assessment Reliability
-            </p>
+            </SectionHeading>
             <div className="space-y-4">
               {[
                 { sr: scoringResult1, title: assessment1.title },
@@ -302,11 +275,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
 
       <div className="pl-8">
         {/* Auditor's Verdict */}
-        <div className="border-t border-(--color-border) pt-6 mt-6 first:border-0 first:pt-0 first:mt-0">
-          <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-4 flex items-center gap-2">
-            <Lightbulb size={14} />
+        <div className="border-t border-(--color-border) pt-8 mt-6 first:border-0 first:pt-0 first:mt-0">
+          <SectionHeading
+            variant="small"
+            icon={<Lightbulb className="w-4 h-4 text-(--color-accent)" />}
+          >
             Auditor&apos;s Verdict
-          </p>
+          </SectionHeading>
           <div className="space-y-4">
             <div className="p-5 pl-4 border-l-4 rounded-r-lg border-(--color-success) bg-(--color-success-soft)">
               <p className="text-sm font-bold uppercase mb-2 tracking-wide text-(--color-success)">
@@ -329,13 +304,13 @@ export function DetailsTab({ assessment1, assessment2, scoringResult1, scoringRe
         </div>
 
         {/* Summary */}
-        <div className="border-t border-(--color-border) pt-6 mt-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-lg bg-(--color-accent-light)">
-              <Lightbulb className="text-(--color-accent)" size={20} />
-            </div>
-            <h3 className="text-xl font-bold text-(--color-text-primary)">Summary</h3>
-          </div>
+        <div className="border-t border-(--color-border) pt-8 mt-6">
+          <SectionHeading
+            variant="small"
+            icon={<Lightbulb className="w-4 h-4 text-(--color-accent)" />}
+          >
+            Summary
+          </SectionHeading>
           <div className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
               <strong className="text-(--color-text-primary)">Score Trend:</strong>

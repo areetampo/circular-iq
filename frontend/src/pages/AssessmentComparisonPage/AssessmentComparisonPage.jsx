@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react';
+import { Button, Tabs } from '@heroui/react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -10,15 +10,15 @@ import {
   TrendingUp,
   Upload,
 } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { Chip } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV } from '@/features/export';
-import { formatTimestamp, getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
+import { getCurrentTimestampFormatted, titleize } from '@/lib/formatting';
 
 import {
   ComparisonSkeleton,
@@ -27,6 +27,7 @@ import {
   FactorAnalysisTab,
   OverviewTab,
 } from './components';
+import { ChangeIndicator } from './components/ChangeIndicator';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
@@ -151,10 +152,12 @@ export default function AssessmentComparisonPage() {
 
   // Helper functions
   const getScoreColor = (score) => {
-    if (score >= 75) return 'success';
-    if (score >= 50) return 'warning';
-    return 'danger';
+    if (score >= 75) return 'var(--color-success)';
+    if (score >= 50) return 'var(--color-warning)';
+    return 'var(--color-error)';
   };
+
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Generate insights
   const generateInsights = () => {
@@ -282,180 +285,150 @@ export default function AssessmentComparisonPage() {
   return (
     <div className="space-y-0 w-full">
       {/* STICKY COMPARISON HEADER */}
-      <div className="sticky top-0 z-40 w-full border-b border-[rgba(180,160,130,0.18)] transition-all duration-200 backdrop-blur-md py-3 px-4 bg-[rgba(245,240,232,0.95)]">
-        <div className="grid grid-cols-2 gap-4 max-w-6xl mx-auto">
-          <div className="text-sm font-semibold truncate text-(--color-text-primary)">
-            {assessment1.title}
-            <span className="ml-2 font-(--font-mono) text-xs text-(--color-text-muted)">
-              {scoringResult1?.overall_score || 0}/100
-            </span>
-          </div>
-          <div className="text-sm font-semibold truncate text-(--color-text-primary)">
-            {assessment2.title}
-            <span className="ml-2 font-(--font-mono) text-xs text-(--color-text-muted)">
-              {scoringResult2?.overall_score || 0}/100
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Assessment Headers */}
-      <div className="w-full px-4 md:px-10 pt-8">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-          <div className="border border-[rgba(180,160,130,0.25)] rounded-xl bg-[rgba(245,240,232,0.5)]">
-            <div className="gap-3 p-5">
-              <h2 className="font-(--font-display) text-[20px] text-(--color-text-primary) tracking-[-0.02em] wrap-break-word">
-                {assessment1.title}
-              </h2>
-              <p className="text-[12px] font-medium italic text-(--color-text-muted)">
-                {formatTimestamp(assessment1.created_at)}
-              </p>
-              <div className="flex items-center gap-2 mt-3">
-                <Chip variant="status">Score: {scoringResult1?.overall_score || 0}/100</Chip>
-                <Chip variant="info">Conf: {scoringResult1?.confidence_level || 0}%</Chip>
-              </div>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {scoringResult1?.metadata?.industry && (
-                  <Chip variant="tag">{scoringResult1.metadata.industry}</Chip>
-                )}
-                {scoringResult1?.metadata?.scale && (
-                  <Chip variant="tag">{scoringResult1.metadata.scale}</Chip>
-                )}
-                {scoringResult1?.metadata?.r_strategy && (
-                  <Chip variant="tag">{scoringResult1.metadata.r_strategy}</Chip>
-                )}
-              </div>
-              <Chip variant="status" className="w-fit mt-2 font-semibold">
-                Assessment 1
-              </Chip>
-            </div>
-          </div>
-
-          <div className="hidden md:flex items-center justify-center px-4">
-            <div className="text-center">
-              <span className="text-sm font-bold px-3 py-1.5 rounded-md bg-[rgba(184,145,106,0.1)] text-(--color-accent) border border-[rgba(184,145,106,0.3)]">
-                VS
+      <div className="sticky top-0 z-20 bg-(--color-bg) border-b border-(--color-border) py-4 px-6">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 max-w-7xl mx-auto">
+          {/* Left: Assessment 1 */}
+          <div>
+            <h2 className="font-(--font-display) text-xl text-(--color-text-primary) truncate">
+              {assessment1.title}
+            </h2>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span
+                className="font-(--font-mono) text-3xl"
+                style={{ color: getScoreColor(scoringResult1?.overall_score || 0) }}
+              >
+                {scoringResult1?.overall_score || 0}
               </span>
+              <span className="text-sm text-(--color-text-muted)">/100</span>
             </div>
           </div>
-
-          <div className="border border-[rgba(180,160,130,0.25)] rounded-xl bg-[rgba(245,240,232,0.5)]">
-            <div className="gap-3 p-5">
-              <h2 className="font-(--font-display) text-[20px] text-(--color-text-primary) tracking-[-0.02em] wrap-break-word">
-                {assessment2.title}
-              </h2>
-              <p className="text-[12px] font-medium italic text-(--color-text-muted)">
-                {formatTimestamp(assessment2.created_at)}
-              </p>
-              <div className="flex items-center gap-2 mt-3">
-                <Chip variant="status">Score: {scoringResult2?.overall_score || 0}/100</Chip>
-                <Chip variant="info">Conf: {scoringResult2?.confidence_level || 0}%</Chip>
-              </div>
-              <div className="flex flex-wrap gap-1 mt-2">
-                {scoringResult2?.metadata?.industry && (
-                  <Chip variant="tag">{scoringResult2.metadata.industry}</Chip>
-                )}
-                {scoringResult2?.metadata?.scale && (
-                  <Chip variant="tag">{scoringResult2.metadata.scale}</Chip>
-                )}
-                {scoringResult2?.metadata?.r_strategy && (
-                  <Chip variant="tag">{scoringResult2.metadata.r_strategy}</Chip>
-                )}
-              </div>
-              <Chip variant="status" className="w-fit mt-2 font-semibold">
-                Assessment 2
-              </Chip>
+          {/* Center: VS badge */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-xs font-bold tracking-widest uppercase text-(--color-text-muted)">
+              vs
+            </span>
+            {overallDelta !== 0 && <ChangeIndicator diff={overallDelta} />}
+          </div>
+          {/* Right: Assessment 2 */}
+          <div className="text-right">
+            <h2 className="font-(--font-display) text-xl text-(--color-text-primary) truncate">
+              {assessment2.title}
+            </h2>
+            <div className="flex items-baseline gap-1 mt-1 justify-end">
+              <span
+                className="font-(--font-mono) text-3xl"
+                style={{ color: getScoreColor(scoringResult2?.overall_score || 0) }}
+              >
+                {scoringResult2?.overall_score || 0}
+              </span>
+              <span className="text-sm text-(--color-text-muted)">/100</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Vertical Content - 2 column layout */}
-      <div className="max-w-7xl mx-auto px-0 sm:px-6 space-y-8">
-        {/* OVERVIEW SECTION */}
-        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
-          <span className="text-[10px] tracking-widest text-(--color-text-muted) uppercase font-semibold">
-            OVERVIEW
-          </span>
+      {/* TAB BAR */}
+      <div className="border-b border-(--color-border) mb-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <Tabs
+            selectedKey={activeTab}
+            onSelectionChange={setActiveTab}
+            variant="underlined"
+            classNames={{
+              tabList: 'gap-6 w-full relative rounded-none p-0 border-b border-(--color-border)',
+              cursor: 'w-full bg-(--color-accent) rounded-full',
+              tab: 'max-w-fit px-0 h-12',
+              tabContent:
+                'group-data-[selected=true]:text-(--color-accent) font-semibold text-(--color-text-muted)',
+            }}
+          >
+            <Tabs.Item key="overview" title="Overview" />
+            <Tabs.Item key="factors" title="Factor Analysis" />
+            <Tabs.Item key="details" title="Details" />
+            <Tabs.Item key="evidence" title="Database Evidence" />
+          </Tabs>
         </div>
-        <OverviewTab
-          assessment1={assessment1}
-          assessment2={assessment2}
-          scoringResult1={scoringResult1}
-          scoringResult2={scoringResult2}
-          insights={insights}
-        />
+      </div>
 
-        <div className="border-t border-[rgba(180,160,130,0.18)] my-10" />
-
-        {/* FACTOR ANALYSIS SECTION */}
-        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
-          <span className="text-[10px] tracking-[0.1em] text-(--color-text-muted) uppercase font-semibold">
-            FACTOR ANALYSIS
-          </span>
-        </div>
-        <FactorAnalysisTab
-          assessment1={assessment1}
-          assessment2={assessment2}
-          scoringResult1={scoringResult1}
-          scoringResult2={scoringResult2}
-          factorDiffs={factorDiffs}
-          radarChartData={radarChartData}
-          radarConfigs={radarConfigs}
-          barChartData={barChartData}
-          barConfigs={barConfigs}
-          getScoreColor={getScoreColor}
-        />
-
-        <div className="border-t border-[rgba(180,160,130,0.18)] my-10" />
-
-        {/* DETAILS SECTION */}
-        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
-          <span className="text-[10px] tracking-[0.1em] text-(--color-text-muted) uppercase font-semibold">
-            DETAILS
-          </span>
-        </div>
-        <DetailsTab
-          assessment1={assessment1}
-          assessment2={assessment2}
-          scoringResult1={scoringResult1}
-          scoringResult2={scoringResult2}
-        />
-
-        <div className="border-t border-[rgba(180,160,130,0.18)] my-10" />
-
-        {/* DATABASE EVIDENCE SECTION */}
-        <div className="border-b border-[rgba(180,160,130,0.18)] pb-3 mb-6">
-          <span className="text-[10px] tracking-[0.1em] text-(--color-text-muted) uppercase font-semibold">
-            DATABASE EVIDENCE
-          </span>
-        </div>
-        <DatabaseEvidenceTab
-          assessment1={assessment1}
-          assessment2={assessment2}
-          scoringResult1={scoringResult1}
-          scoringResult2={scoringResult2}
-          openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
-        />
-
-        {/* Footer */}
-        <div className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2 border-[rgba(180,160,130,0.18)]">
-          <p className="text-[12px] font-medium text-(--color-text-muted)">
-            Last updated: {getCurrentTimestampFormatted()}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="primary"
-              onPress={() => exportComparisonCSV([assessment1, assessment2])}
-            >
-              <Upload size={16} />
-              Export CSV
-            </Button>
-            <Button variant="tertiary" onPress={handleBack}>
-              <ArrowLeft size={16} />
-              Back to Assessments
-            </Button>
+      {/* TAB CONTENT */}
+      <div className="max-w-7xl mx-auto px-6 pb-8">
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div className="border-r border-(--color-border) pr-8">
+              <OverviewTab
+                assessment={assessment1}
+                scoringResult={scoringResult1}
+                insights={insights}
+                variant="left"
+              />
+            </div>
+            <div className="pl-8">
+              <OverviewTab
+                assessment={assessment2}
+                scoringResult={scoringResult2}
+                insights={insights}
+                variant="right"
+              />
+            </div>
           </div>
+        )}
+
+        {activeTab === 'factors' && (
+          <FactorAnalysisTab
+            assessment1={assessment1}
+            assessment2={assessment2}
+            scoringResult1={scoringResult1}
+            scoringResult2={scoringResult2}
+            factorDiffs={factorDiffs}
+            radarChartData={radarChartData}
+            radarConfigs={radarConfigs}
+            barChartData={barChartData}
+            barConfigs={barConfigs}
+            getScoreColor={getScoreColor}
+          />
+        )}
+
+        {activeTab === 'details' && (
+          <DetailsTab
+            assessment1={assessment1}
+            assessment2={assessment2}
+            scoringResult1={scoringResult1}
+            scoringResult2={scoringResult2}
+          />
+        )}
+
+        {activeTab === 'evidence' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DatabaseEvidenceTab
+              assessment={assessment1}
+              scoringResult={scoringResult1}
+              openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
+              variant="single"
+            />
+            <DatabaseEvidenceTab
+              assessment={assessment2}
+              scoringResult={scoringResult2}
+              openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
+              variant="single"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="w-full px-4 sm:px-8 flex flex-col md:flex-row justify-between items-center gap-4 py-6 border-t-2 border-[rgba(180,160,130,0.18)]">
+        <p className="text-[12px] font-medium text-(--color-text-muted)">
+          Last updated: {getCurrentTimestampFormatted()}
+        </p>
+        <div className="flex gap-2">
+          <Button variant="primary" onPress={() => exportComparisonCSV([assessment1, assessment2])}>
+            <Upload size={16} />
+            Export CSV
+          </Button>
+          <Button variant="tertiary" onPress={handleBack}>
+            <ArrowLeft size={16} />
+            Back to Assessments
+          </Button>
         </div>
       </div>
     </div>

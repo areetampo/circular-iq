@@ -1,83 +1,259 @@
-import { ProgressBar } from '@heroui/react';
 import { Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
+import { SectionHeading } from '@/components/common/SectionHeading';
+import { parameterLabels } from '@/constants/evaluationData';
 import { titleize } from '@/lib/formatting';
 
+// Single assessment overview component
+function SingleAssessmentOverview({ assessment, scoringResult, variant }) {
+  const subScores = scoringResult?.sub_scores || {};
+  const topFactor = Object.entries(subScores).reduce((a, b) => (b[1] > a[1] ? b : a), ['N/A', 0]);
+  const focusFactor = Object.entries(subScores).reduce((a, b) => (b[1] < a[1] ? b : a), ['N/A', 0]);
+  const avgScore =
+    Object.values(subScores).length > 0
+      ? Math.round(
+          Object.values(subScores).reduce((a, b) => a + b, 0) / Object.values(subScores).length,
+        )
+      : 0;
+
+  return (
+    <div className="space-y-8">
+      {/* Input Data & Context */}
+      <div>
+        <SectionHeading
+          variant="small"
+          icon={<Lightbulb className="w-4 h-4 text-(--color-accent)" />}
+        >
+          Input Data & Context
+        </SectionHeading>
+
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-(--color-text-muted) mb-1">
+              Business Problem
+            </p>
+            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+              {assessment?.business_problem || 'N/A'}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-(--color-text-muted) mb-1">
+              Business Solution
+            </p>
+            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+              {assessment?.business_solution || 'N/A'}
+            </p>
+          </div>
+
+          {scoringResult?.metadata?.short_description && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-(--color-text-muted) mb-1">
+                Assessment Summary
+              </p>
+              <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                {scoringResult.metadata.short_description}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Score Highlights */}
+      <div>
+        <SectionHeading variant="small" icon={<Target className="w-4 h-4 text-(--color-accent)" />}>
+          Score Highlights
+        </SectionHeading>
+
+        <div className="space-y-4">
+          {/* Strongest Factor */}
+          <div className="p-4 border border-(--color-border) rounded-lg">
+            <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">Strongest Factor</p>
+            <p className="text-lg font-bold text-(--color-success)">
+              {topFactor[0] !== 'N/A' ? titleize(topFactor[0]) : 'N/A'}
+            </p>
+            <p className="text-sm font-semibold text-(--color-text-muted)">
+              {topFactor[0] !== 'N/A' ? `${topFactor[1]}/100` : '—'}
+            </p>
+          </div>
+
+          {/* Focus Area */}
+          <div className="p-4 border border-(--color-border) rounded-lg">
+            <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">Focus Area</p>
+            <p className="text-lg font-bold text-(--color-warning)">
+              {focusFactor[0] !== 'N/A' ? titleize(focusFactor[0]) : 'N/A'}
+            </p>
+            <p className="text-sm font-semibold text-(--color-text-muted)">
+              {focusFactor[0] !== 'N/A' ? `${focusFactor[1]}/100` : '—'}
+            </p>
+          </div>
+
+          {/* Average Score */}
+          <div className="p-4 border border-(--color-border) rounded-lg">
+            <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">Average Score</p>
+            <p className="text-lg font-bold text-(--color-accent)">{avgScore}/100</p>
+            <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border) mt-2">
+              <div
+                className="h-1.5 rounded-full bg-(--color-accent)"
+                style={{ width: `${avgScore}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Business Viability Score */}
+          {(() => {
+            const computeBusinessViabilityScore = (res) => {
+              if (!res) return 0;
+              const confidence = res.audit?.confidence_score;
+              const normalizedConfidence = confidence ? (confidence / 100) * 100 : 50;
+              return Math.round(
+                (Number(res.overall_score) || 0) * 0.7 + normalizedConfidence * 0.3,
+              );
+            };
+            const businessViabilityScore = computeBusinessViabilityScore(scoringResult);
+
+            return (
+              <div className="p-4 border border-(--color-border) rounded-lg">
+                <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">
+                  Business Viability
+                </p>
+                <p className="text-lg font-bold text-(--color-success)">
+                  {businessViabilityScore}/100
+                </p>
+                <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border) mt-2">
+                  <div
+                    className="h-1.5 rounded-full bg-(--color-success)"
+                    style={{ width: `${businessViabilityScore}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* Audit Verdict */}
+      {scoringResult?.audit?.audit_verdict && (
+        <div>
+          <SectionHeading
+            variant="small"
+            icon={<Target className="w-4 h-4 text-(--color-accent)" />}
+          >
+            Audit Verdict
+          </SectionHeading>
+
+          <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed">
+            {scoringResult.audit.audit_verdict}
+          </div>
+        </div>
+      )}
+
+      {/* Score Breakdown */}
+      {scoringResult?.score_breakdown && (
+        <div>
+          <SectionHeading
+            variant="small"
+            icon={<Target className="w-4 h-4 text-(--color-accent)" />}
+          >
+            Score Breakdown
+          </SectionHeading>
+
+          <div className="space-y-3">
+            {Object.entries(scoringResult.score_breakdown).map(([category, data]) => (
+              <div
+                key={category}
+                className="flex items-center gap-3 py-2 border-b border-(--color-border) last:border-0"
+              >
+                <div className="w-36 text-xs font-medium truncate shrink-0 text-(--color-text-muted)">
+                  {category}
+                </div>
+                <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border)">
+                  <div
+                    className="h-1.5 rounded-full bg-(--color-accent)"
+                    style={{ width: `${data.score}%` }}
+                  />
+                </div>
+                <div className="text-xs w-8 text-right shrink-0 font-mono text-(--color-text-primary)">
+                  {data.score}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Evaluation Parameters */}
+      {assessment?.evaluation_parameters && (
+        <div>
+          <SectionHeading
+            variant="small"
+            icon={<Target className="w-4 h-4 text-(--color-accent)" />}
+          >
+            Evaluation Parameters
+          </SectionHeading>
+
+          <div className="space-y-3">
+            {Object.entries(parameterLabels).map(([key, paramInfo]) => {
+              const value = assessment.evaluation_parameters[key];
+              if (value === undefined || value === null) return null;
+
+              return (
+                <div
+                  key={key}
+                  className="flex justify-between items-center py-2.5 border-b border-(--color-border) last:border-0 text-sm"
+                >
+                  <span className="text-(--color-text-muted) w-2/3">{paramInfo.label}</span>
+                  <span className="text-(--color-text-primary) w-1/3 text-right font-medium">
+                    {typeof value === 'number' ? value : value}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 export function OverviewTab({
+  assessment,
+  scoringResult,
+  insights,
+  variant = 'left', // 'left' or 'right' for side-by-side view
+  // Legacy props for backward compatibility
   assessment1,
   assessment2,
   scoringResult1,
   scoringResult2,
-  insights,
   overallDelta,
   biggestGain,
   biggestDrop,
   averageDelta,
 }) {
+  // Handle new single-assessment variant
+  if (assessment && scoringResult) {
+    return (
+      <SingleAssessmentOverview
+        assessment={assessment}
+        scoringResult={scoringResult}
+        variant={variant}
+      />
+    );
+  }
+
+  // Legacy comparison mode - keep existing comparison sections
   return (
     <>
-      {/* Input Data Comparison */}
-      <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6 flex items-center gap-2">
-          <Lightbulb size={14} />
-          Input Data & Context
-        </p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Assessment 1 */}
-          <div>
-            <p className="text-xs font-semibold text-(--color-text-primary) mb-3 truncate">
-              {assessment1?.title || 'Assessment 1'}
-            </p>
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
-              Business Problem
-            </p>
-            <p className="text-sm text-(--color-text-secondary) leading-relaxed mb-4">
-              {assessment1?.business_problem || 'N/A'}
-            </p>
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
-              Business Solution
-            </p>
-            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-              {assessment1?.business_solution || 'N/A'}
-            </p>
-          </div>
-
-          {/* Assessment 2 */}
-          <div className="lg:border-l lg:border-(--color-border) lg:pl-8">
-            <p className="text-xs font-semibold text-(--color-text-primary) mb-3 truncate">
-              {assessment2?.title || 'Assessment 2'}
-            </p>
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
-              Business Problem
-            </p>
-            <p className="text-sm text-(--color-text-secondary) leading-relaxed mb-4">
-              {assessment2?.business_problem || 'N/A'}
-            </p>
-            <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-1">
-              Business Solution
-            </p>
-            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-              {assessment2?.business_solution || 'N/A'}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Derived Metrics Comparison */}
       <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6">
+        <SectionHeading variant="small" icon={<Target className="w-4 h-4 text-(--color-accent)" />}>
           Derived Metrics
-        </p>
+        </SectionHeading>
 
         <div className="space-y-0">
-          {[
-            { key: 'technical_feasibility', label: 'Technical Feasibility' },
-            { key: 'economic_viability', label: 'Economic Viability' },
-            { key: 'circularity_potential', label: 'Circularity Potential' },
-          ].map(({ key, label }) => {
+          {Object.entries(parameterLabels).map(([key, paramInfo]) => {
             const val1 = scoringResult1?.derived_metrics?.[key] || 0;
             const val2 = scoringResult2?.derived_metrics?.[key] || 0;
             const winner = val1 > val2 ? 1 : val2 > val1 ? 2 : null;
@@ -86,7 +262,7 @@ export function OverviewTab({
                 key={key}
                 className="flex justify-between items-center py-2.5 border-b border-(--color-border) last:border-0 text-sm"
               >
-                <span className="text-(--color-text-muted)">{label}</span>
+                <span className="text-(--color-text-muted)">{paramInfo.label}</span>
                 <div className="flex items-center gap-4">
                   <span
                     className={`font-medium ${winner === 1 ? 'text-(--color-success)' : 'text-(--color-text-muted)'}`}
@@ -135,126 +311,15 @@ export function OverviewTab({
         </div>
       </div>
 
-      {/* Evaluation Parameters Summary */}
-      <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6">
-          Evaluation Parameters
-        </p>
-
-        <div className="space-y-0">
-          {Object.entries(
-            assessment1?.evaluation_parameters ||
-              assessment1?.result_json?.evaluation_parameters ||
-              {},
-          ).map(([key, value1]) => {
-            const value2 =
-              assessment2?.evaluation_parameters?.[key] ||
-              assessment2?.result_json?.evaluation_parameters?.[key];
-            return (
-              <div
-                key={key}
-                className="flex justify-between items-center py-2.5 border-b border-(--color-border) last:border-0 text-sm"
-              >
-                <span className="text-(--color-text-muted) capitalize">
-                  {key.replace(/_/g, ' ')}
-                </span>
-                <div className="flex items-center gap-4">
-                  <span className="text-(--color-text-primary) font-medium">
-                    {String(value1).substring(0, 30)}
-                    {String(value1).length > 30 ? '...' : ''}
-                  </span>
-                  <span className="text-(--color-text-primary) font-medium">
-                    {String(value2 || '').substring(0, 30)}
-                    {String(value2 || '').length > 30 ? '...' : ''}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Business Context Comparison */}
-      <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6">
-          Business Context
-        </p>
-
-        <div className="space-y-0">
-          {(() => {
-            const ctx1 =
-              assessment1?.result_json?.business_context || assessment1?.business_context || {};
-            const ctx2 =
-              assessment2?.result_json?.business_context || assessment2?.business_context || {};
-            const allKeys = new Set([...Object.keys(ctx1), ...Object.keys(ctx2)]);
-
-            if (allKeys.size === 0) {
-              return (
-                <div className="text-center py-6 text-(--color-text-muted)">
-                  No business context data available
-                </div>
-              );
-            }
-
-            return Array.from(allKeys).map((key) => {
-              const value1 = ctx1[key];
-              const value2 = ctx2[key];
-              const val1Str =
-                value1 === null || value1 === undefined
-                  ? 'Not specified'
-                  : typeof value1 === 'boolean'
-                    ? value1
-                      ? 'Yes'
-                      : 'No'
-                    : String(value1);
-              const val2Str =
-                value2 === null || value2 === undefined
-                  ? 'Not specified'
-                  : typeof value2 === 'boolean'
-                    ? value2
-                      ? 'Yes'
-                      : 'No'
-                    : String(value2);
-
-              return (
-                <div
-                  key={key}
-                  className="flex justify-between items-center py-2.5 border-b border-(--color-border) last:border-0 text-sm"
-                >
-                  <span className="text-(--color-text-muted) capitalize">
-                    {key.replace(/_/g, ' ')}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={`font-medium ${
-                        val1Str === val2Str ? 'text-(--color-text-muted)' : 'text-(--color-warning)'
-                      }`}
-                    >
-                      {val1Str.substring(0, 30)}
-                      {val1Str.length > 30 ? '...' : ''}
-                    </span>
-                    <span
-                      className={`font-medium ${
-                        val1Str === val2Str ? 'text-(--color-text-muted)' : 'text-(--color-warning)'
-                      }`}
-                    >
-                      {val2Str.substring(0, 30)}
-                      {val2Str.length > 30 ? '...' : ''}
-                    </span>
-                  </div>
-                </div>
-              );
-            });
-          })()}
-        </div>
-      </div>
       {/* Key Insights */}
       {insights && insights.length > 0 && (
         <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-          <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6 flex items-center gap-2">
-            <Lightbulb size={14} />
+          <SectionHeading
+            variant="small"
+            icon={<Lightbulb className="w-4 h-4 text-(--color-accent)" />}
+          >
             Key Insights
-          </p>
+          </SectionHeading>
 
           <div className="space-y-4">
             {insights.map((insight, idx) => {
@@ -264,10 +329,10 @@ export function OverviewTab({
                   key={idx}
                   className={`flex items-center gap-3 p-4 rounded-r-lg transition-all duration-200 hover:shadow-md border-l-4 ${
                     insight.type === 'positive'
-                      ? 'border-l-[3px] border-[rgba(74,124,89,0.5)] bg-transparent text-(--color-text-primary)'
+                      ? 'border-l-(--color-success) bg-transparent text-(--color-text-primary)'
                       : insight.type === 'negative'
-                        ? 'border-l-[3px] border-[rgba(176,125,58,0.5)] bg-transparent text-(--color-text-primary)'
-                        : 'border-l-[3px] border-[rgba(180,160,130,0.5)] bg-transparent text-(--color-text-primary)'
+                        ? 'border-l-(--color-error) bg-transparent text-(--color-text-primary)'
+                        : 'border-l-(--color-accent) bg-transparent text-(--color-text-primary)'
                   }`}
                 >
                   <IconComponent className="shrink-0" strokeWidth={2.5} size={20} />
@@ -279,159 +344,11 @@ export function OverviewTab({
         </div>
       )}
 
-      {/* Executive Summary & Score Highlights */}
-      <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6 flex items-center gap-2">
-          <Lightbulb size={14} />
-          Executive Summary
-        </p>
-
-        {/* Audit Verdicts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {[
-            { sr: scoringResult1, assessment: assessment1, color: 'emerald' },
-            { sr: scoringResult2, assessment: assessment2, color: 'blue' },
-          ].map(({ sr, assessment, color }) => {
-            return (
-              <div
-                key={assessment.id}
-                className={`p-5 pl-4 border-l-[3px] rounded-r-lg hover:shadow-md transition-all duration-200 ${
-                  color === 'emerald'
-                    ? 'border-[rgba(74,124,89,0.5)] bg-transparent'
-                    : 'border-[rgba(90,122,154,0.5)] bg-transparent'
-                }`}
-              >
-                <p className="text-sm font-bold text-(--color-text-primary) uppercase mb-2 tracking-wide">
-                  {assessment.title}
-                </p>
-                <p className="text-sm text-(--color-text-primary) leading-relaxed">
-                  {sr?.audit?.audit_verdict || 'No verdict available'}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Comparative Analysis */}
-        {(scoringResult1?.audit?.comparative_analysis ||
-          scoringResult2?.audit?.comparative_analysis) && (
-          <div className="p-5 pl-4 border-l-[3px] border-[rgba(90,122,154,0.5)] bg-transparent rounded-r-lg mb-8">
-            <p className="text-xs font-semibold text-(--color-text-primary) uppercase mb-2 tracking-wide">
-              Key Findings
-            </p>
-            <div className="space-y-3">
-              {[
-                { sr: scoringResult1, assessment: assessment1 },
-                { sr: scoringResult2, assessment: assessment2 },
-              ].map(
-                ({ sr, assessment }) =>
-                  sr?.audit?.comparative_analysis && (
-                    <div key={assessment.id}>
-                      <p className="text-xs font-semibold text-(--color-text-primary) mb-1">
-                        {assessment.title}
-                      </p>
-                      <p className="text-sm text-(--color-text-primary) leading-relaxed">
-                        {sr.audit.comparative_analysis}
-                      </p>
-                    </div>
-                  ),
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Score Highlights */}
-        <div>
-          <h4 className="text-sm font-bold mb-4 text-(--color-text-primary)">Score Highlights</h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {[
-              { sr: scoringResult1, assessment: assessment1, color: 'emerald' },
-              { sr: scoringResult2, assessment: assessment2, color: 'blue' },
-            ].map(({ sr, assessment, color }) => {
-              const subScores = sr?.sub_scores || {};
-              const topFactor = Object.entries(subScores).reduce(
-                (a, b) => (b[1] > a[1] ? b : a),
-                ['N/A', 0],
-              );
-              const focusFactor = Object.entries(subScores).reduce(
-                (a, b) => (b[1] < a[1] ? b : a),
-                ['N/A', 0],
-              );
-              const avgScore =
-                Object.values(subScores).length > 0
-                  ? Math.round(
-                      Object.values(subScores).reduce((a, b) => a + b, 0) /
-                        Object.values(subScores).length,
-                    )
-                  : 0;
-
-              return (
-                <div key={assessment.id} className="space-y-4">
-                  <p
-                    className={`text-xs font-bold ${
-                      color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
-                    } uppercase tracking-wide`}
-                  >
-                    {assessment.title}
-                  </p>
-
-                  <div className="space-y-4">
-                    {/* Strongest Factor */}
-                    <div className="p-4 border border-(--color-border) rounded-lg">
-                      <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">
-                        Strongest Factor
-                      </p>
-                      <p
-                        className={`text-lg font-bold ${
-                          color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
-                        }`}
-                      >
-                        {topFactor[0] !== 'N/A' ? titleize(topFactor[0]) : 'N/A'}
-                      </p>
-                      <p className="text-sm font-semibold text-(--color-text-muted)">
-                        {topFactor[0] !== 'N/A' ? `${topFactor[1]}/100` : '—'}
-                      </p>
-                    </div>
-
-                    {/* Focus Area */}
-                    <div className="p-4 border border-(--color-border) rounded-lg">
-                      <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">
-                        Focus Area
-                      </p>
-                      <p className="text-lg font-bold text-(--color-warning)">
-                        {focusFactor[0] !== 'N/A' ? titleize(focusFactor[0]) : 'N/A'}
-                      </p>
-                      <p className="text-sm font-semibold text-(--color-text-muted)">
-                        {focusFactor[0] !== 'N/A' ? `${focusFactor[1]}/100` : '—'}
-                      </p>
-                    </div>
-
-                    {/* Average Score */}
-                    <div className="p-4 border border-(--color-border) rounded-lg">
-                      <p className="text-xs font-semibold mb-2 text-(--color-text-muted)">
-                        Average Score
-                      </p>
-                      <p className="text-lg font-bold text-(--color-accent)">{avgScore}/100</p>
-                      <ProgressBar
-                        value={avgScore}
-                        className="mt-2 h-2 rounded-full bg-(--color-accent)"
-                        aria-label={`${assessment.title} average score`}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* Change Snapshot */}
       <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-        <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6 flex items-center gap-2">
-          <Target size={14} />
+        <SectionHeading variant="small" icon={<Target className="w-4 h-4 text-(--color-accent)" />}>
           Scores & Change Snapshot
-        </p>
+        </SectionHeading>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Assessment 1 Score */}
@@ -451,19 +368,14 @@ export function OverviewTab({
               >
                 {scoringResult1?.overall_score || 0}
               </span>
-              <span className="text-sm text-slate-500 font-medium">/100</span>
+              <span className="text-sm text-(--color-text-muted) font-medium">/100</span>
             </div>
-            <ProgressBar
-              value={scoringResult1?.overall_score || 0}
-              className={`mt-2 h-2 rounded-full ${
-                (scoringResult1?.overall_score || 0) >= 75
-                  ? 'bg-[rgba(74,124,89,0.7)]'
-                  : (scoringResult1?.overall_score || 0) >= 50
-                    ? 'bg-[rgba(176,125,58,0.6)]'
-                    : 'bg-[rgba(139,58,58,0.6)]'
-              }`}
-              aria-label="Assessment 1 score"
-            />
+            <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border) mt-2">
+              <div
+                className="h-1.5 rounded-full bg-(--color-accent)"
+                style={{ width: `${scoringResult1?.overall_score || 0}%` }}
+              />
+            </div>
           </div>
 
           {/* Overall Delta */}
@@ -508,78 +420,36 @@ export function OverviewTab({
               >
                 {scoringResult2?.overall_score || 0}
               </span>
-              <span className="text-sm text-slate-500 font-medium">/100</span>
+              <span className="text-sm text-(--color-text-muted) font-medium">/100</span>
             </div>
-            <ProgressBar
-              value={scoringResult2?.overall_score || 0}
-              className={`mt-2 h-2 rounded-full ${
-                (scoringResult2?.overall_score || 0) >= 75
-                  ? 'bg-[rgba(74,124,89,0.7)]'
-                  : (scoringResult2?.overall_score || 0) >= 50
-                    ? 'bg-[rgba(176,125,58,0.6)]'
-                    : 'bg-[rgba(139,58,58,0.6)]'
-              }`}
-              aria-label="Assessment 2 score"
-            />
+            <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border) mt-2">
+              <div
+                className="h-1.5 rounded-full bg-(--color-accent)"
+                style={{ width: `${scoringResult2?.overall_score || 0}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Score Breakdown Comparison */}
-      {scoringResult1?.score_breakdown && scoringResult2?.score_breakdown && (
-        <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-          <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6">
-            Score Breakdown
-          </p>
-
-          <div className="space-y-4">
-            {Object.keys(scoringResult1.score_breakdown).map((category) => {
-              const data1 = scoringResult1.score_breakdown[category];
-              const data2 = scoringResult2.score_breakdown[category];
-              return (
-                <div key={category} className="p-4 border border-(--color-border) rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-bold text-(--color-text-primary)">{category}</div>
-                    <div className="flex gap-4">
-                      <div className="text-sm font-bold text-(--color-success)">
-                        A1: {data1.score}
-                      </div>
-                      <div className="text-sm font-bold text-(--color-info)">A2: {data2.score}</div>
-                    </div>
-                  </div>
-                  <div className="text-xs mb-2 text-(--color-text-muted)">{data1.weight}</div>
-                  <div className="flex gap-4">
-                    <ProgressBar value={data1.score} className="flex-1 h-2" color="success" />
-                    <ProgressBar value={data2.score} className="flex-1 h-2" color="info" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </>
   );
 }
 
 OverviewTab.propTypes = {
-  /** First assessment object */
-  assessment1: PropTypes.object.isRequired,
-  /** Second assessment object */
-  assessment2: PropTypes.object.isRequired,
-  /** First assessment's scoring result */
-  scoringResult1: PropTypes.object.isRequired,
-  /** Second assessment's scoring result */
-  scoringResult2: PropTypes.object.isRequired,
-  /** Key insights about the comparison */
-  insights: PropTypes.string,
-  /** Overall score delta between assessments */
+  // New single-assessment props
+  assessment: PropTypes.object,
+  scoringResult: PropTypes.object,
+  variant: PropTypes.oneOf(['left', 'right']),
+
+  // Legacy props for backward compatibility
+  assessment1: PropTypes.object,
+  assessment2: PropTypes.object,
+  scoringResult1: PropTypes.object,
+  scoringResult2: PropTypes.object,
+  insights: PropTypes.array,
   overallDelta: PropTypes.number,
-  /** Factor with biggest score gain */
   biggestGain: PropTypes.object,
-  /** Factor with biggest score drop */
   biggestDrop: PropTypes.object,
-  /** Average delta across all factors */
   averageDelta: PropTypes.number,
 };
 
