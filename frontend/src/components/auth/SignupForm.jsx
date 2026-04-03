@@ -1,5 +1,6 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CircleCheck, CircleX, Eye, EyeOff } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -11,9 +12,74 @@ import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
 import { logger } from '@/utils/logger';
 
+// Validation helper functions
+const validateUsernameLength = (value) => {
+  const length = value?.trim().length || 0;
+  return (
+    length >= AUTH_VALIDATION.USERNAME.MIN_LENGTH && length <= AUTH_VALIDATION.USERNAME.MAX_LENGTH
+  );
+};
+
+const validateUsernameChars = (value) => {
+  const trimmed = value?.trim() || '';
+  // Only letters, numbers, - and _ allowed
+  const charsRegex = /^[a-zA-Z0-9_-]+$/;
+  return charsRegex.test(trimmed);
+};
+
+const validateUsernameHasLetter = (value) => {
+  const trimmed = value?.trim() || '';
+  // Must contain at least one letter
+  const letterRegex = /[a-zA-Z]/;
+  return letterRegex.test(trimmed);
+};
+
+const validateUsernameNoSpaces = (value) => {
+  // No spaces allowed - check the actual value without trimming
+  const noSpacesRegex = /^\S*$/;
+  return noSpacesRegex.test(value || '');
+};
+
+const validatePasswordLength = (value) => {
+  const length = value?.length || 0;
+  return (
+    length >= AUTH_VALIDATION.PASSWORD.MIN_LENGTH && length <= AUTH_VALIDATION.PASSWORD.MAX_LENGTH
+  );
+};
+
+const validatePasswordSpecialChar = (value) => {
+  // Must include at least one special character
+  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+  return specialCharRegex.test(value || '');
+};
+
+const validatePasswordNoSpaces = (value) => {
+  // No spaces allowed - check the actual value without trimming
+  const noSpacesRegex = /^\S*$/;
+  return noSpacesRegex.test(value || '');
+};
+
+const validatePasswordMatch = (password, confirmPassword) => {
+  return password === confirmPassword && password.length > 0;
+};
+
+// Reusable validation rule component
+const ValidationRule = ({ isValid, children }) => (
+  <div className="flex items-center gap-2">
+    {isValid ? (
+      <CircleCheck size={12} className="text-green-800" />
+    ) : (
+      <CircleX size={12} className="text-red-700" />
+    )}
+    <span className={isValid ? 'text-green-800' : 'text-inherit'}>{children}</span>
+  </div>
+);
+
 export function SignupForm({ onSwitchToLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,10 +88,13 @@ export function SignupForm({ onSwitchToLogin }) {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm({
     resolver: zodResolver(signupSchema),
-    mode: 'onBlur',
+    mode: 'onChange',
   });
+
+  const formData = watch();
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -116,7 +185,7 @@ export function SignupForm({ onSwitchToLogin }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.25 block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Username *
           </Label>
           <Controller
@@ -143,15 +212,25 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="text-xs text-(--color-text-muted) mt-1 px-2">
-            <p>{`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}</p>
-            <div className="whitespace-pre-line">{AUTH_VALIDATION.USERNAME.PATTERN_DESC}</div>
+          <div className="text-xs text-(--color-text-muted) mt-2 px-2 space-y-1">
+            <ValidationRule isValid={validateUsernameLength(formData.username || '')}>
+              {`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}
+            </ValidationRule>
+            <ValidationRule isValid={validateUsernameChars(formData.username || '')}>
+              {AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[0]}
+            </ValidationRule>
+            <ValidationRule isValid={validateUsernameHasLetter(formData.username || '')}>
+              {AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[1]}
+            </ValidationRule>
+            <ValidationRule isValid={validateUsernameNoSpaces(formData.username || '')}>
+              {AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[2]}
+            </ValidationRule>
           </div>
         </div>
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.25 block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Password *
           </Label>
           <Controller
@@ -159,31 +238,47 @@ export function SignupForm({ onSwitchToLogin }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.password}>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="•••••"
-                  disabled={isLoading}
-                  className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
-                  autoComplete="new-password"
-                />
-                {errors.password && (
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="•••••"
+                    disabled={isLoading}
+                    className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {/* {errors.password && (
                   <FieldError className="text-xs text-(--color-error) mt-1">
                     {errors.password.message}
                   </FieldError>
-                )}
+                )} */}
               </TextField>
             )}
           />
-          <div className="text-xs text-(--color-text-muted) mt-1 px-2">
-            <p>{`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}</p>
-            <div className="whitespace-pre-line">{`${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`}</div>
+          <div className="text-xs text-(--color-text-muted) mt-2 px-2 space-y-1">
+            <ValidationRule isValid={validatePasswordLength(formData.password || '')}>
+              {`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}
+            </ValidationRule>
+            <ValidationRule isValid={validatePasswordSpecialChar(formData.password || '')}>
+              {AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[0]}
+            </ValidationRule>
+            <ValidationRule isValid={validatePasswordNoSpaces(formData.password || '')}>
+              {AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[1]}
+            </ValidationRule>
           </div>
         </div>
 
         {/* Confirm Password */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.25 block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Confirm Password *
           </Label>
           <Controller
@@ -191,22 +286,41 @@ export function SignupForm({ onSwitchToLogin }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.confirmPassword}>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="••••••"
-                  disabled={isLoading}
-                  className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
-                  autoComplete="new-password"
-                />
-                {errors.confirmPassword && (
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="••••••"
+                    disabled={isLoading}
+                    className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {/* {errors.confirmPassword && (
                   <FieldError className="text-xs text-(--color-error) mt-1">
                     {errors.confirmPassword.message}
                   </FieldError>
-                )}
+                )} */}
               </TextField>
             )}
           />
+          <div className="text-xs text-(--color-text-muted) mt-2 px-2">
+            <ValidationRule
+              isValid={validatePasswordMatch(
+                formData.password || '',
+                formData.confirmPassword || '',
+              )}
+            >
+              Passwords match
+            </ValidationRule>
+          </div>
         </div>
 
         {/* Submit Button */}

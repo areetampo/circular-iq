@@ -1,5 +1,6 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -13,6 +14,7 @@ import { logger } from '@/utils/logger';
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,7 +45,9 @@ export function LoginForm({ onSwitchToSignup }) {
         throw new Error('Authentication succeeded but no user session was created.');
       }
 
-      toast.success('Welcome back!', {
+      const username = authData.user.email.split('@')[0];
+
+      toast.success(`Welcome back ${username}!`, {
         description: 'You have successfully signed in.',
         timeout: 3000,
       });
@@ -67,7 +71,7 @@ export function LoginForm({ onSwitchToSignup }) {
           Sign in
         </h2>
         <p className="font-(--font-body) text-[14px] text-(--color-text-muted) text-center mb-[28px]">
-          Welcome back to your account
+          Welcome back!
         </p>
       </div>
 
@@ -81,7 +85,7 @@ export function LoginForm({ onSwitchToSignup }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-[5px] block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Username *
           </Label>
           <Controller
@@ -92,7 +96,7 @@ export function LoginForm({ onSwitchToSignup }) {
                 <Input
                   {...field}
                   type="text"
-                  placeholder="your_username"
+                  placeholder="username"
                   disabled={isLoading}
                   className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="username"
@@ -102,7 +106,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   maxLength={30}
                 />
                 {errors.username && (
-                  <FieldError className="text-xs text-(--color-error) mt-1">
+                  <FieldError className="text-xs text-(--color-error) mt-1 ml-1">
                     {errors.username.message}
                   </FieldError>
                 )}
@@ -113,7 +117,7 @@ export function LoginForm({ onSwitchToSignup }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-[5px] block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Password *
           </Label>
           <Controller
@@ -121,17 +125,26 @@ export function LoginForm({ onSwitchToSignup }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.password}>
-                <Input
-                  {...field}
-                  type="password"
-                  placeholder="•••••"
-                  disabled={isLoading}
-                  className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
-                  autoComplete="current-password"
-                  maxLength={30}
-                />
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••"
+                    disabled={isLoading}
+                    className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                    autoComplete="current-password"
+                    maxLength={30}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {errors.password && (
-                  <FieldError className="text-xs text-(--color-error) mt-1">
+                  <FieldError className="text-xs text-(--color-error) mt-1 ml-1">
                     {errors.password.message}
                   </FieldError>
                 )}
