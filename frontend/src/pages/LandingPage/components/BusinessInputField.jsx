@@ -1,4 +1,4 @@
-import { Label, TextArea as Textarea } from '@heroui/react';
+import { Label } from '@heroui/react';
 import { BadgeInfo } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -18,67 +18,48 @@ export default function BusinessInputField({
   minLength = 200,
 }) {
   return (
-    <div className="space-y-3">
-      {/* Label */}
-      <div className="flex items-center gap-2">
-        <Label
-          htmlFor={id}
-          className="text-[14px] font-semibold leading-snug tracking-[-0.01em] mb-1 flex items-center gap-2"
-          style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-body)' }}
-        >
-          {label}
-        </Label>
-        <BadgeInfo
-          className="info-icon cursor-pointer transition-all duration-200 hover:scale-110"
-          size={16}
-          style={{ color: 'var(--color-accent)' }}
-          onClick={onInfoClick}
-          aria-label={`Get more information about ${label}`}
-          tabIndex={0}
-          role="button"
-        />
+    <div className="space-y-0">
+      <div className="flex flex-col gap-1.5 pl-2 mb-3">
+        {/* Label */}
+        <div className="flex items-center gap-2">
+          <Label htmlFor={id} className="text-sm font-semibold font-mono">
+            {label}
+          </Label>
+          <BadgeInfo
+            className="info-icon cursor-pointer shrink-0 transition-all duration-200 hover:scale-110"
+            size={20}
+            strokeWidth={2}
+            style={{ color: 'var(--color-accent)', marginTop: '1px' }}
+            onClick={onInfoClick}
+            aria-label={`Get more information about ${label}`}
+            tabIndex={0}
+            role="button"
+          />
+        </div>
+
+        {/* Description */}
+        <p className="text-xs leading-relaxed font-mono opacity-60">{description}</p>
       </div>
 
-      {/* Description */}
-      <p
-        className="text-[13px] leading-relaxed mt-0.5 mb-1"
-        style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
-      >
-        {description}
-      </p>
-
       {/* Textarea */}
-      <Textarea
+      <textarea
         id={id}
         rows={rows}
         placeholder={placeholder}
-        {...register(fieldName, {
-          onBlur: () => flushAutosave(),
-        })}
+        {...register(fieldName)}
         disabled={loading}
-        className="bg-[rgba(245,240,232,0.5)] border border-(--color-border-strong) rounded-lg p-4 text-(--color-text-primary) placeholder:text-(--color-text-muted) resize-y transition-all duration-200 outline-none w-full min-h-35"
-        style={{
-          backgroundColor: 'oklch(0.99 0.008 80 / 0.5)',
-          borderColor: 'var(--color-border-strong)',
-          color: 'var(--color-text-primary)',
-          fontFamily: 'var(--font-body)',
-          fontSize: '14.5px',
-          lineHeight: '1.8',
-          letterSpacing: '0.008em',
-        }}
-        onFocus={(e) => {
-          e.target.style.borderColor = 'var(--color-accent)';
-          e.target.style.borderWidth = '1.5px';
-        }}
+        /* Keep the className minimal to avoid conflicts */
+        className="textarea w-full min-h-[140px] bg-[rgba(245,240,232,0.5)] rounded-xl! p-4 text-(--color-text-primary) transition-all duration-200"
         onBlur={(e) => {
-          e.target.style.borderColor = 'var(--color-border-strong)';
-          e.target.style.borderWidth = '1px';
-          flushAutosave();
+          register(fieldName).onBlur(e);
+          if (flushAutosave) flushAutosave();
         }}
       />
 
       {/* Character counter */}
-      <LiveCharacterCounter fieldName={fieldName} minLength={minLength} />
+      <div className="pr-2 mt-1">
+        <LiveCharacterCounter fieldName={fieldName} minLength={minLength} />
+      </div>
     </div>
   );
 }

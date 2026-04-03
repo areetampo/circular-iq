@@ -369,7 +369,7 @@ export function OverviewTab({
                 <div key={assessment.id} className="space-y-4">
                   <p
                     className={`text-xs font-bold ${
-                      color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'`
+                      color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
                     } uppercase tracking-wide`}
                   >
                     {assessment.title}
@@ -383,7 +383,7 @@ export function OverviewTab({
                       </p>
                       <p
                         className={`text-lg font-bold ${
-                          color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'`
+                          color === 'emerald' ? 'text-(--color-success)' : 'text-(--color-info)'
                         }`}
                       >
                         {topFactor[0] !== 'N/A' ? titleize(topFactor[0]) : 'N/A'}
@@ -446,7 +446,7 @@ export function OverviewTab({
                     ? 'text-(--color-success)'
                     : (scoringResult1?.overall_score || 0) >= 50
                       ? 'text-(--color-warning)'
-                      : 'text-(--color-error)'`
+                      : 'text-(--color-error)'
                 }`}
               >
                 {scoringResult1?.overall_score || 0}
@@ -503,7 +503,7 @@ export function OverviewTab({
                     ? 'text-(--color-success)'
                     : (scoringResult2?.overall_score || 0) >= 50
                       ? 'text-(--color-warning)'
-                      : 'text-(--color-error)'`
+                      : 'text-(--color-error)'
                 }`}
               >
                 {scoringResult2?.overall_score || 0}
@@ -541,7 +541,9 @@ export function OverviewTab({
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-bold text-(--color-text-primary)">{category}</div>
                     <div className="flex gap-4">
-                      <div className="text-sm font-bold text-(--color-success)">A1: {data1.score}</div>
+                      <div className="text-sm font-bold text-(--color-success)">
+                        A1: {data1.score}
+                      </div>
                       <div className="text-sm font-bold text-(--color-info)">A2: {data2.score}</div>
                     </div>
                   </div>

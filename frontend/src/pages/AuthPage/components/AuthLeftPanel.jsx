@@ -12,10 +12,10 @@ const TRUST_SIGNALS = [
 export default function AuthLeftPanel() {
   return (
     <div className="hidden md:flex relative bg-(--color-bg)">
-      {/* Logo + brand name centered vertically, ~40px below top */}
-      <div className="absolute top-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-        <img src="/siteLogo.png" alt="Site Logo" className="h-10 w-auto mb-2" />
-        <span className="font-(--font-display) text-[22px] text-(--color-text-primary)">
+      {/* Logo + brand name positioned ~56px from top */}
+      <div className="absolute top-14 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+        <img src="/siteLogo.png" alt="Site Logo" className="h-7 w-auto mb-2" />
+        <span className="font-(--font-body) text-[14px] font-medium text-(--color-text-secondary)">
           {SITE_FULL_NAME}
         </span>
       </div>

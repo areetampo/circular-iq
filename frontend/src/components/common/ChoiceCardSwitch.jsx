@@ -1,6 +1,6 @@
+import { Switch } from '@heroui/react';
 import PropTypes from 'prop-types';
 
-import { Switch } from '@/components/common';
 import { cn } from '@/utils/cn';
 
 /**
@@ -65,11 +65,10 @@ export default function ChoiceCardSwitch({
 
   return (
     <Switch
-      variant={finalSwitchVariant}
       isSelected={isSelected}
       onChange={onChange}
       isDisabled={disabled}
-      // size={size} //ResponsiveSizeWrapper used in components/common/Switch to auto-adjust size based on screen
+      size={size}
       className={cn(
         'w-full group/toggle flex items-center justify-between gap-2 sm:gap-3 p-2 sm:p-4 rounded-xl border transition-all duration-200 ease-out cursor-pointer min-h-14 sm:min-h-16',
         'will-change-colors will-change-shadow',
@@ -111,13 +110,8 @@ export default function ChoiceCardSwitch({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Switch.Control>
-              <Switch.Thumb>
-                <Switch.Icon />
-              </Switch.Thumb>
-            </Switch.Control>
-
-            {/* {trailing && <>{trailing}</>} */}
+            <Switch.Control />
+            <Switch.Thumb />
           </div>
         </>
       )}

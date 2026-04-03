@@ -18,8 +18,7 @@ import { useSession } from '@/features/session/hooks/useSession';
 // ─── ParameterBox ─────────────────────────────────────────────────────────────
 const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
   const { control, getValues } = useFormContext();
-  const { openSpecificEvaluationParameterInfoDrawer, openEvaluationParametersHeadingInfoDrawer } =
-    useGlobalDrawer();
+  const { openSpecificEvaluationParameterInfoDrawer } = useGlobalDrawer();
   const { saveSession } = useSession();
 
   const getTierClass = (score, isSelected) => {
@@ -66,9 +65,9 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
               >
                 <Label
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg',
+                    'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg',
                     'cursor-pointer transition-opacity duration-150 hover:opacity-80',
-                    'text-[12px] font-semibold uppercase tracking-[0.06em]',
+                    'text-[0.68rem] font-bold uppercase tracking-[0.08rem]',
                     (() => {
                       const cfg =
                         GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
@@ -77,10 +76,15 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                     })(),
                   )}
                   onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
-                  aria-label={`View details for ${parameterLabels[paramKey].label}`}
+                  aria-label={`View details drawer for ${parameterLabels[paramKey].label}`}
                 >
                   {parameterLabels[paramKey].label}
-                  <BadgeInfo className="info-icon shrink-0" size={14} />
+                  <BadgeInfo
+                    className="info-icon shrink-0"
+                    size={16}
+                    strokeWidth={1.8}
+                    style={{ marginTop: '0.5px' }}
+                  />
                 </Label>
 
                 <NumberField.Group className="flex items-center gap-1 h-8 my-0.5">
@@ -169,13 +173,11 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         loading && 'opacity-40 cursor-not-allowed',
                       )}
                     >
-                      <div className="text-xs font-bold leading-tight mb-0.5">
+                      <div className="text-xs font-semibold leading-tight mb-0.5 font-mono">
                         {option.label}
-                        <span className="font-normal tabular-nums ml-1 opacity-70">
-                          (~{option.score})
-                        </span>
+                        <span className="tabular-nums ml-1 opacity-70">(~{option.score})</span>
                       </div>
-                      <div className="text-[10px] leading-snug opacity-75">
+                      <div className="font-medium text-[0.65rem] leading-snug opacity-75 font-mono">
                         {option.description}
                       </div>
                     </button>
@@ -183,26 +185,10 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                 })}
               </div>
 
-              {/* {scaleMarkers && (
-                <div className="flex flex-col items-center gap-1">
-                  {scaleMarkers.map((marker, idx) => (
-                    <span
-                      key={idx}
-                      className={cn(
-                        'px-2.5 py-0.5 text-[11px] font-medium rounded-md w-fit',
-                        SCALE_COLORS[idx],
-                      )}
-                    >
-                      {marker.score}–{Math.min(marker.score + 10, 100)}: {marker.label}
-                    </span>
-                  ))}
-                </div>
-              )} */}
-
               {guidance?.examples?.[0] && (
                 <p
-                  className="text-[11px] italic text-center leading-relaxed px-2 mt-1"
-                  style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
+                  className="text-[0.6rem] italic text-center leading-relaxed px-2 mt-1 font-mono"
+                  style={{ color: 'var(--color-text-muted)' }}
                 >
                   e.g. {guidance.examples[0].case} ≈ {guidance.examples[0].score}
                 </p>
@@ -224,6 +210,7 @@ function EvaluationParametersContainer({
   evalParamsExpandedKeys,
   setEvalParamsExpandedKeys,
 }) {
+  const { openEvaluationParametersHeadingInfoDrawer } = useGlobalDrawer();
   const groupEntries = Object.entries(parameterGroups);
 
   return (
@@ -260,24 +247,24 @@ function EvaluationParametersContainer({
                       'group-hover/item:-rotate-10',
                       'group-hover/item:drop-shadow-md',
                     )}
-                    strokeWidth={1.75}
+                    strokeWidth={2}
                   />
 
                   <div className="flex flex-col gap-0.5 text-left flex-1">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
+                        className="font-medium text-[0.85rem] tracking-[-0.01em] leading-6 font-mono"
                         style={{
                           color: 'var(--color-text-primary)',
-                          fontFamily: 'var(--font-body)',
                         }}
                       >
                         {groupName}
                       </span>
                       <BadgeInfo
-                        className="info-icon cursor-pointer shrink-0 transition-opacity hover:opacity-70"
-                        size={14}
-                        style={{ color: 'var(--color-accent)' }}
+                        className="info-icon cursor-pointer shrink-0"
+                        size={18}
+                        strokeWidth={2}
+                        style={{ color: cfg.iconColor, marginTop: '1px' }}
                         onClick={(e) => {
                           e.stopPropagation();
                           openEvaluationParametersHeadingInfoDrawer?.();
@@ -285,7 +272,7 @@ function EvaluationParametersContainer({
                       />
                     </div>
                     <span
-                      className="text-[11px] font-normal leading-4"
+                      className="text-[0.68rem] font-normal leading-4 font-mono"
                       style={{ color: 'var(--color-text-muted)' }}
                     >
                       {cfg.subtitle}

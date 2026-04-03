@@ -9,21 +9,21 @@ export const GROUP_STYLE_CONFIG = {
     iconColor: 'text-[var(--color-info)]',
     subtitle: 'Reach and participation across stakeholders',
     // Label chip for the parameter (e.g. "Public Participation")
-    paramBg: 'bg-[oklch(0.94_0.01_220/_0.18)]', // cool subtle blue-grey
+    paramBg: 'bg-[oklch(0.94_0.01_220/_0.3)]', // cool subtle blue-grey
     paramTextColor: 'text-[var(--color-info)]',
   },
   'Embedded Value': {
     Icon: CircleDollarSign,
     iconColor: 'text-[var(--color-accent)]',
     subtitle: 'Material worth retained within the system',
-    paramBg: 'bg-[oklch(0.96_0.014_68/_0.18)]', // warm amber-cream
+    paramBg: 'bg-[oklch(0.96_0.014_68/_1)]', // warm amber-cream
     paramTextColor: 'text-[var(--color-accent)]',
   },
   'Processing Value': {
     Icon: Cpu,
     iconColor: 'text-[var(--color-success)]',
     subtitle: 'Efficiency and safety of circularity processes',
-    paramBg: 'bg-[oklch(0.95_0.012_145/_0.15)]', // muted sage
+    paramBg: 'bg-[oklch(0.95_0.012_145/_0.4)]', // muted sage
     paramTextColor: 'text-[var(--color-success)]',
   },
 };

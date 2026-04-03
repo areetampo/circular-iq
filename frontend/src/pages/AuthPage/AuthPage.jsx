@@ -7,7 +7,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-      <AuthLeftPanel /> {/* hidden on mobile */}
+      <AuthLeftPanel className="hidden md:block" /> {/* hidden on mobile */}
       <AuthRightPanel view={view} setView={setView} /> {/* full width on mobile */}
     </div>
   );

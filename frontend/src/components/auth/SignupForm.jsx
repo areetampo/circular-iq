@@ -97,11 +97,11 @@ export function SignupForm({ onSwitchToLogin }) {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="font-(--font-display) text-[24px] text-(--color-text-primary) text-center mb-1">
+      <div className="text-center mb-7">
+        <h2 className="font-(--font-display) text-[22px] font-semibold tracking-[-0.01em] text-(--color-text-primary) text-center mb-1">
           Create Account
         </h2>
-        <p className="text-[14px] text-(--color-text-muted) text-center">
+        <p className="font-(--font-body) text-[14px] text-(--color-text-muted) text-center mb-[28px]">
           Join to start evaluating circular economy ideas
         </p>
       </div>
@@ -116,7 +116,7 @@ export function SignupForm({ onSwitchToLogin }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.25 block">
             Username *
           </Label>
           <Controller
@@ -129,7 +129,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="text"
                   placeholder="your_username"
                   disabled={isLoading}
-                  className="w-full h-11 bg-[rgba(245,240,232,0.6)] border border-[rgba(180,160,130,0.3)] rounded-[10px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                  className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -151,7 +151,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.25 block">
             Password *
           </Label>
           <Controller
@@ -164,7 +164,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="password"
                   placeholder="•••••"
                   disabled={isLoading}
-                  className="w-full h-11 bg-[rgba(245,240,232,0.6)] border border-[rgba(180,160,130,0.3)] rounded-[10px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                  className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="new-password"
                 />
                 {errors.password && (
@@ -183,7 +183,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
         {/* Confirm Password */}
         <div className="mb-5">
-          <Label className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 block">
+          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.25 block">
             Confirm Password *
           </Label>
           <Controller
@@ -196,7 +196,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="password"
                   placeholder="••••••"
                   disabled={isLoading}
-                  className="w-full h-11 bg-[rgba(245,240,232,0.6)] border border-[rgba(180,160,130,0.3)] rounded-[10px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                  className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="new-password"
                 />
                 {errors.confirmPassword && (
@@ -212,7 +212,7 @@ export function SignupForm({ onSwitchToLogin }) {
         {/* Submit Button */}
         <Button
           variant="primary"
-          className="w-full h-11 bg-(--color-accent) hover:bg-(--color-accent-hover) text-white text-[14px] rounded-[10px] transition-colors"
+          className="w-full h-10.5 bg-(--color-accent) hover:bg-(--color-accent-hover) text-white text-[14px] font-semibold rounded-[9px] transition-colors"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -221,7 +221,7 @@ export function SignupForm({ onSwitchToLogin }) {
       </Form>
 
       {/* Toggle link */}
-      <p className="text-[13px] text-(--color-text-muted) text-center mt-6">
+      <p className="font-(--font-body) text-[13px] text-(--color-text-muted) text-center mt-4.5">
         Already have an account?{' '}
         <button
           type="button"

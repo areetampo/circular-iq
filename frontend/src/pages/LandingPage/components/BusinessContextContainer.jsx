@@ -1,8 +1,6 @@
-import { Label, ListBox, Select, Switch } from '@heroui/react';
+import { Checkbox, Label, ListBox, Select } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { Controller, useFormContext } from 'react-hook-form';
-
-import { cn } from '@/utils/cn';
 
 const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
 
@@ -61,17 +59,22 @@ function BusinessContextContainer({
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
-      <span
-        className="text-[13px] font-semibold tracking-wide uppercase"
-        style={{ color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
-      >
-        {label}
-      </span>
-      {description && (
-        <span className="text-[12px] leading-snug" style={{ color: 'var(--color-text-muted)' }}>
-          {description}
+      <div className="flex flex-col gap-1 pl-2">
+        <span
+          className="text-[13px] font-semibold tracking-wide uppercase font-mono"
+          style={{ color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
+        >
+          {label}
         </span>
-      )}
+        {description && (
+          <span
+            className="text-[0.65rem] leading-snug font-mono"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            {description}
+          </span>
+        )}
+      </div>
       <Controller
         name={`businessContext.${name}`}
         control={control}
@@ -82,6 +85,7 @@ function BusinessContextContainer({
             isDisabled={loading}
             placeholder="Select (optional)"
             className="w-full"
+            variant="secondary"
           >
             {/* NO classNames prop — rely on global CSS */}
             <Label className="sr-only">{label}</Label>
@@ -158,43 +162,30 @@ function BusinessContextContainer({
           name="businessContext.has_existing_partnerships"
           control={control}
           render={({ field }) => (
-            <Switch
-              isSelected={field.value === true}
-              onChange={(checked) => field.onChange(checked)}
-              isDisabled={loading}
-              size="sm"
-              className="w-full"
+            <div
+              className="flex items-center justify-between p-3 rounded-lg border transition-colors duration-150 cursor-pointer"
+              onClick={() => field.onChange(!field.value)}
             >
-              <Switch.Content className="w-full">
-                <Label
-                  className="cursor-pointer flex items-center justify-between p-3 rounded-lg border
-                                  transition-colors duration-150"
-                  style={{
-                    backgroundColor: 'oklch(0.99 0.008 80 / 0.4)',
-                    borderColor: 'var(--color-border-strong)',
-                  }}
-                >
-                  <div className="flex flex-col gap-0.5 mr-2">
-                    <span
-                      className="text-[13px] font-semibold"
-                      style={{ color: 'var(--color-text-primary)' }}
-                    >
-                      Existing Supply Chain / Collection Partnerships
-                    </span>
-                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                      Do you already have partners for collection, processing, or distribution?
-                    </p>
-                  </div>
-                  <Switch.Control
-                    className={cn(
-                      field.value === true ? 'bg-(--color-accent)' : 'bg-(--color-border-strong)',
-                    )}
-                  >
-                    <Switch.Thumb />
-                  </Switch.Control>
-                </Label>
-              </Switch.Content>
-            </Switch>
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-1 font-mono">
+                  <h4 className="text-sm font-medium text-foreground">Partnerships</h4>
+                  <p className="text-xs text-muted font-mono">
+                    Do you already have partners for collection, processing, or distribution?
+                  </p>
+                </div>
+              </div>
+              <Checkbox
+                isSelected={field.value === true}
+                onChange={(checked) => field.onChange(checked)}
+                isDisabled={loading}
+                className="[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4"
+                name="xl-rounded"
+              >
+                <Checkbox.Control className="size-6 rounded-full before:rounded-full">
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+              </Checkbox>
+            </div>
           )}
         />
       </>

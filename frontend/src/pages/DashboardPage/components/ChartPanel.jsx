@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 function ChartPanel({ title, children, isLoading, error, chartHeight }) {
   return (
-    <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-6 bg-transparent min-h-[300px] w-full">
+    <div className="border border-[rgba(180,160,130,0.3)] rounded-[14px] p-6 bg-transparent min-h-[300px] w-full">
       {title && (
         <p className="text-[13px] font-semibold text-(--color-text-secondary) mb-4">{title}</p>
       )}

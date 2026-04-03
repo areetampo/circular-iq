@@ -57,7 +57,8 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
                   <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
                   <Table.Cell>
                     <Chip
-                      variant={
+                      variant="info"
+                      color={
                         row.statusColor === 'error'
                           ? 'danger'
                           : row.statusColor === 'success'

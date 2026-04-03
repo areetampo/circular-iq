@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 function StatCard({ title, value, subtext, loading }) {
   if (loading) {
     return (
-      <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+      <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-5 bg-transparent">
         <div className="h-7 w-16 rounded-md bg-[rgba(180,160,130,0.2)] animate-pulse" />
         <div className="h-2.5 w-20 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse mt-2" />
         {subtext && (
@@ -14,7 +14,7 @@ function StatCard({ title, value, subtext, loading }) {
   }
 
   return (
-    <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-5 bg-transparent">
+    <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-5 bg-transparent">
       <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
         {title}
       </p>

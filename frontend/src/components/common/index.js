@@ -5,4 +5,3 @@ export { default as ChoiceCardSwitch } from './ChoiceCardSwitch';
 export { default as ErrorDisplay } from './ErrorDisplay';
 export { default as LoaderIcon } from './LoaderIcon';
 export { default as ResponsiveSizeWrapper } from './ResponsiveSizeWrapper';
-export { default as Switch } from './Switch';

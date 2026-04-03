@@ -1,8 +1,9 @@
+import { Label, Switch } from '@heroui/react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import { Chip, Switch } from '@/components/common';
+import { Chip } from '@/components/common';
 import { formatTimestamp } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
@@ -110,20 +111,18 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       {/* Bottom row: Public and Benchmarks switches */}
       <div className="flex items-center gap-6 pt-3 border-t border-[rgba(180,160,130,0.18)]">
         <Switch
-          variant="benchmark"
           size="sm"
           isSelected={assessment.contribute_to_benchmarks}
           onChange={() => onToggleBenchmarks(assessment.id)}
         >
-          <Switch.Label>Benchmarks</Switch.Label>
+          <Label>Benchmarks</Label>
         </Switch>
         <Switch
-          variant="public"
           size="sm"
           isSelected={assessment.is_public}
           onChange={() => onTogglePublic(assessment.id)}
         >
-          <Switch.Label>Public</Switch.Label>
+          <Label>Public</Label>
         </Switch>
       </div>
     </div>
@@ -157,7 +156,7 @@ AssessmentListItem.propTypes = {
 
 // Skeleton Components
 export const AssessmentCardSkeleton = () => (
-  <div className="border border-[rgba(180,160,130,0.22)] rounded-xl bg-[rgba(245,240,232,0.5)] transition-all duration-200 mb-2.5 h-[78px]">
+  <div className="border border-[rgba(180,160,130,0.22)] rounded-xl bg-[rgba(245,240,232,0.5)] transition-all duration-200 mb-2 h-[100px]">
     <div className="p-4">
       {/* Top row skeleton */}
       <div className="flex items-center gap-3 mb-3">

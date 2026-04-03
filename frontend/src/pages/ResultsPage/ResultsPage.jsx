@@ -1,4 +1,4 @@
-import { Accordion, Input, toast } from '@heroui/react';
+import { Accordion, Input, Switch, toast } from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -21,7 +21,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import RadarChart from '@/components/charts/RadarChart';
-import { Button, Chip, Switch } from '@/components/common';
+import { Button, Chip } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import CopyButton from '@/components/modern-ui/copy-button';
 import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -985,7 +985,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               </div>
               <Switch
                 id="public-toggle"
-                variant="public"
                 isSelected={
                   optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
                 }

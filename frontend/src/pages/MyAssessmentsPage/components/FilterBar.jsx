@@ -20,7 +20,7 @@ export function FilterBar({
   return (
     <div className="space-y-3 mb-6">
       {/* Search + sort row */}
-      <div className="flex gap-3 flex-col sm:flex-row">
+      <div className="flex gap-3 flex-col sm:flex-row justify-between">
         {/* Search — use existing search state and handler */}
         <div className="relative flex-1">
           <Label htmlFor="search-input" className="sr-only">
@@ -37,13 +37,13 @@ export function FilterBar({
             placeholder="Search assessments..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 text-[14px] rounded-[10px] border border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
+            className="w-full h-[38px] pl-9 pr-4 font-(--font-body) text-[13px] rounded-[9px] border border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
             aria-label="Search assessments by title or description"
           />
         </div>
 
         {/* Sort — keep existing HeroUI Select */}
-        <div className="w-full sm:w-44">
+        <div className="w-full sm:w-[180px]">
           <Select
             className="w-full"
             placeholder="Sort by"
@@ -53,7 +53,7 @@ export function FilterBar({
               setPage(1);
             }}
             variant="bordered"
-            size="md"
+            size="sm"
           >
             <Label className="text-sm font-semibold text-(--color-text-primary)">Sort by</Label>
             <Select.Trigger>

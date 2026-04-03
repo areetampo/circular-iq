@@ -25,7 +25,7 @@ export default function LiveCharacterCounter({ fieldName, minLength = 200 }) {
   return (
     <div
       className={cn(
-        'text-xs font-medium transition-colors text-right mt-1',
+        'text-[12px] font-semibold transition-colors text-right' /* font-semibold not medium */,
         isValid ? 'text-(--color-success)' : 'text-(--color-text-muted)',
       )}
     >

@@ -686,37 +686,85 @@ export const categoryMapping = {
  * Each tier defines minScore and color classes for selected/unselected states
  */
 export const TIER_CONFIG = [
-  // ≥75 — Sage/forest (high score) — SELECTED has strong readable text
+  // ≥90 — Deep forest green (excellent score)
   {
-    minScore: 75,
+    minScore: 90,
     selected:
-      'border-l-4 border-[var(--color-success)] bg-[oklch(0.95_0.022_145/_0.25)] text-[var(--color-success)]',
+      'border-1 border-[oklch(0.42_0.132_145)] bg-[oklch(0.96_0.028_145/_0.8)] text-[oklch(0.32_0.152_145)]',
     unselected:
-      'border border-[oklch(0.82_0.02_145/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.01_145/_0.1)]',
+      'border border-[oklch(0.70_0.062_145/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.98_0.015_145/_0.15)]',
   },
-  // ≥55 — Warm tan/accent
+  // ≥80 — Emerald green (very good score)
   {
-    minScore: 55,
+    minScore: 80,
     selected:
-      'border-l-4 border-[var(--color-accent)] bg-[oklch(0.95_0.022_68/_0.22)] text-[var(--color-accent)]',
+      'border-1 border-[oklch(0.48_0.118_145)] bg-[oklch(0.95_0.032_145/_0.75)] text-[oklch(0.38_0.138_145)]',
     unselected:
-      'border border-[oklch(0.82_0.018_68/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.012_68/_0.1)]',
+      'border border-[oklch(0.72_0.058_145/_0.38)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.018_145/_0.14)]',
   },
-  // ≥35 — Amber/warning
+  // ≥70 — Sage green (good score)
   {
-    minScore: 35,
+    minScore: 70,
     selected:
-      'border-l-4 border-[var(--color-warning)] bg-[oklch(0.95_0.02_55/_0.22)] text-[var(--color-warning)]',
+      'border-1 border-[oklch(0.54_0.104_145)] bg-[oklch(0.94_0.036_145/_0.7)] text-[oklch(0.44_0.124_145)]',
     unselected:
-      'border border-[oklch(0.82_0.016_55/_0.4)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.01_55/_0.1)]',
+      'border border-[oklch(0.74_0.054_145/_0.36)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.021_145/_0.13)]',
   },
-  // ≥0 — Terracotta (low score)
+  // ≥60 — Light olive (moderate-high score)
+  {
+    minScore: 60,
+    selected:
+      'border-1 border-[oklch(0.60_0.090_120)] bg-[oklch(0.94_0.034_120/_0.68)] text-[oklch(0.50_0.110_120)]',
+    unselected:
+      'border border-[oklch(0.76_0.050_120/_0.34)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.020_120/_0.12)]',
+  },
+  // ≥50 — Warm moss (moderate score)
+  {
+    minScore: 50,
+    selected:
+      'border-1 border-[oklch(0.62_0.078_95)] bg-[oklch(0.94_0.032_95/_0.65)] text-[oklch(0.52_0.098_95)]',
+    unselected:
+      'border border-[oklch(0.78_0.046_95/_0.32)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.019_95/_0.11)]',
+  },
+  // ≥40 — Golden tan (moderate-low score)
+  {
+    minScore: 40,
+    selected:
+      'border-1 border-[oklch(0.64_0.066_68)] bg-[oklch(0.94_0.030_68/_0.62)] text-[oklch(0.54_0.086_68)]',
+    unselected:
+      'border border-[oklch(0.80_0.042_68/_0.3)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.018_68/_0.1)]',
+  },
+  // ≥30 — Warm amber (low score)
+  {
+    minScore: 30,
+    selected:
+      'border-1 border-[oklch(0.66_0.054_55)] bg-[oklch(0.94_0.028_55/_0.6)] text-[oklch(0.56_0.074_55)]',
+    unselected:
+      'border border-[oklch(0.82_0.038_55/_0.28)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.017_55/_0.09)]',
+  },
+  // ≥20 — Sandy orange (very low score)
+  {
+    minScore: 20,
+    selected:
+      'border-1 border-[oklch(0.68_0.042_35)] bg-[oklch(0.94_0.026_35/_0.58)] text-[oklch(0.58_0.062_35)]',
+    unselected:
+      'border border-[oklch(0.84_0.034_35/_0.26)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.016_35/_0.08)]',
+  },
+  // ≥10 — Terracotta (critical score)
+  {
+    minScore: 10,
+    selected:
+      'border-1 border-[oklch(0.70_0.030_20)] bg-[oklch(0.94_0.024_20/_0.56)] text-[oklch(0.60_0.050_20)]',
+    unselected:
+      'border border-[oklch(0.86_0.030_20/_0.24)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.015_20/_0.07)]',
+  },
+  // ≥0 — Deep red (worst score)
   {
     minScore: 0,
     selected:
-      'border-l-4 border-[var(--color-error)] bg-[oklch(0.95_0.018_20/_0.18)] text-[var(--color-error)]',
+      'border-1 border-[oklch(0.72_0.018_10)] bg-[oklch(0.94_0.022_10/_0.54)] text-[oklch(0.62_0.038_10)]',
     unselected:
-      'border border-[oklch(0.82_0.014_20/_0.35)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.008_20/_0.08)]',
+      'border border-[oklch(0.88_0.026_10/_0.22)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.014_10/_0.06)]',
   },
 ];
 

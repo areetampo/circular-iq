@@ -4,12 +4,10 @@ import { motion } from 'framer-motion';
 import {
   AlertTriangle,
   BadgeInfo,
-  BookOpen,
   BriefcaseBusiness,
   ChevronDown,
   ClipboardList,
   SlidersHorizontal,
-  Target,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -28,6 +26,7 @@ import { getCharacterCount } from '@/lib/validation';
 import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
 import BusinessInputField from '@/pages/LandingPage/components/BusinessInputField';
 import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
+import HeroSection from '@/pages/LandingPage/components/HeroSection';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 
 // Sample test cases data
@@ -533,94 +532,10 @@ export default function LandingPage() {
   return (
     <FormProvider {...methods}>
       <div className="min-h-screen bg-transparent">
-        {/* Hero */}
-        <section className="pt-20 pb-0">
-          <div className="max-w-3xl mx-auto px-6 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: 'easeOut' }}
-            >
-              {/* Main heading — DO NOT CHANGE THIS TEXT */}
-              <h1
-                className="heading-display leading-[1.08] mb-6"
-                style={{ fontSize: 'clamp(38px, 5.5vw, 60px)' }}
-              >
-                Where circular economy
-                <br />
-                meets{' '}
-                <em className="italic" style={{ color: 'var(--color-accent-700)' }}>
-                  evidence.
-                </em>
-              </h1>
-
-              {/* Subtitle */}
-              <p
-                className="text-[17px] leading-relaxed max-w-lg mx-auto mb-10 font-normal"
-                style={{ color: 'var(--muted)' }}
-              >
-                Get an evidence-backed circularity score in seconds, grounded in real-world case
-                studies.
-              </p>
-
-              {/* Trust signal strip — 3 statistics, editorial style */}
-              <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap mt-10 mb-8">
-                {[
-                  { value: '40K+', label: 'Circular economy\ncases analysed' },
-                  { value: '97%', label: 'Confidence\nscore accuracy' },
-                  { value: '8', label: 'Weighted evaluation\ndimensions' },
-                ].map(({ value, label }) => (
-                  <div key={value} className="text-center">
-                    <p
-                      className="text-[28px] font-semibold leading-none mb-1"
-                      style={{
-                        color: 'var(--color-text-primary)',
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      {value}
-                    </p>
-                    <p
-                      className="text-[11px] leading-snug whitespace-pre-line"
-                      style={{ color: 'var(--color-text-muted)' }}
-                    >
-                      {label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Meta strip — Assessment Methodology · features · Evaluation Criteria */}
-        <div className="flex items-center justify-center gap-10 flex-wrap py-5 mb-2 border-b-[1.5px] border-border">
-          {[
-            {
-              key: 'assessment',
-              label: 'Assessment Methodology',
-              icon: BookOpen,
-              onClick: openAssessmentMethodologyDrawer,
-            },
-            {
-              key: 'evaluation',
-              label: 'Evaluation Criteria',
-              icon: Target,
-              onClick: openEvaluationCriteriaDrawer,
-            },
-          ].map(({ key, label, icon: Icon, onClick }) => (
-            <button
-              key={key}
-              onClick={onClick}
-              className="flex items-center gap-1.5 text-[11px] tracking-widest cursor-pointer uppercase bg-accent-50 px-3 py-2 rounded-xl
-               transition-colors hover:text-(--foreground) hover:bg-slate-50/50 hover:shadow-sm"
-              style={{ color: 'var(--muted)' }}
-            >
-              <Icon size={12} />
-              {label}
-            </button>
-          ))}
-        </div>
+        <HeroSection
+          openAssessmentMethodologyDrawer={openAssessmentMethodologyDrawer}
+          openEvaluationCriteriaDrawer={openEvaluationCriteriaDrawer}
+        />
 
         {/* Assessment Form */}
         <section id="assessment-form" className="py-12">
@@ -628,14 +543,14 @@ export default function LandingPage() {
             {/* Section heading */}
             <div className="mb-10">
               <h2
-                className="text-[21px] font-semibold mb-2 tracking-tight"
+                className="text-[22px] font-bold mb-2 tracking-tight"
                 style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)' }}
               >
                 Evaluate Your Circular Economy Business
               </h2>
               <p
-                className="text-[13px] leading-relaxed"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="text-[13.5px] leading-relaxed"
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 Describe your business idea using the same structure as real circular economy
                 projects: what problem you solve, and how your solution addresses it.
@@ -701,28 +616,24 @@ export default function LandingPage() {
                               hover:bg-(--color-accent-soft)"
                         >
                           <BriefcaseBusiness
-                            className="h-6 w-6 shrink-0 mr-1
+                            className="shrink-0 mr-1
                transition-[scale,rotate] duration-300 ease-out
                group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10
                group-hover/bcacc:drop-shadow-md"
                             style={{ color: 'var(--color-accent)' }}
-                            strokeWidth={1.75}
+                            size={24}
+                            strokeWidth={2}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
-                                style={{
-                                  color: 'var(--color-text-primary)',
-                                  fontFamily: 'var(--font-body)',
-                                }}
-                              >
+                            <div className="flex items-center gap-2 py-1">
+                              <span className="font-semibold text-sm leading-none tracking-[-0.01em] font-mono">
                                 Business Context
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer"
-                                size={18}
-                                style={{ color: 'var(--color-accent)' }}
+                                className="info-icon cursor-pointer shrink-0"
+                                size={20}
+                                strokeWidth={2}
+                                style={{ color: 'var(--color-accent)', marginTop: '1px' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openBusinessContextHeadingInfoDrawer();
@@ -730,7 +641,7 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-[11px] leading-4"
+                              className="text-[0.75rem] leading-4 font-mono"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Optional — improves analysis quality
@@ -783,28 +694,24 @@ export default function LandingPage() {
                               hover:bg-(--color-accent-soft)"
                         >
                           <SlidersHorizontal
-                            className="h-6 w-6 shrink-0 mr-1
+                            className="shrink-0 mr-1
                transition-[scale,rotate] duration-300 ease-out
                group-hover/epacc:scale-[1.2] group-hover/epacc:-rotate-10
                group-hover/epacc:drop-shadow-md"
+                            size={24}
                             style={{ color: 'var(--color-success)' }}
-                            strokeWidth={1.75}
+                            strokeWidth={2}
                           />
                           <div className="flex flex-col gap-0.5 text-left flex-1">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
-                                style={{
-                                  color: 'var(--color-text-primary)',
-                                  fontFamily: 'var(--font-body)',
-                                }}
-                              >
+                            <div className="flex items-center gap-2 py-1">
+                              <span className="font-semibold text-sm leading-none tracking-[-0.01em] font-mono">
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer"
-                                size={18}
-                                style={{ color: 'var(--color-success)' }}
+                                className="info-icon cursor-pointer shrink-0"
+                                size={20}
+                                strokeWidth={2}
+                                style={{ color: 'var(--color-success)', marginTop: '1px' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEvaluationParametersHeadingInfoDrawer();
@@ -812,7 +719,7 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-[11px] leading-4"
+                              className="text-[0.75rem] leading-4 font-mono"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Score each dimension of circular value
@@ -928,9 +835,10 @@ export default function LandingPage() {
                                 Sample Test Cases
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer"
-                                size={18}
-                                style={{ color: 'var(--color-accent)' }}
+                                className="info-icon cursor-pointer shrink-0"
+                                size={16}
+                                strokeWidth={1.5}
+                                style={{ color: 'var(--color-accent)', marginTop: '1px' }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openSampleTestCasesHeadingInfoDrawer();

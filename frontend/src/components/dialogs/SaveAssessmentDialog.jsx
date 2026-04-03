@@ -16,11 +16,10 @@
  * });
  */
 
-import { AlertDialog, Input } from '@heroui/react';
+import { AlertDialog, Input, Switch } from '@heroui/react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import Switch from '@/components/common/Switch';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
@@ -158,12 +157,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                         Make this assessment publicly viewable
                       </p>
                     </div>
-                    <Switch
-                      variant="public"
-                      isSelected={isPublic}
-                      onChange={setIsPublic}
-                      size="sm"
-                    />
+                    <Switch isSelected={isPublic} onChange={setIsPublic} size="sm" />
                   </div>
 
                   {/* Global Benchmarks toggle */}
@@ -177,7 +171,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       </p>
                     </div>
                     <Switch
-                      variant="benchmark"
                       isSelected={contributeToGlobalBenchmarks}
                       onChange={setContributeToGlobalBenchmarks}
                       size="sm"

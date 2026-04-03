@@ -107,18 +107,17 @@ const createLoaders = (accentColor) => [
 const SWITCH_INTERVAL = 3000;
 const FADE_DURATION = 400;
 
-export default function LoaderIcon({ color = '', isButton = false }) {
+export default function LoaderIcon({ color = '#8b6f47', isButton = false }) {
   const [index, setIndex] = useState(() =>
-    Math.floor(Math.random() * createLoaders('#C89B6D').length),
+    Math.floor(Math.random() * createLoaders('#8b6f47').length),
   );
   const [visible, setVisible] = useState(true);
 
   // Resolve CSS variable at render time
   const accentColor = useMemo(() => {
-    if (typeof window === 'undefined') return '#C89B6D'; // SSR fallback
-    return (
-      getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#C89B6D'
-    );
+    if (typeof window === 'undefined') return '#8b6f47'; // SSR fallback
+    const cssValue = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    return cssValue || '#8b6f47'; // Use brown if CSS variable is empty/invalid
   }, []);
 
   // Get loaders with resolved color
