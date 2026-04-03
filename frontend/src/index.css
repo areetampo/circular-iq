@@ -1605,46 +1605,6 @@ textarea:focus-visible {
   background-color: #b8916a !important;
 }
 
-/* ----- TABLE OVERRIDES ----- */
-.table__root,
-[data-slot='base'].table {
-  background: transparent !important;
-  border: 1px solid rgba(180, 160, 130, 0.2) !important;
-  border-radius: 12px !important;
-}
-
-.table__header,
-[data-slot='header'].table__header {
-  background: rgba(180, 160, 130, 0.06) !important;
-}
-
-.table__row,
-[data-slot='row'].table__row {
-  background: transparent !important;
-}
-.table__row:nth-child(even),
-[data-slot='row'].table__row:nth-child(even) {
-  background: rgba(180, 160, 130, 0.03) !important;
-}
-
-.table__cell,
-[data-slot='cell'].table__cell {
-  font-family: var(--font-body) !important;
-  font-size: 13px !important;
-  color: var(--color-text-primary) !important;
-  border-color: rgba(180, 160, 130, 0.2) !important;
-}
-
-.table__header .table__cell,
-[data-slot='header'] [data-slot='cell'].table__cell {
-  font-family: var(--font-body) !important;
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-  color: var(--color-text-muted) !important;
-}
-
 /* ----- SWITCH OVERRIDES ----- */
 .switch__control {
   background-color: #e8d4c0 !important; /* Softer warm beige track */
@@ -1681,4 +1641,96 @@ textarea:focus-visible {
 .switch:disabled .switch__thumb {
   background-color: #e0e0e0 !important;
   border: none !important;
+}
+
+/* ----- HEROUI TABLE OVERRIDES FOR BEIGE THEME ----- */
+/* Simplified, clean design */
+
+/* Table container */
+[data-slot='base'].table-root {
+  background: rgba(250, 248, 245, 0.4) !important;
+  border: 1px solid rgba(180, 160, 130, 0.3) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+/* Header */
+[data-slot='header'] {
+  background: rgba(220, 200, 175, 0.4) !important;
+}
+
+/* All header cells */
+[data-slot='column'] {
+  padding: 0.75rem 0.75rem !important;
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  color: var(--color-text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid rgba(180, 160, 130, 0.35) !important;
+  border-right: 1px solid rgba(180, 160, 130, 0.15) !important;
+  text-align: center !important;
+}
+
+[data-slot='column']:last-child {
+  border-right: none !important;
+}
+
+/* First column header - left align */
+[data-slot='column']:first-child {
+  text-align: left !important;
+  padding-left: 1rem !important;
+}
+
+/* Body rows */
+[data-slot='row'] {
+  border-bottom: 1px solid rgba(180, 160, 130, 0.12) !important;
+}
+
+[data-slot='row']:last-child {
+  border-bottom: none !important;
+}
+
+[data-slot='row']:nth-child(even) {
+  background: rgba(180, 160, 130, 0.04) !important;
+}
+
+[data-slot='row']:hover {
+  background: rgba(200, 180, 150, 0.2) !important;
+}
+
+/* All cells */
+[data-slot='cell'] {
+  padding: 0.75rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  color: var(--color-text-primary) !important;
+  border-right: 1px solid rgba(180, 160, 130, 0.12) !important;
+  text-align: center !important;
+}
+
+[data-slot='cell']:last-child {
+  border-right: none !important;
+}
+
+/* First column cell - left align */
+[data-slot='cell']:first-child {
+  text-align: left !important;
+  padding-left: 1rem !important;
+  font-weight: 500 !important;
+}
+
+/* Status column */
+[data-slot='cell']:last-child {
+  text-align: center !important;
+}
+
+/* Status chips */
+[data-slot='cell']:last-child [data-slot='base'].chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 500 !important;
+  font-size: 0.7rem !important;
+  padding: 0.2rem 0.6rem !important;
+  min-width: 70px !important;
 }

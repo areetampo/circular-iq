@@ -1,4 +1,3 @@
-import { Table } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
@@ -11,9 +10,9 @@ function formatFactorName(factor) {
 }
 
 const statusConfig = {
-  below_average: { label: 'Needs Work', color: 'error', bg: 'var(--danger-soft)' },
-  average: { label: 'On Track', color: 'default', bg: 'var(--surface)' },
-  above_average: { label: 'Strong', color: 'success', bg: 'var(--success-soft)' },
+  below_average: { label: 'Needs Work', color: 'danger' },
+  average: { label: 'On Track', color: 'default' },
+  above_average: { label: 'Strong', color: 'success' },
 };
 
 export default function BenchmarkTable({ comparisons = {}, opportunities = [], strengths = [] }) {
@@ -29,57 +28,83 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
       p75: data.p75,
       status,
       statusLabel: config.label,
-      statusBg: config.bg,
       statusColor: config.color,
     };
   });
 
+  if (rows.length === 0) {
+    return (
+      <div className="text-sm text-(--color-text-muted) py-4">
+        No benchmark comparisons available.
+      </div>
+    );
+  }
+
   return (
     <>
-      <Table className="mt-2">
-        <Table.ScrollContainer>
-          <Table.Content aria-label="Benchmark comparisons">
-            <Table.Header>
-              <Table.Column isRowHeader>Factor</Table.Column>
-              <Table.Column>Your Score</Table.Column>
-              <Table.Column>25th %ile</Table.Column>
-              <Table.Column>50th %ile</Table.Column>
-              <Table.Column>75th %ile</Table.Column>
-              <Table.Column>Status</Table.Column>
-            </Table.Header>
-            <Table.Body>
-              {rows.map((row) => (
-                <Table.Row key={row.factor}>
-                  <Table.Cell>{row.displayName}</Table.Cell>
-                  <Table.Cell>{row.userScore ?? '—'}</Table.Cell>
-                  <Table.Cell>{row.p25 ?? '—'}</Table.Cell>
-                  <Table.Cell>{row.p50 ?? '—'}</Table.Cell>
-                  <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
-                  <Table.Cell>
-                    <Chip
-                      variant="info"
-                      color={
-                        row.statusColor === 'error'
-                          ? 'danger'
-                          : row.statusColor === 'success'
-                            ? 'success'
-                            : 'default'
-                      }
-                    >
-                      {row.statusLabel}
-                    </Chip>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-              {rows.length === 0 && (
-                <Table.Row>
-                  <Table.Cell colSpan={6}>No benchmark comparisons available.</Table.Cell>
-                </Table.Row>
-              )}
-            </Table.Body>
-          </Table.Content>
-        </Table.ScrollContainer>
-      </Table>
+      <div className="overflow-x-auto mt-2 rounded-xl border border-(--color-border) bg-[rgba(250,248,245,0.5)]">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-[rgba(220,200,175,0.4)]">
+              <th className="text-left py-3 px-4 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+                Factor
+              </th>
+              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+                Your Score
+              </th>
+              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+                25th %ile
+              </th>
+              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+                50th %ile
+              </th>
+              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+                75th %ile
+              </th>
+              <th className="text-center py-3 px-4 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr
+                key={row.factor}
+                className={`${index % 2 === 1 ? 'bg-[rgba(180,160,130,0.05)]' : ''} hover:bg-[rgba(200,180,150,0.2)] transition-colors`}
+              >
+                <td className="text-left py-3 px-4 text-sm font-medium text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
+                  {row.displayName}
+                </td>
+                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
+                  {row.userScore ?? '—'}
+                </td>
+                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
+                  {row.p25 ?? '—'}
+                </td>
+                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
+                  {row.p50 ?? '—'}
+                </td>
+                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
+                  {row.p75 ?? '—'}
+                </td>
+                <td className="text-center py-3 px-4 border-b border-(--color-border) border-opacity-30">
+                  <Chip
+                    variant="info"
+                    color={row.statusColor}
+                    className={`
+                      ${row.status === 'above_average' ? '!bg-[rgba(74,124,89,0.15)] !text-[#4a7c59] !border-[rgba(74,124,89,0.3)]' : ''}
+                      ${row.status === 'average' ? '!bg-[rgba(176,125,58,0.15)] !text-[#b07d3a] !border-[rgba(176,125,58,0.3)]' : ''}
+                      ${row.status === 'below_average' ? '!bg-[rgba(139,58,58,0.15)] !text-[#8b3a3a] !border-[rgba(139,58,58,0.3)]' : ''}
+                    `}
+                  >
+                    {row.statusLabel}
+                  </Chip>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {(opportunities?.length > 0 || strengths?.length > 0) && (
         <div className="mt-4">

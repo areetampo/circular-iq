@@ -233,16 +233,28 @@ export default function MyAssessmentsPage() {
   }, []);
 
   const handleCompareSelected = useCallback(() => {
+    console.log('handleCompareSelected called');
+    console.log('selectedIds:', selectedIds);
+    console.log('assessments:', assessments);
+
     if (selectedIds.size !== 2) {
       toast.info('Please select exactly 2 assessments to compare', { timeout: 3000 });
       return;
     }
 
     const selectedIdArray = Array.from(selectedIds);
+    console.log('selectedIdArray:', selectedIdArray);
+
     // Find the publicIds for the selected assessments
     const publicIds = selectedIdArray
-      .map((id) => assessments.find((a) => a.id === id)?.public_id)
+      .map((id) => {
+        const assessment = assessments.find((a) => a.id === id);
+        console.log(`Looking for assessment with id ${id}:`, assessment);
+        return assessment?.public_id;
+      })
       .filter(Boolean);
+
+    console.log('publicIds:', publicIds);
 
     if (publicIds.length !== 2) {
       toast.danger('Could not find selected assessments', { timeout: 3000 });
@@ -429,6 +441,20 @@ export default function MyAssessmentsPage() {
 
   const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
 
+  // Prefetch adjacent pages for better UX
+  useEffect(() => {
+    if (totalPages > 1) {
+      // Prefetch next page if it exists
+      if (page < totalPages) {
+        prefetchAssessmentsPage(page + 1);
+      }
+      // Prefetch previous page if it exists and we're not on page 1
+      if (page > 1) {
+        prefetchAssessmentsPage(page - 1);
+      }
+    }
+  }, [page, totalPages, prefetchAssessmentsPage]);
+
   // Render skeleton cards for initial load - Beautiful spacing
   const renderInitialLoadPageSkeleton = useCallback(() => {
     // SummaryCardSkeleton - Matches the actual Summary Card structure
@@ -507,13 +533,232 @@ export default function MyAssessmentsPage() {
     );
   }, []);
 
-  // Render only assessment list skeleton - Beautiful spacing
+  // ---------- Helper: Render the assessment list area (with early returns) ----------
+  const renderAssessmentListContent = () => {
+    if (isAssessmentsLoading) {
+      return <AssessmentListSkeleton />;
+    }
 
-  return (
-    <div className="space-y-6">
-      {isAssessmentStatsLoading ? (
-        renderInitialLoadPageSkeleton()
-      ) : isAssessmentStatsError ? (
+    if (isAssessmentsError) {
+      return (
+        <ErrorDisplay
+          variant="error"
+          title="Error Loading Assessments"
+          message={
+            isAssessmentsError.message ||
+            'An error occurred while loading your assessments. Please try again.'
+          }
+          actions={[
+            {
+              label: 'Retry',
+              onPress: () => refetch(),
+              variant: 'danger',
+            },
+            {
+              label: 'Back to Home',
+              onPress: handleBack,
+              variant: 'secondary',
+            },
+          ]}
+          showDefaultActions={false}
+        />
+      );
+    }
+
+    // No assessments at all (stats_totalAssessments === 0)
+    if (stats_totalAssessments === 0) {
+      return (
+        <div className="border-2 border-dashed border-(--color-border) rounded-xl bg-(--color-accent-soft)">
+          <div className="p-6 text-center">
+            <div className="flex justify-center mb-8">
+              <div className="p-5 rounded-2xl shadow-inner bg-linear-to-br from-(--color-bg-card) to-(--color-border)">
+                <Ghost strokeWidth={1.5} size={48} className="text-(--color-text-muted)" />
+              </div>
+            </div>
+            <h3 className="font-bold text-2xl mb-3 text-(--color-text-primary)">
+              No assessments yet
+            </h3>
+            <p className="text-base mb-8 max-w-md mx-auto leading-relaxed text-(--color-text-muted)">
+              Start your first assessment to track your circular economy progress and get
+              personalized recommendations.
+            </p>
+            <Button onPress={handleBack} variant="primary" size="lg">
+              <Plus size={20} />
+              Start Your First Assessment
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Filtered results returned empty
+    if (assessments.length === 0) {
+      return (
+        <div className="border-2 border-dashed border-(--color-border) rounded-xl bg-(--color-accent-soft)">
+          <div className="p-6 text-center">
+            <div className="flex justify-center mb-8">
+              <div className="p-5 rounded-2xl shadow-inner bg-linear-to-br from-(--color-bg-card) to-(--color-border)">
+                <Ghost strokeWidth={1.5} size={48} className="text-(--color-text-muted)" />
+              </div>
+            </div>
+            <h3 className="font-bold text-2xl mb-3 text-(--color-text-primary)">
+              No assessments found
+            </h3>
+            <p className="text-base mb-8 max-w-md mx-auto leading-relaxed text-(--color-text-muted)">
+              Your current filters didn&apos;t match any assessments. Try selecting a different
+              industry or adjusting your search.
+            </p>
+            <Button
+              variant="secondary"
+              onPress={() => {
+                setSearchTerm('');
+                setSelectedIndustries(['all']);
+                setSortBy('created_at_desc');
+                setPage(1);
+              }}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Normal case: show list and pagination
+    return (
+      <>
+        <AssessmentList
+          assessments={assessments}
+          selectedIds={selectedIds}
+          onToggleSelect={handleToggleSelect}
+          onView={handleViewDetail}
+          onRename={handleRenameAssessment}
+          onDelete={handleDeleteAssessment}
+          onPrefetch={prefetchAssessment}
+          onTogglePublic={handleTogglePublic}
+          onToggleBenchmarks={handleToggleBenchmarks}
+        />
+
+        <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
+          <p className="text-sm text-(--color-text-muted)">
+            Showing{' '}
+            <span className="font-semibold inline-block text-center text-(--color-text-primary)">
+              {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
+            </span>{' '}
+            of{' '}
+            <span className="font-semibold inline-block text-center text-(--color-text-primary)">
+              {total}
+            </span>{' '}
+            results
+          </p>
+
+          <div className="flex sm:flex-row flex-col items-center justify-center gap-4 sm:gap-6 mt-1 sm:mt-0">
+            <Pagination className="justify-center">
+              <Pagination.Content>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={page === 1}
+                    onPress={() => {
+                      if (page > 1) {
+                        prefetchAssessmentsPage(page - 1);
+                        setPage(page - 1);
+                      }
+                    }}
+                  >
+                    <Pagination.PreviousIcon />
+                    Previous
+                  </Pagination.Previous>
+                </Pagination.Item>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <Pagination.Item key={p}>
+                    <Pagination.Link
+                      isActive={p === page}
+                      onPress={() => {
+                        prefetchAssessmentsPage(p);
+                        setPage(p);
+                      }}
+                    >
+                      {p}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                ))}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={page === totalPages}
+                    onPress={() => {
+                      if (page < totalPages) {
+                        prefetchAssessmentsPage(page + 1);
+                        setPage(page + 1);
+                      }
+                    }}
+                  >
+                    Next
+                    <Pagination.NextIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
+              </Pagination.Content>
+            </Pagination>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm whitespace-nowrap text-(--color-text-muted)">
+                Per page:
+              </label>
+              <Select
+                className="w-20"
+                placeholder="5"
+                value={String(pageSize)}
+                onChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+                aria-label="Select page size"
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    <ListBox.Item id="5" textValue="5">
+                      5
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                    <ListBox.Item id="10" textValue="10">
+                      10
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                    <ListBox.Item id="20" textValue="20">
+                      20
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                    <ListBox.Item id="50" textValue="50">
+                      50
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                    <ListBox.Item id="100" textValue="100">
+                      100
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  // ---------- Main render with early returns for stats loading/error ----------
+  // Case 1: Stats are still loading
+  if (isAssessmentStatsLoading) {
+    return <div className="space-y-6">{renderInitialLoadPageSkeleton()}</div>;
+  }
+
+  // Case 2: Stats failed to load
+  if (isAssessmentStatsError) {
+    return (
+      <div className="space-y-6">
         <ErrorDisplay
           variant="error"
           title="Error Loading Assessments"
@@ -535,282 +780,93 @@ export default function MyAssessmentsPage() {
           ]}
           showDefaultActions={false}
         />
-      ) : (
+      </div>
+    );
+  }
+
+  // Case 3: Stats loaded successfully – render normal content
+  return (
+    <div className="space-y-6">
+      {/* Stats cards (only if there is at least one assessment) */}
+      {stats_totalAssessments > 0 && (
         <>
-          {/* AFTER INITIAL LOAD: Show actual content */}
-          {/* Summary Stats - 4 smaller inline stats */}
-          {stats_totalAssessments > 0 && (
-            <>
-              {/* Section divider */}
-              <div className="border-t border-(--color-border) my-6" />
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                {/* Average Score */}
-                <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
-                  <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
-                    Avg Score
-                  </div>
-                  <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em]">
-                    {averageScore || 0}
-                  </div>
-                  <div className="font-(--font-body) text-[12px] text-(--color-text-muted) mt-0.5">
-                    Total: {stats_totalAssessments}
-                  </div>
-                </div>
-
-                {/* Total Assessments */}
-                <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
-                  <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
-                    Total
-                  </div>
-                  <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em]">
-                    {stats_totalAssessments}
-                  </div>
-                  <div className="font-(--font-body) text-[12px] text-(--color-text-muted)">
-                    Assessments
-                  </div>
-                </div>
-
-                {/* Highest Score */}
-                <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
-                  <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
-                    Highest
-                  </div>
-                  <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em]">
-                    {highestScore || 0}
-                  </div>
-                  <div className="font-(--font-body) text-[12px] text-(--color-text-muted)">
-                    Score
-                  </div>
-                </div>
-
-                {/* Primary Focus */}
-                <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
-                  <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
-                    Primary Focus
-                  </div>
-                  <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em] truncate">
-                    {topIndustries && topIndustries.length > 0
-                      ? topIndustries[0].industry
-                          .replace(/_/g, ' ')
-                          .replace(/\b\w/g, (l) => l.toUpperCase())
-                          .slice(0, 8)
-                      : '—'}
-                  </div>
-                  <div className="font-(--font-body) text-[12px] text-(--color-text-muted)">
-                    {topIndustries && topIndustries.length > 0 ? topIndustries[0].count : '—'}
-                  </div>
-                </div>
+          <div className="border-t border-(--color-border) my-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
+              <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+                Avg Score
               </div>
-            </>
-          )}
-
-          {/* Filters & Controls Card - STATIC during filter changes - Beautiful spacing */}
-          {stats_totalAssessments > 0 && (
-            <FilterBar
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              setPage={setPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              industryOptions={industryOptions}
-              selectedIndustries={selectedIndustries}
-              handleToggleIndustry={handleToggleIndustry}
-              formatIndustryLabel={formatIndustryLabel}
-              selectedIds={selectedIds}
-              handleCompareSelected={handleCompareSelected}
-            />
-          )}
-
-          {/* Assessment List Section - ONLY this shows loading during filter changes */}
-          <div className="space-y-4">
-            {isAssessmentsLoading ? (
-              <AssessmentListSkeleton />
-            ) : isAssessmentsError ? (
-              <ErrorDisplay
-                variant="error"
-                title="Error Loading Assessments"
-                message={
-                  isAssessmentsError.message ||
-                  'An error occurred while loading your assessments. Please try again.'
-                }
-                actions={[
-                  {
-                    label: 'Retry',
-                    onPress: () => refetch(),
-                    variant: 'danger',
-                  },
-                  {
-                    label: 'Back to Home',
-                    onPress: handleBack,
-                    variant: 'secondary',
-                  },
-                ]}
-                showDefaultActions={false}
-              />
-            ) : stats_totalAssessments === 0 ? (
-              <div className="border-2 border-dashed border-(--color-border) rounded-xl bg-(--color-accent-soft)">
-                <div className="p-6 text-center">
-                  <div className="flex justify-center mb-8">
-                    <div className="p-5 rounded-2xl shadow-inner bg-linear-to-br from-(--color-bg-card) to-(--color-border)">
-                      <Ghost strokeWidth={1.5} size={48} className="text-(--color-text-muted)" />
-                    </div>
-                  </div>
-                  <h3 className="font-bold text-2xl mb-3 text-(--color-text-primary)">
-                    No assessments yet
-                  </h3>
-                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed text-(--color-text-muted)">
-                    Start your first assessment to track your circular economy progress and get
-                    personalized recommendations.
-                  </p>
-                  <Button onPress={handleBack} variant="primary" size="lg">
-                    <Plus size={20} />
-                    Start Your First Assessment
-                  </Button>
-                </div>
+              <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em]">
+                {averageScore || 0}
               </div>
-            ) : assessments.length === 0 ? (
-              <div className="border-2 border-dashed border-(--color-border) rounded-xl bg-(--color-accent-soft)">
-                <div className="p-6 text-center">
-                  <div className="flex justify-center mb-8">
-                    <div className="p-5 rounded-2xl shadow-inner bg-linear-to-br from-(--color-bg-card) to-(--color-border)">
-                      <Ghost strokeWidth={1.5} size={48} className="text-(--color-text-muted)" />
-                    </div>
-                  </div>
-                  <h3 className="font-bold text-2xl mb-3 text-(--color-text-primary)">
-                    No assessments found
-                  </h3>
-                  <p className="text-base mb-8 max-w-md mx-auto leading-relaxed text-(--color-text-muted)">
-                    Your current filters didn&apos;t match any assessments. Try selecting a
-                    different industry or adjusting your search.
-                  </p>
-                  <Button
-                    variant="secondary"
-                    onPress={() => {
-                      setSearchTerm('');
-                      setSelectedIndustries(['all']);
-                      setSortBy('created_at_desc');
-                      setPage(1);
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
+              <div className="font-(--font-body) text-[12px] text-(--color-text-muted) mt-0.5">
+                Total: {stats_totalAssessments}
               </div>
-            ) : (
-              <>
-                <AssessmentList
-                  assessments={assessments}
-                  selectedIds={selectedIds}
-                  onToggleSelect={handleToggleSelect}
-                  onView={handleViewDetail}
-                  onRename={handleRenameAssessment}
-                  onDelete={handleDeleteAssessment}
-                  onPrefetch={prefetchAssessment}
-                  onTogglePublic={handleTogglePublic}
-                  onToggleBenchmarks={handleToggleBenchmarks}
-                />
+            </div>
 
-                <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
-                  {/* Pagination info text */}
-                  <p className="text-sm text-(--color-text-muted)">
-                    Showing{' '}
-                    <span className="font-semibold inline-block text-center text-(--color-text-primary)">
-                      {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
-                    </span>{' '}
-                    of{' '}
-                    <span className="font-semibold inline-block text-center text-(--color-text-primary)">
-                      {total}
-                    </span>{' '}
-                    results
-                  </p>
+            <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
+              <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+                Total
+              </div>
+              <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em]">
+                {stats_totalAssessments}
+              </div>
+              <div className="font-(--font-body) text-[12px] text-(--color-text-muted)">
+                Assessments
+              </div>
+            </div>
 
-                  <div className="flex sm:flex-row flex-col items-center justify-center gap-4 sm:gap-6 mt-1 sm:mt-0">
-                    {/* MUI Pagination */}
-                    <Pagination className="justify-center">
-                      <Pagination.Content>
-                        <Pagination.Item>
-                          <Pagination.Previous
-                            isDisabled={page === 1}
-                            onPress={() => setPage(page - 1)}
-                          >
-                            <Pagination.PreviousIcon />
-                            Previous
-                          </Pagination.Previous>
-                        </Pagination.Item>
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                          <Pagination.Item key={p}>
-                            <Pagination.Link isActive={p === page} onPress={() => setPage(p)}>
-                              {p}
-                            </Pagination.Link>
-                          </Pagination.Item>
-                        ))}
-                        <Pagination.Item>
-                          <Pagination.Next
-                            isDisabled={page === totalPages}
-                            onPress={() => setPage(page + 1)}
-                          >
-                            Next
-                            <Pagination.NextIcon />
-                          </Pagination.Next>
-                        </Pagination.Item>
-                      </Pagination.Content>
-                    </Pagination>
+            <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
+              <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+                Highest
+              </div>
+              <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em]">
+                {highestScore || 0}
+              </div>
+              <div className="font-(--font-body) text-[12px] text-(--color-text-muted)">Score</div>
+            </div>
 
-                    {/* HeroUI v3 Select for page size */}
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm whitespace-nowrap text-(--color-text-muted)">
-                        Per page:
-                      </label>
-                      <Select
-                        className="w-20"
-                        placeholder="5"
-                        value={String(pageSize)}
-                        onChange={(value) => {
-                          setPageSize(Number(value));
-                          setPage(1);
-                        }}
-                        aria-label="Select page size"
-                      >
-                        <Select.Trigger>
-                          <Select.Value />
-                          <Select.Indicator />
-                        </Select.Trigger>
-                        <Select.Popover>
-                          <ListBox>
-                            <ListBox.Item id="5" textValue="5">
-                              5
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="10" textValue="10">
-                              10
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="20" textValue="20">
-                              20
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="50" textValue="50">
-                              50
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                            <ListBox.Item id="100" textValue="100">
-                              100
-                              <ListBox.ItemIndicator />
-                            </ListBox.Item>
-                          </ListBox>
-                        </Select.Popover>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="border border-[rgba(180,160,130,0.3)] rounded-[12px] p-[18px_22px] bg-[rgba(245,240,232,0.04)]">
+              <div className="font-(--font-body) text-[10px] font-bold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+                Primary Focus
+              </div>
+              <div className="font-(--font-mono) text-[30px] font-medium text-(--color-text-primary) tracking-[-0.03em] truncate">
+                {topIndustries && topIndustries.length > 0
+                  ? topIndustries[0].industry
+                      .replace(/_/g, ' ')
+                      .replace(/\b\w/g, (l) => l.toUpperCase())
+                      .slice(0, 8)
+                  : '—'}
+              </div>
+              <div className="font-(--font-body) text-[12px] text-(--color-text-muted)">
+                {topIndustries && topIndustries.length > 0 ? topIndustries[0].count : '—'}
+              </div>
+            </div>
           </div>
         </>
       )}
 
-      {/* Simple Back Home Button */}
+      {/* Filter bar (only if there is at least one assessment) */}
+      {stats_totalAssessments > 0 && (
+        <FilterBar
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          setPage={setPage}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          industryOptions={industryOptions}
+          selectedIndustries={selectedIndustries}
+          handleToggleIndustry={handleToggleIndustry}
+          formatIndustryLabel={formatIndustryLabel}
+          selectedIds={selectedIds}
+          handleCompareSelected={handleCompareSelected}
+        />
+      )}
+
+      {/* Assessment list area (handles all loading/empty/error states internally) */}
+      <div className="space-y-4">{renderAssessmentListContent()}</div>
+
+      {/* Back button (always visible after stats load) */}
       <div className="flex justify-center pt-2">
         <Button variant="secondary" onPress={handleBack} size="lg">
           <ArrowLeft strokeWidth={2.5} size={20} />

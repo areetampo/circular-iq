@@ -1,8 +1,8 @@
+import { Chip } from '@/components/common';
+import { SectionHeading } from '@/components/common/SectionHeading';
+import { formatFactorName } from '@/lib/scoring';
 import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
-
-import { Chip } from '@/components/common';
-import { formatFactorName } from '@/lib/scoring';
 
 export default function ScoreCard({
   title,
@@ -32,10 +32,13 @@ export default function ScoreCard({
     <div className="border-t border-(--color-border) pt-8 mt-8">
       {/* Section heading with icon */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-(--color-accent)" />
-          <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted)">{title}</h3>
-        </div>
+        <SectionHeading
+          variant="small"
+          icon={<BarChart3 className="w-4 h-4 text-(--color-accent)" />}
+          className="mb-0"
+        >
+          {title}
+        </SectionHeading>
         {score != null && (
           <div className="text-right">
             <div

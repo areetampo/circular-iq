@@ -1,7 +1,5 @@
-import { Globe, Lock } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
 import { titleize } from '@/lib/formatting';
 
 export function ScoreOverviewSection({
@@ -20,43 +18,29 @@ export function ScoreOverviewSection({
   reportTips,
 }) {
   return (
-    <div className="border-t border-(--color-border) pt-8 mt-8">
-      {/* Assessment Name and Meta Info */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-6 gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h2 className="text-lg sm:text-xl font-bold text-(--color-text-primary)">
-              {actualResult.metadata?.short_description || 'Circular Economy Assessment'}
-            </h2>
-            {isViewFromMyAssessments && currentData && (
-              <Chip variant="tag" className="gap-1 ml-1">
-                {(optimisticIsPublic !== null ? optimisticIsPublic : currentData.is_public) ===
-                false ? (
-                  <>
-                    <Lock size={12} />
-                    Private
-                  </>
-                ) : (
-                  <>
-                    <Globe size={12} />
-                    Public
-                  </>
-                )}
-              </Chip>
-            )}
+    <div className="mt-8">
+      {/* Industry and Confidence Row */}
+      <div className="flex justify-center gap-4 mb-6">
+        {actualResult.metadata?.industry && (
+          <div
+            className="px-3 py-1.5 rounded-lg"
+            style={{ backgroundColor: 'var(--color-accent-light)' }}
+          >
+            <span className="text-sm font-medium text-(--color-text-primary)">
+              {titleize(actualResult.metadata.industry)}
+            </span>
           </div>
-          <div className="flex gap-4 text-sm text-(--color-text-secondary)">
-            {actualResult.metadata?.industry && (
-              <span>{titleize(actualResult.metadata.industry)}</span>
-            )}
-            {actualResult.metadata?.assessment_date && (
-              <span>{new Date(actualResult.metadata.assessment_date).toLocaleDateString()}</span>
-            )}
-            {actualResult.confidence_level && (
-              <span>{actualResult.confidence_level}% Confidence</span>
-            )}
+        )}
+        {actualResult.confidence_level && (
+          <div
+            className="px-3 py-1.5 rounded-lg"
+            style={{ backgroundColor: 'var(--color-accent-light)' }}
+          >
+            <span className="text-sm font-medium text-(--color-text-primary)">
+              {actualResult.confidence_level}% Confidence
+            </span>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Score Display */}
@@ -69,7 +53,7 @@ export function ScoreOverviewSection({
           Circularity Score
         </div>
         {actualResult.metadata?.short_description && (
-          <p className="font-(--font-display) text-[20px] text-(--color-text-primary) leading-[1.4] not-italic mb-2 mt-6 max-w-2xl mx-auto">
+          <p className="font-sans text-[20px] text-(--color-text-primary) leading-[1.4] not-italic mb-2 mt-6 max-w-2xl mx-auto">
             {actualResult.metadata.short_description}
           </p>
         )}
@@ -100,7 +84,7 @@ export function ScoreOverviewSection({
       {/* Strongest Factor and Focus Area */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {topFactor && (
-          <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
+          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
             <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
               Strongest Factor
             </div>
@@ -110,7 +94,7 @@ export function ScoreOverviewSection({
         )}
 
         {focusFactor && (
-          <div className="border border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
+          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
             <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
               Focus Area
             </div>

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom';
 
 import LoaderComponent from '@/components/common/LoaderComponent';
 import ScrollToTop from '@/components/common/ScrollToTop';
@@ -8,8 +8,6 @@ import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-bound
 import AppContainer from '@/components/layout/AppContainer';
 import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
-
-import Footer from '../components/layout/Footer';
 
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
@@ -25,6 +23,8 @@ const ComparePage = lazy(() => import('@/pages/ComparePage/ComparePage'));
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
+import Footer from '../components/layout/Footer';
+
 /**
  * ProtectedRoute — requires Supabase session (see useAuth).
  */
@@ -34,6 +34,7 @@ function ProtectedRoute({ children }) {
   if (authLoading) {
     return (
       <LoaderComponent
+        overlay
         heading="Authenticating..."
         message="Please wait while we verify your session."
       />
@@ -71,133 +72,135 @@ function ShareRedirect() {
 export default function AppRoutes() {
   return (
     <GlobalErrorBoundary>
-      <Suspense
-        fallback={
-          <LoaderComponent
-            heading="Loading..."
-            message="Please wait while the application loads."
-          />
-        }
-      >
-        <Routes>
-          {/* Auth route — no navbar, no app-bg wrapper */}
-          <Route path="/auth" element={<AuthPage />} />
+      <Routes>
+        {/* Auth route — no navbar, no app-bg wrapper */}
+        <Route path="/auth" element={<AuthPage />} />
 
-          {/* All other routes — with navbar and app-bg */}
-          <Route
-            path="*"
-            element={
-              <div className="app-bg">
-                <Navbar />
+        {/* All other routes — with navbar and app-bg */}
+        <Route
+          path="/"
+          element={
+            <div className="app-bg min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
                 <AppContainer>
                   <ScrollToTop />
-                  <Routes>
-                    <Route path="/" element={<LandingPage />} />
-
-                    {/* ─── Public: legacy share URL → canonical path ─── */}
-                    <Route
-                      path="/share/:publicId"
-                      element={
-                        <PageErrorBoundary pageName="Share Redirect">
-                          <ShareRedirect />
-                        </PageErrorBoundary>
-                      }
-                    />
-
-                    {/* ─── Public: share gateway & shared assessment view ─── */}
-                    <Route
-                      path="/assessments/share"
-                      element={
-                        <PageErrorBoundary pageName="Share Gateway">
-                          <SharePage />
-                        </PageErrorBoundary>
-                      }
-                    />
-                    <Route
-                      path="/assessments/share/:publicId"
-                      element={
-                        <PageErrorBoundary pageName="Shared Assessment View">
-                          <AssessmentViewPage />
-                        </PageErrorBoundary>
-                      }
-                    />
-
-                    <Route
-                      path="/guide"
-                      element={
-                        <PageErrorBoundary pageName="Guide">
-                          <GuidePage />
-                        </PageErrorBoundary>
-                      }
-                    />
-
-                    {/* ─── Public: session results (unsaved) & legacy redirects ─── */}
-                    <Route
-                      path="/results"
-                      element={
-                        <PageErrorBoundary pageName="Results">
-                          <ResultsPage />
-                        </PageErrorBoundary>
-                      }
-                    />
-
-                    {/* ─── Protected ─── */}
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <DashboardPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/assessments"
-                      element={
-                        <ProtectedRoute>
-                          <MyAssessmentsPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/assessments/compare"
-                      element={
-                        <ProtectedRoute>
-                          <PageErrorBoundary pageName="Compare Assessments">
-                            <ComparePage />
-                          </PageErrorBoundary>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/assessments/compare/:publicId1/:publicId2"
-                      element={
-                        <ProtectedRoute>
-                          <PageErrorBoundary pageName="Assessment Comparison">
-                            <AssessmentComparisonPage />
-                          </PageErrorBoundary>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/assessments/:publicId"
-                      element={
-                        <ProtectedRoute>
-                          <PageErrorBoundary pageName="Assessment Results">
-                            <ResultsPage isViewFromMyAssessments={true} />
-                          </PageErrorBoundary>
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    <Route path="*" element={<NotFoundPage />} />
-                  </Routes>
+                  <Suspense
+                    fallback={
+                      <LoaderComponent
+                        heading="Loading Page..."
+                        message="Please wait while the page loads."
+                      />
+                    }
+                  >
+                    <Outlet />
+                  </Suspense>
                 </AppContainer>
-                <Footer />
-              </div>
+              </main>
+              <Footer />
+            </div>
+          }
+        >
+          <Route index element={<LandingPage />} />
+
+          {/* ─── Public: legacy share URL → canonical path ─── */}
+          <Route
+            path="/share/:publicId"
+            element={
+              <PageErrorBoundary pageName="Share Redirect">
+                <ShareRedirect />
+              </PageErrorBoundary>
             }
           />
-        </Routes>
-      </Suspense>
+
+          {/* ─── Public: share gateway & shared assessment view ─── */}
+          <Route
+            path="/assessments/share"
+            element={
+              <PageErrorBoundary pageName="Share Gateway">
+                <SharePage />
+              </PageErrorBoundary>
+            }
+          />
+          <Route
+            path="/assessments/share/:publicId"
+            element={
+              <PageErrorBoundary pageName="Shared Assessment View">
+                <AssessmentViewPage />
+              </PageErrorBoundary>
+            }
+          />
+
+          <Route
+            path="/guide"
+            element={
+              <PageErrorBoundary pageName="Guide">
+                <GuidePage />
+              </PageErrorBoundary>
+            }
+          />
+
+          {/* ─── Public: session results (unsaved) & legacy redirects ─── */}
+          <Route
+            path="/results"
+            element={
+              <PageErrorBoundary pageName="Results">
+                <ResultsPage />
+              </PageErrorBoundary>
+            }
+          />
+
+          {/* ─── Protected ─── */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assessments"
+            element={
+              <ProtectedRoute>
+                <MyAssessmentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assessments/compare"
+            element={
+              <ProtectedRoute>
+                <PageErrorBoundary pageName="Compare Assessments">
+                  <ComparePage />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assessments/compare/:publicId1/:publicId2"
+            element={
+              <ProtectedRoute>
+                <PageErrorBoundary pageName="Assessment Comparison">
+                  <AssessmentComparisonPage />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assessments/:publicId"
+            element={
+              <ProtectedRoute>
+                <PageErrorBoundary pageName="Assessment Results">
+                  <ResultsPage isViewFromMyAssessments={true} />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
     </GlobalErrorBoundary>
   );
 }

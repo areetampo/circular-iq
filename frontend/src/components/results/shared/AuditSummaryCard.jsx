@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
+import { Chip, SectionHeading } from '@/components/common';
 
 export function AuditSummaryCard({ result, variant = 'default' }) {
   const audit = result?.audit;
@@ -10,20 +10,22 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
   return (
     <div className="border-t border-(--color-border) pt-8 mt-8">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-5 h-5 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent)">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
-        <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted)">
-          AI Audit Summary
-        </h3>
-      </div>
+      <SectionHeading
+        variant="small"
+        icon={
+          <div className="w-5 h-5 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent)">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        }
+      >
+        AI Audit Summary
+      </SectionHeading>
 
       <p className="text-sm text-(--color-text-secondary) mb-6 leading-relaxed">
         Comprehensive analysis and recommendations
@@ -109,7 +111,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
           </h4>
           <div className="space-y-3">
             {audit.improvement_roadmap.map((item, i) => (
-              <div key={i} className="p-3 border border-(--color-border) rounded-md flex gap-3">
+              <div key={i} className="p-3 border-2 border-(--color-border) rounded-xl flex gap-3">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                     i === 0 || item.priority === 1 || item.priority === '1'
@@ -186,7 +188,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
             {audit.sdg_alignment.map((sdg, i) => (
               <div
                 key={i}
-                className="p-3 border rounded-lg flex gap-2 border-(--color-border) bg-transparent"
+                className="p-3 border-2 rounded-xl flex gap-2 border-(--color-border) bg-transparent"
               >
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 bg-(--color-info) text-(--color-bg)">
                   {sdg.sdg_number}
@@ -225,7 +227,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
             {Object.entries(audit.key_metrics_comparison).map(([key, value]) => (
               <div
                 key={key}
-                className="p-3 border rounded-lg bg-transparent border-(--color-border)"
+                className="p-3 border-2 rounded-xl bg-transparent border-(--color-border)"
               >
                 <div className="text-xs font-bold capitalize text-(--color-text-primary)">
                   {key.replace(/_/g, ' ')}

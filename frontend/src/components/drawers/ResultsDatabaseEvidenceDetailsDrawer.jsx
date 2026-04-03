@@ -1,5 +1,5 @@
-import { Drawer, useOverlayState } from '@heroui/react';
-import { ExternalLink, FileText, X } from 'lucide-react';
+import { Drawer } from '@heroui/react';
+import { ExternalLink, FileText } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import DRAWERS from '@/components/drawers/drawerTypes';
@@ -8,22 +8,25 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
   const { drawer, onClose } = useGlobalDrawer();
 
-  // Check if this specific drawer is open
+  // Check if this specific drawer is open and matches the expected type
   const isThisDrawerOpen =
     drawer?.type === DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS && drawer?.isOpen;
 
-  // Use HeroUI v3 useOverlayState for proper state management
-  const drawerState = useOverlayState({
-    defaultOpen: isThisDrawerOpen,
-    onOpenChange: (open) => {
-      if (!open) onClose();
-    },
-  });
+  console.log('=== ResultsDatabaseEvidenceDetailsDrawer rendering ===');
+  console.log('Received data:', data);
+  console.log('Current drawer type:', drawer?.type);
+  console.log('Is this drawer open:', isThisDrawerOpen);
 
   if (!data) return null;
 
   return (
-    <Drawer state={drawerState}>
+    <Drawer
+      isOpen={isThisDrawerOpen}
+      shouldCloseOnInteractOutside={false}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <Drawer.Backdrop variant="blur" />
       <Drawer.Content
         placement="right"
@@ -45,12 +48,6 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                   </p>
                 </div>
               </div>
-              <Drawer.CloseTrigger
-                aria-label="Close drawer"
-                className="w-9 h-9 flex items-center justify-center rounded-2xl text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(184,145,106,0.1)] transition-colors"
-              >
-                <X size={14} />
-              </Drawer.CloseTrigger>
             </div>
           </Drawer.Header>
 

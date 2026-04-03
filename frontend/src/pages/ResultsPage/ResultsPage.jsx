@@ -1,4 +1,4 @@
-import { Accordion, Input, Switch, toast } from '@heroui/react';
+import { Accordion, Checkbox, Input, toast } from '@heroui/react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -6,7 +6,6 @@ import {
   BarChart3,
   CheckCircle2,
   CircleX,
-  ClipboardList,
   Download,
   FolderPen,
   Globe,
@@ -22,8 +21,9 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import RadarChart from '@/components/charts/RadarChart';
 import { Button, Chip } from '@/components/common';
+import CopyButton from '@/components/common/CopyButton';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
-import CopyButton from '@/components/modern-ui/copy-button';
+import { SectionHeading } from '@/components/common/SectionHeading';
 import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
@@ -43,6 +43,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
 import { titleize } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
+import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
 import { getSession, saveSession } from '@/utils/session';
 
@@ -50,6 +51,7 @@ import {
   AuditSummaryCard,
   CircularEconomyTierCard,
   DatabaseEvidenceCard,
+  FieldDisplayCard,
   GapAnalysisCard,
   ParameterConsistencyCard,
   ResultsSkeleton,
@@ -837,7 +839,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <div className="mb-8 mt-4 px-4 sm:px-6 space-y-4">
         {isViewFromMyAssessments && currentData?.title && (
           <div className="mb-4">
-            <h1 className="font-(--font-display) text-[28px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
+            <h1 className="font-mono text-2xl font-semibold text-(--color-text-primary) tracking-[-0.02em]">
               {currentData.title}
             </h1>
           </div>
@@ -972,44 +974,65 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         {!isPublicShare && currentData && (
           <div className="border-t border-[rgba(180,160,130,0.18)] pt-4 mb-3">
             {/* Toggle row */}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-start gap-4">
               <div>
                 <p className="text-[13px] font-semibold text-(--color-text-primary)">
                   Public sharing
-                </p>
-                <p className="text-[12px] mt-0.5 text-(--color-text-muted)">
-                  {isResultsRoute
-                    ? 'Save assessment to enable sharing'
-                    : 'Allow others to view this assessment via link'}
+                  <span className="text-[12px] font-normal ml-1.5 text-(--color-text-muted)">
+                    {isResultsRoute
+                      ? '(Save assessment to enable sharing)'
+                      : '(Allow others to view this assessment via link)'}
+                  </span>
                 </p>
               </div>
-              <Switch
+              <Checkbox
                 id="public-toggle"
                 isSelected={
                   optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
                 }
                 onChange={handleTogglePublic}
                 isDisabled={isUpdatingPublic || isResultsRoute}
-              />
+                className={cn(
+                  isResultsRoute ? 'hidden' : '',
+                  "[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4",
+                )}
+                name="xl-rounded"
+              >
+                <Checkbox.Control
+                  className={cn(
+                    'size-6 rounded-full before:rounded-full',
+                    isResultsRoute ? 'hidden' : '',
+                  )}
+                >
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+              </Checkbox>
             </div>
 
-            {/* Share URL — shown only when public and public_id exists */}
+            {/* Share URL — shown only when is_public = true and public_id exists */}
             {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
               currentData?.public_id && (
-                <div className="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t border-[rgba(180,160,130,0.18)]">
-                  <Input
-                    readOnly
-                    value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                    className="text-xs flex-1"
-                    style={{
-                      backgroundColor: 'var(--field-bg)',
-                      borderColor: 'var(--field-border)',
-                      color: 'var(--foreground)',
-                    }}
-                  />
-                  <CopyButton
-                    value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                  />
+                <div className="flex flex-col sm:flex-row gap-3 mt-3 pt-3">
+                  <div className="relative flex-1">
+                    <Input
+                      readOnly
+                      value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                      className="text-xs w-full pr-10"
+                      style={{
+                        backgroundColor: 'var(--field-bg)',
+                        borderColor: 'var(--field-border)',
+                        color: 'var(--foreground)',
+                      }}
+                    />
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+                      <CopyButton
+                        value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
+                        description="URL"
+                        noBorder
+                      />
+                    </div>
+                  </div>
+                  <CopyButton value={`${currentData.public_id}`} description="ID" />
                 </div>
               )}
           </div>
@@ -1020,18 +1043,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <div data-export-section="case-summary">
         <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 pb-4">
           <div className="p-1 sm:p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-              <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em]">
-                Case Summary
-              </h3>
-            </div>
+            <SectionHeading variant="large">Case Summary</SectionHeading>
 
             <div className="w-full">
               <Accordion className="w-full" allowsMultipleExpanded>
                 {/* --- Problem Item --- */}
                 <Accordion.Item id="problem" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[rgba(245,240,232,0.5)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
                       <div className="flex items-center gap-3">
                         <Target
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1062,7 +1081,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Solution Item --- */}
                 <Accordion.Item id="solution" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[rgba(245,240,232,0.5)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
                       <div className="flex items-center gap-3">
                         <Lightbulb
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1093,7 +1112,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Business Context Item --- */}
                 <Accordion.Item id="context" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-[rgba(245,240,232,0.5)] transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
                       <div className="flex items-center gap-3">
                         <Globe
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1161,7 +1180,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {/* --- Evaluation Parameters Item --- */}
                 <Accordion.Item id="parameters" className="group/case">
                   <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-accent-soft transition-colors">
+                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
                       <div className="flex items-center gap-3">
                         <BarChart3
                           className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
@@ -1249,14 +1268,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
           reportTips={reportTips}
         />
-
         <CircularEconomyTierCard actualResult={actualResult} />
         <WeightedScoreCard actualResult={actualResult} />
         <ParameterConsistencyCard actualResult={actualResult} />
         <RStrategyAlignmentCard actualResult={actualResult} />
         <ScoreCategoryBreakdown actualResult={actualResult} />
         <GapAnalysisCard actualResult={actualResult} />
-
         {/* Industry & Metadata Section */}
         {actualResult.metadata && (
           <div
@@ -1267,131 +1284,43 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             }}
           >
             <div className="p-1 sm:p-3">
-              <h3
-                className="text-lg font-semibold flex items-center gap-2 mb-1"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
-                <ClipboardList className="shrink-0" size={20} style={{ color: 'var(--success)' }} />
-                Project Classification
-              </h3>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                Your project details and assessment context
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <div
-                  className="p-4 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    borderColor: 'var(--accent)',
-                  }}
-                >
-                  <div
-                    className="text-xs font-bold uppercase tracking-wide mb-1"
-                    style={{ color: 'var(--accent)' }}
-                  >
-                    Industry
-                  </div>
-                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                    {titleize(actualResult.industry || '')}
-                  </div>
-                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                    {fieldHelp.industry}
-                  </div>
-                </div>
-                <div
-                  className="p-4 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    borderColor: 'var(--accent)',
-                  }}
-                >
-                  <div
-                    className="text-xs font-bold uppercase tracking-wide mb-1"
-                    style={{ color: 'var(--accent)' }}
-                  >
-                    Scale
-                  </div>
-                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                    {titleize(actualResult.metadata.scale)}
-                  </div>
-                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                    {fieldHelp.scale}
-                  </div>
-                </div>
-                <div
-                  className="p-4 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    borderColor: 'var(--accent)',
-                  }}
-                >
-                  <div
-                    className="text-xs font-bold uppercase tracking-wide mb-1"
-                    style={{ color: 'var(--accent)' }}
-                  >
-                    Strategy
-                  </div>
-                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                    {titleize(actualResult.metadata.r_strategy)}
-                  </div>
-                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                    {fieldHelp.r_strategy}
-                  </div>
-                </div>
-                <div
-                  className="p-4 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    borderColor: 'var(--accent)',
-                  }}
-                >
-                  <div
-                    className="text-xs font-bold uppercase tracking-wide mb-1"
-                    style={{ color: 'var(--accent)' }}
-                  >
-                    Material
-                  </div>
-                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                    {titleize(actualResult.metadata.primary_material)}
-                  </div>
-                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                    {fieldHelp.primary_material}
-                  </div>
-                </div>
-                <div
-                  className="p-4 rounded-lg border"
-                  style={{
-                    backgroundColor: 'var(--accent-soft)',
-                    borderColor: 'var(--accent)',
-                  }}
-                >
-                  <div
-                    className="text-xs font-bold uppercase tracking-wide mb-1"
-                    style={{ color: 'var(--accent)' }}
-                  >
-                    Geography
-                  </div>
-                  <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
-                    {titleize(actualResult.metadata.geographic_focus)}
-                  </div>
-                  <div className="text-xs mt-1 italic" style={{ color: 'var(--muted)' }}>
-                    {fieldHelp.geographic_focus}
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {[
+                  { label: 'Industry', value: actualResult.industry || '', helpKey: 'industry' },
+                  { label: 'Scale', value: actualResult.metadata.scale, helpKey: 'scale' },
+                  {
+                    label: 'Strategy',
+                    value: actualResult.metadata.r_strategy,
+                    helpKey: 'r_strategy',
+                  },
+                  {
+                    label: 'Material',
+                    value: actualResult.metadata.primary_material,
+                    helpKey: 'primary_material',
+                  },
+                  {
+                    label: 'Geography',
+                    value: actualResult.metadata.geographic_focus,
+                    helpKey: 'geographic_focus',
+                  },
+                ].map((field) => (
+                  <FieldDisplayCard
+                    key={field.label}
+                    label={field.label}
+                    value={field.value}
+                    helpText={fieldHelp[field.helpKey]}
+                  />
+                ))}
               </div>
             </div>
           </div>
         )}
 
         {/* Category Analysis */}
-        <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+        <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
           <div className="p-1 sm:p-3">
-            <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-1">
-              Category Analysis
-            </h3>
-            <p className="text-sm text-(--color-text-muted) mb-4">
+            <SectionHeading variant="large">Category Analysis</SectionHeading>
+            <p className="text-sm text-(--color-text-muted) mb-4 -mt-4">
               Detailed breakdown across all evaluation criteria
             </p>
             <div className="space-y-3">
@@ -1419,7 +1348,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 return (
                   <div
                     key={key}
-                    className="p-4 rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]"
+                    className="p-4 rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
@@ -1494,24 +1423,21 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             </div>
           </div>
         </div>
-
         {/* Performance Comparison */}
         {resolvedRadarData && resolvedRadarData.length > 0 ? (
-          <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
             <div className="p-1 sm:p-3">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
                 <div>
-                  <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-1">
-                    Performance Comparison
-                  </h3>
-                  <p className="text-sm text-(--color-text-muted)">
+                  <SectionHeading variant="large">Performance Comparison</SectionHeading>
+                  <p className="text-sm text-(--color-text-muted) -mt-4">
                     How your idea compares to similar projects in the database
                   </p>
                 </div>
               </div>
 
               <div
-                className="w-full rounded-3xl p-4 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.18)]"
+                className="w-full rounded-3xl p-4 bg-[rgba(245,240,232,0.5)] border-0 border-[rgba(180,160,130,0.18)]"
                 style={{
                   '--color-userValue': 'var(--success)',
                   '--color-marketAvg': 'var(--accent)',
@@ -1531,9 +1457,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         ) : (
           <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
             <div className="p-5 sm:p-6">
-              <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-1">
-                Performance Comparison
-              </h3>
+              <SectionHeading variant="large">Performance Comparison</SectionHeading>
               <p className="text-sm text-(--color-text-muted)">
                 No comparison data available. Check that sub-scores are present in the assessment
                 result.
@@ -1543,22 +1467,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
         {/* Integrity Analysis - Beautiful Accordion Design (same as Summary tab) */}
         {(gaps.length > 0 || strengths.length > 0) && (
-          <div
-            className="border rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <div className="p-1 sm:p-3">
-              <h3
-                className="text-lg font-semibold mb-1"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+            <div className="p-2 sm:p-4">
+              <SectionHeading variant="small" className="mb-1">
                 Integrity Analysis
-              </h3>
+              </SectionHeading>
               <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
                 We compare your self-assessed scores against real-world projects in our database to
                 identify potential overestimations or underestimations.
@@ -1724,38 +1637,27 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         <AuditSummaryCard actualResult={actualResult} />
 
         <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Strengths & Gaps Card - Modern Design */}
-          <div
-            className="border rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <div className="p-1 sm:p-3">
-              <h3
-                className="text-lg font-semibold mb-1"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+            <div className="p-2 sm:p-4">
+              <SectionHeading variant="small" className="mb-1">
                 Strengths & Gaps
-              </h3>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+              </SectionHeading>
+              <p className="text-sm mb-4 -mt-4" style={{ color: 'var(--muted)' }}>
                 Highlights from your assessment and improvement areas
               </p>
               <div className="space-y-4">
                 <div
-                  className="p-4 rounded-xl border"
+                  className="p-4 rounded-xl border-2"
                   style={{
-                    background:
-                      'linear-gradient(to bottom right, var(--success-soft), var(--success-soft))',
-                    borderColor: 'var(--success)',
+                    background: 'var(--background-secondary)',
+                    borderColor: 'rgba(107,142,109,0.3)',
                   }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle2 size={16} style={{ color: 'var(--success)' }} />
+                    <CheckCircle2 size={20} style={{ color: '#6B8E6D' }} />
                     <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
                       Strengths
                     </p>
@@ -1838,15 +1740,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
                 {gaps.length > 0 && (
                   <div
-                    className="p-4 rounded-xl border"
+                    className="p-4 rounded-xl border-2"
                     style={{
-                      background:
-                        'linear-gradient(to bottom right, var(--warning-soft), var(--warning-soft))',
-                      borderColor: 'var(--warning)',
+                      background: 'var(--background-secondary)',
+                      borderColor: 'rgba(195,75,75,0.3)',
                     }}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle size={16} style={{ color: 'var(--warning)' }} />
+                      <AlertCircle size={20} style={{ color: '#C3916B' }} />
                       <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
                         Areas for Improvement
                       </p>
@@ -1882,14 +1783,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           </div>
 
           {/* Recommendations Card - Modern Design */}
-          <div
-            className="border rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <div className="p-1 sm:p-3">
+          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+            <div className="p-2 sm:p-4">
               <h3
                 className="text-lg font-semibold mb-1"
                 style={{
@@ -1903,7 +1798,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               </p>
 
               <div
-                className="p-4 rounded-xl border"
+                className="p-4 rounded-xl border-0"
                 style={{
                   background:
                     'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',

@@ -2,6 +2,7 @@ import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
+import { SectionHeading } from '@/components/common/SectionHeading';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 import { formatFactorName } from '@/lib/scoring';
 
@@ -13,10 +14,12 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
 
   return (
     <div className="border-t border-(--color-border) pt-8 mt-8 first:border-0 first:pt-0 first:mt-0">
-      <p className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-6 flex items-center gap-2">
-        <BarChart3 size={14} />
+      <SectionHeading
+        variant="small"
+        icon={<BarChart3 size={16} className="text-(--color-accent)" />}
+      >
         Gap Analysis
-      </p>
+      </SectionHeading>
 
       {variant === 'transparent' && (
         <p className="text-sm text-(--color-text-secondary) mb-6 leading-relaxed">

@@ -1,16 +1,16 @@
+import { Target } from 'lucide-react';
 import PropTypes from 'prop-types';
+
+import { SectionHeading } from '@/components/common/SectionHeading';
 
 export function CircularEconomyTierCard({ actualResult }) {
   if (!actualResult?.circular_economy_tier) return null;
 
   return (
     <div className="border-t border-(--color-border) pt-8 mt-8">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-4 h-4 text-(--color-accent)"></div>
-        <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted)">
-          Circular Economy Tier
-        </h3>
-      </div>
+      <SectionHeading variant="small" icon={<Target size={16} className="text-(--color-accent)" />}>
+        Circular Economy Tier
+      </SectionHeading>
 
       <div className="font-(--font-display) text-3xl text-(--color-text-primary) mb-1">
         {actualResult.circular_economy_tier.tier}

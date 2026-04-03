@@ -157,7 +157,10 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                         Make this assessment publicly viewable
                       </p>
                     </div>
-                    <Switch isSelected={isPublic} onChange={setIsPublic} size="sm" />
+                    <Switch isSelected={isPublic} onChange={setIsPublic} size="sm">
+                      <Switch.Control />
+                      <Switch.Thumb />
+                    </Switch>
                   </div>
 
                   {/* Global Benchmarks toggle */}
@@ -174,7 +177,10 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       isSelected={contributeToGlobalBenchmarks}
                       onChange={setContributeToGlobalBenchmarks}
                       size="sm"
-                    />
+                    >
+                      <Switch.Control />
+                      <Switch.Thumb />
+                    </Switch>
                   </div>
                 </div>
               </AlertDialog.Body>

@@ -2,6 +2,7 @@ import { TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
+import { SectionHeading } from '@/components/common/SectionHeading';
 import { formatFactorName } from '@/lib/scoring';
 
 export function WeightedScoreCard({ actualResult }) {
@@ -9,13 +10,12 @@ export function WeightedScoreCard({ actualResult }) {
 
   return (
     <div className="border-t border-(--color-border) pt-8 mt-8">
-      {/* Section heading with icon */}
-      <div className="flex items-center gap-2 mb-6">
-        <TrendingUp className="w-4 h-4 text-(--color-accent)" />
-        <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted)">
-          Score Contribution Breakdown
-        </h3>
-      </div>
+      <SectionHeading
+        variant="small"
+        icon={<TrendingUp className="w-4 h-4 text-(--color-accent)" />}
+      >
+        Score Contribution Breakdown
+      </SectionHeading>
 
       {/* Description */}
       <p className="text-sm text-(--color-text-secondary) mb-6">

@@ -45,7 +45,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <input
           type="checkbox"
           checked={isSelected}
-          onChange={onToggleSelect}
+          onChange={() => onToggleSelect(assessment.id)}
           className="w-4 h-4 accent-(--color-accent) shrink-0"
           title="Select for comparison"
           onClick={(e) => e.stopPropagation()}
@@ -115,6 +115,8 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           isSelected={assessment.contribute_to_benchmarks}
           onChange={() => onToggleBenchmarks(assessment.id)}
         >
+          <Switch.Control />
+          <Switch.Thumb />
           <Label>Benchmarks</Label>
         </Switch>
         <Switch
@@ -122,6 +124,8 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           isSelected={assessment.is_public}
           onChange={() => onTogglePublic(assessment.id)}
         >
+          <Switch.Control />
+          <Switch.Thumb />
           <Label>Public</Label>
         </Switch>
       </div>
