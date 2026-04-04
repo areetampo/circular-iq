@@ -7,6 +7,7 @@
 
 export * from './AuditSummaryCard';
 export * from './CaseSummary';
+export * from './CaseSummaryAccordions';
 export * from './CircularEconomyTierCard';
 export * from './DatabaseEvidenceCard';
 export * from './FieldDisplayCard';

@@ -137,43 +137,6 @@ export default function AssessmentComparisonPage() {
 
     const resolvedBusinessViabilityScore = computeBusinessViabilityScore(scoringResult);
 
-    // Radar chart data (per assessment, vs market avg from similar_cases)
-    const computeMarketAvg = (res) => {
-      if (!res?.similar_cases || res.similar_cases.length === 0) return 65;
-      return (
-        res.similar_cases.reduce((acc, curr) => acc + (curr.similarity || 0) * 100, 0) /
-        res.similar_cases.length
-      );
-    };
-
-    const { validKeys } = require('@/constants/evaluationData');
-    const { formatFactorName } = require('@/lib/scoring');
-
-    const radarData = validKeys
-      .filter((key) => key in (scoringResult?.sub_scores || {}))
-      .map((key) => ({
-        subject: formatFactorName(key),
-        userValue: Number(scoringResult.sub_scores[key]) || 0,
-        marketAvg: computeMarketAvg(scoringResult),
-      }));
-
-    const radarConfigs = [
-      {
-        name: 'Your Idea',
-        dataKey: 'userValue',
-        stroke: 'var(--success)',
-        fill: 'var(--success)',
-        fillOpacity: 0.35,
-      },
-      {
-        name: 'Market Average',
-        dataKey: 'marketAvg',
-        stroke: 'var(--info)',
-        fill: 'var(--info)',
-        fillOpacity: 0.2,
-      },
-    ];
-
     return {
       overallScore,
       strengths,
@@ -183,8 +146,6 @@ export default function AssessmentComparisonPage() {
       focusFactor,
       avgFactorScore,
       resolvedBusinessViabilityScore,
-      radarData,
-      radarConfigs,
     };
   };
 
@@ -206,7 +167,7 @@ export default function AssessmentComparisonPage() {
       <div className="sticky top-0 z-20 bg-(--color-bg) border-b border-(--color-border) py-4 px-6">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 max-w-7xl mx-auto">
           <div>
-            <h2 className="font-(--font-display) text-xl text-(--color-text-primary) truncate">
+            <h2 className="font-mono font-medium text-xl text-(--color-text-primary) truncate">
               {assessment1.title}
             </h2>
             <div className="flex items-baseline gap-1 mt-1">
@@ -226,7 +187,7 @@ export default function AssessmentComparisonPage() {
             <ChangeIndicator diff={overallDelta} />
           </div>
           <div className="text-right">
-            <h2 className="font-(--font-display) text-xl text-(--color-text-primary) truncate">
+            <h2 className="font-mono font-medium text-xl text-(--color-text-primary) truncate">
               {assessment2.title}
             </h2>
             <div className="flex items-baseline gap-1 mt-1 justify-end">
@@ -267,8 +228,8 @@ export default function AssessmentComparisonPage() {
       </div>
 
       {/* Footer */}
-      <div className="flex justify-between items-center py-6 px-6 border-t border-(--color-border) mt-8">
-        <p className="text-xs text-(--color-text-muted)">
+      <div className="flex justify-between items-center py-6 px-6 border-t-2 border-(--color-border) mt-8">
+        <p className="text-sm font-medium text-(--color-text-muted)">
           Last updated: {getCurrentTimestampFormatted()}
         </p>
         <div className="flex gap-2">

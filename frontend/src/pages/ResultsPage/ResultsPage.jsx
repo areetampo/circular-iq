@@ -9,7 +9,6 @@ import {
   Download,
   FolderPen,
   Globe,
-  Lightbulb,
   RefreshCw,
   Save,
   Target,
@@ -49,6 +48,7 @@ import { getSession, saveSession } from '@/utils/session';
 
 import {
   AuditSummaryCard,
+  CaseSummaryAccordions,
   CircularEconomyTierCard,
   DatabaseEvidenceCard,
   FieldDisplayCard,
@@ -1041,212 +1041,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
       {/* Case Summary */}
       <div data-export-section="case-summary">
-        <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 pb-4">
-          <div className="p-1 sm:p-3">
-            <SectionHeading variant="large">Case Summary</SectionHeading>
-
-            <div className="w-full">
-              <Accordion className="w-full" allowsMultipleExpanded>
-                {/* --- Problem Item --- */}
-                <Accordion.Item id="problem" className="group/case">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Target
-                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
-                          size={20}
-                          style={{ color: 'var(--success)' }}
-                        />
-                        <div>
-                          <h4 className="font-semibold text-(--color-text-primary)">Problem</h4>
-                          <p className="text-sm text-(--color-text-muted)">
-                            What the assessment identifies as the problem
-                          </p>
-                        </div>
-                      </div>
-                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-                  <Accordion.Panel>
-                    <Accordion.Body>
-                      <div className="py-2">
-                        <p className="text-sm leading-relaxed text-(--color-text-primary)">
-                          {problemText}
-                        </p>
-                      </div>
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                {/* --- Solution Item --- */}
-                <Accordion.Item id="solution" className="group/case">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Lightbulb
-                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
-                          size={20}
-                          style={{ color: 'var(--warning)' }}
-                        />
-                        <div>
-                          <h4 className="font-semibold text-(--color-text-primary)">Solution</h4>
-                          <p className="text-sm text-(--color-text-muted)">
-                            Proposed solution summary
-                          </p>
-                        </div>
-                      </div>
-                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-                  <Accordion.Panel>
-                    <Accordion.Body>
-                      <div className="py-2">
-                        <p className="text-sm leading-relaxed text-(--color-text-primary)">
-                          {solutionText}
-                        </p>
-                      </div>
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                {/* --- Business Context Item --- */}
-                <Accordion.Item id="context" className="group/case">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Globe
-                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
-                          size={20}
-                          style={{ color: 'var(--info)' }}
-                        />
-                        <div>
-                          <h4 className="font-semibold text-(--color-text-primary)">
-                            Business Context
-                          </h4>
-                          <p className="text-sm text-(--color-text-muted)">
-                            Operational and contextual details
-                          </p>
-                        </div>
-                      </div>
-                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-                  <Accordion.Panel>
-                    <Accordion.Body>
-                      <div className="py-2">
-                        {businessContextValues &&
-                        typeof businessContextValues === 'object' &&
-                        Object.keys(businessContextValues).length > 0 ? (
-                          <div className="grid grid-cols-1 gap-2">
-                            {Object.entries(businessContextValues).map(([key, value]) => {
-                              const labelKey = key
-                                .replace(/_/g, ' ')
-                                .split(' ')
-                                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                                .join(' ');
-                              const displayValue =
-                                value === null || value === undefined || value === ''
-                                  ? 'Not specified'
-                                  : value === true
-                                    ? 'Yes'
-                                    : value === false
-                                      ? 'No'
-                                      : String(value);
-                              return (
-                                <div
-                                  key={key}
-                                  className="flex items-center justify-between rounded-lg border px-3 py-2 bg-[rgba(245,240,232,0.5)] border-[rgba(180,160,130,0.18)]"
-                                >
-                                  <span className="text-xs font-semibold text-(--color-text-primary)">
-                                    {labelKey}
-                                  </span>
-                                  <span className="text-xs text-(--color-text-secondary)">
-                                    {displayValue}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-(--color-text-muted)">
-                            No business context information available
-                          </p>
-                        )}
-                      </div>
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                {/* --- Evaluation Parameters Item --- */}
-                <Accordion.Item id="parameters" className="group/case">
-                  <Accordion.Heading>
-                    <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                      <div className="flex items-center gap-3">
-                        <BarChart3
-                          className="transition-transform duration-300 ease-out group-hover/case:scale-110 mr-1.5"
-                          size={20}
-                          style={{ color: 'var(--foreground)' }}
-                        />
-                        <div>
-                          <h4
-                            className="font-semibold"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Evaluation Parameters
-                          </h4>
-                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                            Input parameters and values
-                          </p>
-                        </div>
-                      </div>
-                      <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-                    </Accordion.Trigger>
-                  </Accordion.Heading>
-                  <Accordion.Panel>
-                    <Accordion.Body>
-                      <div className="py-2">
-                        {' '}
-                        {parameterEntries.length > 0 ? (
-                          <div className="grid grid-cols-1 gap-2">
-                            {parameterEntries.map((item) => (
-                              <div
-                                key={item.key}
-                                className="flex items-center justify-between rounded-lg border px-3 py-2"
-                                style={{
-                                  backgroundColor: 'var(--accent-soft)',
-                                  borderColor: 'var(--border)',
-                                }}
-                              >
-                                <span
-                                  className="text-xs font-semibold"
-                                  style={{ color: 'var(--foreground)' }}
-                                >
-                                  {item.label}
-                                </span>
-
-                                <span
-                                  className="text-xs font-bold"
-                                  style={{ color: 'var(--success)' }}
-                                >
-                                  {item.value}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                            No parameter values available.
-                          </p>
-                        )}
-                      </div>
-                    </Accordion.Body>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
-            </div>
-          </div>
+        <div className="p-1 sm:p-3">
+          <SectionHeading variant="large">Case Summary</SectionHeading>
+          <CaseSummaryAccordions
+            businessProblem={problemText}
+            businessSolution={solutionText}
+            businessContext={businessContextValues}
+            evaluationParameters={evaluationParameterValues}
+          />
         </div>
       </div>
 

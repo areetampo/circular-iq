@@ -1,5 +1,5 @@
 import { Accordion } from '@heroui/react';
-import { AlertCircle, CheckCircle2, Target } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import RadarChart from '@/components/charts/RadarChart';
@@ -9,10 +9,10 @@ import {
   AuditSummaryCard as SharedAuditSummaryCard,
   GapAnalysisCard as SharedGapAnalysisCard,
 } from '@/components/results/shared';
-import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
+import { categoryMapping, validKeys } from '@/constants/evaluationData';
 import { titleize } from '@/lib/formatting';
-
-// ResultsPage sub-components — import these directly:
+import { formatFactorName } from '@/lib/scoring';
+import { CaseSummaryAccordions } from '@/pages/ResultsPage/components/CaseSummaryAccordions';
 import { CircularEconomyTierCard } from '@/pages/ResultsPage/components/CircularEconomyTierCard';
 import { DatabaseEvidenceCard } from '@/pages/ResultsPage/components/DatabaseEvidenceCard';
 import { FieldDisplayCard } from '@/pages/ResultsPage/components/FieldDisplayCard';
@@ -33,8 +33,6 @@ export function AssessmentColumn({
   focusFactor,
   avgFactorScore,
   resolvedBusinessViabilityScore,
-  radarData,
-  radarConfigs,
   openResultsDatabaseEvidenceDetailsDrawer,
 }) {
   const fieldHelp = {
@@ -54,118 +52,43 @@ export function AssessmentColumn({
     );
   };
 
-  // Prepare parameter entries for accordion
-  const evaluationParams =
-    assessment.evaluation_parameters || scoringResult?.evaluation_parameters || {};
-  const parameterEntries = validKeys
-    .filter((key) => evaluationParams[key] != null)
+  // Build radar data and configs internally
+  const radarData = validKeys
+    .filter((key) => key in (scoringResult?.sub_scores || {}))
     .map((key) => ({
-      key,
-      label: parameterLabels[key]?.label || titleize(key),
-      value: Number(evaluationParams[key]) || 0,
+      subject: formatFactorName(key),
+      userValue: Number(scoringResult.sub_scores[key]) || 0,
+      marketAvg: computeMarketAvg(scoringResult),
     }));
+
+  const radarConfigs = [
+    {
+      name: 'Your Idea',
+      dataKey: 'userValue',
+      stroke: 'var(--success)',
+      fill: 'var(--success)',
+      fillOpacity: 0.35,
+    },
+    {
+      name: 'Market Average',
+      dataKey: 'marketAvg',
+      stroke: 'var(--info)',
+      fill: 'var(--info)',
+      fillOpacity: 0.2,
+    },
+  ];
 
   return (
     <div className="space-y-0">
-      {/* Assessment label */}
-      <div className="mb-4">
-        <Chip variant="tag" className="text-xs font-semibold">
-          {label}
-        </Chip>
-      </div>
-
       {/* Case Summary */}
-      <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 pb-4">
+      <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 py-4">
         <SectionHeading variant="large">Case Summary</SectionHeading>
-        <Accordion className="w-full" allowsMultipleExpanded>
-          {/* Problem accordion item */}
-          <Accordion.Item id="problem">
-            <Accordion.Heading>
-              <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                <div className="flex items-center gap-3">
-                  <Target size={20} style={{ color: 'var(--success)' }} />
-                  <div>
-                    <h4 className="font-semibold text-(--color-text-primary)">Problem</h4>
-                    <p className="text-sm text-(--color-text-muted)">
-                      What the assessment identifies as the problem
-                    </p>
-                  </div>
-                </div>
-                <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-              </Accordion.Trigger>
-            </Accordion.Heading>
-            <Accordion.Panel>
-              <Accordion.Body>
-                <p className="text-sm leading-relaxed text-(--color-text-primary) py-2">
-                  {assessment.business_problem || scoringResult?.businessProblem || 'Not available'}
-                </p>
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
-
-          {/* Solution accordion item */}
-          <Accordion.Item id="solution">
-            <Accordion.Heading>
-              <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                <div className="flex items-center gap-3">
-                  <Target size={20} style={{ color: 'var(--success)' }} />
-                  <div>
-                    <h4 className="font-semibold text-(--color-text-primary)">Solution</h4>
-                    <p className="text-sm text-(--color-text-muted)">
-                      What the assessment proposes as the solution
-                    </p>
-                  </div>
-                </div>
-                <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-              </Accordion.Trigger>
-            </Accordion.Heading>
-            <Accordion.Panel>
-              <Accordion.Body>
-                <p className="text-sm leading-relaxed text-(--color-text-primary) py-2">
-                  {assessment.business_solution ||
-                    scoringResult?.businessSolution ||
-                    'Not available'}
-                </p>
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
-
-          {/* Parameters accordion item */}
-          {parameterEntries.length > 0 && (
-            <Accordion.Item id="parameters">
-              <Accordion.Heading>
-                <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Target size={20} style={{ color: 'var(--success)' }} />
-                    <div>
-                      <h4 className="font-semibold text-(--color-text-primary)">
-                        Evaluation Parameters
-                      </h4>
-                      <p className="text-sm text-(--color-text-muted)">
-                        Key inputs used for the assessment
-                      </p>
-                    </div>
-                  </div>
-                  <Accordion.Indicator style={{ color: 'var(--muted)' }} />
-                </Accordion.Trigger>
-              </Accordion.Heading>
-              <Accordion.Panel>
-                <Accordion.Body>
-                  <div className="space-y-2 py-2">
-                    {parameterEntries.map((entry) => (
-                      <div key={entry.key} className="flex justify-between items-center">
-                        <span className="text-sm text-(--color-text-primary)">{entry.label}</span>
-                        <span className="text-sm font-mono text-(--color-text-muted)">
-                          {entry.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </Accordion.Body>
-              </Accordion.Panel>
-            </Accordion.Item>
-          )}
-        </Accordion>
+        <CaseSummaryAccordions
+          businessProblem={assessment.business_problem}
+          businessSolution={assessment.business_solution}
+          businessContext={assessment.business_context}
+          evaluationParameters={assessment.evaluation_parameters}
+        />
       </div>
 
       {/* Score Overview */}
@@ -839,8 +762,6 @@ AssessmentColumn.propTypes = {
   focusFactor: PropTypes.array,
   avgFactorScore: PropTypes.number.isRequired,
   resolvedBusinessViabilityScore: PropTypes.number.isRequired,
-  radarData: PropTypes.array.isRequired,
-  radarConfigs: PropTypes.array.isRequired,
   openResultsDatabaseEvidenceDetailsDrawer: PropTypes.func.isRequired,
 };
 
