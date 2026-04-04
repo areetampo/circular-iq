@@ -6,3 +6,4 @@ export {
 } from './AssessmentListItem';
 export { FilterBar } from './FilterBar';
 export { IndustryFilterChip } from './IndustryFilterChip';
+export { StatsGrid } from './StatsGrid';

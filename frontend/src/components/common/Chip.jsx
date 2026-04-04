@@ -16,9 +16,9 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
           size: 'sm',
           className: `font-medium ${
             active
-              ? 'bg-(--accent) text-(--foreground) border-(--accent)'
-              : 'bg-(--color-accent-light) text-(--foreground) border-[rgba(180,160,130,0.3)]'
-          } border transition-all duration-200`,
+              ? 'border-(--color-accent) text-(--color-accent) bg-(--color-accent-light)'
+              : 'border-[rgba(180,160,130,0.25)] text-(--color-text-muted) bg-transparent hover:border-(--color-accent) hover:text-(--color-accent)'
+          } border transition-all duration-200 cursor-pointer`,
         };
 
       case 'tag':
@@ -27,7 +27,7 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
           radius: 'sm',
           size: 'sm',
           className:
-            'font-medium text-xs bg-(--color-accent-light) text-(--foreground) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
+            'font-medium text-xs bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
         };
 
       case 'info':
@@ -35,13 +35,13 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
           variant: 'flat',
           radius: 'sm',
           size: 'sm',
-          className: `font-medium text-xs bg-(--color-accent-light) text-(--foreground) border-[rgba(180,160,130,0.3)] border transition-all duration-200 ${
+          className: `font-medium text-xs bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200 ${
             color === 'success'
-              ? 'border-(--success) text-(--success)'
+              ? 'border-(--color-success) text-(--color-success)'
               : color === 'warning'
-                ? 'border-(--warning) text-(--warning)'
+                ? 'border-(--color-warning) text-(--color-warning)'
                 : color === 'danger'
-                  ? 'border-(--danger) text-(--danger)'
+                  ? 'border-(--color-error) text-(--color-error)'
                   : ''
           }`,
         };
@@ -52,7 +52,7 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
           radius: 'sm',
           size: 'sm',
           className:
-            'font-semibold text-xs tracking-wider uppercase bg-(--color-accent-light) text-(--foreground) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
+            'font-semibold text-xs tracking-wider uppercase bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
         };
 
       case 'match':
@@ -67,7 +67,7 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
                 ? 'bg-[#f3f4f6] text-[#475569] border-[#475569]'
                 : color === 'weak'
                   ? 'bg-[#fef2f2] text-[#a8a29e] border-[#a8a29e]'
-                  : 'bg-(--color-accent-light) text-(--foreground) border-[rgba(180,160,130,0.3)]'
+                  : 'bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)]'
           }`,
         };
 
@@ -77,7 +77,7 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
           radius: 'sm',
           size: 'sm',
           className:
-            'bg-(--color-accent-light) text-(--foreground) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
+            'bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
         };
     }
   };

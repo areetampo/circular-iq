@@ -1,4 +1,4 @@
-import { Button, Label, ListBox, Select } from '@heroui/react';
+import { Button, ListBox, Select } from '@heroui/react';
 import { GitCompare, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -19,31 +19,25 @@ export function FilterBar({
 }) {
   return (
     <div className="space-y-3 mb-6">
-      {/* Search + sort row */}
-      <div className="flex gap-3 flex-col sm:flex-row justify-between">
-        {/* Search — use existing search state and handler */}
-        <div className="relative flex-1">
-          <Label htmlFor="search-input" className="sr-only">
-            Search assessments
-          </Label>
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-(--color-text-muted)"
-            size={15}
-            aria-hidden="true"
-          />
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Search assessments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-[38px] pl-9 pr-4 font-(--font-body) text-[13px] rounded-[9px] border border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
-            aria-label="Search assessments by title or description"
-          />
-        </div>
+      {/* Search */}
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted) pointer-events-none"
+          size={14}
+        />
+        <input
+          type="text"
+          placeholder="Search assessments..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full h-9 pl-9 pr-4 text-sm rounded-xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.12)] transition-all"
+        />
+      </div>
 
-        {/* Sort — keep existing HeroUI Select */}
-        <div className="w-full sm:w-[180px]">
+      {/* Sort + Compare button row */}
+      <div className="flex items-center gap-3">
+        {/* Sort — HeroUI Select */}
+        <div className="flex-1 max-w-50">
           <Select
             className="w-full"
             placeholder="Sort by"
@@ -54,8 +48,12 @@ export function FilterBar({
             }}
             variant="bordered"
             size="sm"
+            classNames={{
+              trigger:
+                'border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) pr-10',
+              popover: 'bg-[rgba(245,240,232,0.95)] border-[rgba(180,160,130,0.28)]',
+            }}
           >
-            <Label className="text-sm font-semibold text-(--color-text-primary)">Sort by</Label>
             <Select.Trigger>
               <Select.Value />
               <Select.Indicator />
@@ -90,23 +88,20 @@ export function FilterBar({
             </Select.Popover>
           </Select>
         </div>
-      </div>
 
-      {/* Compare button — always visible */}
-      <div className="flex items-center gap-2">
+        {/* Compare button */}
         <Button
           variant={selectedIds.size === 2 ? 'primary' : 'secondary'}
           size="sm"
           onClick={handleCompareSelected}
           disabled={selectedIds.size !== 2}
+          className={selectedIds.size !== 2 ? 'opacity-50 cursor-not-allowed' : ''}
           title={
             selectedIds.size !== 2 ? 'Select exactly 2 assessments to compare' : 'Compare selected'
           }
         >
           <GitCompare size={14} />
-          {selectedIds.size < 2
-            ? `Select ${2 - selectedIds.size} more to compare`
-            : 'Compare Selected'}
+          Select exactly 2 assessments to compare
         </Button>
       </div>
 

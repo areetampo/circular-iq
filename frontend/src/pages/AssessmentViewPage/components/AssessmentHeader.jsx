@@ -1,14 +1,49 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { DIALOGS } from '@/components/dialogs/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { updateAssessment } from '@/features/assessments/api/assessmentApi';
 import { exportAssessmentPDF } from '@/features/export';
 import { formatTimestamp } from '@/lib/formatting';
 
 export default function AssessmentHeader({ assessment, isPublicShare, onConfirmDelete }) {
   const navigate = useNavigate();
   const { openDialog } = useGlobalDialog();
+  const queryClient = useQueryClient();
+
+  const togglePublicMutation = useMutation({
+    mutationFn: updateAssessment,
+    onSuccess: async () => {
+      console.log('Public toggle succeeded from results page');
+
+      // On results page, refetch the assessments list to update the list view
+      await queryClient.refetchQueries({ queryKey: ['assessments'] });
+      console.log('Refetched assessments list from results page');
+
+      // Also refetch stats to keep them in sync
+      await queryClient.refetchQueries({ queryKey: ['assessmentStats'] });
+      console.log('Refetched assessment stats from results page');
+
+      // Also invalidate specific public assessment if it exists
+      if (assessment?.public_id) {
+        queryClient.invalidateQueries({ queryKey: ['publicAssessment', assessment.public_id] });
+        console.log('Invalidated specific public assessment:', assessment.public_id);
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to update assessment:', error);
+    },
+  });
+
+  const handleTogglePublic = () => {
+    if (!assessment?.id) return;
+    togglePublicMutation.mutate({
+      id: assessment.id,
+      is_public: !assessment.is_public,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -27,6 +62,21 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
           <p className="text-xs text-(--color-text-muted)">
             Saved {formatTimestamp(assessment.created_at)}
           </p>
+        )}
+
+        {/* Public/Private toggle - show for both owned and shared assessments */}
+        {assessment?.id && (
+          <div className="flex items-center gap-2 mt-2">
+            <label className="flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer">
+              <input
+                type="checkbox"
+                checked={assessment.is_public}
+                onChange={handleTogglePublic}
+                className="w-4 h-4 accent-(--color-accent) cursor-pointer"
+              />
+              <span>Public</span>
+            </label>
+          </div>
         )}
       </div>
 

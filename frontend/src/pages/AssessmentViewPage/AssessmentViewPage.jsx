@@ -24,6 +24,7 @@ import {
 export default function AssessmentViewPage() {
   const { publicId } = useParams();
   const isPublicShare = !!publicId;
+  const queryClient = useQueryClient();
 
   const {
     assessment: publicAssessment,
@@ -45,6 +46,13 @@ export default function AssessmentViewPage() {
     if (!assessment?.id) throw new Error('No assessment selected');
     try {
       await deleteAssessment(assessment.id);
+      // Invalidate all relevant queries to ensure sync across all views
+      queryClient.invalidateQueries({ queryKey: ['assessments'] });
+      queryClient.invalidateQueries({ queryKey: ['assessmentStats'] });
+      // Also invalidate specific public assessment if it exists
+      if (assessment.public_id) {
+        queryClient.invalidateQueries({ queryKey: ['publicAssessment', assessment.public_id] });
+      }
       toast.success('Assessment deleted');
       navigate('/assessments');
     } catch (err) {
@@ -52,7 +60,7 @@ export default function AssessmentViewPage() {
       toast.danger('Failed to delete assessment');
       throw err;
     }
-  }, [assessment?.id, navigate]);
+  }, [assessment?.id, navigate, queryClient]);
 
   if (loading) {
     return <LoaderComponent />;
@@ -74,31 +82,22 @@ export default function AssessmentViewPage() {
         isPublicShare={isPublicShare}
         onConfirmDelete={handleConfirmDelete}
       />
-
       {/* Score header + metadata */}
       <ScoreOverview scoringResult={scoringResult} />
-
       {/* Derived Metrics */}
       <DerivedMetricsCard scoringResult={scoringResult} />
-
       {/* Score Breakdown */}
       <ScoreBreakdownCard scoringResult={scoringResult} />
-
       <CircularEconomyTierCard actualResult={scoringResult} />
       <WeightedScoreCard actualResult={scoringResult} />
-
       {/* Parameter Consistency */}
       <ParameterConsistencyCard scoringResult={scoringResult} />
-
       {/* R-Strategy Alignment */}
       <RStrategyAlignmentCard scoringResult={scoringResult} />
-
       {/* Audit Section */}
       <AuditSummaryCard scoringResult={scoringResult} />
-
       {/* Gap Analysis */}
       <GapAnalysisCard scoringResult={scoringResult} />
-
       {/* Similar Cases */}
       <SimilarCasesCard scoringResult={scoringResult} />
     </div>

@@ -148,7 +148,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                 {/* Toggle rows */}
                 <div className="space-y-0 mb-5">
                   {/* Public Access toggle */}
-                  <div className="flex items-center justify-between py-3 border-b border-(--color-border)">
+                  {/* <div className="flex items-center justify-between py-3 border-b border-(--color-border)">
                     <div>
                       <p className="text-sm font-medium text-(--color-text-primary)">
                         Public Access
@@ -161,10 +161,10 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       <Switch.Control />
                       <Switch.Thumb />
                     </Switch>
-                  </div>
+                  </div> */}
 
                   {/* Global Benchmarks toggle */}
-                  <div className="flex items-center justify-between py-3">
+                  {/* <div className="flex items-center justify-between py-3">
                     <div>
                       <p className="text-sm font-medium text-(--color-text-primary)">
                         Global Benchmarks
@@ -181,7 +181,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       <Switch.Control />
                       <Switch.Thumb />
                     </Switch>
-                  </div>
+                  </div> */}
                 </div>
               </AlertDialog.Body>
 
