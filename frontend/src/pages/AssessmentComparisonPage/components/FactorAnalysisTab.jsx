@@ -12,7 +12,7 @@ import PropTypes from 'prop-types';
 import BarChart from '@/components/charts/BarChart';
 import RadarChart from '@/components/charts/RadarChart';
 import { Chip, SectionHeading } from '@/components/common';
-import { AuditSummaryCard } from '@/components/results/shared';
+import { AuditSummaryCard as SharedAuditSummaryCard } from '@/components/results/shared';
 import { categoryMapping, validKeys } from '@/constants/evaluationData';
 import { titleize } from '@/lib/formatting';
 import { categorizeIntegrityGaps } from '@/utils/content';
@@ -105,7 +105,7 @@ export function FactorAnalysisTab({
                 </span>
                 <div className="flex-1 bg-(--color-border) h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-rgba(180,160,130,0.4) rounded-full"
+                    className="h-full rounded-full bg-(--color-accent)"
                     style={{ width: `${factor.a1}%` }}
                   />
                 </div>
@@ -150,7 +150,11 @@ export function FactorAnalysisTab({
               { sr: scoringResult2, assessment: assessment2 },
             ].map(({ sr, assessment }) => {
               const weightedCard = sr?.weighted_score_card;
-              if (!weightedCard || !Array.isArray(weightedCard)) return null;
+              if (!weightedCard?.factors) return null;
+
+              const sortedFactors = Object.entries(weightedCard.factors).sort(
+                ([, a], [, b]) => b.contribution - a.contribution,
+              );
 
               return (
                 <div
@@ -164,42 +168,39 @@ export function FactorAnalysisTab({
                   </p>
 
                   <div className="space-y-3">
-                    {weightedCard
-                      .sort((a, b) => b.contribution - a.contribution)
-                      .map((item, index) => (
-                        <div
-                          key={item.factor}
-                          className="flex items-center gap-3 py-2 border-b border-(--color-border) last:border-0"
-                        >
-                          <div className="w-36 text-xs font-medium truncate shrink-0 text-(--color-text-muted)">
-                            {titleize(item.factor)}
-                          </div>
-                          <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border)">
-                            <div
-                              className="h-1.5 rounded-full bg-(--color-accent)"
-                              style={{ width: `${item.contribution}%` }}
-                            />
-                          </div>
-                          <div className="text-xs w-8 text-right shrink-0 font-mono text-(--color-text-primary)">
-                            {item.contribution}
-                          </div>
+                    {sortedFactors.map(([key, factor]) => (
+                      <div
+                        key={key}
+                        className="flex items-center gap-3 py-2 border-b border-(--color-border) last:border-0"
+                      >
+                        <div className="w-36 text-xs font-medium truncate shrink-0 text-(--color-text-muted)">
+                          {titleize(key)}
                         </div>
-                      ))}
+                        <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border)">
+                          <div
+                            className="h-1.5 rounded-full bg-(--color-accent)"
+                            style={{ width: `${factor.contribution}%` }}
+                          />
+                        </div>
+                        <div className="text-xs w-8 text-right shrink-0 font-mono text-(--color-text-primary)">
+                          {factor.contribution}
+                        </div>
+                      </div>
+                    ))}
 
-                    {weightedCard.length > 0 && (
+                    {sortedFactors.length > 0 && (
                       <div className="mt-4 pt-3 border-t border-(--color-border)">
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-(--color-text-muted)">Top Contributor:</span>
                           <span className="font-medium text-(--color-text-primary)">
-                            {titleize(weightedCard[0]?.factor)} ({weightedCard[0]?.contribution}%)
+                            {titleize(weightedCard.top_contributor)}
                           </span>
                         </div>
-                        {weightedCard.length > 1 && (
+                        {sortedFactors.length > 1 && (
                           <div className="flex justify-between items-center text-xs mt-1">
                             <span className="text-(--color-text-muted)">Bottom Contributor:</span>
                             <span className="font-medium text-(--color-text-primary)">
-                              {titleize(weightedCard[weightedCard.length - 1]?.factor)} (
-                              {weightedCard[weightedCard.length - 1]?.contribution}%)
+                              {titleize(weightedCard.bottom_contributor)}
                             </span>
                           </div>
                         )}
@@ -230,7 +231,10 @@ export function FactorAnalysisTab({
             const computeBusinessViabilityScore = (res) => {
               if (!res) return 0;
               const confidence = res.audit?.confidence_score;
-              const normalizedConfidence = confidence ? (confidence / 100) * 100 : 50;
+              const normalizedConfidence =
+                confidence != null && confidence <= 1
+                  ? (Number(confidence) || 0) * 100
+                  : Number(confidence) || 0;
               return Math.round(
                 (Number(res.overall_score) || 0) * 0.7 + normalizedConfidence * 0.3,
               );
@@ -410,11 +414,21 @@ export function FactorAnalysisTab({
                                 <p className="text-sm font-medium text-(--color-text-primary)">
                                   {strength.gap}
                                 </p>
-                                {strength.severity && (
-                                  <Chip variant="tag" className="text-xs mt-1">
-                                    {strength.severity}
-                                  </Chip>
-                                )}
+                                <div className="flex flex-wrap gap-2 mt-1.5">
+                                  {strength.severity && (
+                                    <Chip variant="tag" className="text-xs">
+                                      {strength.severity}
+                                    </Chip>
+                                  )}
+                                  {strength.evidence_source_id && (
+                                    <Chip
+                                      variant="tag"
+                                      className="text-xs text-(--color-text-muted)"
+                                    >
+                                      ID: {strength.evidence_source_id}
+                                    </Chip>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -483,10 +497,10 @@ export function FactorAnalysisTab({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
           <div className="border-r border-(--color-border) pr-8">
-            <AuditSummaryCard result={scoringResult1} variant="transparent" />
+            <SharedAuditSummaryCard result={scoringResult1} variant="transparent" />
           </div>
           <div className="pl-8">
-            <AuditSummaryCard result={scoringResult2} variant="transparent" />
+            <SharedAuditSummaryCard result={scoringResult2} variant="transparent" />
           </div>
         </div>
       </div>

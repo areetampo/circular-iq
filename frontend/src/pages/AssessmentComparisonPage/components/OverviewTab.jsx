@@ -107,7 +107,10 @@ function SingleAssessmentOverview({ assessment, scoringResult, variant }) {
             const computeBusinessViabilityScore = (res) => {
               if (!res) return 0;
               const confidence = res.audit?.confidence_score;
-              const normalizedConfidence = confidence ? (confidence / 100) * 100 : 50;
+              const normalizedConfidence =
+                confidence != null && confidence <= 1
+                  ? (Number(confidence) || 0) * 100
+                  : Number(confidence) || 0;
               return Math.round(
                 (Number(res.overall_score) || 0) * 0.7 + normalizedConfidence * 0.3,
               );
@@ -253,7 +256,11 @@ export function OverviewTab({
         </SectionHeading>
 
         <div className="space-y-0">
-          {Object.entries(parameterLabels).map(([key, paramInfo]) => {
+          {[
+            { key: 'technical_feasibility', label: 'Technical Feasibility' },
+            { key: 'economic_viability', label: 'Economic Viability' },
+            { key: 'circularity_potential', label: 'Circularity Potential' },
+          ].map(({ key, label }) => {
             const val1 = scoringResult1?.derived_metrics?.[key] || 0;
             const val2 = scoringResult2?.derived_metrics?.[key] || 0;
             const winner = val1 > val2 ? 1 : val2 > val1 ? 2 : null;
@@ -262,7 +269,7 @@ export function OverviewTab({
                 key={key}
                 className="flex justify-between items-center py-2.5 border-b border-(--color-border) last:border-0 text-sm"
               >
-                <span className="text-(--color-text-muted)">{paramInfo.label}</span>
+                <span className="text-(--color-text-muted)">{label}</span>
                 <div className="flex items-center gap-4">
                   <span
                     className={`font-medium ${winner === 1 ? 'text-(--color-success)' : 'text-(--color-text-muted)'}`}

@@ -1,4 +1,4 @@
-import { Button, Tabs } from '@heroui/react';
+import { Button, Tab, Tabs } from '@heroui/react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -342,10 +342,10 @@ export default function AssessmentComparisonPage() {
                 'group-data-[selected=true]:text-(--color-accent) font-semibold text-(--color-text-muted)',
             }}
           >
-            <Tabs.Item key="overview" title="Overview" />
-            <Tabs.Item key="factors" title="Factor Analysis" />
-            <Tabs.Item key="details" title="Details" />
-            <Tabs.Item key="evidence" title="Database Evidence" />
+            <Tab key="overview" title="Overview" />
+            <Tab key="factors" title="Factor Analysis" />
+            <Tab key="details" title="Details" />
+            <Tab key="evidence" title="Database Evidence" />
           </Tabs>
         </div>
       </div>
@@ -353,24 +353,60 @@ export default function AssessmentComparisonPage() {
       {/* TAB CONTENT */}
       <div className="max-w-7xl mx-auto px-6 pb-8">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div className="border-r border-(--color-border) pr-8">
-              <OverviewTab
-                assessment={assessment1}
-                scoringResult={scoringResult1}
-                insights={insights}
-                variant="left"
-              />
+          <>
+            {/* Key Insights - Full Width */}
+            {insights && insights.length > 0 && (
+              <div className="mb-8">
+                <div className="max-w-4xl mx-auto">
+                  <div className="text-center mb-6">
+                    <h3 className="text-lg font-semibold text-(--color-text-primary) mb-2">
+                      Key Insights
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {insights.map((insight, idx) => {
+                      const IconComponent = insight.icon;
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-3 p-4 rounded-lg transition-all duration-200 hover:shadow-md border-l-4 ${
+                            insight.type === 'positive'
+                              ? 'border-l-(--color-success) bg-(--color-success-soft)'
+                              : insight.type === 'negative'
+                                ? 'border-l-(--color-error) bg-(--color-error-soft)'
+                                : 'border-l-(--color-accent) bg-(--color-accent-soft)'
+                          }`}
+                        >
+                          <IconComponent className="shrink-0" strokeWidth={2.5} size={20} />
+                          <p className="text-sm font-medium m-0 text-(--color-text-primary)">
+                            {insight.text}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Assessment Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+              <div className="border-r border-(--color-border) pr-8">
+                <OverviewTab
+                  assessment={assessment1}
+                  scoringResult={scoringResult1}
+                  variant="left"
+                />
+              </div>
+              <div className="pl-8">
+                <OverviewTab
+                  assessment={assessment2}
+                  scoringResult={scoringResult2}
+                  variant="right"
+                />
+              </div>
             </div>
-            <div className="pl-8">
-              <OverviewTab
-                assessment={assessment2}
-                scoringResult={scoringResult2}
-                insights={insights}
-                variant="right"
-              />
-            </div>
-          </div>
+          </>
         )}
 
         {activeTab === 'factors' && (
