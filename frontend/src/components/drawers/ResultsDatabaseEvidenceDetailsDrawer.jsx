@@ -33,20 +33,19 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
         className="bg-(--color-bg) border-l border-(--color-border-strong) w-full sm:w-130 overflow-y-auto"
       >
         <Drawer.Dialog>
+          <Drawer.CloseTrigger aria-label="Close" />
           <Drawer.Header>
-            <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-(--color-accent-light) rounded-2xl flex items-center justify-center text-(--color-accent) shrink-0">
-                  <FileText size={18} />
-                </div>
-                <div>
-                  <Drawer.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
-                    {data.title || data.case_id || 'Case Details'}
-                  </Drawer.Heading>
-                  <p className="text-[12px] text-(--color-text-muted) mt-1">
-                    Detailed evidence and matched case context
-                  </p>
-                </div>
+            <div className="flex items-center gap-3 pr-8">
+              <div className="w-8 h-8 rounded-lg bg-[rgba(180,160,130,0.12)] flex items-center justify-center shrink-0">
+                <FileText size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
+              </div>
+              <div>
+                <Drawer.Heading className="drawer__heading">
+                  {data.title || data.case_id || 'Case Details'}
+                </Drawer.Heading>
+                <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                  Detailed evidence and matched case context
+                </p>
               </div>
             </div>
           </Drawer.Header>
@@ -84,7 +83,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
             {/* Summary / description */}
             {(data.description || data.summary) && (
               <div className="border-l-3 border-(--color-accent) pl-4 py-2 bg-(--color-accent-light) rounded-r-2xl">
-                <p className="text-[13px] text-(--color-text-secondary) leading-relaxed italic">
+                <p className="text-[13px] text-(--color-text-secondary) leading-relaxed">
                   {data.description || data.summary}
                 </p>
               </div>

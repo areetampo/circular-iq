@@ -4,7 +4,6 @@ import { ClipboardPenLine, Lightbulb } from 'lucide-react';
 import { SAMPLE_TEST_CASES_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
-import { cn } from '@/utils/cn';
 
 export default function SampleTestCasesHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -24,35 +23,20 @@ export default function SampleTestCasesHeadingInfoDrawer() {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger aria-label="Close" />
             <Drawer.Header>
-              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      'p-2 rounded-lg shrink-0',
-                      'transition-[transform,box-shadow] duration-300 ease-out',
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                      'bg-(--color-info-light)',
-                    )}
-                  >
-                    <ClipboardPenLine className="size-5 text-(--color-info)" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-(--color-text-primary)">
-                      {SAMPLE_TEST_CASES_HEADING_CONTENT.heading}
-                    </h2>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">
-                      Learn from real circular economy examples
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(74,85,104,0.1)] flex items-center justify-center shrink-0">
+                  <ClipboardPenLine size={16} className="text-[#4a5568]" strokeWidth={1.75} />
                 </div>
-                <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
-                  aria-label="Close"
-                />
+                <div>
+                  <Drawer.Heading className="drawer__heading">
+                    {SAMPLE_TEST_CASES_HEADING_CONTENT.heading}
+                  </Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                    Learn from real circular economy examples
+                  </p>
+                </div>
               </div>
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
@@ -95,7 +79,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="border-l-2 border-(--color-info) pl-3 py-1 text-xs text-(--color-info) italic leading-relaxed my-3">
+                <div className="border-l-2 border-(--color-info) pl-3 py-1 text-xs text-(--color-info) leading-relaxed my-3">
                   <Lightbulb
                     className="mt-0.5 shrink-0 text-(--color-info)"
                     strokeWidth={2}

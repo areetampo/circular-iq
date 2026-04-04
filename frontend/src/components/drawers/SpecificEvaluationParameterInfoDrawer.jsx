@@ -38,24 +38,18 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger aria-label="Close" />
             <Drawer.Header>
-              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent) shrink-0 mt-0.5">
-                    <Icon className="w-4 h-4" strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-(--color-text-primary)">
-                      {SPECIFIC_PARAMETER_CONTENT.heading}
-                    </h2>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">{guidance.name}</p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
-                <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
-                  aria-label="Close"
-                />
+                <div>
+                  <Drawer.Heading className="drawer__heading">
+                    {SPECIFIC_PARAMETER_CONTENT.heading}
+                  </Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">{guidance.name}</p>
+                </div>
               </div>
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
@@ -136,9 +130,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                           <p className={cn('text-sm font-semibold', cfg.paramTextColor)}>
                             {score} - {label}
                           </p>
-                          <p className="text-xs text-(--color-text-muted) italic mt-1">
-                            {description}
-                          </p>
+                          <p className="text-xs text-(--color-text-muted) mt-1">{description}</p>
                         </div>
                       ))}
                     </div>
@@ -146,7 +138,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 )}
 
                 {guidance.examples && (
-                  <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) italic leading-relaxed my-3">
+                  <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed my-3">
                     <h4 className="mb-3 text-base font-bold text-(--color-accent)">
                       {SPECIFIC_PARAMETER_CONTENT.sections.benchmarks}
                     </h4>
@@ -160,9 +152,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                             {exampleCase} {score && `(${score})`}
                           </p>
                           {reason && (
-                            <p className="text-xs text-(--color-text-muted) italic mt-1">
-                              {reason}
-                            </p>
+                            <p className="text-xs text-(--color-text-muted) mt-1">{reason}</p>
                           )}
                         </div>
                       ))}

@@ -50,25 +50,19 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger
-              aria-label="Close drawer"
-              className="w-9 h-9 flex items-center justify-center rounded-2xl text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(184,145,106,0.1)] transition-colors shrink-0"
-            />
-
+            <Drawer.CloseTrigger aria-label="Close" />
             <Drawer.Header>
-              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-                <div className="flex items-start gap-3">
-                  <div className="shrink-0 w-11 h-11 rounded-2xl bg-(--color-accent-light) flex items-center justify-center text-(--color-accent) mt-0.5">
-                    <Star size={18} />
-                  </div>
-                  <div>
-                    <Drawer.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
-                      Explore Featured Solutions
-                    </Drawer.Heading>
-                    <p className="text-[12px] text-(--color-text-muted) mt-1">
-                      Browse featured solutions matching your query
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                  <Star size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <Drawer.Heading className="drawer__heading">
+                    Explore Featured Solutions
+                  </Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                    Browse featured solutions matching your query
+                  </p>
                 </div>
               </div>
             </Drawer.Header>

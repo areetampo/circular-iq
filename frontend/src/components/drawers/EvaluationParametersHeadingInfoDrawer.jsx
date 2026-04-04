@@ -5,7 +5,6 @@ import { EVALUATION_PARAMETERS_HEADING_CONTENT } from '@/constants/drawers';
 import { factorDefinitions } from '@/constants/evaluationData';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
-import { cn } from '@/utils/cn';
 
 export default function EvaluationParametersHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -25,35 +24,20 @@ export default function EvaluationParametersHeadingInfoDrawer() {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger aria-label="Close" />
             <Drawer.Header>
-              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      'p-2 rounded-lg shrink-0',
-                      'transition-[transform,box-shadow] duration-300 ease-out',
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                      'bg-(--color-success-light)',
-                    )}
-                  >
-                    <ClipboardMinus className="size-5 text-(--color-success)" strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-(--color-text-primary)">
-                      {EVALUATION_PARAMETERS_HEADING_CONTENT.heading}
-                    </h2>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">
-                      Understanding the evaluation framework
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                  <ClipboardMinus size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
-                <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
-                  aria-label="Close"
-                />
+                <div>
+                  <Drawer.Heading className="drawer__heading">
+                    {EVALUATION_PARAMETERS_HEADING_CONTENT.heading}
+                  </Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                    Understanding evaluation framework
+                  </p>
+                </div>
               </div>
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
@@ -86,7 +70,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   ))}
                 </div>
 
-                <p className="text-xs italic p-3 rounded-lg bg-(--color-bg-field) text-(--color-text-muted)">
+                <p className="text-xs p-3 rounded-lg bg-(--color-bg-field) text-(--color-text-muted)">
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.tip}
                 </p>
               </div>

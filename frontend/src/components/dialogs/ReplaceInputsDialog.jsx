@@ -131,8 +131,8 @@ function ReplaceInputsDialogContent() {
         <AlertDialog.Dialog aria-label={title}>
           <AlertDialog.Header>
             <AlertDialog.Icon
-              status="accent"
-              className="alert-dialog__icon alert-dialog__icon--accent"
+              status="warning"
+              className="alert-dialog__icon alert-dialog__icon--warning"
             >
               <AlertCircle size={20} />
             </AlertDialog.Icon>

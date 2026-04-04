@@ -4,7 +4,6 @@ import { CircleDollarSign, ClipboardMinus, Link, Settings } from 'lucide-react';
 import { EVALUATION_CRITERIA_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
-import { cn } from '@/utils/cn';
 
 export default function EvaluationCriteriaDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -24,35 +23,20 @@ export default function EvaluationCriteriaDrawer() {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger aria-label="Close" />
             <Drawer.Header>
-              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      'p-2 rounded-lg shrink-0',
-                      'transition-[transform,box-shadow] duration-300 ease-out',
-                      isDrawerOpen
-                        ? 'scale-[1.12] -rotate-6 drop-shadow-md'
-                        : 'hover:scale-110 hover:-rotate-6 hover:shadow-md',
-                      'bg-[rgba(74,124,89,0.1)]',
-                    )}
-                  >
-                    <ClipboardMinus className="size-5 text-[#4a7c59]" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-(--color-text-primary)">
-                      {EVALUATION_CRITERIA_CONTENT.heading}
-                    </h2>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">
-                      {EVALUATION_CRITERIA_CONTENT.subheading}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                  <ClipboardMinus size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
-                <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(184,145,106,0.1)] transition-colors shrink-0"
-                  aria-label="Close"
-                />
+                <div>
+                  <Drawer.Heading className="drawer__heading">
+                    {EVALUATION_CRITERIA_CONTENT.heading}
+                  </Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                    {EVALUATION_CRITERIA_CONTENT.subheading}
+                  </p>
+                </div>
               </div>
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
@@ -158,7 +142,7 @@ export default function EvaluationCriteriaDrawer() {
                 </div>
 
                 {/* How We Calculate Section */}
-                <div className="border-l-2 border-(--color-warning) pl-3 py-1 text-sm text-(--color-text-secondary) italic leading-relaxed my-3">
+                <div className="border-l-2 border-(--color-warning) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed my-3">
                   <h4 className="font-bold mb-3 text-base text-(--color-warning)">
                     {EVALUATION_CRITERIA_CONTENT.sections.howWeCalculate}
                   </h4>

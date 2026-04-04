@@ -42,24 +42,18 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger aria-label="Close" />
             <Drawer.Header>
-              <div className="flex items-start justify-between p-6 border-b border-(--color-border) shrink-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent) shrink-0 mt-0.5">
-                    <PencilLine size={16} strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-(--color-text-primary)">{title}</h2>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">
-                      {TEST_CASE_DETAIL_CONTENT.subheading}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(74,85,104,0.1)] flex items-center justify-center shrink-0">
+                  <PencilLine size={16} className="text-[#4a5568]" strokeWidth={1.75} />
                 </div>
-                <Drawer.CloseTrigger
-                  className="w-8 h-8 flex items-center justify-center rounded-sm text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors shrink-0"
-                  aria-label="Close"
-                />
+                <div>
+                  <Drawer.Heading className="drawer__heading">{title}</Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                    {TEST_CASE_DETAIL_CONTENT.subheading}
+                  </p>
+                </div>
               </div>
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">

@@ -25,22 +25,20 @@ export default function AssessmentMethodologyDrawer() {
         >
           <Drawer.Dialog>
             {direction === 'bottom' && <Drawer.Handle />}
-            {direction === 'right' && <Drawer.CloseTrigger aria-label="Close drawer" />}
+            <Drawer.CloseTrigger aria-label="Close" />
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl shrink-0 bg-(--color-accent-light)">
-                    <ChartSpline className="size-5 text-(--color-accent)" strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <Drawer.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
-                      {ASSESSMENT_METHODOLOGY_CONTENT.title}
-                    </Drawer.Heading>
-                    <p className="text-[12px] mt-1 text-(--color-text-muted)">
-                      {ASSESSMENT_METHODOLOGY_CONTENT.subtitle}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                  <ChartSpline size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <Drawer.Heading className="drawer__heading">
+                    {ASSESSMENT_METHODOLOGY_CONTENT.title}
+                  </Drawer.Heading>
+                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                    {ASSESSMENT_METHODOLOGY_CONTENT.subtitle}
+                  </p>
                 </div>
               </div>
             </Drawer.Header>

@@ -47,8 +47,8 @@ export function LimitReachedDialog(props) {
             <>
               <AlertDialog.Header>
                 <AlertDialog.Icon
-                  status="accent"
-                  className="alert-dialog__icon alert-dialog__icon--accent"
+                  status="danger"
+                  className="alert-dialog__icon alert-dialog__icon--danger"
                 >
                   <InfinityIcon size={20} />
                 </AlertDialog.Icon>
