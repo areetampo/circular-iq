@@ -9,18 +9,22 @@ exports[`PieChart > renders and matches snapshot 1`] = `
       style="height: 260px;"
     >
       <div
-        style="width: 100%; height: 100%;"
+        class="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4"
       >
         <div
           style="width: 100%; height: 100%;"
         >
           <div
-            colors="#b8916a,#8a6f52,#d4b896,#6b8f71,#7a9eb5,#c4956a,#9b7e6a"
-            data-testid="pie-chart"
-            height="260"
-            slotprops="[object Object]"
+            style="width: 100%; height: 100%;"
           >
-            Mock PieChart
+            <div
+              colors="#b8916a,#4a7c59,#5a7a9a,#9a8f82"
+              data-testid="pie-chart"
+              height="260"
+              slotprops="[object Object]"
+            >
+              Mock PieChart
+            </div>
           </div>
         </div>
       </div>

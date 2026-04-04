@@ -670,87 +670,112 @@ textarea:focus-visible {
     border-radius: 6px !important;
   }
 
-  /* ----- DRAWER OVERRIDES */
-  [data-slot='backdrop'].drawer__backdrop,
-  .drawer__backdrop {
-    background-color: rgba(26, 21, 16, 0.18) !important;
-    backdrop-filter: blur(6px) !important;
-    -webkit-backdrop-filter: blur(6px) !important;
+  /* ----- DRAWER OVERRIDES ----- */
+  .drawer__backdrop,
+  [data-slot='backdrop'].drawer__backdrop {
+    background-color: rgba(26, 21, 16, 0.16) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
   }
 
+  /* The actual panel */
   .drawer__dialog,
   [data-slot='dialog'].drawer__dialog {
-    background-color: rgba(247, 243, 237, 0.98) !important;
-    border: none !important; /* Remove the inner border causing "horrendous" look */
+    background-color: rgba(247, 243, 237, 0.99) !important;
+    border: none !important;
     box-shadow:
-      -2px 0 24px rgba(26, 21, 16, 0.08),
-      -1px 0 0 rgba(180, 160, 130, 0.2) !important;
+      -1px 0 0 rgba(180, 160, 130, 0.2),
+      -4px 0 32px rgba(26, 21, 16, 0.08) !important;
   }
 
+  /* Right drawer — wider */
   .drawer__dialog--right,
-  .drawer__dialog[data-placement='right'] {
-    width: min(480px, 92vw) !important; /* Slightly wider than before */
+  .drawer__dialog[data-placement='right'],
+  [data-slot='dialog'].drawer__dialog[data-placement='right'] {
+    width: min(520px, 94vw) !important;
+    max-width: 520px !important;
   }
 
+  /* Bottom drawer — leave width alone, just ensure height is reasonable */
+  .drawer__dialog--bottom,
+  .drawer__dialog[data-placement='bottom'] {
+    max-height: 90vh !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+
+  /* Header — tighter, no decorative border */
   .drawer__header,
   [data-slot='drawer-header'] {
-    padding: 18px 22px 14px !important;
-    border-bottom: 1px solid rgba(180, 160, 130, 0.15) !important;
+    padding: 14px 18px 12px !important;
+    border-bottom: 1px solid rgba(180, 160, 130, 0.14) !important;
     background: transparent !important;
+    position: relative !important;
   }
 
-  /* Drawer header title — body font NOT display */
-  .drawer__heading {
-    font-family: var(--font-body) !important;
-    font-size: 15px !important;
+  /* Heading — body font, reasonable size */
+  .drawer__heading,
+  [data-slot='drawer-heading'] {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     letter-spacing: -0.01em !important;
-    color: var(--color-text-primary) !important;
+    color: #1a1510 !important;
+    line-height: 1.3 !important;
   }
 
+  /* Body */
   .drawer__body,
   [data-slot='drawer-body'] {
-    padding: 16px 22px !important;
-    font-family: var(--font-body) !important;
+    padding: 14px 18px !important;
+    font-family: 'DM Sans', sans-serif !important;
     font-size: 13px !important;
-    line-height: 1.65 !important;
-    color: var(--color-text-secondary) !important;
+    line-height: 1.6 !important;
+    color: #5a4f42 !important;
     background: transparent !important;
   }
 
+  /* Footer */
   .drawer__footer,
   [data-slot='drawer-footer'] {
-    padding: 12px 22px !important;
-    border-top: 1px solid rgba(180, 160, 130, 0.15) !important;
+    padding: 10px 18px !important;
+    border-top: 1px solid rgba(180, 160, 130, 0.14) !important;
     background: transparent !important;
   }
 
+  /* Close trigger button */
   .drawer__close-trigger,
-  [data-slot='close-trigger'] {
-    /* Only ONE close trigger — remove any duplicate */
+  [data-slot='close-trigger'].drawer__close-trigger {
     position: absolute !important;
-    top: 14px !important;
-    right: 16px !important;
-    width: 28px !important;
-    height: 28px !important;
+    top: 12px !important;
+    right: 14px !important;
+    width: 26px !important;
+    height: 26px !important;
     border-radius: 7px !important;
     background: rgba(180, 160, 130, 0.1) !important;
-    color: var(--color-text-muted) !important;
+    color: #9a8f82 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    z-index: 1 !important;
   }
-  .drawer__close-trigger:hover {
+  .drawer__close-trigger:hover,
+  [data-slot='close-trigger'].drawer__close-trigger:hover {
     background: rgba(180, 160, 130, 0.2) !important;
-    color: var(--color-text-primary) !important;
+    color: #1a1510 !important;
   }
 
-  .drawer__handle [data-slot='drawer-handle-bar'] {
-    width: 36px !important;
+  /* Drag handle */
+  .drawer__handle,
+  [data-slot='drawer-handle'] {
+    display: flex !important;
+    justify-content: center !important;
+    padding: 8px 0 4px !important;
+  }
+  [data-slot='drawer-handle-bar'] {
+    width: 32px !important;
     height: 3px !important;
     border-radius: 2px !important;
-    background: rgba(180, 160, 130, 0.35) !important;
-    margin: 0 auto 12px !important;
+    background: rgba(180, 160, 130, 0.3) !important;
   }
 
   /* ----- DROPDOWN ----- */
@@ -1534,64 +1559,148 @@ textarea:focus-visible {
     border-radius: var(--radius-xl) !important;
     box-shadow: var(--shadow-modal) !important;
   }
-  /* ----- ALERT DIALOG OVERRIDES */
+  /* ----- ALERT DIALOG OVERRIDES ----- */
   .alert-dialog__backdrop,
   [data-slot='backdrop'].alert-dialog__backdrop {
-    background-color: rgba(26, 21, 16, 0.22) !important;
-    backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+    background-color: rgba(26, 21, 16, 0.2) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  .alert-dialog__container,
+  [data-slot='container'].alert-dialog__container {
+    padding: 12px !important;
   }
 
   .alert-dialog__dialog,
   [data-slot='dialog'].alert-dialog__dialog {
     background-color: rgba(247, 243, 237, 0.99) !important;
     border: 1px solid rgba(180, 160, 130, 0.28) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 8px 32px rgba(26, 21, 16, 0.12) !important;
-    max-width: 380px !important; /* Compact — not giant */
+    border-radius: 12px !important;
+    box-shadow:
+      0 4px 24px rgba(26, 21, 16, 0.1),
+      0 1px 4px rgba(26, 21, 16, 0.06) !important;
+    max-width: 360px !important;
+    width: 100% !important;
     padding: 0 !important;
+    overflow: hidden !important;
   }
 
   .alert-dialog__header,
   [data-slot='dialog-header'] {
-    padding: 18px 20px 10px !important;
-    border-bottom: none !important; /* No header border — feels cleaner */
+    padding: 20px 20px 0 !important;
+    border-bottom: none !important;
     background: transparent !important;
+    gap: 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
   }
 
-  .alert-dialog__heading {
-    font-family: var(--font-body) !important; /* NOT display font */
-    font-size: 15px !important;
+  .alert-dialog__heading,
+  [data-slot='dialog-heading'] {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     letter-spacing: -0.01em !important;
-    color: var(--color-text-primary) !important;
+    color: #1a1510 !important;
+    line-height: 1.35 !important;
+    text-align: center !important;
   }
 
   .alert-dialog__body,
   [data-slot='dialog-body'] {
-    padding: 4px 20px 14px !important;
-    font-family: var(--font-body) !important;
+    padding: 8px 20px 16px !important;
+    font-family: 'DM Sans', sans-serif !important;
     font-size: 13px !important;
-    line-height: 1.6 !important;
-    color: var(--color-text-secondary) !important;
+    line-height: 1.55 !important;
+    color: #5a4f42 !important;
     background: transparent !important;
+    text-align: center !important;
   }
 
   .alert-dialog__footer,
   [data-slot='dialog-footer'] {
-    padding: 0 20px 18px !important;
-    border-top: none !important; /* No footer border */
+    padding: 0 16px 16px !important;
+    border-top: none !important;
     background: transparent !important;
     display: flex !important;
     gap: 8px !important;
-    justify-content: flex-end !important;
+    justify-content: stretch !important;
   }
 
-  .alert-dialog__icon {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 8px !important;
-    margin-bottom: 8px !important;
+  /* Footer buttons — both equal width, flex-1 */
+  .alert-dialog__footer > * {
+    flex: 1 !important;
+  }
+
+  .alert-dialog__icon,
+  [data-slot='dialog-icon'] {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 9px !important;
+    margin: 0 auto 6px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Status colors */
+  .alert-dialog__icon--accent {
+    background-color: rgba(184, 145, 106, 0.15) !important;
+    color: #b8916a !important;
+  }
+  .alert-dialog__icon--success {
+    background-color: rgba(74, 124, 89, 0.12) !important;
+    color: #4a7c59 !important;
+  }
+  .alert-dialog__icon--warning {
+    background-color: rgba(176, 125, 58, 0.12) !important;
+    color: #b07d3a !important;
+  }
+  .alert-dialog__icon--danger {
+    background-color: rgba(139, 58, 58, 0.1) !important;
+    color: #8b3a3a !important;
+  }
+  .alert-dialog__icon--default {
+    background-color: rgba(180, 160, 130, 0.12) !important;
+    color: #9a8f82 !important;
+  }
+
+  .alert-dialog__close-trigger,
+  [data-slot='close-trigger'].alert-dialog__close-trigger {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 6px !important;
+    background: rgba(180, 160, 130, 0.1) !important;
+    color: #9a8f82 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .alert-dialog__close-trigger:hover {
+    background: rgba(180, 160, 130, 0.18) !important;
+    color: #1a1510 !important;
+  }
+
+  /* Switch inside dialogs — ensure it matches the warm theme */
+  [data-slot='dialog'] [role='switch'] .switch__control,
+  [data-slot='dialog'] .switch__control {
+    background-color: rgba(180, 160, 130, 0.25) !important;
+    border: 1px solid rgba(180, 160, 130, 0.35) !important;
+  }
+  [data-slot='dialog'] [role='switch'][data-selected='true'] .switch__control,
+  [data-slot='dialog'] .switch__control[data-selected='true'] {
+    background-color: rgba(74, 124, 89, 0.35) !important;
+    border: 1px solid rgba(74, 124, 89, 0.5) !important;
+  }
+  [data-slot='dialog'] .switch__thumb {
+    background-color: #ffffff !important;
   }
 
   /* ----- PROGRESS / SLIDER ----- */
@@ -1636,6 +1745,18 @@ textarea:focus-visible {
   [data-slot='popover'] *,
   [data-slot='tooltip'] * {
     font-family: inherit !important;
+  }
+
+  /* All dialog and drawer content must use body font — never display/mono */
+  [data-slot='dialog'] *,
+  [data-slot='alert-dialog'] *,
+  [data-slot='drawer'] * {
+    font-family: 'DM Sans', sans-serif !important;
+  }
+  /* Exception: explicit mono classes still apply */
+  [data-slot='dialog'] .font-mono,
+  [data-slot='drawer'] .font-mono {
+    font-family: 'JetBrains Mono', monospace !important;
   }
 
   /* ----- NAVBAR (FLOATING PILL) ----- */

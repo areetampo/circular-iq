@@ -93,14 +93,12 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
       isKeyboardDismissDisabled={true}
       className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg-elevated) border border-(--color-border) rounded-3xl shadow-(--shadow-md) p-6">
+      <AlertDialog.Container placement="center" size="sm">
+        <AlertDialog.Dialog>
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em]">
-                  Rename Assessment
-                </AlertDialog.Heading>
+                <AlertDialog.Heading>Rename Assessment</AlertDialog.Heading>
                 <AlertDialog.Description className="text-[12px] text-(--color-text-muted) mt-1">
                   Enter a new name for this assessment
                 </AlertDialog.Description>
@@ -123,10 +121,6 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                     }}
                     placeholder="Enter assessment name"
                     className="w-full mt-2"
-                    style={{
-                      backgroundColor: 'rgba(245,240,232,0.6)',
-                      borderColor: 'rgba(180,160,130,0.3)',
-                    }}
                     isInvalid={!!error}
                     errorMessage={error}
                   />

@@ -114,7 +114,7 @@ export function StatsGrid({
 
         {displayIndustries.length > 0 ? (
           <div className="relative">
-            <div className='flex flex-col gap-1 items-start'>
+            <div className="flex flex-col gap-1 items-start">
               <span className="font-(--font-mono) text-[1.5rem] text-(--color-text-primary) tracking-[-0.04em] leading-none wrap-break-words">
                 {getDisplayText()}
               </span>

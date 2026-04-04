@@ -112,45 +112,41 @@ export function ConfirmDialog({
       isKeyboardDismissDisabled={true}
       className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg-elevated) border border-(--color-border) rounded-3xl shadow-(--shadow-md) p-6">
+      <AlertDialog.Container placement="center" size="sm">
+        <AlertDialog.Dialog>
           {({ close }) => (
             <>
-              {/* Icon */}
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
-                  variant === 'destructive'
-                    ? 'bg-(--color-error-light) text-(--color-error)'
-                    : 'bg-(--color-accent-light) text-(--color-accent)'
-                }`}
-              >
-                {variant === 'destructive' ? (
-                  <TriangleAlert size={20} />
-                ) : (
-                  <AlertCircle size={20} />
-                )}
-              </div>
-              {/* Title */}
-              <h2 className="font-(--font-display) text-[18px] text-(--color-text-primary) text-center tracking-[-0.02em] mb-2">
-                {title}
-              </h2>
-              {/* Body */}
-              <div className="border-t border-(--color-border) my-4" />
-              <p className="text-[13px] text-(--color-text-secondary) text-center leading-relaxed mb-6">
-                {description}
-              </p>
-              {/* Buttons */}
-              <div className="flex gap-3">
+              <AlertDialog.Header>
+                <AlertDialog.Icon
+                  status={status}
+                  className={`alert-dialog__icon ${
+                    variant === 'destructive'
+                      ? 'alert-dialog__icon--danger'
+                      : 'alert-dialog__icon--accent'
+                  }`}
+                >
+                  {variant === 'destructive' ? (
+                    <TriangleAlert size={20} />
+                  ) : (
+                    <AlertCircle size={20} />
+                  )}
+                </AlertDialog.Icon>
+                <AlertDialog.Heading>{title}</AlertDialog.Heading>
+              </AlertDialog.Header>
+
+              <AlertDialog.Body>{description}</AlertDialog.Body>
+
+              <AlertDialog.Footer>
                 <button
                   onClick={handleCancelClick}
-                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-2xl py-2.5 text-[13px] font-semibold hover:bg-(--color-accent-light) transition-colors"
+                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
                   disabled={isLoading}
                 >
                   {cancelText}
                 </button>
                 <button
                   onClick={handleConfirmClick}
-                  className={`flex-1 rounded-2xl py-2.5 text-[13px] font-semibold transition-opacity ${
+                  className={`flex-1 rounded-lg py-2.5 text-sm transition-opacity ${
                     variant === 'destructive'
                       ? 'bg-(--color-error) text-white hover:opacity-90'
                       : 'bg-(--color-accent) text-white hover:opacity-90'
@@ -159,7 +155,7 @@ export function ConfirmDialog({
                 >
                   {confirmText}
                 </button>
-              </div>
+              </AlertDialog.Footer>
             </>
           )}
         </AlertDialog.Dialog>

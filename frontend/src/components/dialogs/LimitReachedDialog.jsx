@@ -41,23 +41,21 @@ export function LimitReachedDialog(props) {
       }}
       className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="md">
-        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-(--radius-lg) shadow-(--shadow-md) p-5">
+      <AlertDialog.Container placement="center" size="sm">
+        <AlertDialog.Dialog>
           {({ close }) => (
             <>
               <AlertDialog.Header>
                 <AlertDialog.Icon
                   status="accent"
-                  className="w-10 h-10 bg-(--color-accent-light) rounded-full flex items-center justify-center text-(--color-accent) mx-auto mb-3"
+                  className="alert-dialog__icon alert-dialog__icon--accent"
                 >
                   <InfinityIcon size={20} />
                 </AlertDialog.Icon>
-                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
-                  Free Trial Limit Reached
-                </AlertDialog.Heading>
+                <AlertDialog.Heading>Free Trial Limit Reached</AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <div className="border-t border-(--color-border) my-4"></div>
+              <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
 
               <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
                 You&apos;ve used your{' '}

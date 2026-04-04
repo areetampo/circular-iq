@@ -115,14 +115,12 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
       isKeyboardDismissDisabled={true}
       className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg-elevated) border border-(--color-border) rounded-lg shadow-(--shadow-md) p-5">
+      <AlertDialog.Container placement="center" size="sm">
+        <AlertDialog.Dialog>
           {({ close }) => (
             <>
               <AlertDialog.Header>
-                <AlertDialog.Heading className="text-base text-(--color-text-primary) text-center mb-4 font-(--font-body)">
-                  Save Assessment
-                </AlertDialog.Heading>
+                <AlertDialog.Heading>Save Assessment</AlertDialog.Heading>
               </AlertDialog.Header>
 
               <AlertDialog.Body className="text-sm">
@@ -148,40 +146,38 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                 {/* Toggle rows */}
                 <div className="space-y-0 mb-5">
                   {/* Public Access toggle */}
-                  {/* <div className="flex items-center justify-between py-3 border-b border-(--color-border)">
+                  <div className="flex items-center justify-between py-2.5 border-b border-[rgba(180,160,130,0.15)]">
                     <div>
-                      <p className="text-sm font-medium text-(--color-text-primary)">
+                      <p className="text-[13px] font-medium text-(--color-text-primary)">
                         Public Access
                       </p>
-                      <p className="text-xs text-(--color-text-muted)">
-                        Make this assessment publicly viewable
+                      <p className="text-[11px] text-(--color-text-muted) mt-0.5">
+                        Viewable via share link
                       </p>
                     </div>
-                    <Switch isSelected={isPublic} onChange={setIsPublic} size="sm">
-                      <Switch.Control />
-                      <Switch.Thumb />
-                    </Switch>
-                  </div> */}
+                    <Switch
+                      isSelected={isPublic}
+                      onChange={(e) => setIsPublic(e.target.checked)}
+                      size="sm"
+                    />
+                  </div>
 
                   {/* Global Benchmarks toggle */}
-                  {/* <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center justify-between py-2.5">
                     <div>
-                      <p className="text-sm font-medium text-(--color-text-primary)">
+                      <p className="text-[13px] font-medium text-(--color-text-primary)">
                         Global Benchmarks
                       </p>
-                      <p className="text-xs text-(--color-text-muted)">
-                        Allow anonymized score to contribute to benchmarks
+                      <p className="text-[11px] text-(--color-text-muted) mt-0.5">
+                        Anonymized score contributes to benchmarks
                       </p>
                     </div>
                     <Switch
                       isSelected={contributeToGlobalBenchmarks}
-                      onChange={setContributeToGlobalBenchmarks}
+                      onChange={(e) => setContributeToGlobalBenchmarks(e.target.checked)}
                       size="sm"
-                    >
-                      <Switch.Control />
-                      <Switch.Thumb />
-                    </Switch>
-                  </div> */}
+                    />
+                  </div>
                 </div>
               </AlertDialog.Body>
 

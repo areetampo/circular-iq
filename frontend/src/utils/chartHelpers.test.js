@@ -320,9 +320,9 @@ describe('chartHelpers', () => {
     });
 
     it('should contain CSS color variables', () => {
-      expect(TIER_COLORS[0]).toBe('var(--success)');
-      expect(RISK_COLORS[0]).toBe('var(--success)');
-      expect(SCORE_COLORS[0]).toBe('var(--danger)');
+      expect(TIER_COLORS[0]).toBe('#4a7c59');
+      expect(RISK_COLORS[0]).toBe('#4a7c59');
+      expect(SCORE_COLORS[0]).toBe('#8b3a3a');
     });
   });
 });

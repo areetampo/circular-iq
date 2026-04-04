@@ -114,28 +114,28 @@ export function SessionRestoreDialog(props) {
       isKeyboardDismissDisabled={true}
       className="bg-black/20 backdrop-blur-sm"
     >
-      <AlertDialog.Container placement="center" size="sm" className="max-w-sm">
-        <AlertDialog.Dialog className="bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) p-5">
+      <AlertDialog.Container placement="center" size="sm">
+        <AlertDialog.Dialog>
           {({ close }) => (
             <>
               <AlertDialog.Header>
                 <AlertDialog.Icon
                   status="accent"
-                  className="w-10 h-10 bg-(--color-accent-light) rounded-full flex items-center justify-center text-(--color-accent) mx-auto mb-3"
+                  className="alert-dialog__icon alert-dialog__icon--accent"
                 >
                   <RefreshCw size={20} />
                 </AlertDialog.Icon>
-                <AlertDialog.Heading className="text-base font-semibold text-(--color-text-primary) text-center mb-1">
+                <AlertDialog.Heading>
                   Restore Previous Session from {formatDate(sessionData?.timestamp)}?
                 </AlertDialog.Heading>
               </AlertDialog.Header>
 
-              <div className="border-t border-(--color-border) my-4"></div>
+              <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
 
               <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
                 Your inputs are already saved locally — you can restore calculated results below or
                 continue from your saved inputs.
-                <div className="border border-(--color-border) rounded-md p-3 flex items-center gap-3 my-4">
+                <div className="border border-[rgba(180,160,130,0.18)] rounded-md p-3 flex items-center gap-3 my-4">
                   <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-(--color-text-primary)">

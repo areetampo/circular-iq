@@ -147,10 +147,7 @@ export default function AssessmentViewPage() {
 
       {/* Simple footer */}
       <div className="flex justify-center items-center py-6 px-6 mt-8">
-        <Button
-          onClick={handleBack}
-          variant="ghost"
-        >
+        <Button onClick={handleBack} variant="ghost">
           <ArrowLeft size={16} />
           Back to Assessments
         </Button>
