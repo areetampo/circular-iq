@@ -24,10 +24,11 @@ export function FilterBar({
         <Search
           className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted) pointer-events-none"
           size={14}
+          strokeWidth={2}
         />
         <input
           type="text"
-          placeholder="Search assessments..."
+          placeholder="Search assessments by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full h-9 pl-9 pr-4 text-sm rounded-xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.12)] transition-all"
@@ -60,30 +61,19 @@ export function FilterBar({
             </Select.Trigger>
             <Select.Popover>
               <ListBox>
-                <ListBox.Item id="created_at_asc" textValue="Date Created (Oldest)">
-                  Date Created (Oldest)
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="created_at_desc" textValue="Date Created (Newest)">
-                  Date Created (Newest)
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="title_asc" textValue="Title (A-Z)">
-                  Title (A-Z)
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="title_desc" textValue="Title (Z-A)">
-                  Title (Z-A)
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="overall_score_asc" textValue="Score (Low to High)">
-                  Score (Low to High)
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item id="overall_score_desc" textValue="Score (High to Low)">
-                  Score (High to Low)
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
+                {[
+                  { id: 'created_at_asc', label: 'Date Created (Oldest)' },
+                  { id: 'created_at_desc', label: 'Date Created (Newest)' },
+                  { id: 'title_asc', label: 'Title (A-Z)' },
+                  { id: 'title_desc', label: 'Title (Z-A)' },
+                  { id: 'overall_score_asc', label: 'Score (Low to High)' },
+                  { id: 'overall_score_desc', label: 'Score (High to Low)' },
+                ].map(({ id, label }) => (
+                  <ListBox.Item key={id} id={id} textValue={label}>
+                    {label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
               </ListBox>
             </Select.Popover>
           </Select>
@@ -91,7 +81,7 @@ export function FilterBar({
 
         {/* Compare button */}
         <Button
-          variant={selectedIds.size === 2 ? 'primary' : 'secondary'}
+          variant="ghost"
           size="sm"
           onClick={handleCompareSelected}
           disabled={selectedIds.size !== 2}

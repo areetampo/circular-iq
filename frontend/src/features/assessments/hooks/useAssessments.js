@@ -36,8 +36,10 @@ export function useAssessments({
         search,
         industry,
       }),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 30 * 1000, // 30 seconds - ensures fresh data when navigating back
     cacheTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
   });
 
   // Use mutation for deleting assessments

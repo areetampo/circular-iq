@@ -24,7 +24,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   return (
     <div
       className={cn(
-        'group relative border rounded-xl p-4 mb-2 transition-all duration-200 cursor-pointer',
+        'group relative border-2 rounded-xl p-4 mb-2 transition-all duration-200 cursor-pointer',
         'bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]',
         isSelected
           ? 'border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]'
@@ -46,7 +46,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       <div className="flex items-start gap-3">
         {/* Title and metadata section */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-semibold text-(--color-text-primary) leading-tight truncate mb-1">
+          <h3 className="text-[1rem] font-medium text-(--color-text-primary) leading-tight truncate mb-1 font-mono">
             {assessment.title || 'Untitled Assessment'}
           </h3>
           <p className="text-[12px] text-(--color-text-muted) mb-2">{formattedDate}</p>
@@ -58,75 +58,82 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 {assessment.industry}
               </Chip>
             )}
-            {assessment.is_public && (
-              <span className="text-[11px] font-medium text-(--color-text-muted) border border-[rgba(180,160,130,0.3)] rounded-full px-2 py-0.5">
-                Public
-              </span>
-            )}
+            <Chip variant={assessment.is_public ? 'default' : 'secondary'} className="text-[10px]">
+              {assessment.is_public ? 'Public' : 'Private'}
+            </Chip>
           </div>
         </div>
 
         {/* Score section */}
         <div className="text-right shrink-0 min-w-20">
-          {assessment.score ? (
+          {assessment.overall_score ? (
             <span
-              className="font-(--font-mono) text-[22px] text-(--color-text-primary) tracking-[-0.04em] leading-none"
-              style={{ color: scoreColor(assessment.score) }}
+              className="font-(--font-mono) text-[1.35rem] text-(--color-text-primary) tracking-[-0.04em] leading-none"
+              style={{ color: scoreColor(assessment.overall_score) }}
             >
-              {assessment.score}
+              {assessment.overall_score} / 100
             </span>
           ) : (
             <span className="text-[11px] font-semibold tracking-widest uppercase text-(--color-text-muted)">
               UNRATED
             </span>
           )}
-          <p className="text-[11px] text-(--color-text-muted) mt-0.5">
+          <p className="text-[0.75rem] text-(--color-text-muted) mt-0.5">
             {assessment.confidence_level || 0}% conf.
           </p>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-1 shrink-0 opacity-100 transition-opacity duration-300">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onView(assessment.public_id);
-            }}
-            title="View"
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)] transition-colors"
-          >
-            <Eye size={11} />
-            <span>View</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRename(assessment.id);
-            }}
-            title="Rename"
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)] transition-colors"
-          >
-            <Pencil size={11} />
-            <span>Rename</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(assessment.id);
-            }}
-            title="Delete"
-            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] text-(--color-text-muted) hover:text-(--color-error) hover:bg-[rgba(139,58,58,0.08)] transition-colors"
-          >
-            <Trash2 size={11} />
-            <span>Delete</span>
-          </button>
+          {[
+            {
+              icon: Eye,
+              label: 'View',
+              onClick: (e) => {
+                e.stopPropagation();
+                onView(assessment.public_id);
+              },
+              title: 'View',
+              hoverColor: 'text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)]',
+            },
+            {
+              icon: Pencil,
+              label: 'Rename',
+              onClick: (e) => {
+                e.stopPropagation();
+                onRename(assessment.id);
+              },
+              title: 'Rename',
+              hoverColor: 'text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)]',
+            },
+            {
+              icon: Trash2,
+              label: 'Delete',
+              onClick: (e) => {
+                e.stopPropagation();
+                onDelete(assessment.id);
+              },
+              title: 'Delete',
+              hoverColor: 'text-(--color-error) hover:bg-[rgba(139,58,58,0.08)]',
+            },
+          ].map(({ icon: Icon, label, onClick, title, hoverColor }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              title={title}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg cursor-pointer text-[0.65rem] text-(--color-text-muted) hover:${hoverColor} transition-colors`}
+            >
+              <Icon size={11} />
+              <span>{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Bottom row with additional stats and controls */}
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-[rgba(180,160,130,0.15)]">
         {/* Additional stats */}
-        <div className="flex items-center gap-3 text-[11px] text-(--color-text-muted)">
+        <div className="flex items-center gap-3 text-[0.7rem] [&>span]:font-mono text-(--color-text-muted)">
           {assessment.technical_feasibility && (
             <span>Tech: {assessment.technical_feasibility}%</span>
           )}

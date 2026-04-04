@@ -972,9 +972,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div className="border-t border-[rgba(180,160,130,0.18)] pt-4 mb-3">
+          <div className="border-t-2 border-b-2 border-[rgba(180,160,130,0.18)] pt-3 pb-4 mb-0">
             {/* Toggle row */}
-            <div className="flex items-center justify-start gap-4">
+            <div className="flex items-center justify-start gap-3 ml-2">
               <div>
                 <p className="text-[13px] font-semibold text-(--color-text-primary)">
                   Public sharing
@@ -997,6 +997,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   "[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4",
                 )}
                 name="xl-rounded"
+                style={{
+                  transform: 'scale(0.8)',
+                }}
               >
                 <Checkbox.Control
                   className={cn(
@@ -1012,7 +1015,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             {/* Share URL — shown only when is_public = true and public_id exists */}
             {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
               currentData?.public_id && (
-                <div className="flex flex-col sm:flex-row gap-3 mt-3 pt-3">
+                <div className="flex flex-col sm:flex-row gap-3 mt-2">
                   <div className="relative flex-1">
                     <Input
                       readOnly

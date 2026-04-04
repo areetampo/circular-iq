@@ -26,6 +26,15 @@ export default function AssessmentHeader({ assessment, isPublicShare, onConfirmD
       await queryClient.refetchQueries({ queryKey: ['assessmentStats'] });
       console.log('Refetched assessment stats from results page');
 
+      // Refetch the specific assessment views to update current page
+      if (assessment?.id) {
+        // Refetch private assessment view
+        await queryClient.refetchQueries({
+          queryKey: ['assessment', assessment.id],
+        });
+        console.log('Refetched private assessment from results page:', assessment.id);
+      }
+
       // Also invalidate specific public assessment if it exists
       if (assessment?.public_id) {
         queryClient.invalidateQueries({ queryKey: ['publicAssessment', assessment.public_id] });

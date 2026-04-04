@@ -425,13 +425,20 @@ export default function MyAssessmentsPage() {
         await queryClient.refetchQueries({ queryKey: ['assessments'] });
         console.log('Refetched assessments list');
 
-        // If this assessment has a public_id, refetch the specific public assessment
-        // to update the results page if it's open
+        // If this assessment has a public_id, refetch both the private and public assessment
+        // queries to update the results page if it's open
         if (assessment.public_id) {
+          // Refetch private assessment view
+          await queryClient.refetchQueries({
+            queryKey: ['assessment', assessment.id],
+          });
+          console.log('Refetched private assessment:', assessment.id);
+
+          // Refetch public assessment view
           await queryClient.refetchQueries({
             queryKey: ['publicAssessment', assessment.public_id],
           });
-          console.log('Refetched specific public assessment:', assessment.public_id);
+          console.log('Refetched public assessment:', assessment.public_id);
         }
 
         // Also refetch stats to keep them in sync
@@ -575,7 +582,7 @@ export default function MyAssessmentsPage() {
     );
   }, []);
 
-  // ---------- Helper: Render the assessment list area (with early returns) ----------
+  // ------- Helper: Render the assessment list area (with early returns) --------
   const renderAssessmentListContent = () => {
     if (isAssessmentsLoading) {
       return <AssessmentListSkeleton />;
@@ -610,7 +617,7 @@ export default function MyAssessmentsPage() {
     // No assessments at all (stats_totalAssessments === 0)
     if (stats_totalAssessments === 0) {
       return (
-        <div className="border border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
+        <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
           <h3 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary) mb-2">
             No assessments yet
@@ -629,7 +636,7 @@ export default function MyAssessmentsPage() {
     // Filtered results returned empty
     if (assessments.length === 0) {
       return (
-        <div className="border border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
+        <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
           <h3 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary) mb-2">
             No assessments found
@@ -686,64 +693,96 @@ export default function MyAssessmentsPage() {
               page={page}
               onChange={setPage}
               className="justify-center"
-              classNames={{
+              classnames={{
                 wrapper: 'gap-0',
                 item: 'font-(--font-mono) text-sm',
                 cursor: 'bg-(--color-accent) text-white border-(--color-accent)',
                 prev: 'font-(--font-mono) text-sm',
                 next: 'font-(--font-mono) text-sm',
               }}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label className="text-sm whitespace-nowrap text-(--color-text-muted)">Per page:</label>
-            <Select
-              className="w-20"
-              placeholder="5"
-              value={String(pageSize)}
-              onChange={(value) => {
-                setPageSize(Number(value));
-                setPage(1);
-              }}
-              aria-label="Select page size"
-              variant="bordered"
-              size="sm"
-              classNames={{
-                trigger:
-                  'border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) pr-10',
-                popover: 'bg-[rgba(245,240,232,0.95)] border-[rgba(180,160,130,0.28)]',
-              }}
             >
-              <Select.Trigger>
-                <Select.Value />
-                <Select.Indicator />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  <ListBox.Item id="5" textValue="5">
-                    5
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                  <ListBox.Item id="10" textValue="10">
-                    10
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                  <ListBox.Item id="20" textValue="20">
-                    20
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                  <ListBox.Item id="50" textValue="50">
-                    50
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                  <ListBox.Item id="100" textValue="100">
-                    100
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                </ListBox>
-              </Select.Popover>
-            </Select>
+              <Pagination.Content>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={page === 1}
+                    onPress={() => {
+                      if (page > 1) {
+                        prefetchAssessmentsPage(page - 1);
+                        setPage(page - 1);
+                      }
+                    }}
+                  >
+                    <Pagination.PreviousIcon />
+                    Previous
+                  </Pagination.Previous>
+                </Pagination.Item>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <Pagination.Item key={p}>
+                    <Pagination.Link
+                      isActive={p === page}
+                      onPress={() => {
+                        prefetchAssessmentsPage(p);
+                        setPage(p);
+                      }}
+                    >
+                      {p}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                ))}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={page === totalPages}
+                    onPress={() => {
+                      if (page < totalPages) {
+                        prefetchAssessmentsPage(page + 1);
+                        setPage(page + 1);
+                      }
+                    }}
+                  >
+                    Next
+                    <Pagination.NextIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
+              </Pagination.Content>
+            </Pagination>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm whitespace-nowrap text-(--color-text-muted)">
+                Per page:
+              </label>
+              <Select
+                className="w-20"
+                placeholder="5"
+                value={String(pageSize)}
+                onChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+                aria-label="Select page size"
+                variant="bordered"
+                size="sm"
+                classNames={{
+                  trigger:
+                    'border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) pr-10',
+                  popover: 'bg-[rgba(245,240,232,0.95)] border-[rgba(180,160,130,0.28)]',
+                }}
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {[5, 10, 20, 50, 100].map((size) => (
+                      <ListBox.Item key={size} id={size} textValue={size}>
+                        {size}
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+            </div>
           </div>
         </div>
       </>
@@ -788,6 +827,15 @@ export default function MyAssessmentsPage() {
   // Case 3: Stats loaded successfully – render normal content
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Section heading */}
+      {stats_totalAssessments > 0 && (
+        <div className="flex items-center justify-between">
+          <h2 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary)">
+            My Assessments
+          </h2>
+        </div>
+      )}
+
       {/* Stats grid — only if totalAssessments > 0 */}
       {stats_totalAssessments > 0 && (
         <StatsGrid
@@ -797,16 +845,6 @@ export default function MyAssessmentsPage() {
           lowestScore={lowestScore}
           topIndustries={topIndustries}
         />
-      )}
-
-      {/* Section heading */}
-      {stats_totalAssessments > 0 && (
-        <div className="flex items-center justify-between">
-          <h2 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary)">
-            Your Assessments
-          </h2>
-          <span className="text-sm text-(--color-text-muted)">{total} total</span>
-        </div>
       )}
 
       {/* Filter bar */}

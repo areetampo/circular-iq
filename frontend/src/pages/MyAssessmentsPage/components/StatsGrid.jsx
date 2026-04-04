@@ -12,6 +12,25 @@ const scoreColor = (s) =>
 
 const titleize = (str) => str.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
+// Reusable StatCard component
+const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
+  <div className="border-2 border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
+    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
+      {label}
+    </span>
+    <span
+      className="font-(--font-mono) text-(--color-text-primary) tracking-[-0.04em] leading-none"
+      style={{
+        color: color || 'var(--color-text-primary)',
+        fontSize,
+      }}
+    >
+      {value}
+    </span>
+    <span className="text-[12px] text-(--color-text-muted) mt-0.5">{subtitle}</span>
+  </div>
+);
+
 export function StatsGrid({
   averageScore,
   totalAssessments,
@@ -63,60 +82,31 @@ export function StatsGrid({
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {/* Avg Score */}
-      <div className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
-          Avg Score
-        </span>
-        <span
-          className="font-(--font-mono) text-[28px] text-(--color-text-primary) tracking-[-0.04em] leading-none"
-          style={{ color: scoreColor(averageScore) }}
-        >
-          {averageScore ? averageScore.toFixed(2) : '0.00'}
-        </span>
-        <span className="text-[12px] text-(--color-text-muted) mt-0.5">out of 100</span>
-      </div>
+      {/* Stats Cards */}
+      <StatCard
+        label="Avg Score"
+        value={averageScore ? averageScore.toFixed(2) : '0.00'}
+        subtitle="out of 100"
+        color={scoreColor(averageScore)}
+      />
 
-      {/* Total */}
-      <div className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
-          Total
-        </span>
-        <span className="font-(--font-mono) text-[28px] text-(--color-text-primary) tracking-[-0.04em] leading-none">
-          {totalAssessments}
-        </span>
-        <span className="text-[12px] text-(--color-text-muted) mt-0.5">assessments</span>
-      </div>
+      <StatCard label="Total" value={totalAssessments} subtitle="assessments" />
 
-      {/* Highest */}
-      <div className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
-          Highest
-        </span>
-        <span
-          className="font-(--font-mono) text-[28px] text-(--color-text-primary) tracking-[-0.04em] leading-none"
-          style={{ color: scoreColor(highestScore) }}
-        >
-          {highestScore ? highestScore.toFixed(2) : '0.00'}
-        </span>
-        <span className="text-[12px] text-(--color-text-muted) mt-0.5">best score</span>
-      </div>
+      <StatCard
+        label="Highest"
+        value={highestScore ? highestScore.toFixed(2) : '0.00'}
+        subtitle="best score"
+        color={scoreColor(highestScore)}
+      />
 
-      {/* Lowest */}
-      <div className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
-          Lowest
-        </span>
-        <span
-          className="font-(--font-mono) text-[28px] text-(--color-text-primary) tracking-[-0.04em] leading-none"
-          style={{ color: scoreColor(lowestScore) }}
-        >
-          {lowestScore ? lowestScore.toFixed(2) : '0.00'}
-        </span>
-        <span className="text-[12px] text-(--color-text-muted) mt-0.5">lowest score</span>
-      </div>
+      <StatCard
+        label="Lowest"
+        value={lowestScore ? lowestScore.toFixed(2) : '0.00'}
+        subtitle="lowest score"
+        color={scoreColor(lowestScore)}
+      />
 
-      {/* Top Industry */}
+      {/* Top Industry Card */}
       <div className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
         <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
           Top Industry
@@ -124,21 +114,23 @@ export function StatsGrid({
 
         {displayIndustries.length > 0 ? (
           <div className="relative">
-            <span className="font-(--font-mono) text-[24px] text-(--color-text-primary) tracking-[-0.04em] leading-none break-words">
-              {getDisplayText()}
-            </span>
+            <div className='flex flex-col gap-1 items-start'>
+              <span className="font-(--font-mono) text-[1.5rem] text-(--color-text-primary) tracking-[-0.04em] leading-none wrap-break-words">
+                {getDisplayText()}
+              </span>
 
-            {displayIndustries.length > 2 && (
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="text-[10px] h-6 min-h-6 px-2 py-0 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-muted) rounded hover:bg-[rgba(180,160,130,0.15)] transition-colors"
-              >
-                View all
-              </button>
-            )}
+              {displayIndustries.length > 2 && (
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="text-[0.6rem] h-6 min-h-6 p-0 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-muted) rounded  hover:text-black/80 transition-colors cursor-pointer ml-1"
+                >
+                  View all
+                </button>
+              )}
+            </div>
 
             {isDropdownOpen && (
-              <div className="industry-dropdown absolute top-full left-0 mt-1 bg-[rgba(245,240,232,0.95)] border border-[rgba(180,160,130,0.28)] rounded-lg shadow-lg z-10 p-2 min-w-[200px]">
+              <div className="industry-dropdown absolute top-full left-0 mt-1 bg-[rgba(245,240,232,0.95)] border border-[rgba(180,160,130,0.28)] rounded-lg shadow-lg z-10 p-2 min-w-50">
                 {displayIndustries.map((item, index) => {
                   // Handle different possible data structures
                   const industryName = item.industry || (typeof item === 'string' ? item : '');
@@ -162,7 +154,7 @@ export function StatsGrid({
                       className="flex justify-between items-center w-full py-1 px-2 hover:bg-[rgba(180,160,130,0.1)] rounded"
                     >
                       <span className="text-xs">{titleize(industryName)}</span>
-                      <span className="text-(--color-text-muted) text-xs ml-2">-{count}</span>
+                      <span className="text-(--color-text-muted) text-xs ml-2">{count}</span>
                     </div>
                   );
                 })}

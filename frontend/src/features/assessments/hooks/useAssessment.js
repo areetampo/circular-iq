@@ -22,6 +22,9 @@ export function useAssessment(id, options = {}) {
     queryFn: () => getAssessmentById(id),
     enabled: enabled && !!id,
     placeholderData,
+    staleTime: 30 * 1000, // 30 seconds - ensures fresh data when navigating back
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
     onError: (err) => {
       // Handle validation errors specifically
       if (err.message?.includes('Validation failed')) {
@@ -66,6 +69,9 @@ export function usePublicAssessment(publicId, options = {}) {
     queryKey: ['publicAssessment', publicId],
     queryFn: () => getPublicAssessment(publicId),
     enabled: enabled && !!publicId,
+    staleTime: 30 * 1000, // 30 seconds - ensures fresh data when navigating back
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
     onError: (err) => {
       toast.danger('Failed to load shared assessment', {
         description:
