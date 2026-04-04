@@ -9,8 +9,8 @@ export const GROUP_STYLE_CONFIG = {
     iconColor: 'text-[var(--color-info)]',
     subtitle: 'Reach and participation across stakeholders',
     // Label chip for the parameter (e.g. "Public Participation")
-    paramBg: 'bg-[oklch(0.94_0.01_220/_0.3)]', // cool subtle blue-grey
-    paramTextColor: 'text-[var(--color-info)]',
+    paramBg: 'bg-[oklch(0.28_0.05_150/_0.02)]', // cool dark-greenish
+    paramTextColor: 'text-[oklch(0.28_0.05_150/_0.65)]',
   },
   'Embedded Value': {
     Icon: CircleDollarSign,
