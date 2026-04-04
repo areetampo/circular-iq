@@ -43,7 +43,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
   return (
     <>
       <div className="overflow-x-auto mt-2 rounded-xl border border-(--color-border) bg-[rgba(250,248,245,0.5)]">
-        <table className="w-full border-collapse">
+        <table className="custom-data-table w-full border-collapse">
           <thead>
             <tr className="bg-[rgba(220,200,175,0.4)]">
               <th className="text-left py-3 px-4 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">

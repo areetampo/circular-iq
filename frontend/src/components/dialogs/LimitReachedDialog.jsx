@@ -1,5 +1,5 @@
 import { AlertDialog } from '@heroui/react';
-import { FileDown, InfinityIcon, Orbit, Save, Share } from 'lucide-react';
+import { Angry, FileDown, InfinityIcon, Orbit, Save, Share } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,74 +34,74 @@ export function LimitReachedDialog(props) {
   ];
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog>
-          {({ close }) => (
-            <>
-              <AlertDialog.Header>
-                <AlertDialog.Icon
-                  status="danger"
-                  className="alert-dialog__icon alert-dialog__icon--danger"
-                >
-                  <InfinityIcon size={20} />
-                </AlertDialog.Icon>
-                <AlertDialog.Heading>Free Trial Limit Reached</AlertDialog.Heading>
-              </AlertDialog.Header>
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={isOpen}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
+        className=""
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog>
+            {({ close }) => (
+              <>
+                <AlertDialog.Header>
+                  <AlertDialog.Icon
+                    status="danger"
+                    className="alert-dialog__icon alert-dialog__icon--danger"
+                  >
+                    <Angry size={20} />
+                  </AlertDialog.Icon>
+                  <AlertDialog.Heading>Free Trial Limit Reached</AlertDialog.Heading>
+                </AlertDialog.Header>
 
-              <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
-
-              <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
-                You&apos;ve used your{' '}
-                <span className="font-semibold text-(--color-text-primary)">{limit}</span> free
-                evaluations. Create an account to continue assessing your circular economy
-                initiatives:
-                <ul className="mt-4 space-y-2 text-left">
-                  {LIMIT_REACHED_DIALOG_POINTS.map((point, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                      <point.icon
-                        size={16}
-                        className="shrink-0 text-(--color-accent)"
-                        aria-hidden="true"
-                      />
-                      <span className="text-(--color-text-primary)">{point.text}</span>
-                    </li>
-                  ))}
-                </ul>
-              </AlertDialog.Body>
-              <AlertDialog.Footer className="flex gap-3 mt-5">
-                <Button
-                  variant="dialog-secondary"
-                  onPress={() => {
-                    handleCancel();
-                    close();
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="dialog-primary"
-                  onPress={() => {
-                    handleSignUp();
-                    close();
-                  }}
-                  className="flex-1"
-                >
-                  Sign In
-                </Button>
-              </AlertDialog.Footer>
-            </>
-          )}
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+                <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+                  You&apos;ve used your{' '}
+                  <span className="font-semibold text-(--color-text-primary)">{limit}</span> free
+                  evaluations. Create an account to continue assessing your circular economy
+                  initiatives:
+                  <ul className="mt-4 space-y-2 text-left">
+                    {LIMIT_REACHED_DIALOG_POINTS.map((point, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <point.icon
+                          size={16}
+                          className="shrink-0 text-(--color-accent)"
+                          aria-hidden="true"
+                        />
+                        <span className="text-(--color-text-primary)">{point.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDialog.Body>
+                <AlertDialog.Footer>
+                  <Button
+                    variant="dialog-secondary"
+                    onPress={() => {
+                      handleCancel();
+                      close();
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="dialog-primary"
+                    onPress={() => {
+                      handleSignUp();
+                      close();
+                    }}
+                    className="flex-1"
+                  >
+                    Sign In
+                  </Button>
+                </AlertDialog.Footer>
+              </>
+            )}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

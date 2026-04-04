@@ -127,7 +127,7 @@ export default function AssessmentViewPage() {
     <div className="space-y-0 w-full">
       {/* Simple header - no buttons or public toggle */}
       {assessment?.title && (
-        <div className="mb-6 mt-4 px-4 sm:px-6">
+        <div className="mb-6 mt-8 px-4 sm:px-6">
           <h1 className="font-mono text-center text-2xl font-semibold text-(--color-text-primary) tracking-[-0.02em]">
             {assessment.title}
           </h1>

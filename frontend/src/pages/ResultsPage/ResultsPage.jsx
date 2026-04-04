@@ -836,7 +836,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   return (
     <>
       {/* Action Buttons & Share Section */}
-      <div className="mb-8 mt-4 px-4 sm:px-6 space-y-4">
+      <div className="mb-8 mt-8 px-4 sm:px-6 space-y-4">
         {isViewFromMyAssessments && currentData?.title && (
           <div className="mb-4">
             <h1 className="font-mono text-2xl font-semibold text-(--color-text-primary) tracking-[-0.02em]">
@@ -1447,7 +1447,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {/* Strengths & Gaps Card - Modern Design */}
           <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
             <div className="p-2 sm:p-4">
-              <SectionHeading variant="small" className="mb-1">
+              <SectionHeading variant="small" className="mb-6">
                 Strengths & Gaps
               </SectionHeading>
               <p className="text-sm mb-4 -mt-4" style={{ color: 'var(--muted)' }}>
@@ -1590,15 +1590,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {/* Recommendations Card - Modern Design */}
           <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
             <div className="p-2 sm:p-4">
-              <h3
-                className="text-lg font-semibold mb-1"
-                style={{
-                  color: 'var(--foreground)',
-                }}
-              >
+              <SectionHeading variant="small" className="mb-6">
                 Recommendations
-              </h3>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+              </SectionHeading>
+              <p className="text-sm mb-4 -mt-4" style={{ color: 'var(--muted)' }}>
                 Targeted steps to improve your circularity score
               </p>
 

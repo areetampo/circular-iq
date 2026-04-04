@@ -162,7 +162,7 @@ export default function AssessmentComparisonPage() {
   };
 
   return (
-    <div className="space-y-0 w-full">
+    <div className="space-y-0 w-full mt-6">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
       <div className="sticky top-0 z-20 bg-(--color-bg) border-b border-(--color-border) py-4 px-6">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 max-w-7xl mx-auto">

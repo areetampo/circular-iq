@@ -119,43 +119,43 @@ function ReplaceInputsDialogContent() {
   }
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={true}
-      onOpenChange={handleBackdropChange}
-      variant="opaque"
-      isDismissable={false}
-      isKeyboardDismissDisabled
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog aria-label={title}>
-          <AlertDialog.Header>
-            <AlertDialog.Icon
-              status="warning"
-              className="alert-dialog__icon alert-dialog__icon--warning"
-            >
-              <AlertCircle size={20} />
-            </AlertDialog.Icon>
-            <AlertDialog.Heading>{title}</AlertDialog.Heading>
-          </AlertDialog.Header>
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={true}
+        onOpenChange={handleBackdropChange}
+        variant="opaque"
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        className=""
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog aria-label={title}>
+            <AlertDialog.Header>
+              <AlertDialog.Icon
+                status="warning"
+                className="alert-dialog__icon alert-dialog__icon--warning"
+              >
+                <AlertCircle size={20} />
+              </AlertDialog.Icon>
+              <AlertDialog.Heading>{title}</AlertDialog.Heading>
+            </AlertDialog.Header>
 
-          <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
+            <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+              {description}
+            </AlertDialog.Body>
 
-          <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
-            {description}
-          </AlertDialog.Body>
-
-          <AlertDialog.Footer className="flex gap-3 mt-5">
-            <Button variant="dialog-secondary" onPress={handleCancelClick} className="flex-1">
-              {cancelText}
-            </Button>
-            <Button variant="dialog-primary" onPress={handleConfirmClick} className="flex-1">
-              {confirmText}
-            </Button>
-          </AlertDialog.Footer>
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+            <AlertDialog.Footer>
+              <Button variant="dialog-secondary" onPress={handleCancelClick} className="flex-1">
+                {cancelText}
+              </Button>
+              <Button variant="dialog-primary" onPress={handleConfirmClick} className="flex-1">
+                {confirmText}
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

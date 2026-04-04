@@ -43,14 +43,14 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
 
   return (
     <Drawer state={drawerState}>
-      <Drawer.Backdrop variant="blur">
-        <Drawer.Content
-          placement={direction}
-          className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
-        >
+      <Drawer.Backdrop>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
-            {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger aria-label="Close" />
+            {direction === 'bottom' ? (
+              <Drawer.Handle />
+            ) : (
+              <Drawer.CloseTrigger aria-label="Close" />
+            )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
                 <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
@@ -60,7 +60,7 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                   <Drawer.Heading className="drawer__heading">
                     Explore Featured Solutions
                   </Drawer.Heading>
-                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
                     Browse featured solutions matching your query
                   </p>
                 </div>
@@ -70,17 +70,17 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4 max-h-[70vh] overflow-auto">
                 {isLoading ? (
-                  <div className="py-6 text-center text-(--color-text-muted) text-[13px]">
+                  <div className="py-6 text-center text-(--color-text-muted) text-[0.8125rem]">
                     Loading...
                   </div>
                 ) : solutions.length === 0 ? (
-                  <div className="py-6 text-center text-(--color-text-muted) text-[13px]">
+                  <div className="py-6 text-center text-(--color-text-muted) text-[0.8125rem]">
                     No results
                   </div>
                 ) : (
                   Array.from(grouped.entries()).map(([cat, list]) => (
                     <div key={cat}>
-                      <div className="text-[10px] tracking-widest text-(--color-text-muted) mb-3 border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 font-semibold">
+                      <div className="text-[0.625rem] tracking-widest text-(--color-text-muted) mb-3 border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 font-semibold">
                         {cat}
                       </div>
                       <div className="space-y-2">
@@ -90,19 +90,19 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
                             className="py-3 border-b border-(--color-border) transition-all duration-200"
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <h4 className="text-[13px] font-semibold truncate text-(--color-text-primary) mb-1">
+                              <h4 className="text-[0.8125rem] font-semibold truncate text-(--color-text-primary) mb-1">
                                 {s.title}
                               </h4>
-                              <span className="text-[11px] text-(--color-text-muted)">
+                              <span className="text-[0.6875rem] text-(--color-text-muted)">
                                 {s.wordCount || 0} words
                               </span>
                             </div>
-                            <p className="text-[11px] leading-relaxed line-clamp-2 mb-2 text-(--color-text-secondary)">
+                            <p className="text-[0.6875rem] leading-relaxed line-clamp-2 mb-2 text-(--color-text-secondary)">
                               {s.solution || s.problem || ''}
                             </p>
                             <a
                               href="#"
-                              className="text-[11px] font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all duration-150 text-(--color-accent) hover:underline"
+                              className="text-[0.6875rem] font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all duration-150 text-(--color-accent) hover:underline"
                               onClick={(e) => {
                                 e.preventDefault();
                                 openResultsDatabaseEvidenceDetailsDrawer({

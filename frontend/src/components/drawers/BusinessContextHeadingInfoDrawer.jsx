@@ -16,14 +16,14 @@ export default function BusinessContextHeadingInfoDrawer() {
         if (!open) onClose();
       }}
     >
-      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm">
-        <Drawer.Content
-          placement={direction}
-          className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
-        >
+      <Drawer.Backdrop>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
-            {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger aria-label="Close" />
+            {direction === 'bottom' ? (
+              <Drawer.Handle />
+            ) : (
+              <Drawer.CloseTrigger aria-label="Close" />
+            )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
                 <div className="w-8 h-8 rounded-lg bg-[rgba(122,91,46,0.1)] flex items-center justify-center shrink-0">
@@ -33,7 +33,7 @@ export default function BusinessContextHeadingInfoDrawer() {
                   <Drawer.Heading className="drawer__heading">
                     Business Context Guide
                   </Drawer.Heading>
-                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
                     Helps AI understand your circular economy model
                   </p>
                 </div>

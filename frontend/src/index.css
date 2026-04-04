@@ -784,12 +784,12 @@ textarea:focus-visible {
   [data-slot='drawer-handle'] {
     display: flex !important;
     justify-content: center !important;
-    padding: 8px 0 2px !important;
+    padding: 0px 0 2px !important;
   }
   [data-slot='drawer-handle-bar'] {
-    width: 32px !important;
-    height: 3px !important;
-    border-radius: 2px !important;
+    width: 60px !important;
+    height: 6px !important;
+    border-radius: 10px !important;
     background: rgba(180, 160, 130, 0.28) !important;
   }
 
@@ -1599,6 +1599,13 @@ textarea:focus-visible {
   }
   /* ----- ALERT DIALOG OVERRIDES ----- */
 
+  /* Override modal base styles for alert dialogs */
+  [data-slot='base'].alert-dialog__dialog,
+  .alert-dialog__dialog {
+    border: 0 !important;
+    outline: 0 !important;
+  }
+
   .alert-dialog__backdrop,
   [data-slot='backdrop'].alert-dialog__backdrop {
     background-color: rgba(26, 21, 16, 0.08) !important; /* Very subtle dark tint */
@@ -1614,18 +1621,41 @@ textarea:focus-visible {
   .alert-dialog__dialog,
   [data-slot='dialog'].alert-dialog__dialog {
     background-color: #f5f0e8 !important; /* Exact site bg color — no border needed */
-    border: none !important;
-    border-radius: 12px !important;
-    box-shadow:
-      0 0 0 1px rgba(180, 160, 130, 0.2),
-      0 8px 32px rgba(26, 21, 16, 0.14) !important; /* Shadow replaces border */
+    border: 0 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(26, 21, 16, 0.14) !important; /* Removed border shadow */
     max-width: 340px !important;
     width: 100% !important;
     padding: 0 !important;
     overflow: hidden !important;
+    outline: 0px !important;
   }
 
-  /* Header: horizontal layout — icon left, text right */
+  /* Additional override to ensure no borders from any source */
+  [data-slot='dialog'].alert-dialog__dialog,
+  .alert-dialog__dialog,
+  [data-slot='base'].alert-dialog__dialog {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: 0 8px 32px rgba(26, 21, 16, 0.14) !important;
+  }
+
+  /* Remove borders on focus states */
+  [data-slot='dialog'].alert-dialog__dialog:focus,
+  .alert-dialog__dialog:focus,
+  [data-slot='base'].alert-dialog__dialog:focus,
+  [data-slot='dialog'].alert-dialog__dialog:focus-visible,
+  .alert-dialog__dialog:focus-visible,
+  [data-slot='base'].alert-dialog__dialog:focus-visible,
+  [data-slot='dialog'].alert-dialog__dialog[data-focus-visible='true'],
+  .alert-dialog__dialog[data-focus-visible='true'],
+  [data-slot='base'].alert-dialog__dialog[data-focus-visible='true'] {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: 0 8px 32px rgba(26, 21, 16, 0.14) !important;
+  }
+
+  /* Header: horizontal layout — icon left, text right, always middle-aligned */
   .alert-dialog__header,
   [data-slot='dialog-header'] {
     padding: 16px 18px 0 !important;
@@ -1633,7 +1663,7 @@ textarea:focus-visible {
     background: transparent !important;
     display: flex !important;
     flex-direction: row !important;
-    align-items: flex-start !important;
+    align-items: center !important;
     gap: 10px !important;
     text-align: left !important;
   }
@@ -1654,7 +1684,7 @@ textarea:focus-visible {
   /* Body: left-aligned, tighter */
   .alert-dialog__body,
   [data-slot='dialog-body'] {
-    padding: 6px 18px 14px !important;
+    padding: 6px 18px 0px !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 12.5px !important;
     line-height: 1.55 !important;
@@ -1667,12 +1697,12 @@ textarea:focus-visible {
   .alert-dialog__footer,
   [data-slot='dialog-footer'] {
     padding: 0 14px 14px !important;
-    border-top: 1px solid rgba(180, 160, 130, 0.14) !important;
+    border-top: 0px solid rgba(180, 160, 130, 0.14) !important;
     background: transparent !important;
     display: flex !important;
     gap: 8px !important;
     justify-content: stretch !important;
-    padding-top: 12px !important;
+    padding-top: 0px !important;
   }
 
   /* Equal width buttons */
@@ -1997,78 +2027,134 @@ textarea:focus-visible {
   background: rgba(220, 200, 175, 0.4) !important;
 }
 
-/* All header cells */
-[data-slot='column'] {
-  padding: 0.75rem 0.75rem !important;
-  font-size: 0.65rem !important;
-  font-weight: 600 !important;
-  color: var(--color-text-secondary) !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  border-bottom: 1px solid rgba(180, 160, 130, 0.35) !important;
-  border-right: 1px solid rgba(180, 160, 130, 0.15) !important;
-  text-align: center !important;
+/* ============================================= */
+/*  CUSTOM DATA TABLE STYLES                      */
+/* ============================================= */
+
+/* Scope these to avoid affecting Dialogs/Modals - For HeroUI Tables */
+.custom-data-table [data-slot='column'] {
+  padding: 0.75rem 0.75rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(180, 160, 130, 0.35);
+  border-right: 1px solid rgba(180, 160, 130, 0.15);
+  text-align: center;
 }
 
-[data-slot='column']:last-child {
-  border-right: none !important;
+.custom-data-table [data-slot='column']:last-child {
+  border-right: none;
 }
 
 /* First column header - left align */
-[data-slot='column']:first-child {
-  text-align: left !important;
-  padding-left: 1rem !important;
+.custom-data-table [data-slot='column']:first-child {
+  text-align: left;
+  padding-left: 1rem;
 }
 
 /* Body rows */
-[data-slot='row'] {
-  border-bottom: 1px solid rgba(180, 160, 130, 0.12) !important;
+.custom-data-table [data-slot='row'] {
+  border-bottom: 1px solid rgba(180, 160, 130, 0.12);
 }
 
-[data-slot='row']:last-child {
-  border-bottom: none !important;
+.custom-data-table [data-slot='row']:last-child {
+  border-bottom: none;
 }
 
-[data-slot='row']:nth-child(even) {
-  background: rgba(180, 160, 130, 0.04) !important;
+.custom-data-table [data-slot='row']:nth-child(even) {
+  background: rgba(180, 160, 130, 0.04);
 }
 
-[data-slot='row']:hover {
-  background: rgba(200, 180, 150, 0.2) !important;
+.custom-data-table [data-slot='row']:hover {
+  background: rgba(200, 180, 150, 0.2);
 }
 
 /* All cells */
-[data-slot='cell'] {
-  padding: 0.75rem 0.75rem !important;
-  font-size: 0.875rem !important;
-  color: var(--color-text-primary) !important;
-  border-right: 1px solid rgba(180, 160, 130, 0.12) !important;
-  text-align: center !important;
+.custom-data-table [data-slot='cell'] {
+  padding: 0.75rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  border-right: 1px solid rgba(180, 160, 130, 0.12);
+  text-align: center;
 }
 
-[data-slot='cell']:last-child {
-  border-right: none !important;
+.custom-data-table [data-slot='cell']:last-child {
+  border-right: none;
 }
 
 /* First column cell - left align */
-[data-slot='cell']:first-child {
-  text-align: left !important;
-  padding-left: 1rem !important;
-  font-weight: 500 !important;
+.custom-data-table [data-slot='cell']:first-child {
+  text-align: left;
+  padding-left: 1rem;
+  font-weight: 500;
 }
 
 /* Status column */
-[data-slot='cell']:last-child {
-  text-align: center !important;
+.custom-data-table [data-slot='cell']:last-child {
+  text-align: center;
 }
 
 /* Status chips */
-[data-slot='cell']:last-child [data-slot='base'].chip {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-weight: 500 !important;
-  font-size: 0.7rem !important;
-  padding: 0.2rem 0.6rem !important;
-  min-width: 70px !important;
+.custom-data-table [data-slot='cell']:last-child [data-slot='base'].chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  min-width: 70px;
+}
+
+/* ============================================= */
+/*  NATIVE HTML TABLE STYLES (for BenchmarkTable) */
+/* ============================================= */
+
+/* For native HTML tables with custom-data-table class */
+.custom-data-table th {
+  padding: 0.75rem 0.75rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(180, 160, 130, 0.35);
+  border-right: 1px solid rgba(180, 160, 130, 0.15);
+  text-align: center;
+}
+
+.custom-data-table th:last-child {
+  border-right: none;
+}
+
+.custom-data-table th:first-child {
+  text-align: left;
+  padding-left: 1rem;
+}
+
+.custom-data-table td {
+  padding: 0.75rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  border-right: 1px solid rgba(180, 160, 130, 0.12);
+  text-align: center;
+}
+
+.custom-data-table td:last-child {
+  border-right: none;
+}
+
+.custom-data-table td:first-child {
+  text-align: left;
+  padding-left: 1rem;
+  font-weight: 500;
+}
+
+.custom-data-table tr:nth-child(even) {
+  background: rgba(180, 160, 130, 0.04);
+}
+
+.custom-data-table tr:hover {
+  background: rgba(200, 180, 150, 0.2);
 }

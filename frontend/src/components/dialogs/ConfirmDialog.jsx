@@ -104,63 +104,65 @@ export function ConfirmDialog({
   };
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={isDialogOpen}
-      onOpenChange={handleBackdropChange}
-      variant="opaque"
-      isDismissable={false}
-      isKeyboardDismissDisabled={true}
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog>
-          {({ close }) => (
-            <>
-              <AlertDialog.Header>
-                <AlertDialog.Icon
-                  status={status}
-                  className={`alert-dialog__icon ${
-                    variant === 'destructive'
-                      ? 'alert-dialog__icon--danger'
-                      : 'alert-dialog__icon--accent'
-                  }`}
-                >
-                  {variant === 'destructive' ? (
-                    <TriangleAlert size={20} />
-                  ) : (
-                    <AlertCircle size={20} />
-                  )}
-                </AlertDialog.Icon>
-                <AlertDialog.Heading>{title}</AlertDialog.Heading>
-              </AlertDialog.Header>
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={isDialogOpen}
+        onOpenChange={handleBackdropChange}
+        variant="opaque"
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        className=""
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog>
+            {({ close }) => (
+              <>
+                <AlertDialog.Header>
+                  <AlertDialog.Icon
+                    status={status}
+                    className={`alert-dialog__icon ${
+                      variant === 'destructive'
+                        ? 'alert-dialog__icon--danger'
+                        : 'alert-dialog__icon--accent'
+                    }`}
+                  >
+                    {variant === 'destructive' ? (
+                      <TriangleAlert size={20} />
+                    ) : (
+                      <AlertCircle size={20} />
+                    )}
+                  </AlertDialog.Icon>
+                  <AlertDialog.Heading>{title}</AlertDialog.Heading>
+                </AlertDialog.Header>
 
-              <AlertDialog.Body>{description}</AlertDialog.Body>
+                <AlertDialog.Body>{description}</AlertDialog.Body>
 
-              <AlertDialog.Footer>
-                <button
-                  onClick={handleCancelClick}
-                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
-                  disabled={isLoading}
-                >
-                  {cancelText}
-                </button>
-                <button
-                  onClick={handleConfirmClick}
-                  className={`flex-1 rounded-lg py-2.5 text-sm transition-opacity ${
-                    variant === 'destructive'
-                      ? 'bg-(--color-error) text-white hover:opacity-90'
-                      : 'bg-(--color-accent) text-white hover:opacity-90'
-                  }`}
-                  disabled={isLoading}
-                >
-                  {confirmText}
-                </button>
-              </AlertDialog.Footer>
-            </>
-          )}
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+                <AlertDialog.Footer>
+                  <button
+                    onClick={handleCancelClick}
+                    className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
+                    disabled={isLoading}
+                  >
+                    {cancelText}
+                  </button>
+                  <button
+                    onClick={handleConfirmClick}
+                    className={`flex-1 rounded-lg py-2.5 text-sm transition-opacity ${
+                      variant === 'destructive'
+                        ? 'bg-(--color-error) text-white hover:opacity-90'
+                        : 'bg-(--color-accent) text-white hover:opacity-90'
+                    }`}
+                    disabled={isLoading}
+                  >
+                    {confirmText}
+                  </button>
+                </AlertDialog.Footer>
+              </>
+            )}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

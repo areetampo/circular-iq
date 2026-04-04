@@ -38,56 +38,58 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
   }
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={true}
-      onOpenChange={handleOpenChange}
-      variant="opaque"
-      isDismissable={false}
-      isKeyboardDismissDisabled={true}
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog>
-          {({ close }) => (
-            <>
-              <AlertDialog.Header>
-                <AlertDialog.Icon
-                  status="danger"
-                  className="alert-dialog__icon alert-dialog__icon--danger"
-                >
-                  <Trash2 size={20} />
-                </AlertDialog.Icon>
-                <AlertDialog.Heading>Delete Assessment?</AlertDialog.Heading>
-              </AlertDialog.Header>
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={true}
+        onOpenChange={handleOpenChange}
+        variant="opaque"
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        className=""
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog>
+            {({ close }) => (
+              <>
+                <AlertDialog.Header>
+                  <AlertDialog.Icon
+                    status="danger"
+                    className="alert-dialog__icon alert-dialog__icon--danger"
+                  >
+                    <Trash2 size={20} />
+                  </AlertDialog.Icon>
+                  <AlertDialog.Heading>Delete Assessment?</AlertDialog.Heading>
+                </AlertDialog.Header>
 
-              <AlertDialog.Body>
-                This will permanently delete <span>&ldquo;{assessmentName}&rdquo;</span>. This
-                action cannot be undone.
-              </AlertDialog.Body>
+                <AlertDialog.Body>
+                  This will permanently delete assessment{' '}
+                  <span>&ldquo;{assessmentName}&rdquo;</span>. This action cannot be undone.
+                </AlertDialog.Body>
 
-              <AlertDialog.Footer>
-                <button
-                  onClick={close}
-                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (onConfirm) onConfirm();
-                    close();
-                  }}
-                  className="flex-1 bg-(--color-error) text-white rounded-lg py-2.5 text-sm hover:opacity-90 transition-opacity"
-                  disabled={isLoading}
-                >
-                  Delete
-                </button>
-              </AlertDialog.Footer>
-            </>
-          )}
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+                <AlertDialog.Footer>
+                  <button
+                    onClick={close}
+                    className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onConfirm) onConfirm();
+                      close();
+                    }}
+                    className="flex-1 bg-(--color-error) text-white rounded-lg py-2.5 text-sm hover:opacity-90 transition-opacity"
+                    disabled={isLoading}
+                  >
+                    Delete
+                  </button>
+                </AlertDialog.Footer>
+              </>
+            )}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

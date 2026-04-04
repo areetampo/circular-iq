@@ -58,15 +58,15 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
       case 'match':
         return {
           variant: 'flat',
-          radius: 'sm',
+          radius: 'full',
           size: 'sm',
-          className: `font-medium text-xs border transition-all duration-200 ${
+          className: `font-mono text-xs border transition-all duration-200 ${
             color === 'strong'
-              ? 'bg-[#f0f9ff] text-[#0369a1] border-[#0369a1]'
+              ? 'bg-[#d4f1d4] text-[#2d5016] border-[#d4f1d4]'
               : color === 'decent'
-                ? 'bg-[#f3f4f6] text-[#475569] border-[#475569]'
+                ? 'bg-[#f5e6d3] text-[#92400e] border-[#f5e6d3]'
                 : color === 'weak'
-                  ? 'bg-[#fef2f2] text-[#a8a29e] border-[#a8a29e]'
+                  ? 'bg-[#fef2f2] text-[#dc2626] border-[#fef2f2]'
                   : 'bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)]'
           }`,
         };
@@ -77,7 +77,7 @@ export function Chip({ variant = 'tag', color, children, className, onClick, act
           radius: 'sm',
           size: 'sm',
           className:
-            'bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
+            'bg-accent-400 text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
         };
     }
   };

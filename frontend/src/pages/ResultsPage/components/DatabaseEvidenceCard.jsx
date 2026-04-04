@@ -58,33 +58,36 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                   {/* Case content */}
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2 group-hover:text-(--color-accent) transition-colors">
-                      {caseTitle}
+                      <span className="font-mono">{caseTitle}</span>
                     </h4>
 
-                    {/* Year + Location + Use type chips */}
+                    {/* Year + Location + Use type + Source + Category + Circular Strategy + Materials chips */}
                     <div className="flex flex-wrap gap-2 mb-3">
                       {caseItem.year && <Chip variant="tag">{caseItem.year}</Chip>}
                       {caseItem.location && <Chip variant="tag">{caseItem.location}</Chip>}
                       {caseItem.use_type && <Chip variant="tag">{caseItem.use_type}</Chip>}
+                      {caseItem.source_display && (
+                        <Chip variant="tag">{caseItem.source_display}</Chip>
+                      )}
+                      {caseItem.category && <Chip variant="tag">{caseItem.category}</Chip>}
+                      {caseItem.circular_strategy && (
+                        <Chip variant="tag">
+                          <span className="font-mono">{caseItem.circular_strategy}</span>
+                        </Chip>
+                      )}
+                      {caseItem.materials && (
+                        <Chip variant="tag">
+                          <span className="font-mono">{caseItem.materials}</span>
+                        </Chip>
+                      )}
                     </div>
 
-                    {/* Match quality chip */}
+                    {/* Match quality chip and Percentage Match chip */}
                     <div className="flex items-center gap-3">
-                      <Chip
-                        variant="match"
-                        color={
-                          matchPercentage >= 75
-                            ? 'strong'
-                            : matchPercentage >= 50
-                              ? 'decent'
-                              : 'weak'
-                        }
-                      >
-                        {matchStrengthLabel}
+                      <Chip variant="match">{matchStrengthLabel}</Chip>
+                      <Chip variant="match">
+                        <span className="font-mono">{matchPercentage}% match</span>
                       </Chip>
-                      <span className="text-sm text-(--color-text-muted) font-medium">
-                        {matchPercentage}% match
-                      </span>
                     </div>
                   </div>
 

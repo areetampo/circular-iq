@@ -103,82 +103,83 @@ export function SessionRestoreDialog(props) {
   if (!hasInputs && !hasResults) return null;
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          if (!usingProps) onClose();
-        }
-      }}
-      isDismissable={false}
-      isKeyboardDismissDisabled={true}
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog>
-          {({ close }) => (
-            <>
-              <AlertDialog.Header>
-                <AlertDialog.Icon
-                  status="success"
-                  className="alert-dialog__icon alert-dialog__icon--success"
-                >
-                  <RefreshCw size={20} />
-                </AlertDialog.Icon>
-                <AlertDialog.Heading>
-                  Restore Previous Session from {formatDate(sessionData?.timestamp)}?
-                </AlertDialog.Heading>
-              </AlertDialog.Header>
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            if (!usingProps) onClose();
+          }
+        }}
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog>
+            {({ close }) => (
+              <>
+                <AlertDialog.Header>
+                  <AlertDialog.Icon
+                    status="success"
+                    className="alert-dialog__icon alert-dialog__icon--success"
+                  >
+                    <RefreshCw size={20} />
+                  </AlertDialog.Icon>
+                  <AlertDialog.Heading>
+                    Restore Previous Session from {formatDate(sessionData?.timestamp)}?
+                  </AlertDialog.Heading>
+                </AlertDialog.Header>
 
-              <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
+                <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
 
-              <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
-                Your inputs are already saved locally — you can restore calculated results below or
-                continue from your saved inputs.
-                <div className="border border-[rgba(180,160,130,0.18)] rounded-md p-3 flex items-center gap-3 my-4">
-                  <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-(--color-text-primary)">
-                      Calculated results
-                    </p>
-                    <p className="text-xs text-(--color-text-muted) mt-0.5">
-                      {hasResults
-                        ? 'You have unsaved assessment results'
-                        : 'No calculated results found to restore.'}
-                    </p>
+                <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+                  Your inputs are already saved locally — you can restore calculated results below
+                  or continue from your saved inputs.
+                  <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-md p-1 px-2 flex items-center gap-3 mt-4">
+                    <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-(--color-text-primary)">
+                        Calculated results
+                      </p>
+                      <p className="text-xs text-(--color-text-muted) mt-0.5">
+                        {hasResults
+                          ? 'You have unsaved assessment results'
+                          : 'No calculated results found to restore.'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </AlertDialog.Body>
+                </AlertDialog.Body>
 
-              <AlertDialog.Footer className="flex gap-3 mt-5">
-                <Button
-                  variant="dialog-secondary"
-                  onPress={() => {
-                    handleCancel();
-                    close();
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
+                <AlertDialog.Footer>
+                  <Button
+                    variant="dialog-secondary"
+                    onPress={() => {
+                      handleCancel();
+                      close();
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
 
-                <Button
-                  variant="dialog-primary"
-                  onPress={() => {
-                    handleRestoreResults();
-                    close();
-                  }}
-                  isDisabled={!hasResults}
-                  className="flex-1"
-                >
-                  Restore Results
-                </Button>
-              </AlertDialog.Footer>
-            </>
-          )}
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+                  <Button
+                    variant="dialog-primary"
+                    onPress={() => {
+                      handleRestoreResults();
+                      close();
+                    }}
+                    isDisabled={!hasResults}
+                    className="flex-1"
+                  >
+                    Restore Results
+                  </Button>
+                </AlertDialog.Footer>
+              </>
+            )}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

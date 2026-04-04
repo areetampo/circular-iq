@@ -258,7 +258,7 @@ export default function DashboardPage() {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-16 mt-4">
       {/* Header */}
       <div className="pt-8 flex items-start justify-between gap-4">
         <div>
@@ -457,7 +457,7 @@ export default function DashboardPage() {
 
           <ChartPanel isLoading={globalLoading} chartHeight="300px">
             {marketTableRows.length > 0 ? (
-              <table className="w-full text-xs">
+              <table className="custom-data-table w-full text-xs">
                 <thead>
                   <tr className="border-b border-(--color-border)">
                     <th className="text-left py-2 px-3 font-semibold text-(--color-text-muted)">

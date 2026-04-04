@@ -17,9 +17,11 @@
  */
 
 import { AlertDialog, Input } from '@heroui/react';
+import { Save } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
@@ -103,26 +105,32 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
   }
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={true}
-      onOpenChange={handleBackdropChange}
-      variant="opaque"
-      isDismissable={false}
-      isKeyboardDismissDisabled={true}
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog>
-          {({ close }) => (
-            <>
-              <AlertDialog.Header>
-                <AlertDialog.Heading>Save Assessment</AlertDialog.Heading>
-              </AlertDialog.Header>
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={true}
+        onOpenChange={handleBackdropChange}
+        variant="opaque"
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        className=""
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog>
+            {({ close }) => (
+              <>
+                <AlertDialog.Header>
+                  <AlertDialog.Icon
+                    status="success"
+                    className="alert-dialog__icon alert-dialog__icon--success"
+                  >
+                    <Save size={20} />
+                  </AlertDialog.Icon>
+                  <AlertDialog.Heading>Save Assessment</AlertDialog.Heading>
+                </AlertDialog.Header>
 
-              <AlertDialog.Body className="text-sm">
-                {/* Name input */}
-                <div className="mb-4">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 block">
+                <AlertDialog.Body className="text-sm">
+                  {/* Name input */}
+                  <label className="text-[0.7rem] font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 ml-2 block">
                     Name
                   </label>
                   <Input
@@ -137,35 +145,38 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     fullWidth
                   />
                   {error && <p className="text-xs text-(--color-error) mt-1">{error}</p>}
-                </div>
-              </AlertDialog.Body>
+                </AlertDialog.Body>
 
-              <AlertDialog.Footer className="flex gap-3">
-                <button
-                  onClick={() => {
-                    close();
-                    onClose();
-                  }}
-                  disabled={isSubmitting}
-                  className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (!isSubmitting) handleSubmit(close);
-                  }}
-                  disabled={isSubmitting}
-                  className="flex-1 bg-(--color-accent) text-white rounded-lg py-2.5 text-sm hover:bg-(--color-accent-hover) transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Assessment'}
-                </button>
-              </AlertDialog.Footer>
-            </>
-          )}
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+                <AlertDialog.Footer>
+                  <Button
+                    variant="dialog-secondary"
+                    onPress={() => {
+                      close();
+                      onClose();
+                    }}
+                    isDisabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="dialog-primary"
+                    onPress={() => {
+                      if (!isSubmitting) handleSubmit(close);
+                    }}
+                    isLoading={isSubmitting}
+                    isDisabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save'}
+                  </Button>
+                </AlertDialog.Footer>
+              </>
+            )}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

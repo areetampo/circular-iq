@@ -18,14 +18,14 @@ export default function AssessmentMethodologyDrawer() {
         if (!open) onClose();
       }}
     >
-      <Drawer.Backdrop className="bg-black/15 backdrop-blur-sm">
-        <Drawer.Content
-          placement={direction}
-          className="bg-(--color-bg) border-l border-(--color-border-strong) shadow-[-8px_0_24px_rgba(0,0,0,0.08)]"
-        >
+      <Drawer.Backdrop>
+        <Drawer.Content placement={direction}>
           <Drawer.Dialog>
-            {direction === 'bottom' && <Drawer.Handle />}
-            <Drawer.CloseTrigger aria-label="Close" />
+            {direction === 'bottom' ? (
+              <Drawer.Handle />
+            ) : (
+              <Drawer.CloseTrigger aria-label="Close" />
+            )}
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
@@ -36,7 +36,7 @@ export default function AssessmentMethodologyDrawer() {
                   <Drawer.Heading className="drawer__heading">
                     {ASSESSMENT_METHODOLOGY_CONTENT.title}
                   </Drawer.Heading>
-                  <p className="text-[11px] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
                     {ASSESSMENT_METHODOLOGY_CONTENT.subtitle}
                   </p>
                 </div>
@@ -46,7 +46,7 @@ export default function AssessmentMethodologyDrawer() {
             {/* ── BODY ───────────────────────────────────────────────── */}
             <Drawer.Body className="space-y-5">
               {/* Intro */}
-              <p className="text-[13px] leading-relaxed text-(--color-text-muted)">
+              <p className="text-[0.8125rem] leading-relaxed text-(--color-text-muted)">
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
                 <strong className="font-semibold text-(--color-text-primary)">
@@ -72,10 +72,10 @@ export default function AssessmentMethodologyDrawer() {
 
                     {/* Text */}
                     <div className="flex flex-col gap-1 min-w-0">
-                      <span className="text-[13px] font-bold leading-snug text-(--color-text-primary)">
+                      <span className="text-[0.8125rem] font-bold leading-snug text-(--color-text-primary)">
                         {item.title}
                       </span>
-                      <span className="text-[11px] leading-relaxed text-(--color-text-muted)">
+                      <span className="text-[0.6875rem] leading-relaxed text-(--color-text-muted)">
                         {item.description}
                       </span>
                     </div>
@@ -89,10 +89,10 @@ export default function AssessmentMethodologyDrawer() {
                   <BookCopy className="size-4 text-(--color-success)" strokeWidth={1.75} />
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
-                  <span className="text-[13px] font-bold leading-snug text-(--color-text-primary)">
+                  <span className="text-[0.8125rem] font-bold leading-snug text-(--color-text-primary)">
                     Data Source
                   </span>
-                  <p className="text-[11px] leading-relaxed text-(--color-text-muted)">
+                  <p className="text-[0.6875rem] leading-relaxed text-(--color-text-muted)">
                     <strong className="font-semibold text-(--color-text-primary)">
                       GreenTechGuardians AI EarthHack Dataset:
                     </strong>{' '}

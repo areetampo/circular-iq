@@ -86,8 +86,8 @@ export default function Navbar() {
   return (
     <>
       {/* Main Navbar - full width sticky top bar */}
-      <nav className="sticky top-0 z-50 bg-(--color-bg)/80 backdrop-blur-md border-b border-border h-14">
-        <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
+      <nav className="sticky top-3 z-50 h-13 px-8">
+        <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between bg-(--color-bg)/60 backdrop-blur-xl border border-(--color-border-strong) rounded-full shadow-sm">
           {/* Logo + Site Name */}
           <button onClick={() => navigate('/')} className="flex items-center gap-3">
             <img

@@ -619,7 +619,7 @@ export default function MyAssessmentsPage() {
       return (
         <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
-          <h3 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary) mb-2">
+          <h3 className="font-display text-xl font-semibold text-(--color-text-primary) mb-2">
             No assessments yet
           </h3>
           <p className="text-sm text-(--color-text-muted) max-w-sm mx-auto leading-relaxed mb-6">
@@ -638,7 +638,7 @@ export default function MyAssessmentsPage() {
       return (
         <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
-          <h3 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary) mb-2">
+          <h3 className="font-display text-xl font-semibold text-(--color-text-primary) mb-2">
             No assessments found
           </h3>
           <p className="text-sm text-(--color-text-muted) max-w-sm mx-auto leading-relaxed mb-6">
@@ -646,7 +646,7 @@ export default function MyAssessmentsPage() {
             industry or adjusting your search.
           </p>
           <Button
-            variant="secondary"
+            variant="ghost"
             onPress={() => {
               setSearchTerm('');
               setSelectedIndustries(['all']);
@@ -826,11 +826,11 @@ export default function MyAssessmentsPage() {
 
   // Case 3: Stats loaded successfully – render normal content
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto mt-6">
       {/* Section heading */}
       {stats_totalAssessments > 0 && (
         <div className="flex items-center justify-between">
-          <h2 className="font-(--font-display) text-xl font-semibold text-(--color-text-primary)">
+          <h2 className="font-display text-xl font-semibold text-(--color-text-primary)">
             My Assessments
           </h2>
         </div>

@@ -16,7 +16,8 @@
  * });
  */
 
-import { AlertDialog, Input, Label } from '@heroui/react';
+import { AlertDialog, Input } from '@heroui/react';
+import { Pencil } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 
@@ -81,37 +82,40 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
   };
 
   return (
-    <AlertDialog.Backdrop
-      isOpen={isDialogOpen}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          onClose();
-        }
-      }}
-      variant="opaque"
-      isDismissable={false}
-      isKeyboardDismissDisabled={true}
-      className=""
-    >
-      <AlertDialog.Container placement="center" size="sm">
-        <AlertDialog.Dialog>
-          {({ close }) => (
-            <>
-              <AlertDialog.Header>
-                <AlertDialog.Heading>Rename Assessment</AlertDialog.Heading>
-                <AlertDialog.Description className="text-[12px] text-(--color-text-muted) mt-1">
-                  Enter a new name for this assessment
-                </AlertDialog.Description>
-              </AlertDialog.Header>
-
-              <AlertDialog.Body className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="assessment-name"
-                    className="text-[11px] font-semibold uppercase tracking-widest text-(--color-text-secondary)"
+    <AlertDialog>
+      <AlertDialog.Backdrop
+        isOpen={isDialogOpen}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            onClose();
+          }
+        }}
+        variant="opaque"
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        className=""
+      >
+        <AlertDialog.Container placement="center" size="sm">
+          <AlertDialog.Dialog>
+            {({ close }) => (
+              <>
+                <AlertDialog.Header>
+                  <AlertDialog.Icon
+                    status="warning"
+                    className="alert-dialog__icon alert-dialog__icon--warning"
                   >
-                    Assessment Name
-                  </Label>
+                    <Pencil size={20} />
+                  </AlertDialog.Icon>
+                  <AlertDialog.Heading>Rename Assessment</AlertDialog.Heading>
+                </AlertDialog.Header>
+
+                <AlertDialog.Body className="space-y-4">
+                  <label
+                    htmlFor="assessment-name"
+                    className="text-[0.7rem] font-semibold uppercase tracking-widest text-(--color-text-secondary) ml-2"
+                  >
+                    new name
+                  </label>
                   <Input
                     id="assessment-name"
                     value={name}
@@ -124,32 +128,32 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                     isInvalid={!!error}
                     errorMessage={error}
                   />
-                </div>
-              </AlertDialog.Body>
+                </AlertDialog.Body>
 
-              <AlertDialog.Footer className="flex gap-3 pt-2">
-                <Button
-                  variant="tertiary"
-                  onPress={() => close()}
-                  isDisabled={isLoading}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onPress={() => handleSubmit(close)}
-                  isLoading={isLoading}
-                  className="flex-1"
-                >
-                  Rename
-                </Button>
-              </AlertDialog.Footer>
-            </>
-          )}
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+                <AlertDialog.Footer>
+                  <Button
+                    variant="dialog-secondary"
+                    onPress={() => close()}
+                    isDisabled={isLoading}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="dialog-primary"
+                    onPress={() => handleSubmit(close)}
+                    isLoading={isLoading}
+                    className="flex-1"
+                  >
+                    Rename
+                  </Button>
+                </AlertDialog.Footer>
+              </>
+            )}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 
