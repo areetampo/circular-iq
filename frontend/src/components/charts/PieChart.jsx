@@ -23,6 +23,8 @@ export default function PieChart({
   outerRadius = null,
   paddingAngle = 0,
   cornerRadius = 0,
+  label = false,
+  labelLine = true,
 }) {
   const chartContent = useMemo(() => {
     if (!data.length) {
@@ -46,7 +48,7 @@ export default function PieChart({
     const seriesData = data.map((item, i) => ({
       id: i,
       value: typeof item[dataKey] === 'number' ? item[dataKey] : 0,
-      label: item[nameKey] || `Item ${i + 1}`,
+      label: `${item[nameKey] || `Item ${i + 1}`} (${typeof item[dataKey] === 'number' ? item[dataKey] : 0})`,
       color: item.color || colors?.[i] || chartTheme.colors[i % chartTheme.colors.length],
     }));
 
@@ -57,6 +59,8 @@ export default function PieChart({
         outerRadius,
         paddingAngle,
         cornerRadius,
+        label,
+        labelLine,
       },
     ];
 
@@ -85,6 +89,8 @@ export default function PieChart({
     outerRadius,
     paddingAngle,
     cornerRadius,
+    label,
+    labelLine,
   ]);
 
   if (isLoading) {
@@ -131,4 +137,8 @@ PieChart.propTypes = {
   paddingAngle: PropTypes.number,
   /** Corner radius for slices */
   cornerRadius: PropTypes.number,
+  /** Show labels on pie slices */
+  label: PropTypes.bool,
+  /** Show label lines */
+  labelLine: PropTypes.bool,
 };

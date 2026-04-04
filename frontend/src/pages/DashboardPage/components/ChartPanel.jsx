@@ -2,19 +2,19 @@ import PropTypes from 'prop-types';
 
 function ChartPanel({ title, children, isLoading, error, chartHeight }) {
   return (
-    <div className="border border-[rgba(180,160,130,0.3)] rounded-[14px] p-6 bg-transparent min-h-[300px] w-full">
+    <div className="border-2 border-[rgba(180,160,130,0.3)] rounded-[14px] p-6 bg-transparent min-h-75 w-full">
       {title && (
         <p className="text-[13px] font-semibold text-(--color-text-secondary) mb-4">{title}</p>
       )}
 
       {isLoading ? (
-        <div className="w-full h-[200px] rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
+        <div className="w-full h-50 rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
       ) : error ? (
         <div className="text-center p-4">
           <p className="text-(--color-error)">Error loading chart</p>
         </div>
       ) : (
-        <div className="min-h-[260px]">{children}</div>
+        <div className="min-h-65">{children}</div>
       )}
     </div>
   );

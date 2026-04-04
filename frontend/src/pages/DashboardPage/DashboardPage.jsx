@@ -9,10 +9,11 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
+import { Button } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useDocumentStats } from '@/features/assessments/hooks/useDocumentStats';
@@ -52,6 +53,9 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { openDashboardFeaturedSolutionsDrawer, openResultsDatabaseEvidenceDetailsDrawer } =
     useGlobalDrawer();
+
+  // Timestamp for "Updated at" display
+  const [updatedAt, setUpdatedAt] = useState(new Date());
 
   // Search & filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -125,6 +129,14 @@ export default function DashboardPage() {
 
   // ── Doc stats ─────────────────────────────────────────────────────────────────
   const { stats: docStats, loading: docLoading } = useDocumentStats();
+
+  // Update timestamp when data finishes loading
+  useEffect(() => {
+    // Update timestamp when all data has finished loading
+    if (!globalLoading && !userStatsLoading && !docLoading) {
+      setUpdatedAt(new Date());
+    }
+  }, [globalLoading, userStatsLoading, docLoading]);
 
   // ── Featured solutions — filtered by category/industry + search ──────────────
   const { solutions: featuredSolutions, isLoading: featuredLoading } = useFeaturedSolutions({
@@ -238,6 +250,8 @@ export default function DashboardPage() {
         showLegend
         innerRadius={40}
         colors={colors}
+        label
+        labelLine={false}
       />
     );
   };
@@ -256,15 +270,10 @@ export default function DashboardPage() {
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
-        <button
-          type="button"
-          onClick={refetchGlobal}
-          disabled={globalLoading}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-[13px] font-semibold transition-all disabled:opacity-40 hover:border-[rgba(184,145,106,0.4)] hover:bg-[rgba(184,145,106,0.1)] hover:text-(--color-text-primary) border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.6)] text-(--color-text-muted)"
-        >
+        <Button onClick={refetchGlobal} disabled={globalLoading} variant="ghost">
           <RefreshCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
-        </button>
+        </Button>
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -342,99 +351,101 @@ export default function DashboardPage() {
           </ChartPanel>
         </div>
 
-        {/* Weekly trend — full width */}
-        <ChartPanel
-          title="Weekly Volume — last 12 weeks"
-          isLoading={globalLoading}
-          chartHeight="240px"
-          className="mb-4"
-        >
-          {weeklyData.some((d) => d.count > 0) ? (
-            <LineChart
-              data={weeklyData}
-              xAxisKey="period"
-              lines={[{ dataKey: 'count', stroke: chartTheme.colors[0], name: 'Assessments' }]}
-              height={240}
-              showLegend={false}
-            />
-          ) : (
-            <EmptyChart />
-          )}
-        </ChartPanel>
-
-        {/* R-Strategy — full width */}
-        <ChartPanel
-          title="R-Strategy Distribution"
-          isLoading={globalLoading}
-          chartHeight="240px"
-          className="mb-4"
-        >
-          {usableBar(strategyData, 'value') ? (
-            <BarChart
-              data={strategyData}
-              xAxisKey="name"
-              barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Count' }]}
-              height={240}
-              showGrid
-            />
-          ) : (
-            <EmptyChart />
-          )}
-        </ChartPanel>
-
-        {/* Row C: Industry bar (full width) */}
-        {(globalLoading || industryBarData.length > 0) && (
+        <div className="space-y-8">
+          {/* Weekly trend — full width */}
           <ChartPanel
-            title="Assessment Volume by Industry — top 10 (excluding uncategorized)"
+            title="Weekly Volume — last 12 weeks"
             isLoading={globalLoading}
-            chartHeight="220px"
+            chartHeight="240px"
+            className="mb-4"
           >
-            {usableBar(industryBarData) ? (
+            {weeklyData.some((d) => d.count > 0) ? (
+              <LineChart
+                data={weeklyData}
+                xAxisKey="period"
+                lines={[{ dataKey: 'count', stroke: chartTheme.colors[0], name: 'Assessments' }]}
+                height={240}
+                showLegend={false}
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartPanel>
+
+          {/* R-Strategy — full width */}
+          <ChartPanel
+            title="R-Strategy Distribution"
+            isLoading={globalLoading}
+            chartHeight="240px"
+            className="mb-4"
+          >
+            {usableBar(strategyData, 'value') ? (
               <BarChart
-                data={industryBarData}
+                data={strategyData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[1], name: 'Count' }]}
-                height={220}
+                barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Count' }]}
+                height={240}
                 showGrid
               />
             ) : (
               <EmptyChart />
             )}
           </ChartPanel>
-        )}
 
-        {/* Row D: Material + Geography + Scale — each full width */}
-        <ChartPanel
-          title="Primary Material"
-          isLoading={globalLoading}
-          chartHeight="192px"
-          className="mb-4"
-        >
-          {renderPieOrSingle(materialData, undefined, 'No material data')}
-        </ChartPanel>
-
-        <ChartPanel
-          title="Geographic Focus"
-          isLoading={globalLoading}
-          chartHeight="192px"
-          className="mb-4"
-        >
-          {geoData.length > 0 ? (
-            <BarChart
-              data={geoData}
-              xAxisKey="name"
-              barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[2], name: 'Count' }]}
-              height={200}
-              showGrid
-            />
-          ) : (
-            <EmptyChart />
+          {/* Row C: Industry bar (full width) */}
+          {(globalLoading || industryBarData.length > 0) && (
+            <ChartPanel
+              title="Assessment Volume by Industry — top 10 (excluding uncategorized)"
+              isLoading={globalLoading}
+              chartHeight="220px"
+            >
+              {usableBar(industryBarData) ? (
+                <BarChart
+                  data={industryBarData}
+                  xAxisKey="name"
+                  barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[1], name: 'Count' }]}
+                  height={220}
+                  showGrid
+                />
+              ) : (
+                <EmptyChart />
+              )}
+            </ChartPanel>
           )}
-        </ChartPanel>
 
-        <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="192px">
-          {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
-        </ChartPanel>
+          {/* Row D: Material + Geography + Scale — each full width */}
+          <ChartPanel
+            title="Primary Material"
+            isLoading={globalLoading}
+            chartHeight="192px"
+            className="mb-4"
+          >
+            {renderPieOrSingle(materialData, undefined, 'No material data')}
+          </ChartPanel>
+
+          <ChartPanel
+            title="Geographic Focus"
+            isLoading={globalLoading}
+            chartHeight="192px"
+            className="mb-4"
+          >
+            {geoData.length > 0 ? (
+              <BarChart
+                data={geoData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[2], name: 'Count' }]}
+                height={200}
+                showGrid
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartPanel>
+
+          <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="192px">
+            {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
+          </ChartPanel>
+        </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -506,7 +517,7 @@ export default function DashboardPage() {
           SECTION 3 — KNOWLEDGE BASE
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider label="KNOWLEDGE BASE" />
+        <SectionDivider label="KNOWLEDGE DATABASE" />
 
         {/* Doc stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
@@ -520,196 +531,204 @@ export default function DashboardPage() {
           <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
         </div>
 
-        {/* Doc distribution charts — each full width */}
-        {!docLoading && docStats && (
-          <>
-            <ChartPanel
-              title="Documents by Industry"
-              isLoading={docLoading}
-              chartHeight="180px"
-              className="mb-4"
-            >
-              {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
-                <BarChart
-                  data={transformIndustryDistribution(docStats.byIndustry)}
-                  xAxisKey="name"
-                  barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' }]}
-                  height={180}
-                  showGrid
-                />
-              ) : (
-                <EmptyChart />
-              )}
-            </ChartPanel>
-
-            <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="180px">
-              {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
-                <BarChart
-                  data={transformMaterialDistribution(docStats.byMaterial)}
-                  xAxisKey="name"
-                  barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' }]}
-                  height={180}
-                  showGrid
-                />
-              ) : (
-                <EmptyChart />
-              )}
-            </ChartPanel>
-          </>
-        )}
-
-        {/* ── Featured Solutions ───────────────────────────────────────────── */}
-        <div className="rounded-xl border border-[rgba(180,160,130,0.25)] bg-transparent overflow-hidden">
-          {/* Header + search */}
-          <div className="px-6 py-5 border-b border-[rgba(180,160,130,0.18)]">
-            <h3 className="font-(--font-display) text-[20px] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-3 flex items-center gap-2.5">
-              <Lightbulb size={16} className="text-(--color-accent)" />
-              Featured Solutions
-            </h3>
-            <p className="text-[14px] text-(--color-text-secondary) mb-4">
-              Explore successful circular economy projects and innovations
-            </p>
-            <div className="space-y-3">
-              {/* Search bar */}
-              <div className="flex items-center gap-2.5">
-                <div className="relative flex-1">
-                  <Label htmlFor="solutions-search" className="sr-only">
-                    Search solutions
-                  </Label>
-                  <Search
-                    size={15}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
-                    aria-hidden="true"
+        <div className="space-y-8">
+          {/* Doc distribution charts — each full width */}
+          {!docLoading && docStats && (
+            <>
+              <ChartPanel
+                title="Documents by Industry"
+                isLoading={docLoading}
+                chartHeight="180px"
+                className="mb-4"
+              >
+                {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
+                  <BarChart
+                    data={transformIndustryDistribution(docStats.byIndustry)}
+                    xAxisKey="name"
+                    barConfigs={[
+                      { dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' },
+                    ]}
+                    height={180}
+                    showGrid
                   />
-                  <input
-                    id="solutions-search"
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                    placeholder="Search solutions..."
-                    className="w-full pl-10 pr-10 py-2 text-[13px] rounded-2xl focus:outline-none focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
-                    aria-label="Search featured solutions"
-                    style={{
-                      border: '1px solid rgba(180,160,130,0.3)',
-                      backgroundColor: 'rgba(245,240,232,0.6)',
-                      color: 'var(--foreground)',
-                    }}
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={handleSearchClear}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
-                      aria-label="Clear search"
-                    >
-                      <X size={15} />
-                    </button>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSearchSubmit}
-                  className="px-4 py-2 text-[12px] font-semibold rounded-2xl transition-colors shrink-0"
-                  style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                >
-                  Search
-                </button>
-              </div>
+                ) : (
+                  <EmptyChart />
+                )}
+              </ChartPanel>
 
-              {/* Category filters */}
-              {availableCategories.length > 1 && (
-                <div className="flex flex-wrap gap-2">
+              <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="180px">
+                {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
+                  <BarChart
+                    data={transformMaterialDistribution(docStats.byMaterial)}
+                    xAxisKey="name"
+                    barConfigs={[
+                      { dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' },
+                    ]}
+                    height={180}
+                    showGrid
+                  />
+                ) : (
+                  <EmptyChart />
+                )}
+              </ChartPanel>
+            </>
+          )}
+
+          {/* Featured Solutions */}
+          <div className="rounded-xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent overflow-hidden">
+            {/* Header + search */}
+            <div className="px-6 py-5 border-b-2 border-[rgba(180,160,130,0.18)]">
+              <h3 className="font-mono text-[1.25rem] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-3 flex items-center gap-2.5">
+                <Lightbulb size={16} className="text-(--color-accent)" />
+                Featured Solutions
+              </h3>
+              <p className="text-[14px] text-(--color-text-secondary) mb-4">
+                Explore successful circular economy projects and innovations
+              </p>
+              <div className="space-y-3">
+                {/* Search bar */}
+                <div className="flex items-center gap-2.5">
+                  <div className="relative flex-1">
+                    <Label htmlFor="solutions-search" className="sr-only">
+                      Search solutions
+                    </Label>
+                    <Search
+                      size={15}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="solutions-search"
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
+                      placeholder="Search solutions..."
+                      className="w-full pl-10 pr-10 py-2 text-[13px] rounded-2xl focus:outline-none focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
+                      aria-label="Search featured solutions"
+                      style={{
+                        border: '1px solid rgba(180,160,130,0.3)',
+                        backgroundColor: 'rgba(245,240,232,0.6)',
+                        color: 'var(--foreground)',
+                      }}
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={handleSearchClear}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
+                        aria-label="Clear search"
+                      >
+                        <X size={15} />
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setCategoryFilter(undefined)}
-                    className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
-                    style={{
-                      backgroundColor: !categoryFilter ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
-                      color: !categoryFilter ? 'white' : 'var(--color-text-muted)',
-                      border: '1px solid rgba(180,160,130,0.25)',
-                    }}
+                    onClick={handleSearchSubmit}
+                    className="px-4 py-2 text-[12px] font-semibold rounded-2xl transition-colors shrink-0"
+                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
                   >
-                    All
+                    Search
                   </button>
-                  {availableCategories.map((cat) => (
+                </div>
+
+                {/* Category filters */}
+                {availableCategories.length > 1 && (
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      key={cat}
                       type="button"
-                      onClick={() => setCategoryFilter(cat)}
+                      onClick={() => setCategoryFilter(undefined)}
                       className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
                       style={{
-                        backgroundColor:
-                          categoryFilter === cat ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
-                        color: categoryFilter === cat ? 'white' : 'var(--color-text-muted)',
+                        backgroundColor: !categoryFilter
+                          ? 'var(--accent)'
+                          : 'rgba(245,240,232,0.8)',
+                        color: !categoryFilter ? 'white' : 'var(--color-text-muted)',
                         border: '1px solid rgba(180,160,130,0.25)',
                       }}
                     >
-                      {cat}
+                      All
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Solutions grid */}
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
-              {featuredLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="rounded-[14px] border border-[rgba(180,160,130,0.25)] p-5 space-y-3 bg-transparent"
-                  >
-                    <div className="h-5 w-3/4 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
-                    <div className="h-4 w-full rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
-                    <div className="h-4 w-2/3 rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
-                    <div className="h-6 w-12 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+                    {availableCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCategoryFilter(cat)}
+                        className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
+                        style={{
+                          backgroundColor:
+                            categoryFilter === cat ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
+                          color: categoryFilter === cat ? 'white' : 'var(--color-text-muted)',
+                          border: '1px solid rgba(180,160,130,0.25)',
+                        }}
+                      >
+                        {cat}
+                      </button>
+                    ))}
                   </div>
-                ))
-              ) : filteredSolutions?.length > 0 ? (
-                filteredSolutions.map((solution) => (
-                  <SolutionCard
-                    key={solution.id || solution.title}
-                    title={solution.title}
-                    preview={solution.solution || solution.problem || ''}
-                    category={solution.category}
-                    score={solution.score}
-                    onView={() => handleOpenSolution(solution)}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full flex flex-col items-center justify-center h-40 text-(--color-text-muted)">
-                  <BarChart3 size={32} strokeWidth={1} />
-                  <p className="text-[13px] font-semibold mt-2">No solutions found</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            {/* Footer */}
-            <div className="mt-5 pt-4 border-t border-[rgba(180,160,130,0.18)] flex items-center justify-between text-[12px]">
-              <span className="text-(--color-text-muted)">
-                Showing {filteredSolutions?.length ?? 0} solutions
-              </span>
-              {filteredSolutions?.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    openDashboardFeaturedSolutionsDrawer({
-                      q: activeSearch,
-                      industry: industryFilter,
-                    })
-                  }
-                  className="font-semibold flex items-center gap-1.5 hover:text-(--color-text-primary) transition-colors"
-                  style={{
-                    color: 'var(--accent)',
-                  }}
-                >
-                  Explore all
-                  <ChevronRight size={13} />
-                </button>
-              )}
+            {/* Solutions grid */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+                {featuredLoading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="rounded-[14px] border border-[rgba(180,160,130,0.25)] p-5 space-y-3 bg-transparent"
+                    >
+                      <div className="h-5 w-3/4 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+                      <div className="h-4 w-full rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
+                      <div className="h-4 w-2/3 rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
+                      <div className="h-6 w-12 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+                    </div>
+                  ))
+                ) : filteredSolutions?.length > 0 ? (
+                  filteredSolutions.map((solution) => (
+                    <SolutionCard
+                      key={solution.id || solution.title}
+                      title={solution.title}
+                      preview={solution.solution || solution.problem || ''}
+                      category={solution.category}
+                      score={solution.score}
+                      onView={() => handleOpenSolution(solution)}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full flex flex-col items-center justify-center h-40 text-(--color-text-muted)">
+                    <BarChart3 size={32} strokeWidth={1} />
+                    <p className="text-[13px] font-semibold mt-2">No solutions found</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="mt-5 pt-4 border-t border-[rgba(180,160,130,0.18)] flex items-center justify-between text-[12px]">
+                <span className="text-(--color-text-muted)">
+                  Showing {filteredSolutions?.length ?? 0} solutions
+                </span>
+                {filteredSolutions?.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openDashboardFeaturedSolutionsDrawer({
+                        q: activeSearch,
+                        industry: industryFilter,
+                      })
+                    }
+                    className="font-semibold flex items-center gap-1.5 hover:text-(--color-text-primary) transition-colors"
+                    style={{
+                      color: 'var(--accent)',
+                    }}
+                  >
+                    Explore all
+                    <ChevronRight size={13} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -746,36 +765,38 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Your charts — each full width */}
-          <ChartPanel
-            title="Your Assessments by Industry"
-            isLoading={userStatsLoading}
-            chartHeight="220px"
-            className="mb-4"
-          >
-            {userIndustryData.length > 0 ? (
-              <BarChart
-                data={userIndustryData}
-                xAxisKey="name"
-                barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[2], name: 'Count' }]}
-                height={220}
-                showGrid
-              />
-            ) : (
-              <EmptyChart />
-            )}
-          </ChartPanel>
+          <div className="space-y-8">
+            {/* Your charts — each full width */}
+            <ChartPanel
+              title="Your Assessments by Industry"
+              isLoading={userStatsLoading}
+              chartHeight="220px"
+              className="mb-4"
+            >
+              {userIndustryData.length > 0 ? (
+                <BarChart
+                  data={userIndustryData}
+                  xAxisKey="name"
+                  barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[2], name: 'Count' }]}
+                  height={220}
+                  showGrid
+                />
+              ) : (
+                <EmptyChart />
+              )}
+            </ChartPanel>
 
-          <ChartPanel
-            title="Your Assessments by Risk"
-            isLoading={userStatsLoading}
-            chartHeight="220px"
-          >
-            {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
-          </ChartPanel>
+            <ChartPanel
+              title="Your Assessments by Risk"
+              isLoading={userStatsLoading}
+              chartHeight="220px"
+            >
+              {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
+            </ChartPanel>
+          </div>
         </section>
       ) : (
-        <div className="rounded-3xl border border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.5)] p-6 flex flex-col sm:flex-row items-center gap-4">
+        <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.5)] p-6 flex flex-col sm:flex-row items-center gap-4">
           <div className="w-12 h-12 rounded-3xl flex items-center justify-center shrink-0 bg-[rgba(184,145,106,0.1)]">
             <Users size={20} strokeWidth={2} className="text-(--color-accent)" />
           </div>
@@ -788,19 +809,23 @@ export default function DashboardPage() {
               benchmarks.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/auth')}
-            className="px-5 py-2.5 text-[13px] font-semibold rounded-2xl transition-colors shrink-0 hover:bg-[rgba(184,145,106,0.9)]"
-            style={{
-              backgroundColor: 'var(--accent)',
-              color: 'white',
-            }}
-          >
+          <Button onClick={() => navigate('/auth')} variant="ghost">
             Sign In
-          </button>
+          </Button>
         </div>
       )}
+
+      {/* Updated at timestamp */}
+      <div className="mt-8 text-center">
+        <p className="text-sm font-medium text-(--color-text-muted) font-mono">
+          Updated at {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} on{' '}
+          {updatedAt.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })}
+        </p>
+      </div>
     </div>
   );
 }
