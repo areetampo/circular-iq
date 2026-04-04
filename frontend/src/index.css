@@ -169,20 +169,6 @@
   }
 }
 
-@keyframes drift-organic {
-  0% {
-    transform: translate(0, 0);
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-120px, -120px);
-    opacity: 0.8;
-  }
-}
-
 @keyframes warm-shimmer {
   0% {
     background-position: 200% 0;
@@ -419,28 +405,20 @@
   background-color: #f5f0e8;
 }
 
-.app-bg::before {
-  content: '';
-  position: fixed;
-  inset: -100%;
-  width: 300%;
-  height: 300%;
-  background-image:
-    radial-gradient(circle, #bea08235 1.6px, transparent 1.6px),
-    radial-gradient(circle, #bea08235 1.6px, transparent 1.6px);
-  background-position:
-    0 0,
-    15px 15px;
-  background-size: 30px 30px;
-  animation: drift-organic 15s linear infinite !important;
-  will-change: transform, opacity;
-  pointer-events: none;
-  z-index: -1;
-}
-
 .app-content {
   position: relative;
   z-index: 1;
+}
+
+.shape-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ============================================= */

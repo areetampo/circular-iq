@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom';
 
+import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
 import LoaderComponent from '@/components/common/LoaderComponent';
 import ScrollToTop from '@/components/common/ScrollToTop';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
@@ -81,6 +82,7 @@ export default function AppRoutes() {
           path="/"
           element={
             <div className="app-bg min-h-screen flex flex-col">
+              <DriftingShapesBackground />
               <Navbar />
               <main className="flex-1">
                 <AppContainer>
