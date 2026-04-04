@@ -22,7 +22,7 @@ export function CaseSummaryAccordions({
     }));
 
   return (
-    <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 py-4">
+    <div className="border-b border-[rgba(180,160,130,0.18)] mb-0 py-4">
       <Accordion className="w-full" allowsMultipleExpanded>
         {/* Problem accordion item */}
         <Accordion.Item id="problem">

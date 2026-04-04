@@ -81,8 +81,10 @@ export function AssessmentColumn({
   return (
     <div className="space-y-0">
       {/* Case Summary */}
-      <div className="border-b border-[rgba(180,160,130,0.18)] mb-6 py-4">
-        <SectionHeading variant="large">Case Summary</SectionHeading>
+      <div className="py-4">
+        <SectionHeading variant="large" className="mb-0">
+          Case Summary
+        </SectionHeading>
         <CaseSummaryAccordions
           businessProblem={assessment.business_problem}
           businessSolution={assessment.business_solution}

@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 
+import { cn } from '@/utils/cn';
+
 /**
  * SectionHeading Component
  * Reusable section heading with icon support
@@ -16,8 +18,8 @@ export function SectionHeading({ children, variant = 'large', icon = null, class
       : 'text-sm uppercase tracking-widest text-(--foreground) font-semibold font-sans';
 
   return (
-    <div className={`flex items-center gap-2 mb-6 ${className}`}>
-      {icon && <div className="flex-shrink-0">{icon}</div>}
+    <div className={cn('flex items-center gap-2 mb-6', className)}>
+      {icon && <div className="shrink-0">{icon}</div>}
       <h3 className={baseClasses}>{children}</h3>
     </div>
   );
