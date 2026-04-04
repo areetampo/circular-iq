@@ -79,13 +79,13 @@ export default function ErrorDisplay({
           label: 'Refresh Page',
           icon: RefreshCcw,
           onPress: () => window.location.reload(),
-          variant: 'secondary',
+          variant: 'ghost',
         },
         {
           label: 'Return Home',
           icon: Home,
           onPress: () => (window.location.href = '/'),
-          variant: 'secondary',
+          variant: 'ghost',
         },
       ]
     : [];

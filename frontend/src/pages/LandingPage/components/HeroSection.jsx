@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { BookOpen, Target } from 'lucide-react';
 
+import { Button } from '@/components/common';
+
 export default function HeroSection({
   openAssessmentMethodologyDrawer,
   openEvaluationCriteriaDrawer,
@@ -46,7 +48,7 @@ export default function HeroSection({
               ].map(({ value, label }) => (
                 <div key={value} className="text-center">
                   <p
-                    className="text-[28px] font-semibold leading-none mb-1"
+                    className="text-[28px] font-semibold leading-none mb-2"
                     style={{
                       color: 'var(--color-text-primary)',
                       fontFamily: 'var(--font-display)',
@@ -68,32 +70,28 @@ export default function HeroSection({
       </section>
 
       {/* Meta strip — Assessment Methodology · features · Evaluation Criteria */}
-      <div className="flex items-center justify-center gap-10 flex-wrap py-5 mb-2 border-b-[1.5px] border-border">
-        {[
-          {
-            key: 'assessment',
-            label: 'Assessment Methodology',
-            icon: BookOpen,
-            onClick: openAssessmentMethodologyDrawer,
-          },
-          {
-            key: 'evaluation',
-            label: 'Evaluation Criteria',
-            icon: Target,
-            onClick: openEvaluationCriteriaDrawer,
-          },
-        ].map(({ key, label, icon: Icon, onClick }) => (
-          <button
-            key={key}
-            onClick={onClick}
-            className="flex items-center gap-1.5 text-[11px] tracking-widest cursor-pointer uppercase bg-accent-50 px-3 py-2 rounded-xl
-             transition-colors hover:text-(--foreground) hover:bg-slate-50/50 hover:shadow-sm"
-            style={{ color: 'var(--muted)' }}
-          >
-            <Icon size={12} />
-            {label}
-          </button>
-        ))}
+      <div className="w-full flex items-center justify-center">
+        <div className="flex items-center justify-center gap-6 flex-wrap py-5 mb-2 border-b-[1.5px] border-border w-4/5">
+          {[
+            {
+              key: 'assessment',
+              label: 'Assessment Methodology',
+              icon: BookOpen,
+              onClick: openAssessmentMethodologyDrawer,
+            },
+            {
+              key: 'evaluation',
+              label: 'Evaluation Criteria',
+              icon: Target,
+              onClick: openEvaluationCriteriaDrawer,
+            },
+          ].map(({ key, label, icon: Icon, onClick }) => (
+            <Button key={key} onClick={onClick} variant="ghost">
+              <Icon size={12} />
+              {label}
+            </Button>
+          ))}
+        </div>
       </div>
     </>
   );

@@ -29,50 +29,6 @@ import EvaluationParametersContainer from '@/pages/LandingPage/components/Evalua
 import HeroSection from '@/pages/LandingPage/components/HeroSection';
 import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
 
-// Sample test cases data
-const SAMPLE_TEST_CASES = [
-  {
-    id: 'packaging-reuse',
-    title: 'Packaging Reuse System',
-    businessProblem:
-      'Single-use packaging creates 8 million tons of ocean waste annually. Current solutions are expensive and lack scalability.',
-    businessSolution:
-      'A platform connecting businesses with surplus packaging to companies needing materials, using AI matching and circular design principles.',
-    evaluationParameters: {
-      material_efficiency: 4,
-      recyclability: 5,
-      renewable_content: 3,
-      business_model_innovation: 4,
-      stakeholder_engagement: 3,
-    },
-    businessContext: {
-      industry: 'packaging',
-      company_size: 'startup',
-      geographic_scope: 'global',
-    },
-  },
-  {
-    id: 'electronics-remanufacturing',
-    title: 'Electronics Remanufacturing',
-    businessProblem:
-      'Electronic waste is the fastest growing waste stream. Most devices are discarded while still functional.',
-    businessSolution:
-      'Certified remanufacturing facility that refurbishes electronics to original specifications, with buy-back guarantee programs.',
-    evaluationParameters: {
-      material_efficiency: 5,
-      recyclability: 4,
-      renewable_content: 4,
-      business_model_innovation: 4,
-      stakeholder_engagement: 4,
-    },
-    businessContext: {
-      industry: 'electronics',
-      company_size: 'medium',
-      geographic_scope: 'regional',
-    },
-  },
-];
-
 export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();

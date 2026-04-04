@@ -104,7 +104,7 @@ export default function SharePage() {
           <Button type="submit" variant="primary" isLoading={loading}>
             Open
           </Button>
-          <Button type="button" variant="secondary" onPress={() => setPublicId('')}>
+          <Button type="button" variant="ghost" onPress={() => setPublicId('')}>
             Clear
           </Button>
         </div>

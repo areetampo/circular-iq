@@ -636,7 +636,7 @@ export default function MyAssessmentsPage() {
     // Filtered results returned empty
     if (assessments.length === 0) {
       return (
-        <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
+        <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)] mt-10">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
           <h3 className="font-display text-xl font-semibold text-(--color-text-primary) mb-2">
             No assessments found
@@ -869,7 +869,7 @@ export default function MyAssessmentsPage() {
 
       {/* Back button */}
       <div className="flex justify-center pt-4 pb-2">
-        <Button variant="secondary" onPress={handleBack}>
+        <Button variant="ghost" onPress={handleBack}>
           <ArrowLeft size={16} /> Back to Home
         </Button>
       </div>

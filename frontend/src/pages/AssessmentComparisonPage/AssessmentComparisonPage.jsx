@@ -1,7 +1,7 @@
-import { Button } from '@heroui/react';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
@@ -233,10 +233,13 @@ export default function AssessmentComparisonPage() {
           Last updated: {getCurrentTimestampFormatted()}
         </p>
         <div className="flex gap-2">
-          <Button variant="primary" onPress={() => exportComparisonCSV([assessment1, assessment2])}>
+          <Button
+            variant="results-action"
+            onPress={() => exportComparisonCSV([assessment1, assessment2])}
+          >
             <Upload size={16} /> Export CSV
           </Button>
-          <Button variant="tertiary" onPress={handleBack}>
+          <Button variant="ghost" onPress={handleBack}>
             <ArrowLeft size={16} /> Back to Assessments
           </Button>
         </div>

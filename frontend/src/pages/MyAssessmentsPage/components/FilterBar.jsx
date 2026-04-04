@@ -1,6 +1,8 @@
-import { Button, ListBox, Select } from '@heroui/react';
+import { ListBox, Select, Tooltip } from '@heroui/react';
 import { GitCompare, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
+
+import { Button } from '@/components/common';
 
 import { IndustryFilterChip } from './IndustryFilterChip';
 
@@ -36,7 +38,7 @@ export function FilterBar({
       </div>
 
       {/* Sort + Compare button row */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         {/* Sort — HeroUI Select */}
         <div className="flex-1 max-w-50">
           <Select
@@ -80,19 +82,23 @@ export function FilterBar({
         </div>
 
         {/* Compare button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCompareSelected}
-          disabled={selectedIds.size !== 2}
-          className={selectedIds.size !== 2 ? 'opacity-50 cursor-not-allowed' : ''}
-          title={
-            selectedIds.size !== 2 ? 'Select exactly 2 assessments to compare' : 'Compare selected'
-          }
-        >
-          <GitCompare size={14} />
-          Select exactly 2 assessments to compare
-        </Button>
+        <Tooltip delay={0} isDisabled={selectedIds.size === 2}>
+          <Tooltip.Trigger>
+            <Button
+              variant="results-action"
+              onClick={handleCompareSelected}
+              disabled={selectedIds.size !== 2}
+              className={selectedIds.size !== 2 ? 'opacity-50 cursor-not-allowed' : ''}
+            >
+              <GitCompare size={14} />
+              compare
+            </Button>
+          </Tooltip.Trigger>
+          <Tooltip.Content showArrow placement="top">
+            <Tooltip.Arrow />
+            <p>Select exactly 2 assessments to compare</p>
+          </Tooltip.Content>
+        </Tooltip>
       </div>
 
       {/* Industry filter chips */}

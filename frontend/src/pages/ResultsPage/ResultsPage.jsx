@@ -874,7 +874,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {/* Right group - actions, pushed to end */}
           <div className="flex items-center gap-3 ml-auto flex-wrap">
             <Button
-              variant="results-action"
+              variant="ghost"
               size="sm"
               onPress={user ? handleDownloadPDF : undefined}
               isDisabled={!user || isExporting}
@@ -882,7 +882,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               <Download size={14} className="mr-1" /> PDF
             </Button>
             <Button
-              variant="results-action"
+              variant="ghost"
               size="sm"
               onPress={user ? handleDownloadCSV : undefined}
               isDisabled={!user || isExporting}
@@ -891,7 +891,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             </Button>
             {!isViewFromMyAssessments && !isPublicShare && (
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
                 onPress={() => {
                   if (!user) {
@@ -957,11 +957,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               currentData.user_id &&
               user?.id === currentData.user_id && (
                 <>
-                  <Button variant="secondary" onPress={handleOpenRename}>
+                  <Button variant="results-action" onPress={handleOpenRename}>
                     <FolderPen size={16} />
                     Rename
                   </Button>
-                  <Button variant="danger-soft" onPress={handleOpenDelete}>
+                  <Button variant="results-action" onPress={handleOpenDelete}>
                     <CircleX size={16} />
                     Delete
                   </Button>

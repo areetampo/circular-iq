@@ -145,7 +145,7 @@ function ReplaceInputsDialogContent() {
             </AlertDialog.Body>
 
             <AlertDialog.Footer>
-              <Button variant="dialog-secondary" onPress={handleCancelClick} className="flex-1">
+              <Button variant="ghost" onPress={handleCancelClick} className="flex-1">
                 {cancelText}
               </Button>
               <Button variant="dialog-primary" onPress={handleConfirmClick} className="flex-1">

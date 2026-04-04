@@ -1,5 +1,6 @@
 import { Button as HeroButton, Spinner } from '@heroui/react';
 import PropTypes from 'prop-types';
+import { forwardRef } from 'react';
 
 import { cn } from '@/utils/cn';
 
@@ -20,15 +21,15 @@ const variantStyles = {
   secondary: [
     'bg-transparent text-[var(--color-text-primary)]',
     'border border-[var(--color-border-strong)]',
-    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+    'hover:border-[var(--color-primary-900)]',
     'transition-colors duration-150',
   ].join(' '),
 
   // Ghost — no border, minimal. Used for tertiary/icon actions.
   ghost: [
-    'bg-transparent text-[var(--color-text-secondary)]',
+    'bg-[rgba(184,145,106,0.1)] text-[var(--color-text-secondary)]',
     'border border-transparent',
-    'hover:text-[var(--color-text-primary)] hover:bg-[var(--color-accent-light)]',
+    'hover:text-[var(--color-text-primary)] hover:bg-[rgba(184,145,106,0.2)]',
     'transition-colors duration-150',
   ].join(' '),
 
@@ -43,8 +44,8 @@ const variantStyles = {
   // Results-action — top of results/comparison page. Small, uppercase, minimal.
   'results-action': [
     'bg-transparent text-[var(--color-text-secondary)]',
-    'border border-[var(--color-border)]',
-    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+    'border-[1.5px] border-[var(--color-border)]',
+    'hover:bg-[var(--color-accent-light)]',
     'text-xs tracking-wide uppercase',
     'transition-colors duration-150',
   ].join(' '),
@@ -55,6 +56,7 @@ const variantStyles = {
     'hover:bg-[var(--color-accent-hover)]',
     'transition-colors duration-150',
   ].join(' '),
+
   'dialog-secondary': [
     'bg-transparent text-[var(--color-text-secondary)] w-full',
     'border border-[var(--color-border-strong)]',
@@ -110,18 +112,21 @@ const sizeStyles = {
  * @param {string} props.className - Additional CSS classes
  * @param {ReactNode} props.children - Button content
  */
-export function Button({
-  className = '',
-  variant = 'primary',
-  size = 'md',
-  isDisabled = false,
-  disabled = false,
-  isLoading = false,
-  children,
-  onPress,
-  onClick,
-  ...props
-}) {
+export const Button = forwardRef(function Button(
+  {
+    className = '',
+    variant = 'primary',
+    size = 'md',
+    isDisabled = false,
+    disabled = false,
+    isLoading = false,
+    children,
+    onPress,
+    onClick,
+    ...props
+  },
+  ref,
+) {
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
   const isButtonDisabled = isDisabled || disabled || isLoading;
   const baseClasses =
@@ -140,6 +145,7 @@ export function Button({
 
   return (
     <HeroButton
+      ref={ref}
       className={cn(
         baseClasses,
         variantStyles[variant] || variantStyles.primary,
@@ -157,7 +163,9 @@ export function Button({
       {buttonContent}
     </HeroButton>
   );
-}
+});
+
+Button.displayName = 'Button';
 
 Button.propTypes = {
   variant: PropTypes.oneOf([

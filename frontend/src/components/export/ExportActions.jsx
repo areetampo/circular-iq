@@ -29,7 +29,7 @@ export function ExportActions({
           <Button
             onPress={user ? onExportCSV : undefined}
             isDisabled={!user || isExporting}
-            variant="neutral-soft"
+            variant="results-action"
             aria-label="Export assessment data as CSV"
             title={
               !user
@@ -61,7 +61,7 @@ export function ExportActions({
           <Button
             onPress={user ? onExportPDF : undefined}
             isDisabled={!user || isExporting}
-            variant="neutral-soft"
+            variant="results-action"
             aria-label="Export assessment as PDF"
             title={
               !user

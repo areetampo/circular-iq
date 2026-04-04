@@ -270,7 +270,7 @@ export default function DashboardPage() {
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
-        <Button onClick={refetchGlobal} disabled={globalLoading} variant="ghost">
+        <Button onClick={refetchGlobal} disabled={globalLoading} variant="teal">
           <RefreshCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
         </Button>

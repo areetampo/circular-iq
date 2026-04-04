@@ -110,7 +110,7 @@ export default function CompareForm() {
           <div>
             <Label
               htmlFor="public-id-1"
-              className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 block"
+              className="text-xs font-medium font-mono uppercase tracking-wide text-(--color-text-secondary) mb-1 ml-2 block"
             >
               First Assessment ID
             </Label>
@@ -128,7 +128,7 @@ export default function CompareForm() {
           <div>
             <Label
               htmlFor="public-id-2"
-              className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 block"
+              className="text-xs font-medium font-mono uppercase tracking-wide text-(--color-text-secondary) mb-1 ml-2 block"
             >
               Second Assessment ID
             </Label>
@@ -154,18 +154,14 @@ export default function CompareForm() {
           <Button type="submit" variant="primary" isLoading={loading}>
             Compare
           </Button>
-          <Button type="button" variant="secondary" onPress={handleClear}>
+          <Button type="button" variant="ghost" onPress={handleClear}>
             Clear
-          </Button>
-          <Button type="button" variant="ghost" onPress={() => navigate('/assessments')}>
-            <ArrowLeft size={14} />
-            Back to Assessments
           </Button>
         </div>
       </form>
 
       {/* Info box */}
-      <div className="mt-8 p-4 rounded-xl border-3 border-(--color-border) bg-transparent">
+      <div className="mt-8 p-4 rounded-xl border-3 border-dashed border-(--color-border) bg-transparent">
         <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-(--color-text-muted)">
           About Comparison
         </p>
@@ -181,6 +177,13 @@ export default function CompareForm() {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="flex justify-center">
+        <Button type="button" variant="ghost" onPress={() => navigate('/assessments')}>
+          <ArrowLeft size={14} />
+          Back to Assessments
+        </Button>
       </div>
     </div>
   );

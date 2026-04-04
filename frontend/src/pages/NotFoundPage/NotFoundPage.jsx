@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3, Compass } from 'lucide-react';
+import { BarChart3, Book, Compass, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -43,7 +43,7 @@ export default function NotFoundPage() {
 
         {/* Navigation options */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8 text-left">
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-(--color-border) bg-transparent">
+          <div className="flex items-start gap-3 p-4 rounded-xl border-2 border-(--color-border) bg-transparent">
             <div
               className="p-2 rounded-md mt-0.5 shrink-0"
               style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
@@ -60,7 +60,7 @@ export default function NotFoundPage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-(--color-border) bg-transparent">
+          <div className="flex items-start gap-3 p-4 rounded-xl border-2 border-(--color-border) bg-transparent">
             <div
               className="p-2 rounded-md mt-0.5 shrink-0"
               style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
@@ -80,12 +80,12 @@ export default function NotFoundPage() {
 
         {/* Action buttons */}
         <div className="flex flex-wrap justify-center gap-3">
-          <Button variant="primary" onPress={() => navigate('/')}>
-            <ArrowLeft size={15} />
+          <Button variant="ghost" onPress={() => navigate('/')}>
+            <Home size={15} />
             Return Home
           </Button>
-          <Button variant="secondary" onPress={() => navigate('/assessments')}>
-            <BarChart3 size={15} />
+          <Button variant="ghost" onPress={() => navigate('/assessments')}>
+            <Book size={15} />
             My Assessments
           </Button>
         </div>

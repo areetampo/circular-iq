@@ -152,24 +152,22 @@ export function SessionRestoreDialog(props) {
 
                 <AlertDialog.Footer>
                   <Button
-                    variant="dialog-secondary"
+                    variant="ghost"
                     onPress={() => {
                       handleCancel();
                       close();
                     }}
-                    className="flex-1"
                   >
                     Cancel
                   </Button>
 
                   <Button
-                    variant="dialog-primary"
+                    variant="teal"
                     onPress={() => {
                       handleRestoreResults();
                       close();
                     }}
                     isDisabled={!hasResults}
-                    className="flex-1"
                   >
                     Restore Results
                   </Button>

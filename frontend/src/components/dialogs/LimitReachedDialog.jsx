@@ -76,7 +76,7 @@ export function LimitReachedDialog(props) {
                 </AlertDialog.Body>
                 <AlertDialog.Footer>
                   <Button
-                    variant="dialog-secondary"
+                    variant="ghost"
                     onPress={() => {
                       handleCancel();
                       close();
@@ -86,7 +86,7 @@ export function LimitReachedDialog(props) {
                     Cancel
                   </Button>
                   <Button
-                    variant="dialog-primary"
+                    variant="teal"
                     onPress={() => {
                       handleSignUp();
                       close();

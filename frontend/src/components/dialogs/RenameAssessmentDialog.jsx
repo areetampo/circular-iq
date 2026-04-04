@@ -132,7 +132,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
 
                 <AlertDialog.Footer>
                   <Button
-                    variant="dialog-secondary"
+                    variant="ghost"
                     onPress={() => close()}
                     isDisabled={isLoading}
                     className="flex-1"

@@ -1,3 +1,4 @@
+import { Skeleton } from '@heroui/react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -114,7 +115,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 onDelete(assessment.id);
               },
               title: 'Delete',
-              hoverColor: 'text-(--color-error) hover:bg-[rgba(139,58,58,0.08)]',
+              hoverColor: 'text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)]',
             },
           ].map(({ icon: Icon, label, onClick, title, hoverColor }) => (
             <button
@@ -216,27 +217,82 @@ AssessmentListItem.propTypes = {
 
 // Skeleton Components
 export const AssessmentCardSkeleton = () => (
-  <div className="border border-[rgba(180,160,130,0.22)] rounded-2xl p-5 mb-2 bg-[rgba(245,240,232,0.45)]">
+  <div className="group relative border-2 rounded-xl p-4 mb-2 transition-all duration-200 cursor-pointer bg-[rgba(245,240,232,0.45)] border-[rgba(180,160,130,0.22)]">
+    {/* Main content row */}
     <div className="flex items-start gap-3">
-      <div className="w-4 h-4 rounded mt-1 shrink-0" data-slot="skeleton" />
-      <div className="flex-1">
-        <div className="h-4 w-48 rounded mb-2" data-slot="skeleton" />
-        <div className="h-3 w-24 rounded mb-2" data-slot="skeleton" />
-        <div className="h-5 w-16 rounded-full" data-slot="skeleton" />
+      {/* Title and metadata section */}
+      <div className="flex-1 min-w-0">
+        {/* Title skeleton */}
+        <Skeleton animationType="shimmer" className="h-4 w-3/4 rounded mb-1" />
+
+        {/* Date skeleton */}
+        <Skeleton animationType="shimmer" className="h-3 w-24 rounded mb-2" />
+
+        {/* Tags row skeleton */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Industry chip skeleton */}
+          <Skeleton animationType="shimmer" className="h-5 w-16 rounded-full" />
+          {/* Public/Private chip skeleton */}
+          <Skeleton animationType="shimmer" className="h-5 w-12 rounded-full" />
+        </div>
       </div>
-      <div className="text-right">
-        <div className="h-6 w-10 rounded mb-1" data-slot="skeleton" />
-        <div className="h-3 w-14 rounded" data-slot="skeleton" />
+
+      {/* Score section */}
+      <div className="text-right shrink-0 min-w-20">
+        {/* Score skeleton */}
+        <Skeleton animationType="shimmer" className="h-6 w-16 rounded mb-0.5 ml-auto" />
+        {/* Confidence skeleton */}
+        <Skeleton animationType="shimmer" className="h-3 w-12 rounded ml-auto" />
+      </div>
+
+      {/* Action buttons skeleton */}
+      <div className="flex items-center gap-1 shrink-0">
+        {/* View button skeleton */}
+        <div className="flex items-center gap-1 px-2 py-1 rounded-lg">
+          <Skeleton animationType="shimmer" className="w-2.5 h-2.5 rounded" />
+          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded" />
+        </div>
+        {/* Rename button skeleton */}
+        <div className="flex items-center gap-1 px-2 py-1 rounded-lg">
+          <Skeleton animationType="shimmer" className="w-2.5 h-2.5 rounded" />
+          <Skeleton animationType="shimmer" className="h-2.5 w-10 rounded" />
+        </div>
+        {/* Delete button skeleton */}
+        <div className="flex items-center gap-1 px-2 py-1 rounded-lg">
+          <Skeleton animationType="shimmer" className="w-2.5 h-2.5 rounded" />
+          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded" />
+        </div>
       </div>
     </div>
-    <div className="mt-3 pt-3 border-t border-[rgba(180,160,130,0.15)]">
-      <div className="h-4 w-16 rounded-full" data-slot="skeleton" />
+
+    {/* Bottom row with additional stats and controls */}
+    <div className="flex items-center justify-between mt-3 pt-3 border-t border-[rgba(180,160,130,0.15)]">
+      {/* Additional stats skeleton */}
+      <div className="flex items-center gap-3">
+        <Skeleton animationType="shimmer" className="h-3 w-16 rounded" />
+        <Skeleton animationType="shimmer" className="h-3 w-14 rounded" />
+        <Skeleton animationType="shimmer" className="h-3 w-16 rounded" />
+      </div>
+
+      {/* Controls skeleton */}
+      <div className="flex items-center gap-3">
+        {/* Select to compare checkbox skeleton */}
+        <div className="flex items-center gap-1.5">
+          <Skeleton animationType="shimmer" className="w-3 h-3 rounded" />
+          <Skeleton animationType="shimmer" className="h-3 w-20 rounded" />
+        </div>
+        {/* Public checkbox skeleton */}
+        <div className="flex items-center gap-1.5">
+          <Skeleton animationType="shimmer" className="w-3 h-3 rounded" />
+          <Skeleton animationType="shimmer" className="h-3 w-10 rounded" />
+        </div>
+      </div>
     </div>
   </div>
 );
 
 export const AssessmentListSkeleton = () => (
-  <div className="space-y-3">
+  <div className="space-y-0">
     {[1, 2, 3].map((i) => (
       <AssessmentCardSkeleton key={i} />
     ))}

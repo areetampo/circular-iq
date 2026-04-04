@@ -149,7 +149,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
 
                 <AlertDialog.Footer>
                   <Button
-                    variant="dialog-secondary"
+                    variant="ghost"
                     onPress={() => {
                       close();
                       onClose();
@@ -160,7 +160,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     Cancel
                   </Button>
                   <Button
-                    variant="dialog-primary"
+                    variant="teal"
                     onPress={() => {
                       if (!isSubmitting) handleSubmit(close);
                     }}

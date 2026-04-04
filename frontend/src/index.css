@@ -1787,6 +1787,45 @@ textarea:focus-visible {
     border-radius: var(--radius-md) !important;
   }
 
+  /* ----- TOOLTIP ----- */
+  .tooltip {
+    @apply bg-[rgba(245,240,232,0.95)] border border-[rgba(180,160,130,0.2)] text-[var(--color-text-primary)];
+    @apply rounded-md shadow-sm;
+    @apply px-2 py-1;
+    @apply text-xs font-medium;
+    @apply backdrop-blur-sm;
+    /* Smaller, minimal tooltip with subtle border */
+  }
+
+  .tooltip[data-placement='bottom'] {
+    @apply border-b-2 border-b-[rgba(184,145,106,0.3)];
+  }
+
+  .tooltip[data-placement='left'] {
+    @apply border-l-2 border-l-[rgba(184,145,106,0.3)];
+  }
+
+  .tooltip[data-placement='right'] {
+    @apply border-r-2 border-r-[rgba(184,145,106,0.3)];
+  }
+
+  /* Tooltip arrow styling - beige color */
+  .tooltip__arrow {
+    @apply border-[rgba(180,160,130,0.2)];
+    @apply bg-[rgba(245,240,232,0.95)];
+  }
+
+  /* Animation states */
+  .tooltip[data-entering] {
+    @apply opacity-100 scale-100;
+    transition: all 0.15s ease-out;
+  }
+
+  .tooltip[data-exiting] {
+    @apply opacity-0 scale-95;
+    transition: all 0.1s ease-in;
+  }
+
   /* ----- DIALOG / MODAL / DRAWER / POPOVER / TOOLTIP FONT OVERRIDES ----- */
   [data-slot='dialog'],
   [data-slot='alert-dialog'],

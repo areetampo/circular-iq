@@ -12,6 +12,7 @@ import { AlertCircle, TriangleAlert } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useEffect, useRef } from 'react';
 
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
@@ -138,24 +139,16 @@ export function ConfirmDialog({
                 <AlertDialog.Body>{description}</AlertDialog.Body>
 
                 <AlertDialog.Footer>
-                  <button
-                    onClick={handleCancelClick}
-                    className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
-                    disabled={isLoading}
-                  >
+                  <Button variant="ghost" onClick={handleCancelClick} disabled={isLoading}>
                     {cancelText}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="dialog-primary"
                     onClick={handleConfirmClick}
-                    className={`flex-1 rounded-lg py-2.5 text-sm transition-opacity ${
-                      variant === 'destructive'
-                        ? 'bg-(--color-error) text-white hover:opacity-90'
-                        : 'bg-(--color-accent) text-white hover:opacity-90'
-                    }`}
                     disabled={isLoading}
                   >
                     {confirmText}
-                  </button>
+                  </Button>
                 </AlertDialog.Footer>
               </>
             )}
