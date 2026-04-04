@@ -91,7 +91,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled={true}
-      className="bg-black/20 backdrop-blur-sm"
+      className=""
     >
       <AlertDialog.Container placement="center" size="sm">
         <AlertDialog.Dialog>

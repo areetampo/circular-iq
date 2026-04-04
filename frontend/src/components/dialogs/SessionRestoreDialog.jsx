@@ -112,7 +112,7 @@ export function SessionRestoreDialog(props) {
       }}
       isDismissable={false}
       isKeyboardDismissDisabled={true}
-      className="bg-black/20 backdrop-blur-sm"
+      className=""
     >
       <AlertDialog.Container placement="center" size="sm">
         <AlertDialog.Dialog>

@@ -125,7 +125,7 @@ function ReplaceInputsDialogContent() {
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled
-      className="bg-black/20 backdrop-blur-sm"
+      className=""
     >
       <AlertDialog.Container placement="center" size="sm">
         <AlertDialog.Dialog aria-label={title}>

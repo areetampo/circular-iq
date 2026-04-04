@@ -12,11 +12,11 @@
  * const { openSaveAssessmentDialog } = useGlobalDialog();
  * openSaveAssessmentDialog({
  *   defaultName: 'Untitled Assessment',
- *   onSave: async (name, isPublic, contributeToGlobalBenchmarks) => { ... },
+ *   onSave: async (data) => { ... }, // data contains: name, industry, isPublic, contributeToGlobalBenchmarks, scoringResult
  * });
  */
 
-import { AlertDialog, Input, Switch } from '@heroui/react';
+import { AlertDialog, Input } from '@heroui/react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -32,8 +32,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
 
   const [name, setName] = useState(defaultName);
   const [industry, setIndustry] = useState(scoringResult?.metadata?.industry ?? '');
-  const [isPublic, setIsPublic] = useState(true);
-  const [contributeToGlobalBenchmarks, setContributeToGlobalBenchmarks] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,8 +42,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
     if (isDialogOpen) {
       setName(defaultName);
       setIndustry(scoringResult?.metadata?.industry ?? '');
-      setIsPublic(true);
-      setContributeToGlobalBenchmarks(true);
       setError('');
       setIsSubmitting(false);
     }
@@ -85,8 +81,8 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
           await onSave({
             name: name.trim(),
             industry,
-            isPublic,
-            contributeToGlobalBenchmarks,
+            isPublic: true,
+            contributeToGlobalBenchmarks: true,
             scoringResult,
           });
         }
@@ -98,7 +94,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
         setIsSubmitting(false);
       }
     },
-    [name, isPublic, contributeToGlobalBenchmarks, onSave],
+    [name, onSave],
   );
 
   // Only render when dialog is actually open
@@ -113,7 +109,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
       variant="opaque"
       isDismissable={false}
       isKeyboardDismissDisabled={true}
-      className="bg-black/20 backdrop-blur-sm"
+      className=""
     >
       <AlertDialog.Container placement="center" size="sm">
         <AlertDialog.Dialog>
@@ -141,43 +137,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     fullWidth
                   />
                   {error && <p className="text-xs text-(--color-error) mt-1">{error}</p>}
-                </div>
-
-                {/* Toggle rows */}
-                <div className="space-y-0 mb-5">
-                  {/* Public Access toggle */}
-                  <div className="flex items-center justify-between py-2.5 border-b border-[rgba(180,160,130,0.15)]">
-                    <div>
-                      <p className="text-[13px] font-medium text-(--color-text-primary)">
-                        Public Access
-                      </p>
-                      <p className="text-[11px] text-(--color-text-muted) mt-0.5">
-                        Viewable via share link
-                      </p>
-                    </div>
-                    <Switch
-                      isSelected={isPublic}
-                      onChange={(e) => setIsPublic(e.target.checked)}
-                      size="sm"
-                    />
-                  </div>
-
-                  {/* Global Benchmarks toggle */}
-                  <div className="flex items-center justify-between py-2.5">
-                    <div>
-                      <p className="text-[13px] font-medium text-(--color-text-primary)">
-                        Global Benchmarks
-                      </p>
-                      <p className="text-[11px] text-(--color-text-muted) mt-0.5">
-                        Anonymized score contributes to benchmarks
-                      </p>
-                    </div>
-                    <Switch
-                      isSelected={contributeToGlobalBenchmarks}
-                      onChange={(e) => setContributeToGlobalBenchmarks(e.target.checked)}
-                      size="sm"
-                    />
-                  </div>
                 </div>
               </AlertDialog.Body>
 

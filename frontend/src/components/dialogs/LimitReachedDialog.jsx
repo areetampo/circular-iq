@@ -39,7 +39,7 @@ export function LimitReachedDialog(props) {
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      className="bg-black/20 backdrop-blur-sm"
+      className=""
     >
       <AlertDialog.Container placement="center" size="sm">
         <AlertDialog.Dialog>
