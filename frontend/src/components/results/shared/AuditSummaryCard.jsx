@@ -141,34 +141,36 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                   )}
                   {variant === 'assessment' && item.impact && (
                     <Chip
-                      variant="default"
-                      className={`text-xs ${
+                      variant="status"
+                      color={
                         item.impact === 'high'
-                          ? 'text-(--color-success)'
+                          ? 'success'
                           : item.impact === 'medium'
-                            ? 'text-(--color-info)'
-                            : 'text-(--color-text-muted)'
-                      }`}
+                            ? 'info'
+                            : 'default'
+                      }
+                      className="text-xs"
                     >
                       {item.impact} impact
                     </Chip>
                   )}
                   {variant === 'assessment' && item.effort && (
                     <Chip
-                      variant="default"
-                      className={`text-xs ${
+                      variant="status"
+                      color={
                         item.effort === 'low'
-                          ? 'text-(--color-success)'
+                          ? 'success'
                           : item.effort === 'high'
-                            ? 'text-(--color-error)'
-                            : 'text-(--color-warning)'
-                      }`}
+                            ? 'danger'
+                            : 'warning'
+                      }
+                      className="text-xs"
                     >
                       {item.effort} effort
                     </Chip>
                   )}
                   {variant === 'assessment' && item.timeframe && (
-                    <Chip variant="default" className="text-xs text-(--color-text-muted)">
+                    <Chip variant="info" className="text-xs">
                       {item.timeframe}
                     </Chip>
                   )}

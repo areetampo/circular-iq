@@ -36,7 +36,7 @@ export function ParameterConsistencyCard({ actualResult }) {
               <p className="text-xs text-(--color-warning)">{issue.issue}</p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {issue.factors.map((f) => (
-                  <Chip key={f} variant="tag" className="text-xs">
+                  <Chip key={f} variant="factor" className="text-xs">
                     {formatFactorName(f)}
                   </Chip>
                 ))}

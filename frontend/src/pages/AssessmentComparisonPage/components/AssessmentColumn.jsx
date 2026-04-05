@@ -396,7 +396,7 @@ export function AssessmentColumn({
                       >
                         Strengths Validated
                       </span>
-                      <Chip variant="success" size="sm" className="ml-2 font-bold">
+                      <Chip variant="status" color="success" size="sm" className="ml-2 font-bold">
                         {strengths.length}
                       </Chip>
                     </div>
@@ -427,7 +427,7 @@ export function AssessmentColumn({
                               {strength.issue || strength}
                             </p>
                             {strength.evidence_source_id && (
-                              <Chip variant="default" className="mt-1 text-xs">
+                              <Chip variant="case" className="mt-1 text-xs">
                                 Validated by Case #{strength.evidence_source_id}
                               </Chip>
                             )}
@@ -460,7 +460,7 @@ export function AssessmentColumn({
                       >
                         Areas for Improvement
                       </span>
-                      <Chip variant="warning" size="sm" className="ml-2 font-bold">
+                      <Chip variant="status" color="warning" size="sm" className="ml-2 font-bold">
                         {gaps.length}
                       </Chip>
                     </div>
@@ -500,20 +500,15 @@ export function AssessmentColumn({
                               </p>
                               <div className="flex flex-wrap items-center gap-2 mt-1">
                                 <Chip
-                                  variant={
-                                    severity === 'high'
-                                      ? 'danger'
-                                      : severity === 'medium'
-                                        ? 'warning'
-                                        : 'default'
-                                  }
+                                  variant="severity"
+                                  color={severity}
                                   size="sm"
                                   className="font-bold text-xs"
                                 >
                                   {severity.charAt(0).toUpperCase() + severity.slice(1)} severity
                                 </Chip>
                                 {gap.evidence_source_id && (
-                                  <Chip variant="default" className="text-xs">
+                                  <Chip variant="case" className="text-xs">
                                     Case #{gap.evidence_source_id}
                                   </Chip>
                                 )}
@@ -574,7 +569,7 @@ export function AssessmentColumn({
                       >
                         {strength.issue || strength}
                         {strength.evidence_source_id && (
-                          <Chip variant="default" className="ml-2 text-xs">
+                          <Chip variant="case" className="ml-2 text-xs">
                             Case #{strength.evidence_source_id}
                           </Chip>
                         )}
@@ -651,7 +646,7 @@ export function AssessmentColumn({
                       >
                         {gap.issue || gap}
                         {gap.evidence_source_id && (
-                          <Chip variant="default" className="ml-2 text-xs">
+                          <Chip variant="case" className="ml-2 text-xs">
                             Case #{gap.evidence_source_id}
                           </Chip>
                         )}

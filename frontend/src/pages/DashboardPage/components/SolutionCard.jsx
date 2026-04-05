@@ -19,7 +19,7 @@ function SolutionCard({ title, preview, category, score, onView }) {
       </p>
 
       {/* Industry chip */}
-      {category && <Chip variant="tag">{category}</Chip>}
+      {category && <Chip variant="factor">{category}</Chip>}
 
       {/* Score */}
       {score && (

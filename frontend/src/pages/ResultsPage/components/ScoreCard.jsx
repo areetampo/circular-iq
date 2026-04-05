@@ -70,7 +70,7 @@ export default function ScoreCard({
             return (
               <Chip
                 key={f}
-                variant="tag"
+                variant="factor"
                 className="text-xs"
                 style={{ backgroundColor: factorColor.bg, color: factorColor.color }}
               >

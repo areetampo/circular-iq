@@ -120,7 +120,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               </div>
               <div className="flex flex-wrap gap-2">
                 {opportunities.map((text) => (
-                  <Chip key={text} variant="warning">
+                  <Chip key={text} variant="status" color="warning">
                     {text}
                   </Chip>
                 ))}
@@ -140,7 +140,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               </div>
               <div className="flex flex-wrap gap-2">
                 {strengths.map((text) => (
-                  <Chip key={text} variant="success">
+                  <Chip key={text} variant="status" color="success">
                     {text}
                   </Chip>
                 ))}

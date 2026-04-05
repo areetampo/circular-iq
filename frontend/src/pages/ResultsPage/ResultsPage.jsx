@@ -1079,6 +1079,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         <RStrategyAlignmentCard actualResult={actualResult} />
         <ScoreCategoryBreakdown actualResult={actualResult} />
         <GapAnalysisCard actualResult={actualResult} />
+
         {/* Industry & Metadata Section */}
         {actualResult.metadata && (
           <div
@@ -1228,6 +1229,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             </div>
           </div>
         </div>
+
         {/* Performance Comparison */}
         {resolvedRadarData && resolvedRadarData.length > 0 ? (
           <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
@@ -1270,6 +1272,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             </div>
           </div>
         )}
+
         {/* Integrity Analysis - Beautiful Accordion Design (same as Summary tab) */}
         {(gaps.length > 0 || strengths.length > 0) && (
           <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
@@ -1304,7 +1307,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         >
                           Strengths Validated
                         </span>
-                        <Chip variant="success" size="sm" className="ml-2 font-bold">
+                        <Chip variant="status" color="success" size="sm" className="ml-2 font-bold">
                           {strengths.length}
                         </Chip>
                       </div>
@@ -1335,7 +1338,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 {strength.issue || strength}
                               </p>
                               {strength.evidence_source_id && (
-                                <Chip variant="default" className="mt-1 text-xs">
+                                <Chip variant="case" className="mt-1 text-xs">
                                   Validated by Case #{strength.evidence_source_id}
                                 </Chip>
                               )}
@@ -1368,7 +1371,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                         >
                           Areas for Improvement
                         </span>
-                        <Chip variant="warning" size="sm" className="ml-2 font-bold">
+                        <Chip variant="status" color="warning" size="sm" className="ml-2 font-bold">
                           {gaps.length}
                         </Chip>
                       </div>
@@ -1408,20 +1411,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                                 </p>
                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                   <Chip
-                                    variant={
-                                      severity === 'high'
-                                        ? 'danger'
-                                        : severity === 'medium'
-                                          ? 'warning'
-                                          : 'default'
-                                    }
+                                    variant="severity"
+                                    color={severity}
                                     size="sm"
                                     className="font-bold text-xs"
                                   >
                                     {severity.charAt(0).toUpperCase() + severity.slice(1)} severity
                                   </Chip>
                                   {gap.evidence_source_id && (
-                                    <Chip variant="default" className="text-xs">
+                                    <Chip variant="case" className="text-xs">
                                       Case #{gap.evidence_source_id}
                                     </Chip>
                                   )}
@@ -1484,7 +1482,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           >
                             {strength.issue || strength}
                             {strength.evidence_source_id && (
-                              <Chip variant="default" className="ml-2 text-xs">
+                              <Chip variant="case" className="ml-2 text-xs">
                                 Case #{strength.evidence_source_id}
                               </Chip>
                             )}
@@ -1573,7 +1571,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                           >
                             {gap.issue || gap}
                             {gap.evidence_source_id && (
-                              <Chip variant="default" className="ml-2 text-xs">
+                              <Chip variant="case" className="ml-2 text-xs">
                                 Case #{gap.evidence_source_id}
                               </Chip>
                             )}

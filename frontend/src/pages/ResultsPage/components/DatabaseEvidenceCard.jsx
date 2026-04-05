@@ -47,7 +47,9 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
               const sourceCaseId = caseItem.id || `case-${index}`;
               const caseTitle =
                 caseItem.title || casesSummaries[index] || `Related Case ${index + 1}`;
-              const { label: matchStrengthLabel } = getMatchStrength(caseItem.similarity || 0);
+              const { label: matchStrengthLabel, color: matchColor } = getMatchStrength(
+                caseItem.similarity || 0,
+              );
 
               return (
                 <div
@@ -57,42 +59,40 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                 >
                   {/* Case content */}
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2 group-hover:text-(--color-accent) transition-colors">
+                    <h4 className="text-md font-medium text-(--color-text-primary) mb-2">
                       <span className="font-mono">{caseTitle}</span>
                     </h4>
 
                     {/* Year + Location + Use type + Source + Category + Circular Strategy + Materials chips */}
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {caseItem.year && <Chip variant="tag">{caseItem.year}</Chip>}
-                      {caseItem.location && <Chip variant="tag">{caseItem.location}</Chip>}
-                      {caseItem.use_type && <Chip variant="tag">{caseItem.use_type}</Chip>}
+                      {caseItem.year && <Chip variant="source">{caseItem.year}</Chip>}
+                      {caseItem.location && <Chip variant="source">{caseItem.location}</Chip>}
+                      {caseItem.use_type && <Chip variant="source">{caseItem.use_type}</Chip>}
                       {caseItem.source_display && (
-                        <Chip variant="tag">{caseItem.source_display}</Chip>
+                        <Chip variant="source">{caseItem.source_display}</Chip>
                       )}
-                      {caseItem.category && <Chip variant="tag">{caseItem.category}</Chip>}
+                      {caseItem.category && <Chip variant="source">{caseItem.category}</Chip>}
                       {caseItem.circular_strategy && (
-                        <Chip variant="tag">
+                        <Chip variant="strategy">
                           <span className="font-mono">{caseItem.circular_strategy}</span>
                         </Chip>
                       )}
                       {caseItem.materials && (
-                        <Chip variant="tag">
+                        <Chip variant="materials">
                           <span className="font-mono">{caseItem.materials}</span>
                         </Chip>
                       )}
                     </div>
 
-                    {/* Match quality chip and Percentage Match chip */}
                     <div className="flex items-center gap-3">
-                      <Chip variant="match">{matchStrengthLabel}</Chip>
-                      <Chip variant="match">
+                      <Chip variant="match" color={matchColor}>
                         <span className="font-mono">{matchPercentage}% match</span>
                       </Chip>
                     </div>
                   </div>
 
                   {/* View details link */}
-                  <div className="flex items-center gap-2 text-sm text-(--color-accent) hover:underline font-medium group-hover:text-(--color-accent-dark) transition-colors">
+                  <div className="flex items-center gap-2 text-sm hover:underline font-medium text-(--color-accent-dark)">
                     View details
                     <ArrowRight
                       size={14}

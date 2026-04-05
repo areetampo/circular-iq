@@ -33,8 +33,8 @@ class MovingGrid {
       lineWidth: 0.6,
       strokeStyle: '#d4c5b0',
       globalAlpha: 0.4, // line color opacity
-      speedX: -0.12,
-      speedY: -0.12,
+      speedX: -0.2,
+      speedY: -0.2,
     };
     // =====================================================================
 

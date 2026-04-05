@@ -49,7 +49,7 @@ export function WeightedScoreCard({ actualResult }) {
               <div className="text-xs w-10 text-right shrink-0 text-(--color-text-muted)">
                 +{factor.contribution}
               </div>
-              <Chip variant="tag" className="shrink-0">
+              <Chip variant="factor" className="shrink-0">
                 {factor.classification}
               </Chip>
             </div>

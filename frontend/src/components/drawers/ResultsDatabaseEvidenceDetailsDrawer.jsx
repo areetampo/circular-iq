@@ -68,10 +68,10 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                   </div>
                 )}
                 {data.similarity && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">
+                  <div>
+                    <p className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider mb-1">
                       Similarity
-                    </span>
+                    </p>
                     <Chip
                       variant="match"
                       color={

@@ -1,98 +1,232 @@
 import { Chip as HeroChip } from '@heroui/react';
 import PropTypes from 'prop-types';
+import { forwardRef } from 'react';
+
+import { cn } from '@/utils/cn';
 
 /**
- * Custom Chip component wrapping HeroUI Chip with UI-48 variants
- * Variants: filter, tag, info, status, match
+ * Variant styles for the luxury minimal chip system
+ * Based on UI-59 specifications and design references
  */
-export function Chip({ variant = 'tag', color, children, className, onClick, active, ...props }) {
-  // Map UI-48 variants to HeroUI props with custom styling
-  const getChipProps = () => {
-    switch (variant) {
-      case 'filter':
-        return {
-          variant: 'flat',
-          radius: 'full',
-          size: 'sm',
-          className: `font-medium ${
-            active
-              ? 'border-(--color-accent) text-(--color-accent) bg-(--color-accent-light)'
-              : 'border-[rgba(180,160,130,0.25)] text-(--color-text-muted) bg-transparent hover:border-(--color-accent) hover:text-(--color-accent)'
-          } border transition-all duration-200 cursor-pointer`,
-        };
+const variantStyles = {
+  // Industry filter chips - used in MyAssessmentsPage filter bar
+  // Full radius, with active/inactive states
+  filter: [
+    'font-medium text-xs',
+    'border transition-all duration-200 cursor-pointer',
+    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+  ].join(' '),
 
-      case 'tag':
-        return {
-          variant: 'flat',
-          radius: 'sm',
-          size: 'sm',
-          className:
-            'font-medium text-xs bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
-        };
+  // Public/Private chips - simple design for AssessmentListItem
+  // Minimal, clean appearance with color tints
+  'access-type': ['font-medium text-xs', 'transition-all duration-200'].join(' '),
 
-      case 'info':
-        return {
-          variant: 'flat',
-          radius: 'sm',
-          size: 'sm',
-          className: `font-medium text-xs bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200 ${
-            color === 'success'
-              ? 'border-(--color-success) text-(--color-success)'
-              : color === 'warning'
-                ? 'border-(--color-warning) text-(--color-warning)'
-                : color === 'danger'
-                  ? 'border-(--color-error) text-(--color-error)'
-                  : ''
-          }`,
-        };
+  // Source chips - for database evidence cards
+  // Clean, informational style with distinct appearance
+  source: [
+    'font-medium text-xs',
+    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'border border-[#c0b4a4]',
+    'transition-all duration-200',
+  ].join(' '),
 
-      case 'status':
-        return {
-          variant: 'flat',
-          radius: 'sm',
-          size: 'sm',
-          className:
-            'font-semibold text-xs tracking-wider uppercase bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
-        };
+  // Percentage match chips - simplified with reduced font weight
+  // Only shows percentage, no text labels
+  match: ['font-mono text-xs font-medium', 'border transition-all duration-200'].join(' '),
 
-      case 'match':
-        return {
-          variant: 'flat',
-          radius: 'full',
-          size: 'sm',
-          className: `font-mono text-xs border transition-all duration-200 ${
-            color === 'strong'
-              ? 'bg-[#d4f1d4] text-[#2d5016] border-[#d4f1d4]'
-              : color === 'decent'
-                ? 'bg-[#f5e6d3] text-[#92400e] border-[#f5e6d3]'
-                : color === 'weak'
-                  ? 'bg-[#fef2f2] text-[#dc2626] border-[#fef2f2]'
-                  : 'bg-(--color-accent-light) text-(--color-text-primary) border-[rgba(180,160,130,0.3)]'
-          }`,
-        };
+  // Recycling/Reuse strategy chips - for database evidence cards
+  // Eco-themed styling with distinct appearance
+  strategy: [
+    'font-medium text-xs',
+    'bg-[#c3e6c3] text-[#1a4016]',
+    'border border-[#a8d2a8]',
+    'transition-all duration-200',
+  ].join(' '),
 
+  // Materials chips - for database evidence cards
+  // Different styling to distinguish from source chips
+  materials: [
+    'font-medium text-xs',
+    'bg-[#e0d4c0] text-[#3a2c18]',
+    'border border-[#d0c0b0]',
+    'transition-all duration-200',
+  ].join(' '),
+
+  // Factor classification chips - for scoring factors
+  // Used throughout results pages
+  factor: [
+    'font-medium text-xs',
+    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'border border-[#c0b4a4]',
+    'transition-all duration-200',
+  ].join(' '),
+
+  // Status chips - for various status indicators
+  // Can be combined with color prop
+  status: [
+    'font-semibold text-xs tracking-wider uppercase',
+    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'border border-[#c0b4a4]',
+    'transition-all duration-200',
+  ].join(' '),
+
+  // Info chips - for general informational purposes
+  // Neutral, clean style
+  info: [
+    'font-medium text-xs',
+    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'border border-[#c0b4a4]',
+    'transition-all duration-200',
+  ].join(' '),
+
+  // Case reference chips - for case numbers and references
+  // Minimal, monospace style
+  case: [
+    'font-mono text-xs',
+    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'border border-[#c0b4a4]',
+    'transition-all duration-200',
+  ].join(' '),
+
+  // Severity chips - for gap analysis severity levels
+  // Color-coded based on severity
+  severity: ['font-bold text-xs', 'border transition-all duration-200'].join(' '),
+};
+
+/**
+ * Size styles using Tailwind naming convention
+ */
+const sizeStyles = {
+  sm: 'px-2 py-0.5 text-xs',
+  md: 'px-3 py-1 text-sm', // default
+  lg: 'px-4 py-1.5 text-base',
+};
+
+/**
+ * Color overrides for specific variants
+ */
+const getColorOverrides = (variant, color, active) => {
+  if (variant === 'filter') {
+    return active
+      ? 'border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent-light)]'
+      : 'border-[rgba(180,160,130,0.25)] text-[var(--color-text-muted)] bg-transparent';
+  }
+
+  if (variant === 'access-type') {
+    switch (color) {
+      case 'public':
+        return 'bg-[#c3e6c3] text-[#1a4016] border-[#a8d2a8]';
+      case 'private':
+        return 'bg-[#f50f0f22] text-[#991b1b] border-[#fca5a5]';
       default:
-        return {
-          variant: 'flat',
-          radius: 'sm',
-          size: 'sm',
-          className:
-            'bg-accent-400 text-(--color-text-primary) border-[rgba(180,160,130,0.3)] border transition-all duration-200',
-        };
+        return 'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border)]';
     }
-  };
+  }
 
-  const chipProps = getChipProps();
+  if (variant === 'match') {
+    switch (color) {
+      case 'strong':
+        return 'bg-[#b8e6b8] text-[#1a4016] border-[#b8e6b8]';
+      case 'decent':
+        return 'bg-[#e6d4b8] text-[#7a4c1a] border-[#e6d4b8]';
+      case 'weak':
+        return 'bg-[#f8d7d7] text-[#7f1d1d] border-[#f8d7d7]';
+      default:
+        return 'bg-[#d4c8b8] text-[#2a1f0f] border-[#c0b4a4]';
+    }
+  }
+
+  if (variant === 'severity') {
+    switch (color) {
+      case 'high':
+        return 'bg-[#f8d7d7] text-[#7f1d1d] border-[#fca5a5]';
+      case 'medium':
+        return 'bg-[#fef3c7] text-[#92400e] border-[#fde68a]';
+      case 'low':
+        return 'bg-[#d1fae5] text-[#065f46] border-[#a7f3d0]';
+      default:
+        return 'bg-[#d4c8b8] text-[#2a1f0f] border-[#c0b4a4]';
+    }
+  }
+
+  if (color && variant !== 'match' && variant !== 'severity') {
+    switch (color) {
+      case 'success':
+        return 'border-[var(--color-success)] text-[var(--color-success)]';
+      case 'warning':
+        return 'border-[var(--color-warning)] text-[var(--color-warning)]';
+      case 'danger':
+        return 'border-[var(--color-error)] text-[var(--color-error)]';
+      default:
+        return '';
+    }
+  }
+
+  return '';
+};
+
+/**
+ * Custom Chip component with luxury minimal variant system
+ * Overrides HeroUI Chip component with consistent styling
+ *
+ * @param {Object} props - Chip props
+ * @param {string} props.variant - Chip variant (filter, access-type, source, match, strategy, factor, status, info, case, severity)
+ * @param {string} props.size - Chip size (sm, md, lg)
+ * @param {string} props.color - Color override (success, warning, danger, strong, decent, weak, high, medium, low)
+ * @param {boolean} props.active - Active state for filter variant
+ * @param {string} props.className - Additional CSS classes
+ * @param {ReactNode} props.children - Chip content
+ */
+export const Chip = forwardRef(function Chip(
+  {
+    className = '',
+    variant = 'info',
+    size = 'sm',
+    color,
+    active = false,
+    children,
+    onClick,
+    ...props
+  },
+  ref,
+) {
+  const resolvedSize = sizeStyles[size] ?? sizeStyles.sm;
+  const baseClasses = 'inline-flex items-center justify-center gap-1 outline-none rounded-full';
+
+  const variantClasses = variantStyles[variant] || variantStyles.info;
+  const colorOverrides = getColorOverrides(variant, color, active);
 
   return (
-    <HeroChip {...chipProps} {...props} className={className} onClick={onClick}>
+    <HeroChip
+      ref={ref}
+      className={cn(baseClasses, variantClasses, resolvedSize, colorOverrides, className)}
+      variant="flat"
+      size={undefined}
+      onClick={onClick}
+      {...props}
+    >
       {children}
     </HeroChip>
   );
-}
+});
+
+Chip.displayName = 'Chip';
 
 Chip.propTypes = {
-  variant: PropTypes.oneOf(['filter', 'tag', 'info', 'status', 'match']),
+  variant: PropTypes.oneOf([
+    'filter',
+    'access-type',
+    'source',
+    'match',
+    'strategy',
+    'materials',
+    'factor',
+    'status',
+    'info',
+    'case',
+    'severity',
+  ]),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
   color: PropTypes.oneOf([
     'default',
     'accent',
@@ -102,11 +236,16 @@ Chip.propTypes = {
     'strong',
     'decent',
     'weak',
+    'high',
+    'medium',
+    'low',
+    'public',
+    'private',
   ]),
-  children: PropTypes.node,
+  active: PropTypes.bool,
   className: PropTypes.string,
+  children: PropTypes.node,
   onClick: PropTypes.func,
-  active: PropTypes.bool, // for filter variant
 };
 
 export default Chip;

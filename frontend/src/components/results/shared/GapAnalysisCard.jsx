@@ -36,12 +36,12 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
       {variant === 'assessment' && (
         <div className="flex flex-wrap gap-2 mt-6">
           {gapAnalysis.opportunities?.map((factor) => (
-            <Chip key={factor} variant="warning">
+            <Chip key={factor} variant="status" color="warning">
               ↑ {formatFactorName(factor)}
             </Chip>
           ))}
           {gapAnalysis.strengths?.map((factor) => (
-            <Chip key={factor} variant="success">
+            <Chip key={factor} variant="status" color="success">
               ↓ {formatFactorName(factor)}
             </Chip>
           ))}

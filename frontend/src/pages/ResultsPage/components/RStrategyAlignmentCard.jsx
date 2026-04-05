@@ -34,7 +34,7 @@ export function RStrategyAlignmentCard({ actualResult }) {
           </span>
           <div className="flex flex-wrap gap-1 mt-1">
             {misaligned_factors.map((f) => (
-              <Chip key={f} variant="tag" className="text-xs">
+              <Chip key={f} variant="factor" className="text-xs">
                 {formatFactorName(f)}
               </Chip>
             ))}
@@ -46,7 +46,7 @@ export function RStrategyAlignmentCard({ actualResult }) {
           <span className="text-xs font-semibold text-(--color-success)">Well aligned:</span>
           <div className="flex flex-wrap gap-1 mt-1">
             {well_aligned_factors.map((f) => (
-              <Chip key={f} variant="tag" className="text-xs">
+              <Chip key={f} variant="factor" className="text-xs">
                 {formatFactorName(f)}
               </Chip>
             ))}

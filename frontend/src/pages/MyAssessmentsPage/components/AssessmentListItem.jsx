@@ -29,7 +29,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         'bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]',
         isSelected
           ? 'border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]'
-          : 'border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.38)]',
+          : 'border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.8)]',
       )}
       onClick={() => onView(assessment.public_id)}
       role="button"
@@ -55,11 +55,15 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           {/* Tags row */}
           <div className="flex items-center gap-2 flex-wrap">
             {assessment.industry && (
-              <Chip variant="tag" className="text-[10px]">
+              <Chip variant="factor" className="text-[10px]">
                 {assessment.industry}
               </Chip>
             )}
-            <Chip variant={assessment.is_public ? 'default' : 'secondary'} className="text-[10px]">
+            <Chip
+              variant="access-type"
+              color={assessment.is_public ? 'public' : 'private'}
+              className="text-[10px]"
+            >
               {assessment.is_public ? 'Public' : 'Private'}
             </Chip>
           </div>
