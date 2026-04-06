@@ -1,4 +1,4 @@
-import { Checkbox, Input, toast } from '@heroui/react';
+import { Checkbox, Label, toast } from '@heroui/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -979,70 +979,67 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div className="border-t-2 border-b-2 border-[rgba(180,160,130,0.18)] pt-3 pb-4 mb-0">
+          <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-xl px-3 py-1">
             {/* Toggle row */}
-            <div className="flex items-center justify-start gap-3 ml-2">
-              <div>
-                <p className="text-[13px] font-semibold text-(--color-text-primary)">
-                  Public sharing
-                  <span className="text-[12px] font-normal ml-1.5 text-(--color-text-muted)">
-                    {isResultsRoute
-                      ? '(Save assessment to enable sharing)'
-                      : '(Allow others to view this assessment via link)'}
-                  </span>
-                </p>
-              </div>
+            {isResultsRoute ? (
+              <span className="text-[13px] opacity-80 font-medium">
+                Save assessment to enable sharing
+              </span>
+            ) : (
               <Checkbox
-                id="public-toggle"
+                id="assessment-public-toggle"
                 isSelected={
                   optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
                 }
                 onChange={handleTogglePublic}
-                isDisabled={isUpdatingPublic || isResultsRoute}
-                className={cn(
-                  isResultsRoute ? 'hidden' : '',
-                  "[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4",
-                )}
-                name="xl-rounded"
-                style={{
-                  transform: 'scale(0.8)',
-                }}
+                isDisabled={isUpdatingPublic}
               >
-                <Checkbox.Control
-                  className={cn(
-                    'size-6 rounded-full before:rounded-full',
-                    isResultsRoute ? 'hidden' : '',
-                  )}
-                >
+                <Checkbox.Content>
+                  <Label htmlFor="assessment-public-toggle">
+                    <p className="text-[13px] font-semibold text-(--color-text-primary)">
+                      Public sharing{' '}
+                      <span className="text-[11px] opacity-70 ml-0.5">
+                        (
+                        {(
+                          optimisticIsPublic !== null
+                            ? optimisticIsPublic
+                            : currentData?.is_public || false
+                        )
+                          ? 'on'
+                          : 'off'}
+                        )
+                      </span>
+                    </p>
+                  </Label>
+                </Checkbox.Content>
+                <Checkbox.Control className={cn('scale-70 origin-left')}>
                   <Checkbox.Indicator />
                 </Checkbox.Control>
               </Checkbox>
-            </div>
+            )}
 
             {/* Share URL — shown only when is_public = true and public_id exists */}
             {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
               currentData?.public_id && (
-                <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                  <div className="relative flex-1">
-                    <Input
-                      readOnly
+                <div
+                  className={cn(
+                    'flex flex-col sm:flex-row gap-3 mt-2 opacity-70 scale-90 origin-top-left',
+                    isUpdatingPublic ? 'opacity-20' : '',
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono mr-2">
+                      {window.location.origin}/assessments/share/{currentData.public_id}
+                    </span>
+                    <span className="font-mono">{'/'}</span>
+                    <CopyButton
                       value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                      className="text-xs w-full pr-10"
-                      style={{
-                        backgroundColor: 'var(--field-bg)',
-                        borderColor: 'var(--field-border)',
-                        color: 'var(--foreground)',
-                      }}
+                      description="URL"
+                      noBorder
                     />
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
-                      <CopyButton
-                        value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                        description="URL"
-                        noBorder
-                      />
-                    </div>
                   </div>
-                  <CopyButton value={`${currentData.public_id}`} description="ID" />
+                  <span className="font-mono">{'/'}</span>
+                  <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />
                 </div>
               )}
           </div>
