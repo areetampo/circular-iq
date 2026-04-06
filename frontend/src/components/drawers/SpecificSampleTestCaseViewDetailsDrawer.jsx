@@ -146,11 +146,11 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                 )}
 
                 {/* Load this test case button */}
-                <div className="flex justify-center mt-6">
+                {/* <div className="flex justify-center mt-6">
                   <Button size="lg" onClick={() => requestSelectCase(testCase)}>
                     Load this test case
                   </Button>
-                </div>
+                </div> */}
               </div>
             </Drawer.Body>
           </Drawer.Dialog>

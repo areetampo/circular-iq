@@ -7,7 +7,7 @@ export default function LoaderComponent({
   message = 'Please wait while we retrieve your data...',
 }) {
   return (
-    <div className="w-full h-full flex flex-col items-center gap-2 justify-center">
+    <div className="w-full h-full min-h-[50vh] flex flex-col items-center gap-2 justify-center">
       <LoaderIcon />
       {heading && <p>{heading}</p>}
       {message && <p className="text-sm text-(--color-text-secondary)">{message}</p>}

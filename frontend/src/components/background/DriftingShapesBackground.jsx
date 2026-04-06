@@ -29,14 +29,14 @@ class MovingGrid {
 
     // ========== CONFIGURATION – ADJUST THESE FOR DIFFERENT LOOKS ==========
     this.config = {
-      cellSize: 30, // grid spacing
+      cellSize: 50, // grid spacing
       lineWidth: 0.8,
       strokeStyle: '#d4c5b0',
       globalAlpha: 0.4, // line color opacity
       speedX: -0.25,
       speedY: -0.25,
       segmentGap: 4,
-      rotation: 3,
+      rotation: 2,
     };
     // =====================================================================
 
