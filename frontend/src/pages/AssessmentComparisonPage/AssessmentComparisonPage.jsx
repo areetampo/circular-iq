@@ -206,7 +206,7 @@ export default function AssessmentComparisonPage() {
       {/* Two columns side by side */}
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-          <div className="border-r border-(--color-border) pr-6 lg:pr-8">
+          <div className="border-r-2 border-(--color-border) pr-6 lg:pr-8">
             <AssessmentColumn
               assessment={assessment1}
               scoringResult={scoringResult1}

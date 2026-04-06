@@ -65,6 +65,7 @@ export default function LandingPage() {
   const lastAppliedSessionRef = useRef(null);
   const lastSavedLocalTimestampRef = useRef(null);
   const autosaveTimerRef = useRef(null);
+  const reevaluateDataAppliedRef = useRef(false);
   const AUTOSAVE_DEBOUNCE_MS = 150;
 
   // Accordion state management
@@ -217,6 +218,9 @@ export default function LandingPage() {
 
     // Skip if we already applied this session
     if (lastAppliedSessionRef.current === sessionToApply) return;
+
+    // Skip if re-evaluate data was applied - preserve user's re-evaluate choice
+    if (reevaluateDataAppliedRef.current) return;
 
     // Skip if local changes are newer
     if (
@@ -374,6 +378,10 @@ export default function LandingPage() {
     if (location.state?.formData) {
       const { businessProblem, businessSolution, evaluation_parameters, businessContext } =
         location.state.formData;
+
+      // Mark that re-evaluate data is being applied
+      reevaluateDataAppliedRef.current = true;
+
       reset({
         businessProblem: businessProblem || '',
         businessSolution: businessSolution || '',
@@ -381,6 +389,9 @@ export default function LandingPage() {
         businessContext: businessContext || {},
       });
       window.history.replaceState({}, document.title);
+
+      // Show toast notification
+      toast.success('Form filled with assessment data', { timeout: 3000 });
     }
   }, [location.state, reset]);
 
@@ -391,7 +402,7 @@ export default function LandingPage() {
     if (getCharacterCount(formData.businessProblem) < 200) {
       toast.danger('Business Problem is too short', {
         description: 'Please provide at least 200 characters for business problem description.',
-        timeout: 4000,
+        timeout: 3000,
       });
       return;
     }
@@ -399,7 +410,7 @@ export default function LandingPage() {
     if (getCharacterCount(formData.businessSolution) < 200) {
       toast.danger('Business Solution is too short', {
         description: 'Please provide at least 200 characters for business solution description.',
-        timeout: 4000,
+        timeout: 3000,
       });
       return;
     }
@@ -447,7 +458,7 @@ export default function LandingPage() {
       setError(errorMessage);
       toast.danger('Evaluation failed', {
         description: errorMessage,
-        timeout: 4000,
+        timeout: 3000,
       });
     } finally {
       setLoading(false);
@@ -779,7 +790,7 @@ export default function LandingPage() {
                             style={{ color: 'var(--color-accent)' }}
                             strokeWidth={1.75}
                           />
-                          <div className="flex flex-col gap-0.5 text-left flex-1">
+                          <div className="flex flex-col gap-1 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
                                 className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
@@ -792,8 +803,8 @@ export default function LandingPage() {
                               </span>
                               <BadgeInfo
                                 className="info-icon cursor-pointer shrink-0"
-                                size={16}
-                                strokeWidth={1.5}
+                                size={20}
+                                strokeWidth={2}
                                 style={{ color: 'var(--color-accent)', marginTop: '1px' }}
                                 onClick={(e) => {
                                   e.stopPropagation();

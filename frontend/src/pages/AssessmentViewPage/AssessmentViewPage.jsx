@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Book, RefreshCcw, View } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -29,8 +29,20 @@ export default function AssessmentViewPage() {
   const error = publicError;
   const scoringResult = useMemo(() => reconstructScoringResult(assessment), [assessment]);
 
-  const handleBack = useCallback(() => {
-    navigate('/assessments');
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, [navigate]);
+
+  const handleSafeBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleComparePageNavigate = useCallback(() => {
+    navigate('/assessments/compare');
   }, [navigate]);
 
   if (loading) {
@@ -45,9 +57,21 @@ export default function AssessmentViewPage() {
         message={error || 'Unable to retrieve the assessment details. Please try again.'}
         actions={[
           {
-            label: 'Go Back',
+            label: 'Refresh',
+            icon: RefreshCcw,
+            onClick: handleRefresh,
+            variant: 'ghost',
+          },
+          {
+            label: 'Go back',
             icon: ArrowLeft,
-            onClick: handleBack,
+            onClick: handleSafeBack,
+            variant: 'ghost',
+          },
+          {
+            label: 'View another',
+            icon: View,
+            onClick: handleComparePageNavigate,
             variant: 'tertiary',
           },
         ]}
@@ -64,9 +88,15 @@ export default function AssessmentViewPage() {
         message="The requested assessment could not be found. It may have been deleted or you might not have access to it."
         actions={[
           {
-            label: 'Go Back',
+            label: 'Go back',
             icon: ArrowLeft,
-            onClick: handleBack,
+            onClick: handleSafeBack,
+            variant: 'ghost',
+          },
+          {
+            label: 'View another',
+            icon: View,
+            onClick: handleComparePageNavigate,
             variant: 'tertiary',
           },
         ]}
@@ -146,10 +176,19 @@ export default function AssessmentViewPage() {
       </div>
 
       {/* Simple footer */}
-      <div className="flex justify-center items-center py-6 px-6 mt-8">
-        <Button onClick={handleBack} variant="ghost">
+      <div className="flex justify-center items-center py-6 px-6 mt-8 gap-3">
+        <Button onClick={handleSafeBack} variant="ghost">
           <ArrowLeft size={16} />
-          Back to Assessments
+          Back
+        </Button>
+        <Button
+          onClick={() => {
+            navigate('/assessments');
+          }}
+          variant="ghost"
+        >
+          <Book size={16} />
+          Go to assessments
         </Button>
       </div>
     </div>

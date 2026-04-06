@@ -18,9 +18,9 @@ export default function Navbar() {
 
   const navigationItems = [
     { id: 'assessments', name: 'My Assessments', path: '/assessments' },
+    { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
     { id: 'share', name: 'Share', path: '/assessments/share' },
     { id: 'compare', name: 'Compare', path: '/assessments/compare' },
-    { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
     { id: 'guide', name: 'Guide', path: '/guide' },
   ];
 

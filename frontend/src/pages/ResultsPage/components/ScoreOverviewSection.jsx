@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { titleize } from '@/lib/formatting';
+import { formatProcessingTime, titleize } from '@/lib/formatting';
 
 export function ScoreOverviewSection({
   actualResult,
@@ -21,26 +21,27 @@ export function ScoreOverviewSection({
     <div className="mt-8">
       {/* Industry and Confidence Row */}
       <div className="flex justify-center gap-4 mb-6">
-        {actualResult.metadata?.industry && (
-          <div
-            className="px-3 py-1.5 rounded-lg"
-            style={{ backgroundColor: 'var(--color-accent-light)' }}
-          >
-            <span className="text-sm font-medium text-(--color-text-primary)">
-              {titleize(actualResult.metadata.industry)}
-            </span>
-          </div>
-        )}
-        {actualResult.confidence_level && (
-          <div
-            className="px-3 py-1.5 rounded-lg"
-            style={{ backgroundColor: 'var(--color-accent-light)' }}
-          >
-            <span className="text-sm font-medium text-(--color-text-primary)">
-              {actualResult.confidence_level}% Confidence
-            </span>
-          </div>
-        )}
+        {[
+          actualResult.metadata?.industry && {
+            label: titleize(actualResult.metadata.industry),
+          },
+          actualResult.confidence_level && {
+            label: `${actualResult.confidence_level}% Confidence`,
+          },
+          actualResult.processing_info?.processing_time_ms && {
+            label: `Analysed in ${formatProcessingTime(actualResult.processing_info.processing_time_ms)}`,
+          },
+        ]
+          .filter(Boolean)
+          .map((badge, index) => (
+            <div
+              key={index}
+              className="px-3 py-1.5 rounded-lg"
+              style={{ backgroundColor: 'var(--color-accent-light)' }}
+            >
+              <span className="text-sm font-medium text-(--color-text-primary)">{badge.label}</span>
+            </div>
+          ))}
       </div>
 
       {/* Main Score Display */}

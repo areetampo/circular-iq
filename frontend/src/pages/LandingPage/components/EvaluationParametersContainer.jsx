@@ -251,26 +251,14 @@ function EvaluationParametersContainer({
                   />
 
                   <div className="flex flex-col gap-0.5 text-left flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className="font-medium text-[0.85rem] tracking-[-0.01em] leading-6 font-mono"
-                        style={{
-                          color: 'var(--color-text-primary)',
-                        }}
-                      >
-                        {groupName}
-                      </span>
-                      <BadgeInfo
-                        className="info-icon cursor-pointer shrink-0"
-                        size={18}
-                        strokeWidth={2}
-                        style={{ color: cfg.iconColor, marginTop: '1px' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEvaluationParametersHeadingInfoDrawer?.();
-                        }}
-                      />
-                    </div>
+                    <span
+                      className="font-medium text-[0.85rem] tracking-[-0.01em] leading-6 font-mono"
+                      style={{
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      {groupName}
+                    </span>
                     <span
                       className="text-[0.68rem] font-normal leading-4 font-mono"
                       style={{ color: 'var(--color-text-muted)' }}

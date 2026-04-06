@@ -97,12 +97,30 @@ export default function InteractiveChartWrapper({
       >
         {/* Header */}
         {(title || subtitle || showControls) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-(--color-border)">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-200">
             <div className="flex-1">
               {title && (
-                <h3 className="text-lg font-semibold text-(--color-text-primary)">{title}</h3>
+                <h3
+                  className="text-lg font-semibold text-gray-900"
+                  style={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                  }}
+                >
+                  {title}
+                </h3>
               )}
-              {subtitle && <p className="text-sm text-(--color-text-muted)">{subtitle}</p>}
+              {subtitle && (
+                <p
+                  className="text-sm text-gray-600"
+                  style={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                  }}
+                >
+                  {subtitle}
+                </p>
+              )}
             </div>
 
             {/* Controls */}
@@ -118,15 +136,23 @@ export default function InteractiveChartWrapper({
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleExport('png')}
-                      className="px-2 py-1 text-xs rounded hover:bg-(--color-accent-light) transition-colors text-(--color-text-muted)"
+                      className="px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-600"
                       title="Export as PNG"
+                      style={{
+                        fontFamily:
+                          'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                      }}
                     >
                       📷
                     </button>
                     <button
                       onClick={() => handleExport('svg')}
-                      className="px-2 py-1 text-xs rounded hover:bg-(--color-accent-light) transition-colors text-(--color-text-muted)"
+                      className="px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-600"
                       title="Export as SVG"
+                      style={{
+                        fontFamily:
+                          'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                      }}
                     >
                       📄
                     </button>
@@ -136,8 +162,12 @@ export default function InteractiveChartWrapper({
                 {enableFullscreen && (
                   <button
                     onClick={toggleFullscreen}
-                    className="px-2 py-1 text-xs rounded hover:bg-(--color-accent-light) transition-colors text-(--color-text-muted)"
+                    className="px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-600"
                     title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                    style={{
+                      fontFamily:
+                        'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                    }}
                   >
                     {isFullscreen ? '✕' : '⛶'}
                   </button>
@@ -161,19 +191,25 @@ export default function InteractiveChartWrapper({
 
         {/* Footer with Data Stats */}
         {showDataStats && dataStats && (
-          <div className="p-4 border-t border-(--color-border)">
-            <div className="flex flex-wrap gap-4 text-xs">
+          <div className="p-4 border-t border-gray-200">
+            <div
+              className="flex flex-wrap gap-4 text-xs"
+              style={{
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+              }}
+            >
               <div className="flex items-center gap-1">
-                <span className="text-(--color-text-muted)">Points:</span>
-                <span className="font-medium text-(--color-text-primary)">{dataStats.count}</span>
+                <span className="text-gray-600">Points:</span>
+                <span className="font-medium text-gray-900">{dataStats.count}</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-(--color-text-muted)">Avg:</span>
-                <span className="font-medium text-(--color-text-primary)">{dataStats.avg}</span>
+                <span className="text-gray-600">Avg:</span>
+                <span className="font-medium text-gray-900">{dataStats.avg}</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-(--color-text-muted)">Range:</span>
-                <span className="font-medium text-(--color-text-primary)">
+                <span className="text-gray-600">Range:</span>
+                <span className="font-medium text-gray-900">
                   {dataStats.min} - {dataStats.max}
                 </span>
               </div>

@@ -1,14 +1,5 @@
 import { Label } from '@heroui/react';
-import {
-  BarChart3,
-  ChevronRight,
-  Globe,
-  Lightbulb,
-  RefreshCw,
-  Search,
-  Users,
-  X,
-} from 'lucide-react';
+import { BarChart3, ChevronRight, Globe, Lightbulb, RefreshCw, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -46,6 +37,18 @@ import {
   SolutionCard,
   StatCard,
 } from './components';
+
+// Material colors for pie chart
+const MATERIAL_COLORS = [
+  '#5a7a9a', // muted slate blue
+  '#8b3a3a', // dark terracotta / rust
+  '#4a7c59', // dark forest green
+  '#b07d3a', // dark amber
+  '#7a5c7a', // muted plum
+  '#3a6b8b', // deep ocean blue
+  '#8b5e3a', // warm brown
+  '#6b8b5a', // sage green
+];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
@@ -238,7 +241,7 @@ export default function DashboardPage() {
   // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────
   const renderPieOrSingle = (data, colors, emptyMsg) => {
     if (!data || data.length === 0) return <EmptyChart />;
-    if (!usablePie(data)) {
+    if (data.length === 1 || !usablePie(data)) {
       return <SingleValueChart label={data[0]?.name} value={data[0]?.value} />;
     }
     return (
@@ -246,11 +249,11 @@ export default function DashboardPage() {
         data={data}
         dataKey="value"
         nameKey="name"
-        height={200}
-        showLegend
-        innerRadius={40}
+        height={250}
+        showLegend={true}
+        innerRadius={0}
         colors={colors}
-        label
+        label={false}
         labelLine={false}
       />
     );
@@ -340,13 +343,13 @@ export default function DashboardPage() {
 
         {/* Row A: 3 donuts with single-value fallback */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-          <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="200px">
+          <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="250px">
             {renderPieOrSingle(scoreDistData, SCORE_COLORS, 'Score data unavailable')}
           </ChartPanel>
-          <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="200px">
+          <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="250px">
             {renderPieOrSingle(tierDistData, TIER_COLORS, 'Tier data unavailable')}
           </ChartPanel>
-          <ChartPanel title="Risk Distribution" isLoading={globalLoading} chartHeight="200px">
+          <ChartPanel title="Risk Distribution" isLoading={globalLoading} chartHeight="250px">
             {renderPieOrSingle(riskDistData, RISK_COLORS, 'Risk data unavailable')}
           </ChartPanel>
         </div>
@@ -356,7 +359,7 @@ export default function DashboardPage() {
           <ChartPanel
             title="Weekly Volume — last 12 weeks"
             isLoading={globalLoading}
-            chartHeight="240px"
+            chartHeight="270px"
             className="mb-4"
           >
             {weeklyData.some((d) => d.count > 0) ? (
@@ -364,7 +367,7 @@ export default function DashboardPage() {
                 data={weeklyData}
                 xAxisKey="period"
                 lines={[{ dataKey: 'count', stroke: chartTheme.colors[0], name: 'Assessments' }]}
-                height={240}
+                height={270}
                 showLegend={false}
               />
             ) : (
@@ -376,7 +379,7 @@ export default function DashboardPage() {
           <ChartPanel
             title="R-Strategy Distribution"
             isLoading={globalLoading}
-            chartHeight="240px"
+            chartHeight="270px"
             className="mb-4"
           >
             {usableBar(strategyData, 'value') ? (
@@ -384,7 +387,7 @@ export default function DashboardPage() {
                 data={strategyData}
                 xAxisKey="name"
                 barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Count' }]}
-                height={240}
+                height={270}
                 showGrid
               />
             ) : (
@@ -397,14 +400,14 @@ export default function DashboardPage() {
             <ChartPanel
               title="Assessment Volume by Industry — top 10 (excluding uncategorized)"
               isLoading={globalLoading}
-              chartHeight="220px"
+              chartHeight="250px"
             >
               {usableBar(industryBarData) ? (
                 <BarChart
                   data={industryBarData}
                   xAxisKey="name"
                   barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[1], name: 'Count' }]}
-                  height={220}
+                  height={250}
                   showGrid
                 />
               ) : (
@@ -417,16 +420,16 @@ export default function DashboardPage() {
           <ChartPanel
             title="Primary Material"
             isLoading={globalLoading}
-            chartHeight="192px"
+            chartHeight="230px"
             className="mb-4"
           >
-            {renderPieOrSingle(materialData, undefined, 'No material data')}
+            {renderPieOrSingle(materialData, MATERIAL_COLORS, 'No material data')}
           </ChartPanel>
 
           <ChartPanel
             title="Geographic Focus"
             isLoading={globalLoading}
-            chartHeight="192px"
+            chartHeight="230px"
             className="mb-4"
           >
             {geoData.length > 0 ? (
@@ -434,7 +437,7 @@ export default function DashboardPage() {
                 data={geoData}
                 xAxisKey="name"
                 barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[2], name: 'Count' }]}
-                height={200}
+                height={230}
                 showGrid
               />
             ) : (
@@ -442,7 +445,7 @@ export default function DashboardPage() {
             )}
           </ChartPanel>
 
-          <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="192px">
+          <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="230px">
             {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
           </ChartPanel>
         </div>
@@ -538,7 +541,7 @@ export default function DashboardPage() {
               <ChartPanel
                 title="Documents by Industry"
                 isLoading={docLoading}
-                chartHeight="180px"
+                chartHeight="230px"
                 className="mb-4"
               >
                 {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
@@ -548,7 +551,7 @@ export default function DashboardPage() {
                     barConfigs={[
                       { dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' },
                     ]}
-                    height={180}
+                    height={230}
                     showGrid
                   />
                 ) : (
@@ -556,7 +559,7 @@ export default function DashboardPage() {
                 )}
               </ChartPanel>
 
-              <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="180px">
+              <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="230px">
                 {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
                   <BarChart
                     data={transformMaterialDistribution(docStats.byMaterial)}
@@ -564,7 +567,7 @@ export default function DashboardPage() {
                     barConfigs={[
                       { dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' },
                     ]}
-                    height={180}
+                    height={230}
                     showGrid
                   />
                 ) : (
@@ -737,83 +740,96 @@ export default function DashboardPage() {
       {/* ════════════════════════════════════════════════════════════════════
           SECTION 4 — YOUR ASSESSMENTS
           ════════════════════════════════════════════════════════════════════ */}
-      {user ? (
-        <section>
-          <SectionDivider label="YOUR ASSESSMENTS" />
+      <section>
+        <SectionDivider label="YOUR ASSESSMENTS" />
 
-          {/* Your stats row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <StatCard
-              title="Total Assessments"
-              value={userTotal?.toLocaleString()}
-              loading={userStatsLoading}
-            />
-            <StatCard
-              title="Average Score"
-              value={userAvg ? `${userAvg}%` : null}
-              loading={userStatsLoading}
-            />
-            <StatCard
-              title="Median Score"
-              value={userMedian ? `${userMedian}%` : null}
-              loading={userStatsLoading}
-            />
-            <StatCard
-              title="Score Range"
-              value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
-              loading={userStatsLoading}
-            />
-          </div>
+        {user ? (
+          <>
+            {/* Your stats row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+              <StatCard
+                title="Total Assessments"
+                value={userTotal?.toLocaleString()}
+                loading={userStatsLoading}
+              />
+              <StatCard
+                title="Average Score"
+                value={userAvg ? `${userAvg}%` : null}
+                loading={userStatsLoading}
+              />
+              <StatCard
+                title="Median Score"
+                value={userMedian ? `${userMedian}%` : null}
+                loading={userStatsLoading}
+              />
+              <StatCard
+                title="Score Range"
+                value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
+                loading={userStatsLoading}
+              />
+            </div>
 
+            <div className="space-y-8">
+              {/* Your charts — each full width */}
+              <ChartPanel
+                title="Your Assessments by Industry"
+                isLoading={userStatsLoading}
+                chartHeight="250px"
+                className="mb-4"
+              >
+                {userIndustryData.length > 0 ? (
+                  <BarChart
+                    data={userIndustryData}
+                    xAxisKey="name"
+                    barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[2], name: 'Count' }]}
+                    height={250}
+                    showGrid
+                  />
+                ) : (
+                  <EmptyChart />
+                )}
+              </ChartPanel>
+
+              <ChartPanel
+                title="Your Assessments by Risk"
+                isLoading={userStatsLoading}
+                chartHeight="250px"
+              >
+                {userRiskData.length > 0 ? (
+                  <PieChart
+                    data={userRiskData}
+                    dataKey="value"
+                    nameKey="name"
+                    height={250}
+                    showLegend={true}
+                    innerRadius={0}
+                    colors={RISK_COLORS}
+                    label={false}
+                    labelLine={false}
+                  />
+                ) : (
+                  <EmptyChart />
+                )}
+              </ChartPanel>
+            </div>
+          </>
+        ) : (
           <div className="space-y-8">
-            {/* Your charts — each full width */}
-            <ChartPanel
-              title="Your Assessments by Industry"
-              isLoading={userStatsLoading}
-              chartHeight="220px"
-              className="mb-4"
-            >
-              {userIndustryData.length > 0 ? (
-                <BarChart
-                  data={userIndustryData}
-                  xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[2], name: 'Count' }]}
-                  height={220}
-                  showGrid
-                />
-              ) : (
-                <EmptyChart />
+            {/* Sample charts for non-logged-in users */}
+            <ChartPanel title="Your Assessments by Risk" isLoading={false} chartHeight="250px">
+              {renderPieOrSingle(
+                [
+                  { name: 'Low Risk', value: 42 },
+                  { name: 'Medium Risk', value: 38 },
+                  { name: 'High Risk', value: 20 },
+                ],
+                RISK_COLORS,
+                'No risk data available',
               )}
             </ChartPanel>
-
-            <ChartPanel
-              title="Your Assessments by Risk"
-              isLoading={userStatsLoading}
-              chartHeight="220px"
-            >
-              {renderPieOrSingle(userRiskData, RISK_COLORS, 'No risk data available')}
-            </ChartPanel>
           </div>
-        </section>
-      ) : (
-        <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.5)] p-6 flex flex-col sm:flex-row items-center gap-4">
-          <div className="w-12 h-12 rounded-3xl flex items-center justify-center shrink-0 bg-[rgba(184,145,106,0.1)]">
-            <Users size={20} strokeWidth={2} className="text-(--color-accent)" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-(--font-display) text-[18px] text-(--color-text-primary) tracking-[-0.02em] mb-1">
-              Track Your Progress
-            </h3>
-            <p className="text-[13px] text-(--color-text-secondary) leading-relaxed">
-              Sign in to save assessments, track your evaluation history, and compare with global
-              benchmarks.
-            </p>
-          </div>
-          <Button onClick={() => navigate('/auth')} variant="ghost">
-            Sign In
-          </Button>
-        </div>
-      )}
+        )}
+      </section>
 
       {/* Updated at timestamp */}
       <div className="mt-8 text-center">

@@ -3,12 +3,12 @@ import { LineChart as MuiLineChart } from '@mui/x-charts/LineChart';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
 
-import { chartTheme } from '@/utils/chartTheme';
+const FONT_FAMILY =
+  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace';
 
 /**
  * LineChart Component
- * Renders a line chart using MUI X-Charts library
- * Supports multiple data series with customizable axes and legend
+ * Following MUI X-Charts demo patterns exactly
  */
 export default function LineChart({
   data = [],
@@ -32,9 +32,9 @@ export default function LineChart({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: chartTheme.textColor,
+            color: '#374151',
             fontSize: '0.875rem',
-            fontFamily: chartTheme.fontFamily,
+            fontFamily: FONT_FAMILY,
           }}
         >
           No data available
@@ -42,52 +42,109 @@ export default function LineChart({
       );
     }
 
+    // Transform lines to MUI X Charts series format
     const series = lines.map((line, index) => ({
-      dataKey: line.dataKey || line.id,
+      data: data.map((item) => item[line.dataKey || line.id] || 0),
       label: line.name || line.dataKey || line.id,
-      color:
-        line.stroke ||
-        line.color ||
-        colors?.[index] ||
-        chartTheme.colors[index % chartTheme.colors.length],
+      id: line.dataKey || line.id || `line-${index}`,
+      color: line.stroke || line.color || colors?.[index],
       showMark: line.showMark !== undefined ? line.showMark : false,
-      curve: line.curve || 'linear',
-      strokeWidth: line.strokeWidth || 2,
+      curve: line.curve || 'monotone',
+      connectNulls: line.connectNulls || false,
     }));
 
+    // Extract x-axis labels from data
+    const xLabels = data.map((item) => item[xAxisKey] || '');
+
     return (
-      <div style={{ width: '100%', height: '100%', background: 'transparent' }}>
-        <MuiLineChart
-          dataset={data}
-          xAxis={[
-            {
-              scaleType: 'point',
-              dataKey: xAxisKey,
-              tickLabelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+      <MuiLineChart
+        series={series}
+        xAxis={[
+          {
+            data: xLabels,
+            scaleType: 'point',
+            height: 44,
+            valueFormatter: (value) => value?.replace('2026-', '') ?? value,
+            tickLabelStyle: {
+              fill: '#374151',
+              fontSize: 12,
+              fontFamily: FONT_FAMILY,
+              textAnchor: 'end',
+              dominantBaseline: 'auto',
             },
-          ]}
-          series={series}
-          height={height}
-          colors={chartTheme.colors}
-          slotProps={{
-            legend: {
-              hidden: !showLegend,
-              labelStyle: { fill: chartTheme.textColor, fontSize: chartTheme.fontSize },
+            labelStyle: {
+              fill: '#374151',
+              fontSize: 13,
+              fontFamily: FONT_FAMILY,
+              fontWeight: 600,
+              textTransform: 'capitalize',
             },
-          }}
-          grid={{
-            vertical: { stroke: showGrid ? chartTheme.gridColor : 'transparent' },
-            horizontal: { stroke: showGrid ? chartTheme.gridColor : 'transparent' },
-          }}
-        />
-      </div>
+          },
+        ]}
+        yAxis={[
+          {
+            width: 50,
+            tickMinStep: 1,
+            tickLabelStyle: {
+              fill: '#374151',
+              fontSize: 12,
+              fontFamily: FONT_FAMILY,
+            },
+            labelStyle: {
+              fill: '#374151',
+              fontSize: 13,
+              fontFamily: FONT_FAMILY,
+              fontWeight: 600,
+              textTransform: 'capitalize',
+            },
+          },
+        ]}
+        height={height}
+        colors={colors || ['#1e40af', '#dc2626', '#059669', '#d97706', '#7c3aed']}
+        margin={{ top: 16, right: 32, bottom: 48, left: 48 }}
+        slotProps={{
+          legend: {
+            hidden: !showLegend,
+            labelStyle: {
+              fill: '#374151',
+              fontSize: 12,
+              fontFamily: FONT_FAMILY,
+              fontWeight: 600,
+            },
+          },
+        }}
+        sx={{
+          fontFamily: FONT_FAMILY,
+          fontSize: 12,
+          '& .MuiLineElement-root': {
+            strokeWidth: 2.5,
+          },
+          '& .MuiMarkElement-root': {
+            strokeWidth: 2,
+          },
+          '& .MuiChartsAxis-label': {
+            fontFamily: FONT_FAMILY,
+            fontSize: 13,
+            fontWeight: 600,
+          },
+          '& .MuiChartsLegend-root': {
+            fontFamily: FONT_FAMILY,
+            fontSize: 12,
+          },
+          '& .MuiChartsLegend-label': {
+            fontFamily: FONT_FAMILY,
+            fontSize: 12,
+            fontWeight: 600,
+          },
+        }}
+      />
     );
   }, [data, lines, height, xAxisKey, showLegend, colors, showTooltip, showGrid]);
 
   if (isLoading) {
     return (
       <div className={className} style={{ height }}>
-        <div className="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4">
+        <div className="w-full h-full flex items-center justify-center">
           <Skeleton className="w-full h-full" />
         </div>
       </div>
@@ -95,12 +152,8 @@ export default function LineChart({
   }
 
   return (
-    <div className={className} style={{ height, background: 'transparent' }}>
-      <div className="w-full h-full rounded-xl bg-[rgba(245,240,232,0.3)] border border-[rgba(180,160,130,0.15)] p-4">
-        <div role="img" aria-label={ariaLabel}>
-          {chartContent}
-        </div>
-      </div>
+    <div className={className} style={{ width: '100%', height: height, fontFamily: FONT_FAMILY }}>
+      {chartContent}
     </div>
   );
 }
@@ -108,7 +161,7 @@ export default function LineChart({
 LineChart.propTypes = {
   /** Array of data objects for chart */
   data: PropTypes.arrayOf(PropTypes.object),
-  /** Array of line configuration objects with dataKey, name, stroke/color properties */
+  /** Array of line configuration objects */
   lines: PropTypes.arrayOf(
     PropTypes.shape({
       dataKey: PropTypes.string,
@@ -118,25 +171,25 @@ LineChart.propTypes = {
       color: PropTypes.string,
       showMark: PropTypes.bool,
       curve: PropTypes.string,
-      strokeWidth: PropTypes.number,
+      connectNulls: PropTypes.bool,
     }),
   ),
-  /** Chart height in pixels */
+  /** Height of the chart in pixels */
   height: PropTypes.number,
-  /** Key in data objects for X-axis labels */
+  /** Key in data objects for x-axis values */
   xAxisKey: PropTypes.string,
-  /** Show/hide legend */
+  /** Whether to show legend */
   showLegend: PropTypes.bool,
-  /** Accessibility label for chart */
+  /** Accessibility label */
   ariaLabel: PropTypes.string,
-  /** Show loading state */
+  /** Whether to show loading skeleton */
   isLoading: PropTypes.bool,
   /** Additional CSS classes */
   className: PropTypes.string,
   /** Custom color palette */
   colors: PropTypes.arrayOf(PropTypes.string),
-  /** Show tooltip on hover */
+  /** Whether to show tooltip */
   showTooltip: PropTypes.bool,
-  /** Show grid lines */
+  /** Whether to show grid */
   showGrid: PropTypes.bool,
 };

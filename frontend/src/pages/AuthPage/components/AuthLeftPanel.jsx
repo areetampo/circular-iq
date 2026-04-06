@@ -1,6 +1,6 @@
 import { BarChart3, CheckCircle2, Leaf, Zap } from 'lucide-react';
 
-import { SITE_FULL_NAME, SITE_NAME, SiteLogo } from '@/components/common';
+import AuthBrandHeader from './AuthBrandHeader';
 
 const TRUST_SIGNALS = [
   { icon: CheckCircle2, text: '40,000+ case studies indexed' },
@@ -12,16 +12,7 @@ const TRUST_SIGNALS = [
 export default function AuthLeftPanel() {
   return (
     <div className="hidden md_lg:flex flex-col justify-center px-12 lg:px-16 min-h-screen relative bg-(--color-bg) gap-8">
-      {/* Logo + brand name positioned ~56px from top */}
-      <div className="flex flex-col items-center justify-center gap-2">
-        <SiteLogo />
-        <span className="font-display text-[1.2rem] font-semibold text-(--color-text-secondary)">
-          {SITE_NAME}
-        </span>
-        <span className="font-body text-[0.88rem] font-medium text-(--color-text-secondary)">
-          {SITE_FULL_NAME}
-        </span>
-      </div>
+      <AuthBrandHeader />
 
       {/* Large editorial headline */}
       <h1 className="font-(--font-display) text-[clamp(2rem,4vw,3.2rem)] text-(--color-text-primary) leading-[1.15] tracking-[-0.02em] mb-6 text-center italic font-semibold">

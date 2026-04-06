@@ -111,7 +111,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
           {opportunities?.length > 0 && (
             <div className="mb-3">
               <div
-                className="text-sm font-bold mb-1"
+                className="text-sm font-bold mb-2"
                 style={{
                   color: 'var(--foreground)',
                 }}
@@ -131,7 +131,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
           {strengths?.length > 0 && (
             <div>
               <div
-                className="text-sm font-bold mb-1"
+                className="text-sm font-bold mb-2"
                 style={{
                   color: 'var(--foreground)',
                 }}

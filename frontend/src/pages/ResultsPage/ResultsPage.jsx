@@ -1,6 +1,5 @@
-import { Accordion, Checkbox, Input, toast } from '@heroui/react';
+import { Checkbox, Input, toast } from '@heroui/react';
 import {
-  AlertCircle,
   ArrowLeft,
   ArrowRight,
   BarChart3,
@@ -18,12 +17,11 @@ import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import RadarChart from '@/components/charts/RadarChart';
 import { Button, Chip } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { SectionHeading } from '@/components/common/SectionHeading';
-import { categoryMapping, parameterLabels, validKeys } from '@/constants/evaluationData';
+import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
   deleteAssessment,
@@ -42,16 +40,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
 import { titleize } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
-import { cn } from '@/utils/cn';
-import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
-import { getSession, saveSession } from '@/utils/session';
-
 import {
   AuditSummaryCard,
   CaseSummaryAccordions,
   CircularEconomyTierCard,
   DatabaseEvidenceCard,
-  FieldDisplayCard,
   GapAnalysisCard,
   ParameterConsistencyCard,
   ResultsSkeleton,
@@ -59,7 +52,16 @@ import {
   ScoreCategoryBreakdown,
   ScoreOverviewSection,
   WeightedScoreCard,
-} from './components';
+} from '@/pages/ResultsPage/components';
+import { CategoryAnalysis } from '@/pages/ResultsPage/components/CategoryAnalysis';
+import { IndustryMetadataSection } from '@/pages/ResultsPage/components/IndustryMetadataSection';
+import { IntegrityAnalysis } from '@/pages/ResultsPage/components/IntegrityAnalysis';
+import { PerformanceComparison } from '@/pages/ResultsPage/components/PerformanceComparison';
+import { RecommendationsCard } from '@/pages/ResultsPage/components/RecommendationsCard';
+import { StrengthsGapsCard } from '@/pages/ResultsPage/components/StrengthsGapsCard';
+import { cn } from '@/utils/cn';
+import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
+import { getSession, saveSession } from '@/utils/session';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
@@ -67,6 +69,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const location = useLocation();
   const isResultsRoute = location.pathname.startsWith('/results');
   const navigationResult = location.state?.result;
+
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
 
@@ -833,6 +836,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     );
   };
 
+  console.log('navigationResult', navigationResult);
+  console.log('currentData', currentData);
+  console.log('actualResult', actualResult);
+
   return (
     <>
       {/* Action Buttons & Share Section */}
@@ -1056,7 +1063,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       </div>
 
       {/* Results Content */}
-      {/* <ScrollShadow className="h-[calc(100vh-16rem)]"> */}
       <div id="results-content" className="max-w-7xl mx-auto px-0 sm:px-6 space-y-6">
         <ScoreOverviewSection
           actualResult={actualResult}
@@ -1080,592 +1086,30 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         <ScoreCategoryBreakdown actualResult={actualResult} />
         <GapAnalysisCard actualResult={actualResult} />
 
-        {/* Industry & Metadata Section */}
-        {actualResult.metadata && (
-          <div
-            className="border rounded-lg"
-            style={{
-              backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            <div className="p-1 sm:p-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {[
-                  { label: 'Industry', value: actualResult.industry || '', helpKey: 'industry' },
-                  { label: 'Scale', value: actualResult.metadata.scale, helpKey: 'scale' },
-                  {
-                    label: 'Strategy',
-                    value: actualResult.metadata.r_strategy,
-                    helpKey: 'r_strategy',
-                  },
-                  {
-                    label: 'Material',
-                    value: actualResult.metadata.primary_material,
-                    helpKey: 'primary_material',
-                  },
-                  {
-                    label: 'Geography',
-                    value: actualResult.metadata.geographic_focus,
-                    helpKey: 'geographic_focus',
-                  },
-                ].map((field) => (
-                  <FieldDisplayCard
-                    key={field.label}
-                    label={field.label}
-                    value={field.value}
-                    helpText={fieldHelp[field.helpKey]}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        <IndustryMetadataSection actualResult={actualResult} fieldHelp={fieldHelp} />
 
-        {/* Category Analysis */}
-        <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
-          <div className="p-1 sm:p-3">
-            <SectionHeading variant="large">Category Analysis</SectionHeading>
-            <p className="text-sm text-(--color-text-muted) mb-4 -mt-4">
-              Detailed breakdown across all evaluation criteria
-            </p>
-            <div className="space-y-3">
-              {validKeys.map((key) => {
-                const value = actualResult.sub_scores?.[key];
-                if (!(actualResult.sub_scores && key in actualResult.sub_scores)) return null;
+        <CategoryAnalysis
+          actualResult={actualResult}
+          resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
+        />
 
-                const category = categoryMapping[key];
-                if (!category) return null;
+        <PerformanceComparison
+          resolvedRadarData={resolvedRadarData}
+          radarConfigs={radarConfigs}
+          detailLoading={detailLoading}
+        />
 
-                const numValue = value != null && !isNaN(value) ? Number(value) : 0;
-                const barColor =
-                  numValue >= 75
-                    ? '#4a7c59' // muted green
-                    : numValue >= 50
-                      ? '#b07d3a' // muted amber
-                      : '#8b3a3a'; // muted red
-                const badgeColor =
-                  numValue >= 75
-                    ? '#4a7c59' // muted green
-                    : numValue >= 50
-                      ? '#b07d3a' // muted amber
-                      : '#8b3a3a'; // muted red
-
-                return (
-                  <div
-                    key={key}
-                    className="p-4 rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-(--color-text-primary)">
-                          {category.name}
-                        </h4>
-                        <p className="text-xs mt-0.5 text-(--color-text-muted)">{category.desc}</p>
-                      </div>
-                      <div
-                        className="ml-4 px-3 py-1 rounded-lg font-bold text-sm bg-transparent border border-[rgba(180,160,130,0.18)]"
-                        style={{ color: badgeColor }}
-                      >
-                        {numValue}
-                      </div>
-                    </div>
-
-                    <div className="w-full rounded-full h-2 overflow-hidden bg-[rgba(180,160,130,0.2)]">
-                      <div
-                        className="h-full transition-all duration-500 rounded-full"
-                        style={{
-                          width: `${Math.min(100, Math.max(0, numValue))}%`,
-                          backgroundColor: barColor,
-                          opacity: numValue >= 75 ? 0.7 : numValue >= 50 ? 0.6 : 0.6,
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              {/* Business Viability Category */}
-              <div className="p-4 rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-(--color-text-primary)">
-                      Business Viability
-                    </h4>
-                    <p className="text-xs mt-0.5 text-(--color-text-muted)">
-                      Economic feasibility and scalability
-                    </p>
-                  </div>
-                  <div
-                    className="ml-4 px-3 py-1 rounded-lg font-bold text-sm bg-transparent border border-[rgba(180,160,130,0.18)]"
-                    style={{
-                      color:
-                        resolvedBusinessViabilityScore >= 75
-                          ? '#4a7c59' // muted green
-                          : resolvedBusinessViabilityScore >= 50
-                            ? '#b07d3a' // muted amber
-                            : '#8b3a3a', // muted red
-                    }}
-                  >
-                    {resolvedBusinessViabilityScore}
-                  </div>
-                </div>
-
-                <div className="w-full rounded-full h-2 overflow-hidden bg-[rgba(180,160,130,0.2)]">
-                  <div
-                    className="h-full transition-all duration-500 rounded-full"
-                    style={{
-                      width: `${resolvedBusinessViabilityScore}%`,
-                      backgroundColor:
-                        resolvedBusinessViabilityScore >= 75
-                          ? '#4a7c59' // muted green
-                          : resolvedBusinessViabilityScore >= 50
-                            ? '#b07d3a' // muted amber
-                            : '#8b3a3a', // muted red
-                      opacity: resolvedBusinessViabilityScore >= 75 ? 0.7 : 0.6,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Comparison */}
-        {resolvedRadarData && resolvedRadarData.length > 0 ? (
-          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
-            <div className="p-1 sm:p-3">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
-                <div>
-                  <SectionHeading variant="large">Performance Comparison</SectionHeading>
-                  <p className="text-sm text-(--color-text-muted) -mt-4">
-                    How your idea compares to similar projects in the database
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className="w-full rounded-3xl p-4 bg-[rgba(245,240,232,0.5)] border-0 border-[rgba(180,160,130,0.18)]"
-                style={{
-                  '--color-userValue': 'var(--success)',
-                  '--color-marketAvg': 'var(--accent)',
-                }}
-              >
-                <RadarChart
-                  data={resolvedRadarData}
-                  radarConfigs={radarConfigs}
-                  height={380}
-                  showLegend={true}
-                  showTooltip={true}
-                  isLoading={detailLoading}
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="border border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
-            <div className="p-5 sm:p-6">
-              <SectionHeading variant="large">Performance Comparison</SectionHeading>
-              <p className="text-sm text-(--color-text-muted)">
-                No comparison data available. Check that sub-scores are present in the assessment
-                result.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Integrity Analysis - Beautiful Accordion Design (same as Summary tab) */}
-        {(gaps.length > 0 || strengths.length > 0) && (
-          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
-            <div className="p-2 sm:p-4">
-              <SectionHeading variant="small" className="mb-1">
-                Integrity Analysis
-              </SectionHeading>
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                We compare your self-assessed scores against real-world projects in our database to
-                identify potential overestimations or underestimations.
-              </p>
-
-              <Accordion type="single" collapsible className="space-y-3">
-                {/* Strengths */}
-                {strengths.length > 0 && (
-                  <Accordion.Item
-                    value="strengths"
-                    className="rounded-lg overflow-hidden"
-                    style={{
-                      backgroundColor: 'var(--success-soft)',
-                      borderColor: 'var(--success)',
-                    }}
-                  >
-                    <Accordion.Trigger className="px-4 py-3 hover:bg-success-soft transition-colors">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 size={20} style={{ color: 'var(--success)' }} />
-                        <span
-                          className="text-base font-semibold"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          Strengths Validated
-                        </span>
-                        <Chip variant="status" color="success" size="sm" className="ml-2 font-bold">
-                          {strengths.length}
-                        </Chip>
-                      </div>
-                    </Accordion.Trigger>
-                    <Accordion.Body className="px-4 pb-4">
-                      <div className="space-y-2">
-                        {strengths.map((strength, i) => (
-                          <div
-                            key={i}
-                            className="flex gap-2 p-3 rounded-lg border"
-                            style={{
-                              backgroundColor: 'var(--surface)',
-                              borderColor: 'var(--success)',
-                            }}
-                          >
-                            <CheckCircle2
-                              className="shrink-0 mt-0.5"
-                              size={16}
-                              style={{ color: 'var(--success)' }}
-                            />
-                            <div className="flex-1">
-                              <p
-                                className="text-sm"
-                                style={{
-                                  color: 'var(--foreground)',
-                                }}
-                              >
-                                {strength.issue || strength}
-                              </p>
-                              {strength.evidence_source_id && (
-                                <Chip variant="case" className="mt-1 text-xs">
-                                  Validated by Case #{strength.evidence_source_id}
-                                </Chip>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </Accordion.Body>
-                  </Accordion.Item>
-                )}
-
-                {/* Areas for Improvement */}
-                {gaps.length > 0 && (
-                  <Accordion.Item
-                    value="gaps"
-                    className="rounded-lg overflow-hidden"
-                    style={{
-                      backgroundColor: 'var(--warning-soft)',
-                      borderColor: 'var(--warning)',
-                    }}
-                  >
-                    <Accordion.Trigger className="px-4 py-3 hover:bg-warning-soft transition-colors">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
-                        <span
-                          className="text-base font-semibold"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          Areas for Improvement
-                        </span>
-                        <Chip variant="status" color="warning" size="sm" className="ml-2 font-bold">
-                          {gaps.length}
-                        </Chip>
-                      </div>
-                    </Accordion.Trigger>
-                    <Accordion.Body className="px-4 pb-4">
-                      <div className="space-y-2">
-                        {gaps.map((gap, i) => {
-                          const severity = gap.severity || 'medium';
-                          const severityColors = {
-                            high: 'var(--danger-soft)',
-                            medium: 'var(--warning-soft)',
-                            low: 'var(--info-soft)',
-                          };
-
-                          return (
-                            <div
-                              key={i}
-                              className={`flex gap-2 p-3 rounded-lg border bg-surface`}
-                              style={{
-                                backgroundColor: 'var(--surface)',
-                                borderColor: severityColors[severity],
-                              }}
-                            >
-                              <AlertCircle
-                                className="shrink-0 mt-0.5"
-                                size={16}
-                                style={{ color: 'var(--warning)' }}
-                              />
-                              <div className="flex-1">
-                                <p
-                                  className="text-sm"
-                                  style={{
-                                    color: 'var(--foreground)',
-                                  }}
-                                >
-                                  {(gap.issue || gap).replace(/_/g, ' ')}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-2 mt-1">
-                                  <Chip
-                                    variant="severity"
-                                    color={severity}
-                                    size="sm"
-                                    className="font-bold text-xs"
-                                  >
-                                    {severity.charAt(0).toUpperCase() + severity.slice(1)} severity
-                                  </Chip>
-                                  {gap.evidence_source_id && (
-                                    <Chip variant="case" className="text-xs">
-                                      Case #{gap.evidence_source_id}
-                                    </Chip>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </Accordion.Body>
-                  </Accordion.Item>
-                )}
-              </Accordion>
-            </div>
-          </div>
-        )}
+        <IntegrityAnalysis strengths={strengths} gaps={gaps} />
 
         <AuditSummaryCard actualResult={actualResult} />
 
         <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Strengths & Gaps Card - Modern Design */}
-          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
-            <div className="p-2 sm:p-4">
-              <SectionHeading variant="small" className="mb-6">
-                Strengths & Gaps
-              </SectionHeading>
-              <p className="text-sm mb-4 -mt-4" style={{ color: 'var(--muted)' }}>
-                Highlights from your assessment and improvement areas
-              </p>
-              <div className="space-y-4">
-                <div
-                  className="p-4 rounded-xl border-2"
-                  style={{
-                    background: 'var(--background-secondary)',
-                    borderColor: 'rgba(107,142,109,0.3)',
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle2 size={20} style={{ color: '#6B8E6D' }} />
-                    <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                      Strengths
-                    </p>
-                  </div>
-                  <ul className="space-y-2 text-sm">
-                    {strengths.length > 0 ? (
-                      strengths.map((strength, i) => (
-                        <li key={i} className="flex items-start gap-2 leading-relaxed">
-                          <span
-                            className="font-semibold mt-0.5"
-                            style={{ color: 'var(--foreground)' }}
-                          >
-                            •
-                          </span>
-                          <span
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            {strength.issue || strength}
-                            {strength.evidence_source_id && (
-                              <Chip variant="case" className="ml-2 text-xs">
-                                Case #{strength.evidence_source_id}
-                              </Chip>
-                            )}
-                          </span>
-                        </li>
-                      ))
-                    ) : (
-                      <>
-                        <li className="flex items-start gap-2 leading-relaxed">
-                          <span
-                            className="font-semibold mt-0.5"
-                            style={{ color: 'var(--foreground)' }}
-                          >
-                            •
-                          </span>
-                          <span
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Strong focus on material reuse and recycling
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2 leading-relaxed">
-                          <span
-                            className="font-semibold mt-0.5"
-                            style={{ color: 'var(--foreground)' }}
-                          >
-                            •
-                          </span>
-                          <span
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Clear value proposition for sustainability
-                          </span>
-                        </li>
-                        <li className="flex items-start gap-2 leading-relaxed">
-                          <span
-                            className="font-semibold mt-0.5"
-                            style={{ color: 'var(--foreground)' }}
-                          >
-                            •
-                          </span>
-                          <span
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            Potential for scalable implementation
-                          </span>
-                        </li>
-                      </>
-                    )}
-                  </ul>
-                </div>
-
-                {gaps.length > 0 && (
-                  <div
-                    className="p-4 rounded-xl border-2"
-                    style={{
-                      background: 'var(--background-secondary)',
-                      borderColor: 'rgba(195,75,75,0.3)',
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle size={20} style={{ color: '#C3916B' }} />
-                      <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                        Areas for Improvement
-                      </p>
-                    </div>
-                    <ul className="space-y-2 text-sm">
-                      {gaps.map((gap, i) => (
-                        <li key={i} className="flex items-start gap-2 leading-relaxed">
-                          <span
-                            className="font-semibold mt-0.5"
-                            style={{ color: 'var(--foreground)' }}
-                          >
-                            •
-                          </span>
-                          <span
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
-                            {gap.issue || gap}
-                            {gap.evidence_source_id && (
-                              <Chip variant="case" className="ml-2 text-xs">
-                                Case #{gap.evidence_source_id}
-                              </Chip>
-                            )}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Recommendations Card - Modern Design */}
-          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
-            <div className="p-2 sm:p-4">
-              <SectionHeading variant="small" className="mb-6">
-                Recommendations
-              </SectionHeading>
-              <p className="text-sm mb-4 -mt-4" style={{ color: 'var(--muted)' }}>
-                Targeted steps to improve your circularity score
-              </p>
-
-              <div
-                className="p-4 rounded-xl border-0"
-                style={{
-                  background:
-                    'linear-gradient(to bottom right, var(--accent-soft), var(--accent-soft))',
-                  borderColor: 'var(--accent)',
-                }}
-              >
-                <ul className="space-y-3 text-sm">
-                  {actualResult.audit?.technical_recommendations?.length > 0 ? (
-                    actualResult.audit.technical_recommendations.map((rec, i) => (
-                      <li key={i} className="flex items-start gap-2 leading-relaxed">
-                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
-                          •
-                        </span>
-                        <span
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          {rec}
-                        </span>
-                      </li>
-                    ))
-                  ) : (
-                    <>
-                      <li className="flex items-start gap-2 leading-relaxed">
-                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
-                          •
-                        </span>
-                        <span
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          Consider incorporating predictive maintenance strategies
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2 leading-relaxed">
-                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
-                          •
-                        </span>
-                        <span
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          Explore partnerships with recycling facilities
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2 leading-relaxed">
-                        <span className="font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
-                          •
-                        </span>
-                        <span
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          Develop metrics for tracking circularity performance
-                        </span>
-                      </li>
-                    </>
-                  )}
-                </ul>
-              </div>
-            </div>
-          </div>
+          <StrengthsGapsCard strengths={strengths} gaps={gaps} />
+          <RecommendationsCard actualResult={actualResult} />
         </div>
       </div>
-      {/* </ScrollShadow> */}
     </>
   );
 }

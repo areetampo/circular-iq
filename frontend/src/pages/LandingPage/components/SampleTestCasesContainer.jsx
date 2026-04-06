@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { Button } from '@/components/common';
 import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
@@ -223,6 +224,13 @@ export default function SampleTestCasesContainer({
     handleSelectCase(testCase);
   };
 
+  const handleViewDetails = (e, testCase) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
+    openSpecificSampleTestCaseViewDetailsDrawer(testCase, requestSelectCase);
+  };
+
   return (
     <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
       {sampleTestCases.map((testCase, index) => {
@@ -233,12 +241,12 @@ export default function SampleTestCasesContainer({
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'group relative flex flex-col gap-3 rounded-xl p-4 cursor-pointer',
-              'border transition-all duration-200',
+              'group relative flex flex-col gap-3 rounded-xl p-3 cursor-pointer',
+              'border-[1.5px] transition-all duration-200',
               isSelected
                 ? 'border-(--color-accent) shadow-sm bg-accent-100/10'
                 : 'border-(--color-border-strong) bg-(--color-bg-card)' +
-                    ' hover:border-(--color-accent) hover:bg-[oklch(0.98_0.01_68/_0.12)] hover:shadow-sm',
+                    ' hover:border-(--color-accent) hover:shadow-sm',
             )}
           >
             {/* Header: index pill + title + check */}
@@ -251,10 +259,7 @@ export default function SampleTestCasesContainer({
                 >
                   #{index + 1}
                 </span>
-                <h4
-                  className="text-sm font-semibold leading-snug truncate"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
+                <h4 className="text-sm font-medium font-mono leading-snug truncate text-black/65">
                   {testCase.title}
                 </h4>
               </div>
@@ -299,20 +304,11 @@ export default function SampleTestCasesContainer({
             </div>
 
             {/* "View details" button — make it a subtle text link, not a button */}
-            <div className="flex justify-end mt-1">
-              <button
-                type="button"
-                onClick={(e) => {
-                  openSpecificSampleTestCaseViewDetailsDrawer(testCase);
-                  e.stopPropagation();
-                }}
-                className="text-[11px] font-medium flex items-center gap-1
-                           transition-colors duration-150 hover:opacity-80"
-                style={{ color: 'var(--color-accent)' }}
-              >
+            <div className="flex justify-end">
+              <Button size="sm" variant="ghost" onPress={(e) => handleViewDetails(e, testCase)}>
                 View details
                 <BookOpen size={11} />
-              </button>
+              </Button>
             </div>
           </div>
         );

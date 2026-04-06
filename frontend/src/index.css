@@ -461,6 +461,7 @@ textarea:focus-visible {
     @apply flex! min-h-12! w-full! items-center! justify-center! gap-3!
          rounded-3xl! p-3! px-4! shadow-2xl! transition-all! duration-200! ease-out!
          border! border-black! dark:border-white/80!;
+    z-index: 9999 !important;
     background: #fefaf5 !important;
     box-shadow:
       0 8px 20px -6px rgba(0, 0, 0, 0.08),
@@ -496,6 +497,7 @@ textarea:focus-visible {
   }
   .toast-region {
     @apply w-4/5 sm:w-auto;
+    z-index: 9999 !important;
   }
   .toast__close-button {
     display: none !important;
@@ -673,8 +675,8 @@ textarea:focus-visible {
   .drawer__dialog--right,
   .drawer__dialog[data-placement='right'],
   [data-slot='dialog'].drawer__dialog[data-placement='right'] {
-    width: min(520px, 94vw) !important;
-    max-width: 520px !important;
+    width: 50vw !important;
+    min-width: 520px !important;
   }
 
   /* Bottom drawer */
@@ -689,7 +691,7 @@ textarea:focus-visible {
   /* Header: tight, clean */
   .drawer__header,
   [data-slot='drawer-header'] {
-    padding: 16px 20px 13px !important;
+    padding: 2px 10px 13px !important;
     border-bottom: 1px solid rgba(180, 160, 130, 0.16) !important;
     background: transparent !important;
     position: relative !important;
@@ -710,7 +712,7 @@ textarea:focus-visible {
   /* Body: readable, not cramped */
   .drawer__body,
   [data-slot='drawer-body'] {
-    padding: 16px 20px !important;
+    padding: 10px 10px !important;
     font-family: 'DM Sans', sans-serif !important;
     font-size: 13px !important;
     line-height: 1.62 !important;

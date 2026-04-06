@@ -29,12 +29,14 @@ class MovingGrid {
 
     // ========== CONFIGURATION – ADJUST THESE FOR DIFFERENT LOOKS ==========
     this.config = {
-      cellSize: 20, // grid spacing
-      lineWidth: 0.6,
+      cellSize: 30, // grid spacing
+      lineWidth: 0.8,
       strokeStyle: '#d4c5b0',
       globalAlpha: 0.4, // line color opacity
-      speedX: -0.2,
-      speedY: -0.2,
+      speedX: -0.25,
+      speedY: -0.25,
+      segmentGap: 4,
+      rotation: 3,
     };
     // =====================================================================
 
@@ -59,31 +61,43 @@ class MovingGrid {
 
   drawGrid() {
     const { width, height } = this.canvas;
-    const { cellSize, lineWidth, strokeStyle, globalAlpha } = this.config;
+    const { cellSize, lineWidth, strokeStyle, globalAlpha, segmentGap, rotation } = this.config;
 
     this.ctx.save();
+    this.ctx.translate(width / 2, height / 2);
+    this.ctx.rotate((rotation * Math.PI) / 180);
+
     this.ctx.lineWidth = lineWidth;
     this.ctx.strokeStyle = strokeStyle;
     this.ctx.globalAlpha = globalAlpha;
 
-    // Calculate starting points based on offsets to create seamless wrapping
-    const startX = this.offsetX % cellSize;
-    const startY = this.offsetY % cellSize;
+    const diag = Math.sqrt(width * width + height * height);
+    const size = diag;
+    const halfSize = size / 2;
 
-    // Draw vertical lines
-    for (let x = startX; x < width; x += cellSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, height);
-      this.ctx.stroke();
+    const startX = (this.offsetX % cellSize) - halfSize;
+    const startY = (this.offsetY % cellSize) - halfSize;
+
+    // Draw Vertical Segments
+    for (let x = startX; x < halfSize; x += cellSize) {
+      for (let y = -halfSize; y < halfSize; y += cellSize) {
+        this.ctx.beginPath();
+        // Start just after the intersection, end just before the next one
+        this.ctx.moveTo(x, y + segmentGap);
+        this.ctx.lineTo(x, y + cellSize - segmentGap);
+        this.ctx.stroke();
+      }
     }
 
-    // Draw horizontal lines
-    for (let y = startY; y < height; y += cellSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(width, y);
-      this.ctx.stroke();
+    // Draw Horizontal Segments
+    for (let y = startY; y < halfSize; y += cellSize) {
+      for (let x = -halfSize; x < halfSize; x += cellSize) {
+        this.ctx.beginPath();
+        // Start just after the intersection, end just before the next one
+        this.ctx.moveTo(x + segmentGap, y);
+        this.ctx.lineTo(x + cellSize - segmentGap, y);
+        this.ctx.stroke();
+      }
     }
 
     this.ctx.restore();

@@ -173,3 +173,24 @@ export function toTitleCase(str) {
   if (!str) return 'N/A';
   return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+/**
+ * Format processing time from milliseconds to readable format
+ * @param {number} timeMs - Time in milliseconds
+ * @returns {string} Formatted time string
+ */
+export function formatProcessingTime(timeMs) {
+  if (!timeMs) return '';
+
+  const minutes = Math.floor(timeMs / 60000);
+  const seconds = Math.floor((timeMs % 60000) / 1000);
+  const milliseconds = timeMs % 1000;
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}.${milliseconds}s`;
+  } else if (seconds > 0) {
+    return `${seconds}.${milliseconds}s`;
+  } else {
+    return `${milliseconds}ms`;
+  }
+}

@@ -21,16 +21,14 @@ SiteFullName.propTypes = {
   className: PropTypes.string,
 };
 
-export const SiteLogo = ({ className = '' }) => {
+export const SiteLogo = ({ className = '', size = 'md' }) => {
   const navigate = useNavigate();
 
   return (
     <Avatar
       onClick={() => navigate('/')}
       className={cn('cursor-pointer rounded-full', className)}
-      size="md"
-      // color="success"
-      // variant="soft"
+      size={size}
       aria-label={`${SITE_NAME} - Go to home`}
     >
       <Avatar.Image alt={SITE_NAME} src="/siteLogo.png" />
@@ -41,6 +39,7 @@ export const SiteLogo = ({ className = '' }) => {
 
 SiteLogo.propTypes = {
   className: PropTypes.string,
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
 };
 
 export default function Brand() {

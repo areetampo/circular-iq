@@ -1,4 +1,3 @@
-import { Button, Card } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { Component } from 'react';
 
@@ -53,7 +52,7 @@ class ChartErrorBoundary extends Component {
       }
 
       return (
-        <Card
+        <div
           className={className}
           style={{
             height,
@@ -61,8 +60,11 @@ class ChartErrorBoundary extends Component {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            gap: '1rem',
-            padding: '2rem',
+            gap: '0.75rem',
+            padding: '1.5rem',
+            border: '1px solid rgba(180,160,130,0.25)',
+            borderRadius: '12px',
+            backgroundColor: 'rgba(245,240,232,0.5)',
           }}
         >
           <div style={{ textAlign: 'center' }}>
@@ -70,7 +72,7 @@ class ChartErrorBoundary extends Component {
               style={{
                 fontSize: '2rem',
                 marginBottom: '0.5rem',
-                color: 'var(--danger)',
+                color: '#8b3a3a',
               }}
             >
               ⚠️
@@ -78,9 +80,11 @@ class ChartErrorBoundary extends Component {
             <h3
               style={{
                 margin: 0,
-                color: 'var(--foreground)',
+                color: '#374151',
                 fontSize: '1.125rem',
                 fontWeight: 600,
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
               }}
             >
               Chart Error
@@ -88,8 +92,10 @@ class ChartErrorBoundary extends Component {
             <p
               style={{
                 margin: '0.5rem 0',
-                color: 'var(--muted)',
+                color: '#6b7280',
                 fontSize: '0.875rem',
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
               }}
             >
               Unable to render chart. Please try again.
@@ -100,7 +106,9 @@ class ChartErrorBoundary extends Component {
                   marginTop: '1rem',
                   textAlign: 'left',
                   fontSize: '0.75rem',
-                  color: 'var(--muted)',
+                  color: '#6b7280',
+                  fontFamily:
+                    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
                 }}
               >
                 <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Error Details</summary>
@@ -108,10 +116,12 @@ class ChartErrorBoundary extends Component {
                   style={{
                     marginTop: '0.5rem',
                     padding: '0.5rem',
-                    backgroundColor: 'var(--surface-raised)',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '0.25rem',
                     overflow: 'auto',
                     maxHeight: '100px',
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
                   }}
                 >
                   {this.state.error.toString()}
@@ -120,10 +130,22 @@ class ChartErrorBoundary extends Component {
               </details>
             )}
           </div>
-          <Button onPress={this.handleRetry} size="sm" variant="flat" color="primary">
+          <button
+            onClick={this.handleRetry}
+            style={{
+              padding: '4px 12px',
+              fontSize: '12px',
+              borderRadius: '6px',
+              border: '1px solid rgba(180,160,130,0.3)',
+              backgroundColor: 'transparent',
+              color: '#5a4f42',
+              cursor: 'pointer',
+              fontFamily: 'DM Sans, sans-serif',
+            }}
+          >
             Retry {this.state.retryCount > 0 && `(${this.state.retryCount})`}
-          </Button>
-        </Card>
+          </button>
+        </div>
       );
     }
 

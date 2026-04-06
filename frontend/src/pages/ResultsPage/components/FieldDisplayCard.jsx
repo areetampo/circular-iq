@@ -11,7 +11,7 @@ import { titleize } from '@/lib/formatting';
 export function FieldDisplayCard({ label, value, helpText }) {
   return (
     <div
-      className="p-4 rounded-lg border"
+      className="p-4 rounded-xl border-[1.5px]"
       style={{
         backgroundColor: 'rgba(245,240,232,0.25)',
         borderColor: 'rgba(180,160,130,0.3)',

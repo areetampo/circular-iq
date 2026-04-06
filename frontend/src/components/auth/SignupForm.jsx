@@ -1,4 +1,4 @@
-import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
+import { Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleCheck, CircleX, Eye, EyeOff } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -204,11 +204,11 @@ export function SignupForm({ onSwitchToLogin }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                 />
-                {errors.username && (
+                {/* {errors.username && (
                   <FieldError className="text-xs text-(--color-error) mt-1">
                     {errors.username.message}
                   </FieldError>
-                )}
+                )} */}
               </TextField>
             )}
           />

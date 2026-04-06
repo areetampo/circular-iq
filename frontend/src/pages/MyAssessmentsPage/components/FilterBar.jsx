@@ -95,7 +95,6 @@ export function FilterBar({
             </Button>
           </Tooltip.Trigger>
           <Tooltip.Content showArrow placement="top">
-            <Tooltip.Arrow />
             <p>Select exactly 2 assessments to compare</p>
           </Tooltip.Content>
         </Tooltip>

@@ -49,7 +49,12 @@ export default function DrawerManager() {
       return <SampleTestCasesHeadingInfoDrawer />;
 
     case DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS:
-      return <SpecificSampleTestCaseViewDetailsDrawer testCase={data?.testCase} />;
+      return (
+        <SpecificSampleTestCaseViewDetailsDrawer
+          testCase={data?.testCase}
+          requestSelectCase={data?.requestSelectCase}
+        />
+      );
 
     case DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS:
       return <ResultsDatabaseEvidenceDetailsDrawer data={data || {}} />;

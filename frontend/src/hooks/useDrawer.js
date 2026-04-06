@@ -67,8 +67,8 @@ export default function useDrawer() {
 
     openSampleTestCasesHeadingInfoDrawer: () => openDrawer(DRAWERS.SAMPLE_TEST_CASES_HEADING_INFO),
 
-    openSpecificSampleTestCaseViewDetailsDrawer: (testCase) =>
-      openDrawer(DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase }),
+    openSpecificSampleTestCaseViewDetailsDrawer: (testCase, requestSelectCase) =>
+      openDrawer(DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase, requestSelectCase }),
 
     openResultsDatabaseEvidenceDetailsDrawer: (evidenceData) =>
       openDrawer(DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS, evidenceData),

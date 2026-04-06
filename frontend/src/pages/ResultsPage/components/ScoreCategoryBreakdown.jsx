@@ -30,7 +30,7 @@ export function ScoreCategoryBreakdown({ actualResult }) {
             <p className="text-xs text-(--color-text-secondary) mb-4 leading-relaxed">
               {data.description}
             </p>
-            <div className="space-y-1">
+            <div className="space-y-1 space-x-2">
               {data.factors?.map((factor, i) => (
                 <Chip key={i} variant="factor" className="text-xs">
                   {factor.name}: {factor.score}

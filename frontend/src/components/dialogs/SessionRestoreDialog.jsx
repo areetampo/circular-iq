@@ -1,6 +1,6 @@
 import { AlertDialog } from '@heroui/react';
 import { FileCheck, RefreshCw } from 'lucide-react';
-import PropTypes from 'prop-types';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -16,19 +16,12 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  * removed because form inputs are now always synced from persisted session.
  * Restore Results remains available when a results snapshot exists.
  */
-export function SessionRestoreDialog(props) {
-  const {
-    isOpen: propIsOpen,
-    onDismiss: propOnDismiss,
-    sessionData: propSessionData,
-  } = props || {};
-
+function SessionRestoreDialogContent() {
   const { isDialogOpen, dialog, onClose } = useGlobalDialog();
   const navigate = useNavigate();
+  const isClosingRef = useRef(false);
 
-  const usingProps = typeof propIsOpen !== 'undefined';
-  const isOpen = usingProps ? Boolean(propIsOpen) : isDialogOpen;
-  const sessionData = usingProps ? propSessionData : dialog?.data?.sessionData;
+  const sessionData = dialog?.data?.sessionData;
 
   // Check if there are actual inputs (not just empty object)
   const hasInputs = Boolean(
@@ -72,108 +65,131 @@ export function SessionRestoreDialog(props) {
     });
   };
 
-  const handleCancel = () => {
-    if (!usingProps) onClose();
-    // Stay on the same page when canceling
-    navigate(location.pathname);
-  };
+  // Reset closing flag when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      isClosingRef.current = false;
+    }
+  }, [isDialogOpen]);
 
-  const handleRestoreResults = () => {
-    if (!usingProps) onClose();
-    const resultsData =
-      sessionData?.results || sessionData?.calculatedResults || sessionData?.result_json;
-    navigate('/results', {
-      state: {
-        result: resultsData,
-        scoreData: resultsData,
-        isRestored: true,
-        formData: {
-          businessProblem:
-            sessionData?.inputs?.businessProblem || sessionData?.businessProblem || '',
-          businessSolution:
-            sessionData?.inputs?.businessSolution || sessionData?.businessSolution || '',
-          evaluationParameters: sessionData?.inputs?.evaluationParameters || {},
-          businessContext: sessionData?.inputs?.businessContext || {},
+  const handleCancel = useCallback(async () => {
+    if (isClosingRef.current) return;
+
+    try {
+      // Stay on the same page when canceling
+      navigate(location.pathname);
+      isClosingRef.current = true;
+      onClose();
+    } catch (error) {
+      console.error('Cancel action failed:', error);
+      isClosingRef.current = true;
+      onClose();
+    }
+  }, [onClose, navigate]);
+
+  const handleRestoreResults = useCallback(async () => {
+    if (isClosingRef.current) return;
+
+    try {
+      const resultsData =
+        sessionData?.results || sessionData?.calculatedResults || sessionData?.result_json;
+      navigate('/results', {
+        state: {
+          result: resultsData,
+          scoreData: resultsData,
+          isRestored: true,
+          formData: {
+            businessProblem:
+              sessionData?.inputs?.businessProblem || sessionData?.businessProblem || '',
+            businessSolution:
+              sessionData?.inputs?.businessSolution || sessionData?.businessSolution || '',
+            evaluationParameters: sessionData?.inputs?.evaluationParameters || {},
+            businessContext: sessionData?.inputs?.businessContext || {},
+          },
+          fromAnonymous: sessionData?.fromAnonymous || false,
         },
-        fromAnonymous: sessionData?.fromAnonymous || false,
-      },
-    });
-  };
+      });
+      isClosingRef.current = true;
+      onClose();
+    } catch (error) {
+      console.error('Restore results action failed:', error);
+      isClosingRef.current = true;
+      onClose();
+    }
+  }, [sessionData, navigate, onClose]);
+
+  const handleBackdropChange = useCallback(
+    (newOpen) => {
+      // Prevent reopening if we're in the middle of closing
+      if (isClosingRef.current && newOpen) {
+        return;
+      }
+
+      if (!newOpen) {
+        isClosingRef.current = true;
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
   if (!hasInputs && !hasResults) return null;
+  if (!isDialogOpen) return null;
 
   return (
     <AlertDialog>
       <AlertDialog.Backdrop
-        isOpen={isOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            if (!usingProps) onClose();
-          }
-        }}
+        isOpen={true}
+        onOpenChange={handleBackdropChange}
         isDismissable={false}
         isKeyboardDismissDisabled={true}
       >
         <AlertDialog.Container placement="center" size="sm">
-          <AlertDialog.Dialog>
-            {({ close }) => (
-              <>
-                <AlertDialog.Header>
-                  <AlertDialog.Icon
-                    status="success"
-                    className="alert-dialog__icon alert-dialog__icon--success"
-                  >
-                    <RefreshCw size={20} />
-                  </AlertDialog.Icon>
-                  <AlertDialog.Heading>
-                    Restore Previous Session from {formatDate(sessionData?.timestamp)}?
-                  </AlertDialog.Heading>
-                </AlertDialog.Header>
+          <AlertDialog.Dialog aria-label="Restore Previous Session">
+            <AlertDialog.Header>
+              <AlertDialog.Icon
+                status="success"
+                className="alert-dialog__icon alert-dialog__icon--success"
+              >
+                <RefreshCw size={20} />
+              </AlertDialog.Icon>
+              <AlertDialog.Heading>
+                Restore Previous Session from {formatDate(sessionData?.timestamp)}?
+              </AlertDialog.Heading>
+            </AlertDialog.Header>
 
-                <div className="border-t border-[rgba(180,160,130,0.15)] my-4"></div>
+            <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+              Your inputs are already saved locally — you can restore calculated results below or
+              continue from your saved inputs.
+              <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-md p-1 px-2 flex items-center gap-3 mt-4">
+                <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-primary)">
+                    Calculated results
+                  </p>
+                  <p className="text-xs text-(--color-text-muted) mt-0.5">
+                    {hasResults
+                      ? 'You have unsaved assessment results'
+                      : 'No calculated results found to restore.'}
+                  </p>
+                </div>
+              </div>
+            </AlertDialog.Body>
 
-                <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
-                  Your inputs are already saved locally — you can restore calculated results below
-                  or continue from your saved inputs.
-                  <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-md p-1 px-2 flex items-center gap-3 mt-4">
-                    <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-(--color-text-primary)">
-                        Calculated results
-                      </p>
-                      <p className="text-xs text-(--color-text-muted) mt-0.5">
-                        {hasResults
-                          ? 'You have unsaved assessment results'
-                          : 'No calculated results found to restore.'}
-                      </p>
-                    </div>
-                  </div>
-                </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <Button variant="ghost" onPress={handleCancel} className="flex-1">
+                Cancel
+              </Button>
 
-                <AlertDialog.Footer>
-                  <Button
-                    variant="ghost"
-                    onPress={() => {
-                      handleCancel();
-                      close();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-
-                  <Button
-                    variant="teal"
-                    onPress={() => {
-                      handleRestoreResults();
-                      close();
-                    }}
-                    isDisabled={!hasResults}
-                  >
-                    Restore Results
-                  </Button>
-                </AlertDialog.Footer>
-              </>
-            )}
+              <Button
+                variant="teal"
+                onPress={handleRestoreResults}
+                isDisabled={!hasResults}
+                className="flex-1"
+              >
+                Restore Results
+              </Button>
+            </AlertDialog.Footer>
           </AlertDialog.Dialog>
         </AlertDialog.Container>
       </AlertDialog.Backdrop>
@@ -181,16 +197,26 @@ export function SessionRestoreDialog(props) {
   );
 }
 
+// Memoized to prevent duplicate renders from DialogManager
+const MemoizedContent = React.memo(SessionRestoreDialogContent);
+
+// Memoized wrapper - only renders content when dialog is actually open
+export const SessionRestoreDialog = React.memo(function SessionRestoreDialog() {
+  const { isDialogOpen } = useGlobalDialog();
+
+  // Return null when closed - this is critical for preventing double-render issues
+  if (!isDialogOpen) {
+    return null;
+  }
+
+  return <MemoizedContent key="session-restore-dialog" />;
+});
+
 SessionRestoreDialog.propTypes = {
-  isOpen: PropTypes.bool,
-  onDismiss: PropTypes.func,
-  sessionData: PropTypes.shape({
-    inputs: PropTypes.object,
-    results: PropTypes.object,
-    calculatedResults: PropTypes.object,
-    timestamp: PropTypes.string,
-    fromAnonymous: PropTypes.bool,
-  }),
+  // Props are no longer used - dialog gets data from useGlobalDialog
 };
+
+// Legacy export for backward compatibility
+SessionRestoreDialog.Content = SessionRestoreDialogContent;
 
 export default SessionRestoreDialog;

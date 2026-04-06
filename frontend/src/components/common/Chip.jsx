@@ -19,14 +19,14 @@ const variantStyles = {
 
   // Public/Private chips - simple design for AssessmentListItem
   // Minimal, clean appearance with color tints
-  'access-type': ['font-medium text-xs', 'transition-all duration-200'].join(' '),
+  'access-type': ['font-medium text-xs border', 'transition-all duration-200'].join(' '),
 
   // Source chips - for database evidence cards
   // Clean, informational style with distinct appearance
   source: [
     'font-medium text-xs',
-    'bg-[#d4c8b8] text-[#2a1f0f]',
-    'border border-[#c0b4a4]',
+    'bg-[oklch(0.92_0.02_240/0.6)] text-[oklch(0.4_0.05_240)]',
+    'border border-[oklch(0.8_0.03_240)]',
     'transition-all duration-200',
   ].join(' '),
 
@@ -56,7 +56,7 @@ const variantStyles = {
   // Used throughout results pages
   factor: [
     'font-medium text-xs',
-    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'bg-[#d4c8b8] text-[#3a2f1f]',
     'border border-[#c0b4a4]',
     'transition-all duration-200',
   ].join(' '),
@@ -65,7 +65,7 @@ const variantStyles = {
   // Can be combined with color prop
   status: [
     'font-semibold text-xs tracking-wider uppercase',
-    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'bg-[#d4c8b8] text-[#3a2f1f]',
     'border border-[#c0b4a4]',
     'transition-all duration-200',
   ].join(' '),
@@ -74,7 +74,7 @@ const variantStyles = {
   // Neutral, clean style
   info: [
     'font-medium text-xs',
-    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'bg-[#d4c8b8] text-[#3a2f1f]',
     'border border-[#c0b4a4]',
     'transition-all duration-200',
   ].join(' '),
@@ -83,7 +83,7 @@ const variantStyles = {
   // Minimal, monospace style
   case: [
     'font-mono text-xs',
-    'bg-[#d4c8b8] text-[#2a1f0f]',
+    'bg-[#d4c8b8] text-[#3a2f1f]',
     'border border-[#c0b4a4]',
     'transition-all duration-200',
   ].join(' '),
@@ -115,9 +115,9 @@ const getColorOverrides = (variant, color, active) => {
   if (variant === 'access-type') {
     switch (color) {
       case 'public':
-        return 'bg-[#c3e6c3] text-[#1a4016] border-[#a8d2a8]';
+        return 'bg-[#e8f5e8] text-[#2d5a2d] border-[#d4edd4]';
       case 'private':
-        return 'bg-[#f50f0f22] text-[#991b1b] border-[#fca5a5]';
+        return 'bg-[#ffe8e8] text-[#a52a2a] border-[#ffd4d4]';
       default:
         return 'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border)]';
     }
@@ -149,7 +149,20 @@ const getColorOverrides = (variant, color, active) => {
     }
   }
 
-  if (color && variant !== 'match' && variant !== 'severity') {
+  if (variant === 'status') {
+    switch (color) {
+      case 'success':
+        return 'bg-[rgba(74,124,89,0.15)] text-[#4a7c59] border-[rgba(74,124,89,0.3)]';
+      case 'warning':
+        return 'bg-[rgba(176,125,58,0.15)] text-[#b07d3a] border-[rgba(176,125,58,0.3)]';
+      case 'danger':
+        return 'bg-[rgba(139,58,58,0.15)] text-[#8b3a3a] border-[rgba(139,58,58,0.3)]';
+      default:
+        return 'bg-[#e0d4c0] text-[#3a2c18] border-[#d0c0b0]';
+    }
+  }
+
+  if (color && variant !== 'match' && variant !== 'severity' && variant !== 'status') {
     switch (color) {
       case 'success':
         return 'border-[var(--color-success)] text-[var(--color-success)]';
