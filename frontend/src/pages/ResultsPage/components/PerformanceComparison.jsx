@@ -27,7 +27,7 @@ export function PerformanceComparison({ resolvedRadarData, radarConfigs, detailL
             <RadarChart
               data={resolvedRadarData}
               radarConfigs={radarConfigs}
-              height={380}
+              height={440}
               showLegend={true}
               showTooltip={true}
               isLoading={detailLoading}

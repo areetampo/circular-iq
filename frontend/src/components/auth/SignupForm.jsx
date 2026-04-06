@@ -340,7 +340,7 @@ export function SignupForm({ onSwitchToLogin }) {
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-(--color-accent) hover:underline font-medium"
+          className="text-(--color-accent) hover:underline font-medium cursor-pointer"
         >
           Sign in
         </button>

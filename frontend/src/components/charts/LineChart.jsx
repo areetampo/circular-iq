@@ -1,15 +1,28 @@
 import { Skeleton } from '@heroui/react';
-import { LineChart as MuiLineChart } from '@mui/x-charts/LineChart';
 import PropTypes from 'prop-types';
-import { useMemo } from 'react';
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 const FONT_FAMILY =
   'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace';
 
-/**
- * LineChart Component
- * Following MUI X-Charts demo patterns exactly
- */
+const TICK_STYLE = {
+  fontFamily: FONT_FAMILY,
+  fontSize: 13,
+  fontWeight: 500,
+  fill: '#5a4f42',
+};
+
 export default function LineChart({
   data = [],
   lines = [],
@@ -20,148 +33,108 @@ export default function LineChart({
   isLoading = false,
   className,
   colors,
-  showTooltip = true,
-  showGrid = true,
 }) {
-  const chartContent = useMemo(() => {
-    if (!data.length || !lines.length) {
-      return (
-        <div
-          style={{
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#374151',
-            fontSize: '0.875rem',
-            fontFamily: FONT_FAMILY,
-          }}
-        >
-          No data available
-        </div>
-      );
-    }
-
-    // Transform lines to MUI X Charts series format
-    const series = lines.map((line, index) => ({
-      data: data.map((item) => item[line.dataKey || line.id] || 0),
-      label: line.name || line.dataKey || line.id,
-      id: line.dataKey || line.id || `line-${index}`,
-      color: line.stroke || line.color || colors?.[index],
-      showMark: line.showMark !== undefined ? line.showMark : false,
-      curve: line.curve || 'monotone',
-      connectNulls: line.connectNulls || false,
-    }));
-
-    // Extract x-axis labels from data
-    const xLabels = data.map((item) => item[xAxisKey] || '');
-
-    return (
-      <MuiLineChart
-        series={series}
-        xAxis={[
-          {
-            data: xLabels,
-            scaleType: 'point',
-            height: 44,
-            valueFormatter: (value) => value?.replace('2026-', '') ?? value,
-            tickLabelStyle: {
-              fill: '#374151',
-              fontSize: 12,
-              fontFamily: FONT_FAMILY,
-              textAnchor: 'end',
-              dominantBaseline: 'auto',
-            },
-            labelStyle: {
-              fill: '#374151',
-              fontSize: 13,
-              fontFamily: FONT_FAMILY,
-              fontWeight: 600,
-              textTransform: 'capitalize',
-            },
-          },
-        ]}
-        yAxis={[
-          {
-            width: 50,
-            tickMinStep: 1,
-            tickLabelStyle: {
-              fill: '#374151',
-              fontSize: 12,
-              fontFamily: FONT_FAMILY,
-            },
-            labelStyle: {
-              fill: '#374151',
-              fontSize: 13,
-              fontFamily: FONT_FAMILY,
-              fontWeight: 600,
-              textTransform: 'capitalize',
-            },
-          },
-        ]}
-        height={height}
-        colors={colors || ['#1e40af', '#dc2626', '#059669', '#d97706', '#7c3aed']}
-        margin={{ top: 16, right: 32, bottom: 48, left: 48 }}
-        slotProps={{
-          legend: {
-            hidden: !showLegend,
-            labelStyle: {
-              fill: '#374151',
-              fontSize: 12,
-              fontFamily: FONT_FAMILY,
-              fontWeight: 600,
-            },
-          },
-        }}
-        sx={{
-          fontFamily: FONT_FAMILY,
-          fontSize: 12,
-          '& .MuiLineElement-root': {
-            strokeWidth: 2.5,
-          },
-          '& .MuiMarkElement-root': {
-            strokeWidth: 2,
-          },
-          '& .MuiChartsAxis-label': {
-            fontFamily: FONT_FAMILY,
-            fontSize: 13,
-            fontWeight: 600,
-          },
-          '& .MuiChartsLegend-root': {
-            fontFamily: FONT_FAMILY,
-            fontSize: 12,
-          },
-          '& .MuiChartsLegend-label': {
-            fontFamily: FONT_FAMILY,
-            fontSize: 12,
-            fontWeight: 600,
-          },
-        }}
-      />
-    );
-  }, [data, lines, height, xAxisKey, showLegend, colors, showTooltip, showGrid]);
-
   if (isLoading) {
     return (
       <div className={className} style={{ height }}>
-        <div className="w-full h-full flex items-center justify-center">
-          <Skeleton className="w-full h-full" />
-        </div>
+        <Skeleton className="w-full h-full" />
       </div>
     );
   }
 
+  if (!data.length || !lines.length) {
+    return (
+      <div
+        className={className}
+        style={{
+          height,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: FONT_FAMILY,
+          fontSize: 13,
+          color: '#9a8f82',
+        }}
+      >
+        No data available
+      </div>
+    );
+  }
+
+  const config = Object.fromEntries(
+    lines.map((line, i) => [
+      line.dataKey || line.id,
+      {
+        label: line.name || line.dataKey || line.id,
+        color: line.stroke || line.color || colors?.[i] || `var(--chart-${(i % 5) + 1})`,
+      },
+    ]),
+  );
+
+  // Shorten "2026-W03" → "W03" for x-axis labels to prevent crowding
+  const formatXLabel = (val) => {
+    if (typeof val === 'string' && /^\d{4}-W\d+$/.test(val)) {
+      return val.replace(/^\d{4}-/, '');
+    }
+    return val;
+  };
+
   return (
-    <div className={className} style={{ width: '100%', height: height, fontFamily: FONT_FAMILY }}>
-      {chartContent}
-    </div>
+    <ChartContainer config={config} className={className} style={{ height }} aria-label={ariaLabel}>
+      <ResponsiveContainer width="100%" height={height}>
+        <RechartsLineChart data={data} margin={{ top: 16, right: 24, bottom: 24, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="rgba(180,160,130,0.15)" strokeDasharray="3 3" />
+          <XAxis
+            dataKey={xAxisKey}
+            tick={TICK_STYLE}
+            tickLine={false}
+            axisLine={{ stroke: 'rgba(180,160,130,0.3)' }}
+            tickFormatter={formatXLabel}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tick={TICK_STYLE}
+            tickLine={false}
+            axisLine={false}
+            allowDecimals={false}
+            width={36}
+          />
+          <Tooltip
+            content={<ChartTooltipContent />}
+            cursor={{ stroke: 'rgba(180,160,130,0.3)', strokeWidth: 1 }}
+          />
+          {showLegend && lines.length > 1 && (
+            <Legend
+              wrapperStyle={{
+                fontFamily: FONT_FAMILY,
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#5a4f42',
+                paddingTop: 8,
+              }}
+            />
+          )}
+          {lines.map((line, i) => (
+            <Line
+              key={line.dataKey || line.id}
+              type={line.curve || 'monotone'}
+              dataKey={line.dataKey || line.id}
+              name={line.name || line.dataKey || line.id}
+              stroke={line.stroke || line.color || colors?.[i] || `var(--chart-${(i % 5) + 1})`}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4, strokeWidth: 0 }}
+              connectNulls={line.connectNulls || false}
+            />
+          ))}
+        </RechartsLineChart>
+      </ResponsiveContainer>
+    </ChartContainer>
   );
 }
 
 LineChart.propTypes = {
-  /** Array of data objects for chart */
   data: PropTypes.arrayOf(PropTypes.object),
-  /** Array of line configuration objects */
   lines: PropTypes.arrayOf(
     PropTypes.shape({
       dataKey: PropTypes.string,
@@ -174,22 +147,13 @@ LineChart.propTypes = {
       connectNulls: PropTypes.bool,
     }),
   ),
-  /** Height of the chart in pixels */
   height: PropTypes.number,
-  /** Key in data objects for x-axis values */
   xAxisKey: PropTypes.string,
-  /** Whether to show legend */
   showLegend: PropTypes.bool,
-  /** Accessibility label */
   ariaLabel: PropTypes.string,
-  /** Whether to show loading skeleton */
   isLoading: PropTypes.bool,
-  /** Additional CSS classes */
   className: PropTypes.string,
-  /** Custom color palette */
   colors: PropTypes.arrayOf(PropTypes.string),
-  /** Whether to show tooltip */
   showTooltip: PropTypes.bool,
-  /** Whether to show grid */
   showGrid: PropTypes.bool,
 };

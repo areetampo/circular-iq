@@ -817,15 +817,19 @@ export default function DashboardPage() {
           <div className="space-y-8">
             {/* Sample charts for non-logged-in users */}
             <ChartPanel title="Your Assessments by Risk" isLoading={false} chartHeight="250px">
-              {renderPieOrSingle(
-                [
+              <PieChart
+                data={[
                   { name: 'Low Risk', value: 42 },
                   { name: 'Medium Risk', value: 38 },
                   { name: 'High Risk', value: 20 },
-                ],
-                RISK_COLORS,
-                'No risk data available',
-              )}
+                ]}
+                dataKey="value"
+                nameKey="name"
+                height={250}
+                showLegend={true}
+                innerRadius={0}
+                colors={RISK_COLORS}
+              />
             </ChartPanel>
           </div>
         )}

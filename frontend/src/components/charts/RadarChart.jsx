@@ -1,41 +1,41 @@
-import { RadarChart } from '@mui/x-charts/RadarChart';
 import PropTypes from 'prop-types';
+import {
+  Legend,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart as RechartsRadarChart,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts';
+
+import { ChartContainer, ChartLegendContent, ChartTooltipContent } from '@/components/ui/chart';
 
 const FONT_FAMILY =
   'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace';
+
+// Two distinct warm palette colors — green for "Your Idea", bronze for "Market Average"
+const SERIES_COLORS = ['#4a7c59', '#b8916a'];
 
 function RadarChartComponent({
   data,
   radarConfigs,
   height = 400,
   showLegend = true,
-  showTooltip = true,
-  isLoading = false,
-  responsive = true,
   className,
   colors,
-  interactive = true,
-  animationDuration = 300,
 }) {
-  // Early return for invalid data
-  if (
-    !data ||
-    !Array.isArray(data) ||
-    data.length === 0 ||
-    !radarConfigs ||
-    !Array.isArray(radarConfigs) ||
-    radarConfigs.length === 0
-  ) {
+  if (!data?.length || !radarConfigs?.length) {
     return (
       <div
         style={{
-          height: `${height}px`,
+          height,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#374151',
-          fontSize: '0.875rem',
           fontFamily: FONT_FAMILY,
+          fontSize: 13,
+          color: '#9a8f82',
         }}
       >
         No data available
@@ -43,110 +43,117 @@ function RadarChartComponent({
     );
   }
 
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          height: `${height}px`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  // Transform data for MUI X Charts
-  const metrics = data.map((item) => item.subject || item.factor || item.name || 'Unknown');
-
-  const series = radarConfigs.map((config, index) => {
-    const seriesData = data.map((item) => Number(item[config.dataKey]) || 0);
-    return {
-      label: config.name,
-      data: seriesData,
-      color: colors?.[index] || config.stroke || '#1e40af',
-      fillArea: config.fillOpacity !== 0,
-    };
-  });
-
-  const maxValue = Math.max(
-    ...radarConfigs.flatMap((config) => data.map((item) => Number(item[config.dataKey]) || 0)),
-    100,
+  const config = Object.fromEntries(
+    radarConfigs.map((cfg, i) => [
+      cfg.dataKey,
+      {
+        label: cfg.name,
+        color: colors?.[i] || SERIES_COLORS[i] || cfg.stroke || SERIES_COLORS[0],
+      },
+    ]),
   );
 
+  const axisKey =
+    data[0]?.subject !== undefined ? 'subject' : data[0]?.factor !== undefined ? 'factor' : 'name';
+
   return (
-    <div
-      className={`w-full ${className || ''}`}
-      style={{
-        height: height || 400,
-        fontFamily: FONT_FAMILY,
-      }}
-    >
-      <div style={{ width: '100%', height: '100%', fontFamily: FONT_FAMILY }}>
-        <RadarChart
-          height={height || 400}
-          series={series}
-          radar={{
-            metrics: metrics.map((metric) => ({ name: metric, max: maxValue })),
-            startAngle: -90,
-          }}
-          margin={{ top: 60, right: 60, bottom: 60, left: 60 }}
-          sx={{
-            fontFamily: FONT_FAMILY,
-            '& .MuiChartsAxis-root': {
-              stroke: '#e5e7eb',
-              strokeWidth: 1,
-            },
-            '& .MuiChartsAxis-label': {
-              fill: '#374151',
-              fontSize: 12,
-              fontWeight: 400,
+    <ChartContainer config={config} className={className} style={{ height }}>
+      <ResponsiveContainer width="100%" height={height}>
+        <RechartsRadarChart
+          data={data}
+          margin={{ top: 5, right: 20, bottom: 5, left: 20 }}
+          outerRadius="90%"
+        >
+          <PolarGrid stroke="rgba(180,160,130,0.6)" strokeWidth={1} />
+          <PolarAngleAxis
+            dataKey={axisKey}
+            tick={{
               fontFamily: FONT_FAMILY,
-            },
-            '& .MuiChartsLegend-root': {
-              fontSize: 12,
+              fontSize: 15,
               fontWeight: 500,
-              fontFamily: FONT_FAMILY,
-            },
-            '& .MuiChartsLegend-label': {
-              fontFamily: FONT_FAMILY,
-            },
-            '& text': {
-              fontFamily: FONT_FAMILY,
-            },
-          }}
-        />
-      </div>
-    </div>
+              fill: '#5a4f42',
+            }}
+            tickLine={false}
+          />
+          <Tooltip content={<ChartTooltipContent />} />
+          {radarConfigs.map((cfg, i) => {
+            const seriesColor = colors?.[i] || SERIES_COLORS[i] || cfg.stroke || SERIES_COLORS[0];
+            const isFirst = i === 0;
+
+            return (
+              <Radar
+                key={cfg.dataKey}
+                name={cfg.name}
+                dataKey={cfg.dataKey}
+                stroke={seriesColor}
+                fill={seriesColor}
+                fillOpacity={cfg.fillOpacity !== undefined ? cfg.fillOpacity : 0.15}
+                strokeWidth={isFirst ? 2 : 1.5}
+                dot={
+                  isFirst
+                    ? { r: 4, fill: seriesColor, strokeWidth: 0 }
+                    : { r: 3, fill: seriesColor, strokeWidth: 0 }
+                }
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                label={
+                  isFirst
+                    ? (props) => {
+                        const { x, y, value } = props;
+                        if (value === undefined || value === null) return null;
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            dy={-10}
+                            textAnchor="middle"
+                            style={{
+                              fontFamily: FONT_FAMILY,
+                              fontSize: 13,
+                              fontWeight: 600,
+                              fill: seriesColor,
+                            }}
+                          >
+                            {typeof value === 'number' ? Math.round(value) : value}
+                          </text>
+                        );
+                      }
+                    : false
+                }
+              />
+            );
+          })}
+          {showLegend && radarConfigs.length > 1 && (
+            <Legend
+              content={({ payload }) => <ChartLegendContent payload={payload} />}
+              verticalAlign="bottom"
+              align="center"
+              wrapperStyle={{ paddingTop: 60 }}
+            />
+          )}
+        </RechartsRadarChart>
+      </ResponsiveContainer>
+    </ChartContainer>
   );
 }
 
 RadarChartComponent.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      subject: PropTypes.string,
-      factor: PropTypes.string,
-      name: PropTypes.string,
-    }),
-  ).isRequired,
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
   radarConfigs: PropTypes.arrayOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
       dataKey: PropTypes.string.isRequired,
       stroke: PropTypes.string,
       fillOpacity: PropTypes.number,
-      strokeWidth: PropTypes.number,
     }),
   ).isRequired,
   height: PropTypes.number,
   showLegend: PropTypes.bool,
+  className: PropTypes.string,
+  colors: PropTypes.arrayOf(PropTypes.string),
+  // These props are kept for interface compat but unused in Recharts:
   showTooltip: PropTypes.bool,
   isLoading: PropTypes.bool,
   responsive: PropTypes.bool,
-  className: PropTypes.string,
-  colors: PropTypes.arrayOf(PropTypes.string),
   interactive: PropTypes.bool,
   animationDuration: PropTypes.number,
 };
