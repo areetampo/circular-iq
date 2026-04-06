@@ -1,5 +1,10 @@
 {
   "servers": {
+    "tailwind-docs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "tailwindcss-mcp-server@latest"]
+    },
     "heroui-react": {
       "type": "stdio",
       "command": "npx",

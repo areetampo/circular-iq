@@ -10,7 +10,7 @@ export default function NotFoundPage() {
       <div className="w-full max-w-2xl text-center">
         {/* 404 numeral — large editorial */}
         <p
-          className="text-[120px] font-bold leading-none select-none"
+          className="text-[7.5rem] font-bold leading-none select-none"
           style={{
             color: 'var(--color-border-strong)',
             fontFamily: 'Lora, serif',
@@ -22,13 +22,13 @@ export default function NotFoundPage() {
 
         {/* Heading + description */}
         <h1
-          className="heading-display text-[26px] mt-2"
+          className="heading-display text-[1.625rem] mt-2"
           style={{ color: 'var(--color-text-primary)' }}
         >
           Page Not Found
         </h1>
         <p
-          className="mt-3 text-[15px] max-w-md mx-auto leading-relaxed"
+          className="mt-3 text-[0.9375rem] max-w-md mx-auto leading-relaxed"
           style={{ color: 'var(--color-text-muted)' }}
         >
           The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or

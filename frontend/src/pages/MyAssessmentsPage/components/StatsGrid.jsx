@@ -15,7 +15,7 @@ const titleize = (str) => str.replace(/_/g, ' ').replace(/\b\w/g, (char) => char
 // Reusable StatCard component
 const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
   <div className="border-2 border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
-    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
+    <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
       {label}
     </span>
     <span
@@ -27,7 +27,7 @@ const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
     >
       {value}
     </span>
-    <span className="text-[12px] text-(--color-text-muted) mt-0.5">{subtitle}</span>
+    <span className="text-[0.75rem] text-(--color-text-muted) mt-0.5">{subtitle}</span>
   </div>
 );
 
@@ -108,7 +108,7 @@ export function StatsGrid({
 
       {/* Top Industry Card */}
       <div className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)] flex flex-col gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
+        <span className="text-[0.625rem] font-bold uppercase tracking-[0.12em] text-(--color-text-muted)">
           Top Industry
         </span>
 
@@ -163,10 +163,10 @@ export function StatsGrid({
           </div>
         ) : (
           <>
-            <span className="font-(--font-mono) text-[34px] text-(--color-text-primary) tracking-[-0.04em] leading-none truncate">
+            <span className="font-(--font-mono) text-[2.125rem] text-(--color-text-primary) tracking-[-0.04em] leading-none truncate">
               —
             </span>
-            <span className="text-[12px] text-(--color-text-muted) mt-0.5">—</span>
+            <span className="text-[0.75rem] text-(--color-text-muted) mt-0.5">—</span>
           </>
         )}
       </div>

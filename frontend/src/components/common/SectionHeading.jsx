@@ -14,7 +14,7 @@ import { cn } from '@/utils/cn';
 export function SectionHeading({ children, variant = 'large', icon = null, className = '' }) {
   const baseClasses =
     variant === 'large'
-      ? 'font-sans text-[24px] font-bold text-(--foreground) tracking-[-0.02em]'
+      ? 'font-sans text-[1.5rem] font-bold text-(--foreground) tracking-[-0.02em]'
       : 'text-sm uppercase tracking-widest text-(--foreground) font-semibold font-sans';
 
   return (

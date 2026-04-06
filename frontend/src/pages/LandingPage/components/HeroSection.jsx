@@ -32,7 +32,7 @@ export default function HeroSection({
 
             {/* Subtitle */}
             <p
-              className="text-[17px] leading-relaxed max-w-lg mx-auto mb-10 font-normal"
+              className="text-[1.0625rem] leading-relaxed max-w-lg mx-auto mb-10 font-normal"
               style={{ color: 'var(--muted)' }}
             >
               Get an evidence-backed circularity score in seconds, grounded in real-world case
@@ -48,7 +48,7 @@ export default function HeroSection({
               ].map(({ value, label }) => (
                 <div key={value} className="text-center">
                   <p
-                    className="text-[28px] font-semibold leading-none mb-2"
+                    className="text-[1.75rem] font-semibold leading-none mb-2"
                     style={{
                       color: 'var(--color-text-primary)',
                       fontFamily: 'var(--font-display)',
@@ -57,7 +57,7 @@ export default function HeroSection({
                     {value}
                   </p>
                   <p
-                    className="text-[11px] leading-snug whitespace-pre-line"
+                    className="text-[0.6875rem] leading-snug whitespace-pre-line"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     {label}

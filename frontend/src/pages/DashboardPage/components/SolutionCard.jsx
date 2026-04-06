@@ -9,12 +9,12 @@ function SolutionCard({ title, preview, category, score, onView }) {
       onClick={onView}
     >
       {/* Title - no truncation, let it wrap to 2 lines max */}
-      <h4 className="text-[15px] font-semibold text-(--color-text-primary) mb-1 leading-[1.35] line-clamp-2">
+      <h4 className="text-[0.9375rem] font-semibold text-(--color-text-primary) mb-1 leading-[1.35] line-clamp-2">
         {title}
       </h4>
 
       {/* Description - clamp to 3 lines */}
-      <p className="text-[13px] text-(--color-text-secondary) leading-[1.6] line-clamp-3 mb-2">
+      <p className="text-[0.8125rem] text-(--color-text-secondary) leading-[1.6] line-clamp-3 mb-2">
         {preview}
       </p>
 
@@ -23,7 +23,7 @@ function SolutionCard({ title, preview, category, score, onView }) {
 
       {/* Score */}
       {score && (
-        <div className="font-(--font-mono) text-[22px] font-semibold text-(--color-accent) mt-2">
+        <div className="font-(--font-mono) text-[1.375rem] font-semibold text-(--color-accent) mt-2">
           {score}
         </div>
       )}

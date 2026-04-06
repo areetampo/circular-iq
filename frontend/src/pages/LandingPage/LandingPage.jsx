@@ -510,13 +510,13 @@ export default function LandingPage() {
             {/* Section heading */}
             <div className="mb-10">
               <h2
-                className="text-[22px] font-bold mb-2 tracking-tight"
+                className="text-[1.375rem] font-bold mb-2 tracking-tight"
                 style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)' }}
               >
                 Evaluate Your Circular Economy Business
               </h2>
               <p
-                className="text-[13.5px] leading-relaxed"
+                className="text-[0.8438rem] leading-relaxed"
                 style={{ color: 'var(--color-text-secondary)' }}
               >
                 Describe your business idea using the same structure as real circular economy
@@ -793,7 +793,7 @@ export default function LandingPage() {
                           <div className="flex flex-col gap-1 text-left flex-1">
                             <div className="flex items-center gap-2">
                               <span
-                                className="font-semibold text-[14px] tracking-[-0.01em] leading-6"
+                                className="font-semibold text-[0.875rem] tracking-[-0.01em] leading-6"
                                 style={{
                                   color: 'var(--color-text-primary)',
                                   fontFamily: 'var(--font-body)',
@@ -813,7 +813,7 @@ export default function LandingPage() {
                               />
                             </div>
                             <span
-                              className="text-[11px] leading-4"
+                              className="text-[0.6875rem] leading-4"
                               style={{ color: 'var(--color-text-muted)' }}
                             >
                               Auto-fill form with curated examples for quick testing

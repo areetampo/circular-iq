@@ -24,7 +24,7 @@ export default function AuthLeftPanel() {
         {TRUST_SIGNALS.map(({ icon: Icon, text }) => (
           <li
             key={text}
-            className="flex items-center gap-3 text-[15px] text-(--color-text-secondary)"
+            className="flex items-center gap-3 text-[0.9375rem] text-(--color-text-secondary)"
           >
             <div className="w-2 h-2 rounded-full bg-(--color-accent) opacity-60"></div>
             {text}

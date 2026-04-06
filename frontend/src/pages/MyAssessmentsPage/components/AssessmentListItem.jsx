@@ -50,19 +50,19 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           <h3 className="text-[1rem] font-medium text-(--color-text-primary) leading-tight truncate mb-1 font-mono">
             {assessment.title || 'Untitled Assessment'}
           </h3>
-          <p className="text-[12px] text-(--color-text-muted) mb-2">{formattedDate}</p>
+          <p className="text-[0.75rem] text-(--color-text-muted) mb-2">{formattedDate}</p>
 
           {/* Tags row */}
           <div className="flex items-center gap-2 flex-wrap">
             {assessment.industry && (
-              <Chip variant="factor" className="text-[10px]">
+              <Chip variant="factor" className="text-[0.625rem]">
                 {assessment.industry}
               </Chip>
             )}
             <Chip
               variant="access-type"
               color={assessment.is_public ? 'public' : 'private'}
-              className="text-[10px]"
+              className="text-[0.625rem]"
             >
               {assessment.is_public ? 'Public' : 'Private'}
             </Chip>
@@ -79,7 +79,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               {assessment.overall_score} / 100
             </span>
           ) : (
-            <span className="text-[11px] font-semibold tracking-widest uppercase text-(--color-text-muted)">
+            <span className="text-[0.6875rem] font-semibold tracking-widest uppercase text-(--color-text-muted)">
               UNRATED
             </span>
           )}
@@ -155,7 +155,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <div className="flex items-center gap-3">
           {/* Select to compare checkbox */}
           <label
-            className="flex items-center gap-1.5 text-[12px] text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer"
             onClick={(e) => e.stopPropagation()}
           >
             <input
@@ -174,7 +174,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 
           {/* Public/Private checkbox */}
           <label
-            className="flex items-center gap-1.5 text-[12px] text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer"
             onClick={(e) => e.stopPropagation()}
           >
             <input

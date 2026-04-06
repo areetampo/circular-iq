@@ -982,7 +982,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-xl px-3 py-1">
             {/* Toggle row */}
             {isResultsRoute ? (
-              <span className="text-[13px] opacity-80 font-medium">
+              <span className="text-[0.8125rem] opacity-80 font-medium">
                 Save assessment to enable sharing
               </span>
             ) : (
@@ -996,9 +996,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               >
                 <Checkbox.Content>
                   <Label htmlFor="assessment-public-toggle">
-                    <p className="text-[13px] font-semibold text-(--color-text-primary)">
+                    <p className="text-[0.8125rem] font-semibold text-(--color-text-primary)">
                       Public sharing{' '}
-                      <span className="text-[11px] opacity-70 ml-0.5">
+                      <span className="text-[0.6875rem] opacity-70 ml-0.5">
                         (
                         {(
                           optimisticIsPublic !== null

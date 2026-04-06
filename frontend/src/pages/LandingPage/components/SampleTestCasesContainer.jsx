@@ -290,7 +290,7 @@ export default function SampleTestCasesContainer({
                   return (
                     <span
                       key={key}
-                      className="text-[10px] font-medium px-2 py-0.5 rounded border"
+                      className="text-[0.625rem] font-medium px-2 py-0.5 rounded border"
                       style={{
                         backgroundColor: style.bg,
                         color: style.color,

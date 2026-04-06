@@ -46,7 +46,7 @@ export function ScoreOverviewSection({
 
       {/* Main Score Display */}
       <div className="text-center mb-8">
-        <div className="font-(--font-mono) text-[72px] font-light text-(--color-text-primary) tracking-[-0.04em]">
+        <div className="font-(--font-mono) text-[4.5rem] font-light text-(--color-text-primary) tracking-[-0.04em]">
           {overallScore || 0}
         </div>
         <div className="text-2xl text-(--color-text-muted)">/100</div>
@@ -54,7 +54,7 @@ export function ScoreOverviewSection({
           Circularity Score
         </div>
         {actualResult.metadata?.short_description && (
-          <p className="font-sans text-[20px] text-(--color-text-primary) leading-[1.4] not-italic mb-2 mt-6 max-w-2xl mx-auto">
+          <p className="font-sans text-[1.25rem] text-(--color-text-primary) leading-[1.4] not-italic mb-2 mt-6 max-w-2xl mx-auto">
             {actualResult.metadata.short_description}
           </p>
         )}
@@ -86,21 +86,21 @@ export function ScoreOverviewSection({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {topFactor && (
           <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
               Strongest Factor
             </div>
-            <div className="text-[14px] font-semibold text-(--color-accent)">{topFactor[0]}</div>
-            <div className="text-[12px] text-(--color-text-muted)">Score: {topFactor[1]}</div>
+            <div className="text-[0.875rem] font-semibold text-(--color-accent)">{topFactor[0]}</div>
+            <div className="text-[0.75rem] text-(--color-text-muted)">Score: {topFactor[1]}</div>
           </div>
         )}
 
         {focusFactor && (
           <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
               Focus Area
             </div>
-            <div className="text-[14px] font-semibold text-(--color-accent)">{focusFactor[0]}</div>
-            <div className="text-[12px] text-(--color-text-muted)">Score: {focusFactor[1]}</div>
+            <div className="text-[0.875rem] font-semibold text-(--color-accent)">{focusFactor[0]}</div>
+            <div className="text-[0.75rem] text-(--color-text-muted)">Score: {focusFactor[1]}</div>
           </div>
         )}
       </div>

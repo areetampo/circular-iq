@@ -28,13 +28,13 @@ function StatCard({ title, value, subtext, loading }) {
 
   return (
     <div className="border-2 border-[rgba(180,160,130,0.3)] rounded-3xl p-5 bg-transparent">
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-(--color-text-muted) mb-1">
+      <p className="text-[0.625rem] font-semibold uppercase tracking-widest text-(--color-text-muted) mb-1">
         {title}
       </p>
       <p className="font-mono text-[1.5rem] font-medium text-(--color-text-primary) tracking-[-0.02em] mt-2">
         {formattedValue ?? '—'}
       </p>
-      {subtext && <p className="text-[12px] mt-1 text-(--color-text-muted)">{subtext}</p>}
+      {subtext && <p className="text-[0.75rem] mt-1 text-(--color-text-muted)">{subtext}</p>}
     </div>
   );
 }

@@ -67,10 +67,10 @@ export function LoginForm({ onSwitchToSignup }) {
     <div className="w-full">
       {/* Header */}
       <div className="text-center mb-7">
-        <h2 className="font-(--font-display) text-[22px] font-semibold tracking-[-0.01em] text-(--color-text-primary) text-center mb-1">
+        <h2 className="font-(--font-display) text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary) text-center mb-1">
           Sign in
         </h2>
-        <p className="font-(--font-body) text-[14px] text-(--color-text-muted) text-center mb-[28px]">
+        <p className="font-(--font-body) text-[0.875rem] text-(--color-text-muted) text-center mb-[28px]">
           Welcome back!
         </p>
       </div>
@@ -85,7 +85,7 @@ export function LoginForm({ onSwitchToSignup }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
+          <Label className="font-(--font-body) text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Username *
           </Label>
           <Controller
@@ -98,7 +98,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   type="text"
                   placeholder="username"
                   disabled={isLoading}
-                  className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                  className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[0.875rem] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -117,7 +117,7 @@ export function LoginForm({ onSwitchToSignup }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[11px] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
+          <Label className="font-(--font-body) text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
             Password *
           </Label>
           <Controller
@@ -131,7 +131,7 @@ export function LoginForm({ onSwitchToSignup }) {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••"
                     disabled={isLoading}
-                    className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[14px] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                    className="w-full h-[42px] bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[0.875rem] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
                     autoComplete="current-password"
                     maxLength={30}
                   />
@@ -156,7 +156,7 @@ export function LoginForm({ onSwitchToSignup }) {
         {/* Submit Button */}
         <Button
           variant="primary"
-          className="w-full h-[42px] bg-(--color-accent) hover:bg-(--color-accent-hover) text-white text-[14px] font-semibold rounded-[9px] transition-colors"
+          className="w-full h-[42px] bg-(--color-accent) hover:bg-(--color-accent-hover) text-white text-[0.875rem] font-semibold rounded-[9px] transition-colors"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -165,7 +165,7 @@ export function LoginForm({ onSwitchToSignup }) {
       </Form>
 
       {/* Toggle link */}
-      <p className="font-(--font-body) text-[13px] text-(--color-text-muted) text-center mt-[18px]">
+      <p className="font-(--font-body) text-[0.8125rem] text-(--color-text-muted) text-center mt-[18px]">
         Don&apos;t have an account?{' '}
         <button
           type="button"

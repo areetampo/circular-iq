@@ -37,7 +37,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
           <ul className="space-y-3">
             {audit.integrity_gaps.map((gap, i) => (
               <li key={i} className="flex items-center gap-3">
-                <Chip variant="status" className="text-[10px]">
+                <Chip variant="status" className="text-[0.625rem]">
                   {gap.severity || 'medium'}
                 </Chip>
                 <span className="text-sm text-(--color-text-secondary)">{gap.issue}</span>

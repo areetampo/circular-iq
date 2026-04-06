@@ -265,11 +265,11 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="pt-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-(--font-display) text-[32px] text-(--color-text-primary) tracking-[-0.02em] flex items-center gap-3">
+          <h1 className="font-(--font-display) text-[2rem] text-(--color-text-primary) tracking-[-0.02em] flex items-center gap-3">
             <Globe size={28} className="text-(--color-success)" strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p className="text-[14px] mt-3 text-(--color-text-secondary) leading-relaxed">
+          <p className="text-[0.875rem] mt-3 text-(--color-text-secondary) leading-relaxed">
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -585,7 +585,7 @@ export default function DashboardPage() {
                 <Lightbulb size={16} className="text-(--color-accent)" />
                 Featured Solutions
               </h3>
-              <p className="text-[14px] text-(--color-text-secondary) mb-4">
+              <p className="text-[0.875rem] text-(--color-text-secondary) mb-4">
                 Explore successful circular economy projects and innovations
               </p>
               <div className="space-y-3">
@@ -607,7 +607,7 @@ export default function DashboardPage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                       placeholder="Search solutions..."
-                      className="w-full pl-10 pr-10 py-2 text-[13px] rounded-2xl focus:outline-none focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
+                      className="w-full pl-10 pr-10 py-2 text-[0.8125rem] rounded-2xl focus:outline-none focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
                       aria-label="Search featured solutions"
                       style={{
                         border: '1px solid rgba(180,160,130,0.3)',
@@ -629,7 +629,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleSearchSubmit}
-                    className="px-4 py-2 text-[12px] font-semibold rounded-2xl transition-colors shrink-0"
+                    className="px-4 py-2 text-[0.75rem] font-semibold rounded-2xl transition-colors shrink-0"
                     style={{ backgroundColor: 'var(--accent)', color: 'white' }}
                   >
                     Search
@@ -642,7 +642,7 @@ export default function DashboardPage() {
                     <button
                       type="button"
                       onClick={() => setCategoryFilter(undefined)}
-                      className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
+                      className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-semibold transition-colors"
                       style={{
                         backgroundColor: !categoryFilter
                           ? 'var(--accent)'
@@ -658,7 +658,7 @@ export default function DashboardPage() {
                         key={cat}
                         type="button"
                         onClick={() => setCategoryFilter(cat)}
-                        className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors"
+                        className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-semibold transition-colors"
                         style={{
                           backgroundColor:
                             categoryFilter === cat ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
@@ -703,13 +703,13 @@ export default function DashboardPage() {
                 ) : (
                   <div className="col-span-full flex flex-col items-center justify-center h-40 text-(--color-text-muted)">
                     <BarChart3 size={32} strokeWidth={1} />
-                    <p className="text-[13px] font-semibold mt-2">No solutions found</p>
+                    <p className="text-[0.8125rem] font-semibold mt-2">No solutions found</p>
                   </div>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="mt-5 pt-4 border-t border-[rgba(180,160,130,0.18)] flex items-center justify-between text-[12px]">
+              <div className="mt-5 pt-4 border-t border-[rgba(180,160,130,0.18)] flex items-center justify-between text-[0.75rem]">
                 <span className="text-(--color-text-muted)">
                   Showing {filteredSolutions?.length ?? 0} solutions
                 </span>

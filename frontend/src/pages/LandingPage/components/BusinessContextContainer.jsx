@@ -61,7 +61,7 @@ function BusinessContextContainer({
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-col gap-1 pl-2">
         <span
-          className="text-[13px] font-semibold tracking-wide uppercase font-mono"
+          className="text-[0.8125rem] font-semibold tracking-wide uppercase font-mono"
           style={{ color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
         >
           {label}
@@ -116,7 +116,7 @@ function BusinessContextContainer({
   return (
     <div className="px-4 pt-2 pb-6 space-y-5">
       <p
-        className="text-[12px] leading-relaxed italic"
+        className="text-[0.75rem] leading-relaxed italic"
         style={{ color: 'var(--color-text-muted)' }}
       >
         These optional fields help the AI generate more precise benchmarks and recommendations. Your
