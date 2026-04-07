@@ -24,12 +24,12 @@ export default function Footer() {
   const navigate = useNavigate();
 
   return (
-    <footer className="relative mt-auto border-t-2 border-border bg-(--color-bg)">
+    <footer className="relative mt-auto border-t-2 border-black/10">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-(--color-bg) to-(--color-bg) opacity-90" />
 
       <div className="relative z-10">
-        <div className="mx-auto max-w-7xl px-6 py-12">
+        <div className="mx-auto max-w-7xl px-8 py-6">
           <div className="grid grid-cols-1 gap-8 xs_sm:grid-cols-2 md:grid-cols-3">
             {/* Brand Section */}
             <motion.div
@@ -130,16 +130,12 @@ export default function Footer() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-            className="mt-12 border-t-2 border-border pt-8"
+            className="mt-4"
           >
-            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
               <p className="font-sans text-xs text-(--color-text-muted)">
                 © 2026 {SITE_FULL_NAME}. All rights reserved.
               </p>
-
-              <div className="flex items-center gap-6 text-xs text-(--color-text-muted)">
-                <span className="font-sans">AI-Powered · Evidence-Based · Circular Economy</span>
-              </div>
             </div>
           </motion.div>
         </div>

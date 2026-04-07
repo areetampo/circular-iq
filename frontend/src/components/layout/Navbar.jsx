@@ -90,7 +90,7 @@ export default function Navbar() {
           {/* Logo + Site Name */}
           <div className="flex items-center gap-3">
             <SiteLogo />
-            <SiteName className="font-display text-sm text-(--color-text-primary)" />
+            <SiteName className="font-display text-lg text-(--color-text-primary)" />
           </div>
 
           {/* Desktop Navigation Links */}
