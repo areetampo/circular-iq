@@ -5,16 +5,16 @@ import { Chip } from '@/components/common';
 function SolutionCard({ title, preview, category, score, onView }) {
   return (
     <div
-      className="border border-[rgba(180,160,130,0.25)] rounded-[14px] p-5 bg-transparent hover:border-[rgba(184,145,106,0.4)] cursor-pointer transition-colors"
+      className="cursor-pointer rounded-[14px] border border-[rgba(180,160,130,0.25)] bg-transparent p-5 transition-colors hover:border-[rgba(184,145,106,0.4)]"
       onClick={onView}
     >
       {/* Title - no truncation, let it wrap to 2 lines max */}
-      <h4 className="text-[0.9375rem] font-semibold text-(--color-text-primary) mb-1 leading-[1.35] line-clamp-2">
+      <h4 className="mb-1 line-clamp-2 text-[0.9375rem] leading-[1.35] font-semibold text-(--color-text-primary)">
         {title}
       </h4>
 
       {/* Description - clamp to 3 lines */}
-      <p className="text-[0.8125rem] text-(--color-text-secondary) leading-[1.6] line-clamp-3 mb-2">
+      <p className="mb-2 line-clamp-3 text-[0.8125rem] leading-[1.6] text-(--color-text-secondary)">
         {preview}
       </p>
 
@@ -23,7 +23,7 @@ function SolutionCard({ title, preview, category, score, onView }) {
 
       {/* Score */}
       {score && (
-        <div className="font-(--font-mono) text-[1.375rem] font-semibold text-(--color-accent) mt-2">
+        <div className="mt-2 font-mono text-[1.375rem] font-semibold text-(--color-accent)">
           {score}
         </div>
       )}

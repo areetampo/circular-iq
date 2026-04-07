@@ -274,14 +274,14 @@ import { ReplaceInputsDialog } from '@/components/dialogs';
 />;
 ```
 
-#### `SessionRestoreDialog`
+#### `ResultsRestoreDialog`
 
 Offers to restore a previous evaluation session.
 
 ```jsx
-import { SessionRestoreDialog } from '@/components/dialogs';
+import { ResultsRestoreDialog } from '@/components/dialogs';
 
-<SessionRestoreDialog isOpen={hasSession} onRestore={handleRestore} onDismiss={handleDismiss} />;
+<ResultsRestoreDialog isOpen={hasSession} onRestore={handleRestore} onDismiss={handleDismiss} />;
 ```
 
 #### `DeleteAssessmentDialog`

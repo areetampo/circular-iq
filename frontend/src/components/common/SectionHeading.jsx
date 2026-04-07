@@ -11,14 +11,19 @@ import { cn } from '@/utils/cn';
  * @param {ReactNode} icon - Optional icon component
  * @param {string} className - Additional CSS classes
  */
-export function SectionHeading({ children, variant = 'large', icon = null, className = '' }) {
+export default function SectionHeading({
+  children,
+  variant = 'large',
+  icon = null,
+  className = '',
+}) {
   const baseClasses =
     variant === 'large'
       ? 'font-sans text-[1.5rem] font-bold text-(--foreground) tracking-[-0.02em]'
       : 'text-sm uppercase tracking-widest text-(--foreground) font-semibold font-sans';
 
   return (
-    <div className={cn('flex items-center gap-2 mb-6', className)}>
+    <div className={cn('mb-6 flex items-center gap-2', className)}>
       {icon && <div className="shrink-0">{icon}</div>}
       <h3 className={baseClasses}>{children}</h3>
     </div>

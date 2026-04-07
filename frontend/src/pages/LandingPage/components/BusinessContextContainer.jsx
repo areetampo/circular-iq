@@ -61,14 +61,14 @@ function BusinessContextContainer({
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-col gap-1 pl-2">
         <span
-          className="text-[0.8125rem] font-semibold tracking-wide uppercase font-mono"
+          className="font-mono text-[0.8125rem] font-semibold tracking-wide uppercase"
           style={{ color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
         >
           {label}
         </span>
         {description && (
           <span
-            className="text-[0.65rem] leading-snug font-mono"
+            className="font-mono text-[0.65rem] leading-snug"
             style={{ color: 'var(--color-text-muted)' }}
           >
             {description}
@@ -114,11 +114,8 @@ function BusinessContextContainer({
   );
 
   return (
-    <div className="px-4 pt-2 pb-6 space-y-5">
-      <p
-        className="text-[0.75rem] leading-relaxed italic"
-        style={{ color: 'var(--color-text-muted)' }}
-      >
+    <div className="space-y-5 px-4 pt-2 pb-6">
+      <p className="text-xs/relaxed italic" style={{ color: 'var(--color-text-muted)' }}>
         These optional fields help the AI generate more precise benchmarks and recommendations. Your
         answers are never stored beyond this session unless you save the assessment.
       </p>
@@ -163,13 +160,13 @@ function BusinessContextContainer({
           control={control}
           render={({ field }) => (
             <div
-              className="flex items-center justify-between p-3 rounded-lg border transition-colors duration-150 cursor-pointer"
+              className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors duration-150"
               onClick={() => field.onChange(!field.value)}
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1 font-mono">
                   <h4 className="text-sm font-medium text-foreground">Partnerships</h4>
-                  <p className="text-xs text-muted font-mono">
+                  <p className="font-mono text-xs text-muted">
                     Do you already have partners for collection, processing, or distribution?
                   </p>
                 </div>
@@ -178,7 +175,7 @@ function BusinessContextContainer({
                 isSelected={field.value === true}
                 onChange={(checked) => field.onChange(checked)}
                 isDisabled={loading}
-                className="[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4"
+                className="**:data-[slot='checkbox-default-indicator--checkmark']:size-4"
                 name="xl-rounded"
               >
                 <Checkbox.Control className="size-6 rounded-full before:rounded-full">

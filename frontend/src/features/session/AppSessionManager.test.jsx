@@ -14,7 +14,7 @@ const openRestoreSpy = vi.fn();
 vi.mock('@/contexts/DialogContext', () => ({
   useGlobalDialog: () => ({
     openSaveAssessmentDialog: openSaveSpy,
-    openSessionRestoreDialog: openRestoreSpy,
+    openResultsRestoreDialog: openRestoreSpy,
     dialog: { type: null },
   }),
 }));
@@ -58,7 +58,7 @@ describe('AppSessionManager (pending-save post-login)', () => {
     expect(openSaveSpy).not.toHaveBeenCalled();
   });
 
-  it('does NOT show SessionRestoreDialog when user is viewing /results with session.results present', async () => {
+  it('does NOT show ResultsRestoreDialog when user is viewing /results with session.results present', async () => {
     const persisted = {
       inputs: {
         businessProblem: 'EXIST',

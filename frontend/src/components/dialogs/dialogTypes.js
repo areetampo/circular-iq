@@ -17,7 +17,7 @@ export const DIALOGS = {
   RENAME_ASSESSMENT: 'rename-assessment',
   REPLACE_INPUTS: 'replace-inputs',
   CONFIRM: 'confirm',
-  SESSION_RESTORE: 'session-restore',
+  SESSION_RESULTS_RESTORE: 'session-results-restore',
   LIMIT_REACHED: 'limit-reached',
 };
 

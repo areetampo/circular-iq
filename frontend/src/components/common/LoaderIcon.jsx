@@ -141,10 +141,10 @@ export default function LoaderIcon({ color = '#8b6f47', isButton = false }) {
   return (
     <div
       className={cn(
-        'transition-all duration-300 ease-in-out flex items-center justify-center shrink-0',
+        `flex shrink-0 items-center justify-center transition-all duration-300 ease-in-out`,
         // If it's a button, use a small fixed square. If not, use the large 24x24 square.
-        isButton ? 'h-5.5 w-5.5' : 'h-24 w-24 mx-auto',
-        visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
+        isButton ? 'size-5.5' : 'mx-auto size-24',
+        visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0',
       )}
     >
       {/* We scale the actual SVG down if it's in a button so the "70px" icons don't overflow */}

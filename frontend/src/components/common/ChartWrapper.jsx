@@ -22,13 +22,10 @@ export function ChartContainer({
   if (isLoading) {
     return (
       <div
-        className={cn(
-          'min-w-0 border border-(--color-border) rounded-md bg-transparent',
-          className,
-        )}
+        className={cn('min-w-0 rounded-md border border-border bg-transparent', className)}
         style={mergedStyle}
       >
-        <Skeleton className="w-full h-full" />
+        <Skeleton className="size-full" />
       </div>
     );
   }
@@ -36,13 +33,13 @@ export function ChartContainer({
   return (
     <div
       className={cn(
-        'min-w-0 border border-(--color-border) rounded-md bg-transparent',
+        'min-w-0 rounded-md border border-border bg-transparent',
         className,
         overflow === 'auto' ? 'overflow-auto' : 'overflow-hidden',
       )}
       style={mergedStyle}
     >
-      <div style={{ width: '100%', height: '100%' }}>{children}</div>
+      <div className="size-full">{children}</div>
     </div>
   );
 }
@@ -77,16 +74,9 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
   }
 
   return (
-    <div
-      className="rounded-lg border p-2 shadow-md backdrop-blur-sm"
-      style={{
-        backgroundColor: 'var(--color-bg-card)',
-        borderColor: 'var(--color-border)',
-        fontSize: '0.875rem',
-      }}
-    >
+    <div className="rounded-lg border border-border bg-(--color-bg-card) p-2 text-sm shadow-md backdrop-blur-sm">
       {label && (
-        <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+        <div className="mb-1 text-sm font-semibold text-(--color-text-primary)">
           {labelFormatter ? labelFormatter(label) : label}
         </div>
       )}
@@ -97,16 +87,14 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
           return (
             <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
               <div
-                className="h-2 w-2 rounded-full"
+                className="size-2 rounded-full"
                 style={{
                   backgroundColor: dotColor,
                   boxShadow: `0 0 4px ${dotColor}40`,
                 }}
               />
-              <span style={{ color: 'var(--color-text-muted)' }}>{entry.name}:</span>
-              <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                {value}
-              </span>
+              <span className="text-(--color-text-muted)">{entry.name}:</span>
+              <span className="font-medium text-(--color-text-primary)">{value}</span>
             </div>
           );
         })}

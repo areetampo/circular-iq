@@ -11,7 +11,7 @@
  * Specialized AlertDialogs:
  * - DeleteAssessmentDialog: Confirm assessment deletion
  * - ReplaceInputsDialog: Confirm overwriting form inputs
- * - SessionRestoreDialog: Restore previous evaluation session
+ * - ResultsRestoreDialog: Restore previous evaluation session
  *
  * Specialized Modals:
  * - SaveAssessmentDialog: Save assessment with name input
@@ -26,4 +26,4 @@ export { LimitReachedDialog } from './LimitReachedDialog';
 export { RenameAssessmentDialog } from './RenameAssessmentDialog';
 export { ReplaceInputsDialog } from './ReplaceInputsDialog';
 export { SaveAssessmentDialog } from './SaveAssessmentDialog';
-export { SessionRestoreDialog } from './SessionRestoreDialog';
+export { ResultsRestoreDialog } from './ResultsRestoreDialog';

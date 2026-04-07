@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 function ChangeIndicator({ diff }) {
   if (diff > 0) {
     return (
-      <span className="text-xs text-(--color-success) flex items-center gap-0.5">
+      <span className="flex items-center gap-0.5 text-xs text-(--color-success)">
         <TrendingUp size={10} />+{diff}
       </span>
     );
   } else if (diff < 0) {
     return (
-      <span className="text-xs text-(--color-danger) flex items-center gap-0.5">
+      <span className="flex items-center gap-0.5 text-xs text-(--color-danger)">
         <TrendingDown size={10} />
         {diff}
       </span>

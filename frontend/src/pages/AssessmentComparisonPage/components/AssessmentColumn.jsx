@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { SectionHeading } from '@/components/common';
 import {
   AuditSummaryCard as SharedAuditSummaryCard,
   GapAnalysisCard as SharedGapAnalysisCard,

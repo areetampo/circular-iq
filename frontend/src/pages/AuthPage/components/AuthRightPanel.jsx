@@ -3,7 +3,7 @@ import { SignupForm } from '@/components/auth/SignupForm';
 
 export default function AuthRightPanel({ view, setView }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[rgba(250,247,242,0.6)] border-l border-[rgba(180,160,130,0.18)] md:border-l-0 px-8 md:px-12 lg:px-16">
+    <div className="flex min-h-screen flex-col items-center justify-center border-l border-[rgba(180,160,130,0.18)] bg-[rgba(250,247,242,0.6)] px-8 md:border-l-0 md:px-12 lg:px-16">
       {/* Brand header visible when left panel is hidden */}
       {/* <div className="md_lg:hidden mb-4 md_lg:mb-8">{<AuthBrandHeader />}</div> */}
 

@@ -11,55 +11,35 @@ export default function HeroSection({
     <>
       {/* Hero */}
       <section className="pt-20 pb-0">
-        <div className="max-w-3xl mx-auto px-6 text-center">
+        <div className="mx-auto max-w-3xl px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: 'easeOut' }}
           >
             {/* Main heading */}
-            <h1
-              className="heading-display leading-[1.08] mb-6"
-              style={{ fontSize: 'clamp(38px, 5.5vw, 60px)' }}
-            >
-              Where circular economy
-              <br />
-              meets{' '}
-              <em className="italic" style={{ color: 'var(--color-accent-700)' }}>
-                evidence.
-              </em>
+            <h1 className="heading-display mb-6 text-[clamp(38px,5.5vw,60px)] leading-[1.08]">
+              Where circular economy meets <em className="text-accent-700 italic">evidence.</em>
             </h1>
 
             {/* Subtitle */}
-            <p
-              className="text-[1.0625rem] leading-relaxed max-w-lg mx-auto mb-10 font-normal"
-              style={{ color: 'var(--muted)' }}
-            >
+            <p className="mx-auto mb-10 max-w-lg text-[1.0625rem] leading-relaxed font-normal text-(--color-text-muted)">
               Get an evidence-backed circularity score in seconds, grounded in real-world case
               studies.
             </p>
 
             {/* Trust signal strip — 3 statistics, editorial style */}
-            <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap mt-10 mb-8">
+            <div className="mt-10 mb-8 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
               {[
                 { value: '40K+', label: 'Circular economy\ncases analysed' },
                 { value: '97%', label: 'Confidence\nscore accuracy' },
                 { value: '8', label: 'Weighted evaluation\ndimensions' },
               ].map(({ value, label }) => (
                 <div key={value} className="text-center">
-                  <p
-                    className="text-[1.75rem] font-semibold leading-none mb-2"
-                    style={{
-                      color: 'var(--color-text-primary)',
-                      fontFamily: 'var(--font-display)',
-                    }}
-                  >
+                  <p className="mb-2 text-[1.75rem] leading-none font-semibold text-(--color-text-primary)">
                     {value}
                   </p>
-                  <p
-                    className="text-[0.6875rem] leading-snug whitespace-pre-line"
-                    style={{ color: 'var(--color-text-muted)' }}
-                  >
+                  <p className="text-[0.6875rem] leading-snug whitespace-pre-line text-(--color-text-muted)">
                     {label}
                   </p>
                 </div>
@@ -70,8 +50,8 @@ export default function HeroSection({
       </section>
 
       {/* Meta strip — Assessment Methodology · features · Evaluation Criteria */}
-      <div className="w-full flex items-center justify-center">
-        <div className="flex items-center justify-center gap-6 flex-wrap py-5 mb-2 border-b-[1.5px] border-border w-4/5">
+      <div className="flex w-full items-center justify-center">
+        <div className="mb-2 flex w-4/5 flex-wrap items-center justify-center gap-6 py-5">
           {[
             {
               key: 'assessment',

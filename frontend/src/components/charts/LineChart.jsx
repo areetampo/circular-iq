@@ -37,7 +37,7 @@ export default function LineChart({
   if (isLoading) {
     return (
       <div className={className} style={{ height }}>
-        <Skeleton className="w-full h-full" />
+        <Skeleton className="size-full" />
       </div>
     );
   }

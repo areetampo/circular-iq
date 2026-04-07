@@ -2,7 +2,7 @@ export default function CompareHeader() {
   return (
     <div className="mb-8">
       <h1
-        className="text-3xl font-bold mb-2"
+        className="mb-2 text-3xl font-bold"
         style={{
           color: 'var(--foreground)',
         }}

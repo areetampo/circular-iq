@@ -37,22 +37,21 @@ export default function CopyButton({
     return (
       <button
         onClick={handleClick}
-        className={`flex items-center justify-center w-8 h-8 rounded-md
-               transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`flex size-8 items-center justify-center rounded-md transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
         disabled={disabled}
         {...props}
       >
-        <div className="relative w-4 h-4">
+        <div className="relative size-4">
           <Copy
             size={16}
             className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-              hasCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+              hasCopied ? 'scale-75 opacity-0' : 'scale-100 opacity-100'
             }`}
           />
           <Check
             size={16}
             className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-              hasCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+              hasCopied ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
             }`}
           />
         </div>
@@ -64,25 +63,24 @@ export default function CopyButton({
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-xl transition-all duration-200
-             disabled:opacity-50 disabled:cursor-not-allowed ${
-               noBorder ? '' : 'border-[1.5px]'
-             } ${className}`}
+      className={`flex items-center gap-1.5 rounded-xl px-2 py-0.5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
+        noBorder ? '' : 'border-[1.5px]'
+      } ${className}`}
       style={!noBorder ? { borderColor: 'rgba(0, 0, 0, 0.2)' } : {}}
       disabled={disabled}
       {...props}
     >
-      <div className="relative w-4 h-4">
+      <div className="relative size-4">
         <Copy
           size={16}
           className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-            hasCopied ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+            hasCopied ? 'scale-75 opacity-0' : 'scale-100 opacity-100'
           }`}
         />
         <Check
           size={16}
           className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-            hasCopied ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+            hasCopied ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           }`}
         />
       </div>

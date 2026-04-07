@@ -1,8 +1,7 @@
 import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { Chip, SectionHeading } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export default function ScoreCard({
@@ -30,12 +29,12 @@ export default function ScoreCard({
   };
 
   return (
-    <div className="border-t border-(--color-border) pt-8 mt-8">
+    <div className="mt-8 border-t border-border pt-8">
       {/* Section heading with icon */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <SectionHeading
           variant="small"
-          icon={<BarChart3 className="w-4 h-4 text-(--color-accent)" />}
+          icon={<BarChart3 className="size-4 text-(--color-accent)" />}
           className="mb-0"
         >
           {title}
@@ -43,8 +42,8 @@ export default function ScoreCard({
         {score != null && (
           <div className="text-right">
             <div
-              className="text-3xl font-bold text-(--color-text-primary)"
-              style={{ color: scoreColor }}
+              className="text-3xl font-bold"
+              style={{ '--score-color': scoreColor, color: 'var(--score-color)' }}
             >
               {score}
               <span className="text-sm text-(--color-text-muted)">/100</span>
@@ -55,16 +54,14 @@ export default function ScoreCard({
       </div>
 
       {/* Description */}
-      <p className="text-sm text-(--color-text-secondary) mb-4">{description}</p>
+      <p className="mb-4 text-sm text-(--color-text-secondary)">{description}</p>
 
       {/* Message */}
-      {message && (
-        <p className="text-sm text-(--color-text-secondary) mb-4 leading-relaxed">{message}</p>
-      )}
+      {message && <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">{message}</p>}
 
       {/* Factors */}
       {factors.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-4">
+        <div className="mb-4 flex flex-wrap gap-1">
           {factors.map((f) => {
             const factorColor = getFactorColor(factorType);
             return (
@@ -72,7 +69,12 @@ export default function ScoreCard({
                 key={f}
                 variant="factor"
                 className="text-xs"
-                style={{ backgroundColor: factorColor.bg, color: factorColor.color }}
+                style={{
+                  '--factor-bg': factorColor.bg,
+                  '--factor-color': factorColor.color,
+                  backgroundColor: 'var(--factor-bg)',
+                  color: 'var(--factor-color)',
+                }}
               >
                 {formatFactorName(f)}
               </Chip>

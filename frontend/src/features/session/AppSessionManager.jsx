@@ -14,7 +14,7 @@ import { getSession } from '@/utils/session';
 export function AppSessionManager() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { openSessionRestoreDialog, dialog } = useGlobalDialog();
+  const { openResultsRestoreDialog, dialog } = useGlobalDialog();
   const { isAuthenticated } = useAuth();
   const hasCheckedOnLoad = useRef(false);
   const hasShownInputsToast = useRef(false); // track home-input-toast display
@@ -105,7 +105,7 @@ export function AppSessionManager() {
     hasCheckedOnLoad.current = true;
 
     // Show restore dialog (only for sessions that include results)
-    openSessionRestoreDialog({
+    openResultsRestoreDialog({
       sessionData: sessionData,
       onDismiss: () => {
         // User dismissed - stay on the same page

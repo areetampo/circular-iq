@@ -14,11 +14,11 @@ function StatCard({ title, value, subtext, loading }) {
 
   if (loading) {
     return (
-      <div className="border-2 border-[rgba(180,160,130,0.3)] rounded-3xl p-5 bg-transparent">
-        <div className="h-7 w-16 rounded-md bg-[rgba(180,160,130,0.2)] animate-pulse" />
-        <div className="h-2.5 w-20 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse mt-2" />
+      <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.3)] bg-transparent p-5">
+        <div className="h-7 w-16 animate-pulse rounded-md bg-[rgba(180,160,130,0.2)]" />
+        <div className="mt-2 h-2.5 w-20 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
         {subtext && (
-          <div className="h-3.5 w-24 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse mt-1" />
+          <div className="mt-1 h-3.5 w-24 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
         )}
       </div>
     );
@@ -27,14 +27,14 @@ function StatCard({ title, value, subtext, loading }) {
   const formattedValue = formatValue(value);
 
   return (
-    <div className="border-2 border-[rgba(180,160,130,0.3)] rounded-3xl p-5 bg-transparent">
-      <p className="text-[0.625rem] font-semibold uppercase tracking-widest text-(--color-text-muted) mb-1">
+    <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.3)] bg-transparent p-5">
+      <p className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
         {title}
       </p>
-      <p className="font-mono text-[1.5rem] font-medium text-(--color-text-primary) tracking-[-0.02em] mt-2">
+      <p className="mt-2 font-mono text-[1.5rem] font-medium tracking-[-0.02em] text-(--color-text-primary)">
         {formattedValue ?? '—'}
       </p>
-      {subtext && <p className="text-[0.75rem] mt-1 text-(--color-text-muted)">{subtext}</p>}
+      {subtext && <p className="mt-1 text-[0.75rem] text-(--color-text-muted)">{subtext}</p>}
     </div>
   );
 }

@@ -30,8 +30,8 @@ import {
   LimitReachedDialog,
   RenameAssessmentDialog,
   ReplaceInputsDialog,
+  ResultsRestoreDialog,
   SaveAssessmentDialog,
-  SessionRestoreDialog,
 } from '@/components/dialogs';
 import DIALOGS from '@/components/dialogs/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -76,8 +76,8 @@ function DialogManagerContent() {
         />
       );
 
-    case DIALOGS.SESSION_RESTORE:
-      return <SessionRestoreDialog sessionData={data?.sessionData} onDismiss={data?.onDismiss} />;
+    case DIALOGS.SESSION_RESULTS_RESTORE:
+      return <ResultsRestoreDialog sessionData={data?.sessionData} onDismiss={data?.onDismiss} />;
 
     default:
       logger.warn('Unknown dialog type:', type);

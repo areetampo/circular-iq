@@ -148,7 +148,7 @@ export function SignupForm({ onSwitchToLogin }) {
       }
 
       toast.success('Account created!', {
-        description: `Welcome to ${SITE_FULL_NAME}.`,
+        description: `Welcome to ${SITE_FULL_NAME}, ${data.username}.`,
         timeout: 3000,
       });
 
@@ -166,18 +166,18 @@ export function SignupForm({ onSwitchToLogin }) {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="text-center mb-7">
-        <h2 className="font-(--font-display) text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary) text-center mb-1">
+      <div className="mb-7 text-center">
+        <h2 className="mb-1 text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
           Create Account
         </h2>
-        <p className="font-(--font-body) text-[0.875rem] text-(--color-text-muted) text-center mb-[28px]">
+        <p className="mb-[28px] text-center font-sans text-[0.875rem] text-(--color-text-muted)">
           Join to start evaluating circular economy ideas
         </p>
       </div>
 
       {/* Error display */}
       {submitError && (
-        <div className="border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] rounded-md p-3 text-sm text-(--color-error) mb-4">
+        <div className="mb-4 rounded-md border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-3 text-sm text-(--color-error)">
           {submitError}
         </div>
       )}
@@ -185,7 +185,7 @@ export function SignupForm({ onSwitchToLogin }) {
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
+          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
             Username *
           </Label>
           <Controller
@@ -198,7 +198,7 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="text"
                   placeholder="your_username"
                   disabled={isLoading}
-                  className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 text-[0.875rem] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                  className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -212,7 +212,7 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="text-xs text-(--color-text-muted) mt-2 px-2 space-y-1">
+          <div className="mt-2 space-y-1 px-2 text-xs text-(--color-text-muted)">
             <ValidationRule isValid={validateUsernameLength(formData.username || '')}>
               {`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}
             </ValidationRule>
@@ -230,7 +230,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
+          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
             Password *
           </Label>
           <Controller
@@ -244,13 +244,13 @@ export function SignupForm({ onSwitchToLogin }) {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="•••••"
                     disabled={isLoading}
-                    className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[0.875rem] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                    className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 transform text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -263,7 +263,7 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="text-xs text-(--color-text-muted) mt-2 px-2 space-y-1">
+          <div className="mt-2 space-y-1 px-2 text-xs text-(--color-text-muted)">
             <ValidationRule isValid={validatePasswordLength(formData.password || '')}>
               {`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}
             </ValidationRule>
@@ -278,7 +278,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
         {/* Confirm Password */}
         <div className="mb-5">
-          <Label className="font-(--font-body) text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-(--color-text-muted) mb-1.5 ml-2 block">
+          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
             Confirm Password *
           </Label>
           <Controller
@@ -292,13 +292,13 @@ export function SignupForm({ onSwitchToLogin }) {
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="••••••"
                     disabled={isLoading}
-                    className="w-full h-10.5 bg-[rgba(245,240,232,0.5)] border border-[rgba(180,160,130,0.35)] rounded-[9px] px-4 pr-10 text-[0.875rem] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150 font-(--font-body)"
+                    className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 transform text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -311,7 +311,7 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="text-xs text-(--color-text-muted) mt-2 px-2">
+          <div className="mt-2 px-2 text-xs text-(--color-text-muted)">
             <ValidationRule
               isValid={validatePasswordMatch(
                 formData.password || '',
@@ -326,7 +326,7 @@ export function SignupForm({ onSwitchToLogin }) {
         {/* Submit Button */}
         <Button
           variant="primary"
-          className="w-full h-10.5 bg-(--color-accent) hover:bg-(--color-accent-hover) text-white text-[0.875rem] font-semibold rounded-[9px] transition-colors"
+          className="h-10.5 w-full rounded-[9px] bg-(--color-accent) text-[0.875rem] font-semibold text-white transition-colors hover:bg-accent-hover"
           isLoading={isLoading}
           onPress={handleSubmit(onSubmit)}
         >
@@ -335,12 +335,12 @@ export function SignupForm({ onSwitchToLogin }) {
       </Form>
 
       {/* Toggle link */}
-      <p className="font-(--font-body) text-[0.8125rem] text-(--color-text-muted) text-center mt-4.5">
+      <p className="mt-4.5 text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
         Already have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-(--color-accent) hover:underline font-medium cursor-pointer"
+          className="cursor-pointer font-medium text-(--color-accent) hover:underline"
         >
           Sign in
         </button>

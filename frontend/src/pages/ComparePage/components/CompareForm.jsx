@@ -96,7 +96,7 @@ export default function CompareForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-(--font-display) text-3xl text-(--color-text-primary) leading-tight">
+        <h1 className="font-display text-3xl/tight font-bold text-(--color-text-primary)">
           Compare Assessments
         </h1>
         <p className="mt-2 text-sm text-(--color-text-secondary)">
@@ -110,7 +110,7 @@ export default function CompareForm() {
           <div>
             <Label
               htmlFor="public-id-1"
-              className="text-xs font-medium font-mono uppercase tracking-wide text-(--color-text-secondary) mb-1 ml-2 block"
+              className="mb-1 ml-2 block font-mono text-xs font-medium tracking-wide text-(--color-text-secondary) uppercase"
             >
               First Assessment ID
             </Label>
@@ -120,7 +120,7 @@ export default function CompareForm() {
               onChange={(e) => setPublicId1(e.target.value)}
               placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
-              className="w-full mt-2 bg-transparent border border-(--color-border-strong) rounded-md text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none"
+              className="mt-2 w-full rounded-md border border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light)"
             />
           </div>
 
@@ -128,7 +128,7 @@ export default function CompareForm() {
           <div>
             <Label
               htmlFor="public-id-2"
-              className="text-xs font-medium font-mono uppercase tracking-wide text-(--color-text-secondary) mb-1 ml-2 block"
+              className="mb-1 ml-2 block font-mono text-xs font-medium tracking-wide text-(--color-text-secondary) uppercase"
             >
               Second Assessment ID
             </Label>
@@ -138,13 +138,13 @@ export default function CompareForm() {
               onChange={(e) => setPublicId2(e.target.value)}
               placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
-              className="w-full mt-2 bg-transparent border border-(--color-border-strong) rounded-md text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none"
+              className="mt-2 w-full rounded-md border border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light)"
             />
           </div>
         </div>
 
         {error && (
-          <div className="flex items-start gap-3 p-4 rounded-lg border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] text-sm text-(--color-error)">
+          <div className="flex items-start gap-3 rounded-lg border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-4 text-sm text-(--color-error)">
             <Frown size={20} className="mt-0.5 shrink-0" />
             <span>{error}</span>
           </div>
@@ -161,8 +161,8 @@ export default function CompareForm() {
       </form>
 
       {/* Info box */}
-      <div className="mt-8 p-4 rounded-xl border-3 border-dashed border-(--color-border) bg-transparent">
-        <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-(--color-text-muted)">
+      <div className="mt-8 rounded-xl border-3 border-dashed border-border bg-transparent p-4">
+        <p className="mb-2 text-xs font-semibold tracking-wide text-(--color-text-muted) uppercase">
           About Comparison
         </p>
         <ul className="space-y-1.5">
@@ -172,7 +172,7 @@ export default function CompareForm() {
             'Use the Assessment IDs from your assessments list or shared links',
           ].map((item) => (
             <li key={item} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
-              <span className="shrink-0 mt-2 w-1 h-1 rounded-full bg-(--color-accent)" />
+              <span className="mt-2 size-1 shrink-0 rounded-full bg-(--color-accent)" />
               {item}
             </li>
           ))}

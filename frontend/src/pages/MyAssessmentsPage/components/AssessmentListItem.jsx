@@ -25,11 +25,11 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   return (
     <div
       className={cn(
-        'group relative border-2 rounded-xl p-4 mb-2 transition-all duration-200 cursor-pointer',
-        'bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]',
+        `group relative mb-2 cursor-pointer rounded-xl border-2 p-4 transition-all duration-200`,
+        `bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]`,
         isSelected
-          ? 'border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]'
-          : 'border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.8)]',
+          ? `border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]`
+          : `border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.8)]`,
       )}
       onClick={() => onView(assessment.public_id)}
       role="button"
@@ -46,14 +46,14 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       {/* Main content row */}
       <div className="flex items-start gap-3">
         {/* Title and metadata section */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[1rem] font-medium text-(--color-text-primary) leading-tight truncate mb-1 font-mono">
+        <div className="min-w-0 flex-1">
+          <h3 className="mb-1 truncate font-mono text-base/tight font-medium text-(--color-text-primary)">
             {assessment.title || 'Untitled Assessment'}
           </h3>
-          <p className="text-[0.75rem] text-(--color-text-muted) mb-2">{formattedDate}</p>
+          <p className="mb-2 text-[0.75rem] text-(--color-text-muted)">{formattedDate}</p>
 
           {/* Tags row */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             {assessment.industry && (
               <Chip variant="factor" className="text-[0.625rem]">
                 {assessment.industry}
@@ -70,26 +70,29 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         </div>
 
         {/* Score section */}
-        <div className="text-right shrink-0 min-w-20">
+        <div className="min-w-20 shrink-0 text-right">
           {assessment.overall_score ? (
             <span
-              className="font-(--font-mono) text-[1.35rem] text-(--color-text-primary) tracking-[-0.04em] leading-none"
-              style={{ color: scoreColor(assessment.overall_score) }}
+              className="font-mono text-[1.35rem] leading-none tracking-[-0.04em]"
+              style={{
+                '--score-color': scoreColor(assessment.overall_score),
+                color: 'var(--score-color)',
+              }}
             >
               {assessment.overall_score} / 100
             </span>
           ) : (
-            <span className="text-[0.6875rem] font-semibold tracking-widest uppercase text-(--color-text-muted)">
+            <span className="text-[0.6875rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
               UNRATED
             </span>
           )}
-          <p className="text-[0.75rem] text-(--color-text-muted) mt-0.5">
+          <p className="mt-0.5 text-[0.75rem] text-(--color-text-muted)">
             {assessment.confidence_level || 0}% conf.
           </p>
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-1 shrink-0 opacity-100 transition-opacity duration-300">
+        <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity duration-300">
           {[
             {
               icon: Eye,
@@ -126,7 +129,10 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               key={label}
               onClick={onClick}
               title={title}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg cursor-pointer text-[0.65rem] text-(--color-text-muted) hover:${hoverColor} transition-colors`}
+              className={cn(
+                `flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[0.65rem] text-(--color-text-muted) transition-colors`,
+                `hover:${hoverColor}`,
+              )}
             >
               <Icon size={11} />
               <span>{label}</span>
@@ -136,9 +142,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       </div>
 
       {/* Bottom row with additional stats and controls */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-[rgba(180,160,130,0.15)]">
+      <div className="mt-3 flex items-center justify-between border-t border-[rgba(180,160,130,0.15)] pt-3">
         {/* Additional stats */}
-        <div className="flex items-center gap-3 text-[0.7rem] [&>span]:font-mono text-(--color-text-muted)">
+        <div className="flex items-center gap-3 text-[0.7rem] text-(--color-text-muted) [&>span]:font-mono">
           {assessment.technical_feasibility && (
             <span>Tech: {assessment.technical_feasibility}%</span>
           )}
@@ -155,7 +161,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <div className="flex items-center gap-3">
           {/* Select to compare checkbox */}
           <label
-            className="flex items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
             onClick={(e) => e.stopPropagation()}
           >
             <input
@@ -167,14 +173,14 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               }}
               onClick={(e) => e.stopPropagation()}
               title="Select for comparison"
-              className="w-3 h-3 accent-(--color-accent) cursor-pointer"
+              className="size-3 cursor-pointer accent-(--color-accent)"
             />
             <span>Select to compare</span>
           </label>
 
           {/* Public/Private checkbox */}
           <label
-            className="flex items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
             onClick={(e) => e.stopPropagation()}
           >
             <input
@@ -185,7 +191,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 onTogglePublic(assessment.id);
               }}
               onClick={(e) => e.stopPropagation()}
-              className="w-3 h-3 accent-(--color-accent) cursor-pointer"
+              className="size-3 cursor-pointer accent-(--color-accent)"
             />
             <span>Public</span>
           </label>
@@ -221,19 +227,19 @@ AssessmentListItem.propTypes = {
 
 // Skeleton Components
 export const AssessmentCardSkeleton = () => (
-  <div className="group relative border-2 rounded-xl p-4 mb-2 transition-all duration-200 cursor-pointer bg-[rgba(245,240,232,0.45)] border-[rgba(180,160,130,0.22)]">
+  <div className="group relative mb-2 cursor-pointer rounded-xl border-2 border-[rgba(180,160,130,0.22)] bg-[rgba(245,240,232,0.45)] p-4 transition-all duration-200">
     {/* Main content row */}
     <div className="flex items-start gap-3">
       {/* Title and metadata section */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         {/* Title skeleton */}
-        <Skeleton animationType="shimmer" className="h-4 w-3/4 rounded mb-1" />
+        <Skeleton animationType="shimmer" className="mb-1 h-4 w-3/4 rounded-sm" />
 
         {/* Date skeleton */}
-        <Skeleton animationType="shimmer" className="h-3 w-24 rounded mb-2" />
+        <Skeleton animationType="shimmer" className="mb-2 h-3 w-24 rounded-sm" />
 
         {/* Tags row skeleton */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Industry chip skeleton */}
           <Skeleton animationType="shimmer" className="h-5 w-16 rounded-full" />
           {/* Public/Private chip skeleton */}
@@ -242,53 +248,53 @@ export const AssessmentCardSkeleton = () => (
       </div>
 
       {/* Score section */}
-      <div className="text-right shrink-0 min-w-20">
+      <div className="min-w-20 shrink-0 text-right">
         {/* Score skeleton */}
-        <Skeleton animationType="shimmer" className="h-6 w-16 rounded mb-0.5 ml-auto" />
+        <Skeleton animationType="shimmer" className="mb-0.5 ml-auto h-6 w-16 rounded-sm" />
         {/* Confidence skeleton */}
-        <Skeleton animationType="shimmer" className="h-3 w-12 rounded ml-auto" />
+        <Skeleton animationType="shimmer" className="ml-auto h-3 w-12 rounded-sm" />
       </div>
 
       {/* Action buttons skeleton */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex shrink-0 items-center gap-1">
         {/* View button skeleton */}
-        <div className="flex items-center gap-1 px-2 py-1 rounded-lg">
-          <Skeleton animationType="shimmer" className="w-2.5 h-2.5 rounded" />
-          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded" />
+        <div className="flex items-center gap-1 rounded-lg px-2 py-1">
+          <Skeleton animationType="shimmer" className="size-2.5 rounded-sm" />
+          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded-sm" />
         </div>
         {/* Rename button skeleton */}
-        <div className="flex items-center gap-1 px-2 py-1 rounded-lg">
-          <Skeleton animationType="shimmer" className="w-2.5 h-2.5 rounded" />
-          <Skeleton animationType="shimmer" className="h-2.5 w-10 rounded" />
+        <div className="flex items-center gap-1 rounded-lg px-2 py-1">
+          <Skeleton animationType="shimmer" className="size-2.5 rounded-sm" />
+          <Skeleton animationType="shimmer" className="h-2.5 w-10 rounded-sm" />
         </div>
         {/* Delete button skeleton */}
-        <div className="flex items-center gap-1 px-2 py-1 rounded-lg">
-          <Skeleton animationType="shimmer" className="w-2.5 h-2.5 rounded" />
-          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded" />
+        <div className="flex items-center gap-1 rounded-lg px-2 py-1">
+          <Skeleton animationType="shimmer" className="size-2.5 rounded-sm" />
+          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded-sm" />
         </div>
       </div>
     </div>
 
     {/* Bottom row with additional stats and controls */}
-    <div className="flex items-center justify-between mt-3 pt-3 border-t border-[rgba(180,160,130,0.15)]">
+    <div className="mt-3 flex items-center justify-between border-t border-[rgba(180,160,130,0.15)] pt-3">
       {/* Additional stats skeleton */}
       <div className="flex items-center gap-3">
-        <Skeleton animationType="shimmer" className="h-3 w-16 rounded" />
-        <Skeleton animationType="shimmer" className="h-3 w-14 rounded" />
-        <Skeleton animationType="shimmer" className="h-3 w-16 rounded" />
+        <Skeleton animationType="shimmer" className="h-3 w-16 rounded-sm" />
+        <Skeleton animationType="shimmer" className="h-3 w-14 rounded-sm" />
+        <Skeleton animationType="shimmer" className="h-3 w-16 rounded-sm" />
       </div>
 
       {/* Controls skeleton */}
       <div className="flex items-center gap-3">
         {/* Select to compare checkbox skeleton */}
         <div className="flex items-center gap-1.5">
-          <Skeleton animationType="shimmer" className="w-3 h-3 rounded" />
-          <Skeleton animationType="shimmer" className="h-3 w-20 rounded" />
+          <Skeleton animationType="shimmer" className="size-3 rounded-sm" />
+          <Skeleton animationType="shimmer" className="h-3 w-20 rounded-sm" />
         </div>
         {/* Public checkbox skeleton */}
         <div className="flex items-center gap-1.5">
-          <Skeleton animationType="shimmer" className="w-3 h-3 rounded" />
-          <Skeleton animationType="shimmer" className="h-3 w-10 rounded" />
+          <Skeleton animationType="shimmer" className="size-3 rounded-sm" />
+          <Skeleton animationType="shimmer" className="h-3 w-10 rounded-sm" />
         </div>
       </div>
     </div>

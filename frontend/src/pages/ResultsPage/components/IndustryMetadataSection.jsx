@@ -6,9 +6,9 @@ export function IndustryMetadataSection({ actualResult, fieldHelp }) {
   if (!actualResult.metadata) return null;
 
   return (
-    <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+    <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
       <div className="p-1 sm:p-3">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[
             { label: 'Industry', value: actualResult.industry || '', helpKey: 'industry' },
             { label: 'Scale', value: actualResult.metadata.scale, helpKey: 'scale' },

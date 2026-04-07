@@ -261,15 +261,15 @@ export default function DashboardPage() {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-16 mt-4">
+    <div className="mx-auto mt-4 max-w-7xl space-y-12 px-4 pb-16 sm:px-6">
       {/* Header */}
-      <div className="pt-8 flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4 pt-8">
         <div>
-          <h1 className="font-(--font-display) text-[2rem] text-(--color-text-primary) tracking-[-0.02em] flex items-center gap-3">
+          <h1 className="flex items-center gap-3 font-display text-[2rem] font-bold tracking-[-0.02em] text-(--color-text-primary)">
             <Globe size={28} className="text-(--color-success)" strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p className="text-[0.875rem] mt-3 text-(--color-text-secondary) leading-relaxed">
+          <p className="mt-3 text-sm/relaxed text-(--color-text-secondary)">
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
         <SectionDivider label="GLOBAL ACTIVITY" />
 
         {/* Headline 3 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard
             title="Total Scored"
             value={totalScoringCalls?.toLocaleString()}
@@ -308,7 +308,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Derived metrics 6-grid — SHORT labels to avoid truncation */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard
             title="Confidence"
             value={avgConfidence ? `${avgConfidence}%` : null}
@@ -342,7 +342,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Row A: 3 donuts with single-value fallback */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="250px">
             {renderPieOrSingle(scoreDistData, SCORE_COLORS, 'Score data unavailable')}
           </ChartPanel>
@@ -462,17 +462,17 @@ export default function DashboardPage() {
             {marketTableRows.length > 0 ? (
               <table className="custom-data-table w-full text-xs">
                 <thead>
-                  <tr className="border-b border-(--color-border)">
-                    <th className="text-left py-2 px-3 font-semibold text-(--color-text-muted)">
+                  <tr className="border-b border-border">
+                    <th className="px-3 py-2 text-left font-semibold text-(--color-text-muted)">
                       Industry
                     </th>
-                    <th className="text-right py-2 px-3 font-semibold text-(--color-text-muted)">
+                    <th className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
                       Count
                     </th>
-                    <th className="text-right py-2 px-3 font-semibold text-(--color-text-muted)">
+                    <th className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
                       Avg Score
                     </th>
-                    <th className="text-right py-2 px-3 font-semibold text-(--color-text-muted)">
+                    <th className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
                       Market Share
                     </th>
                   </tr>
@@ -481,16 +481,16 @@ export default function DashboardPage() {
                   {marketTableRows.map((row) => (
                     <tr
                       key={row.industry}
-                      className="hover:bg-(--color-accent-soft) transition-colors border-b border-(--color-border)"
+                      className="border-b border-border transition-colors hover:bg-accent-soft"
                     >
-                      <td className="py-2 px-3 font-medium text-(--color-text-primary)">
+                      <td className="px-3 py-2 font-medium text-(--color-text-primary)">
                         {row.industry}
                       </td>
-                      <td className="py-2 px-3 text-right tabular-nums text-(--color-text-muted)">
+                      <td className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
                         {row.count?.toLocaleString() ?? 0}
                       </td>
                       <td
-                        className="py-2 px-3 text-right tabular-nums"
+                        className="px-3 py-2 text-right tabular-nums"
                         style={{
                           color:
                             row.avgScore >= 75
@@ -502,7 +502,7 @@ export default function DashboardPage() {
                       >
                         {row.avgScore?.toFixed(1) ?? 0}%
                       </td>
-                      <td className="py-2 px-3 text-right tabular-nums text-(--color-text-muted)">
+                      <td className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
                         {row.marketShare?.toFixed(1) ?? 0}%
                       </td>
                     </tr>
@@ -523,7 +523,7 @@ export default function DashboardPage() {
         <SectionDivider label="KNOWLEDGE DATABASE" />
 
         {/* Doc stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard
             title="Total Documents"
             value={totalDocs?.toLocaleString()}
@@ -578,14 +578,14 @@ export default function DashboardPage() {
           )}
 
           {/* Featured Solutions */}
-          <div className="rounded-xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent overflow-hidden">
+          <div className="overflow-hidden rounded-xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
             {/* Header + search */}
-            <div className="px-6 py-5 border-b-2 border-[rgba(180,160,130,0.18)]">
-              <h3 className="font-mono text-[1.25rem] font-semibold text-(--color-text-primary) tracking-[-0.02em] mb-3 flex items-center gap-2.5">
+            <div className="border-b-2 border-[rgba(180,160,130,0.18)] px-6 py-5">
+              <h3 className="mb-3 flex items-center gap-2.5 font-mono text-[1.25rem] font-semibold tracking-[-0.02em] text-(--color-text-primary)">
                 <Lightbulb size={16} className="text-(--color-accent)" />
                 Featured Solutions
               </h3>
-              <p className="text-[0.875rem] text-(--color-text-secondary) mb-4">
+              <p className="mb-4 text-[0.875rem] text-(--color-text-secondary)">
                 Explore successful circular economy projects and innovations
               </p>
               <div className="space-y-3">
@@ -597,7 +597,7 @@ export default function DashboardPage() {
                     </Label>
                     <Search
                       size={15}
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
+                      className="absolute top-1/2 left-3.5 -translate-y-1/2 text-(--color-text-muted)"
                       aria-hidden="true"
                     />
                     <input
@@ -607,19 +607,14 @@ export default function DashboardPage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
                       placeholder="Search solutions..."
-                      className="w-full pl-10 pr-10 py-2 text-[0.8125rem] rounded-2xl focus:outline-none focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] transition-colors duration-150"
+                      className="w-full rounded-2xl border border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.6)] px-10 py-2 text-[0.8125rem] text-(--color-text-primary) transition-colors duration-150 focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                       aria-label="Search featured solutions"
-                      style={{
-                        border: '1px solid rgba(180,160,130,0.3)',
-                        backgroundColor: 'rgba(245,240,232,0.6)',
-                        color: 'var(--foreground)',
-                      }}
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={handleSearchClear}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-(--color-text-muted)"
+                        className="absolute top-1/2 right-3.5 -translate-y-1/2 text-(--color-text-muted)"
                         aria-label="Clear search"
                       >
                         <X size={15} />
@@ -629,8 +624,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleSearchSubmit}
-                    className="px-4 py-2 text-[0.75rem] font-semibold rounded-2xl transition-colors shrink-0"
-                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                    className="shrink-0 rounded-2xl bg-(--color-accent) px-4 py-2 text-[0.75rem] font-semibold text-white transition-colors"
                   >
                     Search
                   </button>
@@ -642,7 +636,7 @@ export default function DashboardPage() {
                     <button
                       type="button"
                       onClick={() => setCategoryFilter(undefined)}
-                      className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-semibold transition-colors"
+                      className="rounded-xl px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors"
                       style={{
                         backgroundColor: !categoryFilter
                           ? 'var(--accent)'
@@ -658,7 +652,7 @@ export default function DashboardPage() {
                         key={cat}
                         type="button"
                         onClick={() => setCategoryFilter(cat)}
-                        className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-semibold transition-colors"
+                        className="rounded-xl px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors"
                         style={{
                           backgroundColor:
                             categoryFilter === cat ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
@@ -676,17 +670,17 @@ export default function DashboardPage() {
 
             {/* Solutions grid */}
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+              <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {featuredLoading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={i}
-                      className="rounded-[14px] border border-[rgba(180,160,130,0.25)] p-5 space-y-3 bg-transparent"
+                      className="space-y-3 rounded-[14px] border border-[rgba(180,160,130,0.25)] bg-transparent p-5"
                     >
-                      <div className="h-5 w-3/4 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
-                      <div className="h-4 w-full rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
-                      <div className="h-4 w-2/3 rounded-md bg-[rgba(180,160,130,0.1)] animate-pulse" />
-                      <div className="h-6 w-12 rounded-md bg-[rgba(180,160,130,0.15)] animate-pulse" />
+                      <div className="h-5 w-3/4 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
+                      <div className="h-4 w-full animate-pulse rounded-md bg-[rgba(180,160,130,0.1)]" />
+                      <div className="h-4 w-2/3 animate-pulse rounded-md bg-[rgba(180,160,130,0.1)]" />
+                      <div className="h-6 w-12 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
                     </div>
                   ))
                 ) : filteredSolutions?.length > 0 ? (
@@ -701,15 +695,15 @@ export default function DashboardPage() {
                     />
                   ))
                 ) : (
-                  <div className="col-span-full flex flex-col items-center justify-center h-40 text-(--color-text-muted)">
+                  <div className="col-span-full flex h-40 flex-col items-center justify-center text-(--color-text-muted)">
                     <BarChart3 size={32} strokeWidth={1} />
-                    <p className="text-[0.8125rem] font-semibold mt-2">No solutions found</p>
+                    <p className="mt-2 text-[0.8125rem] font-semibold">No solutions found</p>
                   </div>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="mt-5 pt-4 border-t border-[rgba(180,160,130,0.18)] flex items-center justify-between text-[0.75rem]">
+              <div className="mt-5 flex items-center justify-between border-t border-[rgba(180,160,130,0.18)] pt-4 text-[0.75rem]">
                 <span className="text-(--color-text-muted)">
                   Showing {filteredSolutions?.length ?? 0} solutions
                 </span>
@@ -722,7 +716,7 @@ export default function DashboardPage() {
                         industry: industryFilter,
                       })
                     }
-                    className="font-semibold flex items-center gap-1.5 hover:text-(--color-text-primary) transition-colors"
+                    className="flex items-center gap-1.5 font-semibold transition-colors hover:text-(--color-text-primary)"
                     style={{
                       color: 'var(--accent)',
                     }}
@@ -746,7 +740,7 @@ export default function DashboardPage() {
         {user ? (
           <>
             {/* Your stats row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 title="Total Assessments"
                 value={userTotal?.toLocaleString()}
@@ -837,7 +831,7 @@ export default function DashboardPage() {
 
       {/* Updated at timestamp */}
       <div className="mt-8 text-center">
-        <p className="text-sm font-medium text-(--color-text-muted) font-mono">
+        <p className="font-mono text-sm font-medium text-(--color-text-muted)">
           Updated at {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} on{' '}
           {updatedAt.toLocaleDateString('en-GB', {
             day: 'numeric',

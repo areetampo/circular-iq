@@ -69,7 +69,7 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
                 <AlertDialog.Footer>
                   <button
                     onClick={close}
-                    className="flex-1 border border-(--color-border-strong) text-(--color-text-secondary) rounded-lg py-2.5 text-sm hover:bg-(--color-accent-light) transition-colors"
+                    className="flex-1 rounded-lg border border-(--color-border-strong) py-2.5 text-sm text-(--color-text-secondary) transition-colors hover:bg-(--color-accent-light)"
                   >
                     Cancel
                   </button>
@@ -78,7 +78,7 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
                       if (onConfirm) onConfirm();
                       close();
                     }}
-                    className="flex-1 bg-(--color-error) text-white rounded-lg py-2.5 text-sm hover:opacity-90 transition-opacity"
+                    className="flex-1 rounded-lg bg-(--color-error) py-2.5 text-sm text-white transition-opacity hover:opacity-90"
                     disabled={isLoading}
                   >
                     Delete

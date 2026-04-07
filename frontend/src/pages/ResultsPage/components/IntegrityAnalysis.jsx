@@ -2,8 +2,7 @@ import { Accordion } from '@heroui/react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { Chip, SectionHeading } from '@/components/common';
 
 export function IntegrityAnalysis({ strengths, gaps }) {
   if (!(gaps.length > 0 || strengths.length > 0)) return null;
@@ -19,12 +18,12 @@ export function IntegrityAnalysis({ strengths, gaps }) {
   };
 
   return (
-    <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+    <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
       <div className="p-2 sm:p-4">
         <SectionHeading variant="small" className="mb-1">
           Integrity Analysis
         </SectionHeading>
-        <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+        <p className="mb-4 text-sm text-(--color-text-muted)">
           We compare your self-assessed scores against real-world projects in our database to
           identify potential overestimations or underestimations.
         </p>
@@ -34,21 +33,12 @@ export function IntegrityAnalysis({ strengths, gaps }) {
           {strengths.length > 0 && (
             <Accordion.Item
               value="strengths"
-              className="rounded-lg overflow-hidden"
-              style={{
-                backgroundColor: 'var(--success-soft)',
-                borderColor: 'var(--success)',
-              }}
+              className="overflow-hidden rounded-lg border-(--color-success) bg-success-soft"
             >
-              <Accordion.Trigger className="px-4 py-3 hover:bg-success-soft transition-colors">
+              <Accordion.Trigger className="px-4 py-3 transition-colors hover:bg-success-soft">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={20} style={{ color: 'var(--success)' }} />
-                  <span
-                    className="text-base font-semibold"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
+                  <CheckCircle2 size={20} className="text-(--color-success)" />
+                  <span className="text-base font-semibold text-(--color-text-primary)">
                     Strengths Validated
                   </span>
                   <Chip variant="status" color="success" size="sm" className="ml-2 font-bold">
@@ -61,24 +51,11 @@ export function IntegrityAnalysis({ strengths, gaps }) {
                   {strengths.map((strength, i) => (
                     <div
                       key={i}
-                      className="flex gap-2 p-3 rounded-lg border"
-                      style={{
-                        backgroundColor: 'var(--surface)',
-                        borderColor: 'var(--success)',
-                      }}
+                      className="flex gap-2 rounded-lg border border-(--color-success) bg-surface p-3"
                     >
-                      <CheckCircle2
-                        className="shrink-0 mt-0.5"
-                        size={16}
-                        style={{ color: 'var(--success)' }}
-                      />
+                      <CheckCircle2 className="mt-0.5 shrink-0 text-(--color-success)" size={16} />
                       <div className="flex-1">
-                        <p
-                          className="text-sm"
-                          style={{
-                            color: 'var(--foreground)',
-                          }}
-                        >
+                        <p className="text-sm text-(--color-text-primary)">
                           {strength.issue || strength}
                         </p>
                         {strength.evidence_source_id && (
@@ -98,21 +75,12 @@ export function IntegrityAnalysis({ strengths, gaps }) {
           {gaps.length > 0 && (
             <Accordion.Item
               value="gaps"
-              className="rounded-lg overflow-hidden"
-              style={{
-                backgroundColor: 'var(--warning-soft)',
-                borderColor: 'var(--warning)',
-              }}
+              className="overflow-hidden rounded-lg border-(--color-warning) bg-warning-soft"
             >
-              <Accordion.Trigger className="px-4 py-3 hover:bg-warning-soft transition-colors">
+              <Accordion.Trigger className="px-4 py-3 transition-colors hover:bg-warning-soft">
                 <div className="flex items-center gap-2">
-                  <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
-                  <span
-                    className="text-base font-semibold"
-                    style={{
-                      color: 'var(--foreground)',
-                    }}
-                  >
+                  <AlertCircle size={20} className="text-(--color-warning)" />
+                  <span className="text-base font-semibold text-(--color-text-primary)">
                     Areas for Improvement
                   </span>
                   <Chip variant="status" color="warning" size="sm" className="ml-2 font-bold">
@@ -128,32 +96,23 @@ export function IntegrityAnalysis({ strengths, gaps }) {
                     return (
                       <div
                         key={i}
-                        className={`flex gap-2 p-3 rounded-lg border bg-surface`}
+                        className={`flex gap-2 rounded-lg border bg-surface p-3`}
                         style={{
-                          backgroundColor: 'var(--surface)',
-                          borderColor: getSeverityColors(severity),
+                          '--border-color': getSeverityColors(severity),
+                          borderColor: 'var(--border-color)',
                         }}
                       >
-                        <AlertCircle
-                          className="shrink-0 mt-0.5"
-                          size={16}
-                          style={{ color: 'var(--warning)' }}
-                        />
+                        <AlertCircle className="mt-0.5 shrink-0 text-(--color-warning)" size={16} />
                         <div className="flex-1">
-                          <p
-                            className="text-sm"
-                            style={{
-                              color: 'var(--foreground)',
-                            }}
-                          >
+                          <p className="text-sm text-(--color-text-primary)">
                             {(gap.issue || gap).replace(/_/g, ' ')}
                           </p>
-                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
                             <Chip
                               variant="severity"
                               color={severity}
                               size="sm"
-                              className="font-bold text-xs"
+                              className="text-xs font-bold"
                             >
                               {severity.charAt(0).toUpperCase() + severity.slice(1)} severity
                             </Chip>

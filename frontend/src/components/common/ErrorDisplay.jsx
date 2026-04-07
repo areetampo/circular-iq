@@ -98,11 +98,11 @@ export default function ErrorDisplay({
         fullScreen ? 'min-h-screen' : 'min-h-[40vh]'
       } px-6 py-12 ${className}`}
     >
-      <div className="w-full max-w-lg border-3 border-(--color-border) rounded-3xl p-8 bg-transparent">
+      <div className="w-full max-w-lg rounded-3xl border-3 border-border bg-transparent p-8">
         {/* Icon + title */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full" style={{ backgroundColor: style.iconBg }}>
+        <div className="mb-6 text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="rounded-full p-3" style={{ backgroundColor: style.iconBg }}>
               <Icon strokeWidth={2} size={32} style={{ color: style.iconColor }} />
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function ErrorDisplay({
           </h1>
           {message && (
             <p
-              className="text-sm mt-2 max-w-md mx-auto leading-relaxed"
+              className="mx-auto mt-2 max-w-md text-sm/relaxed"
               style={{ color: style.messageColor }}
             >
               {message}
@@ -120,18 +120,18 @@ export default function ErrorDisplay({
         </div>
 
         {/* Custom children */}
-        {children && <div className="text-center mb-4">{children}</div>}
+        {children && <div className="mb-4 text-center">{children}</div>}
 
         {/* Error details (dev only) */}
         {import.meta.env.DEV && errorDetails && (
-          <div className="mb-4 p-3 border-l-4 border-l-(--color-danger) rounded bg-(--color-danger-soft)">
-            <div className="flex items-center gap-2 mb-1">
+          <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-danger-soft p-3">
+            <div className="mb-1 flex items-center gap-2">
               <AlertCircle size={14} className="text-(--color-danger)" />
               <p className="text-xs font-semibold text-(--color-danger)">
                 Error Details (Development Only)
               </p>
             </div>
-            <pre className="text-xs whitespace-pre-wrap break-all overflow-x-auto max-h-32 text-(--color-danger)">
+            <pre className="max-h-32 overflow-x-auto text-xs break-all whitespace-pre-wrap text-(--color-danger)">
               {typeof errorDetails === 'string' ? errorDetails : errorDetails.toString()}
             </pre>
           </div>
@@ -139,7 +139,7 @@ export default function ErrorDisplay({
 
         {/* Actions */}
         {allActions.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-3 mt-6">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             {allActions.map((action, index) => {
               const ActionIcon = action.icon;
               return (

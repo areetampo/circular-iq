@@ -17,10 +17,9 @@ import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Button, Chip } from '@/components/common';
+import { Button, Chip, SectionHeading } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
-import { SectionHeading } from '@/components/common/SectionHeading';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
@@ -843,17 +842,17 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   return (
     <>
       {/* Action Buttons & Share Section */}
-      <div className="mb-8 mt-8 px-4 sm:px-6 space-y-4">
+      <div className="my-8 space-y-4 px-4 sm:px-6">
         {isViewFromMyAssessments && currentData?.title && (
           <div className="mb-4">
-            <h1 className="font-mono text-2xl font-semibold text-(--color-text-primary) tracking-[-0.02em]">
+            <h1 className="font-mono text-2xl font-semibold tracking-[-0.02em] text-(--color-text-primary)">
               {currentData.title}
             </h1>
           </div>
         )}
 
         {/* Buttons Bar */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
           {/* Left group - navigation */}
           <div className="flex items-center gap-3">
             {/* Show public share notice for public viewers */}
@@ -879,7 +878,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           </div>
 
           {/* Right group - actions, pushed to end */}
-          <div className="flex items-center gap-3 ml-auto flex-wrap">
+          <div className="ml-auto flex flex-wrap items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
@@ -979,10 +978,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-xl px-3 py-1">
+          <div className="rounded-xl border-2 border-[rgba(180,160,130,0.18)] px-3 py-1">
             {/* Toggle row */}
             {isResultsRoute ? (
-              <span className="text-[0.8125rem] opacity-80 font-medium">
+              <span className="text-[0.8125rem] font-medium opacity-80">
                 Save assessment to enable sharing
               </span>
             ) : (
@@ -998,7 +997,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   <Label htmlFor="assessment-public-toggle">
                     <p className="text-[0.8125rem] font-semibold text-(--color-text-primary)">
                       Public sharing{' '}
-                      <span className="text-[0.6875rem] opacity-70 ml-0.5">
+                      <span className="ml-0.5 text-[0.6875rem] opacity-70">
                         (
                         {(
                           optimisticIsPublic !== null
@@ -1012,7 +1011,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     </p>
                   </Label>
                 </Checkbox.Content>
-                <Checkbox.Control className={cn('scale-70 origin-left')}>
+                <Checkbox.Control className={cn('origin-left scale-70')}>
                   <Checkbox.Indicator />
                 </Checkbox.Control>
               </Checkbox>
@@ -1023,12 +1022,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               currentData?.public_id && (
                 <div
                   className={cn(
-                    'flex flex-col sm:flex-row gap-3 mt-2 opacity-70 scale-90 origin-top-left',
+                    `mt-2 flex origin-top-left scale-90 flex-col gap-3 opacity-70 sm:flex-row`,
                     isUpdatingPublic ? 'opacity-20' : '',
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-mono mr-2">
+                    <span className="mr-2 font-mono">
                       {window.location.origin}/assessments/share/{currentData.public_id}
                     </span>
                     <span className="font-mono">{'/'}</span>
@@ -1060,7 +1059,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       </div>
 
       {/* Results Content */}
-      <div id="results-content" className="max-w-7xl mx-auto px-0 sm:px-6 space-y-6">
+      <div id="results-content" className="mx-auto max-w-7xl space-y-6 px-0 sm:px-6">
         <ScoreOverviewSection
           actualResult={actualResult}
           overallScore={overallScore}

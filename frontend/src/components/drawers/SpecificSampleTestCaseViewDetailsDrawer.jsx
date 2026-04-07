@@ -2,7 +2,6 @@ import { Drawer } from '@heroui/react';
 import { PencilLine } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Button } from '@/components/common';
 import {
   TEST_CASE_DETAIL_CONTENT,
   getContextFieldIcon,
@@ -47,12 +46,12 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(74,85,104,0.1)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(74,85,104,0.1)]">
                   <PencilLine size={16} className="text-[#4a5568]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading font-mono">{title}</Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal font-mono">
+                  <p className="mt-0.5 font-mono text-[0.7rem] font-normal text-[#6b5f56]">
                     {TEST_CASE_DETAIL_CONTENT.subheading}
                   </p>
                 </div>
@@ -61,32 +60,32 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
                 {/* Business Problem Section */}
-                <div className="border-t border-(--color-border) pt-6 mt-6 first:border-0 first:pt-0 first:mt-0">
-                  <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3 font-mono font-semibold">
+                <div className="mt-6 border-t border-border pt-6 first:mt-0 first:border-0 first:pt-0">
+                  <h3 className="mb-3 font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
                     {TEST_CASE_DETAIL_CONTENT.sections.businessProblem.title}
                   </h3>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed mb-4 font-mono">
+                  <p className="mb-4 font-mono text-sm/relaxed text-(--color-text-secondary)">
                     {problem}
                   </p>
                 </div>
 
                 {/* Business Solution Section */}
-                <div className="border-t border-(--color-border) pt-6 mt-6">
-                  <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3 font-mono font-semibold">
+                <div className="mt-6 border-t border-border pt-6">
+                  <h3 className="mb-3 font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
                     {TEST_CASE_DETAIL_CONTENT.sections.businessSolution.title}
                   </h3>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed mb-4 font-mono">
+                  <p className="mb-4 font-mono text-sm/relaxed text-(--color-text-secondary)">
                     {solution}
                   </p>
                 </div>
 
                 {/* Evaluation Parameters Section */}
                 {evaluationParameters && Object.keys(evaluationParameters).length > 0 && (
-                  <div className="border-t border-(--color-border) pt-6 mt-6">
-                    <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3 font-mono font-semibold">
+                  <div className="mt-6 border-t border-border pt-6">
+                    <h3 className="mb-3 font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
                       {TEST_CASE_DETAIL_CONTENT.sections.evaluationParameters.title}
                     </h3>
-                    <p className="text-xs text-(--color-text-muted) mb-4 font-mono">
+                    <p className="mb-4 font-mono text-xs text-(--color-text-muted)">
                       {TEST_CASE_DETAIL_CONTENT.sections.evaluationParameters.subtitle}
                     </p>
                     <div className="space-y-3">
@@ -95,19 +94,19 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                         return (
                           <div key={key} className="flex items-center justify-between py-2">
                             <div className="flex-1">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1 font-mono">
+                              <p className="mb-1 font-mono text-xs font-semibold tracking-wide text-(--color-text-muted) uppercase">
                                 {paramInfo?.label ||
                                   key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                               </p>
-                              <p className="text-xs text-(--color-text-secondary) font-mono">
+                              <p className="font-mono text-xs text-(--color-text-secondary)">
                                 {paramInfo?.category || 'Uncategorized'}
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className="text-sm font-medium text-(--color-text-primary) font-mono">
+                              <span className="font-mono text-sm font-medium text-(--color-text-primary)">
                                 {value}
                               </span>
-                              <span className="text-xs text-(--color-text-muted) ml-1 font-mono">
+                              <span className="ml-1 font-mono text-xs text-(--color-text-muted)">
                                 /100
                               </span>
                             </div>
@@ -120,8 +119,8 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
 
                 {/* Business Context Section */}
                 {filteredBusinessContext.length > 0 && (
-                  <div className="border-t border-(--color-border) pt-6 mt-6">
-                    <h3 className="text-xs uppercase tracking-widest text-(--color-text-muted) mb-3 font-mono font-semibold">
+                  <div className="mt-6 border-t border-border pt-6">
+                    <h3 className="mb-3 font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
                       Business Context
                     </h3>
                     <div className="space-y-3">
@@ -129,12 +128,12 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                         const Icon = getContextFieldIcon(key);
                         return (
                           <div key={key} className="flex items-start gap-3 py-2">
-                            <Icon className="w-4 h-4 text-(--color-accent) mt-0.5 shrink-0" />
+                            <Icon className="mt-0.5 size-4 shrink-0 text-(--color-accent)" />
                             <div className="flex-1">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1 font-mono">
+                              <p className="mb-1 font-mono text-xs font-semibold tracking-wide text-(--color-text-muted) uppercase">
                                 {getContextFieldLabel(key)}
                               </p>
-                              <p className="text-sm text-(--color-text-primary) font-mono">
+                              <p className="font-mono text-sm text-(--color-text-primary)">
                                 {getContextValueLabel(key, value)}
                               </p>
                             </div>

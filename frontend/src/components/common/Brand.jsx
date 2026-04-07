@@ -7,7 +7,15 @@ import { cn } from '@/utils/cn';
 export const SITE_NAME = 'Xerneas';
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
-export const SiteName = ({ className = '' }) => <span className={cn(className)}>{SITE_NAME}</span>;
+export const SiteName = ({ className = '' }) => {
+  const navigate = useNavigate();
+
+  return (
+    <span className={cn(className, `cursor-pointer`)} onClick={() => navigate('/')}>
+      {SITE_NAME}
+    </span>
+  );
+};
 
 SiteName.propTypes = {
   className: PropTypes.string,
@@ -27,11 +35,11 @@ export const SiteLogo = ({ className = '', size = 'md' }) => {
   return (
     <Avatar
       onClick={() => navigate('/')}
-      className={cn('cursor-pointer rounded-full', className)}
+      className={cn('cursor-pointer rounded-full')}
       size={size}
       aria-label={`${SITE_NAME} - Go to home`}
     >
-      <Avatar.Image alt={SITE_NAME} src="/siteLogo.png" />
+      <Avatar.Image alt={SITE_NAME} src="/site-logo.png" className={cn(className)} />
       <Avatar.Fallback>{SITE_NAME}</Avatar.Fallback>
     </Avatar>
   );
@@ -46,7 +54,7 @@ export default function Brand() {
   const navigate = useNavigate();
 
   return (
-    <div className="inline-flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+    <div className="inline-flex cursor-pointer items-center gap-2" onClick={() => navigate('/')}>
       <svg
         width="20"
         height="20"

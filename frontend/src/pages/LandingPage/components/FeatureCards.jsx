@@ -23,21 +23,21 @@ export const FEATURE_CARDS = [
 
 export default function FeatureCards() {
   return (
-    <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-12">
+    <div className="mx-auto mb-12 grid max-w-3xl grid-cols-3 gap-6">
       {FEATURE_CARDS.map((card) => {
         const Icon = card.Icon;
         return (
           <div key={card.key} role="article" aria-label={card.title} className="text-center">
             {/* Icon */}
-            <div className="w-8 h-8 bg-(--color-accent-light) rounded-sm flex items-center justify-center text-(--color-accent) mb-3 mx-auto">
-              <Icon className="w-4 h-4" strokeWidth={2} />
+            <div className="mx-auto mb-3 flex size-8 items-center justify-center rounded-sm bg-(--color-accent-light) text-(--color-accent)">
+              <Icon className="size-4" strokeWidth={2} />
             </div>
 
             {/* Title */}
-            <h3 className="text-sm font-semibold text-(--color-text-primary) mb-1">{card.title}</h3>
+            <h3 className="mb-1 text-sm font-semibold text-(--color-text-primary)">{card.title}</h3>
 
             {/* Description */}
-            <p className="text-xs text-(--color-text-muted) leading-relaxed">{card.desc}</p>
+            <p className="text-xs/relaxed text-(--color-text-muted)">{card.desc}</p>
           </div>
         );
       })}

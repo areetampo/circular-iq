@@ -138,10 +138,10 @@ export default function useDialog() {
     [openDialogWithPriority],
   );
 
-  const openSessionRestoreDialog = useCallback(
+  const openResultsRestoreDialog = useCallback(
     (data) =>
       openDialogWithPriority(
-        DIALOGS.SESSION_RESTORE,
+        DIALOGS.SESSION_RESULTS_RESTORE,
         { onRestore: data?.onRestore, onDismiss: data?.onDismiss, sessionData: data?.sessionData },
         DIALOG_PRIORITIES.HIGH,
       ),
@@ -168,7 +168,7 @@ export default function useDialog() {
     openRenameAssessmentDialog,
     openReplaceInputsDialog,
     openConfirmDialog,
-    openSessionRestoreDialog,
+    openResultsRestoreDialog,
     openLimitReachedDialog,
   };
 }

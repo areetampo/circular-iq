@@ -41,21 +41,21 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-[#2d5a3d]" strokeWidth={1.75} />
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(45,90,61,0.1)]">
+                  <Icon className="size-4 text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     {SPECIFIC_PARAMETER_CONTENT.heading}
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">{guidance.name}</p>
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">{guidance.name}</p>
                 </div>
               </div>
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
                 <div>
-                  <div className="flex flex-col items-start justify-between gap-4 mb-5 xs:flex-row">
+                  <div className="mb-5 flex flex-col items-start justify-between gap-4 xs:flex-row">
                     <div>
                       <h3 className={cn('mb-1 text-lg font-bold', cfg.paramTextColor)}>
                         {guidance.name}
@@ -67,7 +67,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                     {guidance.weight && (
                       <div
                         className={cn(
-                          'flex items-center justify-center px-3 py-1 text-sm font-bold border-2 rounded-lg whitespace-nowrap',
+                          `flex items-center justify-center rounded-lg border-2 px-3 py-1 text-sm font-bold whitespace-nowrap`,
                           cfg.badgeBorder,
                           cfg.badgeBg,
                           cfg.badgeText,
@@ -78,13 +78,13 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                     )}
                   </div>
 
-                  <div className="space-y-3 text-sm leading-relaxed">
+                  <div className="space-y-3 text-sm/relaxed">
                     {guidance.definition && (
                       <div>
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.definition}
                         </p>
-                        <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                        <p className="text-sm/relaxed text-(--color-text-secondary)">
                           {guidance.definition}
                         </p>
                       </div>
@@ -94,7 +94,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.methodology}
                         </p>
-                        <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                        <p className="text-sm/relaxed text-(--color-text-secondary)">
                           {guidance.methodology}
                         </p>
                       </div>
@@ -104,7 +104,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                         <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.calibration}
                         </p>
-                        <p className="text-sm text-(--color-text-primary) leading-relaxed">
+                        <p className="text-sm/relaxed text-(--color-text-primary)">
                           {guidance.calibration}
                         </p>
                       </div>
@@ -115,7 +115,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 {guidance.scale && (
                   <div
                     className={cn(
-                      'p-4 rounded-xl border-l-2 border-(--color-accent) pl-3 bg-(--color-accent-light) rounded-r-sm py-2',
+                      `rounded-xl rounded-r-sm border-l-2 border-(--color-accent) bg-(--color-accent-light) p-4 py-2 pl-3`,
                     )}
                   >
                     <h4 className={cn('mb-3 text-base font-bold', cfg.panelTitle)}>
@@ -125,12 +125,12 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                       {guidance.scale.map(({ score, label, description }) => (
                         <div
                           key={`${score}-${label}`}
-                          className={cn('pl-3 border-l-4', cfg.panelItemBorder)}
+                          className={cn('border-l-4 pl-3', cfg.panelItemBorder)}
                         >
                           <p className={cn('text-sm font-semibold', cfg.paramTextColor)}>
                             {score} - {label}
                           </p>
-                          <p className="text-xs text-(--color-text-muted) mt-1">{description}</p>
+                          <p className="mt-1 text-xs text-(--color-text-muted)">{description}</p>
                         </div>
                       ))}
                     </div>
@@ -138,7 +138,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 )}
 
                 {guidance.examples && (
-                  <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed my-3">
+                  <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
                     <h4 className="mb-3 text-base font-bold text-(--color-accent)">
                       {SPECIFIC_PARAMETER_CONTENT.sections.benchmarks}
                     </h4>
@@ -146,13 +146,13 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                       {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
                         <div
                           key={`${exampleCase}-${score}-${idx}`}
-                          className="pl-3 border-l-4 border-(--color-accent)"
+                          className="border-l-4 border-(--color-accent) pl-3"
                         >
                           <p className="text-sm font-semibold text-(--color-text-primary)">
                             {exampleCase} {score && `(${score})`}
                           </p>
                           {reason && (
-                            <p className="text-xs text-(--color-text-muted) mt-1">{reason}</p>
+                            <p className="mt-1 text-xs text-(--color-text-muted)">{reason}</p>
                           )}
                         </div>
                       ))}

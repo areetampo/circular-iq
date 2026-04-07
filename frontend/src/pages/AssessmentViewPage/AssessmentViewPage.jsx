@@ -154,18 +154,18 @@ export default function AssessmentViewPage() {
   const assessmentData = computeAssessmentData(scoringResult);
 
   return (
-    <div className="space-y-0 w-full">
+    <div className="w-full space-y-0">
       {/* Simple header - no buttons or public toggle */}
       {assessment?.title && (
-        <div className="mb-6 mt-8 px-4 sm:px-6">
-          <h1 className="font-mono text-center text-2xl font-semibold text-(--color-text-primary) tracking-[-0.02em]">
+        <div className="mt-8 mb-6 px-4 sm:px-6">
+          <h1 className="text-center font-mono text-2xl font-semibold tracking-[-0.02em] text-(--color-text-primary)">
             {assessment.title}
           </h1>
         </div>
       )}
 
       {/* Single assessment column using the same component as AssessmentComparisonPage */}
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="mx-auto max-w-4xl px-6">
         <AssessmentColumn
           assessment={assessment}
           scoringResult={scoringResult}
@@ -176,7 +176,7 @@ export default function AssessmentViewPage() {
       </div>
 
       {/* Simple footer */}
-      <div className="flex justify-center items-center py-6 px-6 mt-8 gap-3">
+      <div className="mt-8 flex items-center justify-center gap-3 p-6">
         <Button onClick={handleSafeBack} variant="ghost">
           <ArrowLeft size={16} />
           Back

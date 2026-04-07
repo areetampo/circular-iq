@@ -16,11 +16,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Tailwind plugins */
-@plugin "tailwindcss-animate";
+@plugin 'tailwindcss-animate';
 
 /* Source paths for Tailwind to scan */
-@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
-@source "./**/*.{html,js,jsx,ts,tsx}";
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@source './**/*.{html,js,jsx,ts,tsx}';
 
 /* ============================================= */
 /*  TAILWIND V4 THEME                            */
@@ -223,9 +223,6 @@
   --radius-lg: 16px;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
 
   /* Chart Colors - UI 30 */
   --chart-1: #b8916a;
@@ -243,7 +240,7 @@
 @layer base {
   html {
     scrollbar-gutter: stable;
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color-scheme: light;
@@ -262,7 +259,7 @@
     color: var(--color-text-primary);
     font-size: 15px;
     line-height: 1.6;
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
   }
 
   .dark body {
@@ -339,7 +336,7 @@
   textarea,
   select,
   button {
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
   }
 
   /* Allow display font only on explicitly marked headings */
@@ -355,7 +352,7 @@
   [data-slot='dialog'] *,
   [data-slot='drawer'] *,
   .drawer-content * {
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
   }
 
   /* Fix rounded-full buttons — HeroUI applies this by default */
@@ -385,7 +382,7 @@
     border: 1px solid var(--color-border-strong) !important;
     border-radius: var(--radius-md) !important;
     color: var(--color-text-primary) !important;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     text-align: center;
   }
 }
@@ -395,7 +392,7 @@
 /* ============================================= */
 
 #root {
-  @apply w-full min-h-screen;
+  @apply min-h-screen w-full;
   background: transparent !important;
   min-height: 100vh;
   position: relative;
@@ -418,13 +415,13 @@
   pointer-events: none;
 
   /* This creates the smudged black grain/lines effect */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-image: url('/app-bg.svg');
 
   /* Contrast makes it look like smudged ink/muddy lines rather than just static */
   filter: contrast(130%) brightness(105%) grayscale(1);
 
   /* Keeps the effect very faint */
-  opacity: 0.08;
+  opacity: 0.2;
 }
 
 .app-content {
@@ -454,7 +451,7 @@ select {
   border: 1px solid var(--color-border-strong) !important;
   border-radius: var(--radius-md);
   color: var(--color-text-primary) !important;
-  font-family: var(--font-body) !important;
+  font-family: var(--font-sans) !important;
   transition: border-color 0.15s !important;
 }
 input:focus,
@@ -480,9 +477,7 @@ textarea:focus-visible {
 @layer components {
   /* ----- TOAST ----- */
   .toast {
-    @apply flex! min-h-12! w-full! items-center! justify-center! gap-3!
-         rounded-3xl! p-3! px-4! shadow-2xl! transition-all! duration-200! ease-out!
-         border! border-black! dark:border-white/80!;
+    @apply flex! min-h-12! w-full! items-center! justify-center! gap-3! rounded-3xl! border! border-black! p-3! px-4! shadow-2xl! transition-all! duration-200! ease-out! dark:border-white/80!;
     z-index: 9999 !important;
     background: #fefaf5 !important;
     box-shadow:
@@ -493,12 +488,10 @@ textarea:focus-visible {
     @apply flex! flex-1! flex-col! gap-0! p-0!;
   }
   .toast__title {
-    @apply text-[0.875rem]! font-semibold! tracking-tight! text-zinc-800!
-           dark:text-zinc-100!;
+    @apply text-[0.875rem]! font-semibold! tracking-tight! text-zinc-800! dark:text-zinc-100!;
   }
   .toast__description {
-    @apply text-[0.8125rem]! font-normal! leading-normal! text-zinc-700!
-           dark:text-zinc-300!;
+    @apply text-[0.8125rem]! leading-normal! font-normal! text-zinc-700! dark:text-zinc-300!;
   }
   .toast__indicator {
     @apply flex! shrink-0! items-start! justify-center! p-0!;
@@ -507,15 +500,10 @@ textarea:focus-visible {
     @apply size-5!;
   }
   .toast__close {
-    @apply absolute! right-2! top-2! rounded-md! p-1! text-zinc-400!
-           transition-colors! hover:bg-black/5! hover:text-zinc-700!
-           dark:text-zinc-500! dark:hover:bg-white/10! dark:hover:text-zinc-300!;
+    @apply absolute! top-2! right-2! rounded-md! p-1! text-zinc-400! transition-colors! hover:bg-black/5! hover:text-zinc-700! dark:text-zinc-500! dark:hover:bg-white/10! dark:hover:text-zinc-300!;
   }
   .toast__action {
-    @apply ml-auto! flex! h-7! items-center! rounded-md! border! border-zinc-200/50!
-           bg-transparent! px-2.5! text-xs! font-medium! text-zinc-700!
-           transition-colors! hover:bg-zinc-100/80! dark:border-zinc-700/50!
-           dark:text-zinc-300! dark:hover:bg-zinc-800/80!;
+    @apply ml-auto! flex! h-7! items-center! rounded-md! border! border-zinc-200/50! bg-transparent! px-2.5! text-xs! font-medium! text-zinc-700! transition-colors! hover:bg-zinc-100/80! dark:border-zinc-700/50! dark:text-zinc-300! dark:hover:bg-zinc-800/80!;
   }
   .toast-region {
     @apply w-4/5 sm:w-auto;
@@ -592,7 +580,7 @@ textarea:focus-visible {
   /* ----- CHIP ----- */
   /* Base chip styling */
   [data-slot='base'].chip {
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     font-size: 11px !important;
     font-weight: 500 !important;
     letter-spacing: 0.01em !important;
@@ -820,7 +808,7 @@ textarea:focus-visible {
 
   /* ----- DROPDOWN ----- */
   .dropdown__popover {
-    @apply absolute! top-16! left-auto! right-4!;
+    @apply absolute! top-16! right-4! left-auto!;
   }
 
   /* ----- NUMBER FIELD ----- */
@@ -1156,13 +1144,13 @@ textarea:focus-visible {
   /* ----- CHECKBOX ----- */
   .checkbox,
   [data-slot='checkbox'] {
-    @apply inline-flex! gap-3! items-center!;
+    @apply inline-flex! items-center! gap-3!;
   }
 
   /* ----- PAGINATION ----- */
   .pagination {
     @apply flex! w-full! items-center! justify-between!;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     color: var(--color-text-secondary) !important;
   }
 
@@ -1171,7 +1159,7 @@ textarea:focus-visible {
     font-size: 13px !important;
     font-weight: 500 !important;
     color: var(--color-text-secondary) !important;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
   }
 
   /* Content container for pagination items */
@@ -1198,7 +1186,7 @@ textarea:focus-visible {
     border-radius: var(--radius-md) !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     color: var(--color-text-secondary) !important;
     background: transparent !important;
     border: none !important;
@@ -1236,7 +1224,7 @@ textarea:focus-visible {
     padding: 0 12px !important;
     font-size: 12px !important;
     font-weight: 500 !important;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     color: var(--color-text-secondary) !important;
     background: transparent !important;
     border: none !important;
@@ -1313,7 +1301,7 @@ textarea:focus-visible {
   /* ----- CHECKBOX CONTROL ----- */
   .checkbox__control,
   [data-slot='checkbox-control'] {
-    @apply size-6! border-1! rounded-full!;
+    @apply size-6! rounded-full! border-1!;
     border-color: #8b6f47 !important;
     background-color: #faf8f5 !important;
     transition: all 0.2s ease !important;
@@ -1448,7 +1436,7 @@ textarea:focus-visible {
     border: 1px solid var(--color-border-strong) !important;
     border-radius: var(--radius-md) !important;
     color: var(--color-text-primary) !important;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     letter-spacing: 0.01em !important;
@@ -1529,7 +1517,7 @@ textarea:focus-visible {
   [data-slot='option'] {
     border-radius: var(--radius-sm) !important;
     padding: 2px 4px !important;
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
     font-size: 13px !important;
     font-weight: 400 !important;
     color: var(--color-text-primary) !important;
@@ -1813,7 +1801,7 @@ textarea:focus-visible {
 
   /* ----- TOOLTIP ----- */
   .tooltip {
-    @apply bg-[rgba(245,240,232,0.95)] border border-[rgba(180,160,130,0.2)] text-[var(--color-text-primary)];
+    @apply border border-[rgba(180,160,130,0.2)] bg-[rgba(245,240,232,0.95)] text-[var(--color-text-primary)];
     @apply rounded-md shadow-sm;
     @apply px-2 py-1;
     @apply text-xs font-medium;
@@ -1841,12 +1829,12 @@ textarea:focus-visible {
 
   /* Animation states */
   .tooltip[data-entering] {
-    @apply opacity-100 scale-100;
+    @apply scale-100 opacity-100;
     transition: all 0.15s ease-out;
   }
 
   .tooltip[data-exiting] {
-    @apply opacity-0 scale-95;
+    @apply scale-95 opacity-0;
     transition: all 0.1s ease-in;
   }
 
@@ -1857,7 +1845,7 @@ textarea:focus-visible {
   [data-slot='drawer'],
   [data-slot='popover'],
   [data-slot='tooltip'] {
-    font-family: var(--font-body) !important;
+    font-family: var(--font-sans) !important;
   }
   [data-slot='dialog'] *,
   [data-slot='alert-dialog'] *,
@@ -1917,7 +1905,7 @@ textarea:focus-visible {
 
 @layer utilities {
   .info-icon {
-    @apply hover:scale-[1.05] transition-all duration-200 cursor-pointer;
+    @apply cursor-pointer transition-all duration-200 hover:scale-[1.05];
   }
 
   .label-overline {

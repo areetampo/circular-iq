@@ -20,7 +20,7 @@ export function ScoreOverviewSection({
   return (
     <div className="mt-8">
       {/* Industry and Confidence Row */}
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="mb-6 flex justify-center gap-4">
         {[
           actualResult.metadata?.industry && {
             label: titleize(actualResult.metadata.industry),
@@ -34,34 +34,30 @@ export function ScoreOverviewSection({
         ]
           .filter(Boolean)
           .map((badge, index) => (
-            <div
-              key={index}
-              className="px-3 py-1.5 rounded-lg"
-              style={{ backgroundColor: 'var(--color-accent-light)' }}
-            >
+            <div key={index} className="rounded-lg bg-(--color-accent-light) px-3 py-1.5">
               <span className="text-sm font-medium text-(--color-text-primary)">{badge.label}</span>
             </div>
           ))}
       </div>
 
       {/* Main Score Display */}
-      <div className="text-center mb-8">
-        <div className="font-(--font-mono) text-[4.5rem] font-light text-(--color-text-primary) tracking-[-0.04em]">
+      <div className="mb-8 text-center">
+        <div className="font-mono text-[4.5rem] font-light tracking-[-0.04em] text-(--color-text-primary)">
           {overallScore || 0}
         </div>
         <div className="text-2xl text-(--color-text-muted)">/100</div>
-        <div className="text-sm text-(--color-text-muted) uppercase tracking-widest mt-2">
+        <div className="mt-2 text-sm tracking-widest text-(--color-text-muted) uppercase">
           Circularity Score
         </div>
         {actualResult.metadata?.short_description && (
-          <p className="font-sans text-[1.25rem] text-(--color-text-primary) leading-[1.4] not-italic mb-2 mt-6 max-w-2xl mx-auto">
+          <p className="mx-auto mt-6 mb-2 max-w-2xl font-sans text-[1.25rem] leading-[1.4] text-(--color-text-primary) not-italic">
             {actualResult.metadata.short_description}
           </p>
         )}
       </div>
 
       {/* Score Summary Stats */}
-      <div className="flex gap-6 justify-center mb-8">
+      <div className="mb-8 flex justify-center gap-6">
         <div className="text-sm text-(--color-text-secondary)">
           High • Strong Performance • {actualResult.confidence_level || 0}% Confidence
         </div>
@@ -69,37 +65,41 @@ export function ScoreOverviewSection({
 
       {/* Audit verdict if present */}
       {actualResult.audit?.audit_verdict && (
-        <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed mb-4">
+        <div className="mb-4 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
           {actualResult.audit.audit_verdict}
         </div>
       )}
 
       {/* Comparative analysis if present */}
       {actualResult.audit?.comparative_analysis && (
-        <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed mb-4">
-          <p className="text-xs font-semibold uppercase mb-1 text-(--color-accent)">Key Finding</p>
+        <div className="mb-4 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
+          <p className="mb-1 text-xs font-semibold text-(--color-accent) uppercase">Key Finding</p>
           {actualResult.audit.comparative_analysis}
         </div>
       )}
 
       {/* Strongest Factor and Focus Area */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
         {topFactor && (
-          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
-            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+          <div className="rounded-[12px] border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-4">
+            <div className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
               Strongest Factor
             </div>
-            <div className="text-[0.875rem] font-semibold text-(--color-accent)">{topFactor[0]}</div>
+            <div className="text-[0.875rem] font-semibold text-(--color-accent)">
+              {topFactor[0]}
+            </div>
             <div className="text-[0.75rem] text-(--color-text-muted)">Score: {topFactor[1]}</div>
           </div>
         )}
 
         {focusFactor && (
-          <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-[12px] p-4 bg-transparent">
-            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted) mb-1">
+          <div className="rounded-[12px] border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-4">
+            <div className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
               Focus Area
             </div>
-            <div className="text-[0.875rem] font-semibold text-(--color-accent)">{focusFactor[0]}</div>
+            <div className="text-[0.875rem] font-semibold text-(--color-accent)">
+              {focusFactor[0]}
+            </div>
             <div className="text-[0.75rem] text-(--color-text-muted)">Score: {focusFactor[1]}</div>
           </div>
         )}

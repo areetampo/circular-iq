@@ -22,14 +22,14 @@ export function CaseSummaryAccordions({
     }));
 
   return (
-    <div className="border-b border-[rgba(180,160,130,0.18)] mb-0 py-4">
+    <div className="mb-0 border-b border-[rgba(180,160,130,0.18)] py-4">
       <Accordion className="w-full" allowsMultipleExpanded>
         {/* Problem accordion item */}
         <Accordion.Item id="problem">
           <Accordion.Heading>
-            <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
+            <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
               <div className="flex items-center gap-3">
-                <Target size={20} style={{ color: 'var(--success)' }} />
+                <Target size={20} className="text-(--color-success)" />
                 <div>
                   <h4 className="font-semibold text-(--color-text-primary)">Problem</h4>
                   <p className="text-sm text-(--color-text-muted)">
@@ -37,12 +37,12 @@ export function CaseSummaryAccordions({
                   </p>
                 </div>
               </div>
-              <Accordion.Indicator style={{ color: 'var(--muted)' }} />
+              <Accordion.Indicator className="text-(--color-text-muted)" />
             </Accordion.Trigger>
           </Accordion.Heading>
           <Accordion.Panel>
             <Accordion.Body>
-              <p className="text-sm leading-relaxed text-(--color-text-primary) py-2">
+              <p className="py-2 text-sm/relaxed text-(--color-text-primary)">
                 {businessProblem || 'Not available'}
               </p>
             </Accordion.Body>
@@ -52,9 +52,9 @@ export function CaseSummaryAccordions({
         {/* Solution accordion item */}
         <Accordion.Item id="solution">
           <Accordion.Heading>
-            <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
+            <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
               <div className="flex items-center gap-3">
-                <Lightbulb size={20} style={{ color: 'var(--warning)' }} />
+                <Lightbulb size={20} className="text-(--color-warning)" />
                 <div>
                   <h4 className="font-semibold text-(--color-text-primary)">Solution</h4>
                   <p className="text-sm text-(--color-text-muted)">
@@ -62,12 +62,12 @@ export function CaseSummaryAccordions({
                   </p>
                 </div>
               </div>
-              <Accordion.Indicator style={{ color: 'var(--muted)' }} />
+              <Accordion.Indicator className="text-(--color-text-muted)" />
             </Accordion.Trigger>
           </Accordion.Heading>
           <Accordion.Panel>
             <Accordion.Body>
-              <p className="text-sm leading-relaxed text-(--color-text-primary) py-2">
+              <p className="py-2 text-sm/relaxed text-(--color-text-primary)">
                 {businessSolution || 'Not available'}
               </p>
             </Accordion.Body>
@@ -78,9 +78,9 @@ export function CaseSummaryAccordions({
         {businessContext && (
           <Accordion.Item id="business-context">
             <Accordion.Heading>
-              <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
+              <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
                 <div className="flex items-center gap-3">
-                  <Globe size={20} style={{ color: 'var(--foreground)' }} />
+                  <Globe size={20} className="text-(--color-text-primary)" />
                   <div>
                     <h4 className="font-semibold text-(--color-text-primary)">Business Context</h4>
                     <p className="text-sm text-(--color-text-muted)">
@@ -88,60 +88,60 @@ export function CaseSummaryAccordions({
                     </p>
                   </div>
                 </div>
-                <Accordion.Indicator style={{ color: 'var(--muted)' }} />
+                <Accordion.Indicator className="text-(--color-text-muted)" />
               </Accordion.Trigger>
             </Accordion.Heading>
             <Accordion.Panel>
               <Accordion.Body>
                 <div className="space-y-2 py-2">
                   {businessContext.target_geography && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">Target Geography</span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {businessContext.target_geography}
                       </span>
                     </div>
                   )}
                   {businessContext.operational_stage && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">Operational Stage</span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {businessContext.operational_stage}
                       </span>
                     </div>
                   )}
                   {businessContext.business_model_type && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">Business Model</span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {businessContext.business_model_type}
                       </span>
                     </div>
                   )}
                   {businessContext.material_complexity && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">
                         Material Complexity
                       </span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {businessContext.material_complexity}
                       </span>
                     </div>
                   )}
                   {businessContext.annual_volume_estimate && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">Annual Volume</span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {businessContext.annual_volume_estimate}
                       </span>
                     </div>
                   )}
                   {businessContext.has_existing_partnerships !== undefined && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">
                         Existing Partnerships
                       </span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {businessContext.has_existing_partnerships ? 'Yes' : 'No'}
                       </span>
                     </div>
@@ -156,9 +156,9 @@ export function CaseSummaryAccordions({
         {parameterEntries.length > 0 && (
           <Accordion.Item id="parameters">
             <Accordion.Heading>
-              <Accordion.Trigger className="flex items-center justify-between w-full py-3 hover:bg-(--color-accent-light) transition-colors">
+              <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
                 <div className="flex items-center gap-3">
-                  <BarChart2 size={20} style={{ color: 'var(--foreground)' }} />
+                  <BarChart2 size={20} className="text-(--color-text-primary)" />
                   <div>
                     <h4 className="font-semibold text-(--color-text-primary)">
                       Evaluation Parameters
@@ -168,16 +168,16 @@ export function CaseSummaryAccordions({
                     </p>
                   </div>
                 </div>
-                <Accordion.Indicator style={{ color: 'var(--muted)' }} />
+                <Accordion.Indicator className="text-(--color-text-muted)" />
               </Accordion.Trigger>
             </Accordion.Heading>
             <Accordion.Panel>
               <Accordion.Body>
                 <div className="space-y-2 py-2">
                   {parameterEntries.map((entry) => (
-                    <div key={entry.key} className="flex justify-between items-center">
+                    <div key={entry.key} className="flex items-center justify-between">
                       <span className="text-sm text-(--color-text-primary)">{entry.label}</span>
-                      <span className="text-sm font-mono text-(--color-text-muted)">
+                      <span className="font-mono text-sm text-(--color-text-muted)">
                         {entry.value}
                       </span>
                     </div>

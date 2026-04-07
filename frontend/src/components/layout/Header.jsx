@@ -7,14 +7,12 @@ export default function Header({ title, subtitle }) {
   }
 
   return (
-    <div className="border-(--color-border) border-b py-4">
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="border-b border-border py-4">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         {title && (
-          <h2 className="text-(--color-text-primary) text-lg font-(--font-display) mb-2">
-            {title}
-          </h2>
+          <h2 className="mb-2 font-display text-lg text-(--color-text-primary)">{title}</h2>
         )}
-        {subtitle && <p className="text-(--color-text-muted) text-sm">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-(--color-text-muted)">{subtitle}</p>}
       </div>
     </div>
   );

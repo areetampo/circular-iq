@@ -34,7 +34,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
 
   if (rows.length === 0) {
     return (
-      <div className="text-sm text-(--color-text-muted) py-4">
+      <div className="py-4 text-sm text-(--color-text-muted)">
         No benchmark comparisons available.
       </div>
     );
@@ -42,26 +42,22 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
 
   return (
     <>
-      <div className="overflow-x-auto mt-2 rounded-xl border border-(--color-border) bg-[rgba(250,248,245,0.5)]">
+      <div className="mt-2 overflow-x-auto rounded-xl border border-border bg-[rgba(250,248,245,0.5)]">
         <table className="custom-data-table w-full border-collapse">
           <thead>
             <tr className="bg-[rgba(220,200,175,0.4)]">
-              <th className="text-left py-3 px-4 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+              <th className="border-b border-border px-4 py-3 text-left text-[0.7rem] font-semibold tracking-wider text-(--color-text-secondary) uppercase">
                 Factor
               </th>
-              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
-                Your Score
-              </th>
-              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
-                25th %ile
-              </th>
-              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
-                50th %ile
-              </th>
-              <th className="text-center py-3 px-3 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
-                75th %ile
-              </th>
-              <th className="text-center py-3 px-4 text-[0.7rem] font-semibold text-(--color-text-secondary) uppercase tracking-wider border-b border-(--color-border)">
+              {['Your Score', '25th %ile', '50th %ile', '75th %ile'].map((header) => (
+                <th
+                  key={header}
+                  className="border-b border-border p-3 text-center text-[0.7rem] font-semibold tracking-wider text-(--color-text-secondary) uppercase"
+                >
+                  {header}
+                </th>
+              ))}
+              <th className="border-b border-border px-4 py-3 text-center text-[0.7rem] font-semibold tracking-wider text-(--color-text-secondary) uppercase">
                 Status
               </th>
             </tr>
@@ -70,32 +66,36 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
             {rows.map((row, index) => (
               <tr
                 key={row.factor}
-                className={`${index % 2 === 1 ? 'bg-[rgba(180,160,130,0.05)]' : ''} hover:bg-[rgba(200,180,150,0.2)] transition-colors`}
+                className={`${index % 2 === 1 ? 'bg-[rgba(180,160,130,0.05)]' : ''} transition-colors hover:bg-[rgba(200,180,150,0.2)]`}
               >
-                <td className="text-left py-3 px-4 text-sm font-medium text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
+                <td className="border-b border-border/30 px-4 py-3 text-left text-sm font-medium text-(--color-text-primary)">
                   {row.displayName}
                 </td>
-                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
-                  {row.userScore ?? '—'}
-                </td>
-                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
-                  {row.p25 ?? '—'}
-                </td>
-                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
-                  {row.p50 ?? '—'}
-                </td>
-                <td className="text-center py-3 px-3 text-sm text-(--color-text-primary) border-b border-(--color-border) border-opacity-30">
-                  {row.p75 ?? '—'}
-                </td>
-                <td className="text-center py-3 px-4 border-b border-(--color-border) border-opacity-30">
+                {['userScore', 'p25', 'p50', 'p75'].map((score) => (
+                  <td
+                    key={score}
+                    className="border-b border-border/30 p-3 text-center text-sm text-(--color-text-primary)"
+                  >
+                    {row[score] ?? '—'}
+                  </td>
+                ))}
+                <td className="border-b border-border/30 px-4 py-3 text-center">
                   <Chip
                     variant="info"
                     color={row.statusColor}
-                    className={`
-                      ${row.status === 'above_average' ? '!bg-[rgba(74,124,89,0.15)] !text-[#4a7c59] !border-[rgba(74,124,89,0.3)]' : ''}
-                      ${row.status === 'average' ? '!bg-[rgba(176,125,58,0.15)] !text-[#b07d3a] !border-[rgba(176,125,58,0.3)]' : ''}
-                      ${row.status === 'below_average' ? '!bg-[rgba(139,58,58,0.15)] !text-[#8b3a3a] !border-[rgba(139,58,58,0.3)]' : ''}
-                    `}
+                    className={`${
+                      row.status === 'above_average'
+                        ? `border-[rgba(74,124,89,0.3)]! bg-[rgba(74,124,89,0.15)]! text-[#4a7c59]!`
+                        : ''
+                    } ${
+                      row.status === 'average'
+                        ? `border-[rgba(176,125,58,0.3)]! bg-[rgba(176,125,58,0.15)]! text-[#b07d3a]!`
+                        : ''
+                    } ${
+                      row.status === 'below_average'
+                        ? `border-[rgba(139,58,58,0.3)]! bg-[rgba(139,58,58,0.15)]! text-[#8b3a3a]!`
+                        : ''
+                    }`}
                   >
                     {row.statusLabel}
                   </Chip>
@@ -111,7 +111,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
           {opportunities?.length > 0 && (
             <div className="mb-3">
               <div
-                className="text-sm font-bold mb-2"
+                className="mb-2 text-sm font-bold"
                 style={{
                   color: 'var(--foreground)',
                 }}
@@ -131,7 +131,7 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
           {strengths?.length > 0 && (
             <div>
               <div
-                className="text-sm font-bold mb-2"
+                className="mb-2 text-sm font-bold"
                 style={{
                   color: 'var(--foreground)',
                 }}

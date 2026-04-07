@@ -6,6 +6,7 @@ import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
+import betterTailwind from 'eslint-plugin-better-tailwindcss';
 import importPlugin from 'eslint-plugin-import';
 import pluginReact from 'eslint-plugin-react';
 // import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -170,7 +171,7 @@ export default [
   // Frontend Specific Rules (React)
   {
     files: ['frontend/**/*.{js,jsx,ts,tsx,mjs,cjs}'],
-    plugins: { react: pluginReact },
+    plugins: { react: pluginReact, 'better-tailwindcss': betterTailwind },
     languageOptions: {
       globals: {
         ...globals.browser, // ensures window/document are known
@@ -187,8 +188,20 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       // 'no-undef': 'off',
+      ...betterTailwind.configs.recommended.rules,
+      'better-tailwindcss/no-unknown-classes': 'off',
+      'better-tailwindcss/no-deprecated-classes': 'warn', // warning to fix later
+      'better-tailwindcss/no-conflicting-classes': 'warn',
+      'better-tailwindcss/enforce-consistent-class-order': 'off',
+      'better-tailwindcss/enforce-canonical-classes': 'off',
+      'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
     },
-    settings: { react: { version: 'detect' } },
+    settings: {
+      react: { version: 'detect' },
+      'better-tailwindcss': {
+        entryPoint: 'frontend/src/index.css',
+      },
+    },
   },
 
   // Prettier should be last to override any conflicting rules

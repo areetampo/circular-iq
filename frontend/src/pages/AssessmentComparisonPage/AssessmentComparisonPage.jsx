@@ -162,17 +162,17 @@ export default function AssessmentComparisonPage() {
   };
 
   return (
-    <div className="space-y-0 w-full mt-6">
+    <div className="mt-6 w-full space-y-0">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
-      <div className="sticky top-0 z-20 bg-(--color-bg) border-b border-(--color-border) py-4 px-6">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 max-w-7xl mx-auto">
+      <div className="sticky top-0 z-20 border-b border-border bg-(--color-bg) px-6 py-4">
+        <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div>
-            <h2 className="font-mono font-medium text-xl text-(--color-text-primary) truncate">
+            <h2 className="truncate font-mono text-xl font-medium text-(--color-text-primary)">
               {assessment1.title}
             </h2>
-            <div className="flex items-baseline gap-1 mt-1">
+            <div className="mt-1 flex items-baseline gap-1">
               <span
-                className="font-(--font-mono) text-3xl"
+                className="font-mono text-3xl"
                 style={{ color: scoreColor(scoringResult1?.overall_score) }}
               >
                 {scoringResult1?.overall_score || 0}
@@ -181,18 +181,18 @@ export default function AssessmentComparisonPage() {
             </div>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <span className="text-xs font-bold tracking-widest uppercase text-(--color-text-muted)">
+            <span className="text-xs font-bold tracking-widest text-(--color-text-muted) uppercase">
               vs
             </span>
             <ChangeIndicator diff={overallDelta} />
           </div>
           <div className="text-right">
-            <h2 className="font-mono font-medium text-xl text-(--color-text-primary) truncate">
+            <h2 className="truncate font-mono text-xl font-medium text-(--color-text-primary)">
               {assessment2.title}
             </h2>
-            <div className="flex items-baseline gap-1 mt-1 justify-end">
+            <div className="mt-1 flex items-baseline justify-end gap-1">
               <span
-                className="font-(--font-mono) text-3xl font-bold"
+                className="font-mono text-3xl font-bold"
                 style={{ color: scoreColor(scoringResult2?.overall_score) }}
               >
                 {scoringResult2?.overall_score || 0}
@@ -204,9 +204,9 @@ export default function AssessmentComparisonPage() {
       </div>
 
       {/* Two columns side by side */}
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-          <div className="border-r-2 border-(--color-border) pr-6 lg:pr-8">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+          <div className="border-r-2 border-border pr-6 lg:pr-8">
             <AssessmentColumn
               assessment={assessment1}
               scoringResult={scoringResult1}
@@ -228,7 +228,7 @@ export default function AssessmentComparisonPage() {
       </div>
 
       {/* Footer */}
-      <div className="flex justify-between items-center py-6 px-6 border-t-2 border-(--color-border) mt-8">
+      <div className="mt-8 flex items-center justify-between border-t-2 border-border p-6">
         <p className="text-sm font-medium text-(--color-text-muted)">
           Last updated: {getCurrentTimestampFormatted()}
         </p>

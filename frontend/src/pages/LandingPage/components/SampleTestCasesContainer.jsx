@@ -232,7 +232,7 @@ export default function SampleTestCasesContainer({
   };
 
   return (
-    <ScrollShadow className="grid grid-cols-1 gap-3 overflow-y-auto md:grid-cols-2 max-h-96 pb-6">
+    <ScrollShadow className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto pb-6 md:grid-cols-2">
       {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
@@ -241,33 +241,33 @@ export default function SampleTestCasesContainer({
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'group relative flex flex-col gap-3 rounded-xl p-3 cursor-pointer',
+              'group relative flex cursor-pointer flex-col gap-3 rounded-xl p-3',
               'border-[1.5px] transition-all duration-200',
               isSelected
-                ? 'border-(--color-accent) shadow-sm bg-accent-100/10'
+                ? 'border-(--color-accent) bg-accent-100/10 shadow-sm'
                 : 'border-(--color-border-strong) bg-(--color-bg-card)' +
                     ' hover:border-(--color-accent) hover:shadow-sm',
             )}
           >
             {/* Header: index pill + title + check */}
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
                 <span
                   className={cn(
-                    'text-xs font-semibold px-2 py-0.5 rounded shrink-0 bg-(--color-accent-soft) text-(--color-accent)',
+                    `shrink-0 rounded-sm bg-accent-soft px-2 py-0.5 text-xs font-semibold text-(--color-accent)`,
                   )}
                 >
                   #{index + 1}
                 </span>
-                <h4 className="text-sm font-medium font-mono leading-snug truncate text-black/65">
+                <h4 className="truncate font-mono text-sm/snug font-medium text-black/65">
                   {testCase.title}
                 </h4>
               </div>
               {isSelected && (
                 <CheckCircle2
                   size={18}
-                  className="shrink-0 mt-0.5"
-                  style={{ color: 'var(--color-accent)' }}
+                  className="mt-0.5 shrink-0"
+                  style={{ '--icon-color': 'var(--color-accent)', color: 'var(--icon-color)' }}
                   strokeWidth={2}
                 />
               )}
@@ -275,8 +275,8 @@ export default function SampleTestCasesContainer({
 
             {/* Problem excerpt */}
             <p
-              className="text-xs leading-relaxed line-clamp-2 grow"
-              style={{ color: 'var(--color-text-muted)' }}
+              className="line-clamp-2 grow text-xs/relaxed"
+              style={{ '--text-color': 'var(--color-text-muted)', color: 'var(--text-color)' }}
             >
               {testCase.problem.substring(0, 110)}…
             </p>
@@ -290,11 +290,14 @@ export default function SampleTestCasesContainer({
                   return (
                     <span
                       key={key}
-                      className="text-[0.625rem] font-medium px-2 py-0.5 rounded border"
+                      className="rounded-sm border px-2 py-0.5 text-[0.625rem] font-medium"
                       style={{
-                        backgroundColor: style.bg,
-                        color: style.color,
-                        borderColor: `oklch(from ${style.border} l c h / 0.4)`,
+                        '--bg-color': style.bg,
+                        '--text-color': style.color,
+                        '--border-color': `oklch(from ${style.border} l c h / 0.4)`,
+                        backgroundColor: 'var(--bg-color)',
+                        color: 'var(--text-color)',
+                        borderColor: 'var(--border-color)',
                       }}
                     >
                       {key.replace(/_/g, ' ')}: {value}

@@ -14,11 +14,11 @@ export function CaseSummary({ caseInfo = {}, problemSolution = {} }) {
   const { problem, solution } = problemSolution;
 
   return (
-    <div className="border-t border-(--color-border) pt-6 mt-6">
+    <div className="mt-6 border-t border-border pt-6">
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-bold text-(--color-text-primary) mb-1">
+          <h3 className="mb-1 text-lg font-bold text-(--color-text-primary)">
             {title || 'Case Study'}
           </h3>
           <div className="flex items-center gap-3 text-sm text-(--color-text-secondary)">
@@ -39,14 +39,14 @@ export function CaseSummary({ caseInfo = {}, problemSolution = {} }) {
         <div className="space-y-4">
           {problem && (
             <div>
-              <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">Problem</h4>
-              <p className="text-sm text-(--color-text-secondary) leading-relaxed">{problem}</p>
+              <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">Problem</h4>
+              <p className="text-sm/relaxed text-(--color-text-secondary)">{problem}</p>
             </div>
           )}
           {solution && (
             <div>
-              <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">Solution</h4>
-              <p className="text-sm text-(--color-text-secondary) leading-relaxed">{solution}</p>
+              <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">Solution</h4>
+              <p className="text-sm/relaxed text-(--color-text-secondary)">{solution}</p>
             </div>
           )}
         </div>

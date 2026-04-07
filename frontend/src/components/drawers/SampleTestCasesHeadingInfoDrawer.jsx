@@ -26,14 +26,14 @@ export default function SampleTestCasesHeadingInfoDrawer() {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(74,85,104,0.1)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(74,85,104,0.1)]">
                   <ClipboardPenLine size={16} className="text-[#4a5568]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.heading}
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Learn from real circular economy examples
                   </p>
                 </div>
@@ -41,7 +41,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                <p className="text-sm/relaxed text-(--color-text-secondary)">
                   {SAMPLE_TEST_CASES_HEADING_CONTENT.description}
                 </p>
                 <ul className="ml-3 space-y-2">
@@ -61,16 +61,16 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.steps.map((step) => (
                       <div
                         key={step.num}
-                        className="group/card relative flex items-start gap-3.5 p-3 rounded-xl border-l-4 border-(--color-info) bg-(--color-bg-field) transition-colors duration-300 ease-out cursor-default select-none"
+                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl border-l-4 border-(--color-info) bg-(--color-bg-field) p-3 transition-colors duration-300 ease-out select-none"
                       >
-                        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold bg-(--color-info-light) text-(--color-info)">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-info-light) font-bold text-(--color-info)">
                           {step.num}
                         </div>
-                        <div className="flex flex-col gap-0.5 min-w-0">
-                          <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <span className="text-sm/snug font-bold text-(--color-text-primary)">
                             {step.title}
                           </span>
-                          <span className="text-xs leading-relaxed text-(--color-text-muted)">
+                          <span className="text-xs/relaxed text-(--color-text-muted)">
                             {step.desc}
                           </span>
                         </div>
@@ -79,7 +79,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="border-l-2 border-(--color-info) pl-3 py-1 text-xs text-(--color-info) leading-relaxed my-3">
+                <div className="my-3 border-l-2 border-(--color-info) py-1 pl-3 text-xs/relaxed text-(--color-info)">
                   <Lightbulb
                     className="mt-0.5 shrink-0 text-(--color-info)"
                     strokeWidth={2}

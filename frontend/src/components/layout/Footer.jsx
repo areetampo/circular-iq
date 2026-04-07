@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-import { SITE_FULL_NAME, SITE_NAME, SiteLogo } from '@/components/common/Brand';
+import { SITE_FULL_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
 import { cn } from '@/utils/cn';
 
 const footerLinks = [
@@ -24,13 +24,13 @@ export default function Footer() {
   const navigate = useNavigate();
 
   return (
-    <footer className="relative mt-auto border-t-2 border-(--color-border) bg-(--color-bg)">
+    <footer className="relative mt-auto border-t-2 border-border bg-(--color-bg)">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-(--color-bg) to-(--color-bg) opacity-90" />
 
       <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 xs_sm:grid-cols-2 md:grid-cols-3 gap-8">
+        <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="grid grid-cols-1 gap-8 xs_sm:grid-cols-2 md:grid-cols-3">
             {/* Brand Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -39,21 +39,17 @@ export default function Footer() {
               className="space-y-4"
             >
               <div
-                className="flex items-center gap-3 cursor-pointer group"
+                className="group flex cursor-pointer items-center gap-3"
                 onClick={() => navigate('/')}
               >
-                <SiteLogo className="transition-transform duration-300 group-hover:scale-105" />
+                <SiteLogo />
                 <div className="flex flex-col">
-                  <span className="font-(--font-display) text-lg text-(--color-text-primary)">
-                    {SITE_NAME}
-                  </span>
-                  <span className="text-xs text-(--color-text-muted) font-(--font-body)">
-                    {SITE_FULL_NAME}
-                  </span>
+                  <SiteName className="font-display text-lg text-(--color-text-primary)" />
+                  <SiteFullName className="font-sans text-xs text-(--color-text-muted)" />
                 </div>
               </div>
 
-              <p className="text-sm text-(--color-text-secondary) leading-relaxed max-w-xs">
+              <p className="max-w-xs text-sm/relaxed text-(--color-text-secondary)">
                 AI-powered circular economy evaluation platform. Get evidence-backed scores in
                 seconds.
               </p>
@@ -63,14 +59,16 @@ export default function Footer() {
                   <a
                     key={social.name}
                     href={social.url}
-                    className="text-(--color-text-muted) hover:text-(--color-accent) transition-colors duration-200"
+                    className="text-(--color-text-muted) transition-colors duration-200 hover:text-(--color-accent)"
                     aria-label={social.name}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <i className={cn(social.icon, 'text-xl')}></i>
                   </a>
                 ))}
-                <p className="text-xs italic text-(--color-text-secondary) leading-relaxed max-w-xs">
-                  ~ Made by Areeb and Mahit UwU ~
+                <p className="max-w-xs text-xs/relaxed text-(--color-text-secondary) italic">
+                  ~ Made by Areeb and Mahit ~
                 </p>
               </div>
             </motion.div>
@@ -82,7 +80,7 @@ export default function Footer() {
               transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
               className="space-y-4 xs_sm:ml-8"
             >
-              <h3 className="text-sm font-(--font-body) text-(--color-text-primary) uppercase tracking-wider">
+              <h3 className="font-sans text-sm tracking-wider text-(--color-text-primary) uppercase">
                 Navigation
               </h3>
               <nav className="space-y-2">
@@ -91,9 +89,9 @@ export default function Footer() {
                     key={link.name}
                     onClick={() => navigate(link.href)}
                     className={cn(
-                      'block text-sm text-(--color-text-muted) hover:text-(--color-accent)',
-                      'transition-colors duration-200 text-left',
-                      'hover:translate-x-1 transform',
+                      `block text-sm text-(--color-text-muted) hover:text-(--color-accent)`,
+                      'text-left transition-all duration-200',
+                      `transform cursor-pointer hover:translate-x-1`,
                     )}
                   >
                     {link.name}
@@ -109,7 +107,7 @@ export default function Footer() {
               transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
               className="space-y-4"
             >
-              <h3 className="text-sm font-(--font-body) text-(--color-text-primary) uppercase tracking-wider">
+              <h3 className="font-sans text-sm tracking-wider text-(--color-text-primary) uppercase">
                 Platform
               </h3>
               <div className="space-y-2 text-sm text-(--color-text-muted)">
@@ -132,17 +130,15 @@ export default function Footer() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-            className="mt-12 pt-8 border-t-2 border-(--color-border)"
+            className="mt-12 border-t-2 border-border pt-8"
           >
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-xs text-(--color-text-muted) font-(--font-body)">
+            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+              <p className="font-sans text-xs text-(--color-text-muted)">
                 © 2026 {SITE_FULL_NAME}. All rights reserved.
               </p>
 
               <div className="flex items-center gap-6 text-xs text-(--color-text-muted)">
-                <span className="font-(--font-body)">
-                  AI-Powered · Evidence-Based · Circular Economy
-                </span>
+                <span className="font-sans">AI-Powered · Evidence-Based · Circular Economy</span>
               </div>
             </div>
           </motion.div>

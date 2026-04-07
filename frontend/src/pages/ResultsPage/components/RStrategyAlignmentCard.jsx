@@ -32,7 +32,7 @@ export function RStrategyAlignmentCard({ actualResult }) {
           <span className="text-xs font-semibold text-(--color-error)">
             Critical factors below threshold:
           </span>
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="mt-1 flex flex-wrap gap-1">
             {misaligned_factors.map((f) => (
               <Chip key={f} variant="factor" className="text-xs">
                 {formatFactorName(f)}
@@ -44,7 +44,7 @@ export function RStrategyAlignmentCard({ actualResult }) {
       {well_aligned_factors.length > 0 && (
         <div>
           <span className="text-xs font-semibold text-(--color-success)">Well aligned:</span>
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="mt-1 flex flex-wrap gap-1">
             {well_aligned_factors.map((f) => (
               <Chip key={f} variant="factor" className="text-xs">
                 {formatFactorName(f)}

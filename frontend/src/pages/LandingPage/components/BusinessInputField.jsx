@@ -19,14 +19,14 @@ export default function BusinessInputField({
 }) {
   return (
     <div className="space-y-0">
-      <div className="flex flex-col gap-1.5 pl-2 mb-3">
+      <div className="mb-3 flex flex-col gap-1.5 pl-2">
         {/* Label */}
         <div className="flex items-center gap-2">
-          <Label htmlFor={id} className="text-sm font-semibold font-mono">
+          <Label htmlFor={id} className="font-mono text-sm font-semibold">
             {label}
           </Label>
           <BadgeInfo
-            className="info-icon cursor-pointer shrink-0 transition-all duration-200 hover:scale-110"
+            className="info-icon shrink-0 cursor-pointer transition-all duration-200 hover:scale-110"
             size={20}
             strokeWidth={2}
             style={{ color: 'var(--color-accent)', marginTop: '1px' }}
@@ -38,7 +38,7 @@ export default function BusinessInputField({
         </div>
 
         {/* Description */}
-        <p className="text-xs leading-relaxed font-mono opacity-60">{description}</p>
+        <p className="font-mono text-xs/relaxed opacity-60">{description}</p>
       </div>
 
       {/* Textarea */}
@@ -49,7 +49,7 @@ export default function BusinessInputField({
         {...register(fieldName)}
         disabled={loading}
         /* Keep the className minimal to avoid conflicts */
-        className="textarea w-full min-h-[140px] bg-[rgba(245,240,232,0.5)] rounded-xl! p-4 text-(--color-text-primary) transition-all duration-200"
+        className="textarea min-h-[140px] w-full rounded-xl! bg-[rgba(245,240,232,0.5)] p-4 text-(--color-text-primary) transition-all duration-200"
         onBlur={(e) => {
           register(fieldName).onBlur(e);
           if (flushAutosave) flushAutosave();
@@ -57,7 +57,7 @@ export default function BusinessInputField({
       />
 
       {/* Character counter */}
-      <div className="pr-2 mt-1">
+      <div className="mt-1 pr-2">
         <LiveCharacterCounter fieldName={fieldName} minLength={minLength} />
       </div>
     </div>

@@ -477,24 +477,24 @@ export default function MyAssessmentsPage() {
     // SummaryCardSkeleton - Matches the actual Summary Card structure
     function SummaryCardSkeleton() {
       return (
-        <div className="border border-(--color-border) rounded-xl px-6 py-5 shadow-sm">
+        <div className="rounded-xl border border-border px-6 py-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               {/* Label */}
-              <Skeleton animationType="shimmer" className="h-3 w-28 rounded mb-2" />
+              <Skeleton animationType="shimmer" className="mb-2 h-3 w-28 rounded-sm" />
 
               {/* Score/Title */}
-              <Skeleton animationType="shimmer" className="h-10 w-20 rounded-lg mb-2" />
+              <Skeleton animationType="shimmer" className="mb-2 h-10 w-20 rounded-lg" />
 
               {/* Description */}
-              <Skeleton animationType="shimmer" className="h-4 w-36 rounded mt-2" />
+              <Skeleton animationType="shimmer" className="mt-2 h-4 w-36 rounded-sm" />
 
               {/* Description part 2 */}
-              <Skeleton animationType="shimmer" className="h-10 w-28 rounded mt-6" />
+              <Skeleton animationType="shimmer" className="mt-6 h-10 w-28 rounded-sm" />
             </div>
 
             {/* Icon */}
-            <Skeleton animationType="shimmer" className="w-12 h-12 rounded-xl shrink-0" />
+            <Skeleton animationType="shimmer" className="size-12 shrink-0 rounded-xl" />
           </div>
         </div>
       );
@@ -503,27 +503,27 @@ export default function MyAssessmentsPage() {
     // FiltersCardSkeleton - Matches the actual Filters Card structure
     function FiltersCardSkeleton() {
       return (
-        <div className="border-2 border-(--color-border) shadow-sm rounded-xl">
-          <div className="p-6 space-y-6">
+        <div className="rounded-xl border-2 border-border shadow-sm">
+          <div className="space-y-6 p-6">
             {/* Filter inputs */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Skeleton animationType="shimmer" className="h-4 w-32 rounded" />
+                <Skeleton animationType="shimmer" className="h-4 w-32 rounded-sm" />
                 <Skeleton animationType="shimmer" className="h-10 rounded-lg" />
               </div>
               <div className="flex flex-col gap-2">
-                <Skeleton animationType="shimmer" className="h-4 w-20 rounded" />
+                <Skeleton animationType="shimmer" className="h-4 w-20 rounded-sm" />
                 <Skeleton animationType="shimmer" className="h-10 rounded-lg" />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
-                <Skeleton animationType="shimmer" className="h-4 w-16 rounded" />
+                <Skeleton animationType="shimmer" className="h-4 w-16 rounded-sm" />
                 <Skeleton animationType="shimmer" className="h-10 rounded-lg" />
               </div>
             </div>
 
             {/* Compare section */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t-2 border-(--color-border)">
-              <Skeleton animationType="shimmer" className="h-4 w-64 rounded" />
+            <div className="flex flex-col items-start justify-between gap-4 border-t-2 border-border pt-5 sm:flex-row sm:items-center">
+              <Skeleton animationType="shimmer" className="h-4 w-64 rounded-sm" />
               <Skeleton animationType="shimmer" className="h-10 w-44 rounded-lg" />
             </div>
           </div>
@@ -532,43 +532,43 @@ export default function MyAssessmentsPage() {
     }
 
     return (
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Stats grid skeleton */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="border border-[rgba(180,160,130,0.28)] rounded-2xl p-5 bg-[rgba(245,240,232,0.5)]"
+              className="rounded-2xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5"
             >
-              <div className="h-3 w-20 rounded mb-3" data-slot="skeleton" />
-              <div className="h-8 w-16 rounded mb-2" data-slot="skeleton" />
-              <div className="h-3 w-24 rounded" data-slot="skeleton" />
+              <div className="mb-3 h-3 w-20 rounded-sm" data-slot="skeleton" />
+              <div className="mb-2 h-8 w-16 rounded-sm" data-slot="skeleton" />
+              <div className="h-3 w-24 rounded-sm" data-slot="skeleton" />
             </div>
           ))}
         </div>
 
         {/* Filters Card Skeleton */}
-        <div className="border-2 border-(--color-border) shadow-sm rounded-xl">
-          <div className="p-6 space-y-6">
+        <div className="rounded-xl border-2 border-border shadow-sm">
+          <div className="space-y-6 p-6">
             {/* Filter inputs */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <div className="h-4 w-32 rounded" data-slot="skeleton" />
+                <div className="h-4 w-32 rounded-sm" data-slot="skeleton" />
                 <div className="h-10 rounded-lg" data-slot="skeleton" />
               </div>
               <div className="flex flex-col gap-2">
-                <div className="h-4 w-20 rounded" data-slot="skeleton" />
+                <div className="h-4 w-20 rounded-sm" data-slot="skeleton" />
                 <div className="h-10 rounded-lg" data-slot="skeleton" />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
-                <div className="h-4 w-16 rounded" data-slot="skeleton" />
+                <div className="h-4 w-16 rounded-sm" data-slot="skeleton" />
                 <div className="h-10 rounded-lg" data-slot="skeleton" />
               </div>
             </div>
 
             {/* Compare section */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-5 border-t-2 border-(--color-border)">
-              <div className="h-4 w-64 rounded" data-slot="skeleton" />
+            <div className="flex flex-col items-start justify-between gap-4 border-t-2 border-border pt-5 sm:flex-row sm:items-center">
+              <div className="h-4 w-64 rounded-sm" data-slot="skeleton" />
               <div className="h-10 w-44 rounded-lg" data-slot="skeleton" />
             </div>
           </div>
@@ -617,12 +617,12 @@ export default function MyAssessmentsPage() {
     // No assessments at all (stats_totalAssessments === 0)
     if (stats_totalAssessments === 0) {
       return (
-        <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)]">
+        <div className="rounded-2xl border-4 border-dashed border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.3)] p-12 text-center">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
-          <h3 className="font-display text-xl font-semibold text-(--color-text-primary) mb-2">
+          <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
             No assessments yet
           </h3>
-          <p className="text-sm text-(--color-text-muted) max-w-sm mx-auto leading-relaxed mb-6">
+          <p className="mx-auto mb-6 max-w-sm text-sm/relaxed text-(--color-text-muted)">
             Start your first assessment to track your circular economy progress and get personalized
             recommendations.
           </p>
@@ -636,12 +636,12 @@ export default function MyAssessmentsPage() {
     // Filtered results returned empty
     if (assessments.length === 0) {
       return (
-        <div className="border-4 border-dashed border-[rgba(180,160,130,0.3)] rounded-2xl p-12 text-center bg-[rgba(245,240,232,0.3)] mt-10">
+        <div className="mt-10 rounded-2xl border-4 border-dashed border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.3)] p-12 text-center">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
-          <h3 className="font-display text-xl font-semibold text-(--color-text-primary) mb-2">
+          <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
             No assessments found
           </h3>
-          <p className="text-sm text-(--color-text-muted) max-w-sm mx-auto leading-relaxed mb-6">
+          <p className="mx-auto mb-6 max-w-sm text-sm/relaxed text-(--color-text-muted)">
             Your current filters didn&apos;t match any assessments. Try selecting a different
             industry or adjusting your search.
           </p>
@@ -674,20 +674,20 @@ export default function MyAssessmentsPage() {
           onTogglePublic={handleTogglePublic}
         />
 
-        <div className="flex flex-col items-center justify-center gap-3 p-0 mt-6">
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 p-0">
           <p className="text-sm text-(--color-text-muted)">
             Showing{' '}
-            <span className="font-semibold inline-block text-center text-(--color-text-primary)">
+            <span className="inline-block text-center font-semibold text-(--color-text-primary)">
               {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
             </span>{' '}
             of{' '}
-            <span className="font-semibold inline-block text-center text-(--color-text-primary)">
+            <span className="inline-block text-center font-semibold text-(--color-text-primary)">
               {total}
             </span>{' '}
             results
           </p>
 
-          <div className="flex sm:flex-row flex-col items-center justify-center gap-4 sm:gap-6 mt-1 sm:mt-0">
+          <div className="mt-1 flex flex-col items-center justify-center gap-4 sm:mt-0 sm:flex-row sm:gap-6">
             <Pagination
               total={totalPages}
               page={page}
@@ -695,10 +695,10 @@ export default function MyAssessmentsPage() {
               className="justify-center"
               classnames={{
                 wrapper: 'gap-0',
-                item: 'font-(--font-mono) text-sm',
+                item: 'font-mono text-sm',
                 cursor: 'bg-(--color-accent) text-white border-(--color-accent)',
-                prev: 'font-(--font-mono) text-sm',
-                next: 'font-(--font-mono) text-sm',
+                prev: 'font-mono text-sm',
+                next: 'font-mono text-sm',
               }}
             >
               <Pagination.Content>
@@ -826,7 +826,7 @@ export default function MyAssessmentsPage() {
 
   // Case 3: Stats loaded successfully – render normal content
   return (
-    <div className="space-y-6 max-w-4xl mx-auto mt-6">
+    <div className="mx-auto mt-6 max-w-4xl space-y-6">
       {/* Section heading */}
       {stats_totalAssessments > 0 && (
         <div className="flex items-center justify-between">

@@ -1,24 +1,23 @@
 import { TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { Chip, SectionHeading } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
 export function WeightedScoreCard({ actualResult }) {
   if (!actualResult?.weighted_score_card) return null;
 
   return (
-    <div className="border-t border-(--color-border) pt-8 mt-8">
+    <div className="mt-8 border-t border-border pt-8">
       <SectionHeading
         variant="small"
-        icon={<TrendingUp className="w-4 h-4 text-(--color-accent)" />}
+        icon={<TrendingUp className="size-4 text-(--color-accent)" />}
       >
         Score Contribution Breakdown
       </SectionHeading>
 
       {/* Description */}
-      <p className="text-sm text-(--color-text-secondary) mb-6">
+      <p className="mb-6 text-sm text-(--color-text-secondary)">
         How each factor contributed to your overall score of{' '}
         <span className="font-mono text-(--color-text-primary)">
           {actualResult.overall_score}/100
@@ -32,21 +31,21 @@ export function WeightedScoreCard({ actualResult }) {
           .map(([key, factor]) => (
             <div
               key={key}
-              className="flex items-center gap-3 py-2 border-b border-(--color-border) last:border-0"
+              className="flex items-center gap-3 border-b border-border py-2 last:border-0"
             >
-              <div className="w-36 text-xs font-medium truncate shrink-0 text-(--color-text-muted)">
+              <div className="w-36 shrink-0 truncate text-xs font-medium text-(--color-text-muted)">
                 {formatFactorName(key)}
               </div>
-              <div className="flex-1 rounded-full h-1.5 relative overflow-hidden bg-(--color-border)">
+              <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-border">
                 <div
                   className="h-1.5 rounded-full bg-(--color-accent)"
                   style={{ width: `${factor.raw_score}%` }}
                 />
               </div>
-              <div className="text-xs w-8 text-right shrink-0 font-mono text-(--color-text-primary)">
+              <div className="w-8 shrink-0 text-right font-mono text-xs text-(--color-text-primary)">
                 {factor.raw_score}
               </div>
-              <div className="text-xs w-10 text-right shrink-0 text-(--color-text-muted)">
+              <div className="w-10 shrink-0 text-right text-xs text-(--color-text-muted)">
                 +{factor.contribution}
               </div>
               <Chip variant="factor" className="shrink-0">
@@ -57,7 +56,7 @@ export function WeightedScoreCard({ actualResult }) {
       </div>
 
       {/* Bottom summary */}
-      <div className="mt-6 pt-4 border-t border-(--color-border) flex justify-between text-xs text-(--color-text-muted)">
+      <div className="mt-6 flex justify-between border-t border-border pt-4 text-xs text-(--color-text-muted)">
         <span>
           Top contributor:{' '}
           <span className="font-semibold text-(--color-text-primary)">

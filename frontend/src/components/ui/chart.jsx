@@ -20,14 +20,8 @@ function ChartContainer({ id, className, children, config, style, ...props }) {
     <ChartContext.Provider value={{ config }}>
       <div
         data-chart={chartId}
-        className={className}
-        style={{
-          width: '100%',
-          fontFamily:
-            'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-          fontSize: 12,
-          ...style,
-        }}
+        className={`w-full font-mono text-xs ${className || ''}`}
+        style={style}
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
@@ -70,26 +64,14 @@ function ChartTooltipContent({
 
   return (
     <div
-      className={className}
-      style={{
-        background: 'rgba(247, 243, 237, 0.97)',
-        border: '1px solid rgba(180, 160, 130, 0.25)',
-        borderRadius: 8,
-        padding: '8px 12px',
-        boxShadow: '0 2px 12px rgba(26,21,16,0.1)',
-        fontFamily:
-          'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-        fontSize: 12,
-        color: '#1a1510',
-        minWidth: 120,
-      }}
+      className={`min-w-30 rounded-lg border border-[rgba(180,160,130,0.25)] bg-[rgba(247,243,237,0.97)] p-2 font-mono text-xs text-[#1a1510] shadow-sm ${className || ''}`}
     >
       {!hideLabel && label && (
-        <p style={{ fontWeight: 600, marginBottom: 4, color: '#5a4f42', fontSize: 11 }}>
+        <p className="mb-1 text-[11px] leading-tight font-semibold text-[#5a4f42]">
           {labelFormatter ? labelFormatter(label, payload) : label}
         </p>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <div className="flex flex-col gap-1">
         {payload.map((item, i) => {
           const key = nameKey || item.name || item.dataKey || 'value';
           const itemConfig = config[key] || {};
@@ -104,25 +86,17 @@ function ChartTooltipContent({
               : item.value;
 
           return (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div key={i} className="flex items-center gap-2">
               {!hideIndicator && (
                 <span
-                  style={{
-                    display: 'inline-block',
-                    width: indicator === 'line' ? 16 : 8,
-                    height: indicator === 'line' ? 2 : 8,
-                    borderRadius: indicator === 'dot' ? '50%' : 2,
-                    background: color,
-                    flexShrink: 0,
-                  }}
+                  className={`block shrink-0 ${
+                    indicator === 'line' ? `h-0.5 w-4 rounded-sm` : `size-2 rounded-full`
+                  }`}
+                  style={{ backgroundColor: color }}
                 />
               )}
-              <span style={{ color: '#5a4f42' }}>{displayName}</span>
-              <span
-                style={{ marginLeft: 'auto', fontWeight: 600, color: '#1a1510', paddingLeft: 8 }}
-              >
-                {displayValue}
-              </span>
+              <span className="text-[#5a4f42]">{displayName}</span>
+              <span className="ml-auto pl-2 font-semibold text-[#1a1510]">{displayValue}</span>
             </div>
           );
         })}
@@ -137,31 +111,13 @@ function ChartLegendContent({ payload, className }) {
 
   return (
     <div
-      className={className}
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '8px 16px',
-        justifyContent: 'center',
-        paddingTop: 8,
-        fontFamily:
-          'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-        fontSize: 13,
-        fontWeight: 500,
-        color: '#5a4f42',
-      }}
+      className={`flex flex-wrap justify-center gap-2 pt-2 font-mono text-[13px] font-medium text-[#5a4f42] ${className || ''}`}
     >
       {payload.map((item, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div key={i} className="flex items-center gap-1.5">
           <span
-            style={{
-              display: 'inline-block',
-              width: 10,
-              height: 10,
-              borderRadius: 3,
-              background: item.color,
-              flexShrink: 0,
-            }}
+            className="block size-2.5 shrink-0 rounded-sm"
+            style={{ backgroundColor: item.color }}
           />
           <span>{item.value}</span>
         </div>

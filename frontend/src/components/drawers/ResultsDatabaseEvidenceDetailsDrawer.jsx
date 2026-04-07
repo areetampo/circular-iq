@@ -40,36 +40,36 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(180,160,130,0.12)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(180,160,130,0.12)]">
                   <FileText size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     {data.title || data.case_id || 'Case Details'}
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Detailed evidence and matched case context
                   </p>
                 </div>
               </div>
             </Drawer.Header>
 
-            <Drawer.Body className="p-6 space-y-6">
+            <Drawer.Body className="space-y-6 p-6">
               {/* Meta Information */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="mb-6 grid grid-cols-2 gap-4">
                 {data.id && (
                   <div className="space-y-1">
-                    <span className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">
+                    <span className="text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Case ID
                     </span>
-                    <p className="font-mono text-sm text-(--color-text-primary) break-all">
+                    <p className="font-mono text-sm break-all text-(--color-text-primary)">
                       {data.id}
                     </p>
                   </div>
                 )}
                 {data.similarity && (
                   <div>
-                    <p className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider mb-1">
+                    <p className="mb-1 text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Similarity
                     </p>
                     <Chip
@@ -88,7 +88,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                 )}
                 {data.source_display && (
                   <div className="space-y-1">
-                    <span className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">
+                    <span className="text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Source
                     </span>
                     <p className="text-sm text-(--color-text-primary)">{data.source_display}</p>
@@ -96,7 +96,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                 )}
                 {data.year && (
                   <div className="space-y-1">
-                    <span className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider">
+                    <span className="text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Year
                     </span>
                     <p className="text-sm text-(--color-text-primary)">
@@ -109,44 +109,38 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               {/* Problem Statement */}
               {data.problem && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Problem Statement
                   </h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                    {data.problem}
-                  </p>
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.problem}</p>
                 </div>
               )}
 
               {/* Solution Approach */}
               {data.solution && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Solution Approach
                   </h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                    {data.solution}
-                  </p>
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.solution}</p>
                 </div>
               )}
 
               {/* Impact */}
               {data.impact && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">Impact</h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                    {data.impact}
-                  </p>
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">Impact</h4>
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.impact}</p>
                 </div>
               )}
 
               {/* Materials */}
               {data.materials && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Materials
                   </h4>
-                  <p className="text-sm font-mono text-(--color-text-secondary) leading-relaxed">
+                  <p className="font-mono text-sm/relaxed text-(--color-text-secondary)">
                     {data.materials}
                   </p>
                 </div>
@@ -155,10 +149,10 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               {/* Circular Strategy */}
               {data.circular_strategy && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Circular Strategy
                   </h4>
-                  <p className="text-sm font-mono text-(--color-text-secondary) leading-relaxed">
+                  <p className="font-mono text-sm/relaxed text-(--color-text-secondary)">
                     {data.circular_strategy}
                   </p>
                 </div>
@@ -167,22 +161,20 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               {/* Industry */}
               {data.industry && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Industry
                   </h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                    {data.industry}
-                  </p>
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.industry}</p>
                 </div>
               )}
 
               {/* Location */}
               {data.location && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Location
                   </h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">
                     {data.location || 'Not specified'}
                   </p>
                 </div>
@@ -191,38 +183,34 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               {/* Use Type */}
               {data.use_type && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Use Type
                   </h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                    {data.use_type}
-                  </p>
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.use_type}</p>
                 </div>
               )}
 
               {/* Category */}
               {data.category && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
                     Category
                   </h4>
-                  <p className="text-sm text-(--color-text-secondary) leading-relaxed">
-                    {data.category}
-                  </p>
+                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.category}</p>
                 </div>
               )}
 
               {/* Case Scores */}
               {data.case_scores && (
                 <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-3">
+                  <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
                     Performance Scores
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
                     {Object.entries(data.case_scores).map(([key, value]) => (
                       <div
                         key={key}
-                        className="flex justify-between items-center p-2 bg-(--color-bg-field) rounded-lg"
+                        className="flex items-center justify-between rounded-lg bg-(--color-bg-field) p-2"
                       >
                         <span className="text-xs font-medium text-(--color-text-muted) capitalize">
                           {key.replace(/_/g, ' ')}
@@ -239,12 +227,12 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               {/* Source URL */}
               {data.source_url && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-(--color-text-primary) mb-2">Source</h4>
+                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">Source</h4>
                   <a
                     href={data.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-mono text-(--color-accent) hover:underline break-all leading-relaxed"
+                    className="font-mono text-sm/relaxed break-all text-(--color-accent) hover:underline"
                   >
                     {data.source_url}
                   </a>

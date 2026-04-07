@@ -16,7 +16,7 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  * removed because form inputs are now always synced from persisted session.
  * Restore Results remains available when a results snapshot exists.
  */
-function SessionRestoreDialogContent() {
+function ResultsRestoreDialogContent() {
   const { isDialogOpen, dialog, onClose } = useGlobalDialog();
   const navigate = useNavigate();
   const isClosingRef = useRef(false);
@@ -153,26 +153,24 @@ function SessionRestoreDialogContent() {
               >
                 <RefreshCw size={20} />
               </AlertDialog.Icon>
-              <AlertDialog.Heading>
-                Restore Previous Session from {formatDate(sessionData?.timestamp)}?
-              </AlertDialog.Heading>
+              <AlertDialog.Heading>Restore previously calculated results?</AlertDialog.Heading>
             </AlertDialog.Header>
 
-            <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+            <AlertDialog.Body className="text-center text-sm/relaxed text-(--color-text-secondary)">
               Your inputs are already saved locally — you can restore calculated results below or
               continue from your saved inputs.
-              <div className="border-2 border-[rgba(180,160,130,0.18)] rounded-md p-1 px-2 flex items-center gap-3 mt-4">
-                <FileCheck className="text-(--color-text-muted) w-5 h-5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-(--color-text-primary)">
-                    Calculated results
-                  </p>
-                  <p className="text-xs text-(--color-text-muted) mt-0.5">
-                    {hasResults
-                      ? 'You have unsaved assessment results'
-                      : 'No calculated results found to restore.'}
-                  </p>
-                </div>
+              <div className="mt-4 flex items-center gap-3 rounded-xl border-2 border-dashed border-[rgba(180,160,130,0.3)] p-1 px-2">
+                <FileCheck className="size-5 shrink-0 text-(--color-text-muted)" />
+                <p className="text-xs font-medium text-black/60">
+                  {hasResults ? (
+                    <>
+                      You have unsaved assessment results from{' '}
+                      <em>{formatDate(sessionData?.results?.processing_info?.timestamp)}</em>
+                    </>
+                  ) : (
+                    'No calculated results found to restore.'
+                  )}
+                </p>
               </div>
             </AlertDialog.Body>
 
@@ -198,10 +196,10 @@ function SessionRestoreDialogContent() {
 }
 
 // Memoized to prevent duplicate renders from DialogManager
-const MemoizedContent = React.memo(SessionRestoreDialogContent);
+const MemoizedContent = React.memo(ResultsRestoreDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
-export const SessionRestoreDialog = React.memo(function SessionRestoreDialog() {
+export const ResultsRestoreDialog = React.memo(function ResultsRestoreDialog() {
   const { isDialogOpen } = useGlobalDialog();
 
   // Return null when closed - this is critical for preventing double-render issues
@@ -212,11 +210,11 @@ export const SessionRestoreDialog = React.memo(function SessionRestoreDialog() {
   return <MemoizedContent key="session-restore-dialog" />;
 });
 
-SessionRestoreDialog.propTypes = {
+ResultsRestoreDialog.propTypes = {
   // Props are no longer used - dialog gets data from useGlobalDialog
 };
 
 // Legacy export for backward compatibility
-SessionRestoreDialog.Content = SessionRestoreDialogContent;
+ResultsRestoreDialog.Content = ResultsRestoreDialogContent;
 
-export default SessionRestoreDialog;
+export default ResultsRestoreDialog;

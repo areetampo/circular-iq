@@ -20,11 +20,11 @@ export function FilterBar({
   handleCompareSelected,
 }) {
   return (
-    <div className="space-y-3 mb-6">
+    <div className="mb-6 space-y-3">
       {/* Search */}
       <div className="relative">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted) pointer-events-none"
+          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)"
           size={14}
           strokeWidth={2}
         />
@@ -33,14 +33,14 @@ export function FilterBar({
           placeholder="Search assessments by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-9 pl-9 pr-4 text-sm rounded-xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:outline-none focus:shadow-[0_0_0_3px_rgba(184,145,106,0.12)] transition-all"
+          className="h-9 w-full rounded-xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] pr-4 pl-9 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.12)] focus:outline-none"
         />
       </div>
 
       {/* Sort + Compare button row */}
       <div className="flex items-center justify-between gap-3">
         {/* Sort — HeroUI Select */}
-        <div className="flex-1 max-w-50">
+        <div className="max-w-50 flex-1">
           <Select
             className="w-full"
             placeholder="Sort by"
@@ -88,7 +88,7 @@ export function FilterBar({
               variant="results-action"
               onClick={handleCompareSelected}
               disabled={selectedIds.size !== 2}
-              className={selectedIds.size !== 2 ? 'opacity-50 cursor-not-allowed' : ''}
+              className={selectedIds.size !== 2 ? `cursor-not-allowed opacity-50` : ''}
             >
               <GitCompare size={14} />
               compare

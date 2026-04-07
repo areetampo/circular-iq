@@ -67,11 +67,11 @@ export default function SharePage() {
   };
 
   return (
-    <div className="min-h-[70vh] flex flex-col justify-center max-w-lg mx-auto px-6 py-12">
-      <h1 className="font-(--font-display) text-2xl text-(--color-text-primary) mb-4 leading-tight">
+    <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col justify-center px-6 py-12">
+      <h1 className="mb-4 font-display text-2xl/tight font-bold text-(--color-text-primary)">
         Open a Shared Assessment
       </h1>
-      <p className="text-sm mb-8 max-w-md text-(--color-text-secondary)">
+      <p className="mb-8 max-w-md text-sm text-(--color-text-secondary)">
         Enter the public ID for the assessment you want to view.
       </p>
 
@@ -79,7 +79,7 @@ export default function SharePage() {
         <div>
           <Label
             htmlFor="public-id"
-            className="text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) mb-2 block"
+            className="mb-2 block text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase"
           >
             Public ID
           </Label>
@@ -89,7 +89,7 @@ export default function SharePage() {
             onChange={(e) => setPublicId(e.target.value)}
             placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             size="lg"
-            className="mt-2 w-full bg-transparent border border-(--color-border-strong) rounded-md text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light) transition-all outline-none"
+            className="mt-2 w-full rounded-md border border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light)"
           />
         </div>
 
@@ -111,14 +111,14 @@ export default function SharePage() {
       </form>
 
       {/* Info box */}
-      <div className="mt-8 p-4 rounded-xl border-3 border-(--color-border) bg-transparent">
-        <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-(--color-text-muted)">
+      <div className="mt-8 rounded-xl border-3 border-border bg-transparent p-4">
+        <p className="mb-2 text-xs font-semibold tracking-wide text-(--color-text-muted) uppercase">
           About assessment
         </p>
         <ul className="space-y-1.5">
           {['Only assessments set to public are viewable'].map((item) => (
             <li key={item} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
-              <span className="shrink-0 mt-2 w-1 h-1 rounded-full bg-(--color-accent)" />
+              <span className="mt-2 size-1 shrink-0 rounded-full bg-(--color-accent)" />
               {item}
             </li>
           ))}

@@ -1,31 +1,31 @@
 import { Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { SectionHeading } from '@/components/common';
 
 export function CircularEconomyTierCard({ actualResult }) {
   if (!actualResult?.circular_economy_tier) return null;
 
   return (
-    <div className="border-t border-(--color-border) pt-8 mt-8">
+    <div className="mt-8 border-t border-border pt-8">
       <SectionHeading variant="small" icon={<Target size={16} className="text-(--color-accent)" />}>
         Circular Economy Tier
       </SectionHeading>
 
-      <div className="font-(--font-display) text-3xl text-(--color-text-primary) mb-1">
+      <div className="mb-1 font-display text-3xl font-bold text-(--color-text-primary)">
         {actualResult.circular_economy_tier.tier}
       </div>
 
-      <div className="text-sm text-(--color-text-secondary) mb-3">
+      <div className="mb-3 text-sm text-(--color-text-secondary)">
         Score range: {actualResult.circular_economy_tier.range} ·{' '}
         {actualResult.circular_economy_tier.percentile_estimate}
       </div>
 
-      <div className="text-sm text-(--color-text-secondary) leading-relaxed mb-4">
+      <div className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
         {actualResult.circular_economy_tier.description}
       </div>
 
-      <div className="border-l-2 border-(--color-accent) pl-3 py-1 text-sm text-(--color-text-secondary) italic leading-relaxed my-3">
+      <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary) italic">
         <span className="text-xs font-semibold text-(--color-text-muted)">Next Milestone: </span>
         <span className="text-xs text-(--color-text-primary)">
           {actualResult.circular_economy_tier.next_milestone}

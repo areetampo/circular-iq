@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { SectionHeading } from '@/components/common';
 import { categoryMapping, validKeys } from '@/constants/evaluationData';
 
 export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
@@ -13,10 +13,10 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
   };
 
   return (
-    <div className="border-2 border-[rgba(180,160,130,0.25)] rounded-3xl bg-transparent">
+    <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
       <div className="p-1 sm:p-3">
         <SectionHeading variant="large">Category Analysis</SectionHeading>
-        <p className="text-sm text-(--color-text-muted) mb-4 -mt-4">
+        <p className="-mt-4 mb-4 text-sm text-(--color-text-muted)">
           Detailed breakdown across all evaluation criteria
         </p>
         <div className="space-y-3">
@@ -34,30 +34,30 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
             return (
               <div
                 key={key}
-                className="p-4 rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]"
+                className="rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4"
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-(--color-text-primary)">
                       {category.name}
                     </h4>
-                    <p className="text-xs mt-0.5 text-(--color-text-muted)">{category.desc}</p>
+                    <p className="mt-0.5 text-xs text-(--color-text-muted)">{category.desc}</p>
                   </div>
                   <div
-                    className="ml-4 px-3 py-1 rounded-lg font-bold text-sm bg-transparent border border-[rgba(180,160,130,0.18)]"
-                    style={{ color: badgeColor }}
+                    className="ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold"
+                    style={{ '--badge-color': badgeColor, color: 'var(--badge-color)' }}
                   >
                     {numValue}
                   </div>
                 </div>
 
-                <div className="w-full rounded-full h-2 overflow-hidden bg-[rgba(180,160,130,0.2)]">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(180,160,130,0.2)]">
                   <div
-                    className="h-full transition-all duration-500 rounded-full"
+                    className={`h-full rounded-full transition-all duration-500 ${numValue >= 75 ? `opacity-70` : `opacity-60`}`}
                     style={{
                       width: `${Math.min(100, Math.max(0, numValue))}%`,
-                      backgroundColor: barColor,
-                      opacity: numValue >= 75 ? 0.7 : numValue >= 50 ? 0.6 : 0.6,
+                      '--bar-color': barColor,
+                      backgroundColor: 'var(--bar-color)',
                     }}
                   />
                 </div>
@@ -65,33 +65,36 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
             );
           })}
           {/* Business Viability Category */}
-          <div className="p-4 rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)]">
-            <div className="flex items-center justify-between mb-2">
+          <div className="rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4">
+            <div className="mb-2 flex items-center justify-between">
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-(--color-text-primary)">
                   Business Viability
                 </h4>
-                <p className="text-xs mt-0.5 text-(--color-text-muted)">
+                <p className="mt-0.5 text-xs text-(--color-text-muted)">
                   Economic feasibility and scalability
                 </p>
               </div>
               <div
-                className="ml-4 px-3 py-1 rounded-lg font-bold text-sm bg-transparent border border-[rgba(180,160,130,0.18)]"
+                className="ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold"
                 style={{
-                  color: getScoreColor(resolvedBusinessViabilityScore),
+                  '--badge-color': getScoreColor(resolvedBusinessViabilityScore),
+                  color: 'var(--badge-color)',
                 }}
               >
                 {resolvedBusinessViabilityScore}
               </div>
             </div>
 
-            <div className="w-full rounded-full h-2 overflow-hidden bg-[rgba(180,160,130,0.2)]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(180,160,130,0.2)]">
               <div
-                className="h-full transition-all duration-500 rounded-full"
+                className={`h-full rounded-full transition-all duration-500 ${
+                  resolvedBusinessViabilityScore >= 75 ? `opacity-70` : `opacity-60`
+                }`}
                 style={{
                   width: `${resolvedBusinessViabilityScore}%`,
-                  backgroundColor: getScoreColor(resolvedBusinessViabilityScore),
-                  opacity: resolvedBusinessViabilityScore >= 75 ? 0.7 : 0.6,
+                  '--bar-color': getScoreColor(resolvedBusinessViabilityScore),
+                  backgroundColor: 'var(--bar-color)',
                 }}
               />
             </div>

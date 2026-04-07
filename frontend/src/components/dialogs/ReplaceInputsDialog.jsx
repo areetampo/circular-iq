@@ -140,7 +140,7 @@ function ReplaceInputsDialogContent() {
               <AlertDialog.Heading>{title}</AlertDialog.Heading>
             </AlertDialog.Header>
 
-            <AlertDialog.Body className="text-sm text-(--color-text-secondary) text-center leading-relaxed">
+            <AlertDialog.Body className="text-center text-sm/relaxed text-(--color-text-secondary)">
               {description}
             </AlertDialog.Body>
 

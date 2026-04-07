@@ -3,9 +3,9 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { DialogProvider } from '@/contexts/DialogContext';
 
-import { SessionRestoreDialog } from './SessionRestoreDialog';
+import { ResultsRestoreDialog } from './ResultsRestoreDialog';
 
-describe('SessionRestoreDialog', () => {
+describe('ResultsRestoreDialog', () => {
   afterEach(() => {
     localStorage.clear();
   });
@@ -23,7 +23,7 @@ describe('SessionRestoreDialog', () => {
     const { queryByText, getByText } = render(
       <MemoryRouter>
         <DialogProvider>
-          <SessionRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={() => {}} />
+          <ResultsRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={() => {}} />
         </DialogProvider>
       </MemoryRouter>,
     );
@@ -48,7 +48,7 @@ describe('SessionRestoreDialog', () => {
     const { queryByText, getByText } = render(
       <MemoryRouter>
         <DialogProvider>
-          <SessionRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={() => {}} />
+          <ResultsRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={() => {}} />
         </DialogProvider>
       </MemoryRouter>,
     );
@@ -69,7 +69,7 @@ describe('SessionRestoreDialog', () => {
     const { getByText } = render(
       <MemoryRouter>
         <DialogProvider>
-          <SessionRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={onDismiss} />
+          <ResultsRestoreDialog isOpen={true} sessionData={sessionData} onDismiss={onDismiss} />
         </DialogProvider>
       </MemoryRouter>,
     );

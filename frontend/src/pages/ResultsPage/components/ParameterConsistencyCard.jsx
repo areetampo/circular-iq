@@ -27,14 +27,11 @@ export function ParameterConsistencyCard({ actualResult }) {
       scoreColor={getScoreColor(score)}
     >
       {issues.length > 0 && (
-        <div className="space-y-2 mt-3">
+        <div className="mt-3 space-y-2">
           {issues.map((issue, i) => (
-            <div
-              key={i}
-              className="p-2 border rounded-lg bg-(--color-warning-soft) border-(--color-warning)"
-            >
+            <div key={i} className="rounded-lg border border-(--color-warning) bg-warning-soft p-2">
               <p className="text-xs text-(--color-warning)">{issue.issue}</p>
-              <div className="flex flex-wrap gap-1 mt-1">
+              <div className="mt-1 flex flex-wrap gap-1">
                 {issue.factors.map((f) => (
                   <Chip key={f} variant="factor" className="text-xs">
                     {formatFactorName(f)}

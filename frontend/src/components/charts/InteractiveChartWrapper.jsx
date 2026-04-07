@@ -97,35 +97,15 @@ export default function InteractiveChartWrapper({
       >
         {/* Header */}
         {(title || subtitle || showControls) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex flex-col justify-between border-b border-gray-200 p-4 sm:flex-row sm:items-center">
             <div className="flex-1">
-              {title && (
-                <h3
-                  className="text-lg font-semibold text-gray-900"
-                  style={{
-                    fontFamily:
-                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                  }}
-                >
-                  {title}
-                </h3>
-              )}
-              {subtitle && (
-                <p
-                  className="text-sm text-gray-600"
-                  style={{
-                    fontFamily:
-                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                  }}
-                >
-                  {subtitle}
-                </p>
-              )}
+              {title && <h3 className="font-mono text-lg font-semibold text-gray-900">{title}</h3>}
+              {subtitle && <p className="font-mono text-sm text-gray-600">{subtitle}</p>}
             </div>
 
             {/* Controls */}
             {showControls && (
-              <div className="flex items-center gap-2 mt-2 sm:mt-0">
+              <div className="mt-2 flex items-center gap-2 sm:mt-0">
                 {selectedPoints.size > 0 && (
                   <Chip variant="info" onClose={clearSelection}>
                     {selectedPoints.size} selected
@@ -136,23 +116,15 @@ export default function InteractiveChartWrapper({
                   <div className="flex gap-1">
                     <button
                       onClick={() => handleExport('png')}
-                      className="px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-600"
+                      className="rounded-sm px-2 py-1 font-mono text-xs text-gray-600 transition-colors hover:bg-gray-100"
                       title="Export as PNG"
-                      style={{
-                        fontFamily:
-                          'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                      }}
                     >
                       📷
                     </button>
                     <button
                       onClick={() => handleExport('svg')}
-                      className="px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-600"
+                      className="rounded-sm px-2 py-1 font-mono text-xs text-gray-600 transition-colors hover:bg-gray-100"
                       title="Export as SVG"
-                      style={{
-                        fontFamily:
-                          'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                      }}
                     >
                       📄
                     </button>
@@ -162,12 +134,8 @@ export default function InteractiveChartWrapper({
                 {enableFullscreen && (
                   <button
                     onClick={toggleFullscreen}
-                    className="px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors text-gray-600"
+                    className="rounded-sm px-2 py-1 font-mono text-xs text-gray-600 transition-colors hover:bg-gray-100"
                     title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                    style={{
-                      fontFamily:
-                        'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                    }}
                   >
                     {isFullscreen ? '✕' : '⛶'}
                   </button>
@@ -178,7 +146,7 @@ export default function InteractiveChartWrapper({
         )}
 
         {/* Chart Content */}
-        <div className="flex-1 relative" style={{ minHeight: 0 }}>
+        <div className="relative flex-1" style={{ minHeight: 0 }}>
           {typeof children === 'function'
             ? children({
                 selectedPoints,
@@ -191,14 +159,8 @@ export default function InteractiveChartWrapper({
 
         {/* Footer with Data Stats */}
         {showDataStats && dataStats && (
-          <div className="p-4 border-t border-gray-200">
-            <div
-              className="flex flex-wrap gap-4 text-xs"
-              style={{
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-              }}
-            >
+          <div className="border-t border-gray-200 p-4">
+            <div className="flex flex-wrap gap-4 font-mono text-xs">
               <div className="flex items-center gap-1">
                 <span className="text-gray-600">Points:</span>
                 <span className="font-medium text-gray-900">{dataStats.count}</span>

@@ -26,14 +26,14 @@ export default function BusinessContextHeadingInfoDrawer() {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(122,91,46,0.1)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(122,91,46,0.1)]">
                   <Target size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     Business Context Guide
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Helps AI understand your circular economy model
                   </p>
                 </div>
@@ -41,7 +41,7 @@ export default function BusinessContextHeadingInfoDrawer() {
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                <p className="text-sm/relaxed text-(--color-text-secondary)">
                   These optional fields provide{' '}
                   <strong className="font-semibold text-(--color-text-primary)">
                     context about your business
@@ -50,7 +50,7 @@ export default function BusinessContextHeadingInfoDrawer() {
                   tailored to your specific situation.
                 </p>
 
-                <div className="border-l-2 border-(--color-warning) pl-3 py-1 text-sm text-(--color-text-secondary) leading-relaxed my-3">
+                <div className="my-3 border-l-2 border-(--color-warning) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
                   <h4 className="mb-4 text-base font-bold text-(--color-warning)">
                     Context Fields
                   </h4>
@@ -58,19 +58,19 @@ export default function BusinessContextHeadingInfoDrawer() {
                     {BUSINESS_CONTEXT_HEADING_CONTENT.fields.map((field, idx) => (
                       <div
                         key={idx}
-                        className="group/card relative flex items-start gap-3.5 p-3.5 rounded-lg border-l-4 border-(--color-warning) bg-(--color-bg-field) transition-colors duration-300 ease-out cursor-default select-none"
+                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-lg border-l-4 border-(--color-warning) bg-(--color-bg-field) p-3.5 transition-colors duration-300 ease-out select-none"
                       >
-                        <div className="shrink-0 p-1.5 rounded-lg mt-0.5 bg-(--color-warning-light) transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
+                        <div className="mt-0.5 shrink-0 rounded-lg bg-(--color-warning-light) p-1.5 transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
                           <Target className="size-4 text-(--color-warning)" strokeWidth={1.75} />
                         </div>
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
+                        <div className="flex min-w-0 flex-col gap-1">
+                          <span className="text-sm/snug font-bold text-(--color-text-primary)">
                             {field.title}
                           </span>
-                          <span className="text-xs leading-snug text-(--color-text-muted)">
+                          <span className="text-xs/snug text-(--color-text-muted)">
                             {field.description}
                           </span>
-                          <span className="text-xs leading-relaxed mt-1 text-(--color-warning)">
+                          <span className="mt-1 text-xs/relaxed text-(--color-warning)">
                             → {field.hint}
                           </span>
                         </div>
@@ -79,7 +79,7 @@ export default function BusinessContextHeadingInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="border-l-2 border-(--color-warning) pl-3 py-1 text-xs text-(--color-warning) leading-relaxed my-3">
+                <div className="my-3 border-l-2 border-(--color-warning) py-1 pl-3 text-xs/relaxed text-(--color-warning)">
                   <Lightbulb
                     className="mt-0.5 shrink-0 text-(--color-warning)"
                     strokeWidth={2}

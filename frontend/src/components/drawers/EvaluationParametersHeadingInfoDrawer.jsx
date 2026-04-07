@@ -27,14 +27,14 @@ export default function EvaluationParametersHeadingInfoDrawer() {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(45,90,61,0.1)]">
                   <ClipboardMinus size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     {EVALUATION_PARAMETERS_HEADING_CONTENT.heading}
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Understanding evaluation framework
                   </p>
                 </div>
@@ -42,7 +42,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+                <p className="text-sm/relaxed text-(--color-text-secondary)">
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.description}
                 </p>
 
@@ -50,19 +50,19 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   {Object.entries(factorDefinitions).map(([key, factor]) => (
                     <div
                       key={key}
-                      className="group/card relative flex items-start gap-3.5 p-4 rounded-xl border-l-4 border-(--color-success) bg-(--color-success-light) transition-colors duration-300 ease-out cursor-default select-none"
+                      className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl border-l-4 border-(--color-success) bg-(--color-success-light) p-4 transition-colors duration-300 ease-out select-none"
                     >
-                      <div className="shrink-0 p-2 rounded-lg mt-0.5 bg-(--color-success-light) transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
+                      <div className="mt-0.5 shrink-0 rounded-lg bg-(--color-success-light) p-2 transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
                         <ClipboardMinus
                           className="size-4 text-(--color-success)"
                           strokeWidth={1.75}
                         />
                       </div>
-                      <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-sm font-bold leading-snug text-(--color-text-primary)">
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="text-sm/snug font-bold text-(--color-text-primary)">
                           {factor.title}
                         </span>
-                        <span className="text-xs leading-relaxed text-(--color-text-muted)">
+                        <span className="text-xs/relaxed text-(--color-text-muted)">
                           {factor.desc}
                         </span>
                       </div>
@@ -70,7 +70,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   ))}
                 </div>
 
-                <p className="text-xs p-3 rounded-lg bg-(--color-bg-field) text-(--color-text-muted)">
+                <p className="rounded-lg bg-(--color-bg-field) p-3 text-xs text-(--color-text-muted)">
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.tip}
                 </p>
               </div>

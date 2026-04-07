@@ -53,14 +53,14 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(45,90,61,0.1)]">
                   <Star size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     Explore Featured Solutions
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Browse featured solutions matching your query
                   </p>
                 </div>
@@ -68,41 +68,41 @@ export default function DashboardFeaturedSolutionsDrawer({ data = {} }) {
             </Drawer.Header>
 
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-4 max-h-[70vh] overflow-auto">
+              <div className="max-h-[70vh] space-y-4 overflow-auto">
                 {isLoading ? (
-                  <div className="py-6 text-center text-(--color-text-muted) text-[0.8125rem]">
+                  <div className="py-6 text-center text-[0.8125rem] text-(--color-text-muted)">
                     Loading...
                   </div>
                 ) : solutions.length === 0 ? (
-                  <div className="py-6 text-center text-(--color-text-muted) text-[0.8125rem]">
+                  <div className="py-6 text-center text-[0.8125rem] text-(--color-text-muted)">
                     No results
                   </div>
                 ) : (
                   Array.from(grouped.entries()).map(([cat, list]) => (
                     <div key={cat}>
-                      <div className="text-[0.625rem] tracking-widest text-(--color-text-muted) mb-3 border-t border-(--color-border) pt-4 mt-4 first:border-0 first:pt-0 first:mt-0 font-semibold">
+                      <div className="mt-4 mb-3 border-t border-border pt-4 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) first:mt-0 first:border-0 first:pt-0">
                         {cat}
                       </div>
                       <div className="space-y-2">
                         {list.map((s) => (
                           <div
                             key={s.id}
-                            className="py-3 border-b border-(--color-border) transition-all duration-200"
+                            className="border-b border-border py-3 transition-all duration-200"
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="text-[0.8125rem] font-semibold truncate text-(--color-text-primary) mb-1">
+                            <div className="mb-1 flex items-center justify-between">
+                              <h4 className="mb-1 truncate text-[0.8125rem] font-semibold text-(--color-text-primary)">
                                 {s.title}
                               </h4>
                               <span className="text-[0.6875rem] text-(--color-text-muted)">
                                 {s.wordCount || 0} words
                               </span>
                             </div>
-                            <p className="text-[0.6875rem] leading-relaxed line-clamp-2 mb-2 text-(--color-text-secondary)">
+                            <p className="mb-2 line-clamp-2 text-[0.6875rem] leading-relaxed text-(--color-text-secondary)">
                               {s.solution || s.problem || ''}
                             </p>
                             <a
                               href="#"
-                              className="text-[0.6875rem] font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all duration-150 text-(--color-accent) hover:underline"
+                              className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-(--color-accent) transition-all duration-150 hover:gap-1.5 hover:underline"
                               onClick={(e) => {
                                 e.preventDefault();
                                 openResultsDatabaseEvidenceDetailsDrawer({

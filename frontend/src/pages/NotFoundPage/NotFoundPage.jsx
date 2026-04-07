@@ -6,72 +6,46 @@ import { Button } from '@/components/common';
 export default function NotFoundPage() {
   const navigate = useNavigate();
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-6 py-16">
+    <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-2xl text-center">
         {/* 404 numeral — large editorial */}
-        <p
-          className="text-[7.5rem] font-bold leading-none select-none"
-          style={{
-            color: 'var(--color-border-strong)',
-            fontFamily: 'Lora, serif',
-            letterSpacing: '-0.04em',
-          }}
-        >
+        <p className="font-serif text-[7.5rem] leading-none font-bold tracking-tight text-(--color-border-strong) select-none">
           404
         </p>
 
         {/* Heading + description */}
-        <h1
-          className="heading-display text-[1.625rem] mt-2"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
+        <h1 className="heading-display mt-2 text-[1.625rem] text-(--color-text-primary)">
           Page Not Found
         </h1>
-        <p
-          className="mt-3 text-[0.9375rem] max-w-md mx-auto leading-relaxed"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
+        <p className="mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed text-(--color-text-muted)">
           The page you&apos;re looking for doesn&apos;t exist. It may have been moved, renamed, or
           deleted.
         </p>
 
         {/* Thin divider */}
-        <div
-          className="w-12 h-[1.5px] mx-auto my-8"
-          style={{ backgroundColor: 'var(--color-accent)' }}
-        />
+        <div className="mx-auto my-8 h-[1.5px] w-12 bg-(--color-accent)" />
 
         {/* Navigation options */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-8 text-left">
-          <div className="flex items-start gap-3 p-4 rounded-xl border-2 border-(--color-border) bg-transparent">
-            <div
-              className="p-2 rounded-md mt-0.5 shrink-0"
-              style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
-            >
+        <div className="mb-8 grid gap-4 text-left sm:grid-cols-2">
+          <div className="flex items-start gap-3 rounded-xl border-2 border-border bg-transparent p-4">
+            <div className="mt-0.5 shrink-0 rounded-md bg-accent-soft p-2 text-(--color-accent)">
               <Compass size={15} />
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                Need guidance?
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+              <p className="text-sm font-semibold text-(--color-text-primary)">Need guidance?</p>
+              <p className="mt-0.5 text-xs text-(--color-text-muted)">
                 Visit the home page to start a new assessment.
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-4 rounded-xl border-2 border-(--color-border) bg-transparent">
-            <div
-              className="p-2 rounded-md mt-0.5 shrink-0"
-              style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
-            >
+          <div className="flex items-start gap-3 rounded-xl border-2 border-border bg-transparent p-4">
+            <div className="mt-0.5 shrink-0 rounded-md bg-accent-soft p-2 text-(--color-accent)">
               <BarChart3 size={15} />
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                Review past work
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+              <p className="text-sm font-semibold text-(--color-text-primary)">Review past work</p>
+              <p className="mt-0.5 text-xs text-(--color-text-muted)">
                 Jump to your saved assessments and comparisons.
               </p>
             </div>

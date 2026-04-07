@@ -112,7 +112,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                 <AlertDialog.Body className="space-y-4">
                   <label
                     htmlFor="assessment-name"
-                    className="text-[0.7rem] font-semibold uppercase tracking-widest text-(--color-text-secondary) ml-2"
+                    className="ml-2 text-[0.7rem] font-semibold tracking-widest text-(--color-text-secondary) uppercase"
                   >
                     new name
                   </label>
@@ -124,7 +124,7 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                       setError('');
                     }}
                     placeholder="Enter assessment name"
-                    className="w-full mt-2"
+                    className="mt-2 w-full"
                     isInvalid={!!error}
                     errorMessage={error}
                   />

@@ -130,7 +130,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
 
                 <AlertDialog.Body className="text-sm">
                   {/* Name input */}
-                  <label className="text-[0.7rem] font-semibold uppercase tracking-widest text-(--color-text-secondary) mb-1.5 ml-2 block">
+                  <label className="mb-1.5 ml-2 block text-[0.7rem] font-semibold tracking-widest text-(--color-text-secondary) uppercase">
                     Name
                   </label>
                   <Input
@@ -141,10 +141,10 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       setError('');
                     }}
                     maxLength={100}
-                    className="w-full bg-transparent border border-(--color-border-strong) rounded-lg px-4 py-2.5 text-sm text-(--color-text-primary) focus:border-(--color-accent) focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-(--color-border-strong) bg-transparent px-4 py-2.5 text-sm text-(--color-text-primary) transition-colors focus:border-(--color-accent) focus:outline-none"
                     fullWidth
                   />
-                  {error && <p className="text-xs text-(--color-error) mt-1">{error}</p>}
+                  {error && <p className="mt-1 text-xs text-(--color-error)">{error}</p>}
                 </AlertDialog.Body>
 
                 <AlertDialog.Footer>

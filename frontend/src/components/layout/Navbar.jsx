@@ -3,9 +3,8 @@ import { Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { SiteLogo, SiteName } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
-
-import { SITE_NAME } from '../common/Brand';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -87,37 +86,30 @@ export default function Navbar() {
     <>
       {/* Main Navbar - full width sticky top bar */}
       <nav className="sticky top-3 z-50 h-13 px-8">
-        <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between bg-(--color-bg)/60 backdrop-blur-xl border border-(--color-border-strong) rounded-full shadow-sm">
+        <div className="mx-auto flex h-full max-w-6xl items-center justify-between rounded-full border border-(--color-border-strong) bg-(--color-bg)/60 px-6 shadow-sm backdrop-blur-3xl">
           {/* Logo + Site Name */}
-          <button onClick={() => navigate('/')} className="flex items-center gap-3">
-            <img
-              src="/siteLogo.png"
-              alt="Site Logo"
-              className="h-7 w-auto"
-              style={{ height: '28px' }}
-            />
-            <span className="font-(--font-display) text-sm text-(--color-text-primary)">
-              {SITE_NAME}
-            </span>
-          </button>
+          <div className="flex items-center gap-3">
+            <SiteLogo />
+            <SiteName className="font-display text-sm text-(--color-text-primary)" />
+          </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden items-center gap-8 md:flex">
             {navigationItems.map((item) => {
               const isActive = isActivePath(item.path);
               return (
                 <button
                   key={item.id}
                   onClick={() => navigate(item.path)}
-                  className={`text-sm cursor-pointer transition-colors relative ${
+                  className={`relative cursor-pointer text-sm transition-colors ${
                     isActive
                       ? 'text-(--color-accent)'
-                      : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
+                      : `text-(--color-text-secondary) hover:text-(--color-text-primary)`
                   }`}
                 >
                   {item.name}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2/3 h-0.5 bg-(--color-accent) rounded-full" />
+                    <span className="absolute -bottom-1 left-1/2 h-0.5 w-2/3 -translate-x-1/2 rounded-full bg-(--color-accent)" />
                   )}
                 </button>
               );
@@ -155,9 +147,9 @@ export default function Navbar() {
 
                 {/* Profile Dropdown */}
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-(--color-bg) border border-(--color-border-strong) rounded-lg shadow-(--shadow-md) overflow-hidden opacity-100 scale-100 transition-all duration-150">
+                  <div className="absolute top-full right-0 mt-2 w-52 scale-100 overflow-hidden rounded-lg border border-(--color-border-strong) bg-(--color-bg) opacity-100 shadow-(--shadow-md) transition-all duration-150">
                     {/* User Info */}
-                    <div className="p-4 border-b border-border">
+                    <div className="border-b border-border p-4">
                       <div className="flex items-center gap-3">
                         <Avatar
                           size="sm"
@@ -187,7 +179,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Navigation Links (shown in mobile dropdown) */}
-                    <div className="md:hidden py-2 border-b border-border">
+                    <div className="border-b border-border py-2 md:hidden">
                       {navigationItems.map((item) => (
                         <button
                           key={item.id}
@@ -195,7 +187,7 @@ export default function Navbar() {
                             navigate(item.path);
                             setIsProfileDropdownOpen(false);
                           }}
-                          className="w-full px-4 py-2 text-left text-sm text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-accent-light) transition-colors cursor-pointer"
+                          className="w-full cursor-pointer px-4 py-2 text-left text-sm text-(--color-text-secondary) transition-colors hover:bg-(--color-accent-light) hover:text-(--color-text-primary)"
                         >
                           {item.name}
                         </button>
@@ -209,7 +201,7 @@ export default function Navbar() {
                           handleSignOut();
                           setIsProfileDropdownOpen(false);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-(--color-error) hover:bg-[rgba(139,58,58,0.07)] transition-colors flex items-center gap-2 cursor-pointer"
+                        className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-(--color-error) transition-colors hover:bg-[rgba(139,58,58,0.07)]"
                       >
                         Sign out
                       </button>
@@ -219,10 +211,10 @@ export default function Navbar() {
               </div>
             ) : (
               /* Auth Buttons */
-              <div className="hidden md:flex items-center gap-3">
+              <div className="hidden items-center gap-3 md:flex">
                 <button
                   onClick={() => navigate('/auth')}
-                  className="text-sm text-slate-500 hover:text-black px-4 py-2 rounded-md transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-md px-4 py-2 text-sm text-slate-500 transition-colors hover:text-black"
                 >
                   Sign in
                 </button>
@@ -232,7 +224,7 @@ export default function Navbar() {
             {/* Mobile Hamburger Menu */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors cursor-pointer"
+              className="cursor-pointer text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary) md:hidden"
               aria-label={`${isMobileMenuOpen ? 'Close' : 'Open'} mobile menu`}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
@@ -246,7 +238,7 @@ export default function Navbar() {
       {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -254,15 +246,15 @@ export default function Navbar() {
       {/* Mobile Slide-in Panel */}
       <div
         id="mobile-menu"
-        className={`fixed top-0 right-0 h-full w-72 bg-(--color-bg) border-l border-(--color-border-strong) z-50 shadow-xl transform transition-transform duration-300 ease-out md:hidden ${
+        className={`fixed top-0 right-0 z-50 h-full w-72 transform border-l border-(--color-border-strong) bg-(--color-bg) shadow-xl transition-transform duration-300 ease-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Panel Header */}
-        <div className="flex items-center justify-center p-6 border-b border-border">
+        <div className="flex items-center justify-center border-b border-border p-6">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+            className="text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
             aria-label="Close mobile menu"
           >
             <X size={20} />
@@ -273,9 +265,9 @@ export default function Navbar() {
         <div className="flex-1 overflow-y-auto">
           {isAuthenticated && (
             /* User Info */
-            <div className="p-6 border-b border-border">
+            <div className="border-b border-border p-6">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-(--color-accent-light) border border-(--color-border-strong) text-(--color-accent) text-sm font-medium flex items-center justify-center">
+                <div className="flex size-8 items-center justify-center rounded-full border border-(--color-border-strong) bg-(--color-accent-light) text-sm font-medium text-(--color-accent)">
                   {getUserInitials()}
                 </div>
                 <div>
@@ -297,10 +289,10 @@ export default function Navbar() {
                     navigate(item.path);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full px-6 py-3 text-left text-base border-b border-border transition-colors cursor-pointer ${
+                  className={`w-full cursor-pointer border-b border-border px-6 py-3 text-left text-base transition-colors ${
                     isActive
                       ? 'text-(--color-text-primary)'
-                      : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'
+                      : `text-(--color-text-secondary) hover:text-(--color-text-primary)`
                   }`}
                 >
                   {item.name}
@@ -318,7 +310,7 @@ export default function Navbar() {
                 handleSignOut();
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full text-sm text-(--color-error) hover:text-(--color-text-primary) transition-colors cursor-pointer"
+              className="w-full cursor-pointer text-sm text-(--color-error) transition-colors hover:text-(--color-text-primary)"
             >
               Sign out
             </button>
@@ -328,7 +320,7 @@ export default function Navbar() {
                 navigate('/auth');
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full text-sm text-(--color-text-primary) bg-(--color-accent) hover:bg-accent-hover px-4 py-2.5 rounded-md transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-md bg-(--color-accent) px-4 py-2.5 text-sm text-(--color-text-primary) transition-colors hover:bg-accent-hover"
             >
               Sign in
             </button>

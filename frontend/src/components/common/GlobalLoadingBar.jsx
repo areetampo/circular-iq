@@ -35,7 +35,7 @@ export default function GlobalLoadingBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 h-0.75 shadow-lg z-9999 transition-all duration-500 ease-out"
+      className="fixed top-0 left-0 z-9999 h-0.75 shadow-lg transition-all duration-500 ease-out"
       style={{
         width: `${progress}%`,
         opacity: progress === 100 ? 0 : 1,

@@ -506,19 +506,13 @@ export default function LandingPage() {
 
         {/* Assessment Form */}
         <section id="assessment-form" className="py-12">
-          <div className="max-w-4xl mx-auto px-6" ref={formContainerRef}>
+          <div className="mx-auto max-w-4xl px-6" ref={formContainerRef}>
             {/* Section heading */}
             <div className="mb-10">
-              <h2
-                className="text-[1.375rem] font-bold mb-2 tracking-tight"
-                style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)' }}
-              >
+              <h2 className="mb-2 font-display text-[1.375rem] tracking-tight text-(--color-text-primary)">
                 Evaluate Your Circular Economy Business
               </h2>
-              <p
-                className="text-[0.8438rem] leading-relaxed"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
+              <p className="text-[0.8438rem] leading-relaxed text-(--color-text-secondary)">
                 Describe your business idea using the same structure as real circular economy
                 projects: what problem you solve, and how your solution addresses it.
               </p>
@@ -563,10 +557,10 @@ export default function LandingPage() {
 
                 {/* Business Context */}
                 <div
-                  className="group/bcacc w-full rounded-xl overflow-hidden shadow-sm transition-shadow duration-300"
+                  className="group/bcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) shadow-sm transition-shadow duration-300"
                   style={{
-                    border: '1px solid var(--color-border-strong)',
-                    backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
+                    '--bg-color': 'oklch(0.99 0.008 80 / 0.3)',
+                    backgroundColor: 'var(--bg-color)',
                   }}
                 >
                   <Accordion
@@ -577,53 +571,46 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="business-context-heading">
                       <Accordion.Heading>
-                        <Accordion.Trigger
-                          className="flex items-center gap-3 px-5 py-3
-                              transition-colors duration-150
-                              hover:bg-(--color-accent-soft)"
-                        >
+                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
                           <BriefcaseBusiness
-                            className="shrink-0 mr-1
-               transition-[scale,rotate] duration-300 ease-out
-               group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10
-               group-hover/bcacc:drop-shadow-md"
-                            style={{ color: 'var(--color-accent)' }}
+                            className="mr-1 shrink-0 transition-[scale,rotate] duration-300 ease-out group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10 group-hover/bcacc:drop-shadow-md"
+                            style={{
+                              '--icon-color': 'var(--color-accent)',
+                              color: 'var(--icon-color)',
+                            }}
                             size={24}
                             strokeWidth={2}
                           />
-                          <div className="flex flex-col gap-0.5 text-left flex-1">
+                          <div className="flex flex-1 flex-col gap-0.5 text-left">
                             <div className="flex items-center gap-2 py-1">
-                              <span className="font-semibold text-sm leading-none tracking-[-0.01em] font-mono">
+                              <span className="font-mono text-sm leading-none font-semibold tracking-[-0.01em]">
                                 Business Context
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer shrink-0"
+                                className="info-icon mt-px shrink-0 cursor-pointer"
                                 size={20}
                                 strokeWidth={2}
-                                style={{ color: 'var(--color-accent)', marginTop: '1px' }}
+                                style={{
+                                  '--icon-color': 'var(--color-accent)',
+                                  color: 'var(--icon-color)',
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openBusinessContextHeadingInfoDrawer();
                                 }}
                               />
                             </div>
-                            <span
-                              className="text-[0.75rem] leading-4 font-mono"
-                              style={{ color: 'var(--color-text-muted)' }}
-                            >
+                            <span className="font-mono text-xs/4 text-(--color-text-muted)">
                               Optional — improves analysis quality
                             </span>
                           </div>
-                          <Accordion.Indicator
-                            className="[&>svg]:size-4"
-                            style={{ color: 'var(--color-text-muted)' }}
-                          >
+                          <Accordion.Indicator className="text-(--color-text-muted) [&>svg]:size-4">
                             <ChevronDown />
                           </Accordion.Indicator>
                         </Accordion.Trigger>
                       </Accordion.Heading>
                       <Accordion.Panel>
-                        <Accordion.Body className="p-0 bg-transparent">
+                        <Accordion.Body className="bg-transparent p-0">
                           <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -640,10 +627,10 @@ export default function LandingPage() {
 
                 {/* Evaluation Parameters */}
                 <div
-                  className="group/epacc w-full rounded-xl overflow-hidden shadow-sm transition-shadow duration-300"
+                  className="group/epacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) shadow-sm transition-shadow duration-300"
                   style={{
-                    border: '1px solid var(--color-border-strong)',
-                    backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
+                    '--bg-color': 'oklch(0.99 0.008 80 / 0.3)',
+                    backgroundColor: 'var(--bg-color)',
                   }}
                 >
                   <Accordion
@@ -655,53 +642,46 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="evaluation-parameters-heading">
                       <Accordion.Heading>
-                        <Accordion.Trigger
-                          className="flex items-center gap-3 px-5 py-3
-                              transition-colors duration-150
-                              hover:bg-(--color-accent-soft)"
-                        >
+                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
                           <SlidersHorizontal
-                            className="shrink-0 mr-1
-               transition-[scale,rotate] duration-300 ease-out
-               group-hover/epacc:scale-[1.2] group-hover/epacc:-rotate-10
-               group-hover/epacc:drop-shadow-md"
+                            className="mr-1 shrink-0 transition-[scale,rotate] duration-300 ease-out group-hover/epacc:scale-[1.2] group-hover/epacc:-rotate-10 group-hover/epacc:drop-shadow-md"
                             size={24}
-                            style={{ color: 'var(--color-success)' }}
+                            style={{
+                              '--icon-color': 'var(--color-success)',
+                              color: 'var(--icon-color)',
+                            }}
                             strokeWidth={2}
                           />
-                          <div className="flex flex-col gap-0.5 text-left flex-1">
+                          <div className="flex flex-1 flex-col gap-0.5 text-left">
                             <div className="flex items-center gap-2 py-1">
-                              <span className="font-semibold text-sm leading-none tracking-[-0.01em] font-mono">
+                              <span className="font-mono text-sm leading-none font-semibold tracking-[-0.01em]">
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer shrink-0"
+                                className="info-icon mt-px shrink-0 cursor-pointer"
                                 size={20}
                                 strokeWidth={2}
-                                style={{ color: 'var(--color-success)', marginTop: '1px' }}
+                                style={{
+                                  '--icon-color': 'var(--color-success)',
+                                  color: 'var(--icon-color)',
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEvaluationParametersHeadingInfoDrawer();
                                 }}
                               />
                             </div>
-                            <span
-                              className="text-[0.75rem] leading-4 font-mono"
-                              style={{ color: 'var(--color-text-muted)' }}
-                            >
+                            <span className="font-mono text-xs/4 text-(--color-text-muted)">
                               Score each dimension of circular value
                             </span>
                           </div>
-                          <Accordion.Indicator
-                            className="[&>svg]:size-4"
-                            style={{ color: 'var(--color-text-muted)' }}
-                          >
+                          <Accordion.Indicator className="text-(--color-text-muted) [&>svg]:size-4">
                             <ChevronDown />
                           </Accordion.Indicator>
                         </Accordion.Trigger>
                       </Accordion.Heading>
                       <Accordion.Panel>
-                        <Accordion.Body className="p-0 bg-transparent">
+                        <Accordion.Body className="bg-transparent p-0">
                           <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -724,9 +704,9 @@ export default function LandingPage() {
 
                 {/* Error Display */}
                 {error && (
-                  <div className="border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] rounded-md p-4 text-(--color-error) mb-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertTriangle className="w-4 h-4" />
+                  <div className="mb-6 rounded-md border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-4 text-(--color-error)">
+                    <div className="mb-2 flex items-center gap-2">
+                      <AlertTriangle className="size-4" />
                       <strong className="font-semibold">Validation Error:</strong>
                     </div>
                     <p>{error}, please try again.</p>
@@ -743,7 +723,7 @@ export default function LandingPage() {
                         isDisabled={loading || !isValid}
                         variant="teal"
                         fullWidth
-                        className="rounded-4xl h-12"
+                        className="h-12 rounded-4xl"
                       >
                         {loading ? (
                           <LoaderIcon isButton={true} color="#ffffff" />
@@ -763,10 +743,10 @@ export default function LandingPage() {
 
                 {/* Sample Test Cases */}
                 <div
-                  className="group/stcacc w-full rounded-xl overflow-hidden shadow-sm transition-shadow duration-300"
+                  className="group/stcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) shadow-sm transition-shadow duration-300"
                   style={{
-                    border: '1px solid var(--color-border-strong)',
-                    backgroundColor: 'oklch(0.99 0.008 80 / 0.3)',
+                    '--bg-color': 'oklch(0.99 0.008 80 / 0.3)',
+                    backgroundColor: 'var(--bg-color)',
                   }}
                 >
                   <Accordion
@@ -777,58 +757,45 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="test-cases">
                       <Accordion.Heading>
-                        <Accordion.Trigger
-                          className="flex items-center gap-3 px-5 py-3
-                              transition-colors duration-150
-                              hover:bg-(--color-accent-soft)"
-                        >
+                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
                           <ClipboardList
-                            className="h-6 w-6 shrink-0 mr-1
-               transition-[scale,rotate] duration-300 ease-out
-               group-hover/stcacc:scale-[1.2] group-hover/stcacc:-rotate-10
-               group-hover/stcacc:drop-shadow-md"
-                            style={{ color: 'var(--color-accent)' }}
+                            className="mr-1 size-6 shrink-0 transition-[scale,rotate] duration-300 ease-out group-hover/stcacc:scale-[1.2] group-hover/stcacc:-rotate-10 group-hover/stcacc:drop-shadow-md"
+                            style={{
+                              '--icon-color': 'var(--color-accent)',
+                              color: 'var(--icon-color)',
+                            }}
                             strokeWidth={1.75}
                           />
-                          <div className="flex flex-col gap-1 text-left flex-1">
+                          <div className="flex flex-1 flex-col gap-1 text-left">
                             <div className="flex items-center gap-2">
-                              <span
-                                className="font-semibold text-[0.875rem] tracking-[-0.01em] leading-6"
-                                style={{
-                                  color: 'var(--color-text-primary)',
-                                  fontFamily: 'var(--font-body)',
-                                }}
-                              >
+                              <span className="font-sans text-sm/6 tracking-[-0.01em] text-(--color-text-primary)">
                                 Sample Test Cases
                               </span>
                               <BadgeInfo
-                                className="info-icon cursor-pointer shrink-0"
+                                className="info-icon mt-px shrink-0 cursor-pointer"
                                 size={20}
                                 strokeWidth={2}
-                                style={{ color: 'var(--color-accent)', marginTop: '1px' }}
+                                style={{
+                                  '--icon-color': 'var(--color-accent)',
+                                  color: 'var(--icon-color)',
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openSampleTestCasesHeadingInfoDrawer();
                                 }}
                               />
                             </div>
-                            <span
-                              className="text-[0.6875rem] leading-4"
-                              style={{ color: 'var(--color-text-muted)' }}
-                            >
+                            <span className="text-[0.6875rem]/4 text-(--color-text-muted)">
                               Auto-fill form with curated examples for quick testing
                             </span>
                           </div>
-                          <Accordion.Indicator
-                            className="[&>svg]:size-4"
-                            style={{ color: 'var(--color-text-muted)' }}
-                          >
+                          <Accordion.Indicator className="text-(--color-text-muted) [&>svg]:size-4">
                             <ChevronDown />
                           </Accordion.Indicator>
                         </Accordion.Trigger>
                       </Accordion.Heading>
                       <Accordion.Panel>
-                        <Accordion.Body className="pt-2 bg-transparent">
+                        <Accordion.Body className="bg-transparent pt-2">
                           <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}

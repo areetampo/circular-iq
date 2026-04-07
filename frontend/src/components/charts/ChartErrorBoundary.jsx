@@ -53,77 +53,19 @@ class ChartErrorBoundary extends Component {
 
       return (
         <div
-          className={className}
-          style={{
-            height,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            gap: '0.75rem',
-            padding: '1.5rem',
-            border: '1px solid rgba(180,160,130,0.25)',
-            borderRadius: '12px',
-            backgroundColor: 'rgba(245,240,232,0.5)',
-          }}
+          className={`flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-[rgba(180,160,130,0.25)] bg-[rgba(245,240,232,0.5)] p-6 ${className || ''}`}
+          style={{ height: height }}
         >
-          <div style={{ textAlign: 'center' }}>
-            <div
-              style={{
-                fontSize: '2rem',
-                marginBottom: '0.5rem',
-                color: '#8b3a3a',
-              }}
-            >
-              ⚠️
-            </div>
-            <h3
-              style={{
-                margin: 0,
-                color: '#374151',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-              }}
-            >
-              Chart Error
-            </h3>
-            <p
-              style={{
-                margin: '0.5rem 0',
-                color: '#6b7280',
-                fontSize: '0.875rem',
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-              }}
-            >
+          <div className="text-center">
+            <div className="mb-2 text-3xl text-[#8b3a3a]">⚠️</div>
+            <h3 className="m-0 font-mono text-lg font-semibold text-[#374151]">Chart Error</h3>
+            <p className="my-2 font-mono text-sm text-[#6b7280]">
               Unable to render chart. Please try again.
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details
-                style={{
-                  marginTop: '1rem',
-                  textAlign: 'left',
-                  fontSize: '0.75rem',
-                  color: '#6b7280',
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                }}
-              >
-                <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Error Details</summary>
-                <pre
-                  style={{
-                    marginTop: '0.5rem',
-                    padding: '0.5rem',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '0.25rem',
-                    overflow: 'auto',
-                    maxHeight: '100px',
-                    fontFamily:
-                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                  }}
-                >
+              <details className="mt-4 text-left font-mono text-xs text-[#6b7280]">
+                <summary className="cursor-pointer font-semibold">Error Details</summary>
+                <pre className="mt-2 max-h-24 overflow-auto rounded-sm bg-[#f9fafb] p-2 font-mono">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>
@@ -132,16 +74,7 @@ class ChartErrorBoundary extends Component {
           </div>
           <button
             onClick={this.handleRetry}
-            style={{
-              padding: '4px 12px',
-              fontSize: '12px',
-              borderRadius: '6px',
-              border: '1px solid rgba(180,160,130,0.3)',
-              backgroundColor: 'transparent',
-              color: '#5a4f42',
-              cursor: 'pointer',
-              fontFamily: 'DM Sans, sans-serif',
-            }}
+            className="cursor-pointer rounded-sm border border-[rgba(180,160,130,0.3)] bg-transparent px-3 py-1 font-sans text-xs text-[#5a4f42]"
           >
             Retry {this.state.retryCount > 0 && `(${this.state.retryCount})`}
           </button>

@@ -1,8 +1,7 @@
 import { ArrowRight, FileText, Frown } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip } from '@/components/common';
-import { SectionHeading } from '@/components/common/SectionHeading';
+import { Chip, SectionHeading } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 
@@ -25,16 +24,13 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   };
 
   return (
-    <div
-      className="border-t border-(--color-border) pt-8 mt-8"
-      data-export-section="database-evidence"
-    >
-      <SectionHeading variant="small" icon={<FileText className="w-4 h-4 text-(--color-accent)" />}>
+    <div className="mt-8 border-t border-border pt-8" data-export-section="database-evidence">
+      <SectionHeading variant="small" icon={<FileText className="size-4 text-(--color-accent)" />}>
         Database Evidence
       </SectionHeading>
 
       {/* Description */}
-      <p className="text-sm text-(--color-text-secondary) mb-6">
+      <p className="mb-6 text-sm text-(--color-text-secondary)">
         Similar cases and benchmark comparisons from the dataset
       </p>
 
@@ -54,17 +50,17 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
               return (
                 <div
                   key={index}
-                  className="flex items-start gap-4 p-4 border-2 rounded-xl border-(--color-border) hover:bg-(--color-accent-light) transition-all duration-200 cursor-pointer group"
+                  className="group flex cursor-pointer items-start gap-4 rounded-xl border-2 border-border p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
                   onClick={() => handleViewDetails(caseItem)}
                 >
                   {/* Case content */}
                   <div className="flex-1">
-                    <h4 className="text-md font-medium text-(--color-text-primary) mb-2">
+                    <h4 className="mb-2 text-base font-medium text-(--color-text-primary)">
                       <span className="font-mono">{caseTitle}</span>
                     </h4>
 
                     {/* Year + Location + Use type + Source + Category + Circular Strategy + Materials chips */}
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="mb-3 flex flex-wrap gap-2">
                       {caseItem.year && <Chip variant="source">{caseItem.year}</Chip>}
                       {caseItem.location && <Chip variant="source">{caseItem.location}</Chip>}
                       {caseItem.use_type && <Chip variant="source">{caseItem.use_type}</Chip>}
@@ -92,11 +88,11 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                   </div>
 
                   {/* View details link */}
-                  <div className="flex items-center gap-2 text-sm hover:underline font-medium text-(--color-accent-dark)">
+                  <div className="flex items-center gap-2 text-sm font-medium text-(--color-accent-dark) hover:underline">
                     View details
                     <ArrowRight
                       size={14}
-                      className="group-hover:translate-x-0.5 transition-transform"
+                      className="transition-transform group-hover:translate-x-0.5"
                     />
                   </div>
                 </div>

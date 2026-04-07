@@ -29,14 +29,14 @@ export default function AssessmentMethodologyDrawer() {
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="w-8 h-8 rounded-lg bg-[rgba(45,90,61,0.1)] flex items-center justify-center shrink-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(45,90,61,0.1)]">
                   <ChartSpline size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
                     {ASSESSMENT_METHODOLOGY_CONTENT.title}
                   </Drawer.Heading>
-                  <p className="text-[0.7rem] text-[#6b5f56] mt-0.5 font-normal">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     {ASSESSMENT_METHODOLOGY_CONTENT.subtitle}
                   </p>
                 </div>
@@ -60,10 +60,10 @@ export default function AssessmentMethodologyDrawer() {
                 {ASSESSMENT_METHODOLOGY_CONTENT.items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3.5 p-4 rounded-2xl border border-(--color-border) bg-(--color-accent-light) transition-colors duration-300 ease-out cursor-default"
+                    className="flex cursor-default items-start gap-3.5 rounded-2xl border border-border bg-(--color-accent-light) p-4 transition-colors duration-300 ease-out"
                   >
                     {/* Animated icon */}
-                    <div className="shrink-0 p-2.5 rounded-xl mt-0.5 bg-(--color-accent-light)">
+                    <div className="mt-0.5 shrink-0 rounded-xl bg-(--color-accent-light) p-2.5">
                       {React.createElement(item.icon, {
                         className: cn('size-4', item.iconColor),
                         strokeWidth: 1.75,
@@ -71,8 +71,8 @@ export default function AssessmentMethodologyDrawer() {
                     </div>
 
                     {/* Text */}
-                    <div className="flex flex-col gap-1 min-w-0">
-                      <span className="text-[0.8125rem] font-bold leading-snug text-(--color-text-primary)">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <span className="text-[0.8125rem] leading-snug font-bold text-(--color-text-primary)">
                         {item.title}
                       </span>
                       <span className="text-[0.6875rem] leading-relaxed text-(--color-text-muted)">
@@ -84,12 +84,12 @@ export default function AssessmentMethodologyDrawer() {
               </div>
 
               {/* Data source card */}
-              <div className="flex items-start gap-3.5 p-4 rounded-2xl border border-(--color-border) bg-(--color-accent-light) transition-colors duration-300 cursor-default select-none">
-                <div className="shrink-0 p-2.5 rounded-xl mt-0.5 bg-(--color-success-light)">
+              <div className="flex cursor-default items-start gap-3.5 rounded-2xl border border-border bg-(--color-accent-light) p-4 transition-colors duration-300 select-none">
+                <div className="mt-0.5 shrink-0 rounded-xl bg-(--color-success-light) p-2.5">
                   <BookCopy className="size-4 text-(--color-success)" strokeWidth={1.75} />
                 </div>
-                <div className="flex flex-col gap-1 min-w-0">
-                  <span className="text-[0.8125rem] font-bold leading-snug text-(--color-text-primary)">
+                <div className="flex min-w-0 flex-col gap-1">
+                  <span className="text-[0.8125rem] leading-snug font-bold text-(--color-text-primary)">
                     Data Source
                   </span>
                   <p className="text-[0.6875rem] leading-relaxed text-(--color-text-muted)">
@@ -108,12 +108,12 @@ export default function AssessmentMethodologyDrawer() {
               </div>
 
               {/* Disclaimer */}
-              <div className="flex items-start gap-3 p-4 rounded-xl border-l-4 bg-(--color-danger-soft) border-l-(--color-danger)">
+              <div className="flex items-start gap-3 rounded-xl border-l-4 border-l-(--color-danger) bg-danger-soft p-4">
                 <TriangleAlert
-                  className="size-4 shrink-0 mt-0.5 text-(--color-danger)"
+                  className="mt-0.5 size-4 shrink-0 text-(--color-danger)"
                   strokeWidth={1.75}
                 />
-                <p className="text-xs leading-relaxed text-(--color-text-muted)">
+                <p className="text-xs/relaxed text-(--color-text-muted)">
                   <strong className="font-semibold text-(--color-text-primary)">
                     Disclaimer:{' '}
                   </strong>

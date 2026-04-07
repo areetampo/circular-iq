@@ -130,10 +130,10 @@ export const Button = forwardRef(function Button(
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
   const isButtonDisabled = isDisabled || disabled || isLoading;
   const baseClasses =
-    'transition-colors duration-150 rounded-lg font-[var(--font-body)] inline-flex items-center justify-center gap-2 outline-none';
+    'transition-colors duration-150 rounded-lg font-[var(--font-sans)] inline-flex items-center justify-center gap-2 outline-none';
 
   const buttonContent = isLoading ? (
-    <span className="flex items-center justify-center gap-2 w-full">
+    <span className="flex w-full items-center justify-center gap-2">
       <Spinner size="sm" color="current" />
     </span>
   ) : (
@@ -150,7 +150,7 @@ export const Button = forwardRef(function Button(
         baseClasses,
         variantStyles[variant] || variantStyles.primary,
         resolvedSize,
-        isButtonDisabled && 'opacity-50 cursor-not-allowed pointer-events-none',
+        isButtonDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
         className,
       )}
       variant="flat"

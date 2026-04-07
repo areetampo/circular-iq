@@ -114,17 +114,17 @@ frontend/src/
 │   │   └── index.js
 │   │
 │   ├── common/
-│   │   ├── Button.jsx, Brand.jsx, Switch.jsx, TipCard.jsx
+│   │   ├── Button.jsx, Brand.jsx, Switch.jsx
 │   │   ├── ErrorDisplay.jsx, LoaderComponent.jsx, LoaderIcon.jsx
-│   │   ├── GlobalLoadingBar.jsx, ScrollToTop.jsx, VisuallyHidden.jsx
-│   │   ├── CloseButtonX.jsx, ChartWrapper.jsx
+│   │   ├── GlobalLoadingBar.jsx, ScrollToTop.jsx
+│   │   ├── ChartWrapper.jsx
 │   │   └── index.js
 │   │
 │   ├── dialogs/
 │   │   ├── SaveAssessmentDialog.jsx
 │   │   ├── DeleteAssessmentDialog.jsx
 │   │   ├── RenameAssessmentDialog.jsx
-│   │   ├── SessionRestoreDialog.jsx
+│   │   ├── ResultsRestoreDialog.jsx
 │   │   ├── ConfirmDialog.jsx
 │   │   ├── LimitReachedDialog.jsx
 │   │   ├── ReplaceInputsDialog.jsx
@@ -425,7 +425,7 @@ openResultsDatabaseEvidenceDetailsDrawer({
 ```jsx
 import { Card, Skeleton, Chip, Input } from '@heroui/react';
 
-<Card className="border border-slate-200 shadow-sm bg-white">
+<Card className="border border-slate-200 bg-white shadow-sm">
   <div className="p-5">
     <Skeleton className="h-3 w-20 rounded-full" />
   </div>
@@ -558,7 +558,7 @@ const { restoreEvaluation, saveSession, clearSession } = useSession();
 ```
 
 - Auto-saves evaluation inputs to localStorage on every change
-- Restores previous session on page reload (shown via `SessionRestoreDialog`)
+- Restores previous session results on page reload (shown via `ResultsRestoreDialog`)
 - Clears session on user request or after successful save
 
 ### Metadata Helpers
@@ -598,7 +598,7 @@ npm test src/pages/MyAssessmentsPage/sortUtils.test.js       # Sort utilities
 | `components/common/ChartWrapper.test.jsx`                        | —     | Chart wrapper                                                                                                                                  |
 | `components/charts/LineChart.test.jsx`                           | —     | LineChart rendering                                                                                                                            |
 | `components/charts/PieChart.test.jsx`                            | —     | PieChart rendering + snapshots                                                                                                                 |
-| `components/dialogs/SessionRestoreDialog.test.jsx`               | —     | Dialog component                                                                                                                               |
+| `components/dialogs/ResultsRestoreDialog.test.jsx`               | —     | Dialog component                                                                                                                               |
 | `components/auth/SignupForm.test.jsx`                            | —     | Sign-up form                                                                                                                                   |
 | `contexts/AuthContext.test.jsx`                                  | —     | Auth context                                                                                                                                   |
 | `hooks/useDrawer.test.jsx`                                       | —     | Drawer hook                                                                                                                                    |
@@ -765,9 +765,9 @@ if (score >= 75) { ... }
 Utility-first styling applied directly in JSX:
 
 ```jsx
-<div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
+<div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md">
   <h2 className="text-xl font-bold text-slate-900">Title</h2>
-  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Label</span>
+  <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Label</span>
 </div>
 ```
 
@@ -793,7 +793,7 @@ import { cn } from '@/utils/cn';
   className={cn(
     'rounded-xl border p-5',
     isActive && 'border-indigo-500 bg-indigo-50',
-    isDisabled && 'opacity-40 cursor-not-allowed',
+    isDisabled && 'cursor-not-allowed opacity-40',
   )}
 />;
 ```
@@ -977,7 +977,7 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 
 - Auto-saves evaluation inputs to localStorage on every change
 - `AppSessionManager` detects existing session on app load
-- `SessionRestoreDialog` prompts user to restore or start fresh
+- `ResultsRestoreDialog` prompts user to restore or start fresh
 - Clears session on successful save or explicit user request
 
 **Related files:**
@@ -1139,9 +1139,9 @@ const label = EVALUATION_PARAMETERS.resource_efficiency.label;
 
 ### Available Components
 
-- **Common**: Button, Brand, Switch, TipCard, ErrorDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, VisuallyHidden, CloseButtonX, ChartWrapper
+- **Common**: Button, Brand, Switch, ErrorDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, ChartWrapper
 - **Charts**: BarChart, LineChart, PieChart, RadarChart
-- **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, SessionRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
+- **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, ResultsRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
 - **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, DashboardFeaturedSolutionsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases
 - **Layout**: Navbar, Header, Footer, AppContainer
 - **Auth**: LoginForm, SignupForm
