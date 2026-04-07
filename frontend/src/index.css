@@ -1301,7 +1301,7 @@ textarea:focus-visible {
   /* ----- CHECKBOX CONTROL ----- */
   .checkbox__control,
   [data-slot='checkbox-control'] {
-    @apply size-6! rounded-full! border-1!;
+    @apply size-4! rounded-lg! border!;
     border-color: #8b6f47 !important;
     background-color: #faf8f5 !important;
     transition: all 0.2s ease !important;
@@ -1324,7 +1324,7 @@ textarea:focus-visible {
   [data-slot='checkbox-control']:hover:not([data-disabled='true']):not(:disabled) {
     border-color: #6b5537 !important;
     background-color: #f5f2ed !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important; */
   }
 
   /* Focus state */
@@ -1374,8 +1374,8 @@ textarea:focus-visible {
 
   /* Custom checkmark size override */
   [data-slot='checkbox-default-indicator--checkmark'] {
-    width: 16px !important;
-    height: 16px !important;
+    width: 10px !important;
+    height: 10px !important;
   }
 
   /* Indeterminate state */

@@ -175,10 +175,9 @@ function BusinessContextContainer({
                 isSelected={field.value === true}
                 onChange={(checked) => field.onChange(checked)}
                 isDisabled={loading}
-                className="**:data-[slot='checkbox-default-indicator--checkmark']:size-4"
-                name="xl-rounded"
+                className="scale-125"
               >
-                <Checkbox.Control className="size-6 rounded-full before:rounded-full">
+                <Checkbox.Control>
                   <Checkbox.Indicator />
                 </Checkbox.Control>
               </Checkbox>

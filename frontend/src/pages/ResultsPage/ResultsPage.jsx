@@ -7,7 +7,6 @@ import {
   CircleX,
   Download,
   FolderPen,
-  Globe,
   RefreshCw,
   Save,
   Target,
@@ -15,9 +14,9 @@ import {
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Button, Chip, SectionHeading } from '@/components/common';
+import { Button, SectionHeading } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -37,7 +36,7 @@ import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
-import { titleize } from '@/lib/formatting';
+import { cleanUrl, titleize } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import {
   AuditSummaryCard,
@@ -180,7 +179,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const detailError = isPublicShare ? publicError : privateError;
   const detailData = fetchedAssessment;
 
-  // Navigation handlers
+  // Navigation handlers - only for complex navigation logic
   const handleBack = useCallback(() => {
     if (isViewFromMyAssessments) {
       navigate('/assessments');
@@ -188,10 +187,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       navigate('/');
     }
   }, [isViewFromMyAssessments, navigate]);
-
-  const handleViewHistory = useCallback(() => {
-    navigate('/assessments');
-  }, [navigate]);
 
   const sessionSnapshot = useMemo(() => {
     if (isViewFromMyAssessments) return null;
@@ -729,11 +724,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           },
           {
             label: 'Go Back',
-            icon: ArrowLeft,
             onClick: handleBack,
+            icon: ArrowLeft,
             variant: 'tertiary',
           },
-        ]}
+        ].filter(Boolean)}
         showDefaultActions={false}
       />
     );
@@ -755,8 +750,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Return Home',
             icon: ArrowLeft,
-            onClick: () => navigate('/'),
             variant: 'tertiary',
+            to: '/',
           },
         ]}
         showDefaultActions={false}
@@ -775,8 +770,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Start New Assessment',
             icon: ArrowRight,
-            onClick: () => navigate('/'),
             variant: 'secondary',
+            to: '/',
           },
         ]}
         showDefaultActions={false}
@@ -839,6 +834,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   console.log('currentData', currentData);
   console.log('actualResult', actualResult);
 
+  const publicURL = cleanUrl(
+    `${window.location.origin}/assessments/share/${currentData.public_id}`,
+  );
+
   return (
     <>
       {/* Action Buttons & Share Section */}
@@ -856,20 +855,20 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {/* Left group - navigation */}
           <div className="flex items-center gap-3">
             {/* Show public share notice for public viewers */}
-            {isPublicShare && (
+            {/* {isPublicShare && (
               <Chip variant="info" color="default">
                 <Globe size={14} className="mr-1" />
                 Public Shared Assessment
               </Chip>
-            )}
+            )} */}
 
             {!isPublicShare && (
               <>
-                <Button variant="ghost" size="sm" onPress={handleViewHistory}>
+                <Button as={Link} to="/assessments" variant="ghost" size="md">
                   <ArrowLeft size={14} className="mr-1" /> My Assessments
                 </Button>
                 {currentData && (
-                  <Button variant="ghost" size="sm" onPress={handleReevaluate}>
+                  <Button variant="ghost" size="md" onPress={handleReevaluate}>
                     <RefreshCw size={14} className="mr-1" /> Re-evaluate
                   </Button>
                 )}
@@ -881,7 +880,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           <div className="ml-auto flex flex-wrap items-center gap-3">
             <Button
               variant="ghost"
-              size="sm"
+              size="md"
               onPress={user ? handleDownloadPDF : undefined}
               isDisabled={!user || isExporting}
             >
@@ -889,7 +888,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             </Button>
             <Button
               variant="ghost"
-              size="sm"
+              size="md"
               onPress={user ? handleDownloadCSV : undefined}
               isDisabled={!user || isExporting}
             >
@@ -898,7 +897,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             {!isViewFromMyAssessments && !isPublicShare && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="md"
                 onPress={() => {
                   if (!user) {
                     // Anonymous user: ensure the current result is persisted in the session
@@ -1027,15 +1026,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="mr-2 font-mono">
-                      {window.location.origin}/assessments/share/{currentData.public_id}
-                    </span>
+                    <span className="mr-2 font-mono">{publicURL}</span>
                     <span className="font-mono">{'/'}</span>
-                    <CopyButton
-                      value={`${window.location.origin}/assessments/share/${currentData.public_id}`}
-                      description="URL"
-                      noBorder
-                    />
+                    <CopyButton value={publicURL} description="URL" noBorder />
                   </div>
                   <span className="font-mono">{'/'}</span>
                   <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />

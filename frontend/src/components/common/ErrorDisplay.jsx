@@ -1,5 +1,6 @@
 import { AlertCircle, AlertTriangle, Home, Info, RefreshCcw, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 
@@ -84,7 +85,8 @@ export default function ErrorDisplay({
         {
           label: 'Return Home',
           icon: Home,
-          onPress: () => (window.location.href = '/'),
+          as: Link,
+          to: '/',
           variant: 'ghost',
         },
       ]
@@ -98,7 +100,7 @@ export default function ErrorDisplay({
         fullScreen ? 'min-h-screen' : 'min-h-[40vh]'
       } px-6 py-12 ${className}`}
     >
-      <div className="w-full max-w-lg rounded-3xl border-3 border-border bg-transparent p-8">
+      <div className="w-full max-w-lg rounded-4xl border-4 border-[#ad886484] bg-transparent p-8">
         {/* Icon + title */}
         <div className="mb-6 text-center">
           <div className="mb-4 flex justify-center">
@@ -146,9 +148,10 @@ export default function ErrorDisplay({
                 <Button
                   key={index}
                   onPress={action.onPress || action.onClick}
-                  variant={action.variant || 'secondary'}
+                  variant={action.variant || 'ghost'}
                   size={action.size || 'md'}
                   className={`gap-2 ${action.className || ''}`}
+                  {...(action.to && { as: Link, to: action.to })}
                 >
                   {ActionIcon && <ActionIcon size={15} />}
                   {action.label}

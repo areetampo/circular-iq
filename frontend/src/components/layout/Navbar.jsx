@@ -1,7 +1,7 @@
 import { Avatar } from '@heroui/react';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { SiteLogo, SiteName } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
@@ -98,9 +98,9 @@ export default function Navbar() {
             {navigationItems.map((item) => {
               const isActive = isActivePath(item.path);
               return (
-                <button
+                <Link
                   key={item.id}
-                  onClick={() => navigate(item.path)}
+                  to={item.path}
                   className={`relative cursor-pointer text-sm transition-colors ${
                     isActive
                       ? 'text-(--color-accent)'
@@ -111,7 +111,7 @@ export default function Navbar() {
                   {isActive && (
                     <span className="absolute -bottom-1 left-1/2 h-0.5 w-2/3 -translate-x-1/2 rounded-full bg-(--color-accent)" />
                   )}
-                </button>
+                </Link>
               );
             })}
           </div>
@@ -181,16 +181,14 @@ export default function Navbar() {
                     {/* Navigation Links (shown in mobile dropdown) */}
                     <div className="border-b border-border py-2 md:hidden">
                       {navigationItems.map((item) => (
-                        <button
+                        <Link
                           key={item.id}
-                          onClick={() => {
-                            navigate(item.path);
-                            setIsProfileDropdownOpen(false);
-                          }}
-                          className="w-full cursor-pointer px-4 py-2 text-left text-sm text-(--color-text-secondary) transition-colors hover:bg-(--color-accent-light) hover:text-(--color-text-primary)"
+                          to={item.path}
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                          className="block w-full cursor-pointer px-4 py-2 text-left text-sm text-(--color-text-secondary) transition-colors hover:bg-(--color-accent-light) hover:text-(--color-text-primary)"
                         >
                           {item.name}
-                        </button>
+                        </Link>
                       ))}
                     </div>
 
@@ -212,12 +210,12 @@ export default function Navbar() {
             ) : (
               /* Auth Buttons */
               <div className="hidden items-center gap-3 md:flex">
-                <button
-                  onClick={() => navigate('/auth')}
+                <Link
+                  to="/auth"
                   className="cursor-pointer rounded-md px-4 py-2 text-sm text-slate-500 transition-colors hover:text-black"
                 >
                   Sign in
-                </button>
+                </Link>
               </div>
             )}
 
@@ -283,20 +281,18 @@ export default function Navbar() {
             {navigationItems.map((item) => {
               const isActive = isActivePath(item.path);
               return (
-                <button
+                <Link
                   key={item.id}
-                  onClick={() => {
-                    navigate(item.path);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full cursor-pointer border-b border-border px-6 py-3 text-left text-base transition-colors ${
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block w-full cursor-pointer border-b border-border px-6 py-3 text-left text-base transition-colors ${
                     isActive
                       ? 'text-(--color-text-primary)'
                       : `text-(--color-text-secondary) hover:text-(--color-text-primary)`
                   }`}
                 >
                   {item.name}
-                </button>
+                </Link>
               );
             })}
           </nav>
@@ -315,15 +311,13 @@ export default function Navbar() {
               Sign out
             </button>
           ) : (
-            <button
-              onClick={() => {
-                navigate('/auth');
-                setIsMobileMenuOpen(false);
-              }}
-              className="w-full cursor-pointer rounded-md bg-(--color-accent) px-4 py-2.5 text-sm text-(--color-text-primary) transition-colors hover:bg-accent-hover"
+            <Link
+              to="/auth"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block w-full cursor-pointer rounded-md bg-(--color-accent) px-4 py-2.5 text-center text-sm text-(--color-text-primary) transition-colors hover:bg-accent-hover"
             >
               Sign in
-            </button>
+            </Link>
           )}
         </div>
       </div>

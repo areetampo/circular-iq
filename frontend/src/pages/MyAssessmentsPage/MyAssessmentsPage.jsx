@@ -2,7 +2,7 @@ import { ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Ghost, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, ErrorDisplay } from '@/components/common';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
@@ -247,45 +247,21 @@ export default function MyAssessmentsPage() {
     });
   }, []);
 
-  const handleCompareSelected = useCallback(() => {
-    console.log('handleCompareSelected called');
-    console.log('selectedIds:', selectedIds);
-    console.log('assessments:', assessments);
-
-    if (selectedIds.size !== 2) {
-      toast.info('Please select exactly 2 assessments to compare', { timeout: 3000 });
-      return;
-    }
+  // Memoized compare URL for Link component
+  const compareUrl = useMemo(() => {
+    if (selectedIds.size !== 2) return null;
 
     const selectedIdArray = Array.from(selectedIds);
-    console.log('selectedIdArray:', selectedIdArray);
-
-    // Find the publicIds for the selected assessments
     const publicIds = selectedIdArray
       .map((id) => {
         const assessment = assessments.find((a) => a.id === id);
-        console.log(`Looking for assessment with id ${id}:`, assessment);
         return assessment?.public_id;
       })
       .filter(Boolean);
 
-    console.log('publicIds:', publicIds);
-
-    if (publicIds.length !== 2) {
-      toast.danger('Could not find selected assessments', { timeout: 3000 });
-      return;
-    }
-
-    navigate(`/assessments/compare/${publicIds[0]}/${publicIds[1]}`);
-  }, [selectedIds, assessments, navigate]);
-
-  const handleViewDetail = useCallback(
-    (publicId) => {
-      if (!publicId) return;
-      navigate(`/assessments/${publicId}`);
-    },
-    [navigate],
-  );
+    if (publicIds.length !== 2) return null;
+    return `/assessments/compare/${publicIds[0]}/${publicIds[1]}`;
+  }, [selectedIds, assessments]);
 
   const handleConfirmDelete = useCallback(
     async (id) => {
@@ -405,9 +381,12 @@ export default function MyAssessmentsPage() {
     [assessments, openDeleteAssessmentDialog, handleConfirmDelete, isDeleting],
   );
 
-  const handleBack = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+  const handleViewDetail = useCallback(
+    (publicId) => {
+      navigate(`/assessments/${publicId}`);
+    },
+    [navigate],
+  );
 
   const handleTogglePublic = useCallback(
     async (id) => {
@@ -605,7 +584,8 @@ export default function MyAssessmentsPage() {
             },
             {
               label: 'Back to Home',
-              onPress: handleBack,
+              as: Link,
+              to: '/',
               variant: 'secondary',
             },
           ]}
@@ -626,7 +606,7 @@ export default function MyAssessmentsPage() {
             Start your first assessment to track your circular economy progress and get personalized
             recommendations.
           </p>
-          <Button onPress={handleBack} variant="primary">
+          <Button as={Link} to="/" variant="primary">
             <Plus size={16} /> Start Your First Assessment
           </Button>
         </div>
@@ -814,7 +794,8 @@ export default function MyAssessmentsPage() {
             },
             {
               label: 'Back to Home',
-              onPress: handleBack,
+              as: Link,
+              to: '/',
               variant: 'secondary',
             },
           ]}
@@ -860,7 +841,7 @@ export default function MyAssessmentsPage() {
           handleToggleIndustry={handleToggleIndustry}
           formatIndustryLabel={formatIndustryLabel}
           selectedIds={selectedIds}
-          handleCompareSelected={handleCompareSelected}
+          compareUrl={compareUrl}
         />
       )}
 
@@ -869,7 +850,7 @@ export default function MyAssessmentsPage() {
 
       {/* Back button */}
       <div className="flex justify-center pt-4 pb-2">
-        <Button variant="ghost" onPress={handleBack}>
+        <Button as={Link} to="/" variant="ghost">
           <ArrowLeft size={16} /> Back to Home
         </Button>
       </div>

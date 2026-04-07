@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { SITE_FULL_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
 import { cn } from '@/utils/cn';
@@ -21,8 +21,6 @@ const socialLinks = [
 ];
 
 export default function Footer() {
-  const navigate = useNavigate();
-
   return (
     <footer className="relative mt-auto border-t-2 border-black/10">
       {/* Subtle gradient overlay */}
@@ -38,10 +36,7 @@ export default function Footer() {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               className="space-y-4"
             >
-              <div
-                className="group flex cursor-pointer items-center gap-3"
-                onClick={() => navigate('/')}
-              >
+              <div className="group flex items-center gap-3">
                 <SiteLogo />
                 <div className="flex flex-col">
                   <SiteName className="font-display text-lg text-(--color-text-primary)" />
@@ -85,9 +80,9 @@ export default function Footer() {
               </h3>
               <nav className="space-y-2">
                 {footerLinks.map((link) => (
-                  <button
+                  <Link
                     key={link.name}
-                    onClick={() => navigate(link.href)}
+                    to={link.href}
                     className={cn(
                       `block text-sm text-(--color-text-muted) hover:text-(--color-accent)`,
                       'text-left transition-all duration-200',
@@ -95,7 +90,7 @@ export default function Footer() {
                     )}
                   >
                     {link.name}
-                  </button>
+                  </Link>
                 ))}
               </nav>
             </motion.div>

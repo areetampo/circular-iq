@@ -1,10 +1,9 @@
 import { BarChart3, Book, Compass, Home } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 
 export default function NotFoundPage() {
-  const navigate = useNavigate();
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-2xl text-center">
@@ -54,11 +53,11 @@ export default function NotFoundPage() {
 
         {/* Action buttons */}
         <div className="flex flex-wrap justify-center gap-3">
-          <Button variant="ghost" onPress={() => navigate('/')}>
+          <Button variant="ghost" as={Link} to="/">
             <Home size={15} />
             Return Home
           </Button>
-          <Button variant="ghost" onPress={() => navigate('/assessments')}>
+          <Button variant="ghost" as={Link} to="/assessments">
             <Book size={15} />
             My Assessments
           </Button>

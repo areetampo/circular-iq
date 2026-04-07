@@ -1,9 +1,10 @@
-import { Skeleton } from '@heroui/react';
+import { Checkbox, Skeleton } from '@heroui/react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-import { Chip } from '@/components/common';
+import { Button, Chip } from '@/components/common';
 import { formatTimestamp } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
@@ -20,35 +21,26 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   onPrefetch,
   onTogglePublic,
 }) {
+  const assessmentLink = `/assessments/${assessment.public_id}`;
   const formattedDate = formatTimestamp(assessment.created_at);
 
   return (
     <div
       className={cn(
-        `group relative mb-2 cursor-pointer rounded-xl border-2 p-4 transition-all duration-200`,
+        `group relative mb-2 block rounded-xl border-2 p-4 transition-all duration-200`,
         `bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]`,
         isSelected
           ? `border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]`
-          : `border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.8)]`,
+          : `border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.6)]`,
       )}
-      onClick={() => onView(assessment.public_id)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onView(assessment.public_id);
-        }
-      }}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
-      aria-label={`View assessment: ${assessment.title || 'Untitled'}`}
     >
       {/* Main content row */}
       <div className="flex items-start gap-3">
         {/* Title and metadata section */}
         <div className="min-w-0 flex-1">
-          <h3 className="mb-1 truncate font-mono text-base/tight font-medium text-(--color-text-primary)">
-            {assessment.title || 'Untitled Assessment'}
+          <h3 className="mb-1 w-fit truncate font-mono text-base/tight font-medium text-(--color-text-primary)">
+            <Link to={assessmentLink}>{assessment.title || 'Untitled Assessment'}</Link>
           </h3>
           <p className="mb-2 text-[0.75rem] text-(--color-text-muted)">{formattedDate}</p>
 
@@ -79,7 +71,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 color: 'var(--score-color)',
               }}
             >
-              {assessment.overall_score} / 100
+              {assessment.overall_score}
+              <span className="mx-1.5">/</span>
+              100
             </span>
           ) : (
             <span className="text-[0.6875rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
@@ -96,47 +90,41 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           {[
             {
               icon: Eye,
-              label: 'View',
               onClick: (e) => {
                 e.stopPropagation();
                 onView(assessment.public_id);
               },
-              title: 'View',
-              hoverColor: 'text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)]',
+              label: 'View',
             },
             {
               icon: Pencil,
-              label: 'Rename',
               onClick: (e) => {
                 e.stopPropagation();
                 onRename(assessment.id);
               },
-              title: 'Rename',
-              hoverColor: 'text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)]',
+              label: 'Rename',
             },
             {
               icon: Trash2,
-              label: 'Delete',
               onClick: (e) => {
                 e.stopPropagation();
                 onDelete(assessment.id);
               },
-              title: 'Delete',
-              hoverColor: 'text-(--color-text-primary) hover:bg-[rgba(180,160,130,0.12)]',
+              label: 'Delete',
             },
-          ].map(({ icon: Icon, label, onClick, title, hoverColor }) => (
-            <button
+          ].map(({ icon: Icon, onClick, label }) => (
+            <Button
+              variant="ghastly"
+              size="xs"
               key={label}
               onClick={onClick}
-              title={title}
-              className={cn(
-                `flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[0.65rem] text-(--color-text-muted) transition-colors`,
-                `hover:${hoverColor}`,
-              )}
+              label={label}
+              as={label === 'View' ? Link : undefined}
+              to={label === 'View' ? assessmentLink : undefined}
             >
               <Icon size={11} />
               <span>{label}</span>
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -160,41 +148,32 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         {/* Controls */}
         <div className="flex items-center gap-3">
           {/* Select to compare checkbox */}
-          <label
-            className="flex cursor-pointer items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-            onClick={(e) => e.stopPropagation()}
+          <Checkbox
+            isSelected={isSelected}
+            onChange={() => onToggleSelect(assessment.id)}
+            className="text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
           >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={(e) => {
-                e.stopPropagation();
-                onToggleSelect(assessment.id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-              title="Select for comparison"
-              className="size-3 cursor-pointer accent-(--color-accent)"
-            />
-            <span>Select to compare</span>
-          </label>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content className="-ml-1.5">
+              <span>Select to compare</span>
+            </Checkbox.Content>
+          </Checkbox>
 
           {/* Public/Private checkbox */}
-          <label
-            className="flex cursor-pointer items-center gap-1.5 text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-            onClick={(e) => e.stopPropagation()}
+          <Checkbox
+            isSelected={assessment.is_public}
+            onChange={() => onTogglePublic(assessment.id)}
+            className="text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
           >
-            <input
-              type="checkbox"
-              checked={assessment.is_public}
-              onChange={(e) => {
-                e.stopPropagation();
-                onTogglePublic(assessment.id);
-              }}
-              onClick={(e) => e.stopPropagation()}
-              className="size-3 cursor-pointer accent-(--color-accent)"
-            />
-            <span>Public</span>
-          </label>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content className="-ml-1.5">
+              <span>Public</span>
+            </Checkbox.Content>
+          </Checkbox>
         </div>
       </div>
     </div>

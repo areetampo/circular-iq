@@ -1,5 +1,7 @@
 /** Date, number, and string formatting helpers. */
 
+import { FRONTEND_CONFIG } from '@/config';
+
 /**
  * Format number as percentage with rounding
  * @param {number} value - Value to format
@@ -102,9 +104,9 @@ export function formatDate(date) {
  * @returns {string} Formatted timestamp
  */
 export function formatTimestamp(timestamp) {
-  if (!timestamp) return '';
+  if (!timestamp) return '[Unknown time]';
   const d = new Date(timestamp);
-  if (isNaN(d.getTime())) return 'Invalid timestamp';
+  if (isNaN(d.getTime())) return '[Invalid timestamp]';
   return d.toLocaleString('en-GB', {
     year: 'numeric',
     month: 'short',
@@ -192,5 +194,36 @@ export function formatProcessingTime(timeMs) {
     return `${seconds}.${milliseconds}s`;
   } else {
     return `${milliseconds}ms`;
+  }
+}
+
+/**
+ * Formats a URL into a "presentable" editorial string by removing the protocol,
+ * 'www' prefix, and port numbers, while preserving the domain and path.
+ *
+ * @example
+ * Returns "xerneas.app/dashboard"
+ * cleanUrl("https://www.xerneas.app:3000/dashboard")
+ * * @param {string} urlStr - The full URL string to be formatted.
+ * @returns {string} The cleaned, presentable version of the URL (e.g., "domain.com/path").
+ */
+export function cleanUrl(urlStr) {
+  try {
+    const url = new URL(urlStr);
+
+    // 1. Get hostname and remove 'www.'
+    const host = url.hostname.replace(/^www\./, '');
+
+    // 2. Handle Port: Do not keep it only if Production mode
+    const isProd = FRONTEND_CONFIG.isProd;
+    const port = !isProd && url.port ? `:${url.port}` : '';
+
+    // 3. Get the path
+    const path = url.pathname;
+
+    // Combine them: domain:port/path
+    return `${host}${port}${path}`.replace(/\/$/, '');
+  } catch (e) {
+    return urlStr;
   }
 }

@@ -1,6 +1,6 @@
 import { Avatar } from '@heroui/react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { cn } from '@/utils/cn';
 
@@ -8,12 +8,10 @@ export const SITE_NAME = 'Xerneas';
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
 export const SiteName = ({ className = '' }) => {
-  const navigate = useNavigate();
-
   return (
-    <span className={cn(className, `cursor-pointer`)} onClick={() => navigate('/')}>
-      {SITE_NAME}
-    </span>
+    <Link to="/">
+      <span className={cn(className, `cursor-pointer`)}>{SITE_NAME}</span>
+    </Link>
   );
 };
 
@@ -30,17 +28,20 @@ SiteFullName.propTypes = {
 };
 
 export const SiteLogo = ({ className = '', size = 'md' }) => {
-  const navigate = useNavigate();
-
   return (
     <Avatar
-      onClick={() => navigate('/')}
-      className={cn('cursor-pointer rounded-full')}
       size={size}
+      className={cn(
+        'inline-flex items-center justify-center rounded-full',
+        className,
+        'cursor-pointer',
+      )}
       aria-label={`${SITE_NAME} - Go to home`}
     >
-      <Avatar.Image alt={SITE_NAME} src="/site-logo.png" className={cn(className)} />
-      <Avatar.Fallback>{SITE_NAME}</Avatar.Fallback>
+      <Link to="/">
+        <Avatar.Image alt={SITE_NAME} src="/site-logo.png" />
+        <Avatar.Fallback>{SITE_NAME}</Avatar.Fallback>
+      </Link>
     </Avatar>
   );
 };
@@ -49,44 +50,3 @@ SiteLogo.propTypes = {
   className: PropTypes.string,
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
 };
-
-export default function Brand() {
-  const navigate = useNavigate();
-
-  return (
-    <div className="inline-flex cursor-pointer items-center gap-2" onClick={() => navigate('/')}>
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        style={{ color: 'var(--accent)' }}
-      >
-        <path
-          d="M12 2L2 7L12 12L22 7L12 2Z"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2 17L12 22L22 17"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2 12L12 17L22 12"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span style={{ color: 'var(--foreground)' }} className="text-base font-semibold">
-        CE
-      </span>
-    </div>
-  );
-}

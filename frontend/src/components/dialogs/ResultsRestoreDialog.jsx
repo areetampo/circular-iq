@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { formatTimestamp } from '@/lib/formatting';
 
 /**
  * Session Restore Dialog
@@ -54,16 +55,6 @@ function ResultsRestoreDialogContent() {
           (key.includes('audit') && sessionData[key] !== null && sessionData[key] !== ''),
       )),
   );
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'recently';
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   // Reset closing flag when dialog opens
   useEffect(() => {
@@ -164,8 +155,9 @@ function ResultsRestoreDialogContent() {
                 <p className="text-xs font-medium text-black/60">
                   {hasResults ? (
                     <>
-                      You have unsaved assessment results from{' '}
-                      <em>{formatDate(sessionData?.results?.processing_info?.timestamp)}</em>
+                      You have unsaved calculated results from
+                      <br />
+                      {formatTimestamp(sessionData?.results?.processing_info?.timestamp)}
                     </>
                   ) : (
                     'No calculated results found to restore.'

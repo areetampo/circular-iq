@@ -1,5 +1,5 @@
 import { ArrowLeft, Upload } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -30,10 +30,6 @@ export default function AssessmentComparisonPage() {
 
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
-  const handleBack = () => {
-    navigate('/assessments');
-  };
-
   if (!publicId1 || !publicId2) {
     return (
       <ErrorDisplay
@@ -44,8 +40,8 @@ export default function AssessmentComparisonPage() {
           {
             label: 'Back to Assessments',
             icon: ArrowLeft,
-            onClick: () => navigate('/assessments'),
-            variant: 'tertiary',
+            variant: 'primary',
+            to: '/assessments',
           },
         ]}
         showDefaultActions={false}
@@ -65,14 +61,14 @@ export default function AssessmentComparisonPage() {
           {
             label: 'Back to Assessments',
             icon: ArrowLeft,
-            onClick: () => navigate('/assessments'),
-            variant: 'tertiary',
+            variant: 'primary',
+            to: '/assessments',
           },
           {
             label: 'Try Different IDs',
             icon: ArrowLeft,
-            onClick: () => navigate('/assessments/compare'),
-            variant: 'tertiary',
+            variant: 'primary',
+            to: '/assessments/compare',
           },
         ]}
         showDefaultActions={false}
@@ -90,8 +86,8 @@ export default function AssessmentComparisonPage() {
           {
             label: 'Back to Assessments',
             icon: ArrowLeft,
-            onClick: () => navigate('/assessments'),
-            variant: 'tertiary',
+            variant: 'primary',
+            to: '/assessments',
           },
         ]}
         showDefaultActions={false}
@@ -239,7 +235,7 @@ export default function AssessmentComparisonPage() {
           >
             <Upload size={16} /> Export CSV
           </Button>
-          <Button variant="ghost" onPress={handleBack}>
+          <Button variant="ghost" as={Link} to="/assessments">
             <ArrowLeft size={16} /> Back to Assessments
           </Button>
         </div>

@@ -1,7 +1,7 @@
 import { Input, Label } from '@heroui/react';
 import { ArrowLeft, Frown } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 
@@ -180,7 +180,7 @@ export default function CompareForm() {
       </div>
 
       <div className="flex justify-center">
-        <Button type="button" variant="ghost" onPress={() => navigate('/assessments')}>
+        <Button type="button" variant="ghost" as={Link} to="/assessments">
           <ArrowLeft size={14} />
           Back to Assessments
         </Button>

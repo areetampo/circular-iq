@@ -211,7 +211,7 @@ export default function SampleTestCasesContainer({
       openReplaceInputsDialog({
         title: 'Replace current inputs?',
         description:
-          'Loading a test case will overwrite your current business problem and solution. Do you want to continue?',
+          'Loading a test case will overwrite your current inputs. Do you want to continue?',
         confirmText: 'Replace',
         cancelText: 'Cancel',
         onConfirm: async () => {
@@ -254,7 +254,7 @@ export default function SampleTestCasesContainer({
               <div className="flex min-w-0 items-center gap-2">
                 <span
                   className={cn(
-                    `shrink-0 rounded-sm bg-accent-soft px-2 py-0.5 text-xs font-semibold text-(--color-accent)`,
+                    `shrink-0 rounded-sm bg-(--color-accent-light) px-2 py-0.5 text-xs font-semibold text-(--color-accent)`,
                   )}
                 >
                   #{index + 1}

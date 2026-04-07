@@ -1,6 +1,6 @@
 import { ArrowLeft, Book, RefreshCcw, View } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -41,10 +41,6 @@ export default function AssessmentViewPage() {
     }
   };
 
-  const handleComparePageNavigate = useCallback(() => {
-    navigate('/assessments/compare');
-  }, [navigate]);
-
   if (loading) {
     return <ResultsSkeleton />;
   }
@@ -71,8 +67,9 @@ export default function AssessmentViewPage() {
           {
             label: 'View another',
             icon: View,
-            onClick: handleComparePageNavigate,
-            variant: 'tertiary',
+            variant: 'primary',
+            as: Link,
+            to: '/assessments/compare',
           },
         ]}
         showDefaultActions={false}
@@ -96,8 +93,9 @@ export default function AssessmentViewPage() {
           {
             label: 'View another',
             icon: View,
-            onClick: handleComparePageNavigate,
-            variant: 'tertiary',
+            variant: 'primary',
+            as: Link,
+            to: '/assessments/compare',
           },
         ]}
         showDefaultActions={false}
@@ -181,12 +179,7 @@ export default function AssessmentViewPage() {
           <ArrowLeft size={16} />
           Back
         </Button>
-        <Button
-          onClick={() => {
-            navigate('/assessments');
-          }}
-          variant="ghost"
-        >
+        <Button as={Link} to="/assessments" variant="ghost">
           <Book size={16} />
           Go to assessments
         </Button>

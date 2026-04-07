@@ -108,29 +108,29 @@ export function StatsGrid({
       <StatCard label="Total" value={totalAssessments} subtitle="assessments" />
 
       <StatCard
-        label="Highest"
+        label="Highest Score"
         value={highestScore ? highestScore.toFixed(2) : '0.00'}
-        subtitle="best score"
+        subtitle="out of 100"
         color={scoreColor(highestScore)}
       />
 
       <StatCard
-        label="Lowest"
+        label="Lowest Score"
         value={lowestScore ? lowestScore.toFixed(2) : '0.00'}
-        subtitle="lowest score"
+        subtitle="out of 100"
         color={scoreColor(lowestScore)}
       />
 
       {/* Top Industry Card */}
-      <div className="flex flex-col gap-1 rounded-2xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5">
+      <div className="flex flex-col gap-1 rounded-2xl border-2 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5">
         <span className="text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
-          Top Industry
+          Top {displayIndustries.length > 1 ? 'Industries' : 'Industry'}
         </span>
 
         {displayIndustries.length > 0 ? (
           <div className="relative">
             <div className="flex flex-col items-start gap-1">
-              <span className="font-mono text-[1.5rem] leading-none tracking-[-0.04em] wrap-break-word text-(--color-text-primary)">
+              <span className="font-mono text-base leading-none tracking-[-0.04em] wrap-break-word text-(--color-text-primary)">
                 {getDisplayText()}
               </span>
 

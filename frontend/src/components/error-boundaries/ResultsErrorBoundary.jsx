@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 
@@ -38,7 +39,8 @@ class ResultsErrorBoundary extends React.Component {
             },
             {
               label: 'Back to Assessments',
-              onClick: () => (window.location.href = '/assessments'),
+              as: Link,
+              to: '/assessments',
               variant: 'secondary',
             },
           ]}

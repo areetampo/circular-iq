@@ -1,6 +1,7 @@
 import { ListBox, Select, Tooltip } from '@heroui/react';
 import { GitCompare, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 
@@ -17,7 +18,7 @@ export function FilterBar({
   handleToggleIndustry,
   formatIndustryLabel,
   selectedIds,
-  handleCompareSelected,
+  compareUrl,
 }) {
   return (
     <div className="mb-6 space-y-3">
@@ -86,12 +87,12 @@ export function FilterBar({
           <Tooltip.Trigger>
             <Button
               variant="results-action"
-              onClick={handleCompareSelected}
-              disabled={selectedIds.size !== 2}
-              className={selectedIds.size !== 2 ? `cursor-not-allowed opacity-50` : ''}
+              as={selectedIds.size === 2 ? Link : 'button'}
+              to={selectedIds.size === 2 ? compareUrl : undefined}
+              isDisabled={selectedIds.size !== 2}
             >
-              <GitCompare size={14} />
-              compare
+              <GitCompare size={14} strokeWidth={2} />
+              <span className="font-mono">compare ({selectedIds.size}/2)</span>
             </Button>
           </Tooltip.Trigger>
           <Tooltip.Content showArrow placement="top">
@@ -129,7 +130,7 @@ FilterBar.propTypes = {
   handleToggleIndustry: PropTypes.func.isRequired,
   formatIndustryLabel: PropTypes.func.isRequired,
   selectedIds: PropTypes.instanceOf(Set).isRequired,
-  handleCompareSelected: PropTypes.func.isRequired,
+  compareUrl: PropTypes.string,
 };
 
 export default FilterBar;

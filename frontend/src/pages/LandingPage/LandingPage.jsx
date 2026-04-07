@@ -722,8 +722,8 @@ export default function LandingPage() {
                         onPress={handleSubmit(handleFormSubmit)}
                         isDisabled={loading || !isValid}
                         variant="teal"
-                        fullWidth
                         className="h-12 rounded-4xl"
+                        fullWidth
                       >
                         {loading ? (
                           <LoaderIcon isButton={true} color="#ffffff" />
