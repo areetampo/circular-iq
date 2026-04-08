@@ -152,9 +152,9 @@ export default function AssessmentComparisonPage() {
 
   // Score color helper
   const scoreColor = (score) => {
-    if (score >= 75) return 'var(--color-success)';
-    if (score >= 50) return 'var(--color-warning)';
-    return 'var(--color-error)';
+    if (score >= 75) return '--color-success';
+    if (score >= 50) return '--color-warning';
+    return '--color-error';
   };
 
   return (
@@ -168,8 +168,7 @@ export default function AssessmentComparisonPage() {
             </h2>
             <div className="mt-1 flex items-baseline gap-1">
               <span
-                className="font-mono text-3xl"
-                style={{ color: scoreColor(scoringResult1?.overall_score) }}
+                className={`font-mono text-3xl text-(${scoreColor(scoringResult1?.overall_score)})`}
               >
                 {scoringResult1?.overall_score || 0}
               </span>
@@ -188,8 +187,7 @@ export default function AssessmentComparisonPage() {
             </h2>
             <div className="mt-1 flex items-baseline justify-end gap-1">
               <span
-                className="font-mono text-3xl font-bold"
-                style={{ color: scoreColor(scoringResult2?.overall_score) }}
+                className={`font-mono text-3xl text-(${scoreColor(scoringResult2?.overall_score)})`}
               >
                 {scoringResult2?.overall_score || 0}
               </span>

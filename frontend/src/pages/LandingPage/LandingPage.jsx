@@ -556,13 +556,7 @@ export default function LandingPage() {
                 />
 
                 {/* Business Context */}
-                <div
-                  className="group/bcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) shadow-sm transition-shadow duration-300"
-                  style={{
-                    '--bg-color': 'oklch(0.99 0.008 80 / 0.3)',
-                    backgroundColor: 'var(--bg-color)',
-                  }}
-                >
+                <div className="group/bcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) bg-[oklch(0.99_0.008_80_/0.3)] shadow-sm transition-shadow duration-300">
                   <Accordion
                     className="w-full"
                     variant="default"
@@ -571,13 +565,9 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="business-context-heading">
                       <Accordion.Heading>
-                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
+                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3">
                           <BriefcaseBusiness
-                            className="mr-1 shrink-0 transition-[scale,rotate] duration-300 ease-out group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10 group-hover/bcacc:drop-shadow-md"
-                            style={{
-                              '--icon-color': 'var(--color-accent)',
-                              color: 'var(--icon-color)',
-                            }}
+                            className="mr-1 shrink-0 text-(--color-accent) transition-[scale,rotate] duration-300 ease-out group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10 group-hover/bcacc:drop-shadow-md"
                             size={24}
                             strokeWidth={2}
                           />
@@ -587,13 +577,9 @@ export default function LandingPage() {
                                 Business Context
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px shrink-0 cursor-pointer"
+                                className="info-icon mt-px shrink-0 cursor-pointer text-(--color-accent)"
                                 size={20}
                                 strokeWidth={2}
-                                style={{
-                                  '--icon-color': 'var(--color-accent)',
-                                  color: 'var(--icon-color)',
-                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openBusinessContextHeadingInfoDrawer();
@@ -626,13 +612,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Evaluation Parameters */}
-                <div
-                  className="group/epacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) shadow-sm transition-shadow duration-300"
-                  style={{
-                    '--bg-color': 'oklch(0.99 0.008 80 / 0.3)',
-                    backgroundColor: 'var(--bg-color)',
-                  }}
-                >
+                <div className="group/epacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) bg-[oklch(0.99_0.008_80/0.3)] shadow-sm transition-shadow duration-300">
                   <Accordion
                     className="w-full"
                     variant="default"
@@ -642,14 +622,10 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="evaluation-parameters-heading">
                       <Accordion.Heading>
-                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
+                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3">
                           <SlidersHorizontal
-                            className="mr-1 shrink-0 transition-[scale,rotate] duration-300 ease-out group-hover/epacc:scale-[1.2] group-hover/epacc:-rotate-10 group-hover/epacc:drop-shadow-md"
+                            className="mr-1 shrink-0 text-(--color-success) transition-[scale,rotate] duration-300 ease-out group-hover/epacc:scale-[1.2] group-hover/epacc:-rotate-10 group-hover/epacc:drop-shadow-md"
                             size={24}
-                            style={{
-                              '--icon-color': 'var(--color-success)',
-                              color: 'var(--icon-color)',
-                            }}
                             strokeWidth={2}
                           />
                           <div className="flex flex-1 flex-col gap-0.5 text-left">
@@ -658,13 +634,9 @@ export default function LandingPage() {
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px shrink-0 cursor-pointer"
+                                className="info-icon mt-px shrink-0 cursor-pointer text-(--color-success)"
                                 size={20}
                                 strokeWidth={2}
-                                style={{
-                                  '--icon-color': 'var(--color-success)',
-                                  color: 'var(--icon-color)',
-                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEvaluationParametersHeadingInfoDrawer();
@@ -733,7 +705,6 @@ export default function LandingPage() {
                       </Button>
                     </Tooltip.Trigger>
                     <Tooltip.Content showArrow placement="top">
-                      <Tooltip.Arrow />
                       <span>
                         Please fill out business problem and solution fields (min. 200 chars each)
                       </span>
@@ -742,13 +713,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Sample Test Cases */}
-                <div
-                  className="group/stcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) shadow-sm transition-shadow duration-300"
-                  style={{
-                    '--bg-color': 'oklch(0.99 0.008 80 / 0.3)',
-                    backgroundColor: 'var(--bg-color)',
-                  }}
-                >
+                <div className="group/stcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) bg-[oklch(0.99_0.008_80/0.3)] shadow-sm transition-shadow duration-300">
                   <Accordion
                     className="w-full"
                     variant="default"
@@ -757,13 +722,9 @@ export default function LandingPage() {
                   >
                     <Accordion.Item id="test-cases">
                       <Accordion.Heading>
-                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
+                        <Accordion.Trigger className="flex items-center gap-3 px-5 py-3">
                           <ClipboardList
-                            className="mr-1 size-6 shrink-0 transition-[scale,rotate] duration-300 ease-out group-hover/stcacc:scale-[1.2] group-hover/stcacc:-rotate-10 group-hover/stcacc:drop-shadow-md"
-                            style={{
-                              '--icon-color': 'var(--color-accent)',
-                              color: 'var(--icon-color)',
-                            }}
+                            className="mr-1 size-6 shrink-0 text-(--color-accent) transition-[scale,rotate] duration-300 ease-out group-hover/stcacc:scale-[1.2] group-hover/stcacc:-rotate-10 group-hover/stcacc:drop-shadow-md"
                             strokeWidth={1.75}
                           />
                           <div className="flex flex-1 flex-col gap-1 text-left">
@@ -772,13 +733,9 @@ export default function LandingPage() {
                                 Sample Test Cases
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px shrink-0 cursor-pointer"
+                                className="info-icon mt-px shrink-0 cursor-pointer text-(--color-accent)"
                                 size={20}
                                 strokeWidth={2}
-                                style={{
-                                  '--icon-color': 'var(--color-accent)',
-                                  color: 'var(--icon-color)',
-                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openSampleTestCasesHeadingInfoDrawer();

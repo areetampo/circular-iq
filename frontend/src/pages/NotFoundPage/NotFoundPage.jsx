@@ -8,12 +8,12 @@ export default function NotFoundPage() {
     <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-2xl text-center">
         {/* 404 numeral — large editorial */}
-        <p className="font-serif text-[7.5rem] leading-none font-bold tracking-tight text-(--color-border-strong) select-none">
+        <p className="font-display text-[7.5rem] leading-none font-bold tracking-tight text-(--color-accent) select-none">
           404
         </p>
 
         {/* Heading + description */}
-        <h1 className="heading-display mt-2 text-[1.625rem] text-(--color-text-primary)">
+        <h1 className="mt-6 font-display text-[1.625rem] font-semibold text-(--color-text-primary)">
           Page Not Found
         </h1>
         <p className="mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed text-(--color-text-muted)">
@@ -27,8 +27,8 @@ export default function NotFoundPage() {
         {/* Navigation options */}
         <div className="mb-8 grid gap-4 text-left sm:grid-cols-2">
           <div className="flex items-start gap-3 rounded-xl border-2 border-border bg-transparent p-4">
-            <div className="mt-0.5 shrink-0 rounded-md bg-accent-soft p-2 text-(--color-accent)">
-              <Compass size={15} />
+            <div className="mt-0.5 shrink-0 rounded-md text-(--color-accent)">
+              <Compass size={24} />
             </div>
             <div>
               <p className="text-sm font-semibold text-(--color-text-primary)">Need guidance?</p>
@@ -39,8 +39,8 @@ export default function NotFoundPage() {
           </div>
 
           <div className="flex items-start gap-3 rounded-xl border-2 border-border bg-transparent p-4">
-            <div className="mt-0.5 shrink-0 rounded-md bg-accent-soft p-2 text-(--color-accent)">
-              <BarChart3 size={15} />
+            <div className="mt-0.5 shrink-0 rounded-md text-(--color-accent)">
+              <BarChart3 size={24} />
             </div>
             <div>
               <p className="text-sm font-semibold text-(--color-text-primary)">Review past work</p>

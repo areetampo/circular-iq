@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
+import { cn } from '@/utils/cn';
 
 export default function ScoreCard({
   title,
@@ -18,13 +19,13 @@ export default function ScoreCard({
   const getFactorColor = (type) => {
     switch (type) {
       case 'warning':
-        return { bg: 'var(--warning-soft)', color: 'var(--warning)' };
+        return { bg: '--warning-soft', text: '--warning' };
       case 'danger':
-        return { bg: 'var(--danger-soft)', color: 'var(--danger)' };
+        return { bg: '--danger-soft', text: '--danger' };
       case 'success':
-        return { bg: 'var(--success-soft)', color: 'var(--success)' };
+        return { bg: '--success-soft', text: '--success' };
       default:
-        return { bg: 'var(--info-soft)', color: 'var(--info)' };
+        return { bg: '--info-soft', text: '--info' };
     }
   };
 
@@ -41,10 +42,7 @@ export default function ScoreCard({
         </SectionHeading>
         {score != null && (
           <div className="text-right">
-            <div
-              className="text-3xl font-bold"
-              style={{ '--score-color': scoreColor, color: 'var(--score-color)' }}
-            >
+            <div className="text-3xl font-bold" style={{ color: scoreColor }}>
               {score}
               <span className="text-sm text-(--color-text-muted)">/100</span>
             </div>
@@ -63,19 +61,10 @@ export default function ScoreCard({
       {factors.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-1">
           {factors.map((f) => {
-            const factorColor = getFactorColor(factorType);
+            const { bg, text } = getFactorColor(factorType);
+
             return (
-              <Chip
-                key={f}
-                variant="factor"
-                className="text-xs"
-                style={{
-                  '--factor-bg': factorColor.bg,
-                  '--factor-color': factorColor.color,
-                  backgroundColor: 'var(--factor-bg)',
-                  color: 'var(--factor-color)',
-                }}
-              >
+              <Chip key={f} variant="factor" className={cn('text-xs', `bg-(${bg}) text-(${text})`)}>
                 {formatFactorName(f)}
               </Chip>
             );

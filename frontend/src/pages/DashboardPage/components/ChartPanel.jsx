@@ -16,7 +16,7 @@ function ChartPanel({ title, children, isLoading, error, chartHeight }) {
           <p className="text-(--color-error)">Error loading chart</p>
         </div>
       ) : (
-        <div style={{ overflow: 'visible' }}>{children}</div>
+        <div className="overflow-visible">{children}</div>
       )}
     </div>
   );

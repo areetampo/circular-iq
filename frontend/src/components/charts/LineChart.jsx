@@ -12,9 +12,9 @@ import {
 } from 'recharts';
 
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { cn } from '@/utils/cn';
 
-const FONT_FAMILY =
-  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace';
+const FONT_FAMILY = 'JetBrains Mono, monospace';
 
 const TICK_STYLE = {
   fontFamily: FONT_FAMILY,
@@ -45,15 +45,12 @@ export default function LineChart({
   if (!data.length || !lines.length) {
     return (
       <div
-        className={className}
+        className={cn(
+          className,
+          'flex items-center justify-center font-mono text-[13px] text-stone-500',
+        )}
         style={{
           height,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: FONT_FAMILY,
-          fontSize: 13,
-          color: '#9a8f82',
         }}
       >
         No data available

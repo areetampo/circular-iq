@@ -76,7 +76,7 @@ export default function ResultsSkeleton() {
 
         {/* Main Score Display */}
         <div className="mb-8 text-center">
-          <Skeleton className="mx-auto mb-3 h-[72px] w-32 rounded-sm" />
+          <Skeleton className="mx-auto mb-3 h-18 w-32 rounded-sm" />
           <Skeleton className="mx-auto mb-2 h-8 w-16 rounded-sm" />
           <Skeleton className="mx-auto h-4 w-40 rounded-sm" />
           <Skeleton className="mx-auto mt-6 h-6 w-96 rounded-sm" />

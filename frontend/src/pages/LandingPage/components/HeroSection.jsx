@@ -18,7 +18,7 @@ export default function HeroSection({
             transition={{ duration: 0.55, ease: 'easeOut' }}
           >
             {/* Main heading */}
-            <h1 className="heading-display mb-6 text-[clamp(38px,5.5vw,60px)] leading-[1.08]">
+            <h1 className="text-[var(--foreground)]; mb-6 font-display text-[clamp(38px,5.5vw,60px)] leading-[1.1] font-bold tracking-[-0.03em]">
               Where circular economy meets <em className="text-accent-700 italic">evidence.</em>
             </h1>
 

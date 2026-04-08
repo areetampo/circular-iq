@@ -11,8 +11,7 @@ import {
 
 import { ChartContainer, ChartLegendContent, ChartTooltipContent } from '@/components/ui/chart';
 
-const FONT_FAMILY =
-  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace';
+const FONT_FAMILY = 'JetBrains Mono, monospace';
 
 // Two distinct warm palette colors — green for "Your Idea", bronze for "Market Average"
 const SERIES_COLORS = ['#4a7c59', '#b8916a'];
@@ -28,14 +27,9 @@ function RadarChartComponent({
   if (!data?.length || !radarConfigs?.length) {
     return (
       <div
+        className="flex items-center justify-center font-mono text-[13px] text-stone-500"
         style={{
           height,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: FONT_FAMILY,
-          fontSize: 13,
-          color: '#9a8f82',
         }}
       >
         No data available

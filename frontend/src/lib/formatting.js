@@ -186,14 +186,21 @@ export function formatProcessingTime(timeMs) {
 
   const minutes = Math.floor(timeMs / 60000);
   const seconds = Math.floor((timeMs % 60000) / 1000);
-  const milliseconds = timeMs % 1000;
+
+  // Divide by 10 and floor to get exactly the first two digits (0-99)
+  const msDigits = Math.floor((timeMs % 1000) / 10);
+
+  // Optional: Pad with a leading zero so "5ms" becomes "05ms" for consistent width
+  const msFormatted = String(msDigits).padStart(2, '0');
 
   if (minutes > 0) {
-    return `${minutes}m ${seconds}.${milliseconds}s`;
+    return `${minutes}m ${seconds}.${msFormatted}s`;
   } else if (seconds > 0) {
-    return `${seconds}.${milliseconds}s`;
+    return `${seconds}.${msFormatted}s`;
   } else {
-    return `${milliseconds}ms`;
+    // If it's pure milliseconds, you might want the raw digits
+    // or the padded version depending on your preference
+    return `${msDigits}ms`;
   }
 }
 

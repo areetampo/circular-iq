@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { SiteLogo, SiteName } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/utils/cn';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -122,25 +123,19 @@ export default function Navbar() {
               /* Profile Avatar Button */
               <div className="relative" ref={dropdownRef}>
                 <Avatar
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="cursor-pointer transition-all duration-200 hover:scale-105"
                   size="sm"
-                  style={{
-                    backgroundColor: 'var(--color-accent-light)',
-                    border: '2px solid var(--color-border-strong)',
-                    color: 'var(--color-accent)',
-                  }}
+                  className={cn(
+                    'cursor-pointer transition-all duration-200 hover:scale-105',
+                    'bg-(--color-accent-light)',
+                    'border-2 border-(--color-border-strong)',
+                    'text-(--color-accent)',
+                  )}
                   aria-label="Profile menu"
                   aria-expanded={isProfileDropdownOpen}
                   aria-haspopup="true"
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                 >
-                  <Avatar.Fallback
-                    style={{
-                      backgroundColor: 'var(--color-accent-light)',
-                      color: 'var(--color-accent)',
-                      fontWeight: '500',
-                    }}
-                  >
+                  <Avatar.Fallback className="bg-(--color-accent-light) font-medium text-(--color-accent)">
                     {getUserInitials()}
                   </Avatar.Fallback>
                 </Avatar>
@@ -152,20 +147,10 @@ export default function Navbar() {
                     <div className="border-b border-border p-4">
                       <div className="flex items-center gap-3">
                         <Avatar
-                          size="sm"
-                          style={{
-                            backgroundColor: 'var(--color-accent-light)',
-                            border: '2px solid var(--color-border-strong)',
-                            color: 'var(--color-accent)',
-                          }}
+                          size="md"
+                          className="border-2 border-(--color-border-strong) bg-(--color-accent-light) text-(--color-accent)"
                         >
-                          <Avatar.Fallback
-                            style={{
-                              backgroundColor: 'var(--color-accent-light)',
-                              color: 'var(--color-accent)',
-                              fontWeight: '500',
-                            }}
-                          >
+                          <Avatar.Fallback className="bg-(--color-accent-light) font-medium text-(--color-accent)">
                             {getUserInitials()}
                           </Avatar.Fallback>
                         </Avatar>

@@ -14,59 +14,41 @@ export function StrengthsGapsCard({ strengths, gaps }) {
           Highlights from your assessment and improvement areas
         </p>
         <div className="space-y-4">
-          <div
-            className="rounded-xl border-2 border-green-200/30 p-4"
-            style={{ backgroundColor: 'var(--background-secondary)' }}
-          >
+          <div className="rounded-xl bg-green-600/7 p-4">
             <div className="mb-2 flex items-center gap-2">
               <CheckCircle2 size={20} className="text-green-700" />
               <p className="text-sm font-semibold text-(--color-text-primary)">Strengths</p>
             </div>
             <ul className="space-y-2 text-sm">
-              {strengths.length > 0 ? (
-                strengths.map((strength, i) => (
-                  <li key={i} className="flex items-start gap-2 leading-relaxed">
-                    <span className="mt-0.5 font-semibold text-(--color-text-primary)">•</span>
-                    <span className="text-(--color-text-primary)">
-                      {strength.issue || strength}
-                      {strength.evidence_source_id && (
-                        <Chip variant="case" className="ml-2 text-xs">
-                          Case #{strength.evidence_source_id}
-                        </Chip>
-                      )}
-                    </span>
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li className="flex items-start gap-2 leading-relaxed">
-                    <span className="mt-0.5 font-semibold text-(--color-text-primary)">•</span>
-                    <span className="text-(--color-text-primary)">
-                      Strong focus on material reuse and recycling
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2 leading-relaxed">
-                    <span className="mt-0.5 font-semibold text-(--color-text-primary)">•</span>
-                    <span className="text-(--color-text-primary)">
-                      Clear value proposition for sustainability
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2 leading-relaxed">
-                    <span className="mt-0.5 font-semibold text-(--color-text-primary)">•</span>
-                    <span className="text-(--color-text-primary)">
-                      Potential for scalable implementation
-                    </span>
-                  </li>
-                </>
-              )}
+              {strengths.length > 0
+                ? strengths.map((strength, i) => (
+                    <li key={i} className="flex items-start gap-2 leading-relaxed">
+                      <span className="mt-0.5 font-semibold text-(--color-text-primary)">•</span>
+                      <span className="text-(--color-text-primary)">
+                        {strength.issue || strength}
+                        {strength.evidence_source_id && (
+                          <Chip variant="case" className="ml-2 text-xs">
+                            Case #{strength.evidence_source_id}
+                          </Chip>
+                        )}
+                      </span>
+                    </li>
+                  ))
+                : [
+                    'Strong focus on material reuse and recycling',
+                    'Clear value proposition for sustainability',
+                    'Potential for scalable implementation',
+                  ].map((strength, i) => (
+                    <li key={i} className="flex items-start gap-2 leading-relaxed">
+                      <span className="mt-0.5 font-semibold text-(--color-text-primary)">•</span>
+                      <span className="text-(--color-text-primary)">{strength}</span>
+                    </li>
+                  ))}
             </ul>
           </div>
 
           {gaps.length > 0 && (
-            <div
-              className="rounded-xl border-2 border-red-200/30 p-4"
-              style={{ backgroundColor: 'var(--background-secondary)' }}
-            >
+            <div className="rounded-xl bg-red-600/5 p-4">
               <div className="mb-2 flex items-center gap-2">
                 <AlertCircle size={20} className="text-orange-700" />
                 <p className="text-sm font-semibold text-(--color-text-primary)">

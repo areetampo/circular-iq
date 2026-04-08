@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
+import { titleize } from '@/lib/formatting';
+
 const scoreColor = (s) =>
   s >= 75
     ? 'var(--color-success)'
@@ -10,7 +12,12 @@ const scoreColor = (s) =>
         ? 'var(--color-error)'
         : 'var(--color-text-primary)';
 
-const titleize = (str) => str.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const sizeMap = {
+  '28px': 'text-[28px]',
+  '24px': 'text-2xl',
+  '20px': 'text-xl',
+  '18px': 'text-lg',
+};
 
 // Reusable StatCard component
 const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
@@ -19,21 +26,7 @@ const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
       {label}
     </span>
     <span
-      className={`font-mono leading-none tracking-[-0.04em] ${
-        fontSize === '28px'
-          ? `text-[28px]`
-          : fontSize === '24px'
-            ? `text-2xl`
-            : fontSize === '20px'
-              ? `text-xl`
-              : fontSize === '18px'
-                ? `text-lg`
-                : `text-base`
-      }`}
-      style={{
-        '--stat-color': color || 'var(--color-text-primary)',
-        color: 'var(--stat-color)',
-      }}
+      className={`font-mono leading-none tracking-[-0.04em] ${sizeMap[fontSize] || 'text-base'} ${color ? `text-[${color}]` : 'text-(--color-text-primary)'}`}
     >
       {value}
     </span>

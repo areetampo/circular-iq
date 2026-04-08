@@ -11,19 +11,13 @@ export function PerformanceComparison({ resolvedRadarData, radarConfigs, detailL
           <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div>
               <SectionHeading variant="large">Performance Comparison</SectionHeading>
-              <p className="-mt-4 text-sm text-(--color-text-muted)">
+              <p className="-mt-4 pl-2 text-sm text-(--color-text-muted)">
                 How your idea compares to similar projects in the database
               </p>
             </div>
           </div>
 
-          <div
-            className="w-full rounded-3xl border-0 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4"
-            style={{
-              '--color-userValue': 'var(--success)',
-              '--color-marketAvg': 'var(--accent)',
-            }}
-          >
+          <div className="w-full rounded-3xl border-0 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4">
             <RadarChart
               data={resolvedRadarData}
               radarConfigs={radarConfigs}

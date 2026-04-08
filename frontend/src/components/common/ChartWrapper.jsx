@@ -83,15 +83,12 @@ export function ChartTooltipContent({ active, payload, label, labelFormatter, fo
       <div className="space-y-1">
         {payload.map((entry, index) => {
           const value = formatter ? formatter(entry.value, entry.name) : entry.value;
-          const dotColor = entry.color || entry.fill || 'var(--color-accent)';
+          const dotColor = entry.color || entry.fill || '--color-accent';
+
           return (
             <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
               <div
-                className="size-2 rounded-full"
-                style={{
-                  backgroundColor: dotColor,
-                  boxShadow: `0 0 4px ${dotColor}40`,
-                }}
+                className={`size-2 rounded-full bg-(${dotColor}) shadow-[0_0_4px_(${dotColor})33]`}
               />
               <span className="text-(--color-text-muted)">{entry.name}:</span>
               <span className="font-medium text-(--color-text-primary)">{value}</span>

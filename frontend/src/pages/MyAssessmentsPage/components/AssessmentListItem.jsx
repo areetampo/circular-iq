@@ -9,7 +9,7 @@ import { formatTimestamp } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 const scoreColor = (s) =>
-  s >= 75 ? 'var(--color-success)' : s >= 50 ? 'var(--color-warning)' : 'var(--color-error)';
+  s >= 75 ? '--color-success' : s >= 50 ? '--color-warning' : '--color-error';
 
 const AssessmentListItem = React.memo(function AssessmentListItem({
   assessment,
@@ -65,11 +65,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         <div className="min-w-20 shrink-0 text-right">
           {assessment.overall_score ? (
             <span
-              className="font-mono text-[1.35rem] leading-none tracking-[-0.04em]"
-              style={{
-                '--score-color': scoreColor(assessment.overall_score),
-                color: 'var(--score-color)',
-              }}
+              className={`text-(${scoreColor(assessment.overall_score)}) font-mono text-[1.35rem] leading-none tracking-[-0.04em]`}
             >
               {assessment.overall_score}
               <span className="mx-1.5">/</span>
@@ -282,9 +278,11 @@ export const AssessmentCardSkeleton = () => (
 
 export const AssessmentListSkeleton = () => (
   <div className="space-y-0">
-    {[1, 2, 3].map((i) => (
-      <AssessmentCardSkeleton key={i} />
-    ))}
+    {Array(3)
+      .fill(0)
+      .map((_, i) => (
+        <AssessmentCardSkeleton key={i} />
+      ))}
   </div>
 );
 

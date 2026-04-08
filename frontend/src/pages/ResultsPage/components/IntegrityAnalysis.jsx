@@ -10,10 +10,10 @@ export function IntegrityAnalysis({ strengths, gaps }) {
   const getSeverityColors = (severity) => {
     return (
       {
-        high: 'var(--danger-soft)',
-        medium: 'var(--warning-soft)',
-        low: 'var(--info-soft)',
-      }[severity] || 'var(--info-soft)'
+        high: '--danger-soft',
+        medium: '--warning-soft',
+        low: '--info-soft',
+      }[severity] || '--info-soft'
     );
   };
 
@@ -75,9 +75,9 @@ export function IntegrityAnalysis({ strengths, gaps }) {
           {gaps.length > 0 && (
             <Accordion.Item
               value="gaps"
-              className="overflow-hidden rounded-lg border-(--color-warning) bg-warning-soft"
+              className="overflow-hidden rounded-lg border-(--color-warning)"
             >
-              <Accordion.Trigger className="px-4 py-3 transition-colors hover:bg-warning-soft">
+              <Accordion.Trigger className="px-4 py-3 transition-colors">
                 <div className="flex items-center gap-2">
                   <AlertCircle size={20} className="text-(--color-warning)" />
                   <span className="text-base font-semibold text-(--color-text-primary)">
@@ -94,14 +94,7 @@ export function IntegrityAnalysis({ strengths, gaps }) {
                     const severity = gap.severity || 'medium';
 
                     return (
-                      <div
-                        key={i}
-                        className={`flex gap-2 rounded-lg border bg-surface p-3`}
-                        style={{
-                          '--border-color': getSeverityColors(severity),
-                          borderColor: 'var(--border-color)',
-                        }}
-                      >
+                      <div key={i} className="flex gap-2 rounded-xl bg-warning-soft/70 p-3">
                         <AlertCircle className="mt-0.5 shrink-0 text-(--color-warning)" size={16} />
                         <div className="flex-1">
                           <p className="text-sm text-(--color-text-primary)">

@@ -84,7 +84,6 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
 
                 <NumberField.Group className="my-0.5 flex h-8 items-center gap-1">
                   <NumberField.DecrementButton
-                    className="flex size-8 items-center justify-center rounded-sm text-base text-(--color-text-muted) transition-colors duration-100 select-none"
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.backgroundColor = 'var(--color-accent-light)')
                     }
@@ -124,10 +123,9 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                         // Do NOT persist here — rely on LandingPage debounced autosave.
                       }
                     }}
-                    className="w-20 rounded-md border border-(--color-border-strong) bg-[rgba(245,240,232,0.5)] text-center font-mono text-[18px] font-semibold text-(--color-text-primary) transition-colors outline-none focus:outline-none"
+                    className="h-8 w-20"
                   />
                   <NumberField.IncrementButton
-                    className="flex size-8 items-center justify-center rounded-sm text-base text-(--color-text-muted) transition-colors duration-100 select-none"
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.backgroundColor = 'var(--color-accent-light)')
                     }
@@ -213,7 +211,7 @@ function EvaluationParametersContainer({
               className={cn('group/item', groupIdx > 0 && `border-t border-border`)}
             >
               <Accordion.Heading>
-                <Accordion.Trigger className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 hover:bg-accent-soft">
+                <Accordion.Trigger className="flex items-center gap-3 px-5 py-3">
                   <cfg.Icon
                     className={cn(
                       cfg.iconColor,

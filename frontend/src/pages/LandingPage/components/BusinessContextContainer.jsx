@@ -60,17 +60,11 @@ function BusinessContextContainer({
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-col gap-1 pl-2">
-        <span
-          className="font-mono text-[0.8125rem] font-semibold tracking-wide uppercase"
-          style={{ color: 'var(--color-text-secondary)', letterSpacing: '0.04em' }}
-        >
+        <span className="font-mono text-[0.8125rem] font-semibold tracking-[0.04em] text-(--color-text-secondary) uppercase">
           {label}
         </span>
         {description && (
-          <span
-            className="font-mono text-[0.65rem] leading-snug"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <span className="font-mono text-[0.65rem] leading-snug text-(--color-text-muted)">
             {description}
           </span>
         )}
@@ -115,11 +109,10 @@ function BusinessContextContainer({
 
   return (
     <div className="space-y-5 px-4 pt-2 pb-6">
-      <p className="text-xs/relaxed italic" style={{ color: 'var(--color-text-muted)' }}>
+      <p className="text-xs/relaxed text-(--color-text-muted)">
         These optional fields help the AI generate more precise benchmarks and recommendations. Your
         answers are never stored beyond this session unless you save the assessment.
       </p>
-
       <>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {renderSelect(
@@ -160,7 +153,7 @@ function BusinessContextContainer({
           control={control}
           render={({ field }) => (
             <div
-              className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors duration-150"
+              className="flex cursor-pointer items-center justify-between rounded-xl border-2 border-(--color-warning)/15 px-4 py-3 transition-colors duration-150"
               onClick={() => field.onChange(!field.value)}
             >
               <div className="flex items-center gap-3">

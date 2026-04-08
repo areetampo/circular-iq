@@ -13,37 +13,25 @@ export function RecommendationsCard({ actualResult }) {
           Targeted steps to improve your circularity score
         </p>
 
-        <div className="rounded-xl border-0 border-(--color-accent) bg-linear-to-br from-accent-soft to-accent-soft p-4">
+        <div className="rounded-xl border-0 border-(--color-accent) bg-accent-soft/50 p-4">
           <ul className="space-y-3 text-sm">
-            {actualResult.audit?.technical_recommendations?.length > 0 ? (
-              actualResult.audit.technical_recommendations.map((rec, i) => (
-                <li key={i} className="flex items-start gap-2 leading-relaxed">
-                  <span className="mt-0.5 font-semibold text-(--color-accent)">•</span>
-                  <span className="text-(--color-text-primary)">{rec}</span>
-                </li>
-              ))
-            ) : (
-              <>
-                <li className="flex items-start gap-2 leading-relaxed">
-                  <span className="mt-0.5 font-semibold text-(--color-accent)">•</span>
-                  <span className="text-(--color-text-primary)">
-                    Consider incorporating predictive maintenance strategies
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 leading-relaxed">
-                  <span className="mt-0.5 font-semibold text-(--color-accent)">•</span>
-                  <span className="text-(--color-text-primary)">
-                    Explore partnerships with recycling facilities
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 leading-relaxed">
-                  <span className="mt-0.5 font-semibold text-(--color-accent)">•</span>
-                  <span className="text-(--color-text-primary)">
-                    Develop metrics for tracking circularity performance
-                  </span>
-                </li>
-              </>
-            )}
+            {actualResult.audit?.technical_recommendations?.length > 0
+              ? actualResult.audit.technical_recommendations.map((rec, i) => (
+                  <li key={i} className="flex items-start gap-2 leading-relaxed">
+                    <span className="mt-0.5 font-semibold text-(--color-accent)">•</span>
+                    <span className="text-(--color-text-primary)">{rec}</span>
+                  </li>
+                ))
+              : [
+                  'Consider incorporating predictive maintenance strategies',
+                  'Explore partnerships with recycling facilities',
+                  'Develop metrics for tracking circularity performance',
+                ].map((recommendation, i) => (
+                  <li key={i} className="flex items-start gap-2 leading-relaxed">
+                    <span className="mt-0.5 font-semibold text-(--color-accent)">•</span>
+                    <span className="text-(--color-text-primary)">{recommendation}</span>
+                  </li>
+                ))}
           </ul>
         </div>
       </div>

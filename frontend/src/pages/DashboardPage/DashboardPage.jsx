@@ -28,6 +28,7 @@ import {
   usablePie,
 } from '@/utils/chartHelpers';
 import { chartTheme } from '@/utils/chartTheme';
+import { cn } from '@/utils/cn';
 
 import {
   ChartPanel,
@@ -490,15 +491,14 @@ export default function DashboardPage() {
                         {row.count?.toLocaleString() ?? 0}
                       </td>
                       <td
-                        className="px-3 py-2 text-right tabular-nums"
-                        style={{
-                          color:
-                            row.avgScore >= 75
-                              ? '#4a7c59' // muted green
-                              : row.avgScore >= 50
-                                ? '#b07d3a' // muted amber
-                                : '#8b3a3a', // muted red
-                        }}
+                        className={cn(
+                          'px-3 py-2 text-right tabular-nums',
+                          row.avgScore >= 75
+                            ? 'text-[#4a7c59]'
+                            : row.avgScore >= 50
+                              ? 'text-[#b07d3a]'
+                              : 'text-[#8b3a3a]',
+                        )}
                       >
                         {row.avgScore?.toFixed(1) ?? 0}%
                       </td>
@@ -636,14 +636,12 @@ export default function DashboardPage() {
                     <button
                       type="button"
                       onClick={() => setCategoryFilter(undefined)}
-                      className="rounded-xl px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors"
-                      style={{
-                        backgroundColor: !categoryFilter
-                          ? 'var(--accent)'
-                          : 'rgba(245,240,232,0.8)',
-                        color: !categoryFilter ? 'white' : 'var(--color-text-muted)',
-                        border: '1px solid rgba(180,160,130,0.25)',
-                      }}
+                      className={cn(
+                        'rounded-xl border border-[rgba(180,160,130,0.25)] px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors',
+                        !categoryFilter
+                          ? 'bg-(--accent) text-white'
+                          : 'bg-[rgba(245,240,232,0.8)] text-(--color-text-muted)',
+                      )}
                     >
                       All
                     </button>
@@ -652,13 +650,12 @@ export default function DashboardPage() {
                         key={cat}
                         type="button"
                         onClick={() => setCategoryFilter(cat)}
-                        className="rounded-xl px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors"
-                        style={{
-                          backgroundColor:
-                            categoryFilter === cat ? 'var(--accent)' : 'rgba(245,240,232,0.8)',
-                          color: categoryFilter === cat ? 'white' : 'var(--color-text-muted)',
-                          border: '1px solid rgba(180,160,130,0.25)',
-                        }}
+                        className={cn(
+                          'rounded-xl border border-[rgba(180,160,130,0.25)] px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors',
+                          categoryFilter === cat
+                            ? 'bg-(--accent) text-white'
+                            : 'bg-[rgba(245,240,232,0.8)] text-(--color-text-muted)',
+                        )}
                       >
                         {cat}
                       </button>
@@ -716,10 +713,7 @@ export default function DashboardPage() {
                         industry: industryFilter,
                       })
                     }
-                    className="flex items-center gap-1.5 font-semibold transition-colors hover:text-(--color-text-primary)"
-                    style={{
-                      color: 'var(--accent)',
-                    }}
+                    className="flex items-center gap-1.5 font-semibold text-(--accent) transition-colors hover:text-(--color-text-primary)"
                   >
                     Explore all
                     <ChevronRight size={13} />

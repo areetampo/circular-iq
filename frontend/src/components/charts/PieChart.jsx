@@ -10,9 +10,7 @@ import {
 } from 'recharts';
 
 import { ChartContainer, ChartLegendContent, ChartTooltipContent } from '@/components/ui/chart';
-
-const FONT_FAMILY =
-  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace';
+import { cn } from '@/utils/cn';
 
 // Warm palette fallback — never use MUI-default bright blues/reds
 const WARM_FALLBACK_COLORS = [
@@ -51,15 +49,12 @@ export default function PieChart({
   if (!data.length) {
     return (
       <div
-        className={className}
+        className={cn(
+          className,
+          'flex items-center justify-center font-mono text-[13px] text-stone-500',
+        )}
         style={{
           height,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: FONT_FAMILY,
-          fontSize: 13,
-          color: '#9a8f82',
         }}
       >
         No data available

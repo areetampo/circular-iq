@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
+import { cn } from '@/utils/cn';
+
 /**
  * Global Loading Bar Component
  * Displays a subtle top progress bar during page visits or refreshes
@@ -35,21 +37,23 @@ export default function GlobalLoadingBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 z-9999 h-0.75 shadow-lg transition-all duration-500 ease-out"
+      className={cn(
+        'fixed top-0 left-0 z-9999 h-0.75 shadow-lg transition-all duration-500 ease-out',
+        'bg-[linear-gradient(to_right,var(--accent),var(--accent-hover),var(--accent))]',
+        progress === 100 ? 'opacity-0' : 'opacity-100',
+      )}
       style={{
         width: `${progress}%`,
-        opacity: progress === 100 ? 0 : 1,
-        background: 'linear-gradient(to right, var(--accent), var(--accent-hover), var(--accent))',
       }}
     >
       {/* Animated shimmer effect */}
       <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          background: 'linear-gradient(to right, transparent, var(--surface), transparent)',
-          animation: 'shimmer 2s infinite',
-          backgroundSize: '200% 100%',
-        }}
+        className={cn(
+          'absolute inset-0 opacity-30',
+          'bg-[linear-gradient(to_right,transparent,var(--surface),transparent)]',
+          'animate-[shimmer_2s_infinite]',
+          'bg-size-[200%_100%]',
+        )}
       />
 
       {/* CSS for shimmer animation */}

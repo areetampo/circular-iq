@@ -15,26 +15,22 @@ import { cn } from '@/utils/cn';
 const getScoreStyle = (score) => {
   if (score >= 75)
     return {
-      bg: 'oklch(0.97 0.012 145 / 0.22)',
-      color: 'var(--color-success)',
-      border: 'var(--color-success)',
+      bg: 'oklch(0.97_0.012_145_/_0.22)',
+      color: '--color-success',
     };
   if (score >= 55)
     return {
-      bg: 'oklch(0.97 0.012 68 / 0.18)',
-      color: 'var(--color-accent)',
-      border: 'var(--color-accent)',
+      bg: 'oklch(0.97_0.012_68_/_0.18)',
+      color: '--color-accent',
     };
   if (score >= 35)
     return {
-      bg: 'oklch(0.97 0.012 60 / 0.18)',
-      color: 'var(--color-warning)',
-      border: 'var(--color-warning)',
+      bg: 'oklch(0.97_0.012_60_/_0.18)',
+      color: '--color-warning',
     };
   return {
-    bg: 'oklch(0.97 0.008 20 / 0.15)',
-    color: 'var(--color-error)',
-    border: 'var(--color-error)',
+    bg: 'oklch(0.97_0.008_20_/_0.15)',
+    color: '--color-error',
   };
 };
 
@@ -266,18 +262,14 @@ export default function SampleTestCasesContainer({
               {isSelected && (
                 <CheckCircle2
                   size={18}
-                  className="mt-0.5 shrink-0"
-                  style={{ '--icon-color': 'var(--color-accent)', color: 'var(--icon-color)' }}
+                  className="mt-0.5 shrink-0 text-(--color-accent)"
                   strokeWidth={2}
                 />
               )}
             </div>
 
             {/* Problem excerpt */}
-            <p
-              className="line-clamp-2 grow text-xs/relaxed"
-              style={{ '--text-color': 'var(--color-text-muted)', color: 'var(--text-color)' }}
-            >
+            <p className="line-clamp-2 grow text-xs/relaxed text-(--color-text-muted)">
               {testCase.problem.substring(0, 110)}…
             </p>
 
@@ -290,15 +282,7 @@ export default function SampleTestCasesContainer({
                   return (
                     <span
                       key={key}
-                      className="rounded-sm border px-2 py-0.5 text-[0.625rem] font-medium"
-                      style={{
-                        '--bg-color': style.bg,
-                        '--text-color': style.color,
-                        '--border-color': `oklch(from ${style.border} l c h / 0.4)`,
-                        backgroundColor: 'var(--bg-color)',
-                        color: 'var(--text-color)',
-                        borderColor: 'var(--border-color)',
-                      }}
+                      className={`rounded-sm border px-2 py-0.5 text-[0.625rem] font-medium bg-[${style.bg.replace(/ /g, '_')}] text-(${style.color}) border-(${style.border})/40`}
                     >
                       {key.replace(/_/g, ' ')}: {value}
                     </span>

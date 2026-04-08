@@ -6,8 +6,8 @@ function SingleValueChart({ value, label, sublabel }) {
       <p className="font-mono text-5xl leading-none font-semibold tracking-tight text-[#1a1510]">
         {value}
       </p>
-      <p className="mt-1 font-mono text-xs tracking-widest text-[#9a8f82] uppercase">{label}</p>
-      {sublabel && <p className="mt-0.5 font-mono text-xs text-[#9a8f82]">{sublabel}</p>}
+      <p className="mt-1 font-mono text-xs tracking-widest text-stone-500 uppercase">{label}</p>
+      {sublabel && <p className="mt-0.5 font-mono text-xs text-stone-500">{sublabel}</p>}
     </div>
   );
 }

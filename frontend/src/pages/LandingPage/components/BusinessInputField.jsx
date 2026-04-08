@@ -26,10 +26,9 @@ export default function BusinessInputField({
             {label}
           </Label>
           <BadgeInfo
-            className="info-icon shrink-0 cursor-pointer transition-all duration-200 hover:scale-110"
+            className="info-icon mt-px shrink-0 cursor-pointer text-(--color-accent) transition-all duration-200 hover:scale-110"
             size={20}
             strokeWidth={2}
-            style={{ color: 'var(--color-accent)', marginTop: '1px' }}
             onClick={onInfoClick}
             aria-label={`Get more information about ${label}`}
             tabIndex={0}
@@ -49,7 +48,7 @@ export default function BusinessInputField({
         {...register(fieldName)}
         disabled={loading}
         /* Keep the className minimal to avoid conflicts */
-        className="textarea min-h-[140px] w-full rounded-xl! bg-[rgba(245,240,232,0.5)] p-4 text-(--color-text-primary) transition-all duration-200"
+        className="textarea min-h-35 w-full rounded-xl! bg-[rgba(245,240,232,0.5)] p-4 text-(--color-text-primary) transition-all duration-200"
         onBlur={(e) => {
           register(fieldName).onBlur(e);
           if (flushAutosave) flushAutosave();

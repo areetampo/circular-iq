@@ -111,7 +111,7 @@ function ChartLegendContent({ payload, className }) {
 
   return (
     <div
-      className={`flex flex-wrap justify-center gap-2 pt-2 font-mono text-[13px] font-medium text-[#5a4f42] ${className || ''}`}
+      className={`flex flex-wrap justify-center gap-4 pt-2 font-mono text-[13px] font-medium text-[#5a4f42] ${className || ''}`}
     >
       {payload.map((item, i) => (
         <div key={i} className="flex items-center gap-1.5">

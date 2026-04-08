@@ -146,7 +146,7 @@ export default function InteractiveChartWrapper({
         )}
 
         {/* Chart Content */}
-        <div className="relative flex-1" style={{ minHeight: 0 }}>
+        <div className="relative min-h-0 flex-1">
           {typeof children === 'function'
             ? children({
                 selectedPoints,

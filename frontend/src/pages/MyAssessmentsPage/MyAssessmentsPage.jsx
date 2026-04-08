@@ -453,103 +453,63 @@ export default function MyAssessmentsPage() {
 
   // Render skeleton cards for initial load - Beautiful spacing
   const renderInitialLoadPageSkeleton = useCallback(() => {
-    // SummaryCardSkeleton - Matches the actual Summary Card structure
-    function SummaryCardSkeleton() {
-      return (
-        <div className="rounded-xl border border-border px-6 py-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              {/* Label */}
-              <Skeleton animationType="shimmer" className="mb-2 h-3 w-28 rounded-sm" />
-
-              {/* Score/Title */}
-              <Skeleton animationType="shimmer" className="mb-2 h-10 w-20 rounded-lg" />
-
-              {/* Description */}
-              <Skeleton animationType="shimmer" className="mt-2 h-4 w-36 rounded-sm" />
-
-              {/* Description part 2 */}
-              <Skeleton animationType="shimmer" className="mt-6 h-10 w-28 rounded-sm" />
-            </div>
-
-            {/* Icon */}
-            <Skeleton animationType="shimmer" className="size-12 shrink-0 rounded-xl" />
-          </div>
-        </div>
-      );
-    }
-
-    // FiltersCardSkeleton - Matches the actual Filters Card structure
-    function FiltersCardSkeleton() {
-      return (
-        <div className="rounded-xl border-2 border-border shadow-sm">
-          <div className="space-y-6 p-6">
-            {/* Filter inputs */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Skeleton animationType="shimmer" className="h-4 w-32 rounded-sm" />
-                <Skeleton animationType="shimmer" className="h-10 rounded-lg" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Skeleton animationType="shimmer" className="h-4 w-20 rounded-sm" />
-                <Skeleton animationType="shimmer" className="h-10 rounded-lg" />
-              </div>
-              <div className="flex flex-col gap-2 md:col-span-2">
-                <Skeleton animationType="shimmer" className="h-4 w-16 rounded-sm" />
-                <Skeleton animationType="shimmer" className="h-10 rounded-lg" />
-              </div>
-            </div>
-
-            {/* Compare section */}
-            <div className="flex flex-col items-start justify-between gap-4 border-t-2 border-border pt-5 sm:flex-row sm:items-center">
-              <Skeleton animationType="shimmer" className="h-4 w-64 rounded-sm" />
-              <Skeleton animationType="shimmer" className="h-10 w-44 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto mt-6 max-w-4xl space-y-6">
         {/* Stats grid skeleton */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5"
+              className="rounded-2xl border-2 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5"
             >
-              <div className="mb-3 h-3 w-20 rounded-sm" data-slot="skeleton" />
-              <div className="mb-2 h-8 w-16 rounded-sm" data-slot="skeleton" />
-              <div className="h-3 w-24 rounded-sm" data-slot="skeleton" />
+              <Skeleton animationType="shimmer" className="mb-3 h-3 w-20 rounded-sm" />
+              <Skeleton animationType="shimmer" className="mb-2 h-8 w-16 rounded-sm" />
+              <Skeleton animationType="shimmer" className="h-3 w-24 rounded-sm" />
             </div>
           ))}
         </div>
 
-        {/* Filters Card Skeleton */}
-        <div className="rounded-xl border-2 border-border shadow-sm">
-          <div className="space-y-6 p-6">
-            {/* Filter inputs */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <div className="h-4 w-32 rounded-sm" data-slot="skeleton" />
-                <div className="h-10 rounded-lg" data-slot="skeleton" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="h-4 w-20 rounded-sm" data-slot="skeleton" />
-                <div className="h-10 rounded-lg" data-slot="skeleton" />
-              </div>
-              <div className="flex flex-col gap-2 md:col-span-2">
-                <div className="h-4 w-16 rounded-sm" data-slot="skeleton" />
-                <div className="h-10 rounded-lg" data-slot="skeleton" />
-              </div>
+        {/* FilterBar Skeleton */}
+        <div className="mb-6 space-y-3">
+          {/* Search input skeleton */}
+          <div className="relative">
+            <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
+              <Skeleton animationType="shimmer" className="h-4 w-4 rounded-sm" />
+            </div>
+            <Skeleton
+              animationType="shimmer"
+              className="h-9 w-full rounded-xl bg-[rgba(245,240,232,0.6)] pr-4 pl-9"
+            />
+          </div>
+
+          {/* Sort + Compare button row skeleton */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Sort select skeleton */}
+            <div className="max-w-50 flex-1">
+              <Skeleton
+                animationType="shimmer"
+                className="h-9 w-full rounded-md bg-[rgba(245,240,232,0.6)] pr-10"
+              />
             </div>
 
-            {/* Compare section */}
-            <div className="flex flex-col items-start justify-between gap-4 border-t-2 border-border pt-5 sm:flex-row sm:items-center">
-              <div className="h-4 w-64 rounded-sm" data-slot="skeleton" />
-              <div className="h-10 w-44 rounded-lg" data-slot="skeleton" />
-            </div>
+            {/* Compare button skeleton */}
+            <Skeleton
+              animationType="shimmer"
+              className="h-9 w-32 rounded-md bg-[rgba(245,240,232,0.6)]"
+            />
+          </div>
+
+          {/* Industry filter chips skeleton */}
+          <div className="flex flex-wrap gap-2">
+            {Array(12)
+              .fill(0)
+              .map((_, i) => (
+                <Skeleton
+                  key={i}
+                  animationType="shimmer"
+                  className="h-6 w-20 rounded-full bg-[rgba(245,240,232,0.6)]"
+                />
+              ))}
           </div>
         </div>
 
@@ -783,20 +743,20 @@ export default function MyAssessmentsPage() {
           variant="error"
           title="Error Loading Assessments"
           message={
-            isAssessmentStatsError.message ||
+            isAssessmentStatsError?.message ||
             'An error occurred while loading your assessments. Please try again.'
           }
           actions={[
             {
               label: 'Retry',
               onPress: () => refetch(),
-              variant: 'danger',
+              variant: 'ghost',
             },
             {
               label: 'Back to Home',
               as: Link,
               to: '/',
-              variant: 'secondary',
+              variant: 'ghost',
             },
           ]}
           showDefaultActions={false}

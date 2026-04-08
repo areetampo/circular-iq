@@ -1,8 +1,17 @@
-import { AlertCircle, AlertTriangle, Home, Info, RefreshCcw, XCircle } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  Home,
+  Info,
+  RefreshCcw,
+  ServerOff,
+  XCircle,
+} from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/common';
+import { cn } from '@/utils/cn';
 
 /**
  * Reusable error display component with beautiful, consistent styling
@@ -24,49 +33,41 @@ export default function ErrorDisplay({
   showDefaultActions = true,
   fullScreen = false,
   errorDetails = null,
-  className = '',
+  className,
 }) {
   // Variant-specific styling
   const variants = {
     error: {
-      containerBg: '',
-      cardBorderColor: 'var(--color-error)',
-      cardBg: 'var(--color-bg-elevated)',
-      iconBg: 'rgba(139, 58, 58, 0.1)',
-      iconColor: 'var(--color-error)',
-      titleColor: 'var(--color-error)',
-      messageColor: 'var(--color-text-secondary)',
+      cardBg: '--color-bg-elevated',
+      iconBg: '--color-error-b',
+      iconColor: '--color-error',
+      titleColor: '--color-error',
+      messageColor: '--color-text-secondary',
       defaultIcon: XCircle,
     },
     warning: {
-      containerBg: '',
-      cardBorderColor: 'var(--color-warning)',
-      cardBg: 'var(--color-bg-elevated)',
-      iconBg: 'rgba(176, 125, 58, 0.1)',
-      iconColor: 'var(--color-warning)',
-      titleColor: 'var(--color-warning)',
-      messageColor: 'var(--color-text-secondary)',
+      cardBg: '--color-bg-elevated',
+      iconBg: '--color-warning-b',
+      iconColor: '--color-warning',
+      titleColor: '--color-warning',
+      messageColor: '--color-text-secondary',
       defaultIcon: AlertTriangle,
     },
     info: {
-      containerBg: '',
-      cardBorderColor: 'var(--color-accent)',
-      cardBg: 'var(--color-bg-elevated)',
-      iconBg: 'var(--color-accent-light)',
-      iconColor: 'var(--color-accent)',
-      titleColor: 'var(--color-accent)',
-      messageColor: 'var(--color-text-secondary)',
+      cardBg: '--color-bg-elevated',
+      iconBg: '--color-info-b',
+      iconColor: '--color-info',
+      titleColor: '--color-info',
+      messageColor: '--color-text-secondary',
       defaultIcon: Info,
     },
     404: {
-      containerBg: '',
-      cardBorderColor: 'var(--color-border)',
-      cardBg: 'var(--color-bg-elevated)',
-      iconBg: 'var(--color-accent-light)',
-      iconColor: 'var(--color-accent)',
-      titleColor: 'var(--color-text-primary)',
-      messageColor: 'var(--color-text-secondary)',
-      defaultIcon: AlertCircle,
+      cardBg: '--color-bg-elevated',
+      iconBg: '--color-accent-light',
+      iconColor: '--color-accent',
+      titleColor: '--color-text-primary',
+      messageColor: '--color-text-secondary',
+      defaultIcon: ServerOff,
     },
   };
 
@@ -96,25 +97,44 @@ export default function ErrorDisplay({
 
   return (
     <div
-      className={`flex items-center justify-center ${
-        fullScreen ? 'min-h-screen' : 'min-h-[40vh]'
-      } px-6 py-12 ${className}`}
+      className={cn(
+        `flex items-center justify-center px-6 py-20`,
+        `${fullScreen ? 'min-h-screen' : 'min-h-[40vh]'}`,
+        className,
+      )}
     >
-      <div className="w-full max-w-lg rounded-4xl border-4 border-[#ad886484] bg-transparent p-8">
+      <div
+        className={cn(
+          'w-full max-w-lg rounded-4xl bg-transparent p-8',
+          `border-4 border-dashed border-(--color-danger)/20`,
+        )}
+      >
         {/* Icon + title */}
         <div className="mb-6 text-center">
           <div className="mb-4 flex justify-center">
-            <div className="rounded-full p-3" style={{ backgroundColor: style.iconBg }}>
-              <Icon strokeWidth={2} size={32} style={{ color: style.iconColor }} />
+            {/* iconBg/10 creates that soft transparent background dynamically */}
+            <div className="rounded-full p-2.5" style={{ backgroundColor: `var(${style.iconBg})` }}>
+              <Icon
+                strokeWidth={2}
+                size={32}
+                className={cn(
+                  `text-(${style.iconColor})`,
+                  `${variant === 'warning' ? 'pb-1' : ''}`,
+                )}
+              />
             </div>
           </div>
-          <h1 className="text-2xl font-bold" style={{ color: style.titleColor }}>
+
+          <h1 className={cn('font-display text-2xl font-bold', `text-(${style.titleColor})`)}>
             {title}
           </h1>
+
           {message && (
             <p
-              className="mx-auto mt-2 max-w-md text-sm/relaxed"
-              style={{ color: style.messageColor }}
+              className={cn(
+                'mx-auto mt-2 max-w-md text-sm/relaxed',
+                `text-(${style.messageColor})`,
+              )}
             >
               {message}
             </p>
@@ -126,11 +146,11 @@ export default function ErrorDisplay({
 
         {/* Error details (dev only) */}
         {import.meta.env.DEV && errorDetails && (
-          <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-danger-soft p-3">
+          <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-(--color-danger)/10 p-3">
             <div className="mb-1 flex items-center gap-2">
               <AlertCircle size={14} className="text-(--color-danger)" />
               <p className="text-xs font-semibold text-(--color-danger)">
-                Error Details (Development Only)
+                Error Details (Dev env only)
               </p>
             </div>
             <pre className="max-h-32 overflow-x-auto text-xs break-all whitespace-pre-wrap text-(--color-danger)">
@@ -150,7 +170,7 @@ export default function ErrorDisplay({
                   onPress={action.onPress || action.onClick}
                   variant={action.variant || 'ghost'}
                   size={action.size || 'md'}
-                  className={`gap-2 ${action.className || ''}`}
+                  className={cn('gap-2', action.className)}
                   {...(action.to && { as: Link, to: action.to })}
                 >
                   {ActionIcon && <ActionIcon size={15} />}

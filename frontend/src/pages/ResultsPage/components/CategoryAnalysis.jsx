@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
 import { categoryMapping, validKeys } from '@/constants/evaluationData';
+import { cn } from '@/utils/cn';
 
 export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
   const getScoreColor = (numValue) => {
@@ -16,7 +17,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
     <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
       <div className="p-1 sm:p-3">
         <SectionHeading variant="large">Category Analysis</SectionHeading>
-        <p className="-mt-4 mb-4 text-sm text-(--color-text-muted)">
+        <p className="-mt-4 mb-4 pl-2 text-sm text-(--color-text-muted)">
           Detailed breakdown across all evaluation criteria
         </p>
         <div className="space-y-3">
@@ -44,8 +45,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                     <p className="mt-0.5 text-xs text-(--color-text-muted)">{category.desc}</p>
                   </div>
                   <div
-                    className="ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold"
-                    style={{ '--badge-color': badgeColor, color: 'var(--badge-color)' }}
+                    className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold text-[${badgeColor}]`}
                   >
                     {numValue}
                   </div>
@@ -53,11 +53,12 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
 
                 <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(180,160,130,0.2)]">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${numValue >= 75 ? `opacity-70` : `opacity-60`}`}
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      numValue >= 75 ? 'opacity-70' : 'opacity-60'
+                    }`}
                     style={{
                       width: `${Math.min(100, Math.max(0, numValue))}%`,
-                      '--bar-color': barColor,
-                      backgroundColor: 'var(--bar-color)',
+                      backgroundColor: barColor,
                     }}
                   />
                 </div>
@@ -76,11 +77,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                 </p>
               </div>
               <div
-                className="ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold"
-                style={{
-                  '--badge-color': getScoreColor(resolvedBusinessViabilityScore),
-                  color: 'var(--badge-color)',
-                }}
+                className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold text-[${getScoreColor(resolvedBusinessViabilityScore)}]`}
               >
                 {resolvedBusinessViabilityScore}
               </div>
@@ -88,13 +85,13 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
 
             <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(180,160,130,0.2)]">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  resolvedBusinessViabilityScore >= 75 ? `opacity-70` : `opacity-60`
-                }`}
+                className={cn(
+                  'h-full rounded-full transition-all duration-500',
+                  resolvedBusinessViabilityScore >= 75 ? 'opacity-70' : 'opacity-60',
+                )}
                 style={{
                   width: `${resolvedBusinessViabilityScore}%`,
-                  '--bar-color': getScoreColor(resolvedBusinessViabilityScore),
-                  backgroundColor: 'var(--bar-color)',
+                  backgroundColor: getScoreColor(resolvedBusinessViabilityScore),
                 }}
               />
             </div>

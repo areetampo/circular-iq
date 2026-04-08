@@ -29,13 +29,25 @@ export function ScoreOverviewSection({
             label: `${actualResult.confidence_level}% Confidence`,
           },
           actualResult.processing_info?.processing_time_ms && {
-            label: `Analysed in ${formatProcessingTime(actualResult.processing_info.processing_time_ms)}`,
+            prefix: 'Analysed in ',
+            value: formatProcessingTime(actualResult.processing_info.processing_time_ms),
+            timeClass: 'font-mono font-medium italic opacity-80',
           },
         ]
           .filter(Boolean)
           .map((badge, index) => (
             <div key={index} className="rounded-lg bg-(--color-accent-light) px-3 py-1.5">
-              <span className="text-sm font-medium text-(--color-text-primary)">{badge.label}</span>
+              <span className="text-sm font-medium text-(--color-text-primary)">
+                {/* If it's the time badge, render prefix + styled value. Otherwise, render label. */}
+                {badge.value ? (
+                  <>
+                    {badge.prefix}
+                    <span className={badge.timeClass}>{badge.value}</span>
+                  </>
+                ) : (
+                  badge.label
+                )}
+              </span>
             </div>
           ))}
       </div>
