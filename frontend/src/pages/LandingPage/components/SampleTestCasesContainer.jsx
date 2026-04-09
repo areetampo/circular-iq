@@ -15,21 +15,17 @@ import { cn } from '@/utils/cn';
 const getScoreStyle = (score) => {
   if (score >= 75)
     return {
-      bg: 'oklch(0.97_0.012_145_/_0.22)',
       color: '--color-success',
     };
   if (score >= 55)
     return {
-      bg: 'oklch(0.97_0.012_68_/_0.18)',
       color: '--color-accent',
     };
   if (score >= 35)
     return {
-      bg: 'oklch(0.97_0.012_60_/_0.18)',
       color: '--color-warning',
     };
   return {
-    bg: 'oklch(0.97_0.008_20_/_0.15)',
     color: '--color-error',
   };
 };
@@ -238,11 +234,11 @@ export default function SampleTestCasesContainer({
             onClick={() => requestSelectCase(testCase)}
             className={cn(
               'group relative flex cursor-pointer flex-col gap-3 rounded-xl p-3',
-              'border-[1.5px] transition-all duration-200',
+              'border-2 transition-all duration-200',
               isSelected
-                ? 'border-(--color-accent) bg-accent-100/10 shadow-sm'
-                : 'border-(--color-border-strong) bg-(--color-bg-card)' +
-                    ' hover:border-(--color-accent) hover:shadow-sm',
+                ? 'border-(--color-accent)/70 bg-accent-100/10 shadow-sm'
+                : 'border-(--color-border-strong)/80 bg-(--color-bg-card)' +
+                    ' hover:border-(--color-accent)/60 hover:shadow-sm',
             )}
           >
             {/* Header: index pill + title + check */}
@@ -255,9 +251,7 @@ export default function SampleTestCasesContainer({
                 >
                   #{index + 1}
                 </span>
-                <h4 className="truncate font-mono text-sm/snug font-medium text-black/65">
-                  {testCase.title}
-                </h4>
+                <h4 className="truncate font-medium text-black/65">{testCase.title}</h4>
               </div>
               {isSelected && (
                 <CheckCircle2
@@ -282,7 +276,12 @@ export default function SampleTestCasesContainer({
                   return (
                     <span
                       key={key}
-                      className={`rounded-sm border px-2 py-0.5 text-[0.625rem] font-medium bg-[${style.bg.replace(/ /g, '_')}] text-(${style.color}) border-(${style.border})/40`}
+                      className="rounded-xl border px-2 py-0.5 text-[0.625rem] font-medium"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, var(${style.color}) 10%, transparent)`,
+                        color: `var(${style.color})`,
+                        borderColor: `color-mix(in srgb, var(${style.color}) 30%, transparent)`,
+                      }}
                     >
                       {key.replace(/_/g, ' ')}: {value}
                     </span>

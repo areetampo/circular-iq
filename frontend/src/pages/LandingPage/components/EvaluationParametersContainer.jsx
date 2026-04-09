@@ -65,14 +65,14 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
               >
                 <Label
                   className={cn(
-                    'inline-flex items-center gap-2 rounded-lg px-3 py-1.5',
+                    'inline-flex items-center gap-2 rounded-2xl px-3 py-1.5',
                     `cursor-pointer transition-opacity duration-150 hover:opacity-80`,
-                    'text-[0.68rem] font-bold tracking-[0.08rem] uppercase',
+                    'border-[1.5px] text-[0.68rem] font-bold tracking-[0.08rem] uppercase',
                     (() => {
                       const cfg =
                         GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
                         DEFAULT_CONFIG;
-                      return cn(cfg.paramBg, cfg.paramTextColor);
+                      return cn(cfg.paramBg, cfg.paramTextColor, cfg.paramBorder);
                     })(),
                   )}
                   onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
@@ -82,7 +82,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   <BadgeInfo className="info-icon mt-0.5 shrink-0" size={16} strokeWidth={1.8} />
                 </Label>
 
-                <NumberField.Group className="my-0.5 flex h-8 items-center gap-1">
+                <NumberField.Group className="my-1.5 flex h-8 items-center gap-1">
                   <NumberField.DecrementButton
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.backgroundColor = 'var(--color-accent-light)')
@@ -149,7 +149,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                       disabled={loading}
                       onClick={() => field.onChange(option.score)}
                       className={cn(
-                        `w-full cursor-pointer rounded-lg p-3 text-left transition-all duration-150`,
+                        `w-full cursor-pointer rounded-xl border-[1.4px] p-3 text-left transition-all duration-150`,
                         'focus:outline-none',
                         tierClass,
                         loading && 'cursor-not-allowed opacity-40',
@@ -168,7 +168,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
               </div>
 
               {guidance?.examples?.[0] && (
-                <p className="mt-1 px-2 text-center font-mono text-[0.6rem] leading-relaxed text-(--color-text-muted) italic">
+                <p className="mt-1 px-2 text-center text-[0.7rem] leading-relaxed text-(--color-text-muted) italic">
                   e.g. {guidance.examples[0].case} ≈ {guidance.examples[0].score}
                 </p>
               )}
@@ -228,7 +228,7 @@ function EvaluationParametersContainer({
                     <span className="font-mono text-[0.85rem]/6 font-medium tracking-[-0.01em] text-(--color-text-primary)">
                       {groupName}
                     </span>
-                    <span className="font-mono text-[0.68rem]/4 font-normal text-(--color-text-muted)">
+                    <span className="text-xs/4 font-normal text-(--color-text-muted)">
                       {cfg.subtitle}
                     </span>
                   </div>

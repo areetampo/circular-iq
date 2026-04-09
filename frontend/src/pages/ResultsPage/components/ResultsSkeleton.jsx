@@ -116,7 +116,7 @@ export default function ResultsSkeleton() {
       </div>
 
       {/* Category Analysis */}
-      <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-1 sm:p-3">
+      <div className="rounded-3xl border-2 border-(--color-border) bg-transparent p-1 sm:p-3">
         <Skeleton className="mb-4 h-8 w-40 rounded-lg" />
         <Skeleton className="-mt-4 mb-4 h-4 w-64 rounded-sm" />
         <div className="space-y-3">
@@ -136,7 +136,7 @@ export default function ResultsSkeleton() {
       </div>
 
       {/* Performance Comparison */}
-      <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-1 sm:p-3">
+      <div className="rounded-3xl border-2 border-(--color-border) bg-transparent p-1 sm:p-3">
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <Skeleton className="h-8 w-48 rounded-lg" />
         </div>
@@ -146,7 +146,7 @@ export default function ResultsSkeleton() {
       </div>
 
       {/* Integrity Analysis */}
-      <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-2 sm:p-4">
+      <div className="rounded-3xl border-2 border-(--color-border) bg-transparent p-2 sm:p-4">
         <Skeleton className="mb-1 h-6 w-32 rounded-sm" />
         <Skeleton className="mb-4 h-4 w-80 rounded-sm" />
         <div className="space-y-3">
@@ -162,7 +162,7 @@ export default function ResultsSkeleton() {
       {/* Two Column Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Strengths & Gaps Card */}
-        <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-2 sm:p-4">
+        <div className="rounded-3xl border-2 border-(--color-border) bg-transparent p-2 sm:p-4">
           <Skeleton className="mb-1 h-6 w-32 rounded-sm" />
           <Skeleton className="-mt-4 mb-4 h-4 w-64 rounded-sm" />
           <div className="space-y-4">
@@ -198,7 +198,7 @@ export default function ResultsSkeleton() {
         </div>
 
         {/* Recommendations Card */}
-        <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-2 sm:p-4">
+        <div className="rounded-3xl border-2 border-(--color-border) bg-transparent p-2 sm:p-4">
           <Skeleton className="mb-1 h-6 w-40 rounded-sm" />
           <Skeleton className="mb-4 h-4 w-64 rounded-sm" />
           <div className="rounded-xl border-0 p-4">

@@ -30,10 +30,10 @@ export default function BusinessSolutionInfoDrawer() {
                   <ClipboardMinus size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <Drawer.Heading className="drawer__heading">
+                  <Drawer.Heading className="drawer__heading font-mono">
                     {BUSINESS_SOLUTION_CONTENT.title}
                   </Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 font-mono text-[0.7rem] font-normal text-[#6b5f56]">
                     {BUSINESS_SOLUTION_CONTENT.subtitle}
                   </p>
                 </div>
@@ -41,23 +41,23 @@ export default function BusinessSolutionInfoDrawer() {
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="text-sm/relaxed text-(--color-text-secondary)">
+                <p className="font-mono text-sm/relaxed text-(--color-text-secondary)">
                   Describe{' '}
-                  <strong className="font-semibold text-(--color-text-primary)">
+                  <strong className="font-medium text-(--color-text-primary)">
                     how your business solves the problem
                   </strong>{' '}
                   with technical details about materials, processes, partnerships, and outcomes.
                 </p>
 
-                <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-3 text-base font-bold text-(--color-accent)">
+                <div className="my-3 rounded-xl bg-(--color-bg-card) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                  <h4 className="mb-3 text-base font-medium text-(--color-accent)">
                     Critical Components
                   </h4>
                   <div className="space-y-2">
                     {BUSINESS_SOLUTION_CONTENT.components.map((item, idx) => (
                       <div
                         key={idx}
-                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl border-l-4 border-(--color-accent) bg-(--color-accent-light) p-4 transition-colors duration-300 ease-out select-none"
+                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl bg-(--color-accent-light) p-4 transition-colors duration-300 ease-out select-none"
                       >
                         <div className="mt-0.5 shrink-0 rounded-lg bg-(--color-accent-light) p-2 transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
                           <ClipboardMinus
@@ -66,7 +66,7 @@ export default function BusinessSolutionInfoDrawer() {
                           />
                         </div>
                         <div className="flex min-w-0 flex-col gap-0.5">
-                          <span className="text-sm/snug font-bold text-(--color-text-primary)">
+                          <span className="text-sm/snug font-medium text-(--color-text-primary)">
                             {item.title}
                           </span>
                           <span className="text-xs/relaxed text-(--color-text-muted)">
@@ -78,26 +78,26 @@ export default function BusinessSolutionInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-3 text-base font-bold text-(--color-accent)">
+                <div className="my-3 rounded-xl bg-(--color-bg-card) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                  <h4 className="mb-3 text-base font-medium text-(--color-accent)">
                     Common Pitfalls
                   </h4>
                   <ul className="space-y-1">
                     {BUSINESS_SOLUTION_CONTENT.pitfalls.map((pitfall) => (
                       <li key={pitfall} className="flex items-start gap-2 text-sm">
-                        <span className="font-bold text-(--color-accent)">×</span>
+                        <span className="font-medium text-(--color-accent)">×</span>
                         <span className="text-(--color-text-muted)">{pitfall}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-3 text-base font-bold text-(--color-accent)">Pro Tips</h4>
+                <div className="my-3 bg-(--color-bg-field) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                  <h4 className="mb-3 text-base font-medium text-(--color-accent)">Pro Tips</h4>
                   <ul className="space-y-1">
                     {BUSINESS_SOLUTION_CONTENT.proTips.map((tip) => (
                       <li key={tip} className="flex items-start gap-2 text-sm">
-                        <span className="font-bold text-(--color-accent)">✓</span>
+                        <span className="font-medium text-(--color-accent)">✓</span>
                         <span className="text-(--color-text-muted)">{tip}</span>
                       </li>
                     ))}
@@ -105,7 +105,7 @@ export default function BusinessSolutionInfoDrawer() {
                 </div>
 
                 <div>
-                  <h4 className="mb-2 text-base font-bold text-(--color-accent)">
+                  <h4 className="mb-2 text-base font-medium text-(--color-accent)">
                     Example Statement
                   </h4>
                   <p className="rounded-lg border-l-4 border-(--color-accent) bg-(--color-accent-light) p-3 text-sm/relaxed text-(--color-text-secondary)">
@@ -115,7 +115,7 @@ export default function BusinessSolutionInfoDrawer() {
 
                 <p className="rounded-lg bg-(--color-bg-field) p-3 text-xs text-(--color-text-muted)">
                   ‼ ️{' '}
-                  <strong className="text-(--color-text-primary)">
+                  <strong className="font-medium text-(--color-text-primary)">
                     Minimum 200 characters required
                   </strong>
                 </p>

@@ -1,9 +1,43 @@
 import { Accordion } from '@heroui/react';
 import { BarChart2, Globe, Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { titleize } from '@/lib/formatting';
+
+// Reusable accordion item component
+function AccordionItem({ id, icon, iconColor, title, description, children }) {
+  return (
+    <Accordion.Item id={id}>
+      <Accordion.Heading className="border-b-2 border-(--color-border)">
+        <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
+          <div className="flex items-center gap-3">
+            {React.createElement(icon, { size: 20, className: `text-${iconColor}` })}
+            <div>
+              <h4 className="font-medium text-(--color-text-primary)">{title}</h4>
+              <p className="text-sm text-(--color-text-muted)">{description}</p>
+            </div>
+          </div>
+          <Accordion.Indicator className="text-(--color-text-muted)" />
+        </Accordion.Trigger>
+      </Accordion.Heading>
+      <Accordion.Panel>
+        <Accordion.Body>{children}</Accordion.Body>
+      </Accordion.Panel>
+    </Accordion.Item>
+  );
+}
+
+// Reusable field display component
+function ContextField({ label, value }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-(--color-text-primary)/65">{label}</span>
+      <span className="font-mono text-sm text-(--color-text-muted)">{value}</span>
+    </div>
+  );
+}
 
 export function CaseSummaryAccordions({
   businessProblem,
@@ -22,175 +56,112 @@ export function CaseSummaryAccordions({
     }));
 
   return (
-    <div className="mb-0 border-b border-[rgba(180,160,130,0.18)] py-4">
+    <div className="border-b border-[rgba(180,160,130,0.18)]">
       <Accordion className="w-full" allowsMultipleExpanded>
         {/* Problem accordion item */}
-        <Accordion.Item id="problem">
-          <Accordion.Heading>
-            <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
-              <div className="flex items-center gap-3">
-                <Target size={20} className="text-(--color-success)" />
-                <div>
-                  <h4 className="font-semibold text-(--color-text-primary)">Problem</h4>
-                  <p className="text-sm text-(--color-text-muted)">
-                    What the assessment identifies as the problem
-                  </p>
-                </div>
-              </div>
-              <Accordion.Indicator className="text-(--color-text-muted)" />
-            </Accordion.Trigger>
-          </Accordion.Heading>
-          <Accordion.Panel>
-            <Accordion.Body>
-              <p className="py-2 text-sm/relaxed text-(--color-text-primary)">
-                {businessProblem || 'Not available'}
-              </p>
-            </Accordion.Body>
-          </Accordion.Panel>
-        </Accordion.Item>
+        <AccordionItem
+          id="problem"
+          icon={Target}
+          iconColor="(--color-success)"
+          title="Problem"
+          description="What the assessment identifies as the problem"
+        >
+          <p className="py-2 text-sm/relaxed text-(--color-text-primary)/65">
+            {businessProblem || 'Not available'}
+          </p>
+        </AccordionItem>
 
         {/* Solution accordion item */}
-        <Accordion.Item id="solution">
-          <Accordion.Heading>
-            <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
-              <div className="flex items-center gap-3">
-                <Lightbulb size={20} className="text-(--color-warning)" />
-                <div>
-                  <h4 className="font-semibold text-(--color-text-primary)">Solution</h4>
-                  <p className="text-sm text-(--color-text-muted)">
-                    What the assessment proposes as the solution
-                  </p>
-                </div>
-              </div>
-              <Accordion.Indicator className="text-(--color-text-muted)" />
-            </Accordion.Trigger>
-          </Accordion.Heading>
-          <Accordion.Panel>
-            <Accordion.Body>
-              <p className="py-2 text-sm/relaxed text-(--color-text-primary)">
-                {businessSolution || 'Not available'}
-              </p>
-            </Accordion.Body>
-          </Accordion.Panel>
-        </Accordion.Item>
+        <AccordionItem
+          id="solution"
+          icon={Lightbulb}
+          iconColor="(--color-warning)"
+          title="Solution"
+          description="What the assessment proposes as the solution"
+        >
+          <p className="py-2 text-sm/relaxed text-(--color-text-primary)/65">
+            {businessSolution || 'Not available'}
+          </p>
+        </AccordionItem>
 
         {/* Business Context accordion item */}
         {businessContext && (
-          <Accordion.Item id="business-context">
-            <Accordion.Heading>
-              <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
-                <div className="flex items-center gap-3">
-                  <Globe size={20} className="text-(--color-text-primary)" />
-                  <div>
-                    <h4 className="font-semibold text-(--color-text-primary)">Business Context</h4>
-                    <p className="text-sm text-(--color-text-muted)">
-                      Operational and market context details
-                    </p>
-                  </div>
-                </div>
-                <Accordion.Indicator className="text-(--color-text-muted)" />
-              </Accordion.Trigger>
-            </Accordion.Heading>
-            <Accordion.Panel>
-              <Accordion.Body>
-                <div className="space-y-2 py-2">
-                  {businessContext.target_geography && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">Target Geography</span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {businessContext.target_geography}
-                      </span>
-                    </div>
-                  )}
-                  {businessContext.operational_stage && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">Operational Stage</span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {businessContext.operational_stage}
-                      </span>
-                    </div>
-                  )}
-                  {businessContext.business_model_type && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">Business Model</span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {businessContext.business_model_type}
-                      </span>
-                    </div>
-                  )}
-                  {businessContext.material_complexity && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">
-                        Material Complexity
-                      </span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {businessContext.material_complexity}
-                      </span>
-                    </div>
-                  )}
-                  {businessContext.annual_volume_estimate && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">Annual Volume</span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {businessContext.annual_volume_estimate}
-                      </span>
-                    </div>
-                  )}
-                  {businessContext.has_existing_partnerships !== undefined && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">
-                        Existing Partnerships
-                      </span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {businessContext.has_existing_partnerships ? 'Yes' : 'No'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
+          <AccordionItem
+            id="business-context"
+            icon={Globe}
+            iconColor="(--color-text-primary)"
+            title="Business Context"
+            description="Operational and market context details"
+          >
+            <div className="space-y-2 py-2">
+              {businessContext.target_geography && (
+                <ContextField label="Target Geography" value={businessContext.target_geography} />
+              )}
+              {businessContext.operational_stage && (
+                <ContextField label="Operational Stage" value={businessContext.operational_stage} />
+              )}
+              {businessContext.business_model_type && (
+                <ContextField label="Business Model" value={businessContext.business_model_type} />
+              )}
+              {businessContext.material_complexity && (
+                <ContextField
+                  label="Material Complexity"
+                  value={businessContext.material_complexity}
+                />
+              )}
+              {businessContext.annual_volume_estimate && (
+                <ContextField
+                  label="Annual Volume"
+                  value={businessContext.annual_volume_estimate}
+                />
+              )}
+              {businessContext.has_existing_partnerships !== undefined && (
+                <ContextField
+                  label="Existing Partnerships"
+                  value={businessContext.has_existing_partnerships ? 'Yes' : 'No'}
+                />
+              )}
+            </div>
+          </AccordionItem>
         )}
 
         {/* Parameters accordion item */}
         {parameterEntries.length > 0 && (
-          <Accordion.Item id="parameters">
-            <Accordion.Heading>
-              <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
-                <div className="flex items-center gap-3">
-                  <BarChart2 size={20} className="text-(--color-text-primary)" />
-                  <div>
-                    <h4 className="font-semibold text-(--color-text-primary)">
-                      Evaluation Parameters
-                    </h4>
-                    <p className="text-sm text-(--color-text-muted)">
-                      Key inputs used for the assessment
-                    </p>
-                  </div>
+          <AccordionItem
+            id="parameters"
+            icon={BarChart2}
+            iconColor="(--color-text-primary)"
+            title="Evaluation Parameters"
+            description="Key inputs used for the assessment"
+          >
+            <div className="space-y-2 py-2">
+              {parameterEntries.map((entry) => (
+                <div key={entry.key} className="flex items-center justify-between">
+                  <span className="text-sm text-(--color-text-primary)/65">{entry.label}</span>
+                  <span className="font-mono text-sm text-(--color-text-muted)">{entry.value}</span>
                 </div>
-                <Accordion.Indicator className="text-(--color-text-muted)" />
-              </Accordion.Trigger>
-            </Accordion.Heading>
-            <Accordion.Panel>
-              <Accordion.Body>
-                <div className="space-y-2 py-2">
-                  {parameterEntries.map((entry) => (
-                    <div key={entry.key} className="flex items-center justify-between">
-                      <span className="text-sm text-(--color-text-primary)">{entry.label}</span>
-                      <span className="font-mono text-sm text-(--color-text-muted)">
-                        {entry.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Accordion.Body>
-            </Accordion.Panel>
-          </Accordion.Item>
+              ))}
+            </div>
+          </AccordionItem>
         )}
       </Accordion>
     </div>
   );
 }
+
+ContextField.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+};
+
+AccordionItem.propTypes = {
+  id: PropTypes.string.isRequired,
+  icon: PropTypes.func.isRequired,
+  iconColor: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+};
 
 CaseSummaryAccordions.propTypes = {
   businessProblem: PropTypes.string,

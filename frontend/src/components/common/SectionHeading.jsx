@@ -19,7 +19,7 @@ export default function SectionHeading({
 }) {
   const baseClasses =
     variant === 'large'
-      ? 'font-sans pl-2 text-[1.5rem] font-bold text-(--foreground) tracking-[-0.02em]'
+      ? 'font-sans uppercase pl-2 text-[1.25rem] font-medium text-(--foreground) tracking-[-0.02em]'
       : 'text-sm uppercase tracking-widest text-(--foreground) font-semibold font-sans';
 
   return (

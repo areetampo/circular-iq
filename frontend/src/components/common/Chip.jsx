@@ -19,7 +19,9 @@ const variantStyles = {
 
   // Public/Private chips - simple design for AssessmentListItem
   // Minimal, clean appearance with color tints
-  'access-type': ['font-medium text-xs border', 'transition-all duration-200'].join(' '),
+  'access-type': ['text-[0.625rem] font-medium text-xs border', 'transition-all duration-200'].join(
+    ' ',
+  ),
 
   // Source chips - for database evidence cards
   // Clean, informational style with distinct appearance
@@ -32,7 +34,7 @@ const variantStyles = {
 
   // Percentage match chips - simplified with reduced font weight
   // Only shows percentage, no text labels
-  match: ['font-mono text-xs font-medium', 'border transition-all duration-200'].join(' '),
+  match: ['text-xs font-medium', 'border transition-all duration-200'].join(' '),
 
   // Recycling/Reuse strategy chips - for database evidence cards
   // Eco-themed styling with distinct appearance
@@ -80,9 +82,8 @@ const variantStyles = {
   ].join(' '),
 
   // Case reference chips - for case numbers and references
-  // Minimal, monospace style
   case: [
-    'font-mono text-xs',
+    'text-xs',
     'bg-[#d4c8b8] text-[#3a2f1f]',
     'border border-[#c0b4a4]',
     'transition-all duration-200',
@@ -109,15 +110,15 @@ const getColorOverrides = (variant, color, active) => {
   if (variant === 'filter') {
     return active
       ? 'border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent-light)]'
-      : 'border-[rgba(180,160,130,0.25)] text-[var(--color-text-muted)] bg-transparent';
+      : 'border-(--color-border) text-[var(--color-text-muted)] bg-transparent';
   }
 
   if (variant === 'access-type') {
     switch (color) {
       case 'public':
-        return 'bg-[#e8f5e8] text-[#2d5a2d] border-[#d4edd4]';
+        return 'bg-[#e8f5e8] text-[#2d5a2d]/70 border-[#2d5a2d]/20';
       case 'private':
-        return 'bg-[#ffe8e8] text-[#a52a2a] border-[#ffd4d4]';
+        return 'bg-[#ffe8e8] text-[#a52a2a]/70 border-[#a52a2a]/20';
       default:
         return 'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border)]';
     }
@@ -204,7 +205,8 @@ export const Chip = forwardRef(function Chip(
   ref,
 ) {
   const resolvedSize = sizeStyles[size] ?? sizeStyles.sm;
-  const baseClasses = 'inline-flex items-center justify-center gap-1 outline-none rounded-full';
+  const baseClasses =
+    'inline-flex items-center justify-center gap-1 outline-none rounded-full whitespace-nowrap max-w-50';
 
   const variantClasses = variantStyles[variant] || variantStyles.info;
   const colorOverrides = getColorOverrides(variant, color, active);
@@ -218,7 +220,7 @@ export const Chip = forwardRef(function Chip(
       onClick={onClick}
       {...props}
     >
-      {children}
+      <span className="truncate">{children}</span>
     </HeroChip>
   );
 });

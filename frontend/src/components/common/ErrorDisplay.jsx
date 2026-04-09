@@ -10,7 +10,7 @@ import {
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/components/common';
+import { Button, CopyButton } from '@/components/common';
 import { cn } from '@/utils/cn';
 
 /**
@@ -95,6 +95,8 @@ export default function ErrorDisplay({
 
   const allActions = [...actions, ...defaultActions];
 
+  const errorDetailsMsg = typeof errorDetails === 'string' ? errorDetails : errorDetails.toString();
+
   return (
     <div
       className={cn(
@@ -152,9 +154,15 @@ export default function ErrorDisplay({
               <p className="text-xs font-semibold text-(--color-danger)">
                 Error Details (Dev env only)
               </p>
+              <CopyButton
+                value={errorDetailsMsg}
+                size={16}
+                color="var(--color-danger)"
+                className="-ml-1"
+              />
             </div>
             <pre className="max-h-32 overflow-x-auto text-xs break-all whitespace-pre-wrap text-(--color-danger)">
-              {typeof errorDetails === 'string' ? errorDetails : errorDetails.toString()}
+              {errorDetailsMsg}
             </pre>
           </div>
         )}

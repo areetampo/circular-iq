@@ -1,6 +1,20 @@
 import { Drawer } from '@heroui/react';
-import { FileText } from 'lucide-react';
+import {
+  AlertCircle,
+  BarChart3,
+  Building2,
+  FileText,
+  FolderOpen,
+  Lightbulb,
+  MapPin,
+  Package,
+  Recycle,
+  SquareArrowOutUpRight,
+  Tag,
+  Target,
+} from 'lucide-react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 import { Chip } from '@/components/common';
 import DRAWERS from '@/components/drawers/drawerTypes';
@@ -19,6 +33,20 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
   console.log('Received data:', data);
   console.log('Current drawer type:', drawer?.type);
   console.log('Is this drawer open:', isThisDrawerOpen);
+
+  // Reusable component for sections with heading and content
+  const DetailSection = ({ title, icon, content, fallback = null }) => {
+    if (!content) return null;
+    return (
+      <div className="space-y-2">
+        <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
+          {title}
+          {React.createElement(icon, { strokeWidth: 2.5, size: 16, className: 'ml-2 inline' })}
+        </h4>
+        <p className="text-sm/relaxed text-(--color-text-secondary)">{content || fallback}</p>
+      </div>
+    );
+  };
 
   if (!data) return null;
 
@@ -82,7 +110,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                             : 'weak'
                       }
                     >
-                      <span className="font-mono">{(data.similarity * 100).toFixed(1)}%</span>
+                      <span>{(data.similarity * 100).toFixed(1)}%</span>
                     </Chip>
                   </div>
                 )}
@@ -106,116 +134,50 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                 )}
               </div>
 
-              {/* Problem Statement */}
-              {data.problem && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Problem Statement
-                  </h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.problem}</p>
-                </div>
-              )}
+              <DetailSection title="Problem Statement" icon={AlertCircle} content={data.problem} />
 
-              {/* Solution Approach */}
-              {data.solution && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Solution Approach
-                  </h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.solution}</p>
-                </div>
-              )}
+              <DetailSection title="Solution Approach" icon={Lightbulb} content={data.solution} />
 
-              {/* Impact */}
-              {data.impact && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">Impact</h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.impact}</p>
-                </div>
-              )}
+              <DetailSection title="Impact" icon={Target} content={data.impact} />
 
-              {/* Materials */}
-              {data.materials && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Materials
-                  </h4>
-                  <p className="font-mono text-sm/relaxed text-(--color-text-secondary)">
-                    {data.materials}
-                  </p>
-                </div>
-              )}
+              <DetailSection title="Materials" icon={Package} content={data.materials} />
 
-              {/* Circular Strategy */}
-              {data.circular_strategy && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Circular Strategy
-                  </h4>
-                  <p className="font-mono text-sm/relaxed text-(--color-text-secondary)">
-                    {data.circular_strategy}
-                  </p>
-                </div>
-              )}
+              <DetailSection
+                title="Circular Strategy"
+                icon={Recycle}
+                content={data.circular_strategy}
+              />
 
-              {/* Industry */}
-              {data.industry && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Industry
-                  </h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.industry}</p>
-                </div>
-              )}
+              <DetailSection title="Industry" icon={Building2} content={data.industry} />
 
-              {/* Location */}
-              {data.location && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Location
-                  </h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">
-                    {data.location || 'Not specified'}
-                  </p>
-                </div>
-              )}
+              <DetailSection
+                title="Location"
+                icon={MapPin}
+                content={data.location}
+                fallback="Not specified"
+              />
 
-              {/* Use Type */}
-              {data.use_type && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Use Type
-                  </h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.use_type}</p>
-                </div>
-              )}
+              <DetailSection title="Use Type" icon={Tag} content={data.use_type} />
 
-              {/* Category */}
-              {data.category && (
-                <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-                    Category
-                  </h4>
-                  <p className="text-sm/relaxed text-(--color-text-secondary)">{data.category}</p>
-                </div>
-              )}
+              <DetailSection title="Category" icon={FolderOpen} content={data.category} />
 
               {/* Case Scores */}
               {data.case_scores && (
                 <div className="space-y-3">
                   <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
                     Performance Scores
+                    <BarChart3 strokeWidth={2.5} size={16} className="ml-2 inline" />
                   </h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2">
                     {Object.entries(data.case_scores).map(([key, value]) => (
                       <div
                         key={key}
-                        className="flex items-center justify-between rounded-lg bg-(--color-bg-field) p-2"
+                        className="flex items-center justify-start gap-2.5 rounded-lg bg-(--color-bg-field) p-2"
                       >
-                        <span className="text-xs font-medium text-(--color-text-muted) capitalize">
+                        <span className="text-sm font-medium text-(--color-text-muted) capitalize">
                           {key.replace(/_/g, ' ')}
                         </span>
-                        <span className="font-mono text-sm font-semibold text-(--color-text-primary)">
+                        <span className="text-sm font-semibold text-(--color-text-primary)">
                           {value}
                         </span>
                       </div>
@@ -227,12 +189,17 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               {/* Source URL */}
               {data.source_url && (
                 <div className="space-y-2">
-                  <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">Source</h4>
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
+                      Source
+                      <SquareArrowOutUpRight strokeWidth={2.5} size={16} className="ml-2 inline" />
+                    </h4>
+                  </div>
                   <a
                     href={data.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-sm/relaxed break-all text-(--color-accent) hover:underline"
+                    className="font-jua text-sm/relaxed break-all text-(--color-accent) hover:underline"
                   >
                     {data.source_url}
                   </a>

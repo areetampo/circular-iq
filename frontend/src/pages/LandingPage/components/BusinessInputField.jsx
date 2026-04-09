@@ -22,7 +22,7 @@ export default function BusinessInputField({
       <div className="mb-3 flex flex-col gap-1.5 pl-2">
         {/* Label */}
         <div className="flex items-center gap-2">
-          <Label htmlFor={id} className="font-mono text-sm font-semibold">
+          <Label htmlFor={id} className="font-mono text-sm font-medium uppercase">
             {label}
           </Label>
           <BadgeInfo
@@ -48,7 +48,7 @@ export default function BusinessInputField({
         {...register(fieldName)}
         disabled={loading}
         /* Keep the className minimal to avoid conflicts */
-        className="textarea min-h-35 w-full rounded-xl! bg-[rgba(245,240,232,0.5)] p-4 text-(--color-text-primary) transition-all duration-200"
+        className="textarea min-h-35 w-full rounded-xl! bg-[rgba(245,240,232,0.5)] p-4 font-mono text-(--color-text-primary) transition-all duration-200"
         onBlur={(e) => {
           register(fieldName).onBlur(e);
           if (flushAutosave) flushAutosave();

@@ -1,5 +1,5 @@
 import { Drawer } from '@heroui/react';
-import { ClipboardMinus } from 'lucide-react';
+import { BookCheck, ClipboardMinus } from 'lucide-react';
 
 import { EVALUATION_PARAMETERS_HEADING_CONTENT } from '@/constants/drawers';
 import { factorDefinitions } from '@/constants/evaluationData';
@@ -31,9 +31,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   <ClipboardMinus size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <Drawer.Heading className="drawer__heading">
-                    {EVALUATION_PARAMETERS_HEADING_CONTENT.heading}
-                  </Drawer.Heading>
+                  <Drawer.Heading>{EVALUATION_PARAMETERS_HEADING_CONTENT.heading}</Drawer.Heading>
                   <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Understanding evaluation framework
                   </p>
@@ -46,32 +44,21 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.description}
                 </p>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  {Object.entries(factorDefinitions).map(([key, factor]) => (
-                    <div
-                      key={key}
-                      className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl border-l-4 border-(--color-success) bg-(--color-success-light) p-4 transition-colors duration-300 ease-out select-none"
-                    >
-                      <div className="mt-0.5 shrink-0 rounded-lg bg-(--color-success-light) p-2 transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
-                        <ClipboardMinus
-                          className="size-4 text-(--color-success)"
-                          strokeWidth={1.75}
-                        />
-                      </div>
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <span className="text-sm/snug font-bold text-(--color-text-primary)">
-                          {factor.title}
-                        </span>
-                        <span className="text-xs/relaxed text-(--color-text-muted)">
-                          {factor.desc}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {Object.entries(factorDefinitions).map(([key, factor]) => (
+                  <div
+                    key={key}
+                    className="group/card relative flex min-w-0 cursor-default flex-col items-start gap-0.5 rounded-xl bg-(--color-success-light) transition-colors duration-300 ease-out select-none"
+                  >
+                    <span className="text-sm/snug font-medium text-(--color-text-primary)">
+                      {factor.title}
+                    </span>
+                    <span className="text-xs/relaxed text-(--color-text-muted)">{factor.desc}</span>
+                  </div>
+                ))}
 
-                <p className="rounded-lg bg-(--color-bg-field) p-3 text-xs text-(--color-text-muted)">
+                <p className="rounded-xl bg-(--color-table-hover) px-3 py-2 text-[1rem] font-medium text-(--color-text-muted)">
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.tip}
+                  <BookCheck size={20} strokeWidth={2} className="ml-2 inline" />
                 </p>
               </div>
             </Drawer.Body>

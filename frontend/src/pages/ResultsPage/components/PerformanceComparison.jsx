@@ -6,7 +6,7 @@ import { SectionHeading } from '@/components/common';
 export function PerformanceComparison({ resolvedRadarData, radarConfigs, detailLoading }) {
   if (resolvedRadarData && resolvedRadarData.length > 0) {
     return (
-      <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
+      <div className="rounded-3xl border-2 border-(--color-border) bg-transparent">
         <div className="p-1 sm:p-3">
           <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div>
@@ -33,7 +33,7 @@ export function PerformanceComparison({ resolvedRadarData, radarConfigs, detailL
   }
 
   return (
-    <div className="rounded-3xl border border-[rgba(180,160,130,0.25)] bg-transparent">
+    <div className="rounded-3xl border border-(--color-border) bg-transparent">
       <div className="p-5 sm:p-6">
         <SectionHeading variant="large">Performance Comparison</SectionHeading>
         <p className="text-sm text-(--color-text-muted)">

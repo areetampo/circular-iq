@@ -6,7 +6,7 @@ export function IndustryMetadataSection({ actualResult, fieldHelp }) {
   if (!actualResult.metadata) return null;
 
   return (
-    <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
+    <div className="rounded-3xl border-2 border-(--color-border) bg-transparent">
       <div className="p-1 sm:p-3">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[

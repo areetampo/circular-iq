@@ -7,7 +7,11 @@ import {
 } from '@/components/results/shared';
 import { validKeys } from '@/constants/evaluationData';
 import { formatFactorName } from '@/lib/scoring';
-import { ScoreOverviewSection } from '@/pages/ResultsPage/components';
+import {
+  ResultsActionBar,
+  ScoreOverviewSection,
+  WeightedScoreCard,
+} from '@/pages/ResultsPage/components';
 import { CaseSummaryAccordions } from '@/pages/ResultsPage/components/CaseSummaryAccordions';
 import { CategoryAnalysis } from '@/pages/ResultsPage/components/CategoryAnalysis';
 import { CircularEconomyTierCard } from '@/pages/ResultsPage/components/CircularEconomyTierCard';
@@ -20,7 +24,6 @@ import { RecommendationsCard } from '@/pages/ResultsPage/components/Recommendati
 import { RStrategyAlignmentCard } from '@/pages/ResultsPage/components/RStrategyAlignmentCard';
 import { ScoreCategoryBreakdown } from '@/pages/ResultsPage/components/ScoreCategoryBreakdown';
 import { StrengthsGapsCard } from '@/pages/ResultsPage/components/StrengthsGapsCard';
-import { WeightedScoreCard } from '@/pages/ResultsPage/components/WeightedScoreCard';
 
 export function AssessmentColumn({
   assessment,
@@ -35,6 +38,11 @@ export function AssessmentColumn({
   avgFactorScore,
   resolvedBusinessViabilityScore,
   openResultsDatabaseEvidenceDetailsDrawer,
+  // Props for ResultsActionBar
+  isExporting = false,
+  onReevaluate,
+  onDownloadPDF,
+  onDownloadCSV,
 }) {
   const fieldHelp = {
     industry: 'Sector we matched from your description',
@@ -83,7 +91,30 @@ export function AssessmentColumn({
     <div className="space-y-6">
       {/* Case Summary */}
       <div className="py-4">
-        <SectionHeading variant="large" className="mb-0">
+        <ResultsActionBar
+          currentData={assessment}
+          user={null}
+          isPublicShare={true}
+          isViewFromMyAssessments={false}
+          isExporting={isExporting}
+          onReevaluate={onReevaluate}
+          onDownloadPDF={onDownloadPDF}
+          onDownloadCSV={onDownloadCSV}
+          onSave={null}
+          onOpenRename={null}
+          onOpenDelete={null}
+          defaultAssessmentName={null}
+          actualResult={scoringResult}
+          resolvedFormData={null}
+          sessionSnapshot={null}
+          navigationResult={null}
+          navigate={null}
+          openSaveAssessmentDialog={null}
+          logger={console}
+          toast={console}
+        />
+
+        <SectionHeading variant="large" className="mt-10 mb-2">
           Case Summary
         </SectionHeading>
         <CaseSummaryAccordions
@@ -160,6 +191,11 @@ AssessmentColumn.propTypes = {
   avgFactorScore: PropTypes.number.isRequired,
   resolvedBusinessViabilityScore: PropTypes.number.isRequired,
   openResultsDatabaseEvidenceDetailsDrawer: PropTypes.func.isRequired,
+  // Props for ResultsActionBar
+  isExporting: PropTypes.bool,
+  onReevaluate: PropTypes.func,
+  onDownloadPDF: PropTypes.func,
+  onDownloadCSV: PropTypes.func,
 };
 
 export default AssessmentColumn;

@@ -30,9 +30,7 @@ export default function BusinessContextHeadingInfoDrawer() {
                   <Target size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <Drawer.Heading className="drawer__heading">
-                    Business Context Guide
-                  </Drawer.Heading>
+                  <Drawer.Heading>Business Context Guide</Drawer.Heading>
                   <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
                     Helps AI understand your circular economy model
                   </p>
@@ -43,52 +41,50 @@ export default function BusinessContextHeadingInfoDrawer() {
               <div className="space-y-6">
                 <p className="text-sm/relaxed text-(--color-text-secondary)">
                   These optional fields provide{' '}
-                  <strong className="font-semibold text-(--color-text-primary)">
+                  <strong className="font-medium text-(--color-text-primary)">
                     context about your business
                   </strong>{' '}
                   to help the AI generate more precise benchmarks, recommendations, and insights
                   tailored to your specific situation.
                 </p>
 
-                <div className="my-3 border-l-2 border-(--color-warning) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-4 text-base font-bold text-(--color-warning)">
+                <div className="my-3 rounded-xl bg-(--color-bg-card) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                  <h4 className="mb-4 text-base font-medium text-(--color-warning)">
                     Context Fields
                   </h4>
-                  <div className="space-y-3">
+                  <div className="space-y-6">
                     {BUSINESS_CONTEXT_HEADING_CONTENT.fields.map((field, idx) => (
                       <div
                         key={idx}
-                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-lg border-l-4 border-(--color-warning) bg-(--color-bg-field) p-3.5 transition-colors duration-300 ease-out select-none"
+                        className="group/card relative flex min-w-0 cursor-default flex-col items-start gap-1 rounded-lg bg-(--color-warning-light) transition-colors duration-300 ease-out select-none"
                       >
-                        <div className="mt-0.5 shrink-0 rounded-lg bg-(--color-warning-light) p-1.5 transition-[transform,box-shadow] duration-300 ease-out group-hover/card:scale-110 group-hover/card:-rotate-6 group-hover/card:shadow-md">
-                          <Target className="size-4 text-(--color-warning)" strokeWidth={1.75} />
-                        </div>
-                        <div className="flex min-w-0 flex-col gap-1">
-                          <span className="text-sm/snug font-bold text-(--color-text-primary)">
-                            {field.title}
-                          </span>
-                          <span className="text-xs/snug text-(--color-text-muted)">
-                            {field.description}
-                          </span>
-                          <span className="mt-1 text-xs/relaxed text-(--color-warning)">
-                            → {field.hint}
-                          </span>
-                        </div>
+                        <span className="text-sm/snug font-medium text-(--color-text-primary)">
+                          {field.title}
+                        </span>
+                        <span className="text-xs/snug text-(--color-text-muted)">
+                          {field.description}
+                        </span>
+                        <span className="mt-1 text-xs/relaxed text-(--color-warning)">
+                          → {field.hint}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="my-3 border-l-2 border-(--color-warning) py-1 pl-3 text-xs/relaxed text-(--color-warning)">
+                <div className="my-3 flex items-center gap-2 rounded-xl bg-(--color-warning-light) p-3 text-xs/relaxed text-(--color-warning)">
                   <Lightbulb
-                    className="mt-0.5 shrink-0 text-(--color-warning)"
+                    className="shrink-0 text-(--color-warning)"
                     strokeWidth={2}
-                    size={16}
+                    size={24}
                   />
                   <span>
-                    <strong className="text-(--color-text-primary)">Privacy Note:</strong> These
-                    answers are never stored beyond this session unless you explicitly save the
-                    assessment.
+                    <strong className="font-medium text-(--color-text-primary)">
+                      Privacy Note:
+                    </strong>
+                    <br />
+                    These answers are never stored beyond this session unless you explicitly save
+                    the assessment.
                   </span>
                 </div>
               </div>

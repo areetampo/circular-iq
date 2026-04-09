@@ -1,5 +1,5 @@
-import { ListBox, Select, Tooltip } from '@heroui/react';
-import { GitCompare, Search } from 'lucide-react';
+import { ListBox, SearchField, Select, Tooltip } from '@heroui/react';
+import { GitCompare } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
@@ -23,20 +23,13 @@ export function FilterBar({
   return (
     <div className="mb-6 space-y-3">
       {/* Search */}
-      <div className="relative">
-        <Search
-          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)"
-          size={14}
-          strokeWidth={2}
-        />
-        <input
-          type="text"
-          placeholder="Search assessments by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-9 w-full rounded-xl border border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] pr-4 pl-9 text-sm text-(--color-text-primary) transition-all placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.12)] focus:outline-none"
-        />
-      </div>
+      <SearchField value={searchTerm} onChange={setSearchTerm} className="w-full">
+        <SearchField.Group>
+          <SearchField.SearchIcon />
+          <SearchField.Input placeholder="Search assessments by name..." className="h-9 text-sm" />
+          <SearchField.ClearButton />
+        </SearchField.Group>
+      </SearchField>
 
       {/* Sort + Compare button row */}
       <div className="flex items-center justify-between gap-3">

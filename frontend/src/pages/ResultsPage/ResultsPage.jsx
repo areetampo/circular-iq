@@ -4,19 +4,16 @@ import {
   ArrowRight,
   BarChart3,
   CheckCircle2,
-  CircleX,
   Download,
-  FolderPen,
   RefreshCw,
-  Save,
   Target,
   TrendingUp,
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { Button, SectionHeading } from '@/components/common';
+import { SectionHeading } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -41,22 +38,23 @@ import { formatFactorName } from '@/lib/scoring';
 import {
   AuditSummaryCard,
   CaseSummaryAccordions,
+  CategoryAnalysis,
   CircularEconomyTierCard,
   DatabaseEvidenceCard,
   GapAnalysisCard,
+  IndustryMetadataSection,
+  IntegrityAnalysis,
   ParameterConsistencyCard,
+  PerformanceComparison,
+  RecommendationsCard,
+  ResultsActionBar,
   ResultsSkeleton,
   RStrategyAlignmentCard,
   ScoreCategoryBreakdown,
   ScoreOverviewSection,
+  StrengthsGapsCard,
   WeightedScoreCard,
 } from '@/pages/ResultsPage/components';
-import { CategoryAnalysis } from '@/pages/ResultsPage/components/CategoryAnalysis';
-import { IndustryMetadataSection } from '@/pages/ResultsPage/components/IndustryMetadataSection';
-import { IntegrityAnalysis } from '@/pages/ResultsPage/components/IntegrityAnalysis';
-import { PerformanceComparison } from '@/pages/ResultsPage/components/PerformanceComparison';
-import { RecommendationsCard } from '@/pages/ResultsPage/components/RecommendationsCard';
-import { StrengthsGapsCard } from '@/pages/ResultsPage/components/StrengthsGapsCard';
 import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
 import { getSession, saveSession } from '@/utils/session';
@@ -510,7 +508,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         formData: {
           businessProblem: problemText,
           businessSolution: solutionText,
-          parameters: evaluationParameterValues,
+          evaluation_parameters: evaluationParameterValues,
           businessContext: businessContextValues || {},
         },
       },
@@ -844,136 +842,34 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <div className="my-8 space-y-4 px-4 sm:px-6">
         {isViewFromMyAssessments && currentData?.title && (
           <div className="mb-4">
-            <h1 className="font-mono text-2xl font-semibold tracking-[-0.02em] text-(--color-text-primary)">
+            <h1 className="font-jua text-3xl font-medium tracking-[-0.02em] text-(--color-text-primary)">
               {currentData.title}
             </h1>
           </div>
         )}
 
-        {/* Buttons Bar */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          {/* Left group - navigation */}
-          <div className="flex items-center gap-3">
-            {/* Show public share notice for public viewers */}
-            {/* {isPublicShare && (
-              <Chip variant="info" color="default">
-                <Globe size={14} className="mr-1" />
-                Public Shared Assessment
-              </Chip>
-            )} */}
-
-            {!isPublicShare && (
-              <>
-                <Button as={Link} to="/assessments" variant="ghost" size="md">
-                  <ArrowLeft size={14} className="mr-1" /> My Assessments
-                </Button>
-                {currentData && (
-                  <Button variant="ghost" size="md" onPress={handleReevaluate}>
-                    <RefreshCw size={14} className="mr-1" /> Re-evaluate
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Right group - actions, pushed to end */}
-          <div className="ml-auto flex flex-wrap items-center gap-3">
-            <Button
-              variant="ghost"
-              size="md"
-              onPress={user ? handleDownloadPDF : undefined}
-              isDisabled={!user || isExporting}
-            >
-              <Download size={14} className="mr-1" /> PDF
-            </Button>
-            <Button
-              variant="ghost"
-              size="md"
-              onPress={user ? handleDownloadCSV : undefined}
-              isDisabled={!user || isExporting}
-            >
-              <Download size={14} className="mr-1" /> CSV
-            </Button>
-            {!isViewFromMyAssessments && !isPublicShare && (
-              <Button
-                variant="ghost"
-                size="md"
-                onPress={() => {
-                  if (!user) {
-                    // Anonymous user: ensure the current result is persisted in the session
-                    // (results and inputs are independent), then redirect to auth so the
-                    // user can sign in and be returned to /results to confirm save.
-                    try {
-                      const formState = resolvedFormData || sessionSnapshot || getSession() || {};
-                      const formInputs = formState?.inputs ? formState.inputs : formState;
-
-                      const pendingResults =
-                        (navigationResult && (navigationResult.result || navigationResult)) ||
-                        sessionSnapshot?.results ||
-                        getSession()?.results ||
-                        null;
-
-                      // Persist the snapshot to session storage (do NOT set isResultUnsaved flag)
-                      try {
-                        saveSession({
-                          inputs: {
-                            businessProblem: formInputs?.businessProblem || '',
-                            businessSolution: formInputs?.businessSolution || '',
-                            evaluationParameters: formInputs?.evaluation_parameters || {},
-                            businessContext: formInputs?.businessContext || {},
-                          },
-                          results: pendingResults,
-                        });
-                      } catch (e) {
-                        logger.warn('Failed to persist session for pending save:', e);
-                      }
-
-                      toast.info('Redirecting to sign in', {
-                        description: 'You will be returned to your evaluation after signing in',
-                        duration: 5000,
-                      });
-
-                      setTimeout(() => {
-                        navigate('/auth', { state: { mode: 'signup', from: '/results' } });
-                      }, 500);
-
-                      return;
-                    } catch (e) {
-                      logger.error('Failed to prepare pending save', e);
-                      toast.error('Failed to prepare save');
-                      return;
-                    }
-                  }
-
-                  openSaveAssessmentDialog({
-                    defaultName: defaultAssessmentName,
-                    onSave: handleSave,
-                    scoringResult: actualResult,
-                  });
-                }}
-                disabled={isExporting}
-              >
-                <Save size={14} className="mr-1" /> Save
-              </Button>
-            )}
-            {/* If this assessment belongs to the current user, show rename/delete */}
-            {isViewFromMyAssessments &&
-              currentData &&
-              currentData.user_id &&
-              user?.id === currentData.user_id && (
-                <>
-                  <Button variant="results-action" onPress={handleOpenRename}>
-                    <FolderPen size={16} />
-                    Rename
-                  </Button>
-                  <Button variant="results-action" onPress={handleOpenDelete}>
-                    <CircleX size={16} />
-                    Delete
-                  </Button>
-                </>
-              )}
-          </div>
-        </div>
+        <ResultsActionBar
+          currentData={currentData}
+          user={user}
+          isPublicShare={isPublicShare}
+          isViewFromMyAssessments={isViewFromMyAssessments}
+          isExporting={isExporting}
+          onReevaluate={handleReevaluate}
+          onDownloadPDF={handleDownloadPDF}
+          onDownloadCSV={handleDownloadCSV}
+          onSave={handleSave}
+          onOpenRename={handleOpenRename}
+          onOpenDelete={handleOpenDelete}
+          defaultAssessmentName={defaultAssessmentName}
+          actualResult={actualResult}
+          resolvedFormData={resolvedFormData}
+          sessionSnapshot={sessionSnapshot}
+          navigationResult={navigationResult}
+          navigate={navigate}
+          openSaveAssessmentDialog={openSaveAssessmentDialog}
+          logger={logger}
+          toast={toast}
+        />
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
@@ -993,10 +889,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 isDisabled={isUpdatingPublic}
               >
                 <Checkbox.Content>
-                  <Label htmlFor="assessment-public-toggle">
-                    <p className="text-[0.8125rem] font-semibold text-(--color-text-primary)">
+                  <Label htmlFor="assessment-public-toggle" className="cursor-pointer">
+                    <p className="text-[0.8125rem] font-medium opacity-80">
                       Public sharing{' '}
-                      <span className="ml-0.5 text-[0.6875rem] opacity-70">
+                      <span className="ml-0.5 text-[0.7rem] opacity-70">
                         (
                         {(
                           optimisticIsPublic !== null
@@ -1010,7 +906,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     </p>
                   </Label>
                 </Checkbox.Content>
-                <Checkbox.Control className={cn('origin-left scale-70')}>
+                <Checkbox.Control className={cn('origin-left scale-90')}>
                   <Checkbox.Indicator />
                 </Checkbox.Control>
               </Checkbox>
@@ -1041,7 +937,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       {/* Case Summary */}
       <div data-export-section="case-summary">
         <div className="p-1 sm:p-3">
-          <SectionHeading variant="large">Case Summary</SectionHeading>
+          <SectionHeading variant="large" className="mb-2">
+            Case Summary
+          </SectionHeading>
           <CaseSummaryAccordions
             businessProblem={problemText}
             businessSolution={solutionText}

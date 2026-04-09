@@ -113,7 +113,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
             {audit.improvement_roadmap.map((item, i) => (
               <div key={i} className="flex gap-3 rounded-xl border-2 border-border p-3">
                 <div
-                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
                     i === 0 || item.priority === 1 || item.priority === '1'
                       ? 'bg-(--color-error) text-white'
                       : i === 1 || item.priority === 2 || item.priority === '2'
@@ -124,10 +124,10 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                   {i + 1}
                 </div>
                 <div className="flex-1">
-                  <div className="mb-1 text-sm font-medium text-(--color-text-primary)">
+                  <div className="text-sm font-medium text-(--color-text-primary)">
                     {item.title || item.step || `Step ${i + 1}`}
                   </div>
-                  <div className="text-sm text-(--color-text-secondary)">
+                  <div className="mb-1 text-sm text-(--color-text-secondary)">
                     {item.description || item.action}
                   </div>
                   {variant === 'transparent' && item.timeframe && (
@@ -192,14 +192,14 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                 key={i}
                 className="flex gap-2 rounded-xl border-2 border-border bg-transparent p-3"
               >
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-info) text-xs font-bold text-(--color-bg)">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-info) font-semibold text-(--color-bg)">
                   {sdg.sdg_number}
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-(--color-text-primary)">
+                  <div className="text-sm font-semibold text-(--color-text-primary)">
                     {sdg.sdg_name}
                   </div>
-                  <div className="mt-0.5 text-xs text-(--color-text-muted)">{sdg.rationale}</div>
+                  <div className="mt-0.5 text-sm text-(--color-text-muted)">{sdg.rationale}</div>
                   <Chip
                     size="sm"
                     variant="soft"

@@ -71,7 +71,7 @@ export function ScoreOverviewSection({
       {/* Score Summary Stats */}
       <div className="mb-8 flex justify-center gap-6">
         <div className="text-sm text-(--color-text-secondary)">
-          High • Strong Performance • {actualResult.confidence_level || 0}% Confidence
+          High • Strong Performance • {actualResult.confidence_level || '-'}% Confidence
         </div>
       </div>
 
@@ -92,28 +92,25 @@ export function ScoreOverviewSection({
 
       {/* Strongest Factor and Focus Area */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-        {topFactor && (
-          <div className="rounded-[12px] border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-4">
-            <div className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
-              Strongest Factor
-            </div>
-            <div className="text-[0.875rem] font-semibold text-(--color-accent)">
-              {topFactor[0]}
-            </div>
-            <div className="text-[0.75rem] text-(--color-text-muted)">Score: {topFactor[1]}</div>
-          </div>
-        )}
-
-        {focusFactor && (
-          <div className="rounded-[12px] border-2 border-[rgba(180,160,130,0.25)] bg-transparent p-4">
-            <div className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
-              Focus Area
-            </div>
-            <div className="text-[0.875rem] font-semibold text-(--color-accent)">
-              {focusFactor[0]}
-            </div>
-            <div className="text-[0.75rem] text-(--color-text-muted)">Score: {focusFactor[1]}</div>
-          </div>
+        {[
+          { title: 'Strongest Factor', data: topFactor },
+          { title: 'Focus Area', data: focusFactor },
+        ].map(
+          ({ title, data }) =>
+            data && (
+              <div
+                key={title}
+                className="rounded-xl border-2 border-(--color-border) bg-transparent p-4"
+              >
+                <div className="mb-1 text-sm font-semibold tracking-widest text-(--color-text-muted) uppercase">
+                  {title}
+                </div>
+                <div className="text-[0.925rem] font-semibold text-(--color-accent)">{data[0]}</div>
+                <div className="text-[0.85rem] font-medium text-(--color-text-muted)">
+                  Score: {data[1]}
+                </div>
+              </div>
+            ),
         )}
       </div>
     </div>

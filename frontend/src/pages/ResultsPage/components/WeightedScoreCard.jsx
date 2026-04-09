@@ -56,18 +56,14 @@ export function WeightedScoreCard({ actualResult }) {
       </div>
 
       {/* Bottom summary */}
-      <div className="mt-6 flex justify-between border-t border-border pt-4 text-xs text-(--color-text-muted)">
+      <div className="mt-6 flex justify-between border-t border-border pt-4 text-sm text-(--color-text-muted) [&>span]:font-medium [&>span>span]:font-semibold [&>span>span]:text-(--color-text-primary)">
         <span>
           Top contributor:{' '}
-          <span className="font-semibold text-(--color-text-primary)">
-            {formatFactorName(actualResult.weighted_score_card.top_contributor)}
-          </span>
+          <span>{formatFactorName(actualResult.weighted_score_card.top_contributor)}</span>
         </span>
         <span>
           Needs most attention:{' '}
-          <span className="font-semibold text-(--color-text-primary)">
-            {formatFactorName(actualResult.weighted_score_card.bottom_contributor)}
-          </span>
+          <span>{formatFactorName(actualResult.weighted_score_card.bottom_contributor)}</span>
         </span>
       </div>
     </div>

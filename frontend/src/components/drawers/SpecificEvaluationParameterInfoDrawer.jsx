@@ -45,10 +45,8 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                   <Icon className="size-4 text-[#2d5a3d]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <Drawer.Heading className="drawer__heading">
-                    {SPECIFIC_PARAMETER_CONTENT.heading}
-                  </Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">{guidance.name}</p>
+                  <Drawer.Heading>{SPECIFIC_PARAMETER_CONTENT.heading}</Drawer.Heading>
+                  <p className="mt-0.5 text-[1rem] font-normal text-[#6b5f56]">{guidance.name}</p>
                 </div>
               </div>
             </Drawer.Header>
@@ -57,7 +55,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 <div>
                   <div className="mb-5 flex flex-col items-start justify-between gap-4 xs:flex-row">
                     <div>
-                      <h3 className={cn('mb-1 text-lg font-bold', cfg.paramTextColor)}>
+                      <h3 className={cn('mb-1 font-sans text-lg font-medium', cfg.paramTextColor)}>
                         {guidance.name}
                       </h3>
                       <p className="text-sm font-medium text-(--color-text-muted)">
@@ -67,10 +65,10 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                     {guidance.weight && (
                       <div
                         className={cn(
-                          `flex items-center justify-center rounded-lg border-2 px-3 py-1 text-sm font-bold whitespace-nowrap`,
-                          cfg.badgeBorder,
-                          cfg.badgeBg,
-                          cfg.badgeText,
+                          `flex items-center justify-center rounded-lg border-2 px-3 py-1 text-sm font-medium whitespace-nowrap`,
+                          cfg.paramTextColor,
+                          cfg.paramBg,
+                          cfg.paramBorder,
                         )}
                       >
                         Weight: {weightLabel}
@@ -81,7 +79,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                   <div className="space-y-3 text-sm/relaxed">
                     {guidance.definition && (
                       <div>
-                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
+                        <p className={cn('mb-1 font-medium', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.definition}
                         </p>
                         <p className="text-sm/relaxed text-(--color-text-secondary)">
@@ -91,7 +89,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                     )}
                     {guidance.methodology && (
                       <div>
-                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
+                        <p className={cn('mb-1 font-medium', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.methodology}
                         </p>
                         <p className="text-sm/relaxed text-(--color-text-secondary)">
@@ -101,7 +99,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                     )}
                     {guidance.calibration && (
                       <div>
-                        <p className={cn('mb-1 font-bold', cfg.paramTextColor)}>
+                        <p className={cn('mb-1 font-medium', cfg.paramTextColor)}>
                           {SPECIFIC_PARAMETER_CONTENT.sections.calibration}
                         </p>
                         <p className="text-sm/relaxed text-(--color-text-primary)">
@@ -113,24 +111,20 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 </div>
 
                 {guidance.scale && (
-                  <div
-                    className={cn(
-                      `rounded-xl rounded-r-sm border-l-2 border-(--color-accent) bg-(--color-accent-light) p-4 py-2 pl-3`,
-                    )}
-                  >
-                    <h4 className={cn('mb-3 text-base font-bold', cfg.panelTitle)}>
+                  <div className={cn(`rounded-xl bg-(--color-accent-light)`)}>
+                    <h4 className={cn('mb-3 text-base font-medium', cfg.panelTitle)}>
                       {SPECIFIC_PARAMETER_CONTENT.sections.scoreGuide}
                     </h4>
-                    <div className="space-y-2">
+                    <div className="space-y-1 py-1">
                       {guidance.scale.map(({ score, label, description }) => (
                         <div
                           key={`${score}-${label}`}
-                          className={cn('border-l-4 pl-3', cfg.panelItemBorder)}
+                          className={cn('px-3 py-2', cfg.panelItemBorder)}
                         >
-                          <p className={cn('text-sm font-semibold', cfg.paramTextColor)}>
+                          <p className={cn('text-sm font-medium', cfg.paramTextColor)}>
                             {score} - {label}
                           </p>
-                          <p className="mt-1 text-xs text-(--color-text-muted)">{description}</p>
+                          <p className="text-sm text-(--color-text-muted)">{description}</p>
                         </div>
                       ))}
                     </div>
@@ -138,21 +132,21 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 )}
 
                 {guidance.examples && (
-                  <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                    <h4 className="mb-3 text-base font-bold text-(--color-accent)">
+                  <div className="rounded-xl text-sm/relaxed text-(--color-text-secondary)">
+                    <h4 className="mb-3 text-base font-medium text-(--color-accent)">
                       {SPECIFIC_PARAMETER_CONTENT.sections.benchmarks}
                     </h4>
                     <div className="space-y-2">
                       {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
                         <div
                           key={`${exampleCase}-${score}-${idx}`}
-                          className="border-l-4 border-(--color-accent) pl-3"
+                          className="rounded-lg bg-(--color-accent-light) px-3 py-2"
                         >
-                          <p className="text-sm font-semibold text-(--color-text-primary)">
+                          <p className="text-sm font-medium text-(--color-text-primary)">
                             {exampleCase} {score && `(${score})`}
                           </p>
                           {reason && (
-                            <p className="mt-1 text-xs text-(--color-text-muted)">{reason}</p>
+                            <p className="mt-1 text-sm text-(--color-text-muted)">{reason}</p>
                           )}
                         </div>
                       ))}

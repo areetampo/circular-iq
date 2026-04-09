@@ -2,6 +2,8 @@ import { Check, Copy } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useState } from 'react';
 
+import { cn } from '@/utils/cn';
+
 /**
  * CopyButton Component
  * Simple copy icon with stroke animation or box with description
@@ -10,12 +12,17 @@ import { useCallback, useState } from 'react';
  * @param {boolean} disabled - Disable the button
  * @param {string} className - Additional CSS classes
  * @param {string} description - Optional description text for box mode
+ * @param {string} color - Color for the icons (default: '#000000')
+ * @param {number} size - Size for the icons in pixels (default: 16)
+ * @param {boolean} noBorder - Remove border from box mode
  */
 export default function CopyButton({
   value = '',
   disabled = false,
   className = '',
   description = '',
+  color = '#000000',
+  size = 16,
   noBorder = false,
   ...props
 }) {
@@ -37,22 +44,31 @@ export default function CopyButton({
     return (
       <button
         onClick={handleClick}
-        className={`flex size-8 items-center justify-center rounded-md transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={cn(
+          'flex size-8 items-center justify-center rounded-md transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50',
+          className,
+        )}
         disabled={disabled}
         {...props}
       >
         <div className="relative size-4">
           <Copy
-            size={16}
-            className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-              hasCopied ? 'scale-75 opacity-0' : 'scale-100 opacity-100'
-            }`}
+            size={size}
+            strokeWidth={2.5}
+            className={cn(
+              'absolute inset-0 transition-all duration-300 ease-in-out',
+              hasCopied ? 'scale-75 opacity-0' : 'scale-100 opacity-100',
+            )}
+            style={{ color: color }}
           />
           <Check
-            size={16}
-            className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-              hasCopied ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
-            }`}
+            size={size}
+            strokeWidth={2.5}
+            className={cn(
+              'ease-in-ou absolute inset-0 transition-all duration-300',
+              hasCopied ? 'scale-100 opacity-100' : 'scale-75 opacity-0',
+            )}
+            style={{ color: color }}
           />
         </div>
       </button>
@@ -98,6 +114,10 @@ CopyButton.propTypes = {
   className: PropTypes.string,
   /** Optional description text for box mode */
   description: PropTypes.string,
+  /** Color for the icons (default: '#000000') */
+  color: PropTypes.string,
+  /** Size for the icons in pixels (default: 16) */
+  size: PropTypes.number,
   /** Remove border from box mode */
   noBorder: PropTypes.bool,
 };

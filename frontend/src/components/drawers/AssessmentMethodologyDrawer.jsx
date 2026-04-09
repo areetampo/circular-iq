@@ -49,7 +49,7 @@ export default function AssessmentMethodologyDrawer() {
               <p className="text-[0.8125rem] leading-relaxed text-(--color-text-muted)">
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
-                <strong className="font-semibold text-(--color-text-primary)">
+                <strong className="font-medium text-(--color-text-primary)">
                   6,000+ high-quality circular economy projects
                 </strong>
                 .
@@ -60,7 +60,7 @@ export default function AssessmentMethodologyDrawer() {
                 {ASSESSMENT_METHODOLOGY_CONTENT.items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex cursor-default items-start gap-3.5 rounded-2xl border border-border bg-(--color-accent-light) p-4 transition-colors duration-300 ease-out"
+                    className="flex cursor-default items-start gap-3.5 rounded-2xl bg-(--color-bg-card) p-4 transition-colors duration-300 ease-out"
                   >
                     {/* Animated icon */}
                     <div className="mt-0.5 shrink-0 rounded-xl bg-(--color-accent-light) p-2.5">
@@ -72,7 +72,7 @@ export default function AssessmentMethodologyDrawer() {
 
                     {/* Text */}
                     <div className="flex min-w-0 flex-col gap-1">
-                      <span className="text-[0.8125rem] leading-snug font-bold text-(--color-text-primary)">
+                      <span className="text-[0.8125rem] leading-snug font-medium text-(--color-text-primary)">
                         {item.title}
                       </span>
                       <span className="text-[0.6875rem] leading-relaxed text-(--color-text-muted)">
@@ -84,12 +84,12 @@ export default function AssessmentMethodologyDrawer() {
               </div>
 
               {/* Data source card */}
-              <div className="flex cursor-default items-start gap-3.5 rounded-2xl border border-border bg-(--color-accent-light) p-4 transition-colors duration-300 select-none">
+              <div className="flex cursor-default items-start gap-3.5 rounded-2xl bg-(--color-bg-card) p-4 transition-colors duration-300 select-none">
                 <div className="mt-0.5 shrink-0 rounded-xl bg-(--color-success-light) p-2.5">
                   <BookCopy className="size-4 text-(--color-success)" strokeWidth={1.75} />
                 </div>
                 <div className="flex min-w-0 flex-col gap-1">
-                  <span className="text-[0.8125rem] leading-snug font-bold text-(--color-text-primary)">
+                  <span className="text-[0.8125rem] leading-snug font-medium text-(--color-text-primary)">
                     Data Source
                   </span>
                   <p className="text-[0.6875rem] leading-relaxed text-(--color-text-muted)">

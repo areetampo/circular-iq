@@ -39,7 +39,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       <div className="flex items-start gap-3">
         {/* Title and metadata section */}
         <div className="min-w-0 flex-1">
-          <h3 className="mb-1 w-fit truncate font-mono text-base/tight font-medium text-(--color-text-primary)">
+          <h3 className="mb-1 w-fit truncate font-sniglet text-xl/tight font-medium text-(--color-text-primary)">
             <Link to={assessmentLink}>{assessment.title || 'Untitled Assessment'}</Link>
           </h3>
           <p className="mb-2 text-[0.75rem] text-(--color-text-muted)">{formattedDate}</p>
@@ -51,11 +51,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 {assessment.industry}
               </Chip>
             )}
-            <Chip
-              variant="access-type"
-              color={assessment.is_public ? 'public' : 'private'}
-              className="text-[0.625rem]"
-            >
+            <Chip variant="access-type" color={assessment.is_public ? 'public' : 'private'}>
               {assessment.is_public ? 'Public' : 'Private'}
             </Chip>
           </div>

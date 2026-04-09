@@ -110,7 +110,7 @@ export default function Navbar() {
                 >
                   {item.name}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 h-0.5 w-2/3 -translate-x-1/2 rounded-full bg-(--color-accent)" />
+                    <span className="absolute -bottom-1 left-1/2 h-0.5 w-1/3 -translate-x-1/2 rounded-full bg-(--color-accent)" />
                   )}
                 </Link>
               );

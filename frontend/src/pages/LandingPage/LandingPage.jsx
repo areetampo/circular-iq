@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import {
   AlertTriangle,
   BadgeInfo,
-  BriefcaseBusiness,
   ChevronDown,
   ClipboardList,
+  MonitorCog,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -375,25 +375,30 @@ export default function LandingPage() {
 
   // Pre-fill form with data from ResultsPage (reevaluate)
   useEffect(() => {
-    if (location.state?.formData) {
+    if (location.state?.formData && !reevaluateDataAppliedRef.current) {
       const { businessProblem, businessSolution, evaluation_parameters, businessContext } =
         location.state.formData;
 
       // Mark that re-evaluate data is being applied
       reevaluateDataAppliedRef.current = true;
 
-      reset({
+      const newFormData = {
         businessProblem: businessProblem || '',
         businessSolution: businessSolution || '',
         evaluationParameters: evaluation_parameters || {},
         businessContext: businessContext || {},
-      });
+      };
+
+      reset(newFormData);
       window.history.replaceState({}, document.title);
+
+      // Immediately save the re-evaluate data to prevent false unsaved changes alert
+      persistInputs(newFormData);
 
       // Show toast notification
       toast.success('Form filled with assessment data', { timeout: 3000 });
     }
-  }, [location.state, reset]);
+  }, [location.state?.formData, persistInputs]);
 
   const { user } = useAuth();
 
@@ -509,7 +514,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-4xl px-6" ref={formContainerRef}>
             {/* Section heading */}
             <div className="mb-10">
-              <h2 className="mb-2 font-display text-[1.375rem] tracking-tight text-(--color-text-primary)">
+              <h2 className="mb-2 font-sans! text-[1.375rem] tracking-tight text-(--color-text-primary)">
                 Evaluate Your Circular Economy Business
               </h2>
               <p className="text-[0.8438rem] leading-relaxed text-(--color-text-secondary)">
@@ -566,14 +571,14 @@ export default function LandingPage() {
                     <Accordion.Item id="business-context-heading">
                       <Accordion.Heading>
                         <Accordion.Trigger className="flex items-center gap-3 px-5 py-3">
-                          <BriefcaseBusiness
+                          <MonitorCog
                             className="mr-1 shrink-0 text-(--color-accent) transition-[scale,rotate] duration-300 ease-out group-hover/bcacc:scale-[1.2] group-hover/bcacc:-rotate-10 group-hover/bcacc:drop-shadow-md"
                             size={24}
                             strokeWidth={2}
                           />
                           <div className="flex flex-1 flex-col gap-0.5 text-left">
                             <div className="flex items-center gap-2 py-1">
-                              <span className="font-mono text-sm leading-none font-semibold tracking-[-0.01em]">
+                              <span className="font-mono text-sm leading-none font-medium tracking-[-0.01em] uppercase">
                                 Business Context
                               </span>
                               <BadgeInfo
@@ -630,7 +635,7 @@ export default function LandingPage() {
                           />
                           <div className="flex flex-1 flex-col gap-0.5 text-left">
                             <div className="flex items-center gap-2 py-1">
-                              <span className="font-mono text-sm leading-none font-semibold tracking-[-0.01em]">
+                              <span className="font-mono text-sm leading-none font-medium tracking-[-0.01em] uppercase">
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
@@ -742,7 +747,7 @@ export default function LandingPage() {
                                 }}
                               />
                             </div>
-                            <span className="text-[0.6875rem]/4 text-(--color-text-muted)">
+                            <span className="text-sm/4 text-(--color-text-muted)">
                               Auto-fill form with curated examples for quick testing
                             </span>
                           </div>

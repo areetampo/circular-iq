@@ -1,3 +1,4 @@
+import { toast } from '@heroui/react';
 import { ArrowLeft, Book, RefreshCcw, View } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -7,14 +8,19 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
+import { useExportState } from '@/hooks/useExportState';
 import AssessmentColumn from '@/pages/AssessmentComparisonPage/components/AssessmentColumn';
+import {
+  computeAssessmentData,
+  createAssessmentHandlers,
+} from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 import { ResultsSkeleton } from '@/pages/ResultsPage/components';
-import { categorizeIntegrityGaps } from '@/utils/content';
 
 export default function AssessmentViewPage() {
   const { publicId } = useParams();
   const navigate = useNavigate();
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
+  const { isExporting, executeExport } = useExportState();
 
   const {
     assessment: publicAssessment,
@@ -103,50 +109,31 @@ export default function AssessmentViewPage() {
     );
   }
 
-  // Compute assessment data using the same logic as AssessmentComparisonPage
-  const computeAssessmentData = (scoringResult) => {
-    const overallScore = scoringResult?.overall_score ?? 0;
-    const { strengths, gaps } = categorizeIntegrityGaps(scoringResult?.audit?.integrity_gaps);
-    const casesSummaries = scoringResult?.audit?.similar_cases_summaries || [];
-    const subScoreEntries = Object.entries(scoringResult?.sub_scores || {});
-    const topFactor =
-      subScoreEntries.length > 0
-        ? subScoreEntries.reduce((best, curr) => (curr[1] > best[1] ? curr : best))
-        : null;
-    const focusFactor =
-      subScoreEntries.length > 0
-        ? subScoreEntries.reduce((worst, curr) => (curr[1] < worst[1] ? curr : worst))
-        : null;
-    const avgFactorScore =
-      subScoreEntries.length > 0
-        ? Math.round(
-            subScoreEntries.reduce((sum, [, val]) => sum + val, 0) / subScoreEntries.length,
-          )
-        : 0;
+  // Create shared handler functions
+  const {
+    handleReevaluate,
+    handleDownloadPDF: baseHandleDownloadPDF,
+    handleDownloadCSV: baseHandleDownloadCSV,
+  } = createAssessmentHandlers({
+    navigate,
+    executeExport,
+  });
 
-    // Business viability (exact formula from ResultsPage)
-    const computeBusinessViabilityScore = (res) => {
-      if (!res) return 0;
-      const confidence = res.audit?.confidence_score;
-      const normalizedConfidence =
-        confidence != null && confidence <= 1
-          ? (Number(confidence) || 0) * 100
-          : Number(confidence) || 0;
-      return Math.round((Number(res.overall_score) || 0) * 0.7 + normalizedConfidence * 0.3);
-    };
+  // Wrap handlers with toast error handling
+  const handleDownloadPDF = async (assessment, scoringResult) => {
+    try {
+      await baseHandleDownloadPDF(assessment, scoringResult);
+    } catch (error) {
+      toast.danger('No result data available to export', { timeout: 4000 });
+    }
+  };
 
-    const resolvedBusinessViabilityScore = computeBusinessViabilityScore(scoringResult);
-
-    return {
-      overallScore,
-      strengths,
-      gaps,
-      casesSummaries,
-      topFactor,
-      focusFactor,
-      avgFactorScore,
-      resolvedBusinessViabilityScore,
-    };
+  const handleDownloadCSV = async (assessment, scoringResult) => {
+    try {
+      await baseHandleDownloadCSV(assessment, scoringResult);
+    } catch (error) {
+      toast.danger('No result data available to export', { timeout: 4000 });
+    }
   };
 
   const assessmentData = computeAssessmentData(scoringResult);
@@ -156,7 +143,7 @@ export default function AssessmentViewPage() {
       {/* Simple header - no buttons or public toggle */}
       {assessment?.title && (
         <div className="mt-8 mb-6 px-4 sm:px-6">
-          <h1 className="text-center font-mono text-2xl font-semibold tracking-[-0.02em] text-(--color-text-primary)">
+          <h1 className="text-center font-jua text-2xl font-medium tracking-[-0.02em] text-(--color-text-primary)">
             {assessment.title}
           </h1>
         </div>
@@ -169,6 +156,10 @@ export default function AssessmentViewPage() {
           scoringResult={scoringResult}
           label="Assessment"
           openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
+          isExporting={isExporting}
+          onReevaluate={() => handleReevaluate(assessment)}
+          onDownloadPDF={() => handleDownloadPDF(assessment, scoringResult)}
+          onDownloadCSV={() => handleDownloadCSV(assessment, scoringResult)}
           {...assessmentData}
         />
       </div>

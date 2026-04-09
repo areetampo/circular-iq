@@ -64,7 +64,7 @@ function BusinessContextContainer({
           {label}
         </span>
         {description && (
-          <span className="font-mono text-[0.65rem] leading-snug text-(--color-text-muted)">
+          <span className="font-mono text-[0.7rem] leading-snug text-(--color-text-muted)">
             {description}
           </span>
         )}

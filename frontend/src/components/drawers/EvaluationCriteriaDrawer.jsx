@@ -50,15 +50,13 @@ export default function EvaluationCriteriaDrawer() {
                   {EVALUATION_CRITERIA_CONTENT.metrics.map((metric, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-lg border p-3 text-center ${
-                        metric.color === 'blue'
-                          ? 'border-[#5a7a9a] bg-[rgba(90,122,154,0.1)]'
-                          : 'border-[#4a7c59] bg-[rgba(74,124,89,0.1)]'
+                      className={`rounded-xl bg-(--color-bg-card) p-3 text-center ${
+                        metric.color === 'blue' ? 'text-[#5a7a9a]' : 'text-(--color-success)'
                       }`}
                     >
                       <div
-                        className={`text-2xl font-bold ${
-                          metric.color === 'blue' ? 'text-[#5a7a9a]' : `text-[#4a7c59]`
+                        className={`text-2xl font-medium ${
+                          metric.color === 'blue' ? 'text-[#5a7a9a]' : `text-(--color-success)`
                         }`}
                       >
                         {metric.number}
@@ -84,12 +82,8 @@ export default function EvaluationCriteriaDrawer() {
                     return (
                       <div
                         key={idx}
-                        className={`rounded-xl border-l-4 p-4 ${
-                          section.color === 'blue'
-                            ? 'border-l-[#5a7a9a] bg-[rgba(90,122,154,0.1)]'
-                            : section.color === 'emerald'
-                              ? 'border-l-[#4a7c59] bg-[rgba(74,124,89,0.1)]'
-                              : 'border-l-[#b8916a] bg-[rgba(184,145,106,0.1)]'
+                        className={`rounded-xl bg-(--color-bg-card) p-4 ${
+                          section.color === 'blue' ? 'text-[#5a7a9a]' : 'text-(--color-success)'
                         }`}
                       >
                         <div className="mb-2 flex items-start gap-2">
@@ -106,7 +100,7 @@ export default function EvaluationCriteriaDrawer() {
                           </div>
                           <div className="flex-1">
                             <h4
-                              className={`font-semibold ${
+                              className={`font-medium ${
                                 section.color === 'blue'
                                   ? 'text-[#5a7a9a]'
                                   : section.color === 'emerald'
@@ -125,9 +119,9 @@ export default function EvaluationCriteriaDrawer() {
                           {section.factors.map((factor, factorIdx) => (
                             <div
                               key={factorIdx}
-                              className="border border-border bg-(--color-bg-field)"
+                              className="rounded-xl border border-border bg-(--color-bg-field) p-3"
                             >
-                              <p className="text-xs font-semibold text-(--color-text-primary)">
+                              <p className="text-xs font-medium text-(--color-text-primary)">
                                 {factor.title}
                               </p>
                               <p className="mt-0.5 text-xs text-(--color-text-muted)">

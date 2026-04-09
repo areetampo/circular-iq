@@ -36,10 +36,10 @@ export default function HeroSection({
                 { value: '8', label: 'Weighted evaluation\ndimensions' },
               ].map(({ value, label }) => (
                 <div key={value} className="text-center">
-                  <p className="mb-2 text-[1.75rem] leading-none font-semibold text-(--color-text-primary)">
+                  <p className="mb-2 text-[1.75rem] leading-none font-medium text-(--color-text-primary)">
                     {value}
                   </p>
-                  <p className="text-[0.6875rem] leading-snug whitespace-pre-line text-(--color-text-muted)">
+                  <p className="text-xs leading-snug whitespace-pre-line text-(--color-text-muted)">
                     {label}
                   </p>
                 </div>

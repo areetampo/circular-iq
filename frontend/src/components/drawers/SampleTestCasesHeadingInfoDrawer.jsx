@@ -47,27 +47,27 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                 <ul className="ml-3 space-y-2">
                   {SAMPLE_TEST_CASES_HEADING_CONTENT.benefits.map((benefit, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
-                      <span className="font-bold text-(--color-info)">→</span>
+                      <span className="font-medium text-(--color-info)">→</span>
                       <span className="text-(--color-text-muted)">{benefit}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className="pt-2">
-                  <h3 className="mb-3 text-base font-bold text-(--color-text-primary)">
+                  <h3 className="mb-3 font-sans text-base font-medium text-(--color-text-primary)">
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.title}
                   </h3>
                   <div className="space-y-2">
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.steps.map((step) => (
                       <div
                         key={step.num}
-                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl border-l-4 border-(--color-info) bg-(--color-bg-field) p-3 transition-colors duration-300 ease-out select-none"
+                        className="group/card relative flex cursor-default items-start gap-3.5 rounded-xl bg-(--color-info-light) p-3 transition-colors duration-300 ease-out select-none"
                       >
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-info-light) font-bold text-(--color-info)">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-info)/10 font-medium text-(--color-info)">
                           {step.num}
                         </div>
                         <div className="flex min-w-0 flex-col gap-0.5">
-                          <span className="text-sm/snug font-bold text-(--color-text-primary)">
+                          <span className="text-sm/snug font-medium text-(--color-text-primary)">
                             {step.title}
                           </span>
                           <span className="text-xs/relaxed text-(--color-text-muted)">
@@ -79,14 +79,10 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="my-3 border-l-2 border-(--color-info) py-1 pl-3 text-xs/relaxed text-(--color-info)">
-                  <Lightbulb
-                    className="mt-0.5 shrink-0 text-(--color-info)"
-                    strokeWidth={2}
-                    size={16}
-                  />
+                <div className="my-3 flex items-center gap-2 rounded-xl bg-(--color-info-light) p-3 text-xs/relaxed text-(--color-info)">
+                  <Lightbulb className="shrink-0 text-(--color-info)" strokeWidth={2} size={20} />
                   <span>
-                    <strong className="text-(--color-text-primary)">Tip:</strong>{' '}
+                    <strong className="font-medium text-(--color-text-primary)">Tip:</strong>{' '}
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.sections.tip}
                   </span>
                 </div>

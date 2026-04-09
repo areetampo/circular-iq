@@ -50,7 +50,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
               return (
                 <div
                   key={index}
-                  className="group flex cursor-pointer items-start gap-4 rounded-xl border-2 border-border p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
+                  className="group flex cursor-pointer items-start gap-4 rounded-xl border-2 border-(--color-border-strong) p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
                   onClick={() => handleViewDetails(caseItem)}
                 >
                   {/* Case content */}
@@ -70,29 +70,29 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                       {caseItem.category && <Chip variant="source">{caseItem.category}</Chip>}
                       {caseItem.circular_strategy && (
                         <Chip variant="strategy">
-                          <span className="font-mono">{caseItem.circular_strategy}</span>
+                          <span>{caseItem.circular_strategy}</span>
                         </Chip>
                       )}
                       {caseItem.materials && (
                         <Chip variant="materials">
-                          <span className="font-mono">{caseItem.materials}</span>
+                          <span>{caseItem.materials}</span>
                         </Chip>
                       )}
                     </div>
 
                     <div className="flex items-center gap-3">
                       <Chip variant="match" color={matchColor}>
-                        <span className="font-mono">{matchPercentage}% match</span>
+                        <span>{matchPercentage}% match</span>
                       </Chip>
                     </div>
                   </div>
 
                   {/* View details link */}
-                  <div className="flex items-center gap-2 text-sm font-medium text-(--color-accent-dark) hover:underline">
+                  <div className="text-md flex items-center gap-2 font-medium text-(--color-accent-dark) hover:underline">
                     View details
                     <ArrowRight
-                      size={14}
-                      className="transition-transform group-hover:translate-x-0.5"
+                      size={20}
+                      className="transition-transform group-hover:translate-x-0.75"
                     />
                   </div>
                 </div>
@@ -101,8 +101,8 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-            <Frown size={40} className="text-(--color-text-muted)" />
-            <p className="text-sm text-(--color-text-muted)">
+            <Frown size={50} className="text-(--color-text-muted)" />
+            <p className="text-md text-(--color-text-muted)">
               No similar cases were found in the database for this assessment.
             </p>
           </div>

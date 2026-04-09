@@ -1,3 +1,4 @@
+import { toast } from '@heroui/react';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -7,17 +8,21 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV } from '@/features/export';
+import { useExportState } from '@/hooks/useExportState';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
-import { categorizeIntegrityGaps } from '@/utils/content';
 
 import { ComparisonSkeleton } from './components';
 import AssessmentColumn from './components/AssessmentColumn';
 import { ChangeIndicator } from './components/ChangeIndicator';
+import { computeAssessmentData, createAssessmentHandlers } from './utils/assessmentUtils';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
   const params = useParams();
   const navigate = useNavigate();
+
+  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
+  const { isExporting, executeExport } = useExportState();
 
   // Support both URL params (/assessments/compare/:publicId1/:publicId2) and query params (?publicId1=...&publicId2=...)
   const publicId1 =
@@ -27,8 +32,6 @@ export default function AssessmentComparisonPage() {
 
   const { assessment1, assessment2, comparisonData, isLoading, isError, error } =
     useAssessmentComparison(publicId1, publicId2);
-
-  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   if (!publicId1 || !publicId2) {
     return (
@@ -99,50 +102,31 @@ export default function AssessmentComparisonPage() {
   const scoringResult1 = reconstructScoringResult(assessment1);
   const scoringResult2 = reconstructScoringResult(assessment2);
 
-  // Compute data for each assessment
-  const computeAssessmentData = (scoringResult) => {
-    const overallScore = scoringResult?.overall_score ?? 0;
-    const { strengths, gaps } = categorizeIntegrityGaps(scoringResult?.audit?.integrity_gaps);
-    const casesSummaries = scoringResult?.audit?.similar_cases_summaries || [];
-    const subScoreEntries = Object.entries(scoringResult?.sub_scores || {});
-    const topFactor =
-      subScoreEntries.length > 0
-        ? subScoreEntries.reduce((best, curr) => (curr[1] > best[1] ? curr : best))
-        : null;
-    const focusFactor =
-      subScoreEntries.length > 0
-        ? subScoreEntries.reduce((worst, curr) => (curr[1] < worst[1] ? curr : worst))
-        : null;
-    const avgFactorScore =
-      subScoreEntries.length > 0
-        ? Math.round(
-            subScoreEntries.reduce((sum, [, val]) => sum + val, 0) / subScoreEntries.length,
-          )
-        : 0;
+  // Create shared handler functions
+  const {
+    handleReevaluate,
+    handleDownloadPDF: baseHandleDownloadPDF,
+    handleDownloadCSV: baseHandleDownloadCSV,
+  } = createAssessmentHandlers({
+    navigate,
+    executeExport,
+  });
 
-    // Business viability (exact formula from ResultsPage lines 565-576)
-    const computeBusinessViabilityScore = (res) => {
-      if (!res) return 0;
-      const confidence = res.audit?.confidence_score;
-      const normalizedConfidence =
-        confidence != null && confidence <= 1
-          ? (Number(confidence) || 0) * 100
-          : Number(confidence) || 0;
-      return Math.round((Number(res.overall_score) || 0) * 0.7 + normalizedConfidence * 0.3);
-    };
+  // Wrap handlers with toast error handling
+  const handleDownloadPDF = async (assessment, scoringResult) => {
+    try {
+      await baseHandleDownloadPDF(assessment, scoringResult);
+    } catch (error) {
+      toast.danger('No result data available to export', { timeout: 4000 });
+    }
+  };
 
-    const resolvedBusinessViabilityScore = computeBusinessViabilityScore(scoringResult);
-
-    return {
-      overallScore,
-      strengths,
-      gaps,
-      casesSummaries,
-      topFactor,
-      focusFactor,
-      avgFactorScore,
-      resolvedBusinessViabilityScore,
-    };
+  const handleDownloadCSV = async (assessment, scoringResult) => {
+    try {
+      await baseHandleDownloadCSV(assessment, scoringResult);
+    } catch (error) {
+      toast.danger('No result data available to export', { timeout: 4000 });
+    }
   };
 
   const assessment1Data = computeAssessmentData(scoringResult1);
@@ -160,10 +144,10 @@ export default function AssessmentComparisonPage() {
   return (
     <div className="mt-6 w-full space-y-0">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
-      <div className="sticky top-0 z-20 border-b border-border bg-(--color-bg) px-6 py-4">
+      <div className="sticky top-0 z-9999 border-b border-border bg-(--color-bg) px-6 py-4">
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div>
-            <h2 className="truncate font-mono text-xl font-medium text-(--color-text-primary)">
+            <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
               {assessment1.title}
             </h2>
             <div className="mt-1 flex items-baseline gap-1">
@@ -182,7 +166,7 @@ export default function AssessmentComparisonPage() {
             <ChangeIndicator diff={overallDelta} />
           </div>
           <div className="text-right">
-            <h2 className="truncate font-mono text-xl font-medium text-(--color-text-primary)">
+            <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
               {assessment2.title}
             </h2>
             <div className="mt-1 flex items-baseline justify-end gap-1">
@@ -198,7 +182,12 @@ export default function AssessmentComparisonPage() {
       </div>
 
       {/* Two columns side by side */}
-      <div className="mx-auto max-w-7xl px-6">
+      <div
+        className="mx-auto max-w-7xl px-6"
+        style={{
+          zoom: 0.95,
+        }}
+      >
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
           <div className="border-r-2 border-border pr-6 lg:pr-8">
             <AssessmentColumn
@@ -206,6 +195,10 @@ export default function AssessmentComparisonPage() {
               scoringResult={scoringResult1}
               label="Assessment 1"
               openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
+              isExporting={isExporting}
+              onReevaluate={() => handleReevaluate(assessment1)}
+              onDownloadPDF={() => handleDownloadPDF(assessment1, scoringResult1)}
+              onDownloadCSV={() => handleDownloadCSV(assessment1, scoringResult1)}
               {...assessment1Data}
             />
           </div>
@@ -215,6 +208,10 @@ export default function AssessmentComparisonPage() {
               scoringResult={scoringResult2}
               label="Assessment 2"
               openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
+              isExporting={isExporting}
+              onReevaluate={() => handleReevaluate(assessment2)}
+              onDownloadPDF={() => handleDownloadPDF(assessment2, scoringResult2)}
+              onDownloadCSV={() => handleDownloadCSV(assessment2, scoringResult2)}
               {...assessment2Data}
             />
           </div>

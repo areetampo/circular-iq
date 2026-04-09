@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/common';
 import { titleize } from '@/lib/formatting';
 
 const scoreColor = (s) =>
@@ -22,7 +23,7 @@ const sizeMap = {
 // Reusable StatCard component
 const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
   <div className="flex flex-col gap-1 rounded-2xl border-2 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5">
-    <span className="text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
+    <span className="text-[0.725rem] font-semibold tracking-[0.12em] text-(--color-text-muted) uppercase">
       {label}
     </span>
     <span
@@ -30,7 +31,7 @@ const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
     >
       {value}
     </span>
-    <span className="mt-0.5 text-[0.75rem] text-(--color-text-muted)">{subtitle}</span>
+    <span className="mt-0.5 text-[0.75rem] font-medium text-(--color-text-muted)">{subtitle}</span>
   </div>
 );
 
@@ -83,9 +84,9 @@ export function StatsGrid({
     if (displayIndustries.length === 0) return '—';
     if (displayIndustries.length === 1) return titleize(displayIndustries[0].industry);
     if (displayIndustries.length === 2) {
-      return `${titleize(displayIndustries[0].industry)}, ${titleize(displayIndustries[1].industry)}`;
+      return `${titleize(displayIndustries[0].industry)} & ${titleize(displayIndustries[1].industry)}`;
     }
-    return `${titleize(displayIndustries[0].industry)}, ${titleize(displayIndustries[1].industry)}...`;
+    return `${titleize(displayIndustries[0].industry)},\n${titleize(displayIndustries[1].industry)},\n...`;
   };
 
   return (
@@ -127,14 +128,17 @@ export function StatsGrid({
                 {getDisplayText()}
               </span>
 
-              {displayIndustries.length > 2 && (
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="ml-1 h-6 min-h-6 cursor-pointer rounded-sm border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] p-0 text-[0.6rem] text-(--color-text-muted) transition-colors hover:text-black/80"
-                >
-                  View all
-                </button>
-              )}
+              <div className="flex w-full items-center justify-center">
+                {displayIndustries.length > 2 && (
+                  <Button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    variant="ghastly"
+                    size="sm"
+                  >
+                    View all
+                  </Button>
+                )}
+              </div>
             </div>
 
             {isDropdownOpen && (

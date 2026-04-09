@@ -30,10 +30,10 @@ export default function BusinessProblemInfoDrawer() {
                   <ClipboardMinus size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <Drawer.Heading className="drawer__heading">
+                  <Drawer.Heading className="drawer__heading font-mono">
                     {BUSINESS_PROBLEM_CONTENT.title}
                   </Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 font-mono text-[0.7rem] font-normal text-[#6b5f56]">
                     {BUSINESS_PROBLEM_CONTENT.subtitle}
                   </p>
                 </div>
@@ -41,30 +41,27 @@ export default function BusinessProblemInfoDrawer() {
             </Drawer.Header>
             <Drawer.Body className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
-                <p className="text-sm/relaxed text-(--color-text-secondary)">
+                <p className="font-mono text-sm/relaxed text-(--color-text-secondary)">
                   Describe the{' '}
-                  <strong className="font-semibold text-(--color-text-primary)">
+                  <strong className="font-medium text-(--color-text-primary)">
                     environmental or circular economy challenge
                   </strong>{' '}
                   your business addresses.
                 </p>
 
-                <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-3 text-base font-bold text-(--color-accent)">
+                <div className="my-3 rounded-xl bg-(--color-bg-card) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                  <h4 className="mb-3 text-base font-medium text-(--color-accent)">
                     Essential Elements
                   </h4>
                   <div className="space-y-2">
                     {BUSINESS_PROBLEM_CONTENT.elements.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-3 border-b border-border py-2 last:border-0"
-                      >
+                      <div key={idx} className="flex items-start gap-3 py-2">
                         <ClipboardMinus
                           className="mt-0.5 size-4 shrink-0 text-(--color-accent)"
                           strokeWidth={1.75}
                         />
                         <div className="flex-1">
-                          <span className="text-sm/snug font-semibold text-(--color-text-primary)">
+                          <span className="text-sm/snug font-medium text-(--color-text-primary)">
                             {item.title}
                           </span>
                           <span className="mt-0.5 block text-xs/relaxed text-(--color-text-secondary)">
@@ -76,12 +73,12 @@ export default function BusinessProblemInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-3 text-base font-bold text-(--color-accent)">Writing Tips</h4>
+                <div className="my-3 rounded-xl bg-(--color-bg-card) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                  <h4 className="mb-3 text-base font-medium text-(--color-accent)">Writing Tips</h4>
                   <ul className="space-y-1">
                     {BUSINESS_PROBLEM_CONTENT.writingTips.map((tip) => (
                       <li key={tip} className="flex items-start gap-2 text-sm">
-                        <span className="font-bold text-(--color-accent)">•</span>
+                        <span className="font-medium text-(--color-accent)">•</span>
                         <span className="text-(--color-text-muted)">{tip}</span>
                       </li>
                     ))}
@@ -89,17 +86,17 @@ export default function BusinessProblemInfoDrawer() {
                 </div>
 
                 <div>
-                  <h4 className="mb-2 text-base font-bold text-(--color-accent)">
+                  <h4 className="mb-2 text-base font-medium text-(--color-accent)">
                     Example Statement
                   </h4>
-                  <p className="rounded-lg border-l-4 border-(--color-accent) bg-(--color-accent-light) p-3 text-sm/relaxed text-(--color-text-secondary)">
+                  <p className="rounded-xl bg-(--color-accent-light) p-3 text-sm/relaxed text-(--color-text-secondary)">
                     {BUSINESS_PROBLEM_CONTENT.example}
                   </p>
                 </div>
 
                 <p className="rounded-lg bg-(--color-bg-field) p-3 text-xs text-(--color-text-muted)">
                   ‼ ️{' '}
-                  <strong className="text-(--color-text-primary)">
+                  <strong className="font-medium text-(--color-text-primary)">
                     Minimum 200 characters required
                   </strong>
                 </p>
