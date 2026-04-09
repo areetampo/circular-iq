@@ -614,6 +614,7 @@ export default function MyAssessmentsPage() {
           onTogglePublic={handleTogglePublic}
         />
 
+        {/* PAGINATION */}
         <div className="mt-6 flex flex-col items-center justify-center gap-3 p-0">
           <p className="text-sm text-(--color-text-muted)">
             Showing{' '}

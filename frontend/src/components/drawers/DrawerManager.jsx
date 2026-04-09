@@ -3,7 +3,6 @@ import {
   BusinessContextHeadingInfoDrawer,
   BusinessProblemInfoDrawer,
   BusinessSolutionInfoDrawer,
-  DashboardFeaturedSolutionsDrawer,
   EvaluationCriteriaDrawer,
   EvaluationParametersHeadingInfoDrawer,
   ResultsDatabaseEvidenceDetailsDrawer,
@@ -58,9 +57,6 @@ export default function DrawerManager() {
 
     case DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS:
       return <ResultsDatabaseEvidenceDetailsDrawer data={data || {}} />;
-
-    case DRAWERS.DASHBOARD_FEATURED_SOLUTIONS:
-      return <DashboardFeaturedSolutionsDrawer data={data || {}} />;
 
     default:
       logger.warn('Unknown drawer type:', type);

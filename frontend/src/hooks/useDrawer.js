@@ -72,8 +72,5 @@ export default function useDrawer() {
 
     openResultsDatabaseEvidenceDetailsDrawer: (evidenceData) =>
       openDrawer(DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS, evidenceData),
-
-    openDashboardFeaturedSolutionsDrawer: (data) =>
-      openDrawer(DRAWERS.DASHBOARD_FEATURED_SOLUTIONS, data),
   };
 }

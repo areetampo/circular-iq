@@ -134,7 +134,6 @@ frontend/src/
 │   │   └── README.md         # Comprehensive dialog system documentation
 │   │
 │   ├── drawers/
-│   │   ├── DashboardFeaturedSolutionsDrawer.jsx      # Bulk solutions browse grouped by category
 │   │   ├── ResultsDatabaseEvidenceDetailsDrawer.jsx  # Single case full detail view
 │   │   ├── AssessmentMethodologyDrawer.jsx
 │   │   ├── BusinessContextHeadingInfoDrawer.jsx
@@ -1142,7 +1141,7 @@ const label = EVALUATION_PARAMETERS.resource_efficiency.label;
 - **Common**: Button, Brand, Switch, ErrorDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, ChartWrapper
 - **Charts**: BarChart, LineChart, PieChart, RadarChart
 - **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, ResultsRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
-- **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, DashboardFeaturedSolutionsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases
+- **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases
 - **Layout**: Navbar, Header, Footer, AppContainer
 - **Auth**: LoginForm, SignupForm
 - **Export**: ExportActions

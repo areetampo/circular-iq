@@ -1,5 +1,4 @@
-import { Label } from '@heroui/react';
-import { BarChart3, ChevronRight, Globe, Lightbulb, RefreshCw, Search, X } from 'lucide-react';
+import { Globe, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,14 +29,7 @@ import {
 import { chartTheme } from '@/utils/chartTheme';
 import { cn } from '@/utils/cn';
 
-import {
-  ChartPanel,
-  EmptyChart,
-  SectionDivider,
-  SingleValueChart,
-  SolutionCard,
-  StatCard,
-} from './components';
+import { ChartPanel, EmptyChart, SectionDivider, SingleValueChart, StatCard } from './components';
 
 // Material colors for pie chart
 const MATERIAL_COLORS = [
@@ -55,8 +47,7 @@ const MATERIAL_COLORS = [
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { openDashboardFeaturedSolutionsDrawer, openResultsDatabaseEvidenceDetailsDrawer } =
-    useGlobalDrawer();
+  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   // Timestamp for "Updated at" display
   const [updatedAt, setUpdatedAt] = useState(new Date());
@@ -281,7 +272,78 @@ export default function DashboardPage() {
       </div>
 
       {/* ════════════════════════════════════════════════════════════════════
-          SECTION 1 — GLOBAL ACTIVITY
+          SECTION 1 — SEARCH SOLUTIONS
+          ════════════════════════════════════════════════════════════════════ */}
+      <section>
+        <SectionDivider label="SEARCH SOLUTIONS" />
+        WIP
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 2 — KNOWLEDGE DATABSE STATS
+          ════════════════════════════════════════════════════════════════════ */}
+      <section>
+        <SectionDivider label="KNOWLEDGE DATABASE STATS" />
+
+        {/* Doc stats */}
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            title="Total Documents"
+            value={totalDocs?.toLocaleString()}
+            loading={docLoading}
+          />
+          <StatCard title="Industries" value={docStats?.byIndustry?.length} loading={docLoading} />
+          <StatCard title="Sources" value={docStats?.bySources?.length} loading={docLoading} />
+          <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
+        </div>
+
+        <div className="space-y-8">
+          {/* Doc distribution charts — each full width */}
+          {!docLoading && docStats && (
+            <>
+              <ChartPanel
+                title="Documents by Industry"
+                isLoading={docLoading}
+                chartHeight="230px"
+                className="mb-4"
+              >
+                {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
+                  <BarChart
+                    data={transformIndustryDistribution(docStats.byIndustry)}
+                    xAxisKey="name"
+                    barConfigs={[
+                      { dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' },
+                    ]}
+                    height={230}
+                    showGrid
+                  />
+                ) : (
+                  <EmptyChart />
+                )}
+              </ChartPanel>
+
+              <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="230px">
+                {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
+                  <BarChart
+                    data={transformMaterialDistribution(docStats.byMaterial)}
+                    xAxisKey="name"
+                    barConfigs={[
+                      { dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' },
+                    ]}
+                    height={230}
+                    showGrid
+                  />
+                ) : (
+                  <EmptyChart />
+                )}
+              </ChartPanel>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════════════════
+          SECTION 3 — GLOBAL ACTIVITY
           ════════════════════════════════════════════════════════════════════ */}
       <section>
         <SectionDivider label="GLOBAL ACTIVITY" />
@@ -453,7 +515,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════
-          SECTION 2 — BENCHMARK INTELLIGENCE
+          SECTION 4 — BENCHMARK INTELLIGENCE
           ════════════════════════════════════════════════════════════════════ */}
       {(globalLoading || marketTableRows.length > 0) && (
         <section>
@@ -517,216 +579,7 @@ export default function DashboardPage() {
       )}
 
       {/* ════════════════════════════════════════════════════════════════════
-          SECTION 3 — KNOWLEDGE BASE
-          ════════════════════════════════════════════════════════════════════ */}
-      <section>
-        <SectionDivider label="KNOWLEDGE DATABASE" />
-
-        {/* Doc stats */}
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard
-            title="Total Documents"
-            value={totalDocs?.toLocaleString()}
-            loading={docLoading}
-          />
-          <StatCard title="Industries" value={docStats?.byIndustry?.length} loading={docLoading} />
-          <StatCard title="Sources" value={docStats?.bySources?.length} loading={docLoading} />
-          <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
-        </div>
-
-        <div className="space-y-8">
-          {/* Doc distribution charts — each full width */}
-          {!docLoading && docStats && (
-            <>
-              <ChartPanel
-                title="Documents by Industry"
-                isLoading={docLoading}
-                chartHeight="230px"
-                className="mb-4"
-              >
-                {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
-                  <BarChart
-                    data={transformIndustryDistribution(docStats.byIndustry)}
-                    xAxisKey="name"
-                    barConfigs={[
-                      { dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' },
-                    ]}
-                    height={230}
-                    showGrid
-                  />
-                ) : (
-                  <EmptyChart />
-                )}
-              </ChartPanel>
-
-              <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="230px">
-                {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
-                  <BarChart
-                    data={transformMaterialDistribution(docStats.byMaterial)}
-                    xAxisKey="name"
-                    barConfigs={[
-                      { dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' },
-                    ]}
-                    height={230}
-                    showGrid
-                  />
-                ) : (
-                  <EmptyChart />
-                )}
-              </ChartPanel>
-            </>
-          )}
-
-          {/* Featured Solutions */}
-          <div className="overflow-hidden rounded-xl border-2 border-[rgba(180,160,130,0.25)] bg-transparent">
-            {/* Header + search */}
-            <div className="border-b-2 border-[rgba(180,160,130,0.18)] px-6 py-5">
-              <h3 className="mb-3 flex items-center gap-2.5 font-mono text-[1.25rem] font-semibold tracking-[-0.02em] text-(--color-text-primary)">
-                <Lightbulb size={16} className="text-(--color-accent)" />
-                Featured Solutions
-              </h3>
-              <p className="mb-4 text-[0.875rem] text-(--color-text-secondary)">
-                Explore successful circular economy projects and innovations
-              </p>
-              <div className="space-y-3">
-                {/* Search bar */}
-                <div className="flex items-center gap-2.5">
-                  <div className="relative flex-1">
-                    <Label htmlFor="solutions-search" className="sr-only">
-                      Search solutions
-                    </Label>
-                    <Search
-                      size={15}
-                      className="absolute top-1/2 left-3.5 -translate-y-1/2 text-(--color-text-muted)"
-                      aria-hidden="true"
-                    />
-                    <input
-                      id="solutions-search"
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                      placeholder="Search solutions..."
-                      className="w-full rounded-2xl border border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.6)] px-10 py-2 text-[0.8125rem] text-(--color-text-primary) transition-colors duration-150 focus:border-[rgba(184,145,106,0.4)] focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
-                      aria-label="Search featured solutions"
-                    />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={handleSearchClear}
-                        className="absolute top-1/2 right-3.5 -translate-y-1/2 text-(--color-text-muted)"
-                        aria-label="Clear search"
-                      >
-                        <X size={15} />
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleSearchSubmit}
-                    className="shrink-0 rounded-2xl bg-(--color-accent) px-4 py-2 text-[0.75rem] font-semibold text-white transition-colors"
-                  >
-                    Search
-                  </button>
-                </div>
-
-                {/* Category filters */}
-                {availableCategories.length > 1 && (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCategoryFilter(undefined)}
-                      className={cn(
-                        'rounded-xl border border-[rgba(180,160,130,0.25)] px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors',
-                        !categoryFilter
-                          ? 'bg-(--accent) text-white'
-                          : 'bg-[rgba(245,240,232,0.8)] text-(--color-text-muted)',
-                      )}
-                    >
-                      All
-                    </button>
-                    {availableCategories.map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setCategoryFilter(cat)}
-                        className={cn(
-                          'rounded-xl border border-[rgba(180,160,130,0.25)] px-3 py-1.5 text-[0.6875rem] font-semibold transition-colors',
-                          categoryFilter === cat
-                            ? 'bg-(--accent) text-white'
-                            : 'bg-[rgba(245,240,232,0.8)] text-(--color-text-muted)',
-                        )}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Solutions grid */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {featuredLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="space-y-3 rounded-[14px] border border-[rgba(180,160,130,0.25)] bg-transparent p-5"
-                    >
-                      <div className="h-5 w-3/4 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
-                      <div className="h-4 w-full animate-pulse rounded-md bg-[rgba(180,160,130,0.1)]" />
-                      <div className="h-4 w-2/3 animate-pulse rounded-md bg-[rgba(180,160,130,0.1)]" />
-                      <div className="h-6 w-12 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
-                    </div>
-                  ))
-                ) : filteredSolutions?.length > 0 ? (
-                  filteredSolutions.map((solution) => (
-                    <SolutionCard
-                      key={solution.id || solution.title}
-                      title={solution.title}
-                      preview={solution.solution || solution.problem || ''}
-                      category={solution.category}
-                      score={solution.score}
-                      onView={() => handleOpenSolution(solution)}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full flex h-40 flex-col items-center justify-center text-(--color-text-muted)">
-                    <BarChart3 size={32} strokeWidth={1} />
-                    <p className="mt-2 text-[0.8125rem] font-semibold">No solutions found</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="mt-5 flex items-center justify-between border-t border-[rgba(180,160,130,0.18)] pt-4 text-[0.75rem]">
-                <span className="text-(--color-text-muted)">
-                  Showing {filteredSolutions?.length ?? 0} solutions
-                </span>
-                {filteredSolutions?.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openDashboardFeaturedSolutionsDrawer({
-                        q: activeSearch,
-                        industry: industryFilter,
-                      })
-                    }
-                    className="flex items-center gap-1.5 font-semibold text-(--accent) transition-colors hover:text-(--color-text-primary)"
-                  >
-                    Explore all
-                    <ChevronRight size={13} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════════
-          SECTION 4 — YOUR ASSESSMENTS
+          SECTION 5 — YOUR ASSESSMENTS
           ════════════════════════════════════════════════════════════════════ */}
       <section>
         <SectionDivider label="YOUR ASSESSMENTS" />
