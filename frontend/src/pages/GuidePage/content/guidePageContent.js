@@ -296,11 +296,15 @@ export const SPECIFIC_EVALUATION_PARAMETERS = {
 export const GUIDE_PAGE_CONTENT = {
   overview: {
     methodologyItems: ASSESSMENT_METHODOLOGY_CONTENT.items,
+    intro:
+      'The Circular Economy Assessor evaluates your business idea against 40,000+ real-world case studies using a three-layer pipeline — from optional business context inputs through deterministic scoring to LLM-enriched insights. Use this guide to understand how to write strong submissions, interpret your scores, and get the most from the assessment.',
     layers: [
       {
         number: 1,
         name: 'Business Context',
         color: 'accent',
+        description:
+          'Optional structured inputs that calibrate the AI to your specific business stage and model.',
         outputs: [
           'Business Model Type',
           'Operational Stage',
@@ -314,6 +318,8 @@ export const GUIDE_PAGE_CONTENT = {
         number: 2,
         name: 'Deterministic Outputs',
         color: 'success',
+        description:
+          'Fully reproducible, no-LLM calculations run on every assessment regardless of AI availability.',
         outputs: [
           'Weighted Score Card',
           'CE Tier',
@@ -325,6 +331,8 @@ export const GUIDE_PAGE_CONTENT = {
         number: 3,
         name: 'Extended LLM Output',
         color: 'info',
+        description:
+          'GPT-4o-mini analysis grounded in your 3 closest knowledge-base matches, with evidence-based reasoning.',
         outputs: [
           'Improvement Roadmap',
           'SDG Alignment',
@@ -336,20 +344,32 @@ export const GUIDE_PAGE_CONTENT = {
     ],
   },
   businessProblem: {
+    subtitle:
+      'Describe the environmental or circular economy challenge your business addresses. The AI uses this to find semantically similar real-world cases and calibrate your score against them.',
+    intro:
+      'A strong problem statement is specific, quantified, and grounded in real-world data. Vague or generic descriptions will match poorly against the knowledge base and reduce scoring accuracy.',
     elements: BUSINESS_PROBLEM_CONTENT.elements,
     writingTips: BUSINESS_PROBLEM_CONTENT.writingTips,
     example: BUSINESS_PROBLEM_CONTENT.example,
   },
   businessSolution: {
+    subtitle:
+      "Explain how your business closes the loop — what materials you use, how they're processed, how they return to use, and what the economics look like.",
+    intro:
+      'The AI is looking for evidence of genuine circularity: closed loops, recovered materials re-entering the system, and quantifiable outcomes. The more specific and technical your description, the more accurate the comparison to real-world benchmarks.',
     components: BUSINESS_SOLUTION_CONTENT.components,
     pitfalls: BUSINESS_SOLUTION_CONTENT.pitfalls,
     proTips: BUSINESS_SOLUTION_CONTENT.proTips,
     example: BUSINESS_SOLUTION_CONTENT.example,
   },
   businessContext: {
+    intro:
+      'These optional fields improve AI calibration by providing structured context about your business, enabling stage-appropriate benchmarking and more precise recommendations. None are required, but each one you fill in sharpens the scoring.',
     fields: BUSINESS_CONTEXT_HEADING_CONTENT.fields,
   },
   evaluationCriteria: {
+    intro:
+      'Your submission is assessed across three value dimensions, each containing specific factors. The AI analyses your business description against each factor independently, then combines them into a weighted overall circularity score.',
     metrics: EVALUATION_CRITERIA_CONTENT.metrics,
     valueSections: [
       {
@@ -377,9 +397,13 @@ export const GUIDE_PAGE_CONTENT = {
     calculationSteps: EVALUATION_CRITERIA_CONTENT.calculationSteps,
   },
   evaluationParameters: {
+    intro:
+      'Each parameter is scored 0–100 and weighted according to its importance in circular economy success. Click any card to jump to the full scoring guide for that parameter, including the 5-level scale and real-world example cases.',
     parameters: parameterGuidance,
   },
   sampleTestCases: {
+    intro:
+      'The platform includes pre-filled assessment submissions based on real circular economy business models. Loading one populates the entire form so you can see exactly what a strong submission looks like before writing your own.',
     description: SAMPLE_TEST_CASES_HEADING_CONTENT.description,
     benefits: SAMPLE_TEST_CASES_HEADING_CONTENT.benefits,
     steps: SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.steps,
