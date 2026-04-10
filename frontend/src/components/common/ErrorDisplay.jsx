@@ -95,7 +95,12 @@ export default function ErrorDisplay({
 
   const allActions = [...actions, ...defaultActions];
 
-  const errorDetailsMsg = typeof errorDetails === 'string' ? errorDetails : errorDetails.toString();
+  const errorDetailsMsg =
+    errorDetails instanceof Error
+      ? errorDetails.stack || errorDetails.message
+      : typeof errorDetails === 'object'
+        ? JSON.stringify(errorDetails, null, 2) // Pretty-print if it's a standard object
+        : String(errorDetails);
 
   return (
     <div
@@ -161,7 +166,7 @@ export default function ErrorDisplay({
                 className="-ml-1"
               />
             </div>
-            <pre className="max-h-32 overflow-x-auto text-xs break-all whitespace-pre-wrap text-(--color-danger)">
+            <pre className="scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-[var(--color-danger)]/30 scrollbar-track-transparent /* Standard CSS arbitrary values for Chrome/Safari */ mt-2 max-h-48 overflow-auto font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap text-(--color-danger) [&::-webkit-scrollbar]:w-1! [&::-webkit-scrollbar-thumb]:rounded-full! [&::-webkit-scrollbar-thumb]:bg-(--color-danger)/20! hover:[&::-webkit-scrollbar-thumb]:bg-(--color-danger)/40!">
               {errorDetailsMsg}
             </pre>
           </div>
