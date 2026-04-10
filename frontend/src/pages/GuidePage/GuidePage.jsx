@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-import { GUIDE_PAGE_CONTENT } from '@/constants/drawers/GuidePageContent';
 import { cn } from '@/utils/cn';
+import { GUIDE_PAGE_CONTENT } from './content';
 
 // Navigation sections
 const SECTIONS = [

@@ -2,6 +2,7 @@
  * GuidePage content exports
  */
 
+// Original exports
 export {
   CALCULATION_STEPS,
   FACTOR_DEFINITIONS,
@@ -12,4 +13,18 @@ export {
   SOLUTION_COMPONENTS,
   SOLUTION_EXAMPLE,
   SOLUTION_PITFALLS,
+} from './guidePageContent';
+
+// Transferred content from drawers
+export {
+  ASSESSMENT_METHODOLOGY,
+  BUSINESS_CONTEXT,
+  BUSINESS_PROBLEM,
+  BUSINESS_SOLUTION,
+  EVALUATION_CRITERIA,
+  EVALUATION_PARAMETERS,
+  GUIDE_PAGE_CONTENT,
+  parameterGuidance,
+  SAMPLE_TEST_CASES,
+  SPECIFIC_EVALUATION_PARAMETERS,
 } from './guidePageContent';
