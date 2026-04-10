@@ -294,14 +294,97 @@ export const SPECIFIC_EVALUATION_PARAMETERS = {
 
 // Export all content as a single bundle for easy importing
 export const GUIDE_PAGE_CONTENT = {
-  assessmentMethodology: ASSESSMENT_METHODOLOGY,
-  businessProblem: BUSINESS_PROBLEM,
-  businessSolution: BUSINESS_SOLUTION,
-  evaluationCriteria: EVALUATION_CRITERIA,
-  evaluationParameters: EVALUATION_PARAMETERS,
-  sampleTestCases: SAMPLE_TEST_CASES,
-  businessContext: BUSINESS_CONTEXT,
-  specificEvaluationParameters: SPECIFIC_EVALUATION_PARAMETERS,
+  overview: {
+    methodologyItems: ASSESSMENT_METHODOLOGY_CONTENT.items,
+    layers: [
+      {
+        number: 1,
+        name: 'Business Context',
+        color: 'accent',
+        outputs: [
+          'Business Model Type',
+          'Operational Stage',
+          'Target Geography',
+          'Annual Volume',
+          'Material Complexity',
+          'Existing Partnerships',
+        ],
+      },
+      {
+        number: 2,
+        name: 'Deterministic Outputs',
+        color: 'success',
+        outputs: [
+          'Weighted Score Card',
+          'CE Tier',
+          'Parameter Consistency',
+          'R-Strategy Alignment',
+        ],
+      },
+      {
+        number: 3,
+        name: 'Extended LLM Output',
+        color: 'info',
+        outputs: [
+          'Improvement Roadmap',
+          'SDG Alignment',
+          'Market Opportunity',
+          'Audit Verdict',
+          'Similar Cases',
+        ],
+      },
+    ],
+  },
+  businessProblem: {
+    elements: BUSINESS_PROBLEM_CONTENT.elements,
+    writingTips: BUSINESS_PROBLEM_CONTENT.writingTips,
+    example: BUSINESS_PROBLEM_CONTENT.example,
+  },
+  businessSolution: {
+    components: BUSINESS_SOLUTION_CONTENT.components,
+    pitfalls: BUSINESS_SOLUTION_CONTENT.pitfalls,
+    proTips: BUSINESS_SOLUTION_CONTENT.proTips,
+    example: BUSINESS_SOLUTION_CONTENT.example,
+  },
+  businessContext: {
+    fields: BUSINESS_CONTEXT_HEADING_CONTENT.fields,
+  },
+  evaluationCriteria: {
+    metrics: EVALUATION_CRITERIA_CONTENT.metrics,
+    valueSections: [
+      {
+        id: 'access-value',
+        title: 'Access Value',
+        color: 'info',
+        description: 'Social participation and infrastructure accessibility',
+        paramKeys: ['public_participation', 'infrastructure'],
+      },
+      {
+        id: 'embedded-value',
+        title: 'Embedded Value',
+        color: 'success',
+        description: 'Economic worth and technical integration',
+        paramKeys: ['market_price', 'maintenance', 'uniqueness'],
+      },
+      {
+        id: 'processing-value',
+        title: 'Processing Value',
+        color: 'accent',
+        description: 'Environmental efficiency and technical readiness',
+        paramKeys: ['size_efficiency', 'chemical_safety', 'tech_readiness'],
+      },
+    ],
+    calculationSteps: EVALUATION_CRITERIA_CONTENT.calculationSteps,
+  },
+  evaluationParameters: {
+    parameters: parameterGuidance,
+  },
+  sampleTestCases: {
+    description: SAMPLE_TEST_CASES_HEADING_CONTENT.description,
+    benefits: SAMPLE_TEST_CASES_HEADING_CONTENT.benefits,
+    steps: SAMPLE_TEST_CASES_HEADING_CONTENT.sections.howTheyWork.steps,
+    tip: SAMPLE_TEST_CASES_HEADING_CONTENT.sections.tip,
+  },
 };
 
 // Export parameter guidance for direct access

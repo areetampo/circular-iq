@@ -24,7 +24,7 @@ export {
   EVALUATION_CRITERIA,
   EVALUATION_PARAMETERS,
   GUIDE_PAGE_CONTENT,
-  parameterGuidance,
   SAMPLE_TEST_CASES,
   SPECIFIC_EVALUATION_PARAMETERS,
+  parameterGuidance,
 } from './guidePageContent';
