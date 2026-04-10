@@ -193,7 +193,7 @@ export default [
       'better-tailwindcss/no-deprecated-classes': 'warn', // warning to fix later
       'better-tailwindcss/no-conflicting-classes': 'warn',
       'better-tailwindcss/enforce-consistent-class-order': 'off',
-      'better-tailwindcss/enforce-canonical-classes': 'off',
+      'better-tailwindcss/enforce-canonical-classes': 'warn',
       'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
     },
     settings: {

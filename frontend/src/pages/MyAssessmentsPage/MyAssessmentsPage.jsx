@@ -474,7 +474,7 @@ export default function MyAssessmentsPage() {
           {/* Search input skeleton */}
           <div className="relative">
             <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
-              <Skeleton animationType="shimmer" className="h-4 w-4 rounded-sm" />
+              <Skeleton animationType="shimmer" className="size-4 rounded-sm" />
             </div>
             <Skeleton
               animationType="shimmer"

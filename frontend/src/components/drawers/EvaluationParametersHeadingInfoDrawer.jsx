@@ -1,10 +1,33 @@
 import { Drawer } from '@heroui/react';
-import { BookCheck, ClipboardMinus } from 'lucide-react';
+import {
+  BookCheck,
+  Building,
+  ClipboardMinus,
+  Cpu,
+  DollarSign,
+  Package,
+  Shield,
+  Sparkles,
+  Users,
+  Wrench,
+} from 'lucide-react';
 
 import { EVALUATION_PARAMETERS_HEADING_CONTENT } from '@/constants/drawers';
 import { factorDefinitions } from '@/constants/evaluationData';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+
+// Icon mapping for each factor
+const FACTOR_ICONS = {
+  public_participation: Users,
+  infrastructure: Building,
+  market_price: DollarSign,
+  maintenance: Wrench,
+  uniqueness: Sparkles,
+  size_efficiency: Package,
+  chemical_safety: Shield,
+  tech_readiness: Cpu,
+};
 
 export default function EvaluationParametersHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -44,17 +67,29 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.description}
                 </p>
 
-                {Object.entries(factorDefinitions).map(([key, factor]) => (
-                  <div
-                    key={key}
-                    className="group/card relative flex min-w-0 cursor-default flex-col items-start gap-0.5 rounded-xl bg-(--color-success-light) transition-colors duration-300 ease-out select-none"
-                  >
-                    <span className="text-sm/snug font-medium text-(--color-text-primary)">
-                      {factor.title}
-                    </span>
-                    <span className="text-xs/relaxed text-(--color-text-muted)">{factor.desc}</span>
-                  </div>
-                ))}
+                {Object.entries(factorDefinitions).map(([key, factor]) => {
+                  const Icon = FACTOR_ICONS[key];
+                  return (
+                    <div
+                      key={key}
+                      className="group/card relative flex min-w-0 cursor-default flex-col items-start gap-0.5 rounded-xl bg-(--color-success-light) transition-colors duration-300 ease-out select-none"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon
+                          size={16}
+                          className="shrink-0 text-(--color-checkbox)/75"
+                          strokeWidth={2.5}
+                        />
+                        <span className="text-sm/snug font-medium text-(--color-text-primary)">
+                          {factor.title}
+                        </span>
+                      </div>
+                      <span className="text-sm/relaxed pl-6 text-(--color-text-muted)">
+                        {factor.desc}
+                      </span>
+                    </div>
+                  );
+                })}
 
                 <p className="rounded-xl bg-(--color-table-hover) px-3 py-2 text-[1rem] font-medium text-(--color-text-muted)">
                   {EVALUATION_PARAMETERS_HEADING_CONTENT.tip}

@@ -243,7 +243,7 @@ const OverviewSection = () => {
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
               <div
-                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold ${
+                className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold ${
                   layer.color === 'accent'
                     ? 'bg-(--color-accent) text-white'
                     : layer.color === 'success'
@@ -269,7 +269,7 @@ const OverviewSection = () => {
             </div>
           ))}
         </div>
-        <div className="mt-6 rounded-lg border border-(--color-warning-border) bg-(--color-warning-soft) px-4 py-3 text-sm text-(--color-text-secondary)">
+        <div className="mt-6 rounded-lg border border-(--color-warning-border) bg-warning-soft px-4 py-3 text-sm text-(--color-text-secondary)">
           <strong className="text-(--color-warning)">Note:</strong> This assessment is designed for
           constructive feedback during early-stage ideation. Scores reflect alignment with circular
           economy principles — use as guidance, not commercial validation.
@@ -409,7 +409,7 @@ const BusinessSolutionSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Common Pitfalls
         </h3>
-        <div className="space-y-2 rounded-lg border border-(--color-warning-border) bg-(--color-warning-soft) p-4">
+        <div className="space-y-2 rounded-lg border border-(--color-warning-border) bg-warning-soft p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-warning) uppercase">
             Common Pitfalls
           </p>
@@ -594,11 +594,11 @@ const EvaluationCriteriaSection = () => {
         <div className="hidden items-start gap-0 sm:flex">
           {GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.map((step, i) => (
             <div key={i} className="relative flex flex-1 flex-col items-center text-center">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-sm font-bold text-white">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-sm font-bold text-white">
                 {step.number}
               </div>
               {i < GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.length - 1 && (
-                <div className="absolute top-4 left-1/2 h-px w-full bg-(--color-border)" />
+                <div className="absolute top-4 left-1/2 h-px w-full bg-border" />
               )}
               <p className="mt-3 mb-1 text-sm font-semibold text-(--color-text-primary)">
                 {step.title}
@@ -611,7 +611,7 @@ const EvaluationCriteriaSection = () => {
         <div className="space-y-4 sm:hidden">
           {GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.map((step) => (
             <div key={step.number} className="flex items-start gap-3">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-sm font-bold text-white">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-sm font-bold text-white">
                 {step.number}
               </div>
               <div>
@@ -825,7 +825,7 @@ const SampleTestCasesSection = () => {
               key={step.num}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-(--color-border) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
                 {step.num}
               </div>
               <div>
@@ -912,7 +912,7 @@ export default function GuidePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center">
             <h1 className="font-display text-xl font-bold text-(--color-text-primary)">
-              Circular Economy Assessment Guide
+              Circular Economy Evaluation Guide
             </h1>
           </div>
         </div>

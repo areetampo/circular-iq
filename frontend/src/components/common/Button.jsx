@@ -11,9 +11,9 @@ const Spinner = ({ size = 'sm', color = 'current' }) => (
   <svg
     className={cn(
       'animate-spin',
-      size === 'sm' && 'h-4 w-4',
-      size === 'md' && 'h-5 w-5',
-      size === 'lg' && 'h-6 w-6',
+      size === 'sm' && 'size-4',
+      size === 'md' && 'size-5',
+      size === 'lg' && 'size-6',
     )}
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -154,7 +154,7 @@ export const Button = forwardRef(function Button(
   };
 
   const baseClasses = cn(
-    'transition-colors duration-150 rounded-lg font-[var(--font-sans)] inline-flex items-center justify-center gap-2 outline-none cursor-pointer',
+    'transition-colors duration-150 rounded-lg font-sans inline-flex items-center justify-center gap-2 outline-none cursor-pointer',
     variantStyles[variant] || variantStyles.primary,
     resolvedSize,
     isButtonDisabled && 'pointer-events-none cursor-not-allowed opacity-50',

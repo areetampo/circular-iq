@@ -39,7 +39,7 @@ export default function HeroSection({
                   <p className="mb-2 text-[1.75rem] leading-none font-medium text-(--color-text-primary)">
                     {value}
                   </p>
-                  <p className="text-xs leading-snug whitespace-pre-line text-(--color-text-muted)">
+                  <p className="text-xs/snug whitespace-pre-line text-(--color-text-muted)">
                     {label}
                   </p>
                 </div>

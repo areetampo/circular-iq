@@ -1,5 +1,5 @@
 import { Drawer } from '@heroui/react';
-import { Lightbulb, Target } from 'lucide-react';
+import { Lightbulb, MoveRight, Target } from 'lucide-react';
 
 import { BUSINESS_CONTEXT_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
@@ -48,11 +48,11 @@ export default function BusinessContextHeadingInfoDrawer() {
                   tailored to your specific situation.
                 </p>
 
-                <div className="my-3 rounded-xl bg-(--color-bg-card) p-4 text-sm/relaxed text-(--color-text-secondary)">
+                <div className="rounded-xl bg-(--color-bg-card) text-sm/relaxed text-(--color-text-secondary)">
                   <h4 className="mb-4 text-base font-medium text-(--color-warning)">
                     Context Fields
                   </h4>
-                  <div className="space-y-6">
+                  <div className="space-y-6 pl-2">
                     {BUSINESS_CONTEXT_HEADING_CONTENT.fields.map((field, idx) => (
                       <div
                         key={idx}
@@ -65,14 +65,15 @@ export default function BusinessContextHeadingInfoDrawer() {
                           {field.description}
                         </span>
                         <span className="mt-1 text-xs/relaxed text-(--color-warning)">
-                          → {field.hint}
+                          <MoveRight className="mr-1 inline" size={14} strokeWidth={2} />{' '}
+                          {field.hint}
                         </span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="my-3 flex items-center gap-2 rounded-xl bg-(--color-warning-light) p-3 text-xs/relaxed text-(--color-warning)">
+                <div className="my-3 flex items-center gap-2 rounded-xl bg-(--color-warning-light) text-xs/relaxed text-(--color-warning)">
                   <Lightbulb
                     className="shrink-0 text-(--color-warning)"
                     strokeWidth={2}
