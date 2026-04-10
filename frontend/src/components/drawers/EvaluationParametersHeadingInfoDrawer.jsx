@@ -84,7 +84,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                           {factor.title}
                         </span>
                       </div>
-                      <span className="text-sm/relaxed pl-6 text-(--color-text-muted)">
+                      <span className="pl-6 text-sm/relaxed text-(--color-text-muted)">
                         {factor.desc}
                       </span>
                     </div>

@@ -129,7 +129,7 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
   };
 
   return (
-    <div className="sticky top-14 z-20 border-b border-(--color-border) bg-(--color-bg) lg:hidden">
+    <div className="sticky top-14 z-20 border-b border-(--color-border-ui) bg-(--color-bg) lg:hidden">
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-(--color-text-primary)"
@@ -138,7 +138,7 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
         {mobileOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {mobileOpen && (
-        <div className="border-t border-(--color-border) bg-(--color-bg) px-4 py-2">
+        <div className="border-t border-(--color-border-ui) bg-(--color-bg) px-4 py-2">
           {NAV_TREE.map((section) => (
             <React.Fragment key={section.id}>
               <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
@@ -162,7 +162,7 @@ const DesktopNav = ({ activeId, onNavigate }) => {
       <div className="sticky top-20">
         <p className="label-overline mb-3">On this page</p>
         <ScrollShadow className="max-h-[calc(100vh-6rem)]">
-          <div className="border-l border-(--color-border)">
+          <div className="border-l border-(--color-border-ui)">
             {NAV_TREE.map((section) => (
               <React.Fragment key={section.id}>
                 <NavItem item={section} level="top" activeId={activeId} onNavigate={onNavigate} />
@@ -189,7 +189,7 @@ const OverviewSection = () => {
   return (
     <section
       id="overview"
-      className="scroll-mt-24 border-t border-(--color-border) py-14 first:border-t-0"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14 first:border-t-0"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">Overview</h2>
       <p className="mb-8 text-sm text-(--color-text-muted)">
@@ -282,7 +282,10 @@ const OverviewSection = () => {
 // Business Problem Section
 const BusinessProblemSection = () => {
   return (
-    <section id="business-problem" className="scroll-mt-24 border-t border-(--color-border) py-14">
+    <section
+      id="business-problem"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+    >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Business Problem
       </h2>
@@ -308,7 +311,7 @@ const BusinessProblemSection = () => {
               key={idx}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="mt-0.5 shrink-0 rounded-md bg-(--color-success-soft) p-1.5">
+              <div className="mt-0.5 shrink-0 rounded-md bg-(--color-success-soft-ui) p-1.5">
                 <CheckSquare className="size-3.5 text-(--color-success)" />
               </div>
               <div>
@@ -326,7 +329,7 @@ const BusinessProblemSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Writing Tips
         </h3>
-        <div className="rounded-lg border border-(--color-info)/20 bg-(--color-info-soft) p-4">
+        <div className="rounded-lg border border-(--color-info)/20 bg-(--color-info-soft-ui) p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-info) uppercase">
             Writing Tips
           </p>
@@ -371,7 +374,10 @@ const BusinessProblemSection = () => {
 // Business Solution Section
 const BusinessSolutionSection = () => {
   return (
-    <section id="business-solution" className="scroll-mt-24 border-t border-(--color-border) py-14">
+    <section
+      id="business-solution"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+    >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Business Solution
       </h2>
@@ -394,7 +400,7 @@ const BusinessSolutionSection = () => {
           {GUIDE_PAGE_CONTENT.businessSolution.components.map(({ title, description }) => (
             <div
               key={title}
-              className="rounded-lg border border-(--color-border) bg-(--color-surface-raised) p-3"
+              className="rounded-lg border border-(--color-border-ui) bg-(--color-surface-raised) p-3"
             >
               <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{title}</p>
               <p className="text-xs text-(--color-text-muted)">{description}</p>
@@ -435,7 +441,7 @@ const BusinessSolutionSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Pro Tips
         </h3>
-        <div className="space-y-2 rounded-lg border border-(--color-success-border) bg-(--color-success-soft) p-4">
+        <div className="space-y-2 rounded-lg border border-(--color-success-border) bg-(--color-success-soft-ui) p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-success) uppercase">
             Pro Tips
           </p>
@@ -473,7 +479,10 @@ const BusinessSolutionSection = () => {
 // Business Context Section
 const BusinessContextSection = () => {
   return (
-    <section id="business-context" className="scroll-mt-24 border-t border-(--color-border) py-14">
+    <section
+      id="business-context"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+    >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Business Context
       </h2>
@@ -518,7 +527,7 @@ const EvaluationCriteriaSection = () => {
   return (
     <section
       id="evaluation-criteria"
-      className="scroll-mt-24 border-t border-(--color-border) py-14"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Evaluation Criteria
@@ -552,10 +561,10 @@ const EvaluationCriteriaSection = () => {
             <span
               className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                 section.color === 'info'
-                  ? 'bg-(--color-info-soft) text-(--color-info)'
+                  ? 'bg-(--color-info-soft-ui) text-(--color-info)'
                   : section.color === 'success'
-                    ? 'bg-(--color-success-soft) text-(--color-success)'
-                    : 'bg-(--color-accent-soft) text-(--color-accent)'
+                    ? 'bg-(--color-success-soft-ui) text-(--color-success)'
+                    : 'bg-(--color-accent-soft-ui) text-(--color-accent)'
               }`}
             >
               {section.paramKeys.length} factors
@@ -569,7 +578,7 @@ const EvaluationCriteriaSection = () => {
               return (
                 <div
                   key={key}
-                  className="rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4"
+                  className="rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
                 >
                   <div className="mb-1 flex items-start justify-between gap-2">
                     <p className="text-sm font-semibold text-(--color-text-primary)">
@@ -633,7 +642,7 @@ const EvaluationParametersSection = () => {
   return (
     <section
       id="evaluation-parameters"
-      className="scroll-mt-24 border-t border-(--color-border) py-14"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Evaluation Parameters
@@ -659,7 +668,7 @@ const EvaluationParametersSection = () => {
               <div
                 key={key}
                 className={cn(
-                  'card-lift cursor-pointer rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4 transition-colors hover:border-(--color-accent)',
+                  'card-lift cursor-pointer rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4 transition-colors hover:border-(--color-accent)',
                   PARAM_CATEGORY_BORDER[key],
                 )}
                 onClick={() =>
@@ -682,7 +691,7 @@ const EvaluationParametersSection = () => {
       {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.parameters).map(([key, param]) => (
         <div key={key} className="mt-8">
           <div id={`param-${key}`} className="h-0 scroll-mt-24" aria-hidden="true" />
-          <div className="overflow-hidden rounded-xl border border-(--color-border)">
+          <div className="overflow-hidden rounded-xl border border-(--color-border-ui)">
             <Accordion allowsMultipleExpanded>
               <Accordion.Item key={key}>
                 <Accordion.Heading>
@@ -785,7 +794,10 @@ const EvaluationParametersSection = () => {
 // Sample Test Cases Section
 const SampleTestCasesSection = () => {
   return (
-    <section id="sample-test-cases" className="scroll-mt-24 border-t border-(--color-border) py-14">
+    <section
+      id="sample-test-cases"
+      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+    >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Sample Test Cases
       </h2>
@@ -825,7 +837,7 @@ const SampleTestCasesSection = () => {
               key={step.num}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
                 {step.num}
               </div>
               <div>
@@ -908,7 +920,7 @@ export default function GuidePage() {
   return (
     <div className="min-h-screen bg-(--color-bg)">
       {/* Page header */}
-      <div className="sticky top-0 z-30 border-b border-(--color-border) bg-(--color-bg)/95 backdrop-blur-sm">
+      <div className="sticky top-0 z-30 border-b border-(--color-border-ui) bg-(--color-bg)/95 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center">
             <h1 className="font-display text-xl font-bold text-(--color-text-primary)">

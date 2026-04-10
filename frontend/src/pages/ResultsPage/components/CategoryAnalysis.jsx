@@ -14,7 +14,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
   };
 
   return (
-    <div className="rounded-3xl border-2 border-(--color-border) bg-transparent">
+    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
       <div className="p-1 sm:p-3">
         <SectionHeading variant="large">Category Analysis</SectionHeading>
         <p className="-mt-4 mb-4 pl-2 text-sm text-(--color-text-muted)">

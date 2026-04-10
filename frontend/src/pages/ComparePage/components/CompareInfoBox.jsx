@@ -2,7 +2,7 @@ import { AlertCircle } from 'lucide-react';
 
 export default function CompareInfoBox() {
   return (
-    <div className="mt-12 rounded-lg border border-(--color-info) bg-(--color-info-soft) p-6">
+    <div className="mt-12 rounded-lg border border-(--color-info) bg-(--color-info-soft-ui) p-6">
       <div className="flex gap-3">
         <AlertCircle size={20} className="mt-0.5 shrink-0 text-(--color-info)" />
         <div className="text-sm text-(--color-info)">

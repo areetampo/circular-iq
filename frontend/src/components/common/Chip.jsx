@@ -110,7 +110,7 @@ const getColorOverrides = (variant, color, active) => {
   if (variant === 'filter') {
     return active
       ? 'border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent-light)]'
-      : 'border-(--color-border) text-[var(--color-text-muted)] bg-transparent';
+      : 'border-(--color-border-ui) text-[var(--color-text-muted)] bg-transparent';
   }
 
   if (variant === 'access-type') {
@@ -120,7 +120,7 @@ const getColorOverrides = (variant, color, active) => {
       case 'private':
         return 'bg-[#ffe8e8] text-[#a52a2a]/70 border-[#a52a2a]/20';
       default:
-        return 'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border)]';
+        return 'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border-ui)]';
     }
   }
 

@@ -86,7 +86,7 @@ export default function BusinessProblemInfoDrawer() {
                   </div>
                 </div>
 
-                <div className="my-6 space-y-2 rounded-lg border border-(--color-success-border) bg-(--color-info-soft) p-4 text-sm text-(--color-text-secondary)">
+                <div className="my-6 space-y-2 rounded-lg border border-(--color-success-border) bg-(--color-info-soft-ui) p-4 text-sm text-(--color-text-secondary)">
                   <p className="mb-3 text-xs font-bold tracking-wider text-(--color-success) uppercase">
                     Writing Tips
                   </p>
@@ -114,7 +114,7 @@ export default function BusinessProblemInfoDrawer() {
                   </p>
                 </div>
 
-                <div className="mt-6 flex items-start gap-3 rounded-lg bg-(--color-info-soft) p-2">
+                <div className="mt-6 flex items-start gap-3 rounded-lg bg-(--color-info-soft-ui) p-2">
                   <Info className="mt-0.5 size-4 shrink-0 text-(--color-info)" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-(--color-text-primary)">

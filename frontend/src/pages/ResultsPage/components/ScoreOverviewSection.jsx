@@ -100,7 +100,7 @@ export function ScoreOverviewSection({
             data && (
               <div
                 key={title}
-                className="rounded-xl border-2 border-(--color-border) bg-transparent p-4"
+                className="rounded-xl border-2 border-(--color-border-ui) bg-transparent p-4"
               >
                 <div className="mb-1 text-sm font-semibold tracking-widest text-(--color-text-muted) uppercase">
                   {title}

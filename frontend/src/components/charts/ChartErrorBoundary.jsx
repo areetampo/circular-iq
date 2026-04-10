@@ -53,7 +53,7 @@ class ChartErrorBoundary extends Component {
 
       return (
         <div
-          className={`flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-(--color-border) bg-[rgba(245,240,232,0.5)] p-6 ${className || ''}`}
+          className={`flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-(--color-border-ui) bg-[rgba(245,240,232,0.5)] p-6 ${className || ''}`}
           style={{ height: height }}
         >
           <div className="text-center">

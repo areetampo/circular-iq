@@ -10,7 +10,7 @@ import { titleize } from '@/lib/formatting';
 function AccordionItem({ id, icon, iconColor, title, description, children }) {
   return (
     <Accordion.Item id={id}>
-      <Accordion.Heading className="border-b-2 border-(--color-border)">
+      <Accordion.Heading className="border-b-2 border-(--color-border-ui)">
         <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
           <div className="flex items-center gap-3">
             {React.createElement(icon, { size: 20, className: `text-${iconColor}` })}

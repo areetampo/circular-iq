@@ -64,7 +64,7 @@ function ChartTooltipContent({
 
   return (
     <div
-      className={`min-w-30 rounded-lg border border-(--color-border) bg-[rgba(247,243,237,0.97)] p-2 font-mono text-xs text-[#1a1510] shadow-sm ${className || ''}`}
+      className={`min-w-30 rounded-lg border border-(--color-border-ui) bg-[rgba(247,243,237,0.97)] p-2 font-mono text-xs text-[#1a1510] shadow-sm ${className || ''}`}
     >
       {!hideLabel && label && (
         <p className="mb-1 text-[11px] leading-tight font-semibold text-[#5a4f42]">

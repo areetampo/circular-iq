@@ -5,7 +5,7 @@ import { Chip } from '@/components/common';
 function SolutionCard({ title, preview, category, score, onView }) {
   return (
     <div
-      className="cursor-pointer rounded-[14px] border border-(--color-border) bg-transparent p-5 transition-colors hover:border-[rgba(184,145,106,0.4)]"
+      className="cursor-pointer rounded-[14px] border border-(--color-border-ui) bg-transparent p-5 transition-colors hover:border-[rgba(184,145,106,0.4)]"
       onClick={onView}
     >
       {/* Title - no truncation, let it wrap to 2 lines max */}

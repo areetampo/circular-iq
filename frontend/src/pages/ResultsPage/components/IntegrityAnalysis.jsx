@@ -18,7 +18,7 @@ export function IntegrityAnalysis({ strengths, gaps }) {
   };
 
   return (
-    <div className="rounded-3xl border-2 border-(--color-border) bg-transparent">
+    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
       <div className="p-2 sm:p-4">
         <SectionHeading variant="small" className="mb-1">
           Integrity Analysis

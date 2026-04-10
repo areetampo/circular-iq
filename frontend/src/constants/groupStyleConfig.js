@@ -32,7 +32,7 @@ export const DEFAULT_CONFIG = {
   Icon: Cpu,
   iconColor: 'text-(--color-text-muted)',
   subtitle: '',
-  paramBg: 'bg-(--color-accent-soft)',
+  paramBg: 'bg-(--color-accent-soft-ui)',
   paramTextColor: 'text-(--color-text-secondary)',
-  paramBorder: 'border-(--color-border)',
+  paramBorder: 'border-(--color-border-ui)',
 };

@@ -64,7 +64,7 @@ const variantStyles = {
   ].join(' '),
   'results-action': [
     'bg-transparent text-[var(--color-text-secondary)]',
-    'border-[1.5px] border-[var(--color-border)]',
+    'border-[1.5px] border-[var(--color-border-ui)]',
     'hover:bg-[var(--color-accent-light)]',
     'text-xs tracking-wide uppercase',
     'transition-colors duration-150',
@@ -82,7 +82,7 @@ const variantStyles = {
   ].join(' '),
   'eco-soft': [
     'bg-transparent text-[var(--color-accent)]',
-    'border border-[var(--color-border)]',
+    'border border-[var(--color-border-ui)]',
     'hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-light)]',
     'text-xs',
     'transition-colors duration-150',
@@ -95,7 +95,7 @@ const variantStyles = {
   ].join(' '),
   'neutral-soft': [
     'bg-transparent text-[var(--color-text-secondary)]',
-    'border border-[var(--color-border)]',
+    'border border-[var(--color-border-ui)]',
     'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
     'transition-colors duration-150',
   ].join(' '),
