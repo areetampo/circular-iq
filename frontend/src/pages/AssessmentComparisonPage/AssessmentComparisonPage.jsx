@@ -1,5 +1,5 @@
-import { toast } from '@heroui/react';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { toast, Tooltip } from '@heroui/react';
+import { ArrowLeft, ExternalLink, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -141,15 +141,51 @@ export default function AssessmentComparisonPage() {
     return '--color-error';
   };
 
+  // Reusable heading component with external link
+  const AssessmentTitleWithLink = ({ assessment, publicId, isRightAligned = false }) => (
+    <div className={`flex items-center gap-2 ${isRightAligned ? 'justify-end' : ''}`}>
+      {!isRightAligned && (
+        <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
+          {assessment.title}
+        </h2>
+      )}
+      <Tooltip delay={0}>
+        <Tooltip.Trigger className="item-center flex">
+          <Link
+            to={`/assessments/share/${publicId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex transition-transform duration-150 hover:scale-110 active:scale-95"
+          >
+            <ExternalLink
+              size={18}
+              strokeWidth={2}
+              className="text-(--color-text-muted) hover:text-(--color-text-secondary)"
+            />
+          </Link>
+        </Tooltip.Trigger>
+        <Tooltip.Content showArrow>
+          <p>
+            View<span className="mx-1 text-sm font-medium">{assessment.title}</span>
+            separately
+          </p>
+        </Tooltip.Content>
+      </Tooltip>
+      {isRightAligned && (
+        <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
+          {assessment.title}
+        </h2>
+      )}
+    </div>
+  );
+
   return (
     <div className="mt-6 w-full space-y-0">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
       <div className="sticky top-0 z-9999 border-b border-border bg-(--color-bg) px-6 py-4">
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div>
-            <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
-              {assessment1.title}
-            </h2>
+            <AssessmentTitleWithLink assessment={assessment1} publicId={publicId1} />
             <div className="mt-1 flex items-baseline gap-1">
               <span
                 className={`font-mono text-3xl text-(${scoreColor(scoringResult1?.overall_score)})`}
@@ -166,9 +202,7 @@ export default function AssessmentComparisonPage() {
             <ChangeIndicator diff={overallDelta} />
           </div>
           <div className="text-right">
-            <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
-              {assessment2.title}
-            </h2>
+            <AssessmentTitleWithLink assessment={assessment2} publicId={publicId2} isRightAligned />
             <div className="mt-1 flex items-baseline justify-end gap-1">
               <span
                 className={`font-mono text-3xl text-(${scoreColor(scoringResult2?.overall_score)})`}
