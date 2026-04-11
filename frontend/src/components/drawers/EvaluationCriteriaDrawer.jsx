@@ -33,13 +33,13 @@ export default function EvaluationCriteriaDrawer() {
                   <Drawer.Heading className="drawer__heading">
                     {EVALUATION_CRITERIA_CONTENT.heading}
                   </Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 text-sm font-normal text-(--color-text-secondary)">
                     {EVALUATION_CRITERIA_CONTENT.subheading}
                   </p>
                 </div>
               </div>
             </Drawer.Header>
-            <Drawer.Body className="flex-1 overflow-y-auto p-6">
+            <Drawer.Body className="flex-1 overflow-y-auto">
               <div className="space-y-6">
                 <p className="text-sm/relaxed text-(--color-text-secondary)">
                   {EVALUATION_CRITERIA_CONTENT.description}
@@ -50,13 +50,13 @@ export default function EvaluationCriteriaDrawer() {
                   {EVALUATION_CRITERIA_CONTENT.metrics.map((metric, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-xl bg-(--color-bg-card) p-3 text-center ${
-                        metric.color === 'blue' ? 'text-[#5a7a9a]' : 'text-(--color-success)'
+                      className={`rounded-xl bg-(--color-success-soft-ui) p-3 text-center ${
+                        metric.color === 'blue' ? 'text-(--color-info)' : 'text-(--color-success)'
                       }`}
                     >
                       <div
                         className={`text-2xl font-medium ${
-                          metric.color === 'blue' ? 'text-[#5a7a9a]' : `text-(--color-success)`
+                          metric.color === 'blue' ? 'text-(--color-info)' : `text-(--color-success)`
                         }`}
                       >
                         {metric.number}
@@ -69,7 +69,7 @@ export default function EvaluationCriteriaDrawer() {
                 </div>
 
                 {/* Value Sections */}
-                <div className="space-y-4">
+                <div className="my-8 space-y-8">
                   {EVALUATION_CRITERIA_CONTENT.valueSections.map((section, idx) => {
                     const icon =
                       section.title === 'Access Value' ? (
@@ -82,18 +82,20 @@ export default function EvaluationCriteriaDrawer() {
                     return (
                       <div
                         key={idx}
-                        className={`rounded-xl bg-(--color-bg-card) p-4 ${
-                          section.color === 'blue' ? 'text-[#5a7a9a]' : 'text-(--color-success)'
+                        className={`rounded-xl bg-(--color-warning)/10 p-3 ${
+                          section.color === 'blue'
+                            ? 'text-(--color-info)'
+                            : 'text-(--color-success)'
                         }`}
                       >
                         <div className="mb-2 flex items-start gap-2">
                           <div
                             className={`mb-2 flex items-start gap-2 ${
                               section.color === 'blue'
-                                ? 'text-[#5a7a9a]'
+                                ? 'text-(--color-info)'
                                 : section.color === 'emerald'
-                                  ? 'text-[#4a7c59]'
-                                  : 'text-[#b8916a]'
+                                  ? 'text-(--color-success)'
+                                  : 'text-(--color-warning)'
                             }`}
                           >
                             {icon}
@@ -102,10 +104,10 @@ export default function EvaluationCriteriaDrawer() {
                             <h4
                               className={`font-medium ${
                                 section.color === 'blue'
-                                  ? 'text-[#5a7a9a]'
+                                  ? 'text-(--color-info)'
                                   : section.color === 'emerald'
-                                    ? 'text-[#4a7c59]'
-                                    : 'text-[#b8916a]'
+                                    ? 'text-(--color-success)'
+                                    : 'text-(--color-warning)'
                               }`}
                             >
                               {section.title}
@@ -119,7 +121,7 @@ export default function EvaluationCriteriaDrawer() {
                           {section.factors.map((factor, factorIdx) => (
                             <div
                               key={factorIdx}
-                              className="rounded-xl border border-border bg-(--color-bg-field) p-3"
+                              className="rounded-xl border-2 border-(--color-border-ui) bg-(--color-bg-field) p-3"
                             >
                               <p className="text-xs font-medium text-(--color-text-primary)">
                                 {factor.title}
@@ -137,17 +139,17 @@ export default function EvaluationCriteriaDrawer() {
 
                 {/* How We Calculate Section */}
                 <div className="my-3 border-l-2 border-(--color-warning) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary)">
-                  <h4 className="mb-3 text-base font-bold text-(--color-warning)">
+                  <h4 className="mb-3 text-base font-medium text-(--color-warning)">
                     {EVALUATION_CRITERIA_CONTENT.sections.howWeCalculate}
                   </h4>
                   <div className="space-y-2">
                     {EVALUATION_CRITERIA_CONTENT.calculationSteps.map((step) => (
                       <div key={step.number} className="flex items-start gap-3">
-                        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-warning) text-sm font-bold text-white">
+                        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--color-warning) text-sm font-medium text-white">
                           {step.number}
                         </div>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-(--color-text-primary)">
+                          <p className="text-xs font-medium text-(--color-text-primary)">
                             {step.title}
                           </p>
                           <p className="mt-0.5 text-xs text-(--color-text-muted)">

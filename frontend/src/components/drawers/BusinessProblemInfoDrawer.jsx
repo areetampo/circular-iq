@@ -41,7 +41,7 @@ export default function BusinessProblemInfoDrawer() {
                 </div>
                 <div>
                   <Drawer.Heading>{BUSINESS_PROBLEM_CONTENT.title}</Drawer.Heading>
-                  <p className="mt-0.5 text-sm font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 text-sm font-normal text-(--color-text-secondary)">
                     {BUSINESS_PROBLEM_CONTENT.subtitle}
                   </p>
                 </div>

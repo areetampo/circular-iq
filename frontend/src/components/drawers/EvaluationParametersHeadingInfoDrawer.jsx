@@ -55,7 +55,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                 </div>
                 <div>
                   <Drawer.Heading>{EVALUATION_PARAMETERS_HEADING_CONTENT.heading}</Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-(--color-text-secondary)">
                     Understanding evaluation framework
                   </p>
                 </div>

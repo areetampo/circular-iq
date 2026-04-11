@@ -618,11 +618,11 @@ export default function MyAssessmentsPage() {
         <div className="mt-6 flex flex-col items-center justify-center gap-3 p-0">
           <p className="text-sm text-(--color-text-muted)">
             Showing{' '}
-            <span className="inline-block text-center font-semibold text-(--color-text-primary)">
+            <span className="inline-block text-center font-medium text-(--color-text-primary)">
               {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
             </span>{' '}
             of{' '}
-            <span className="inline-block text-center font-semibold text-(--color-text-primary)">
+            <span className="inline-block text-center font-medium text-(--color-text-primary)">
               {total}
             </span>{' '}
             results

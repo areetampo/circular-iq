@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Copyright } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { SITE_FULL_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
@@ -112,10 +113,7 @@ export default function Footer() {
                 <p>Evidence-based scoring</p>
                 <p>AI-powered analysis</p>
                 <p>Multi-dimensional evaluation</p>
-              </div>
-
-              <div className="pt-2">
-                <p className="text-xs text-(--color-text-muted) italic">
+                <p className="text-(--color-text-muted) italic">
                   &ldquo;Where circular economy meets evidence.&rdquo;
                 </p>
               </div>
@@ -127,12 +125,11 @@ export default function Footer() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-            className="mt-4"
+            className="mt-6"
           >
-            <div className="flex flex-col items-center justify-center gap-4 md:flex-row">
-              <p className="font-sans text-xs text-(--color-text-muted)">
-                © 2026 {SITE_FULL_NAME}. All rights reserved.
-              </p>
+            <div className="flex items-center justify-center gap-1 text-xs text-(--color-text-muted) md:flex-row">
+              <Copyright size={14} strokeWidth={2} className="mt-0.5" />
+              <span>2026 {SITE_FULL_NAME}. All rights reserved.</span>
             </div>
           </motion.div>
         </div>

@@ -694,7 +694,7 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 - Ellen MacArthur Foundation: 3,825+ case studies
 - Eurostat: 501+ environmental records
 - Open Food / Beauty / Products Facts: 1,000+ product records
-- Academic & government datasets: 6,000+ records
+- Academic & government datasets: 40,000+ records
 
 See [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERENCE.md) for complete inventory.
 For running the pipeline: [backend/PIPELINE_RUNNING.md](./backend/PIPELINE_RUNNING.md)

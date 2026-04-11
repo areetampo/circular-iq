@@ -75,7 +75,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                   <Drawer.Heading className="drawer__heading">
                     {data.title || data.case_id || 'Case Details'}
                   </Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-(--color-text-secondary)">
                     Detailed evidence and matched case context
                   </p>
                 </div>

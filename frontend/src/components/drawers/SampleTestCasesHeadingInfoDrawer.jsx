@@ -33,7 +33,7 @@ export default function SampleTestCasesHeadingInfoDrawer() {
                   <Drawer.Heading className="drawer__heading">
                     {SAMPLE_TEST_CASES_HEADING_CONTENT.heading}
                   </Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-(--color-text-secondary)">
                     Learn from real circular economy examples
                   </p>
                 </div>

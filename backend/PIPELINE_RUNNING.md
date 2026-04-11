@@ -121,7 +121,7 @@ Contains 32 standardized CSV files from diverse sources:
 - Ellen MacArthur Foundation: 3,825+ case studies
 - Eurostat: 501+ environmental records
 - Open Food/Beauty/Products: 1,000+ product records
-- Academic & public datasets: 6,000+ records
+- Academic & public datasets: 40,000+ records
 
 See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md) for complete inventory.
 

@@ -376,6 +376,16 @@ export const GETTING_STARTED = {
       description:
         'The AI runs an integrity check comparing your self-assessed scores against the evidence in your descriptions. Overestimating will be flagged.',
     },
+    {
+      title: 'Describe your geography specifically',
+      description:
+        'Say "urban municipalities in Western Europe" not just "global". Geographic specificity narrows the knowledge-base search to cases with matching regulatory and infrastructure contexts.',
+    },
+    {
+      title: 'Mention regulatory or certification context',
+      description:
+        'References to ISO standards, EPA compliance, EU directives, or industry certifications help the AI identify cases from comparable regulatory environments — improving benchmark relevance.',
+    },
   ],
 };
 
@@ -588,6 +598,7 @@ export const UNDERSTANDING_RESULTS = {
 export const GUIDE_PAGE_CONTENT = {
   overview: {
     methodologyItems: ASSESSMENT_METHODOLOGY_CONTENT.items,
+    dataSources: ASSESSMENT_METHODOLOGY_CONTENT.dataSources,
     intro:
       'The Circular Economy Assessor evaluates your business idea against 40,000+ real-world case studies using a three-layer pipeline — from optional business context inputs through deterministic scoring to LLM-enriched insights. Use this guide to understand how to write strong submissions, interpret your scores, and get the most from your assessment.',
     layers: [
@@ -635,12 +646,18 @@ export const GUIDE_PAGE_CONTENT = {
       },
     ],
   },
-  gettingStarted: GETTING_STARTED,
+  gettingStarted: {
+    ...GETTING_STARTED,
+    autoFillNote:
+      'The auto-fill toggle on the evaluation parameters form uses your problem and solution text to infer approximate parameter scores. It is a starting point — review and adjust each score based on your actual situation. Auto-filled scores are typically conservative, designed to avoid the overestimation the integrity check penalises.',
+  },
   businessProblem: {
     subtitle:
       'Describe environmental or circular economy challenge your business addresses. The AI uses this to find semantically similar real-world cases and calibrate your score against them.',
     intro:
       'A strong problem statement is specific, quantified, and grounded in real-world data. Vague or generic descriptions will match poorly against knowledge base and reduce scoring accuracy.',
+    scoringImpact:
+      'The problem statement feeds the semantic search step. A detailed, specific problem finds closer knowledge-base matches, which gives the AI better benchmarks to score against. Vague problems match broadly, producing less precise calibration and weaker recommendations.',
     elements: BUSINESS_PROBLEM_CONTENT.elements,
     writingTips: BUSINESS_PROBLEM_CONTENT.writingTips,
     example: BUSINESS_PROBLEM_CONTENT.example,
@@ -650,6 +667,8 @@ export const GUIDE_PAGE_CONTENT = {
       "Explain how your business closes the loop — what materials you use, how they're processed, how they return to use, and what the economics look like.",
     intro:
       'The AI is looking for evidence of genuine circularity: closed loops, recovered materials re-entering the system, and quantifiable outcomes. The more specific and technical your description, the more accurate the comparison to real-world benchmarks.',
+    scoringImpact:
+      'The solution description feeds both the semantic search and the AI audit layer. The audit compares your described processes and outcomes against the 3 closest real-world cases. Specific materials, named technologies, and quantified metrics give the AI concrete evidence to evaluate — abstract descriptions produce lower confidence scores and weaker integrity checks.',
     components: BUSINESS_SOLUTION_CONTENT.components,
     circularityLoopExplainer: {
       intro:
@@ -708,6 +727,8 @@ export const GUIDE_PAGE_CONTENT = {
   evaluationParameters: {
     intro:
       'Each parameter is scored 0–100 and weighted according to its importance in circular economy success. Click any card to jump to the full scoring guide for that parameter, including the 5-level scale and real-world example cases.',
+    parameterScoringNote:
+      'Parameter scores are self-assessed (0–100). The AI does not override them — instead, it runs an integrity check comparing your scores against the evidence in your text descriptions and against your 3 benchmark cases. Scores that appear overestimated relative to the textual evidence are flagged in the Audit Summary.',
     parameters: parameterGuidance,
   },
   scoringBenchmarking: SCORING_BENCHMARKING,

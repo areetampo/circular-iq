@@ -51,7 +51,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading font-mono">{title}</Drawer.Heading>
-                  <p className="mt-0.5 font-mono text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 font-mono text-[0.7rem] font-normal text-(--color-text-secondary)">
                     {TEST_CASE_DETAIL_CONTENT.subheading}
                   </p>
                 </div>

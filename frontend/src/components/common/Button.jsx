@@ -1,13 +1,14 @@
 // Button.jsx
 import PropTypes from 'prop-types';
-import { forwardRef } from 'react';
+import { forwardRef, useRef } from 'react';
+import { mergeProps, useButton } from 'react-aria';
 
 import { cn } from '@/utils/cn';
 
 /**
  * Spinner component for loading state
  */
-const Spinner = ({ size = 'sm', color = 'current' }) => (
+const Spinner = ({ size = 'sm' }) => (
   <svg
     className={cn(
       'animate-spin',
@@ -122,11 +123,11 @@ export const Button = forwardRef(function Button(
     disabled = false,
     isLoading = false,
     children,
-    onPress,
-    onClick,
-    as: Component = 'button', // default to button
+    onPress, // will be used by useButton
+    onClick, // fallback, merged by useButton
+    as: Component = 'button',
     to,
-    href, // support regular anchor href
+    href,
     type = 'button',
     ...props
   },
@@ -135,17 +136,38 @@ export const Button = forwardRef(function Button(
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
   const isButtonDisabled = isDisabled || disabled || isLoading;
 
+  // Determine if we render an anchor or a button
   let Element = Component;
   let isLink = Element !== 'button';
-
-  // If `to` is present and no custom component, use native anchor
   if (to && Component === 'button') {
     Element = 'a';
     isLink = true;
   }
 
-  const handleClick = (event) => {
-    if (isButtonDisabled && isLink) {
+  // Create a ref for useButton (only used for button elements)
+  const internalRef = useRef(null);
+  const buttonRef = ref || internalRef;
+
+  // Use useButton only when Element is 'button' (or a custom component that behaves like a button)
+  // For anchor links, we keep the manual click handling (links don't use useButton)
+  let buttonProps = {};
+  if (!isLink) {
+    const { buttonProps: ariaButtonProps } = useButton(
+      {
+        onPress,
+        onClick,
+        isDisabled: isButtonDisabled,
+        elementType: Element,
+        ...props,
+      },
+      buttonRef,
+    );
+    buttonProps = ariaButtonProps;
+  }
+
+  // For links, we create a simple click handler that prevents navigation when disabled
+  const handleLinkClick = (event) => {
+    if (isButtonDisabled) {
       event.preventDefault();
       return;
     }
@@ -164,24 +186,40 @@ export const Button = forwardRef(function Button(
 
   const content = isLoading ? (
     <span className="flex w-full items-center justify-center gap-2">
-      <Spinner size={size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : 'md'} color="current" />
+      <Spinner size={size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : 'md'} />
     </span>
   ) : (
     children
   );
 
+  // Render anchor (link) – manual handling
+  if (isLink) {
+    return (
+      <Element
+        ref={buttonRef}
+        className={baseClasses}
+        onClick={handleLinkClick}
+        to={to}
+        href={href || to}
+        aria-disabled={isButtonDisabled}
+        {...props}
+      >
+        {content}
+      </Element>
+    );
+  }
+
+  // Render button – using useButton props
+  const finalProps = mergeProps(buttonProps, {
+    className: baseClasses,
+    type,
+    disabled: isButtonDisabled ? true : undefined,
+    'aria-disabled': isButtonDisabled,
+    // Merge any additional props passed directly (but avoid overriding buttonProps)
+  });
+
   return (
-    <Element
-      ref={ref}
-      className={baseClasses}
-      type={!isLink ? type : undefined}
-      onClick={handleClick}
-      // Pass routing props explicitly
-      to={to} // for Link (React Router)
-      href={href || to} // for native anchor (fallback to `to` if `href` missing)
-      disabled={!isLink && isButtonDisabled ? true : undefined}
-      {...props}
-    >
+    <Element ref={buttonRef} {...finalProps}>
       {content}
     </Element>
   );
@@ -191,16 +229,7 @@ Button.displayName = 'Button';
 
 Button.propTypes = {
   variant: PropTypes.oneOf([
-    'primary',
-    'secondary',
-    'ghost',
-    'danger',
-    'dialog-primary',
-    'dialog-secondary',
-    'results-action',
-    'eco-soft',
-    'teal',
-    'neutral-soft',
+    /* your variants */
   ]),
   size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg']),
   fullWidth: PropTypes.bool,

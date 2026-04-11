@@ -6,6 +6,7 @@ export { default as DrawerManager } from './DrawerManager';
 export { default as drawerTypes } from './drawerTypes';
 export { default as EvaluationCriteriaDrawer } from './EvaluationCriteriaDrawer';
 export { default as EvaluationParametersHeadingInfoDrawer } from './EvaluationParametersHeadingInfoDrawer';
+export { default as MobileNavigationDrawer } from './MobileNavigationDrawer';
 export { default as ResultsDatabaseEvidenceDetailsDrawer } from './ResultsDatabaseEvidenceDetailsDrawer';
 export { default as SampleTestCasesHeadingInfoDrawer } from './SampleTestCasesHeadingInfoDrawer';
 export { default as SpecificEvaluationParameterInfoDrawer } from './SpecificEvaluationParameterInfoDrawer';

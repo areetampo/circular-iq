@@ -31,7 +31,7 @@ export default function BusinessContextHeadingInfoDrawer() {
                 </div>
                 <div>
                   <Drawer.Heading>Business Context Guide</Drawer.Heading>
-                  <p className="mt-0.5 text-[0.7rem] font-normal text-[#6b5f56]">
+                  <p className="mt-0.5 text-[0.7rem] font-normal text-(--color-text-secondary)">
                     Helps AI understand your circular economy model
                   </p>
                 </div>

@@ -1,3 +1,4 @@
+import { ScrollShadow } from '@heroui/react';
 import { AlertTriangle, Home, Info, RefreshCcw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
@@ -155,9 +156,11 @@ export default function ErrorDisplay({
               noBorder
               className="mb-1 -ml-2 gap-2 font-medium"
             />
-            <pre className="scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-[var(--color-danger)]/30 scrollbar-track-transparent /* Standard CSS arbitrary values for Chrome/Safari */ mt-2 max-h-48 overflow-auto font-mono text-xs/relaxed wrap-break-word whitespace-pre-wrap text-(--color-danger) [&::-webkit-scrollbar]:w-1! [&::-webkit-scrollbar-thumb]:rounded-full! [&::-webkit-scrollbar-thumb]:bg-(--color-danger)/20! hover:[&::-webkit-scrollbar-thumb]:bg-(--color-danger)/40!">
-              {errorDetailsMsg}
-            </pre>
+            <ScrollShadow hideScrollBar size={30} className="scrollbar-hide max-h-45 p-2 pb-5">
+              <pre className="font-mono text-xs/relaxed wrap-break-word whitespace-pre-wrap text-(--color-danger)">
+                {errorDetailsMsg}
+              </pre>
+            </ScrollShadow>
           </div>
         )}
 

@@ -46,7 +46,9 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 </div>
                 <div>
                   <Drawer.Heading>{SPECIFIC_PARAMETER_CONTENT.heading}</Drawer.Heading>
-                  <p className="mt-0.5 text-[1rem] font-normal text-[#6b5f56]">{guidance.name}</p>
+                  <p className="mt-0.5 text-[1rem] font-normal text-(--color-text-secondary)">
+                    {guidance.name}
+                  </p>
                 </div>
               </div>
             </Drawer.Header>
