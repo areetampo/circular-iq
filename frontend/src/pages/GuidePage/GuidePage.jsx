@@ -13,7 +13,7 @@ import React, { useEffect, useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
-import { GUIDE_PAGE_CONTENT } from './content';
+import { GUIDE_PAGE_CONTENT } from './content/guidePageContent.js';
 
 // Parameter category border colors
 const PARAM_CATEGORY_BORDER = {
@@ -42,6 +42,7 @@ const NAV_TREE = [
     label: 'Getting Started',
     children: [
       { id: 'quickstart-steps', label: 'Quickstart Steps' },
+      { id: 'anon-vs-auth', label: 'Anonymous vs Signed In' },
       { id: 'tips-for-best-results', label: 'Tips for Best Results' },
     ],
   },
@@ -59,6 +60,7 @@ const NAV_TREE = [
     label: 'Business Solution',
     children: [
       { id: 'solution-components', label: 'Critical Components' },
+      { id: 'circularity-loop', label: 'Circularity Loop' },
       { id: 'solution-pitfalls', label: 'Common Pitfalls' },
       { id: 'solution-tips', label: 'Pro Tips' },
       { id: 'solution-example', label: 'Example' },
@@ -104,6 +106,7 @@ const NAV_TREE = [
       { id: 'circularity-tiers', label: 'Circularity Tiers' },
       { id: 'weighted-scoring', label: 'Weighted Scoring' },
       { id: 'consistency-check', label: 'Consistency Check' },
+      { id: 'knowledge-base', label: 'Knowledge Base' },
       { id: 'r-strategy', label: 'R-Strategy Alignment' },
     ],
   },
@@ -115,6 +118,7 @@ const NAV_TREE = [
       { id: 'improvement-roadmap', label: 'Improvement Roadmap' },
       { id: 'sdg-alignment', label: 'SDG Alignment' },
       { id: 'database-evidence', label: 'Database Evidence' },
+      { id: 'saving-exporting', label: 'Saving & Exporting' },
     ],
   },
   {
@@ -155,12 +159,16 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
   };
 
   const scrollToId = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerOffset = 80; // matches sticky header + some breathing room
+    const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top, behavior: 'smooth' });
     setMobileOpen(false); // Close mobile menu after navigation
   };
 
   return (
-    <div className="sticky top-14 z-20 border-b border-(--color-border-ui) bg-(--color-bg) lg:hidden">
+    <div className="sticky top-14 z-20 border-b border-(--color-border) bg-(--color-bg) lg:hidden">
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-(--color-text-primary)"
@@ -169,32 +177,17 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
         {mobileOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {mobileOpen && (
-        <div className="border-t border-(--color-border-ui) bg-(--color-bg) px-4 py-2">
-          {NAV_TREE.map((section) => {
-            // A section is "open" if it or any of its children is active
-            const isSectionActive =
-              activeId === section.id || section.children?.some((c) => c.id === activeId);
-
-            return (
-              <React.Fragment key={section.id}>
-                <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
-                {isSectionActive &&
-                  section.children?.map((child) => (
-                    <div
-                      key={child.id}
-                      className="ml-3 border-l border-(--color-border-faint) pl-3"
-                    >
-                      <NavItem
-                        item={child}
-                        level="sub"
-                        activeId={activeId}
-                        onNavigate={scrollToId}
-                      />
-                    </div>
-                  ))}
-              </React.Fragment>
-            );
-          })}
+        <div className="border-t border-(--color-border) bg-(--color-bg) px-4 py-2">
+          {NAV_TREE.map((section) => (
+            <React.Fragment key={section.id}>
+              <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
+              {section.children?.map((child) => (
+                <div key={child.id} className="ml-3 border-l border-(--color-border-faint) pl-3">
+                  <NavItem item={child} level="sub" activeId={activeId} onNavigate={scrollToId} />
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
         </div>
       )}
     </div>
@@ -208,28 +201,21 @@ const DesktopNav = ({ activeId, onNavigate }) => {
       <div className="sticky top-20">
         <p className="label-overline mb-3">On this page</p>
         <ScrollShadow className="max-h-[calc(100vh-6rem)]">
-          <div className="border-l border-(--color-border-ui)">
-            {NAV_TREE.map((section) => {
-              // A section is "open" if it or any of its children is active
-              const isSectionActive =
-                activeId === section.id || section.children?.some((c) => c.id === activeId);
-
-              return (
-                <React.Fragment key={section.id}>
-                  <NavItem item={section} level="top" activeId={activeId} onNavigate={onNavigate} />
-                  {isSectionActive &&
-                    section.children?.map((child) => (
-                      <NavItem
-                        key={child.id}
-                        item={child}
-                        level="sub"
-                        activeId={activeId}
-                        onNavigate={onNavigate}
-                      />
-                    ))}
-                </React.Fragment>
-              );
-            })}
+          <div className="border-l border-(--color-border)">
+            {NAV_TREE.map((section) => (
+              <React.Fragment key={section.id}>
+                <NavItem item={section} level="top" activeId={activeId} onNavigate={onNavigate} />
+                {section.children?.map((child) => (
+                  <NavItem
+                    key={child.id}
+                    item={child}
+                    level="sub"
+                    activeId={activeId}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </React.Fragment>
+            ))}
           </div>
         </ScrollShadow>
       </div>
@@ -242,7 +228,7 @@ const OverviewSection = () => {
   return (
     <section
       id="overview"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14 first:border-t-0"
+      className="scroll-mt-24 border-t border-(--color-border) py-14 first:border-t-0"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">Overview</h2>
       <p className="mb-2 text-sm text-(--color-text-muted)">
@@ -320,7 +306,7 @@ const OverviewSection = () => {
             </div>
           ))}
         </div>
-        <div className="mt-6 rounded-lg border border-(--color-warning-border) bg-warning-soft px-4 py-3 text-sm text-(--color-text-secondary)">
+        <div className="mt-6 rounded-lg border border-(--color-warning-border) bg-(--color-warning-soft) px-4 py-3 text-sm text-(--color-text-secondary)">
           <strong className="text-(--color-warning)">Note:</strong> This assessment is designed for
           constructive feedback during early-stage ideation. Scores reflect alignment with circular
           economy principles — use as guidance, not commercial validation.
@@ -332,7 +318,7 @@ const OverviewSection = () => {
 
 // Getting Started Section
 const GettingStartedSection = () => (
-  <section id="getting-started" className="scroll-mt-24 border-t border-(--color-border-ui) py-14">
+  <section id="getting-started" className="scroll-mt-24 border-t border-(--color-border) py-14">
     <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
       Getting Started
     </h2>
@@ -354,7 +340,7 @@ const GettingStartedSection = () => (
             <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--color-accent) font-mono text-sm font-bold text-white">
               {step.number}
             </div>
-            <div className="flex-1 rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) px-4 py-3">
+            <div className="flex-1 rounded-xl border border-(--color-border) bg-(--color-surface-raised) px-4 py-3">
               <p className="mb-0.5 text-sm font-semibold text-(--color-text-primary)">
                 {step.title}
               </p>
@@ -363,6 +349,51 @@ const GettingStartedSection = () => (
           </li>
         ))}
       </ol>
+    </div>
+
+    {/* Anonymous vs Signed In */}
+    <div id="anon-vs-auth" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Anonymous vs. Signed In
+      </h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {[
+          GUIDE_PAGE_CONTENT.gettingStarted.anonymousVsAuth.anonymous,
+          GUIDE_PAGE_CONTENT.gettingStarted.anonymousVsAuth.authenticated,
+        ].map((mode, i) => (
+          <div
+            key={mode.title}
+            className={cn(
+              'rounded-xl border p-4',
+              i === 0
+                ? 'border-(--color-border) bg-(--color-surface-raised)'
+                : 'border-(--color-success-border) bg-(--color-success-soft)',
+            )}
+          >
+            <p
+              className={cn(
+                'mb-3 text-sm font-semibold',
+                i === 0 ? 'text-(--color-text-primary)' : 'text-(--color-success)',
+              )}
+            >
+              {mode.title}
+            </p>
+            <ul className="space-y-1.5">
+              {mode.points.map((point, j) => (
+                <li key={j} className="flex items-start gap-2 text-xs text-(--color-text-muted)">
+                  <span
+                    className={cn(
+                      'mt-0.5 size-1.5 shrink-0 rounded-full',
+                      i === 0 ? 'bg-(--color-text-muted)' : 'bg-(--color-success)',
+                    )}
+                  />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
 
     {/* Tips for Best Results */}
@@ -374,7 +405,7 @@ const GettingStartedSection = () => (
         {GUIDE_PAGE_CONTENT.gettingStarted.bestPracticeTips.map((tip) => (
           <div
             key={tip.title}
-            className="rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+            className="rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4"
           >
             <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{tip.title}</p>
             <p className="text-xs/relaxed text-(--color-text-muted)">{tip.description}</p>
@@ -388,10 +419,7 @@ const GettingStartedSection = () => (
 // Business Problem Section
 const BusinessProblemSection = () => {
   return (
-    <section
-      id="business-problem"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
-    >
+    <section id="business-problem" className="scroll-mt-24 border-t border-(--color-border) py-14">
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Business Problem
       </h2>
@@ -416,7 +444,7 @@ const BusinessProblemSection = () => {
               key={idx}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="mt-0.5 shrink-0 rounded-md bg-(--color-success-soft-ui) p-1.5">
+              <div className="mt-0.5 shrink-0 rounded-md bg-(--color-success-soft) p-1.5">
                 <CheckSquare className="size-3.5 text-(--color-success)" />
               </div>
               <div>
@@ -433,7 +461,7 @@ const BusinessProblemSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Writing Tips
         </h3>
-        <div className="rounded-lg border border-(--color-info)/20 bg-(--color-info-soft-ui) p-4">
+        <div className="rounded-lg border border-(--color-info)/20 bg-(--color-info-soft) p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-info) uppercase">
             Writing Tips
           </p>
@@ -458,7 +486,7 @@ const BusinessProblemSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Example Statement
         </h3>
-        <blockquote className="rounded-lg border-l-4 border-(--color-accent) bg-(--color-accent-light) px-4 py-3 text-sm/relaxed text-(--color-text-secondary) italic">
+        <blockquote className="rounded-lg border-l-4 border-(--color-accent) bg-(--color-accent-soft) px-4 py-3 text-sm/relaxed text-(--color-text-secondary) italic">
           {GUIDE_PAGE_CONTENT.businessProblem.example}
         </blockquote>
       </div>
@@ -477,10 +505,7 @@ const BusinessProblemSection = () => {
 // Business Solution Section
 const BusinessSolutionSection = () => {
   return (
-    <section
-      id="business-solution"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
-    >
+    <section id="business-solution" className="scroll-mt-24 border-t border-(--color-border) py-14">
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Business Solution
       </h2>
@@ -502,7 +527,7 @@ const BusinessSolutionSection = () => {
           {GUIDE_PAGE_CONTENT.businessSolution.components.map(({ title, description }) => (
             <div
               key={title}
-              className="rounded-lg border border-(--color-border-ui) bg-(--color-surface-raised) p-3"
+              className="rounded-lg border border-(--color-border) bg-(--color-surface-raised) p-3"
             >
               <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{title}</p>
               <p className="text-xs text-(--color-text-muted)">{description}</p>
@@ -511,12 +536,60 @@ const BusinessSolutionSection = () => {
         </div>
       </div>
 
+      {/* The Circularity Loop */}
+      <div id="circularity-loop" className="mt-10 scroll-mt-24">
+        <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
+          The Circularity Loop
+        </h3>
+        <p className="mb-5 text-sm/relaxed text-(--color-text-secondary)">
+          {GUIDE_PAGE_CONTENT.businessSolution.circularityLoopExplainer.intro}
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-(--color-success-border) bg-(--color-success-soft) p-4">
+            <p className="mb-3 text-xs font-bold tracking-wider text-(--color-success) uppercase">
+              Strong Loop Signals
+            </p>
+            <ul className="space-y-2">
+              {GUIDE_PAGE_CONTENT.businessSolution.circularityLoopExplainer.strongLoop.map(
+                (item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-xs text-(--color-text-secondary)"
+                  >
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-(--color-success)" />
+                    {item}
+                  </li>
+                ),
+              )}
+            </ul>
+          </div>
+          <div className="rounded-xl border border-(--color-warning-border) bg-(--color-warning-soft) p-4">
+            <p className="mb-3 text-xs font-bold tracking-wider text-(--color-warning) uppercase">
+              Weak Loop Signals
+            </p>
+            <ul className="space-y-2">
+              {GUIDE_PAGE_CONTENT.businessSolution.circularityLoopExplainer.weakLoop.map(
+                (item, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-xs text-(--color-text-secondary)"
+                  >
+                    <X className="mt-0.5 size-3.5 shrink-0 text-(--color-warning)" />
+                    {item}
+                  </li>
+                ),
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Common Pitfalls */}
       <div id="solution-pitfalls" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Common Pitfalls
         </h3>
-        <div className="space-y-2 rounded-lg border border-(--color-warning-border) bg-warning-soft p-4">
+        <div className="space-y-2 rounded-lg border border-(--color-warning-border) bg-(--color-warning-soft) p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-warning) uppercase">
             Common Pitfalls
           </p>
@@ -541,7 +614,7 @@ const BusinessSolutionSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Pro Tips
         </h3>
-        <div className="space-y-2 rounded-lg border border-(--color-success-border) bg-(--color-success-soft-ui) p-4">
+        <div className="space-y-2 rounded-lg border border-(--color-success-border) bg-(--color-success-soft) p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-success) uppercase">
             Pro Tips
           </p>
@@ -559,7 +632,7 @@ const BusinessSolutionSection = () => {
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Example Statement
         </h3>
-        <blockquote className="rounded-lg border-l-4 border-(--color-accent) bg-(--color-accent-light) px-4 py-3 text-sm/relaxed text-(--color-text-secondary) italic">
+        <blockquote className="rounded-lg border-l-4 border-(--color-accent) bg-(--color-accent-soft) px-4 py-3 text-sm/relaxed text-(--color-text-secondary) italic">
           {GUIDE_PAGE_CONTENT.businessSolution.example}
         </blockquote>
       </div>
@@ -578,10 +651,7 @@ const BusinessSolutionSection = () => {
 // Business Context Section
 const BusinessContextSection = () => {
   return (
-    <section
-      id="business-context"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
-    >
+    <section id="business-context" className="scroll-mt-24 border-t border-(--color-border) py-14">
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Business Context
       </h2>
@@ -624,7 +694,7 @@ const BusinessContextSection = () => {
           ].map((item) => (
             <div
               key={item.label}
-              className="rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+              className="rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4"
             >
               <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{item.label}</p>
               <p className="text-xs/relaxed text-(--color-text-muted)">{item.desc}</p>
@@ -662,7 +732,7 @@ const EvaluationCriteriaSection = () => {
   return (
     <section
       id="evaluation-criteria"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+      className="scroll-mt-24 border-t border-(--color-border) py-14"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Evaluation Criteria
@@ -695,10 +765,10 @@ const EvaluationCriteriaSection = () => {
             <span
               className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                 section.color === 'info'
-                  ? 'bg-(--color-info-soft-ui) text-(--color-info)'
+                  ? 'bg-(--color-info-soft) text-(--color-info)'
                   : section.color === 'success'
-                    ? 'bg-(--color-success-soft-ui) text-(--color-success)'
-                    : 'bg-(--color-accent-soft-ui) text-(--color-accent)'
+                    ? 'bg-(--color-success-soft) text-(--color-success)'
+                    : 'bg-(--color-accent-soft) text-(--color-accent)'
               }`}
             >
               {section.paramKeys.length} factors
@@ -712,7 +782,7 @@ const EvaluationCriteriaSection = () => {
               return (
                 <div
                   key={key}
-                  className="rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+                  className="rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4"
                 >
                   <div className="mb-1 flex items-start justify-between gap-2">
                     <p className="text-sm font-semibold text-(--color-text-primary)">
@@ -740,7 +810,7 @@ const EvaluationCriteriaSection = () => {
                 {step.number}
               </div>
               {i < GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.length - 1 && (
-                <div className="absolute top-4 left-1/2 h-px w-full bg-border" />
+                <div className="absolute top-4 left-1/2 h-px w-full bg-(--color-border)" />
               )}
               <p className="mt-3 mb-1 text-sm font-semibold text-(--color-text-primary)">
                 {step.title}
@@ -775,7 +845,7 @@ const EvaluationParametersSection = () => {
   return (
     <section
       id="evaluation-parameters"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+      className="scroll-mt-24 border-t border-(--color-border) py-14"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Evaluation Parameters
@@ -800,7 +870,7 @@ const EvaluationParametersSection = () => {
               <div
                 key={key}
                 className={cn(
-                  'card-lift cursor-pointer rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4 transition-colors hover:border-(--color-accent)',
+                  'card-lift cursor-pointer rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4 transition-colors hover:border-(--color-accent)',
                   PARAM_CATEGORY_BORDER[key],
                 )}
                 onClick={() =>
@@ -822,7 +892,7 @@ const EvaluationParametersSection = () => {
       {/* Individual Parameter Details */}
       {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.parameters).map(([key, param]) => (
         <div key={key} className="mt-10 scroll-mt-24" id={`param-${key}`}>
-          <div className="overflow-hidden rounded-xl border border-(--color-border-ui)">
+          <div className="overflow-hidden rounded-xl border border-(--color-border)">
             <Accordion allowsMultipleExpanded>
               <Accordion.Item key={key}>
                 <Accordion.Heading>
@@ -926,7 +996,7 @@ const EvaluationParametersSection = () => {
 const ScoringBenchmarkingSection = () => (
   <section
     id="scoring-benchmarking"
-    className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+    className="scroll-mt-24 border-t border-(--color-border) py-14"
   >
     <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
       Scoring & Benchmarking
@@ -950,12 +1020,11 @@ const ScoringBenchmarkingSection = () => (
             className={cn(
               'rounded-xl border p-4',
               tier.color === 'success' &&
-                'border-(--color-success-border) bg-(--color-success-soft-ui)',
-              tier.color === 'info' && 'border-(--color-info)/20 bg-(--color-info-soft-ui)',
+                'border-(--color-success-border) bg-(--color-success-soft)',
+              tier.color === 'info' && 'border-(--color-info)/20 bg-(--color-info-soft)',
               tier.color === 'warning' &&
-                'border-(--color-warning-border) bg-(--color-warning-soft-ui)',
-              tier.color === 'accent' &&
-                'border-(--color-accent-border) bg-(--color-accent-soft-ui)',
+                'border-(--color-warning-border) bg-(--color-warning-soft)',
+              tier.color === 'accent' && 'border-(--color-accent-border) bg-(--color-accent-soft)',
             )}
           >
             <div className="mb-1 flex items-center justify-between">
@@ -1017,6 +1086,37 @@ const ScoringBenchmarkingSection = () => (
       </p>
     </div>
 
+    {/* Knowledge Base */}
+    <div id="knowledge-base" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Knowledge Base
+      </h3>
+      <p className="mb-5 text-sm/relaxed text-(--color-text-secondary)">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.knowledgeBase.summary}
+      </p>
+      <div className="overflow-hidden rounded-xl border border-(--color-border)">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.knowledgeBase.sources.map((src, i) => (
+          <div
+            key={src.name}
+            className={cn(
+              'flex items-center justify-between gap-4 px-4 py-3',
+              i !== GUIDE_PAGE_CONTENT.scoringBenchmarking.knowledgeBase.sources.length - 1 &&
+                'border-b border-(--color-border-faint)',
+            )}
+          >
+            <div>
+              <p className="text-sm font-medium text-(--color-text-primary)">{src.name}</p>
+              <p className="text-xs text-(--color-text-muted)">{src.type}</p>
+            </div>
+            <span className="font-mono text-sm font-bold text-(--color-accent)">{src.count}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-(--color-text-muted) italic">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.knowledgeBase.searchNote}
+      </p>
+    </div>
+
     {/* R-Strategy Alignment */}
     <div id="r-strategy" className="mt-10 scroll-mt-24">
       <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
@@ -1029,7 +1129,7 @@ const ScoringBenchmarkingSection = () => (
         {GUIDE_PAGE_CONTENT.scoringBenchmarking.rStrategy.strategies.map((s) => (
           <div
             key={s.code}
-            className="rounded-lg border border-(--color-border-ui) bg-(--color-surface-raised) p-3"
+            className="rounded-lg border border-(--color-border) bg-(--color-surface-raised) p-3"
           >
             <p className="mb-0.5 text-sm font-semibold text-(--color-accent)">{s.code}</p>
             <p className="text-xs text-(--color-text-muted)">{s.description}</p>
@@ -1044,7 +1144,7 @@ const ScoringBenchmarkingSection = () => (
 const UnderstandingResultsSection = () => (
   <section
     id="understanding-results"
-    className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+    className="scroll-mt-24 border-t border-(--color-border) py-14"
   >
     <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
       Understanding Results
@@ -1069,7 +1169,7 @@ const UnderstandingResultsSection = () => (
           .map((s, i) => (
             <div
               key={i}
-              className="flex items-start gap-4 rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+              className="flex items-start gap-4 rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4"
             >
               <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--color-surface-overlay-md) font-mono text-xs font-bold text-(--color-accent)">
                 {i + 1}
@@ -1088,14 +1188,27 @@ const UnderstandingResultsSection = () => (
       <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
         Improvement Roadmap
       </h3>
-      {(() => {
-        const s = GUIDE_PAGE_CONTENT.understandingResults.sections.find(
-          (s) => s.title === 'Improvement Roadmap',
-        );
-        return s ? (
-          <p className="text-sm/relaxed text-(--color-text-secondary)">{s.description}</p>
-        ) : null;
-      })()}
+      <p className="mb-5 text-sm/relaxed text-(--color-text-secondary)">
+        {
+          GUIDE_PAGE_CONTENT.understandingResults.sections.find(
+            (s) => s.title === 'Improvement Roadmap',
+          )?.description
+        }
+      </p>
+      <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
+        {GUIDE_PAGE_CONTENT.understandingResults.improvementRoadmapDetail.howGenerated}
+      </p>
+      <div className="space-y-2">
+        {GUIDE_PAGE_CONTENT.understandingResults.improvementRoadmapDetail.actionFields.map((f) => (
+          <div
+            key={f.field}
+            className="flex items-start gap-3 rounded-lg border border-(--color-border-faint) bg-(--color-surface-raised) px-4 py-3"
+          >
+            <p className="w-28 shrink-0 text-xs font-semibold text-(--color-accent)">{f.field}</p>
+            <p className="text-xs text-(--color-text-muted)">{f.desc}</p>
+          </div>
+        ))}
+      </div>
     </div>
 
     {/* SDG Alignment */}
@@ -1103,14 +1216,25 @@ const UnderstandingResultsSection = () => (
       <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
         SDG Alignment
       </h3>
-      {(() => {
-        const s = GUIDE_PAGE_CONTENT.understandingResults.sections.find(
-          (s) => s.title === 'SDG Alignment',
-        );
-        return s ? (
-          <p className="text-sm/relaxed text-(--color-text-secondary)">{s.description}</p>
-        ) : null;
-      })()}
+      <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
+        {GUIDE_PAGE_CONTENT.understandingResults.sdgDetail.explanation}
+      </p>
+      <div className="space-y-2">
+        {GUIDE_PAGE_CONTENT.understandingResults.sdgDetail.commonSDGs.map((sdg) => (
+          <div
+            key={sdg.goal}
+            className="flex items-start gap-3 rounded-lg border border-(--color-border-faint) bg-(--color-surface-raised) px-4 py-3"
+          >
+            <p className="w-14 shrink-0 font-mono text-xs font-bold text-(--color-info)">
+              {sdg.goal}
+            </p>
+            <div>
+              <p className="text-xs font-semibold text-(--color-text-primary)">{sdg.name}</p>
+              <p className="text-xs text-(--color-text-muted)">{sdg.relevance}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
 
     {/* Database Evidence */}
@@ -1137,16 +1261,46 @@ const UnderstandingResultsSection = () => (
         ) : null;
       })()}
     </div>
+
+    {/* Saving & Exporting */}
+    <div id="saving-exporting" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Saving & Exporting
+      </h3>
+      <div className="mb-6 space-y-2">
+        {GUIDE_PAGE_CONTENT.understandingResults.savingAndExporting.saving.map((item) => (
+          <div
+            key={item.action}
+            className="rounded-lg border border-(--color-border) bg-(--color-surface-raised) px-4 py-3"
+          >
+            <p className="mb-0.5 text-sm font-semibold text-(--color-text-primary)">
+              {item.action}
+            </p>
+            <p className="text-xs text-(--color-text-muted)">{item.how}</p>
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {GUIDE_PAGE_CONTENT.understandingResults.savingAndExporting.exporting.map((fmt) => (
+          <div
+            key={fmt.format}
+            className="rounded-xl border border-(--color-border) bg-(--color-surface-raised) p-4"
+          >
+            <p className="mb-1 font-mono text-sm font-bold text-(--color-accent)">
+              .{fmt.format.toLowerCase()}
+            </p>
+            <p className="text-xs/relaxed text-(--color-text-muted)">{fmt.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   </section>
 );
 
 // Sample Test Cases Section
 const SampleTestCasesSection = () => {
   return (
-    <section
-      id="sample-test-cases"
-      className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
-    >
+    <section id="sample-test-cases" className="scroll-mt-24 border-t border-(--color-border) py-14">
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Sample Test Cases
       </h2>
@@ -1185,7 +1339,7 @@ const SampleTestCasesSection = () => {
               key={step.num}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
                 {step.num}
               </div>
               <div>
@@ -1215,61 +1369,67 @@ export default function GuidePage() {
   const [activeId, setActiveId] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Scroll spy using priority-list approach (children before parents)
   useEffect(() => {
-    // Build a flat priority list: sub-items BEFORE their parents
-    // so when we search for the first intersecting one, children win over parents
-    const priorityList = NAV_TREE.flatMap((section) => [
-      ...(section.children?.map((c) => c.id) ?? []),
-      section.id,
-    ]);
+    // All observable ids in document order (top to bottom on page)
+    const allIds = NAV_TREE.flatMap((s) => [s.id, ...(s.children?.map((c) => c.id) ?? [])]);
+    const elements = allIds.map((id) => document.getElementById(id)).filter(Boolean);
 
-    const elements = priorityList
-      .map((id) => ({ id, el: document.getElementById(id) }))
-      .filter(({ el }) => el !== null);
+    if (elements.length === 0) return;
 
-    const intersectingSet = new Set();
-
-    const pickActive = () => {
-      // Walk the priority list in order — first match wins
-      // Children come before parents in the list, so children always win
-      for (const { id } of elements) {
-        if (intersectingSet.has(id)) {
-          setActiveId(id);
-          return;
-        }
-      }
-    };
+    // Keep a map of which elements are currently intersecting
+    const intersecting = new Map(); // id -> top position at time of intersection
 
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            intersectingSet.add(entry.target.id);
+            intersecting.set(entry.target.id, entry.boundingClientRect.top);
           } else {
-            intersectingSet.delete(entry.target.id);
+            intersecting.delete(entry.target.id);
+          }
+        });
+
+        if (intersecting.size === 0) return;
+
+        // Pick the id whose element sits closest to (but still below) the top trigger line.
+        // Since rootMargin clips the top 8%, elements in the map are all within the active band.
+        // We want the one with the smallest positive top value - i.e. nearest the top of the band.
+        // Using document order as tiebreaker: earlier in allIds = higher on page.
+        let best = null;
+        let bestOrder = Infinity;
+        for (const id of intersecting.keys()) {
+          const order = allIds.indexOf(id);
+          if (order < bestOrder) {
+            bestOrder = order;
+            best = id;
           }
         }
-        pickActive();
+        if (best) setActiveId(best);
       },
-      { rootMargin: '-8% 0px -75% 0px', threshold: 0 },
+      {
+        // Top 8% of viewport is the "header dead zone", bottom 30% is the trigger band.
+        // An element becomes active when it enters the band between 8% and 70% from top.
+        rootMargin: '-8% 0px -30% 0px',
+        threshold: 0,
+      },
     );
 
-    elements.forEach(({ el }) => observer.observe(el));
-    return () => {
-      observer.disconnect();
-      intersectingSet.clear();
-    };
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
   const scrollToId = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerOffset = 80; // matches sticky header + some breathing room
+    const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top, behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-(--color-bg)">
       {/* Page header */}
-      <div className="sticky top-0 z-30 border-b border-(--color-border-ui) bg-(--color-bg)/95 backdrop-blur-sm">
+      <div className="sticky top-0 z-30 border-b border-(--color-border) bg-(--color-bg)/95 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center">
             <h1 className="font-display text-xl font-bold text-(--color-text-primary)">
