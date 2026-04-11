@@ -1,5 +1,4 @@
 import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
-import { motion } from 'framer-motion';
 import { BadgeInfo, ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -240,13 +239,7 @@ function EvaluationParametersContainer({
 
               <Accordion.Panel>
                 <Accordion.Body className="bg-transparent px-2 pt-1 pb-6">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
-                    className="flex flex-col gap-4 md:flex-row md:items-start md:gap-0"
-                  >
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-0">
                     {group.map((key, idx) => (
                       <React.Fragment key={idx}>
                         <div className="flex flex-1 flex-col items-center px-2 py-1">
@@ -260,7 +253,7 @@ function EvaluationParametersContainer({
                         )}
                       </React.Fragment>
                     ))}
-                  </motion.div>
+                  </div>
                 </Accordion.Body>
               </Accordion.Panel>
             </Accordion.Item>

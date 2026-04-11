@@ -224,7 +224,7 @@ export default function SampleTestCasesContainer({
   };
 
   return (
-    <ScrollShadow className="grid max-h-96 grid-cols-1 gap-3 overflow-y-auto pb-6 md:grid-cols-2">
+    <ScrollShadow className="grid max-h-125 grid-cols-1 gap-3 overflow-y-auto pb-6 md:grid-cols-2">
       {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 

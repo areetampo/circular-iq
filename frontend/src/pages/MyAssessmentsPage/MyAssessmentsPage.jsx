@@ -557,7 +557,7 @@ export default function MyAssessmentsPage() {
     // No assessments at all (stats_totalAssessments === 0)
     if (stats_totalAssessments === 0) {
       return (
-        <div className="rounded-2xl border-4 border-dashed border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.3)] p-12 text-center">
+        <div className="mt-16 rounded-2xl border-4 border-dashed border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.3)] p-12 text-center">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
           <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
             No assessments yet

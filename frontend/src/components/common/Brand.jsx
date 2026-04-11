@@ -10,7 +10,9 @@ export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 export const SiteName = ({ className = '' }) => {
   return (
     <Link to="/">
-      <span className={cn(className, `cursor-pointer`)}>{SITE_NAME}</span>
+      <span className={cn('cursor-pointer text-(--color-text-secondary)', className)}>
+        {SITE_NAME}
+      </span>
     </Link>
   );
 };
@@ -20,7 +22,7 @@ SiteName.propTypes = {
 };
 
 export const SiteFullName = ({ className = '' }) => (
-  <span className={cn(className)}>{SITE_FULL_NAME}</span>
+  <span className={cn('text-(--color-text-secondary)', className)}>{SITE_FULL_NAME}</span>
 );
 
 SiteFullName.propTypes = {
@@ -32,7 +34,7 @@ export const SiteLogo = ({ className = '', size = 'md' }) => {
     <Avatar
       size={size}
       className={cn(
-        'inline-flex items-center justify-center rounded-full',
+        'inline-flex items-center justify-center rounded-full bg-transparent!',
         className,
         'cursor-pointer',
       )}

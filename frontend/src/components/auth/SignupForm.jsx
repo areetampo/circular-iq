@@ -1,4 +1,4 @@
-import { Form, Input, Label, TextField, toast } from '@heroui/react';
+import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleCheck, CircleX, Eye, EyeOff } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -11,6 +11,8 @@ import Button from '@/components/common/Button';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
 import { logger } from '@/utils/logger';
+
+import AuthBrandHeader from '../../pages/AuthPage/components/AuthBrandHeader';
 
 // Validation helper functions
 const validateUsernameLength = (value) => {
@@ -65,7 +67,7 @@ const validatePasswordMatch = (password, confirmPassword) => {
 
 // Reusable validation rule component
 const ValidationRule = ({ isValid, children }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-1.5 [&>*:first-child]:mt-0.5">
     {isValid ? (
       <CircleCheck size={12} className="text-green-800" />
     ) : (
@@ -149,7 +151,7 @@ export function SignupForm({ onSwitchToLogin }) {
 
       toast.success('Account created!', {
         description: `Welcome to ${SITE_FULL_NAME}, ${data.username}.`,
-        timeout: 3000,
+        timeout: 4000,
       });
 
       reset();
@@ -167,36 +169,37 @@ export function SignupForm({ onSwitchToLogin }) {
     <div className="w-full">
       {/* Header */}
       <div className="mb-7 text-center">
+        <AuthBrandHeader className="md_lg:hidden" layout="row" />
         <h2 className="mb-1 text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
           Create Account
         </h2>
-        <p className="mb-[28px] text-center font-sans text-[0.875rem] text-(--color-text-muted)">
+        <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
           Join to start evaluating circular economy ideas
         </p>
       </div>
 
-      {/* Error display */}
-      {submitError && (
-        <div className="mb-4 rounded-md border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-3 text-sm text-(--color-error)">
-          {submitError}
-        </div>
-      )}
-
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-            Username *
-          </Label>
           <Controller
             name="username"
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.username}>
+                <div className="flex h-4 items-center gap-1.5 pl-2">
+                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
+                    Username
+                  </Label>
+                  {errors.username && (
+                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
+                      {errors.username.message}
+                    </FieldError>
+                  )}
+                </div>
                 <Input
                   {...field}
                   type="text"
-                  placeholder="your_username"
+                  placeholder="username"
                   disabled={isLoading}
                   className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                   autoComplete="username"
@@ -204,40 +207,52 @@ export function SignupForm({ onSwitchToLogin }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                 />
-                {/* {errors.username && (
-                  <FieldError className="text-xs text-(--color-error) mt-1">
-                    {errors.username.message}
-                  </FieldError>
-                )} */}
               </TextField>
             )}
           />
-          <div className="mt-2 space-y-1 px-2 text-xs text-(--color-text-muted)">
-            <ValidationRule isValid={validateUsernameLength(formData.username || '')}>
-              {`${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`}
-            </ValidationRule>
-            <ValidationRule isValid={validateUsernameChars(formData.username || '')}>
-              {AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[0]}
-            </ValidationRule>
-            <ValidationRule isValid={validateUsernameHasLetter(formData.username || '')}>
-              {AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[1]}
-            </ValidationRule>
-            <ValidationRule isValid={validateUsernameNoSpaces(formData.username || '')}>
-              {AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[2]}
-            </ValidationRule>
+          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted)">
+            {[
+              {
+                validate: () => validateUsernameLength(formData.username || ''),
+                text: `${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`,
+              },
+              {
+                validate: () => validateUsernameChars(formData.username || ''),
+                text: AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[0],
+              },
+              {
+                validate: () => validateUsernameHasLetter(formData.username || ''),
+                text: AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[1],
+              },
+              {
+                validate: () => validateUsernameNoSpaces(formData.username || ''),
+                text: AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[2],
+              },
+            ].map((rule, index) => (
+              <ValidationRule key={index} isValid={rule.validate()}>
+                {rule.text}
+              </ValidationRule>
+            ))}
           </div>
         </div>
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-            Password *
-          </Label>
           <Controller
             name="password"
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.password}>
+                <div className="flex h-4 items-center gap-1.5 pl-2">
+                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
+                    Password
+                  </Label>
+                  {errors.password && (
+                    <FieldError className="hidden pb-0.5 text-[0.675rem]! leading-none text-(--color-error) lowercase">
+                      {errors.password.message}
+                    </FieldError>
+                  )}
+                </div>
                 <div className="relative">
                   <Input
                     {...field}
@@ -255,37 +270,48 @@ export function SignupForm({ onSwitchToLogin }) {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {/* {errors.password && (
-                  <FieldError className="text-xs text-(--color-error) mt-1">
-                    {errors.password.message}
-                  </FieldError>
-                )} */}
               </TextField>
             )}
           />
-          <div className="mt-2 space-y-1 px-2 text-xs text-(--color-text-muted)">
-            <ValidationRule isValid={validatePasswordLength(formData.password || '')}>
-              {`${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`}
-            </ValidationRule>
-            <ValidationRule isValid={validatePasswordSpecialChar(formData.password || '')}>
-              {AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[0]}
-            </ValidationRule>
-            <ValidationRule isValid={validatePasswordNoSpaces(formData.password || '')}>
-              {AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[1]}
-            </ValidationRule>
+          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted)">
+            {[
+              {
+                validate: () => validatePasswordLength(formData.password || ''),
+                text: `${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`,
+              },
+              {
+                validate: () => validatePasswordSpecialChar(formData.password || ''),
+                text: AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[0],
+              },
+              {
+                validate: () => validatePasswordNoSpaces(formData.password || ''),
+                text: AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[1],
+              },
+            ].map((rule, index) => (
+              <ValidationRule key={index} isValid={rule.validate()}>
+                {rule.text}
+              </ValidationRule>
+            ))}
           </div>
         </div>
 
         {/* Confirm Password */}
         <div className="mb-5">
-          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-            Confirm Password *
-          </Label>
           <Controller
             name="confirmPassword"
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.confirmPassword}>
+                <div className="flex h-4 items-center gap-1.5 pl-2">
+                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
+                    Confirm Password
+                  </Label>
+                  {errors.confirmPassword && (
+                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
+                      {errors.confirmPassword.message}
+                    </FieldError>
+                  )}
+                </div>
                 <div className="relative">
                   <Input
                     {...field}
@@ -303,48 +329,52 @@ export function SignupForm({ onSwitchToLogin }) {
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {/* {errors.confirmPassword && (
-                  <FieldError className="text-xs text-(--color-error) mt-1">
-                    {errors.confirmPassword.message}
-                  </FieldError>
-                )} */}
               </TextField>
             )}
           />
-          <div className="mt-2 px-2 text-xs text-(--color-text-muted)">
-            <ValidationRule
-              isValid={validatePasswordMatch(
-                formData.password || '',
-                formData.confirmPassword || '',
-              )}
-            >
-              Passwords match
-            </ValidationRule>
+          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted)">
+            {[
+              {
+                validate: () =>
+                  validatePasswordMatch(formData.password || '', formData.confirmPassword || ''),
+                text: 'Passwords match',
+              },
+            ].map((rule, index) => (
+              <ValidationRule key={index} isValid={rule.validate()}>
+                {rule.text}
+              </ValidationRule>
+            ))}
           </div>
         </div>
 
         {/* Submit Button */}
-        <Button
-          variant="primary"
-          className="h-10.5 w-full rounded-[9px] bg-(--color-accent) text-[0.875rem] font-semibold text-white transition-colors hover:bg-accent-hover"
-          isLoading={isLoading}
-          onPress={handleSubmit(onSubmit)}
-        >
+        <Button variant="primary" fullWidth isLoading={isLoading} onPress={handleSubmit(onSubmit)}>
           Create Account
         </Button>
       </Form>
 
       {/* Toggle link */}
-      <p className="mt-4.5 text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
+      <p className="mt-2 text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
         Already have an account?{' '}
-        <button
-          type="button"
+        <Button
+          size="sm"
+          variant="ghastly"
           onClick={onSwitchToLogin}
-          className="cursor-pointer font-medium text-(--color-accent) hover:underline"
+          className="font-medium underline"
         >
           Sign in
-        </button>
+        </Button>
       </p>
+
+      {/* Error display */}
+      <div className="relative mt-4 flex min-h-10 items-center justify-center">
+        {submitError && (
+          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+            <CircleX size={16} strokeWidth={2.5} />
+            {submitError}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

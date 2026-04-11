@@ -1,6 +1,6 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { CircleX, Eye, EyeOff } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,6 +10,8 @@ import Button from '@/components/common/Button';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 import { logger } from '@/utils/logger';
+
+import AuthBrandHeader from '../../pages/AuthPage/components/AuthBrandHeader';
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -67,49 +69,45 @@ export function LoginForm({ onSwitchToSignup }) {
     <div className="w-full">
       {/* Header */}
       <div className="mb-7 text-center">
+        <AuthBrandHeader className="md_lg:hidden" layout="row" />
         <h2 className="mb-1 text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
           Sign in
         </h2>
-        <p className="mb-[28px] text-center font-sans text-[0.875rem] text-(--color-text-muted)">
+        <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
           Welcome back!
         </p>
       </div>
 
-      {/* Error display */}
-      {submitError && (
-        <div className="mb-4 rounded-md border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-3 text-sm text-(--color-error)">
-          {submitError}
-        </div>
-      )}
-
       <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
         {/* Username */}
         <div className="mb-5">
-          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-            Username *
-          </Label>
           <Controller
             name="username"
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.username}>
+                <div className="flex h-4 items-center gap-1.5 pl-2">
+                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
+                    Username
+                  </Label>
+                  {errors.username && (
+                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
+                      {errors.username.message}
+                    </FieldError>
+                  )}
+                </div>
                 <Input
                   {...field}
                   type="text"
                   placeholder="username"
                   disabled={isLoading}
-                  className="h-[42px] w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
+                  className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
                   autoCorrect="off"
                   maxLength={30}
                 />
-                {errors.username && (
-                  <FieldError className="mt-1 ml-1 text-xs text-(--color-error)">
-                    {errors.username.message}
-                  </FieldError>
-                )}
               </TextField>
             )}
           />
@@ -117,21 +115,28 @@ export function LoginForm({ onSwitchToSignup }) {
 
         {/* Password */}
         <div className="mb-5">
-          <Label className="mb-1.5 ml-2 block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-            Password *
-          </Label>
           <Controller
             name="password"
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.password}>
+                <div className="flex h-4 items-center gap-1.5 pl-2">
+                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
+                    Password
+                  </Label>
+                  {errors.password && (
+                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
+                      {errors.password.message}
+                    </FieldError>
+                  )}
+                </div>
                 <div className="relative">
                   <Input
                     {...field}
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••"
                     disabled={isLoading}
-                    className="h-[42px] w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
+                    className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
                     autoComplete="current-password"
                     maxLength={30}
                   />
@@ -143,38 +148,39 @@ export function LoginForm({ onSwitchToSignup }) {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {errors.password && (
-                  <FieldError className="mt-1 ml-1 text-xs text-(--color-error)">
-                    {errors.password.message}
-                  </FieldError>
-                )}
               </TextField>
             )}
           />
         </div>
 
         {/* Submit Button */}
-        <Button
-          variant="primary"
-          className="h-[42px] w-full rounded-[9px] bg-(--color-accent) text-[0.875rem] font-semibold text-white transition-colors hover:bg-accent-hover"
-          isLoading={isLoading}
-          onPress={handleSubmit(onSubmit)}
-        >
+        <Button variant="primary" fullWidth isLoading={isLoading} onPress={handleSubmit(onSubmit)}>
           Sign in
         </Button>
       </Form>
 
       {/* Toggle link */}
-      <p className="mt-[18px] text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
+      <p className="mt-2 text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
         Don&apos;t have an account?{' '}
-        <button
-          type="button"
+        <Button
+          size="sm"
+          variant="ghastly"
           onClick={onSwitchToSignup}
-          className="cursor-pointer font-medium text-(--color-accent) hover:underline"
+          className="font-medium underline"
         >
-          Sign up
-        </button>
+          Sign Up
+        </Button>
       </p>
+
+      {/* Error display */}
+      <div className="relative mt-4 flex min-h-10 items-center justify-center">
+        {submitError && (
+          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+            <CircleX size={16} strokeWidth={2.5} />
+            {submitError}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -602,14 +602,7 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="bg-transparent p-0">
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                          >
-                            <BusinessContextContainer loading={loading} />
-                          </motion.div>
+                          <BusinessContextContainer loading={loading} />
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
@@ -659,20 +652,13 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="bg-transparent p-0">
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                          >
-                            <EvaluationParametersContainer
-                              loading={loading}
-                              evalParamsExpandedKeys={evalParamsExpandedKeys}
-                              setEvalParamsExpandedKeys={setEvalParamsExpandedKeys}
-                              innerExpandedKeys={innerExpandedKeys}
-                              onInnerExpandedChange={setInnerExpandedKeys}
-                            />
-                          </motion.div>
+                          <EvaluationParametersContainer
+                            loading={loading}
+                            evalParamsExpandedKeys={evalParamsExpandedKeys}
+                            setEvalParamsExpandedKeys={setEvalParamsExpandedKeys}
+                            innerExpandedKeys={innerExpandedKeys}
+                            onInnerExpandedChange={setInnerExpandedKeys}
+                          />
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
@@ -758,17 +744,10 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="bg-transparent pt-2">
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                          >
-                            <SampleTestCasesContainer
-                              openEvalParams={openEvalParams}
-                              openBusinessContext={openBusinessContext}
-                            />
-                          </motion.div>
+                          <SampleTestCasesContainer
+                            openEvalParams={openEvalParams}
+                            openBusinessContext={openBusinessContext}
+                          />
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
