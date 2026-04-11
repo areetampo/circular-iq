@@ -31,7 +31,7 @@ export function ScoreOverviewSection({
           actualResult.processing_info?.processing_time_ms && {
             prefix: 'Analysed in ',
             value: formatProcessingTime(actualResult.processing_info.processing_time_ms),
-            timeClass: 'font-mono font-medium italic opacity-80',
+            timeClass: 'font-mono font-medium italic opacity-80 text-[0.85rem]',
           },
         ]
           .filter(Boolean)
@@ -102,13 +102,11 @@ export function ScoreOverviewSection({
                 key={title}
                 className="rounded-xl border-2 border-(--color-border-ui) bg-transparent p-4"
               >
-                <div className="mb-1 text-sm font-semibold tracking-widest text-(--color-text-muted) uppercase">
+                <div className="mb-1 text-sm font-semibold tracking-widest text-black/50 uppercase">
                   {title}
                 </div>
-                <div className="text-[0.925rem] font-semibold text-(--color-accent)">{data[0]}</div>
-                <div className="text-[0.85rem] font-medium text-(--color-text-muted)">
-                  Score: {data[1]}
-                </div>
+                <div className="font-semibold text-(--color-accent)">{data[0]}</div>
+                <div className="font-medium text-(--color-text-muted)">Score: {data[1]}</div>
               </div>
             ),
         )}

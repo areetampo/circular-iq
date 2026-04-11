@@ -1,6 +1,6 @@
 import { ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Ghost, Plus } from 'lucide-react';
+import { Ghost, MoveLeft, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -812,7 +812,7 @@ export default function MyAssessmentsPage() {
       {/* Back button */}
       <div className="flex justify-center pt-4 pb-2">
         <Button as={Link} to="/" variant="ghost">
-          <ArrowLeft size={16} /> Back to Home
+          <MoveLeft size={16} /> Back to Home
         </Button>
       </div>
     </div>

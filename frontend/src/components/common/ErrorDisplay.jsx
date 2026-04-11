@@ -1,12 +1,4 @@
-import {
-  AlertCircle,
-  AlertTriangle,
-  Home,
-  Info,
-  RefreshCcw,
-  ServerOff,
-  XCircle,
-} from 'lucide-react';
+import { AlertTriangle, Home, Info, RefreshCcw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
@@ -154,18 +146,15 @@ export default function ErrorDisplay({
         {/* Error details (dev only) */}
         {import.meta.env.DEV && errorDetails && (
           <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-(--color-danger)/10 p-3">
-            <div className="mb-1 flex items-center gap-2">
-              <AlertCircle size={14} className="text-(--color-danger)" />
-              <p className="text-xs font-semibold text-(--color-danger)">
-                Error Details (Dev env only)
-              </p>
-              <CopyButton
-                value={errorDetailsMsg}
-                size={16}
-                color="var(--color-danger)"
-                className="-ml-1"
-              />
-            </div>
+            <CopyButton
+              value={errorDetailsMsg}
+              size={16}
+              strokeWidth={2.5}
+              color="var(--color-danger)"
+              description="Error Details (Dev env only)"
+              noBorder
+              className="mb-1 -ml-2 gap-2 font-medium"
+            />
             <pre className="scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-[var(--color-danger)]/30 scrollbar-track-transparent /* Standard CSS arbitrary values for Chrome/Safari */ mt-2 max-h-48 overflow-auto font-mono text-xs/relaxed wrap-break-word whitespace-pre-wrap text-(--color-danger) [&::-webkit-scrollbar]:w-1! [&::-webkit-scrollbar-thumb]:rounded-full! [&::-webkit-scrollbar-thumb]:bg-(--color-danger)/20! hover:[&::-webkit-scrollbar-thumb]:bg-(--color-danger)/40!">
               {errorDetailsMsg}
             </pre>

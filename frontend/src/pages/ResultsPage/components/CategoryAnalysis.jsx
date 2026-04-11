@@ -42,10 +42,10 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                     <h4 className="text-sm font-semibold text-(--color-text-primary)">
                       {category.name}
                     </h4>
-                    <p className="mt-0.5 text-xs text-(--color-text-muted)">{category.desc}</p>
+                    <p className="mt-0.5 text-sm text-(--color-text-muted)">{category.desc}</p>
                   </div>
                   <div
-                    className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold text-[${badgeColor}]`}
+                    className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-lg font-medium text-[${badgeColor}]`}
                   >
                     {numValue}
                   </div>
@@ -66,18 +66,18 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
             );
           })}
           {/* Business Viability Category */}
-          <div className="rounded-2xl border border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4">
+          <div className="rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4">
             <div className="mb-2 flex items-center justify-between">
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-(--color-text-primary)">
                   Business Viability
                 </h4>
-                <p className="mt-0.5 text-xs text-(--color-text-muted)">
+                <p className="mt-0.5 text-sm text-(--color-text-muted)">
                   Economic feasibility and scalability
                 </p>
               </div>
               <div
-                className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-sm font-bold text-[${getScoreColor(resolvedBusinessViabilityScore)}]`}
+                className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-lg font-medium text-[${getScoreColor(resolvedBusinessViabilityScore)}]`}
               >
                 {resolvedBusinessViabilityScore}
               </div>

@@ -1,10 +1,11 @@
 import { Checkbox, Label, toast } from '@heroui/react';
 import {
-  ArrowLeft,
-  ArrowRight,
   BarChart3,
   CheckCircle2,
   Download,
+  MoveLeft,
+  MoveRight,
+  NotebookPen,
   RefreshCw,
   Target,
   TrendingUp,
@@ -723,7 +724,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Go Back',
             onClick: handleBack,
-            icon: ArrowLeft,
+            icon: MoveLeft,
             variant: 'tertiary',
           },
         ].filter(Boolean)}
@@ -747,7 +748,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           },
           {
             label: 'Return Home',
-            icon: ArrowLeft,
+            icon: MoveLeft,
             variant: 'tertiary',
             to: '/',
           },
@@ -767,7 +768,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         actions={[
           {
             label: 'Start New Assessment',
-            icon: ArrowRight,
+            icon: MoveRight,
             variant: 'secondary',
             to: '/',
           },
@@ -837,7 +838,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   );
 
   return (
-    <>
+    <div className="mx-auto max-w-5xl">
       {/* Action Buttons & Share Section */}
       <div className="my-8 space-y-4 px-4 sm:px-6">
         {isViewFromMyAssessments && currentData?.title && (
@@ -880,56 +881,75 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 Save assessment to enable sharing
               </span>
             ) : (
-              <Checkbox
-                id="assessment-public-toggle"
-                isSelected={
-                  optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
-                }
-                onChange={handleTogglePublic}
-                isDisabled={isUpdatingPublic}
-              >
-                <Checkbox.Content>
-                  <Label htmlFor="assessment-public-toggle" className="cursor-pointer">
-                    <p className="text-[0.8125rem] font-medium opacity-80">
-                      Public sharing{' '}
-                      <span className="ml-0.5 text-[0.7rem] opacity-70">
-                        (
-                        {(
-                          optimisticIsPublic !== null
-                            ? optimisticIsPublic
-                            : currentData?.is_public || false
-                        )
-                          ? 'on'
-                          : 'off'}
-                        )
-                      </span>
-                    </p>
-                  </Label>
-                </Checkbox.Content>
-                <Checkbox.Control className={cn('origin-left scale-90')}>
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
-              </Checkbox>
+              <div className="group/checkbox w-fit">
+                <Checkbox
+                  id={`assessment-public-toggle-${currentData.id}`}
+                  isSelected={
+                    optimisticIsPublic !== null
+                      ? optimisticIsPublic
+                      : currentData?.is_public || false
+                  }
+                  onChange={handleTogglePublic}
+                  isDisabled={isUpdatingPublic}
+                >
+                  <Checkbox.Content>
+                    <Label
+                      htmlFor={`assessment-public-toggle-${currentData.id}`}
+                      className="cursor-pointer transition-colors group-hover/checkbox:text-(--color-text-primary)"
+                    >
+                      <p className="text-[0.8125rem] font-medium opacity-80">
+                        Public sharing{' '}
+                        <span className="ml-0.5 text-[0.7rem] opacity-70">
+                          (
+                          {(
+                            optimisticIsPublic !== null
+                              ? optimisticIsPublic
+                              : currentData?.is_public || false
+                          )
+                            ? 'on'
+                            : 'off'}
+                          )
+                        </span>
+                      </p>
+                    </Label>
+                  </Checkbox.Content>
+                  <Checkbox.Control
+                    className={cn(
+                      'origin-left scale-90',
+                      'group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)',
+                    )}
+                  >
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                </Checkbox>
+              </div>
             )}
 
-            {/* Share URL — shown only when is_public = true and public_id exists */}
-            {(optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
-              currentData?.public_id && (
-                <div
-                  className={cn(
-                    `mt-2 flex origin-top-left scale-90 flex-col gap-3 opacity-70 sm:flex-row`,
-                    isUpdatingPublic ? 'opacity-20' : '',
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="mr-2 font-mono">{publicURL}</span>
-                    <span className="font-mono">{'/'}</span>
-                    <CopyButton value={publicURL} description="URL" noBorder />
-                  </div>
-                  <span className="font-mono">{'/'}</span>
-                  <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />
-                </div>
+            {/* Share URL section */}
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-300 ease-in-out',
+                (optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public) &&
+                  currentData?.public_id
+                  ? 'mt-2 max-h-20 opacity-100'
+                  : 'max-h-0 opacity-0',
               )}
+            >
+              <div
+                className={cn(
+                  `flex origin-top-left scale-90 flex-col gap-3 opacity-70 sm:flex-row`,
+                  isUpdatingPublic ? 'opacity-20' : '',
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="mr-2 font-mono">{publicURL}</span>
+                  <span className="font-mono">{'/'}</span>
+                  <CopyButton value={publicURL} description="URL" noBorder />
+                </div>
+                <span className="font-mono">{'/'}</span>
+                <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -992,12 +1012,20 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
 
+        <SectionHeading
+          variant="small"
+          icon={<NotebookPen className="size-4 text-(--color-accent)" />}
+          className="mt-8"
+        >
+          Strategic Synthesis
+        </SectionHeading>
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <StrengthsGapsCard strengths={strengths} gaps={gaps} />
           <RecommendationsCard actualResult={actualResult} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

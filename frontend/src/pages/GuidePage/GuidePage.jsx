@@ -27,7 +27,7 @@ const PARAM_CATEGORY_BORDER = {
   tech_readiness: 'border-l-2 border-(--color-accent)',
 };
 
-// Navigation tree as specified in the prompt
+// Navigation tree as specified in prompt
 const NAV_TREE = [
   {
     id: 'overview',
@@ -35,6 +35,14 @@ const NAV_TREE = [
     children: [
       { id: 'how-it-works', label: 'How It Works' },
       { id: 'assessment-layers', label: 'Assessment Layers' },
+    ],
+  },
+  {
+    id: 'getting-started',
+    label: 'Getting Started',
+    children: [
+      { id: 'quickstart-steps', label: 'Quickstart Steps' },
+      { id: 'tips-for-best-results', label: 'Tips for Best Results' },
     ],
   },
   {
@@ -59,7 +67,10 @@ const NAV_TREE = [
   {
     id: 'business-context',
     label: 'Business Context',
-    children: [{ id: 'context-fields', label: 'Field Definitions' }],
+    children: [
+      { id: 'context-why', label: 'Why It Matters' },
+      { id: 'context-fields', label: 'Field Definitions' },
+    ],
   },
   {
     id: 'evaluation-criteria',
@@ -84,6 +95,26 @@ const NAV_TREE = [
       { id: 'param-size-efficiency', label: 'Size Efficiency' },
       { id: 'param-chemical-safety', label: 'Chemical Safety' },
       { id: 'param-tech-readiness', label: 'Tech Readiness' },
+    ],
+  },
+  {
+    id: 'scoring-benchmarking',
+    label: 'Scoring & Benchmarking',
+    children: [
+      { id: 'circularity-tiers', label: 'Circularity Tiers' },
+      { id: 'weighted-scoring', label: 'Weighted Scoring' },
+      { id: 'consistency-check', label: 'Consistency Check' },
+      { id: 'r-strategy', label: 'R-Strategy Alignment' },
+    ],
+  },
+  {
+    id: 'understanding-results',
+    label: 'Understanding Results',
+    children: [
+      { id: 'results-overview', label: 'Results Overview' },
+      { id: 'improvement-roadmap', label: 'Improvement Roadmap' },
+      { id: 'sdg-alignment', label: 'SDG Alignment' },
+      { id: 'database-evidence', label: 'Database Evidence' },
     ],
   },
   {
@@ -139,16 +170,31 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
       </button>
       {mobileOpen && (
         <div className="border-t border-(--color-border-ui) bg-(--color-bg) px-4 py-2">
-          {NAV_TREE.map((section) => (
-            <React.Fragment key={section.id}>
-              <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
-              {section.children?.map((child) => (
-                <div key={child.id} className="ml-3 border-l border-(--color-border-faint) pl-3">
-                  <NavItem item={child} level="sub" activeId={activeId} onNavigate={scrollToId} />
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
+          {NAV_TREE.map((section) => {
+            // A section is "open" if it or any of its children is active
+            const isSectionActive =
+              activeId === section.id || section.children?.some((c) => c.id === activeId);
+
+            return (
+              <React.Fragment key={section.id}>
+                <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
+                {isSectionActive &&
+                  section.children?.map((child) => (
+                    <div
+                      key={child.id}
+                      className="ml-3 border-l border-(--color-border-faint) pl-3"
+                    >
+                      <NavItem
+                        item={child}
+                        level="sub"
+                        activeId={activeId}
+                        onNavigate={scrollToId}
+                      />
+                    </div>
+                  ))}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
     </div>
@@ -163,20 +209,27 @@ const DesktopNav = ({ activeId, onNavigate }) => {
         <p className="label-overline mb-3">On this page</p>
         <ScrollShadow className="max-h-[calc(100vh-6rem)]">
           <div className="border-l border-(--color-border-ui)">
-            {NAV_TREE.map((section) => (
-              <React.Fragment key={section.id}>
-                <NavItem item={section} level="top" activeId={activeId} onNavigate={onNavigate} />
-                {section.children?.map((child) => (
-                  <NavItem
-                    key={child.id}
-                    item={child}
-                    level="sub"
-                    activeId={activeId}
-                    onNavigate={onNavigate}
-                  />
-                ))}
-              </React.Fragment>
-            ))}
+            {NAV_TREE.map((section) => {
+              // A section is "open" if it or any of its children is active
+              const isSectionActive =
+                activeId === section.id || section.children?.some((c) => c.id === activeId);
+
+              return (
+                <React.Fragment key={section.id}>
+                  <NavItem item={section} level="top" activeId={activeId} onNavigate={onNavigate} />
+                  {isSectionActive &&
+                    section.children?.map((child) => (
+                      <NavItem
+                        key={child.id}
+                        item={child}
+                        level="sub"
+                        activeId={activeId}
+                        onNavigate={onNavigate}
+                      />
+                    ))}
+                </React.Fragment>
+              );
+            })}
           </div>
         </ScrollShadow>
       </div>
@@ -192,7 +245,7 @@ const OverviewSection = () => {
       className="scroll-mt-24 border-t border-(--color-border-ui) py-14 first:border-t-0"
     >
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">Overview</h2>
-      <p className="mb-8 text-sm text-(--color-text-muted)">
+      <p className="mb-2 text-sm text-(--color-text-muted)">
         Learn how our AI-powered circular economy assessment works
       </p>
       {GUIDE_PAGE_CONTENT.overview.intro && (
@@ -202,8 +255,7 @@ const OverviewSection = () => {
       )}
 
       {/* How It Works */}
-      <div className="mt-8">
-        <div id="how-it-works" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="how-it-works" className="scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           How It Works
         </h3>
@@ -231,8 +283,7 @@ const OverviewSection = () => {
       </div>
 
       {/* Assessment Layers */}
-      <div className="mt-8">
-        <div id="assessment-layers" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="assessment-layers" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Assessment Layers
         </h3>
@@ -279,6 +330,61 @@ const OverviewSection = () => {
   );
 };
 
+// Getting Started Section
+const GettingStartedSection = () => (
+  <section id="getting-started" className="scroll-mt-24 border-t border-(--color-border-ui) py-14">
+    <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
+      Getting Started
+    </h2>
+    <p className="mb-2 text-sm text-(--color-text-muted)">
+      {GUIDE_PAGE_CONTENT.gettingStarted.subtitle}
+    </p>
+    <p className="mb-10 max-w-2xl text-sm/relaxed text-(--color-text-secondary)">
+      {GUIDE_PAGE_CONTENT.gettingStarted.intro}
+    </p>
+
+    {/* Quickstart Steps */}
+    <div id="quickstart-steps" className="scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Quickstart Steps
+      </h3>
+      <ol className="space-y-4">
+        {GUIDE_PAGE_CONTENT.gettingStarted.quickstartSteps.map((step) => (
+          <li key={step.number} className="flex items-start gap-4">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--color-accent) font-mono text-sm font-bold text-white">
+              {step.number}
+            </div>
+            <div className="flex-1 rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) px-4 py-3">
+              <p className="mb-0.5 text-sm font-semibold text-(--color-text-primary)">
+                {step.title}
+              </p>
+              <p className="text-xs/relaxed text-(--color-text-muted)">{step.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    {/* Tips for Best Results */}
+    <div id="tips-for-best-results" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Tips for Best Results
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {GUIDE_PAGE_CONTENT.gettingStarted.bestPracticeTips.map((tip) => (
+          <div
+            key={tip.title}
+            className="rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+          >
+            <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{tip.title}</p>
+            <p className="text-xs/relaxed text-(--color-text-muted)">{tip.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
 // Business Problem Section
 const BusinessProblemSection = () => {
   return (
@@ -300,8 +406,7 @@ const BusinessProblemSection = () => {
       )}
 
       {/* Essential Elements */}
-      <div className="mt-8">
-        <div id="problem-elements" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="problem-elements" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Essential Elements
         </h3>
@@ -324,8 +429,7 @@ const BusinessProblemSection = () => {
       </div>
 
       {/* Writing Tips */}
-      <div className="mt-8">
-        <div id="problem-tips" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="problem-tips" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Writing Tips
         </h3>
@@ -350,8 +454,7 @@ const BusinessProblemSection = () => {
       </div>
 
       {/* Example */}
-      <div className="mt-8">
-        <div id="problem-example" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="problem-example" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Example Statement
         </h3>
@@ -391,8 +494,7 @@ const BusinessSolutionSection = () => {
       )}
 
       {/* Critical Components */}
-      <div className="mt-8">
-        <div id="solution-components" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="solution-components" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Critical Components
         </h3>
@@ -410,8 +512,7 @@ const BusinessSolutionSection = () => {
       </div>
 
       {/* Common Pitfalls */}
-      <div className="mt-10">
-        <div id="solution-pitfalls" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="solution-pitfalls" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Common Pitfalls
         </h3>
@@ -436,8 +537,7 @@ const BusinessSolutionSection = () => {
       </div>
 
       {/* Pro Tips */}
-      <div className="mt-8">
-        <div id="solution-tips" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="solution-tips" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Pro Tips
         </h3>
@@ -455,8 +555,7 @@ const BusinessSolutionSection = () => {
       </div>
 
       {/* Example */}
-      <div className="mt-8">
-        <div id="solution-example" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="solution-example" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Example Statement
         </h3>
@@ -497,9 +596,45 @@ const BusinessContextSection = () => {
         </p>
       )}
 
+      {/* Why It Matters */}
+      <div id="context-why" className="scroll-mt-24">
+        <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
+          Why It Matters
+        </h3>
+        <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
+          Business context fields feed directly into the AI&apos;s benchmarking calibration. Without
+          them, the model compares your submission against all 40,000+ cases indiscriminately. With
+          them, it narrows the comparison to cases that match your stage, model type, and geography
+          — producing more relevant scores and recommendations.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            {
+              label: 'Stage-Appropriate Benchmarks',
+              desc: 'An idea-stage submission is not compared against mature operations — the scoring expectations adjust to your operational stage.',
+            },
+            {
+              label: 'Model-Specific Comparisons',
+              desc: 'A Product-as-a-Service business is compared with other PaaS cases, not against recycling operations with very different economics.',
+            },
+            {
+              label: 'Geographic Context',
+              desc: 'Infrastructure availability, regulatory environment, and market maturity vary significantly by region — context fields capture this.',
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+            >
+              <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{item.label}</p>
+              <p className="text-xs/relaxed text-(--color-text-muted)">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Field Definitions */}
-      <div className="mt-8">
-        <div id="context-fields" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="context-fields" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Field Definitions
         </h3>
@@ -532,7 +667,7 @@ const EvaluationCriteriaSection = () => {
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Evaluation Criteria
       </h2>
-      <p className="mb-8 text-sm text-(--color-text-muted)">
+      <p className="mb-2 text-sm text-(--color-text-muted)">
         Three core value dimensions with specific factors
       </p>
       {GUIDE_PAGE_CONTENT.evaluationCriteria.intro && (
@@ -552,8 +687,7 @@ const EvaluationCriteriaSection = () => {
 
       {/* Value Sections */}
       {GUIDE_PAGE_CONTENT.evaluationCriteria.valueSections.map((section) => (
-        <div key={section.id} className="mt-8">
-          <div id={section.id} className="h-0 scroll-mt-24" aria-hidden="true" />
+        <div key={section.id} className="mt-10 scroll-mt-24" id={section.id}>
           <div className="mb-1 flex items-center gap-2">
             <h3 className="font-display text-base font-semibold text-(--color-text-primary)">
               {section.title}
@@ -595,8 +729,7 @@ const EvaluationCriteriaSection = () => {
       ))}
 
       {/* Score Calculation */}
-      <div className="mt-8">
-        <div id="score-calculation" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="score-calculation" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Score Calculation
         </h3>
@@ -647,7 +780,7 @@ const EvaluationParametersSection = () => {
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Evaluation Parameters
       </h2>
-      <p className="mb-8 text-sm text-(--color-text-muted)">
+      <p className="mb-2 text-sm text-(--color-text-muted)">
         Detailed scoring guidelines for each evaluation factor
       </p>
       {GUIDE_PAGE_CONTENT.evaluationParameters.intro && (
@@ -657,8 +790,7 @@ const EvaluationParametersSection = () => {
       )}
 
       {/* Parameter Overview */}
-      <div className="mt-8">
-        <div id="parameter-overview" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="parameter-overview" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           Parameter Overview
         </h3>
@@ -689,8 +821,7 @@ const EvaluationParametersSection = () => {
 
       {/* Individual Parameter Details */}
       {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.parameters).map(([key, param]) => (
-        <div key={key} className="mt-8">
-          <div id={`param-${key}`} className="h-0 scroll-mt-24" aria-hidden="true" />
+        <div key={key} className="mt-10 scroll-mt-24" id={`param-${key}`}>
           <div className="overflow-hidden rounded-xl border border-(--color-border-ui)">
             <Accordion allowsMultipleExpanded>
               <Accordion.Item key={key}>
@@ -791,6 +922,224 @@ const EvaluationParametersSection = () => {
   );
 };
 
+// Scoring & Benchmarking Section
+const ScoringBenchmarkingSection = () => (
+  <section
+    id="scoring-benchmarking"
+    className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+  >
+    <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
+      Scoring & Benchmarking
+    </h2>
+    <p className="mb-2 text-sm text-(--color-text-muted)">
+      {GUIDE_PAGE_CONTENT.scoringBenchmarking.subtitle}
+    </p>
+    <p className="mb-10 max-w-2xl text-sm/relaxed text-(--color-text-secondary)">
+      {GUIDE_PAGE_CONTENT.scoringBenchmarking.intro}
+    </p>
+
+    {/* Circularity Tiers */}
+    <div id="circularity-tiers" className="scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Circularity Tiers
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.tiers.map((tier) => (
+          <div
+            key={tier.name}
+            className={cn(
+              'rounded-xl border p-4',
+              tier.color === 'success' &&
+                'border-(--color-success-border) bg-(--color-success-soft-ui)',
+              tier.color === 'info' && 'border-(--color-info)/20 bg-(--color-info-soft-ui)',
+              tier.color === 'warning' &&
+                'border-(--color-warning-border) bg-(--color-warning-soft-ui)',
+              tier.color === 'accent' &&
+                'border-(--color-accent-border) bg-(--color-accent-soft-ui)',
+            )}
+          >
+            <div className="mb-1 flex items-center justify-between">
+              <p
+                className={cn(
+                  'text-sm font-bold',
+                  tier.color === 'success' && 'text-(--color-success)',
+                  tier.color === 'info' && 'text-(--color-info)',
+                  tier.color === 'warning' && 'text-(--color-warning)',
+                  tier.color === 'accent' && 'text-(--color-accent)',
+                )}
+              >
+                {tier.name}
+              </p>
+              <span className="font-mono text-xs font-semibold text-(--color-text-muted)">
+                {tier.range}
+              </span>
+            </div>
+            <p className="text-xs/relaxed text-(--color-text-secondary)">{tier.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Weighted Scoring */}
+    <div id="weighted-scoring" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Weighted Scoring
+      </h3>
+      <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.weightedScoring.explanation}
+      </p>
+      <div className="rounded-lg border border-(--color-border-faint) bg-(--color-surface-raised) px-4 py-3 font-mono text-sm font-semibold text-(--color-text-primary)">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.weightedScoring.formula}
+      </div>
+      <p className="mt-3 text-xs text-(--color-text-muted) italic">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.weightedScoring.note}
+      </p>
+    </div>
+
+    {/* Consistency Check */}
+    <div id="consistency-check" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Consistency Check
+      </h3>
+      <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.consistencyCheck.explanation}
+      </p>
+      <ul className="mb-4 space-y-2">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.consistencyCheck.rules.map((rule, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
+            <Info className="mt-0.5 size-3.5 shrink-0 text-(--color-info)" />
+            {rule}
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-(--color-text-muted) italic">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.consistencyCheck.note}
+      </p>
+    </div>
+
+    {/* R-Strategy Alignment */}
+    <div id="r-strategy" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        R-Strategy Alignment
+      </h3>
+      <p className="mb-5 text-sm/relaxed text-(--color-text-secondary)">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.rStrategy.explanation}
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {GUIDE_PAGE_CONTENT.scoringBenchmarking.rStrategy.strategies.map((s) => (
+          <div
+            key={s.code}
+            className="rounded-lg border border-(--color-border-ui) bg-(--color-surface-raised) p-3"
+          >
+            <p className="mb-0.5 text-sm font-semibold text-(--color-accent)">{s.code}</p>
+            <p className="text-xs text-(--color-text-muted)">{s.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// Understanding Results Section
+const UnderstandingResultsSection = () => (
+  <section
+    id="understanding-results"
+    className="scroll-mt-24 border-t border-(--color-border-ui) py-14"
+  >
+    <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
+      Understanding Results
+    </h2>
+    <p className="mb-2 text-sm text-(--color-text-muted)">
+      {GUIDE_PAGE_CONTENT.understandingResults.subtitle}
+    </p>
+    <p className="mb-10 max-w-2xl text-sm/relaxed text-(--color-text-secondary)">
+      {GUIDE_PAGE_CONTENT.understandingResults.intro}
+    </p>
+
+    {/* Results Overview */}
+    <div id="results-overview" className="scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Results Overview
+      </h3>
+      <div className="space-y-3">
+        {GUIDE_PAGE_CONTENT.understandingResults.sections
+          .filter(
+            (s) => !['Improvement Roadmap', 'SDG Alignment', 'Database Evidence'].includes(s.title),
+          )
+          .map((s, i) => (
+            <div
+              key={i}
+              className="flex items-start gap-4 rounded-xl border border-(--color-border-ui) bg-(--color-surface-raised) p-4"
+            >
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--color-surface-overlay-md) font-mono text-xs font-bold text-(--color-accent)">
+                {i + 1}
+              </div>
+              <div>
+                <p className="mb-1 text-sm font-semibold text-(--color-text-primary)">{s.title}</p>
+                <p className="text-xs/relaxed text-(--color-text-muted)">{s.description}</p>
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+
+    {/* Improvement Roadmap */}
+    <div id="improvement-roadmap" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Improvement Roadmap
+      </h3>
+      {(() => {
+        const s = GUIDE_PAGE_CONTENT.understandingResults.sections.find(
+          (s) => s.title === 'Improvement Roadmap',
+        );
+        return s ? (
+          <p className="text-sm/relaxed text-(--color-text-secondary)">{s.description}</p>
+        ) : null;
+      })()}
+    </div>
+
+    {/* SDG Alignment */}
+    <div id="sdg-alignment" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        SDG Alignment
+      </h3>
+      {(() => {
+        const s = GUIDE_PAGE_CONTENT.understandingResults.sections.find(
+          (s) => s.title === 'SDG Alignment',
+        );
+        return s ? (
+          <p className="text-sm/relaxed text-(--color-text-secondary)">{s.description}</p>
+        ) : null;
+      })()}
+    </div>
+
+    {/* Database Evidence */}
+    <div id="database-evidence" className="mt-10 scroll-mt-24">
+      <h3 className="mb-5 font-display text-lg font-semibold text-(--color-text-primary)">
+        Database Evidence
+      </h3>
+      {(() => {
+        const s = GUIDE_PAGE_CONTENT.understandingResults.sections.find(
+          (s) => s.title === 'Database Evidence',
+        );
+        return s ? (
+          <>
+            <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">{s.description}</p>
+            <div className="rounded-lg border border-(--color-accent-border) bg-(--color-accent-light) px-4 py-3">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="mt-0.5 size-4 shrink-0 text-(--color-accent)" />
+                <p className="text-sm text-(--color-text-secondary)">
+                  {GUIDE_PAGE_CONTENT.understandingResults.exportNote}
+                </p>
+              </div>
+            </div>
+          </>
+        ) : null;
+      })()}
+    </div>
+  </section>
+);
+
 // Sample Test Cases Section
 const SampleTestCasesSection = () => {
   return (
@@ -801,7 +1150,7 @@ const SampleTestCasesSection = () => {
       <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
         Sample Test Cases
       </h2>
-      <p className="mb-8 text-sm text-(--color-text-muted)">
+      <p className="mb-2 text-sm text-(--color-text-muted)">
         Real circular economy business examples for reference
       </p>
       {GUIDE_PAGE_CONTENT.sampleTestCases.intro && (
@@ -826,8 +1175,7 @@ const SampleTestCasesSection = () => {
       </div>
 
       {/* How to Use */}
-      <div className="mt-8">
-        <div id="test-cases-how-to" className="h-0 scroll-mt-24" aria-hidden="true" />
+      <div id="test-cases-how-to" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-display text-lg font-semibold text-(--color-text-primary)">
           How to Use
         </h3>
@@ -867,29 +1215,30 @@ export default function GuidePage() {
   const [activeId, setActiveId] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Scroll spy using IntersectionObserver with persistent set
+  // Scroll spy using priority-list approach (children before parents)
   useEffect(() => {
-    const allIds = NAV_TREE.flatMap((s) => [s.id, ...(s.children?.map((c) => c.id) ?? [])]);
-    const elements = allIds.map((id) => document.getElementById(id)).filter(Boolean);
+    // Build a flat priority list: sub-items BEFORE their parents
+    // so when we search for the first intersecting one, children win over parents
+    const priorityList = NAV_TREE.flatMap((section) => [
+      ...(section.children?.map((c) => c.id) ?? []),
+      section.id,
+    ]);
 
-    // Track ALL currently-intersecting elements, not just the changed batch
+    const elements = priorityList
+      .map((id) => ({ id, el: document.getElementById(id) }))
+      .filter(({ el }) => el !== null);
+
     const intersectingSet = new Set();
 
     const pickActive = () => {
-      if (intersectingSet.size === 0) return;
-      // Among all currently intersecting elements, pick the one closest to the top of viewport
-      let topmost = null;
-      let topmostTop = Infinity;
-      for (const id of intersectingSet) {
-        const el = document.getElementById(id);
-        if (!el) continue;
-        const top = el.getBoundingClientRect().top;
-        if (top < topmostTop) {
-          topmostTop = top;
-          topmost = id;
+      // Walk the priority list in order — first match wins
+      // Children come before parents in the list, so children always win
+      for (const { id } of elements) {
+        if (intersectingSet.has(id)) {
+          setActiveId(id);
+          return;
         }
       }
-      if (topmost) setActiveId(topmost);
     };
 
     const observer = new IntersectionObserver(
@@ -906,7 +1255,7 @@ export default function GuidePage() {
       { rootMargin: '-8% 0px -75% 0px', threshold: 0 },
     );
 
-    elements.forEach((el) => observer.observe(el));
+    elements.forEach(({ el }) => observer.observe(el));
     return () => {
       observer.disconnect();
       intersectingSet.clear();
@@ -936,11 +1285,14 @@ export default function GuidePage() {
           {/* Content */}
           <div className="max-w-3xl min-w-0 flex-1">
             <OverviewSection />
+            <GettingStartedSection />
             <BusinessProblemSection />
             <BusinessSolutionSection />
             <BusinessContextSection />
             <EvaluationCriteriaSection />
             <EvaluationParametersSection />
+            <ScoringBenchmarkingSection />
+            <UnderstandingResultsSection />
             <SampleTestCasesSection />
           </div>
 

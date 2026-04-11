@@ -1,9 +1,9 @@
 import { toast } from '@heroui/react';
-import { ArrowLeft, CircleX, Download, FolderPen, RefreshCw, Save } from 'lucide-react';
+import { CircleX, Download, FolderPen, MoveLeft, RefreshCw, Save } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/components/common';
+import { Button, CopyButton } from '@/components/common';
 import { getSession, saveSession } from '@/utils/session';
 
 export function ResultsActionBar({
@@ -42,7 +42,7 @@ export function ResultsActionBar({
 
         {!isPublicShare && (
           <Button as={Link} to="/assessments" variant="ghost" size="md">
-            <ArrowLeft size={14} className="mr-1" /> My Assessments
+            <MoveLeft size={14} className="mr-1" /> My Assessments
           </Button>
         )}
         {(currentData || actualResult) && (
@@ -138,6 +138,16 @@ export function ResultsActionBar({
               </Button>
             </>
           )}
+        {isPublicShare && currentData?.public_id && (
+          <CopyButton
+            value={currentData.public_id}
+            size={12}
+            strokeWidth={2.5}
+            description="ID"
+            noBorder
+            color="#00000077"
+          />
+        )}
       </div>
     </div>
   );

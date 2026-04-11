@@ -26,8 +26,8 @@ export function CircularEconomyTierCard({ actualResult }) {
       </div>
 
       <div className="my-3 border-l-2 border-(--color-accent) py-1 pl-3 text-sm/relaxed text-(--color-text-secondary) italic">
-        <span className="text-xs font-semibold text-(--color-text-muted)">Next Milestone: </span>
-        <span className="text-xs text-(--color-text-primary)">
+        <span className="text-sm font-semibold text-(--color-text-muted)">Next Milestone: </span>
+        <span className="text-sm text-(--color-text-primary)">
           {actualResult.circular_economy_tier.next_milestone}
         </span>
       </div>

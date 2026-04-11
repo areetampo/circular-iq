@@ -1,5 +1,5 @@
 import { toast } from '@heroui/react';
-import { ArrowLeft, Book, RefreshCcw, View } from 'lucide-react';
+import { Book, FingerprintPattern, MoveLeft, RefreshCcw } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -65,17 +65,11 @@ export default function AssessmentViewPage() {
             variant: 'ghost',
           },
           {
-            label: 'Go back',
-            icon: ArrowLeft,
-            onClick: handleSafeBack,
-            variant: 'ghost',
-          },
-          {
-            label: 'View another',
-            icon: View,
+            label: 'Try new ID',
+            icon: FingerprintPattern,
             variant: 'primary',
             as: Link,
-            to: '/assessments/compare',
+            to: '/assessments/share',
           },
         ]}
         showDefaultActions={false}
@@ -91,17 +85,17 @@ export default function AssessmentViewPage() {
         message="The requested assessment could not be found. It may have been deleted or you might not have access to it."
         actions={[
           {
-            label: 'Go back',
-            icon: ArrowLeft,
-            onClick: handleSafeBack,
+            label: 'Refresh',
+            icon: RefreshCcw,
+            onClick: handleRefresh,
             variant: 'ghost',
           },
           {
-            label: 'View another',
-            icon: View,
+            label: 'Try new ID',
+            icon: FingerprintPattern,
             variant: 'primary',
             as: Link,
-            to: '/assessments/compare',
+            to: '/assessments/share',
           },
         ]}
         showDefaultActions={false}
@@ -167,7 +161,7 @@ export default function AssessmentViewPage() {
       {/* Simple footer */}
       <div className="mt-8 flex items-center justify-center gap-3 p-6">
         <Button onClick={handleSafeBack} variant="ghost">
-          <ArrowLeft size={16} />
+          <MoveLeft size={16} />
           Back
         </Button>
         <Button as={Link} to="/assessments" variant="ghost">

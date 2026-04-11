@@ -1,10 +1,10 @@
-import { Checkbox, Skeleton } from '@heroui/react';
+import { Checkbox, Label, Skeleton } from '@heroui/react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Button, Chip } from '@/components/common';
+import { Button, Chip, CopyIcon } from '@/components/common';
 import { formatTimestamp } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
@@ -24,6 +24,24 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   const assessmentLink = `/assessments/${assessment.public_id}`;
   const formattedDate = formatTimestamp(assessment.created_at);
 
+  const [copiedPublicId, setCopiedPublicId] = useState(null);
+  const [togglingPublic, setTogglingPublic] = useState(null);
+
+  const handleCopy = (publicId, value) => {
+    navigator.clipboard.writeText(value);
+    setCopiedPublicId(publicId);
+    setTimeout(() => setCopiedPublicId(null), 1500);
+  };
+
+  const handleTogglePublic = async (id) => {
+    setTogglingPublic(id);
+    try {
+      await onTogglePublic(id);
+    } finally {
+      setTogglingPublic(null);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -31,7 +49,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         `bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]`,
         isSelected
           ? `border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]`
-          : `border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.6)]`,
+          : `border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.4)]`,
       )}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
     >
@@ -78,33 +96,41 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         </div>
 
         {/* Action buttons */}
-        <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity duration-300">
+        <div className="grid shrink-0 grid-cols-[auto_auto_auto] grid-rows-2 items-start gap-x-1 gap-y-0.5 opacity-100 transition-opacity duration-300">
           {[
             {
               icon: Eye,
+              label: 'View',
               onClick: (e) => {
                 e.stopPropagation();
                 onView(assessment.public_id);
               },
-              label: 'View',
             },
             {
               icon: Pencil,
+              label: 'Rename',
               onClick: (e) => {
                 e.stopPropagation();
                 onRename(assessment.id);
               },
-              label: 'Rename',
             },
             {
               icon: Trash2,
+              label: 'Delete',
               onClick: (e) => {
                 e.stopPropagation();
                 onDelete(assessment.id);
               },
-              label: 'Delete',
             },
-          ].map(({ icon: Icon, onClick, label }) => (
+            {
+              icon: CopyIcon,
+              label: 'ID',
+              onClick: (e) => {
+                e.stopPropagation();
+                handleCopy(assessment.public_id, assessment.public_id);
+              },
+            },
+          ].map(({ icon: Icon, onClick, label }, index) => (
             <Button
               variant="ghastly"
               size="xs"
@@ -113,8 +139,23 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               label={label}
               as={label === 'View' ? Link : undefined}
               to={label === 'View' ? assessmentLink : undefined}
+              className={cn(
+                'flex items-center gap-1',
+                index < 2 && 'row-span-2',
+                index === 2 && 'col-start-3 row-start-1',
+                index === 3 && 'col-start-3 row-start-2',
+              )}
             >
-              <Icon size={11} />
+              <Icon
+                size={11}
+                strokeWidth={2.5}
+                {...(label === 'ID'
+                  ? {
+                      hasCopied: copiedPublicId === assessment.public_id,
+                      copyIconClassname: 'pr-3',
+                    }
+                  : {})}
+              />
               <span>{label}</span>
             </Button>
           ))}
@@ -122,7 +163,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       </div>
 
       {/* Bottom row with additional stats and controls */}
-      <div className="mt-3 flex items-center justify-between border-t border-[rgba(180,160,130,0.15)] pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-[rgba(180,160,130,0.15)] pt-2">
         {/* Additional stats */}
         <div className="flex items-center gap-3 text-[0.7rem] text-(--color-text-muted) [&>span]:font-mono">
           {assessment.technical_feasibility && (
@@ -140,32 +181,47 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         {/* Controls */}
         <div className="flex items-center gap-3">
           {/* Select to compare checkbox */}
-          <Checkbox
-            isSelected={isSelected}
-            onChange={() => onToggleSelect(assessment.id)}
-            className="text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-          >
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-            <Checkbox.Content className="-ml-1.5">
-              <span>Select to compare</span>
-            </Checkbox.Content>
-          </Checkbox>
+          <div className="group/checkbox">
+            <Checkbox
+              id={`select-to-compare-${assessment.id}`}
+              isSelected={isSelected}
+              onChange={() => onToggleSelect(assessment.id)}
+            >
+              <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Content className="-ml-1.5">
+                <Label
+                  htmlFor={`select-to-compare-${assessment.id}`}
+                  className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
+                >
+                  Select to compare
+                </Label>
+              </Checkbox.Content>
+            </Checkbox>
+          </div>
 
           {/* Public/Private checkbox */}
-          <Checkbox
-            isSelected={assessment.is_public}
-            onChange={() => onTogglePublic(assessment.id)}
-            className="text-[0.75rem] text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
-          >
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-            <Checkbox.Content className="-ml-1.5">
-              <span>Public</span>
-            </Checkbox.Content>
-          </Checkbox>
+          <div className="group/checkbox">
+            <Checkbox
+              id={`public-toggle-${assessment.id}`}
+              isSelected={assessment.is_public}
+              onChange={() => handleTogglePublic(assessment.id)}
+              disabled={togglingPublic === assessment.id}
+            >
+              <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Content className="-ml-1.5">
+                <Label
+                  htmlFor={`public-toggle-${assessment.id}`}
+                  className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
+                >
+                  Public
+                </Label>
+              </Checkbox.Content>
+            </Checkbox>
+          </div>
         </div>
       </div>
     </div>

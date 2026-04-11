@@ -1,4 +1,4 @@
-import { ArrowRight, FileText, Frown } from 'lucide-react';
+import { FileText, Frown, MoveRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
@@ -24,7 +24,10 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   };
 
   return (
-    <div className="mt-8 border-t border-border pt-8" data-export-section="database-evidence">
+    <div
+      className="mt-8 border-t-[1.5px] border-b-[1.5px] border-(--color-border-ui) py-8"
+      data-export-section="database-evidence"
+    >
       <SectionHeading variant="small" icon={<FileText className="size-4 text-(--color-accent)" />}>
         Database Evidence
       </SectionHeading>
@@ -37,7 +40,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
       {/* Cases list */}
       <div className="space-y-1">
         {actualResult.similar_cases && actualResult.similar_cases.length > 0 ? (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {actualResult.similar_cases.map((caseItem, index) => {
               const matchPercentage = Math.round((caseItem.similarity || 0) * 100);
               const sourceCaseId = caseItem.id || `case-${index}`;
@@ -47,16 +50,18 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                 caseItem.similarity || 0,
               );
 
+              {
+                /* Case content */
+              }
               return (
                 <div
                   key={index}
                   className="group flex cursor-pointer items-start gap-4 rounded-xl border-2 border-(--color-border-strong) p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
                   onClick={() => handleViewDetails(caseItem)}
                 >
-                  {/* Case content */}
                   <div className="flex-1">
-                    <h4 className="mb-2 text-base font-medium text-(--color-text-primary)">
-                      <span className="font-mono">{caseTitle}</span>
+                    <h4 className="mb-2 font-sniglet text-lg text-(--color-text-primary)">
+                      {caseTitle}
                     </h4>
 
                     {/* Year + Location + Use type + Source + Category + Circular Strategy + Materials chips */}
@@ -80,20 +85,22 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <Chip variant="match" color={matchColor}>
-                        <span>{matchPercentage}% match</span>
-                      </Chip>
-                    </div>
-                  </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-3">
+                        <Chip variant="match" color={matchColor}>
+                          <span>{matchPercentage}% match</span>
+                        </Chip>
+                      </div>
 
-                  {/* View details link */}
-                  <div className="text-md flex items-center gap-2 font-medium text-(--color-accent-dark) hover:underline">
-                    View details
-                    <ArrowRight
-                      size={20}
-                      className="transition-transform group-hover:translate-x-0.75"
-                    />
+                      {/* View details link */}
+                      <div className="flex items-center gap-2 text-sm font-medium opacity-75 hover:underline">
+                        View details
+                        <MoveRight
+                          size={16}
+                          className="transition-transform group-hover:translate-x-0.75"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

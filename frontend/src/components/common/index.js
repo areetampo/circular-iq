@@ -3,6 +3,7 @@ export { default as Button } from './Button';
 export { ChartContainer, ChartTooltip, ChartTooltipContent } from './ChartWrapper';
 export { default as Chip } from './Chip';
 export { default as CopyButton } from './CopyButton';
+export { CopyIcon } from './CopyIcon';
 export { default as ErrorDisplay } from './ErrorDisplay';
 export { default as LoaderComponent } from './LoaderComponent';
 export { default as LoaderIcon } from './LoaderIcon';

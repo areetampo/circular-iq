@@ -9,7 +9,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
   const isTransparent = variant === 'transparent';
 
   return (
-    <div className="mt-8 border-t border-border pt-8">
+    <div className="mt-8 border-t border-(--color-border-ui) pt-8">
       <SectionHeading
         variant="small"
         icon={
@@ -111,7 +111,10 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
           </h4>
           <div className="space-y-3">
             {audit.improvement_roadmap.map((item, i) => (
-              <div key={i} className="flex gap-3 rounded-xl border-2 border-border p-3">
+              <div
+                key={i}
+                className="flex gap-3 rounded-xl border-2 border-(--color-border-ui) p-3"
+              >
                 <div
                   className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
                     i === 0 || item.priority === 1 || item.priority === '1'
@@ -190,7 +193,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
             {audit.sdg_alignment.map((sdg, i) => (
               <div
                 key={i}
-                className="flex gap-2 rounded-xl border-2 border-border bg-transparent p-3"
+                className="flex gap-2 rounded-xl border-2 border-(--color-border-ui) bg-transparent p-3"
               >
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-info) font-semibold text-(--color-bg)">
                   {sdg.sdg_number}
@@ -222,16 +225,19 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {variant === 'transparent' && audit.key_metrics_comparison && (
         <div className="mb-4">
-          <h4 className="mb-2 text-sm font-bold text-(--color-text-primary)">
+          <h4 className="my-3 text-sm font-bold text-(--color-text-primary)">
             Key Metrics Comparison
           </h4>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {Object.entries(audit.key_metrics_comparison).map(([key, value]) => (
-              <div key={key} className="rounded-xl border-2 border-border bg-transparent p-3">
-                <div className="text-xs font-bold text-(--color-text-primary) capitalize">
+              <div
+                key={key}
+                className="rounded-xl border-2 border-(--color-border-ui) bg-transparent px-2.5 py-1.5"
+              >
+                <div className="font-medium text-(--color-text-primary) capitalize">
                   {key.replace(/_/g, ' ')}
                 </div>
-                <div className="text-sm text-(--color-text-primary)">{value}</div>
+                <div className="text-sm text-(--color-text-primary)/75">{value}</div>
               </div>
             ))}
           </div>

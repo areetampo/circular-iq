@@ -5,11 +5,11 @@ import { SITE_FULL_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/c
 import { cn } from '@/utils/cn';
 
 const footerLinks = [
-  { name: 'Assessments', href: '/assessments' },
-  { name: 'Share', href: '/assessments/share' },
-  { name: 'Compare', href: '/assessments/compare' },
+  { name: 'My Assessments', href: '/assessments' },
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Guide', href: '/guide' },
+  { name: 'Share', href: '/assessments/share' },
+  { name: 'Compare', href: '/assessments/compare' },
 ];
 
 const socialLinks = [
@@ -39,7 +39,9 @@ export default function Footer() {
               <div className="group flex items-center gap-3">
                 <SiteLogo />
                 <div className="flex flex-col">
-                  <SiteName className="font-display text-lg text-(--color-text-primary)" />
+                  <div>
+                    <SiteName className="font-display text-lg text-(--color-text-primary)" />
+                  </div>
                   <SiteFullName className="font-sans text-xs text-(--color-text-muted)" />
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { toast, Tooltip } from '@heroui/react';
-import { ArrowLeft, ExternalLink, Upload } from 'lucide-react';
+import { ExternalLink, FingerprintPattern, MoveLeft, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -42,9 +42,15 @@ export default function AssessmentComparisonPage() {
         actions={[
           {
             label: 'Back to Assessments',
-            icon: ArrowLeft,
-            variant: 'primary',
+            icon: MoveLeft,
+            variant: 'ghost',
             to: '/assessments',
+          },
+          {
+            label: 'Try Different IDs',
+            icon: FingerprintPattern,
+            variant: 'primary',
+            to: '/assessments/compare',
           },
         ]}
         showDefaultActions={false}
@@ -63,13 +69,13 @@ export default function AssessmentComparisonPage() {
         actions={[
           {
             label: 'Back to Assessments',
-            icon: ArrowLeft,
-            variant: 'primary',
+            icon: MoveLeft,
+            variant: 'ghost',
             to: '/assessments',
           },
           {
             label: 'Try Different IDs',
-            icon: ArrowLeft,
+            icon: FingerprintPattern,
             variant: 'primary',
             to: '/assessments/compare',
           },
@@ -88,9 +94,15 @@ export default function AssessmentComparisonPage() {
         actions={[
           {
             label: 'Back to Assessments',
-            icon: ArrowLeft,
-            variant: 'primary',
+            icon: MoveLeft,
+            variant: 'ghost',
             to: '/assessments',
+          },
+          {
+            label: 'Try Different IDs',
+            icon: FingerprintPattern,
+            variant: 'primary',
+            to: '/assessments/compare',
           },
         ]}
         showDefaultActions={false}
@@ -265,7 +277,7 @@ export default function AssessmentComparisonPage() {
             <Upload size={16} /> Export CSV
           </Button>
           <Button variant="ghost" as={Link} to="/assessments">
-            <ArrowLeft size={16} /> Back to Assessments
+            <MoveLeft size={16} /> Back to Assessments
           </Button>
         </div>
       </div>

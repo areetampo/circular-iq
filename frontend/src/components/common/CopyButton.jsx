@@ -1,8 +1,9 @@
-import { Check, Copy } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useState } from 'react';
 
 import { cn } from '@/utils/cn';
+
+import { CopyIcon } from './CopyIcon';
 
 /**
  * CopyButton Component
@@ -19,10 +20,12 @@ import { cn } from '@/utils/cn';
 export default function CopyButton({
   value = '',
   disabled = false,
-  className = '',
+  className,
+  copyIconClassname,
   description = '',
-  color = '#000000',
+  color,
   size = 16,
+  strokeWidth = 2,
   noBorder = false,
   ...props
 }) {
@@ -45,32 +48,19 @@ export default function CopyButton({
       <button
         onClick={handleClick}
         className={cn(
-          'flex size-8 items-center justify-center rounded-md transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50',
+          'flex cursor-pointer items-center justify-center rounded-md transition-all duration-200 hover:bg-[rgba(184,145,106,0.15)] disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         disabled={disabled}
         {...props}
       >
-        <div className="relative size-4">
-          <Copy
-            size={size}
-            strokeWidth={2.5}
-            className={cn(
-              'absolute inset-0 transition-all duration-300 ease-in-out',
-              hasCopied ? 'scale-75 opacity-0' : 'scale-100 opacity-100',
-            )}
-            style={{ color: color }}
-          />
-          <Check
-            size={size}
-            strokeWidth={2.5}
-            className={cn(
-              'ease-in-ou absolute inset-0 transition-all duration-300',
-              hasCopied ? 'scale-100 opacity-100' : 'scale-75 opacity-0',
-            )}
-            style={{ color: color }}
-          />
-        </div>
+        <CopyIcon
+          copyIconClassname={copyIconClassname}
+          hasCopied={hasCopied}
+          color={color}
+          size={size}
+          strokeWidth={strokeWidth}
+        />
       </button>
     );
   }
@@ -79,28 +69,25 @@ export default function CopyButton({
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center gap-1.5 rounded-xl px-2 py-0.5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${
-        noBorder ? '' : 'border-[1.5px]'
-      } ${className}`}
+      className={cn(
+        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-[rgba(184,145,106,0.15)] disabled:cursor-not-allowed disabled:opacity-50',
+        noBorder ? '' : 'border-[1.5px]',
+        className,
+      )}
       style={!noBorder ? { borderColor: 'rgba(0, 0, 0, 0.2)' } : {}}
       disabled={disabled}
       {...props}
     >
-      <div className="relative size-4">
-        <Copy
-          size={16}
-          className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-            hasCopied ? 'scale-75 opacity-0' : 'scale-100 opacity-100'
-          }`}
-        />
-        <Check
-          size={16}
-          className={`absolute inset-0 transition-all duration-300 ease-in-out ${
-            hasCopied ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
-          }`}
-        />
-      </div>
-      <span className="text-sm text-(--text-primary)">{description}</span>
+      <CopyIcon
+        copyIconClassname={copyIconClassname}
+        hasCopied={hasCopied}
+        color={color}
+        size={16}
+        strokeWidth={strokeWidth}
+      />
+      <span className="text-sm text-(--text-primary)" style={{ color: color }}>
+        {description}
+      </span>
     </button>
   );
 }
@@ -112,12 +99,16 @@ CopyButton.propTypes = {
   disabled: PropTypes.bool,
   /** Additional CSS classes */
   className: PropTypes.string,
+  /** SPecific classname for copy icon (not copy button) */
+  copyIconClassname: PropTypes.string,
   /** Optional description text for box mode */
   description: PropTypes.string,
   /** Color for the icons (default: '#000000') */
   color: PropTypes.string,
-  /** Size for the icons in pixels (default: 16) */
+  /** Size for the icons */
   size: PropTypes.number,
+  /** Stroke width for the icon */
+  strokeWidth: PropTypes.number,
   /** Remove border from box mode */
   noBorder: PropTypes.bool,
 };

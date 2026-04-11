@@ -243,9 +243,9 @@
 
   /* UI Component Colors */
   --color-checkbox: #8b6f47;
+  --color-checkbox-bg: #8b6f4722;
   --color-checkbox-hover: #6b5537;
-  --color-checkbox-bg: #faf8f5;
-  --color-checkbox-hover-bg: #f5f2ed;
+  --color-checkbox-hover-bg: #8b6f4777;
   --color-pagination-active: #8b6f47;
   --color-textarea-ring: #735c3f;
   --color-toast-bg: #fefaf5;
@@ -996,8 +996,47 @@ textarea:focus-visible {
   [data-slot='input'] {
     @apply font-sans! text-[14px]! text-(--foreground)!;
   }
+
   [data-slot='input-wrapper']:has(textarea) {
     @apply items-start!;
+  }
+
+  /* ----- TEXTFIELD ----- */
+  .textfield {
+    @apply flex flex-col gap-1;
+  }
+
+  /* TextField container styling */
+  .textfield [data-slot='description'] {
+    @apply px-1 text-xs text-(--color-text-muted);
+  }
+
+  /* Surgical fix: Ensure all TextField inputs have consistent border width */
+  .textfield input[data-slot='input'] {
+    @apply rounded-xl! border-2! border-(--color-border-strong)! transition-all! duration-300! ease-in-out!;
+  }
+
+  /* Hide description when invalid (HeroUI behavior) */
+  .textfield[data-invalid='true'] [data-slot='description'],
+  .textfield[aria-invalid='true'] [data-slot='description'] {
+    @apply hidden;
+  }
+
+  /* TextField error states */
+  .textfield[data-invalid='true'] input[data-slot='input'],
+  .textfield[aria-invalid='true'] input[data-slot='input'] {
+    @apply border-2! border-(--color-error)! shadow-sm! ring-1! ring-transparent! transition-all! duration-300! ease-in-out! outline-none! ring-inset!;
+  }
+  .textfield[data-invalid='true'] input[data-slot='input']:focus,
+  .textfield[aria-invalid='true'] input[data-slot='input']:focus,
+  .textfield[data-invalid='true'] input[data-slot='input'][data-focused='true'],
+  .textfield[aria-invalid='true'] input[data-slot='input'][data-focused='true'] {
+    @apply shadow-none! ring-2! ring-(--color-error-soft-ui)! outline-none! ring-inset!;
+  }
+
+  /* Field error styling */
+  .textfield [data-slot='field-error'] {
+    @apply px-1 text-xs font-medium text-(--color-error);
   }
 
   /* ----- TEXTAREA ----- */
@@ -1077,12 +1116,6 @@ textarea:focus-visible {
     @apply px-5! py-1! pb-5! text-[14px]!;
   }
 
-  /* ----- CHECKBOX ----- */
-  .checkbox,
-  [data-slot='checkbox'] {
-    @apply inline-flex! items-center! gap-3!;
-  }
-
   /* ----- PAGINATION ----- */
   .pagination {
     @apply flex! w-full! items-center! justify-between! font-sans! text-(--color-text-secondary)!;
@@ -1155,6 +1188,11 @@ textarea:focus-visible {
   }
 
   /* ----- CHECKBOX CONTROL ----- */
+  .checkbox,
+  [data-slot='checkbox'] {
+    @apply inline-flex! items-center! gap-3!;
+  }
+
   .checkbox__control,
   [data-slot='checkbox-control'] {
     @apply relative! size-4! rounded-lg! border! border-(--color-checkbox)! bg-(--color-checkbox-bg)! shadow-checkbox! transition-all! duration-200! ease-in-out!;
@@ -1250,6 +1288,16 @@ textarea:focus-visible {
       background-color 0.2s ease,
       transform 0.1s ease,
       box-shadow 0.2s ease !important;
+  }
+
+  /* When the checkbox container (the group) is hovered, style the control as if it were hovered */
+  .group\/checkbox:hover [data-slot='checkbox-control'] {
+    @apply border-(--color-checkbox-hover)! bg-(--color-checkbox-hover-bg)!;
+  }
+
+  /* Optional: also apply to the native control element if HeroUI uses a different selector */
+  .group\/checkbox:hover .checkbox__control {
+    @apply border-(--color-checkbox-hover)! bg-(--color-checkbox-hover-bg)!;
   }
 
   /* ----- SELECT ----- */
@@ -1457,9 +1505,9 @@ textarea:focus-visible {
     @apply rounded-md;
     background: linear-gradient(
       90deg,
-      var(--color-skeleton-base) 25%,
-      var(--color-skeleton-shine) 50%,
-      var(--color-skeleton-base) 75%
+      var(--color-skeleton-base) 30%,
+      var(--color-skeleton-shine) 40%,
+      var(--color-skeleton-base) 70%
     ) !important;
     background-size: 200% 100% !important;
     @apply animate-[warm-shimmer_2.2s_ease-in-out_infinite]!;

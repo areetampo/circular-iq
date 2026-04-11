@@ -1,3 +1,4 @@
+import { NotebookPen } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
@@ -171,6 +172,14 @@ export function AssessmentColumn({
 
       {/* DatabaseEvidenceCard */}
       <DatabaseEvidenceCard actualResult={scoringResult} casesSummaries={casesSummaries} />
+
+      <SectionHeading
+        variant="small"
+        icon={<NotebookPen className="size-4 text-(--color-accent)" />}
+        className="mt-8"
+      >
+        Strategic Synthesis
+      </SectionHeading>
 
       <StrengthsGapsCard strengths={strengths} gaps={gaps} />
       <RecommendationsCard actualResult={scoringResult} />

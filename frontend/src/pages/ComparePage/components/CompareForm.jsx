@@ -1,9 +1,10 @@
-import { Input, Label } from '@heroui/react';
-import { ArrowLeft, Frown } from 'lucide-react';
+import { Input, Label, TextField } from '@heroui/react';
+import { MoveLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
+import { isValidUUID } from '@/lib/validation';
 
 const STORAGE_KEY = 'comparePageInputs';
 
@@ -26,6 +27,7 @@ export default function CompareForm() {
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showEmptyError, setShowEmptyError] = useState({ id1: false, id2: false });
   const navigate = useNavigate();
 
   // Save to sessionStorage whenever inputs change
@@ -36,12 +38,33 @@ export default function CompareForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setShowEmptyError({ id1: false, id2: false });
 
     const id1 = (publicId1 || '').trim();
     const id2 = (publicId2 || '').trim();
 
-    if (!id1 || !id2) {
-      setError('Please enter both Assessment IDs');
+    // Check for empty inputs first
+    const isEmpty1 = !id1;
+    const isEmpty2 = !id2;
+
+    if (isEmpty1 || isEmpty2) {
+      setShowEmptyError({ id1: isEmpty1, id2: isEmpty2 });
+      return;
+    }
+
+    // Check UUID format if inputs are not empty
+    const isId1Valid = isValidUUID(id1);
+    const isId2Valid = isValidUUID(id2);
+
+    if (!isId1Valid || !isId2Valid) {
+      // Set specific empty error for invalid fields to trigger inline error messages
+      setShowEmptyError({
+        id1: !isId1Valid,
+        id2: !isId2Valid,
+      });
+      setError(
+        `Incorrect assessment ID format.\nExample format: 123e4567-e89b-12d3-a456-426614174000`,
+      );
       return;
     }
 
@@ -91,6 +114,20 @@ export default function CompareForm() {
     setPublicId1('');
     setPublicId2('');
     setError(null);
+    setShowEmptyError({ id1: false, id2: false });
+  };
+
+  const handleInputChange = (setter, field) => (e) => {
+    setter(e.target.value);
+    // Clear all errors when user starts typing
+    if (e.target.value.trim()) {
+      setShowEmptyError((prev) => ({ ...prev, [field]: false }));
+      setError(null);
+    } else {
+      // If field becomes empty, clear UUID format error but set empty error for validation
+      setShowEmptyError((prev) => ({ ...prev, [field]: true }));
+      setError(null);
+    }
   };
 
   return (
@@ -100,55 +137,60 @@ export default function CompareForm() {
           Compare Assessments
         </h1>
         <p className="mt-2 text-sm text-(--color-text-secondary)">
-          Enter the public IDs of two assessments you want to compare side by side.
+          Enter the IDs of two assessments you want to compare side by side.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-6">
           {/* Assessment ID 1 */}
-          <div>
-            <Label
-              htmlFor="public-id-1"
-              className="mb-1 ml-2 block font-mono text-xs font-medium tracking-wide text-(--color-text-secondary) uppercase"
-            >
-              First Assessment ID
-            </Label>
-            <Input
-              id="public-id-1"
-              value={publicId1}
-              onChange={(e) => setPublicId1(e.target.value)}
-              placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-              size="lg"
-              className="mt-2 w-full rounded-md border border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light)"
-            />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label className="ml-2 text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase">
+                First Assessment ID
+              </Label>
+              {showEmptyError.id1 && (
+                <span className="text-xs font-medium text-(--color-error)">
+                  {!publicId1.trim() ? 'is required' : 'has invalid format'}
+                </span>
+              )}
+            </div>
+            <TextField className="w-full" name="public-id-1" isInvalid={showEmptyError.id1}>
+              <Input
+                id="public-id-1"
+                value={publicId1}
+                onChange={handleInputChange(setPublicId1, 'id1')}
+                placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                size="lg"
+                className="w-full rounded-md border-2 border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted)"
+              />
+            </TextField>
           </div>
 
           {/* Assessment ID 2 */}
-          <div>
-            <Label
-              htmlFor="public-id-2"
-              className="mb-1 ml-2 block font-mono text-xs font-medium tracking-wide text-(--color-text-secondary) uppercase"
-            >
-              Second Assessment ID
-            </Label>
-            <Input
-              id="public-id-2"
-              value={publicId2}
-              onChange={(e) => setPublicId2(e.target.value)}
-              placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-              size="lg"
-              className="mt-2 w-full rounded-md border border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:ring-2 focus:ring-(--color-accent-light)"
-            />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label className="ml-2 text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase">
+                Second Assessment ID
+              </Label>
+              {showEmptyError.id2 && (
+                <span className="text-xs font-medium text-(--color-error)">
+                  {!publicId2.trim() ? 'is required' : 'has invalid format'}
+                </span>
+              )}
+            </div>
+            <TextField className="w-full" name="public-id-2" isInvalid={showEmptyError.id2}>
+              <Input
+                id="public-id-2"
+                value={publicId2}
+                onChange={handleInputChange(setPublicId2, 'id2')}
+                placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                size="lg"
+                className="w-full rounded-md border-2 border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted)"
+              />
+            </TextField>
           </div>
         </div>
-
-        {error && (
-          <div className="flex items-start gap-3 rounded-lg border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-4 text-sm text-(--color-error)">
-            <Frown size={20} className="mt-0.5 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
 
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" variant="primary" isLoading={loading}>
@@ -161,7 +203,7 @@ export default function CompareForm() {
       </form>
 
       {/* Info box */}
-      <div className="mt-8 rounded-xl border-3 border-dashed border-border bg-transparent p-4">
+      <div className="mt-8 rounded-xl border-3 border-dashed border-(--color-border-ui) bg-transparent p-4">
         <p className="mb-2 text-xs font-semibold tracking-wide text-(--color-text-muted) uppercase">
           About Comparison
         </p>
@@ -170,10 +212,18 @@ export default function CompareForm() {
             'You can compare any of your own assessments',
             'You can compare public assessments from other users',
             'Use the Assessment IDs from your assessments list or shared links',
-          ].map((item) => (
-            <li key={item} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
+            <>
+              Assessment IDs follow the standard UUID format:
+              <br />
+              <pre className="font-mono text-xs">f47ac10b-58cc-4372-a567-0e02b2c3d479</pre>
+            </>,
+          ].map((item, index) => (
+            <li
+              key={index}
+              className="flex items-start gap-2 text-sm text-(--color-text-secondary)"
+            >
               <span className="mt-2 size-1 shrink-0 rounded-full bg-(--color-accent)" />
-              {item}
+              <div className="leading-relaxed">{item}</div>
             </li>
           ))}
         </ul>
@@ -181,7 +231,7 @@ export default function CompareForm() {
 
       <div className="flex justify-center">
         <Button type="button" variant="ghost" as={Link} to="/assessments">
-          <ArrowLeft size={14} />
+          <MoveLeft size={14} />
           Back to Assessments
         </Button>
       </div>
