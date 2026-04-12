@@ -7,10 +7,10 @@ import { cn } from '@/utils/cn';
 export const SITE_NAME = 'Xerneas';
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
-export const SiteName = ({ className = '' }) => {
+export const SiteName = ({ className }) => {
   return (
     <Link to="/">
-      <span className={cn('cursor-pointer text-(--color-text-secondary)', className)}>
+      <span className={cn('inline-block cursor-pointer text-(--color-text-secondary)', className)}>
         {SITE_NAME}
       </span>
     </Link>
@@ -21,15 +21,17 @@ SiteName.propTypes = {
   className: PropTypes.string,
 };
 
-export const SiteFullName = ({ className = '' }) => (
-  <span className={cn('text-(--color-text-secondary)', className)}>{SITE_FULL_NAME}</span>
+export const SiteFullName = ({ className }) => (
+  <span className={cn('inline-block text-(--color-text-secondary)', className)}>
+    {SITE_FULL_NAME}
+  </span>
 );
 
 SiteFullName.propTypes = {
   className: PropTypes.string,
 };
 
-export const SiteLogo = ({ className = '', size = 'md' }) => {
+export const SiteLogo = ({ className, size = 'md' }) => {
   return (
     <Avatar
       size={size}

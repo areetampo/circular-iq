@@ -37,7 +37,7 @@ export default function Footer() {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               className="space-y-4"
             >
-              <div className="group flex items-center gap-3">
+              <div className="group flex items-center gap-2">
                 <SiteLogo />
                 <div className="flex flex-col">
                   <div>

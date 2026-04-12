@@ -85,7 +85,7 @@ export default function Navbar() {
       <nav className="sticky top-3 z-50 h-13 px-8">
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between rounded-full border border-(--color-border-strong) bg-(--color-bg)/60 px-6 shadow-sm backdrop-blur-3xl">
           {/* Logo + Site Name */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <SiteLogo />
             <SiteName className="font-display text-lg text-(--color-text-primary)" />
           </div>

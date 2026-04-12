@@ -7,14 +7,19 @@ export default function AuthBrandHeader({ className, layout = 'col' }) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-2',
+        'flex flex-col items-center justify-center',
         className,
-        layout === 'row' ? '-mt-4 mb-6 flex-row gap-4' : '',
+        layout === 'row' ? '-mt-4 mb-6 flex-row gap-2' : '',
       )}
     >
       <SiteLogo size="lg" />
-      <SiteName className="font-display text-[2rem] font-semibold" />
-      <SiteFullName className="-mt-2 hidden text-center font-sans text-[1.28rem] font-medium text-(--color-text-secondary) md_lg:block" />
+      <SiteName
+        className={cn(
+          'font-display text-[2rem] font-semibold',
+          layout === 'row' ? '-ml-1' : '-mt-1.5',
+        )}
+      />
+      <SiteFullName className="hidden text-center font-sans text-[1.28rem] font-medium text-(--color-text-secondary) md_lg:block" />
     </div>
   );
 }

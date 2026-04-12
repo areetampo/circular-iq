@@ -1,6 +1,6 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CircleCheck, CircleX, Eye, EyeOff } from 'lucide-react';
+import { CircleCheck, CircleDot, CircleX, Eye, EyeOff } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,9 +10,8 @@ import { SITE_FULL_NAME } from '@/components/common';
 import Button from '@/components/common/Button';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
+import { cn } from '@/utils/cn';
 import { logger } from '@/utils/logger';
-
-import AuthBrandHeader from '../../pages/AuthPage/components/AuthBrandHeader';
 
 // Validation helper functions
 const validateUsernameLength = (value) => {
@@ -66,14 +65,22 @@ const validatePasswordMatch = (password, confirmPassword) => {
 };
 
 // Reusable validation rule component
-const ValidationRule = ({ isValid, children }) => (
-  <div className="flex items-center gap-1.5 [&>*:first-child]:mt-0.5">
-    {isValid ? (
-      <CircleCheck size={12} className="text-green-800" />
-    ) : (
-      <CircleX size={12} className="text-red-700" />
+const ValidationRule = ({ isValid, hasInput, children }) => (
+  <div
+    className={cn(
+      'flex items-center gap-1.5 [&>*:first-child]:mt-0.5',
+      !hasInput ? 'text-(--color-checkbox)' : isValid ? 'text-green-800' : 'text-red-800',
     )}
-    <span className={isValid ? 'text-green-800' : 'text-inherit'}>{children}</span>
+  >
+    {!hasInput ? (
+      <CircleDot size={14} strokeWidth={2.5} />
+    ) : isValid ? (
+      <CircleCheck size={14} strokeWidth={2.5} />
+    ) : (
+      <CircleX size={14} strokeWidth={2.5} />
+    )}
+
+    <span>{children}</span>
   </div>
 );
 
@@ -169,8 +176,7 @@ export function SignupForm({ onSwitchToLogin }) {
     <div className="w-full">
       {/* Header */}
       <div className="mb-7 text-center">
-        <AuthBrandHeader className="md_lg:hidden" layout="row" />
-        <h2 className="mb-1 text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
+        <h2 className="text-center text-[1.375rem] tracking-[-0.01em] text-(--color-text-primary)">
           Create Account
         </h2>
         <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
@@ -214,7 +220,7 @@ export function SignupForm({ onSwitchToLogin }) {
             {[
               {
                 validate: () => validateUsernameLength(formData.username || ''),
-                text: `${AUTH_VALIDATION.USERNAME.MIN_LENGTH}–${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`,
+                text: `${AUTH_VALIDATION.USERNAME.MIN_LENGTH} - ${AUTH_VALIDATION.USERNAME.MAX_LENGTH} chars`,
               },
               {
                 validate: () => validateUsernameChars(formData.username || ''),
@@ -229,7 +235,7 @@ export function SignupForm({ onSwitchToLogin }) {
                 text: AUTH_VALIDATION.USERNAME.PATTERN_DESC.split('\n')[2],
               },
             ].map((rule, index) => (
-              <ValidationRule key={index} isValid={rule.validate()}>
+              <ValidationRule key={index} isValid={rule.validate()} hasInput={!!formData.username}>
                 {rule.text}
               </ValidationRule>
             ))}
@@ -277,7 +283,7 @@ export function SignupForm({ onSwitchToLogin }) {
             {[
               {
                 validate: () => validatePasswordLength(formData.password || ''),
-                text: `${AUTH_VALIDATION.PASSWORD.MIN_LENGTH}–${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`,
+                text: `${AUTH_VALIDATION.PASSWORD.MIN_LENGTH} – ${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} chars`,
               },
               {
                 validate: () => validatePasswordSpecialChar(formData.password || ''),
@@ -288,7 +294,7 @@ export function SignupForm({ onSwitchToLogin }) {
                 text: AUTH_VALIDATION.PASSWORD.PATTERN_DESC.split('\n')[1],
               },
             ].map((rule, index) => (
-              <ValidationRule key={index} isValid={rule.validate()}>
+              <ValidationRule key={index} isValid={rule.validate()} hasInput={!!formData.password}>
                 {rule.text}
               </ValidationRule>
             ))}
@@ -340,7 +346,11 @@ export function SignupForm({ onSwitchToLogin }) {
                 text: 'Passwords match',
               },
             ].map((rule, index) => (
-              <ValidationRule key={index} isValid={rule.validate()}>
+              <ValidationRule
+                key={index}
+                isValid={rule.validate()}
+                hasInput={!!formData.confirmPassword}
+              >
                 {rule.text}
               </ValidationRule>
             ))}

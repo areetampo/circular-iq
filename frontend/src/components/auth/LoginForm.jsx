@@ -11,8 +11,6 @@ import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 import { logger } from '@/utils/logger';
 
-import AuthBrandHeader from '../../pages/AuthPage/components/AuthBrandHeader';
-
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -69,8 +67,7 @@ export function LoginForm({ onSwitchToSignup }) {
     <div className="w-full">
       {/* Header */}
       <div className="mb-7 text-center">
-        <AuthBrandHeader className="md_lg:hidden" layout="row" />
-        <h2 className="mb-1 text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
+        <h2 className="text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
           Sign in
         </h2>
         <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
@@ -168,7 +165,7 @@ export function LoginForm({ onSwitchToSignup }) {
           onClick={onSwitchToSignup}
           className="font-medium underline"
         >
-          Sign Up
+          Sign up
         </Button>
       </p>
 
