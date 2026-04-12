@@ -24,10 +24,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   };
 
   return (
-    <div
-      className="mt-8 border-t-[1.5px] border-b-[1.5px] border-(--color-border-ui) py-8"
-      data-export-section="database-evidence"
-    >
+    <div data-export-section="database-evidence">
       <SectionHeading variant="small" icon={<FileText className="size-4 text-(--color-accent)" />}>
         Database Evidence
       </SectionHeading>

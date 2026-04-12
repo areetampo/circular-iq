@@ -220,7 +220,7 @@ export const Chip = forwardRef(function Chip(
       onClick={onClick}
       {...props}
     >
-      <span className="truncate">{children}</span>
+      <span className="flex items-center justify-center truncate">{children}</span>
     </HeroChip>
   );
 });

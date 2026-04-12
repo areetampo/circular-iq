@@ -81,7 +81,6 @@ frontend/src/
 │   │   ├── DashboardPage.jsx                   # Global Intelligence Dashboard
 │   │   └── components/
 │   │       ├── StatCard.jsx                    # Metric display card with icon + label + value
-│   │       ├── SectionDivider.jsx              # Section header with coloured vertical bar
 │   │       ├── ChartPanel.jsx                  # Chart container with title, icon, loading skeleton
 │   │       ├── SingleValueChart.jsx            # Fallback for single-data-point pie chart scenarios
 │   │       ├── EmptyChart.jsx                  # Empty state placeholder for charts

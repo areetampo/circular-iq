@@ -1,4 +1,4 @@
-import { toast, Tooltip } from '@heroui/react';
+import { Separator, toast, Tooltip } from '@heroui/react';
 import { ExternalLink, FingerprintPattern, MoveLeft, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -194,7 +194,9 @@ export default function AssessmentComparisonPage() {
   return (
     <div className="mt-6 w-full space-y-0">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
-      <div className="sticky top-0 z-9999 border-b border-border bg-(--color-bg) px-6 py-4">
+      <div className="sticky top-0 z-9999 bg-(--color-bg) px-6 py-4">
+        <Separator variant="secondary" className="absolute inset-x-0 bottom-0" />
+        <Separator variant="secondary" className="absolute inset-x-0 top-0" />
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div>
             <AssessmentTitleWithLink assessment={assessment1} publicId={publicId1} />
@@ -235,7 +237,12 @@ export default function AssessmentComparisonPage() {
         }}
       >
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-          <div className="border-r-2 border-border pr-6 lg:pr-8">
+          <div className="relative pr-6 lg:pr-8">
+            <Separator
+              orientation="vertical"
+              variant="secondary"
+              className="absolute top-0 right-0 h-full"
+            />
             <AssessmentColumn
               assessment={assessment1}
               scoringResult={scoringResult1}
@@ -265,7 +272,8 @@ export default function AssessmentComparisonPage() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 flex items-center justify-between border-t-2 border-border p-6">
+      <div className="mt-8 flex items-center justify-between p-6">
+        <Separator variant="secondary" className="absolute inset-x-0 top-0" />
         <p className="text-sm font-medium text-(--color-text-muted)">
           Last updated: {getCurrentTimestampFormatted()}
         </p>

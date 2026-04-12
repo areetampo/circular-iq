@@ -7,7 +7,7 @@ export function CircularEconomyTierCard({ actualResult }) {
   if (!actualResult?.circular_economy_tier) return null;
 
   return (
-    <div className="mt-8 border-t border-border pt-8">
+    <div>
       <SectionHeading variant="small" icon={<Target size={16} className="text-(--color-accent)" />}>
         Circular Economy Tier
       </SectionHeading>

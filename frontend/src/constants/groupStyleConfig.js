@@ -1,5 +1,9 @@
 import { CircleDollarSign, Cpu, Users } from 'lucide-react';
 
+import { cn } from '@/utils/cn.js';
+
+import { parameterGroups } from './evaluationData.js';
+
 // Shared group style configuration for parameter-themed UI (icons + Tailwind classes)
 export const GROUP_STYLE_CONFIG = {
   'Access Value': {
@@ -7,8 +11,8 @@ export const GROUP_STYLE_CONFIG = {
     iconColor: 'text-(--color-info)',
     subtitle: 'Reach and participation across stakeholders',
     paramBg: 'bg-[oklch(0.28_0.05_150/_0.02)]',
-    paramTextColor: 'text-[oklch(0.28_0.05_150/_0.65)]',
-    paramBorder: 'border-[oklch(0.28_0.05_150/_0.25)]',
+    paramTextColor: 'text-(--color-info)',
+    paramBorder: 'border-(--color-info)/50',
   },
   'Embedded Value': {
     Icon: CircleDollarSign,
@@ -23,7 +27,7 @@ export const GROUP_STYLE_CONFIG = {
     iconColor: 'text-(--color-success)',
     subtitle: 'Efficiency and safety of circularity processes',
     paramBg: 'bg-[oklch(0.95_0.012_145/_0.4)]',
-    paramTextColor: 'text-[var(--color-success)]',
+    paramTextColor: 'text-(--color-success)',
     paramBorder: 'border-(--color-success)/50',
   },
 };
@@ -36,3 +40,29 @@ export const DEFAULT_CONFIG = {
   paramTextColor: 'text-(--color-text-secondary)',
   paramBorder: 'border-(--color-border-ui)',
 };
+
+/**
+ * Helper function to get parameter styling classes based on parameter key
+ * @param {string} paramKey - The parameter key (e.g., 'public_participation')
+ * @returns {string} - Combined Tailwind classes for background, text, and border
+ */
+export function getParameterStyling(paramKey) {
+  const category = Object.entries(parameterGroups).find(([, factors]) =>
+    factors.includes(paramKey),
+  )?.[0];
+  const cfg = GROUP_STYLE_CONFIG[category] || DEFAULT_CONFIG;
+  return cn(cfg.paramBg, cfg.paramTextColor, cfg.paramBorder);
+}
+
+/**
+ * Helper function to get progress bar background color based on parameter key
+ * @param {string} paramKey - The parameter key (e.g., 'public_participation')
+ * @returns {string} - Background color class for progress bar
+ */
+export function getProgressBarColor(paramKey) {
+  const category = Object.entries(parameterGroups).find(([, factors]) =>
+    factors.includes(paramKey),
+  )?.[0];
+  const cfg = GROUP_STYLE_CONFIG[category] || DEFAULT_CONFIG;
+  return cfg.paramTextColor.replace('text-', 'bg-');
+}

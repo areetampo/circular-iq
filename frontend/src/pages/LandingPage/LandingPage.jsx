@@ -2,9 +2,9 @@ import { Accordion, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import {
-  AlertTriangle,
   BadgeInfo,
   ChevronDown,
+  CircleX,
   ClipboardList,
   MonitorCog,
   SlidersHorizontal,
@@ -582,7 +582,7 @@ export default function LandingPage() {
                                 Business Context
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px shrink-0 cursor-pointer text-(--color-accent)"
+                                className="info-icon text-(--color-accent)"
                                 size={20}
                                 strokeWidth={2}
                                 onClick={(e) => {
@@ -632,7 +632,7 @@ export default function LandingPage() {
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px shrink-0 cursor-pointer text-(--color-success)"
+                                className="info-icon text-(--color-success)"
                                 size={20}
                                 strokeWidth={2}
                                 onClick={(e) => {
@@ -665,21 +665,10 @@ export default function LandingPage() {
                   </Accordion>
                 </div>
 
-                {/* Error Display */}
-                {error && (
-                  <div className="mb-6 rounded-md border border-[rgba(139,58,58,0.25)] bg-[rgba(139,58,58,0.05)] p-4 text-(--color-error)">
-                    <div className="mb-2 flex items-center gap-2">
-                      <AlertTriangle className="size-4" />
-                      <strong className="font-semibold">Validation Error:</strong>
-                    </div>
-                    <p>{error}, please try again.</p>
-                  </div>
-                )}
-
                 {/* Submit button */}
-                <div className="w-full">
-                  <Tooltip delay={0} isDisabled={isValid}>
-                    <Tooltip.Trigger>
+                <div className="flex w-full flex-col items-center justify-center gap-2">
+                  <Tooltip delay={0} isDisabled={isValid} className="w-full">
+                    <Tooltip.Trigger className="w-full">
                       <Button
                         size="lg"
                         onPress={handleSubmit(handleFormSubmit)}
@@ -697,10 +686,20 @@ export default function LandingPage() {
                     </Tooltip.Trigger>
                     <Tooltip.Content showArrow placement="top">
                       <span>
-                        Please fill out business problem and solution fields (min. 200 chars each)
+                        Please fill out business problem and solution fields
+                        <br />
+                        (min. 200 chars each)
                       </span>
                     </Tooltip.Content>
                   </Tooltip>
+
+                  {/* Error Display */}
+                  {error && (
+                    <div className="flex w-3/5 animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+                      <CircleX size={16} strokeWidth={2.5} />
+                      {error}
+                    </div>
+                  )}
                 </div>
 
                 {/* Sample Test Cases */}
@@ -724,7 +723,7 @@ export default function LandingPage() {
                                 Sample Test Cases
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px shrink-0 cursor-pointer text-(--color-accent)"
+                                className="info-icon mt-px text-(--color-accent)"
                                 size={20}
                                 strokeWidth={2}
                                 onClick={(e) => {

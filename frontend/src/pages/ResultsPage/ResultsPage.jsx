@@ -1,4 +1,4 @@
-import { Checkbox, Label, toast } from '@heroui/react';
+import { Checkbox, Label, Separator, toast } from '@heroui/react';
 import {
   BarChart3,
   CheckCircle2,
@@ -719,13 +719,13 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             label: 'Retry',
             icon: RefreshCw,
             onClick: refetch,
-            variant: 'secondary',
+            variant: 'ghost',
           },
           {
             label: 'Go Back',
             onClick: handleBack,
             icon: MoveLeft,
-            variant: 'tertiary',
+            variant: 'ghost',
           },
         ].filter(Boolean)}
         showDefaultActions={false}
@@ -744,12 +744,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             label: 'Retry Loading',
             icon: RefreshCw,
             onClick: refetch,
-            variant: 'secondary',
+            variant: 'ghost',
           },
           {
             label: 'Return Home',
             icon: MoveLeft,
-            variant: 'tertiary',
+            variant: 'ghost',
             to: '/',
           },
         ]}
@@ -769,7 +769,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Start New Assessment',
             icon: MoveRight,
-            variant: 'secondary',
+            variant: 'ghost',
             to: '/',
           },
         ]}
@@ -954,23 +954,22 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
       </div>
 
+      <div className="flex w-full items-center justify-center">
+        <Separator variant="secondary" className="mt-4 mb-6 w-2/3" />
+      </div>
+
       {/* Case Summary */}
-      <div data-export-section="case-summary">
-        <div className="p-1 sm:p-3">
-          <SectionHeading variant="large" className="mb-2">
-            Case Summary
-          </SectionHeading>
-          <CaseSummaryAccordions
-            businessProblem={problemText}
-            businessSolution={solutionText}
-            businessContext={businessContextValues}
-            evaluationParameters={evaluationParameterValues}
-          />
-        </div>
+      <div data-export-section="case-summary" className="p-1 sm:p-3">
+        <CaseSummaryAccordions
+          businessProblem={problemText}
+          businessSolution={solutionText}
+          businessContext={businessContextValues}
+          evaluationParameters={evaluationParameterValues}
+        />
       </div>
 
       {/* Results Content */}
-      <div id="results-content" className="mx-auto max-w-7xl space-y-6 px-0 sm:px-6">
+      <div id="results-content" className="mx-auto max-w-7xl px-0 sm:px-6">
         <ScoreOverviewSection
           actualResult={actualResult}
           overallScore={overallScore}
@@ -986,31 +985,50 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
           reportTips={reportTips}
         />
+        <Separator variant="secondary" className="my-8" />
+
         <CircularEconomyTierCard actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
+
         <WeightedScoreCard actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
+
         <ParameterConsistencyCard actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
+
         <RStrategyAlignmentCard actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
+
         <ScoreCategoryBreakdown actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
+
         <GapAnalysisCard actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
 
         <IndustryMetadataSection actualResult={actualResult} fieldHelp={fieldHelp} />
+        <Separator variant="secondary" className="my-8" />
 
         <CategoryAnalysis
           actualResult={actualResult}
           resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
         />
+        <Separator variant="secondary" className="my-8" />
 
         <PerformanceComparison
           resolvedRadarData={resolvedRadarData}
           radarConfigs={radarConfigs}
           detailLoading={detailLoading}
         />
+        <Separator variant="secondary" className="my-8" />
 
         <IntegrityAnalysis strengths={strengths} gaps={gaps} />
+        <Separator variant="secondary" className="my-8" />
 
         <AuditSummaryCard actualResult={actualResult} />
+        <Separator variant="secondary" className="my-8" />
 
         <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
+        <Separator variant="secondary" className="my-8" />
 
         <SectionHeading
           variant="small"
@@ -1019,7 +1037,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         >
           Strategic Synthesis
         </SectionHeading>
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <StrengthsGapsCard strengths={strengths} gaps={gaps} />
           <RecommendationsCard actualResult={actualResult} />

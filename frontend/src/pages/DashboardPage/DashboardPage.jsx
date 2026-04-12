@@ -1,3 +1,4 @@
+import { Table } from '@heroui/react';
 import { Globe, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +30,13 @@ import {
 import { chartTheme } from '@/utils/chartTheme';
 import { cn } from '@/utils/cn';
 
-import { ChartPanel, EmptyChart, SectionDivider, SingleValueChart, StatCard } from './components';
+import {
+  ChartPanel,
+  DashboardSectionHeading,
+  EmptyChart,
+  SingleValueChart,
+  StatCard,
+} from './components';
 
 // Material colors for pie chart
 const MATERIAL_COLORS = [
@@ -275,7 +282,7 @@ export default function DashboardPage() {
           SECTION 1 — SEARCH SOLUTIONS
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider label="SEARCH SOLUTIONS" />
+        <DashboardSectionHeading label="SEARCH SOLUTIONS" />
         WIP
       </section>
 
@@ -283,7 +290,7 @@ export default function DashboardPage() {
           SECTION 2 — KNOWLEDGE DATABSE STATS
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider label="KNOWLEDGE DATABASE STATS" />
+        <DashboardSectionHeading label="KNOWLEDGE DATABASE STATS" />
 
         {/* Doc stats */}
         <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -346,7 +353,7 @@ export default function DashboardPage() {
           SECTION 3 — GLOBAL ACTIVITY
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider label="GLOBAL ACTIVITY" />
+        <DashboardSectionHeading label="GLOBAL ACTIVITY" />
 
         {/* Headline 3 */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -519,58 +526,57 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       {(globalLoading || marketTableRows.length > 0) && (
         <section>
-          <SectionDivider label="BENCHMARK INTELLIGENCE" />
+          <DashboardSectionHeading label="BENCHMARK INTELLIGENCE" />
 
           <ChartPanel isLoading={globalLoading} chartHeight="300px">
             {marketTableRows.length > 0 ? (
-              <table className="custom-data-table w-full text-xs">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="px-3 py-2 text-left font-semibold text-(--color-text-muted)">
-                      Industry
-                    </th>
-                    <th className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                      Count
-                    </th>
-                    <th className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                      Avg Score
-                    </th>
-                    <th className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                      Market Share
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {marketTableRows.map((row) => (
-                    <tr
-                      key={row.industry}
-                      className="border-b border-border transition-colors hover:bg-accent-soft"
-                    >
-                      <td className="px-3 py-2 font-medium text-(--color-text-primary)">
-                        {row.industry}
-                      </td>
-                      <td className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
-                        {row.count?.toLocaleString() ?? 0}
-                      </td>
-                      <td
-                        className={cn(
-                          'px-3 py-2 text-right tabular-nums',
-                          row.avgScore >= 75
-                            ? 'text-[#4a7c59]'
-                            : row.avgScore >= 50
-                              ? 'text-[#b07d3a]'
-                              : 'text-[#8b3a3a]',
-                        )}
-                      >
-                        {row.avgScore?.toFixed(1) ?? 0}%
-                      </td>
-                      <td className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
-                        {row.marketShare?.toFixed(1) ?? 0}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table>
+                <Table.ScrollContainer>
+                  <Table.Content aria-label="Market benchmark table">
+                    <Table.Header>
+                      <Table.Column className="px-3 py-2 text-left font-semibold text-(--color-text-muted)">
+                        Industry
+                      </Table.Column>
+                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                        Count
+                      </Table.Column>
+                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                        Avg Score
+                      </Table.Column>
+                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                        Market Share
+                      </Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {marketTableRows.map((row) => (
+                        <Table.Row key={row.industry}>
+                          <Table.Cell className="px-3 py-2 font-medium text-(--color-text-primary)">
+                            {row.industry}
+                          </Table.Cell>
+                          <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
+                            {row.count?.toLocaleString() ?? 0}
+                          </Table.Cell>
+                          <Table.Cell
+                            className={cn(
+                              'px-3 py-2 text-right tabular-nums',
+                              row.avgScore >= 75
+                                ? 'text-[#4a7c59]'
+                                : row.avgScore >= 50
+                                  ? 'text-[#b07d3a]'
+                                  : 'text-[#8b3a3a]',
+                            )}
+                          >
+                            {row.avgScore?.toFixed(1) ?? 0}%
+                          </Table.Cell>
+                          <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
+                            {row.marketShare?.toFixed(1) ?? 0}%
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table>
             ) : (
               <EmptyChart />
             )}
@@ -582,7 +588,7 @@ export default function DashboardPage() {
           SECTION 5 — YOUR ASSESSMENTS
           ════════════════════════════════════════════════════════════════════ */}
       <section>
-        <SectionDivider label="YOUR ASSESSMENTS" />
+        <DashboardSectionHeading label="YOUR ASSESSMENTS" />
 
         {user ? (
           <>

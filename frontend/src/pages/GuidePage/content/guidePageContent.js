@@ -1,4 +1,6 @@
 // Import all drawer content
+import { Cog, DollarSign, Users } from 'lucide-react';
+
 import {
   ASSESSMENT_METHODOLOGY_CONTENT,
   BUSINESS_CONTEXT_HEADING_CONTENT,
@@ -296,12 +298,12 @@ export const SPECIFIC_EVALUATION_PARAMETERS = {
 export const GETTING_STARTED = {
   subtitle: 'Everything you need to run your first assessment',
   intro:
-    'The assessment takes 5–10 minutes to complete. You can run it anonymously (up to 5 free assessments) or sign in for unlimited saves and comparison tools.',
+    'The assessment takes 5–10 minutes to complete. You can run it anonymously (up to 20 free assessments) or sign in for unlimited saves and comparison tools.',
   anonymousVsAuth: {
     anonymous: {
       title: 'Anonymous (no sign-in)',
       points: [
-        'Up to 5 assessments per IP address',
+        'Up to 20 assessments per IP address',
         'Results saved in browser localStorage - cleared if you clear browser data',
         'No access to comparison tool or assessment history',
         'Public share links not available',
@@ -706,6 +708,8 @@ export const GUIDE_PAGE_CONTENT = {
         color: 'info',
         description: 'Social participation and infrastructure accessibility',
         paramKeys: ['public_participation', 'infrastructure'],
+        icon: Users,
+        iconColor: 'text-(--color-info)',
       },
       {
         id: 'embedded-value',
@@ -713,6 +717,8 @@ export const GUIDE_PAGE_CONTENT = {
         color: 'success',
         description: 'Economic worth and technical integration',
         paramKeys: ['market_price', 'maintenance', 'uniqueness'],
+        icon: DollarSign,
+        iconColor: 'text-(--color-success)',
       },
       {
         id: 'processing-value',
@@ -720,6 +726,8 @@ export const GUIDE_PAGE_CONTENT = {
         color: 'accent',
         description: 'Environmental efficiency and technical readiness',
         paramKeys: ['size_efficiency', 'chemical_safety', 'tech_readiness'],
+        icon: Cog,
+        iconColor: 'text-(--color-accent)',
       },
     ],
     calculationSteps: EVALUATION_CRITERIA_CONTENT.calculationSteps,

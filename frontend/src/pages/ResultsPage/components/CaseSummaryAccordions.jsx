@@ -3,6 +3,7 @@ import { BarChart2, Globe, Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import { SectionHeading } from '@/components/common';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { titleize } from '@/lib/formatting';
 
@@ -56,7 +57,10 @@ export function CaseSummaryAccordions({
     }));
 
   return (
-    <div className="border-b border-[rgba(180,160,130,0.18)]">
+    <div>
+      <SectionHeading variant="large" className="mb-2">
+        Case Summary
+      </SectionHeading>
       <Accordion className="w-full" allowsMultipleExpanded>
         {/* Problem accordion item */}
         <AccordionItem

@@ -1,3 +1,5 @@
+import { Table } from '@heroui/react';
+import { MoveDown, MoveUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
@@ -42,81 +44,67 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
 
   return (
     <>
-      <div className="mt-2 overflow-x-auto rounded-xl border border-border bg-[rgba(250,248,245,0.5)]">
-        <table className="custom-data-table w-full border-collapse">
-          <thead>
-            <tr className="bg-[rgba(220,200,175,0.4)]">
-              <th className="border-b border-border px-4 py-3 text-left text-[0.7rem] font-semibold tracking-wider text-(--color-text-secondary) uppercase">
-                Factor
-              </th>
-              {['Your Score', '25th %ile', '50th %ile', '75th %ile'].map((header) => (
-                <th
-                  key={header}
-                  className="border-b border-border p-3 text-center text-[0.7rem] font-semibold tracking-wider text-(--color-text-secondary) uppercase"
-                >
-                  {header}
-                </th>
-              ))}
-              <th className="border-b border-border px-4 py-3 text-center text-[0.7rem] font-semibold tracking-wider text-(--color-text-secondary) uppercase">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr
-                key={row.factor}
-                className={`${index % 2 === 1 ? 'bg-[rgba(180,160,130,0.05)]' : ''} transition-colors hover:bg-[rgba(200,180,150,0.2)]`}
-              >
-                <td className="border-b border-border/30 px-4 py-3 text-left text-sm font-medium text-(--color-text-primary)">
-                  {row.displayName}
-                </td>
-                {['userScore', 'p25', 'p50', 'p75'].map((score) => (
-                  <td
-                    key={score}
-                    className="border-b border-border/30 p-3 text-center text-sm text-(--color-text-primary)"
-                  >
-                    {row[score] ?? '—'}
-                  </td>
+      <div className="mt-2 overflow-x-auto">
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Benchmark comparison table">
+              <Table.Header>
+                <Table.Column className="px-4 py-3">Factor</Table.Column>
+                <Table.Column className="p-3 text-center">Your Score</Table.Column>
+                <Table.Column className="p-3 text-center">25th %ile</Table.Column>
+                <Table.Column className="p-3 text-center">50th %ile</Table.Column>
+                <Table.Column className="p-3 text-center">75th %ile</Table.Column>
+                <Table.Column className="px-4 py-3 text-center">Status</Table.Column>
+              </Table.Header>
+              <Table.Body>
+                {rows.map((row) => (
+                  <Table.Row key={row.factor}>
+                    <Table.Cell className="font-medium">{row.displayName}</Table.Cell>
+                    <Table.Cell className="text-center">{row.userScore ?? '—'}</Table.Cell>
+                    <Table.Cell className="text-center">{row.p25 ?? '—'}</Table.Cell>
+                    <Table.Cell className="text-center">{row.p50 ?? '—'}</Table.Cell>
+                    <Table.Cell className="text-center">{row.p75 ?? '—'}</Table.Cell>
+                    <Table.Cell className="text-center">
+                      <Chip
+                        variant="info"
+                        color={row.statusColor}
+                        className={`${
+                          row.status === 'above_average'
+                            ? `border-[rgba(74,124,89,0.3)]! bg-[rgba(74,124,89,0.15)]! text-[#4a7c59]!`
+                            : ''
+                        } ${
+                          row.status === 'average'
+                            ? `border-[rgba(176,125,58,0.3)]! bg-[rgba(176,125,58,0.15)]! text-[#b07d3a]!`
+                            : ''
+                        } ${
+                          row.status === 'below_average'
+                            ? `border-[rgba(139,58,58,0.3)]! bg-[rgba(139,58,58,0.15)]! text-[#8b3a3a]!`
+                            : ''
+                        }`}
+                      >
+                        {row.statusLabel}
+                      </Chip>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
-                <td className="border-b border-border/30 px-4 py-3 text-center">
-                  <Chip
-                    variant="info"
-                    color={row.statusColor}
-                    className={`${
-                      row.status === 'above_average'
-                        ? `border-[rgba(74,124,89,0.3)]! bg-[rgba(74,124,89,0.15)]! text-[#4a7c59]!`
-                        : ''
-                    } ${
-                      row.status === 'average'
-                        ? `border-[rgba(176,125,58,0.3)]! bg-[rgba(176,125,58,0.15)]! text-[#b07d3a]!`
-                        : ''
-                    } ${
-                      row.status === 'below_average'
-                        ? `border-[rgba(139,58,58,0.3)]! bg-[rgba(139,58,58,0.15)]! text-[#8b3a3a]!`
-                        : ''
-                    }`}
-                  >
-                    {row.statusLabel}
-                  </Chip>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
       </div>
 
       {(opportunities?.length > 0 || strengths?.length > 0) && (
-        <div className="mt-4">
+        <div className="mt-8">
           {opportunities?.length > 0 && (
             <div className="mb-3">
-              <div className="mb-2 text-sm font-bold text-(--foreground)">
+              <div className="mb-2 text-sm font-medium text-(--foreground)">
                 Opportunities to Improve
               </div>
               <div className="flex flex-wrap gap-2">
                 {opportunities.map((text) => (
                   <Chip key={text} variant="status" color="warning">
-                    {text}
+                    <MoveUp size={14} />
+                    <span>{text}</span>
                   </Chip>
                 ))}
               </div>
@@ -129,7 +117,8 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
               <div className="flex flex-wrap gap-2">
                 {strengths.map((text) => (
                   <Chip key={text} variant="status" color="success">
-                    {text}
+                    <MoveDown size={14} />
+                    <span>{text}</span>
                   </Chip>
                 ))}
               </div>

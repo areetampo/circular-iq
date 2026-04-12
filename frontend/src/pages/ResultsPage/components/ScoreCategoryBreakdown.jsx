@@ -10,7 +10,7 @@ export function ScoreCategoryBreakdown({ actualResult }) {
   if (!actualResult?.score_breakdown) return null;
 
   return (
-    <div className="mt-8 border-t border-border pt-8">
+    <div>
       <SectionHeading variant="small" icon={<PieChart className="size-4 text-(--color-accent)" />}>
         Score Breakdown
       </SectionHeading>

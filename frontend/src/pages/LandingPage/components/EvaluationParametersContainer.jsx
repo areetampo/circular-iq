@@ -1,5 +1,5 @@
 import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
-import { BadgeInfo, ChevronDown } from 'lucide-react';
+import { ChevronDown, Info } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -78,7 +78,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   aria-label={`View details drawer for ${parameterLabels[paramKey].label}`}
                 >
                   {parameterLabels[paramKey].label}
-                  <BadgeInfo className="info-icon mt-0.5 shrink-0" size={16} strokeWidth={1.8} />
+                  <Info className="info-icon" size={18} strokeWidth={2} />
                 </Label>
 
                 <NumberField.Group className="my-1.5 flex h-8 items-center gap-1">

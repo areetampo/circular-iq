@@ -236,10 +236,6 @@
   --color-switch-thumb-disabled: #e0e0e0;
   --color-drawer-border: rgba(180, 160, 130, 0.22);
   --color-drawer-body-border: rgba(180, 160, 130, 0.16);
-  --color-table-stripe: rgba(180, 160, 130, 0.04);
-  --color-table-hover: rgba(200, 180, 150, 0.2);
-  --color-table-col-border: rgba(180, 160, 130, 0.15);
-  --color-table-row-border: rgba(180, 160, 130, 0.12);
 
   /* UI Component Colors */
   --color-checkbox: #8b6f47;
@@ -291,8 +287,12 @@
   --color-error-soft-hover: rgba(139, 58, 58, 0.12);
 
   /* Table surface tones */
-  --color-table-bg: rgba(250, 248, 245, 0.4);
+  --color-table-bg: rgba(250, 248, 245, 0.5);
   --color-table-header-bg: rgba(220, 200, 175, 0.4);
+  --color-table-stripe: rgba(180, 160, 130, 0.05);
+  --color-table-hover: rgba(200, 180, 150, 0.2);
+  --color-table-col-border: rgba(180, 160, 130, 0.15);
+  --color-table-row-border: rgba(180, 160, 130, 0.12);
 
   /* Alert dialog icon backgrounds */
   --color-icon-success-bg: rgba(45, 90, 61, 0.1);
@@ -1597,11 +1597,11 @@ textarea:focus-visible {
   }
 
   .info-icon {
-    @apply cursor-pointer transition-all duration-200 hover:scale-[1.05];
+    @apply shrink-0 cursor-pointer transition-all duration-200 hover:scale-[1.05];
   }
 
   .label-overline {
-    @apply font-sans text-[10px] font-bold tracking-[0.14em] text-(--color-text-muted) uppercase;
+    @apply font-sans text-xs font-bold tracking-[0.14em] text-(--color-text-muted) uppercase;
   }
 
   .metric-value {
@@ -1672,98 +1672,65 @@ textarea:focus-visible {
   }
 
   /* ----- HEROUI TABLE OVERRIDES FOR BEIGE THEME ----- */
-  [data-slot='base'].table-root {
-    @apply overflow-hidden! rounded-xl! border! border-(--color-border-ui)! bg-(--color-table-bg)!;
+  [data-slot='table'] {
+    @apply overflow-hidden! rounded-xl! border-0! bg-transparent!;
+  }
+
+  /* HeroUI Table Style Overrides - Transparent & Beige Theme */
+  [data-slot='table-content'] {
+    @apply rounded-xl! border-0! bg-transparent!;
+  }
+
+  [data-slot='table-header'] {
+    @apply border-b-2! border-[rgba(180,160,130,0.35)]! bg-[rgba(220,200,175,0.5)]! backdrop-blur-[6px]!;
+  }
+
+  [data-slot='table-column'] {
+    @apply border-r! border-[rgba(180,160,130,0.25)]! bg-transparent! px-5! py-4! text-left! text-[0.7rem]! font-semibold! tracking-[0.05em]! text-[#3d3530]! uppercase!;
+  }
+
+  [data-slot='table-column']:last-child {
+    @apply border-r-0!;
+  }
+
+  [data-slot='table-column'].text-center {
+    @apply text-center!;
+  }
+
+  [data-slot='table-row'] {
+    @apply border-b! border-[rgba(180,160,130,0.18)]! transition-colors! duration-200!;
+  }
+
+  [data-slot='table-row']:last-child {
+    @apply border-b-0!;
+  }
+
+  [data-slot='table-row']:nth-child(even) {
+    @apply bg-[rgba(245,240,232,0.45)]!;
+  }
+
+  [data-slot='table-row']:hover {
+    @apply bg-[rgba(184,145,106,0.06)]!;
+  }
+
+  [data-slot='table-cell'] {
+    @apply border-r! border-[rgba(180,160,130,0.15)]! bg-transparent! px-5! py-3.5! text-sm! text-[#1a1510]!;
+  }
+
+  [data-slot='table-cell']:last-child {
+    @apply border-r-0!;
+  }
+
+  [data-slot='table-cell'].text-center {
+    @apply text-center!;
+  }
+
+  [data-slot='table-cell'].font-medium {
+    @apply font-medium!;
   }
 
   [data-slot='header'] {
     @apply bg-(--color-table-header-bg)!;
-  }
-
-  /* ============================================= */
-  /*  CUSTOM DATA TABLE STYLES                      */
-  /* ============================================= */
-
-  /* Scope these to avoid affecting Dialogs/Modals - For HeroUI Tables */
-  .custom-data-table [data-slot='column'] {
-    @apply border-r border-b border-r-(--color-table-col-border) border-b-(--color-border-strong) px-3 py-3 text-center text-[0.65rem] font-semibold tracking-[0.05em] text-(--color-text-secondary) uppercase;
-  }
-
-  .custom-data-table [data-slot='column']:last-child {
-    @apply border-r-0;
-  }
-
-  .custom-data-table [data-slot='column']:first-child {
-    @apply pl-4 text-left;
-  }
-
-  .custom-data-table [data-slot='row'] {
-    @apply border-b border-(--color-table-row-border);
-  }
-
-  .custom-data-table [data-slot='row']:last-child {
-    @apply border-b-0;
-  }
-
-  .custom-data-table [data-slot='row']:nth-child(even) {
-    @apply bg-(--color-table-stripe);
-  }
-
-  .custom-data-table [data-slot='row']:hover {
-    @apply bg-(--color-table-hover);
-  }
-
-  .custom-data-table [data-slot='cell'] {
-    @apply border-r border-(--color-table-row-border) px-3 py-3 text-center text-[0.875rem] text-(--color-text-primary);
-  }
-
-  .custom-data-table [data-slot='cell']:last-child {
-    @apply border-r-0 text-center;
-  }
-
-  .custom-data-table [data-slot='cell']:first-child {
-    @apply pl-4 text-left font-medium;
-  }
-
-  .custom-data-table [data-slot='cell']:last-child [data-slot='base'].chip {
-    @apply inline-flex min-w-7.5 items-center justify-center p-[0.2rem_0.6rem] text-[0.7rem] font-medium;
-  }
-
-  /* ============================================= */
-  /*  NATIVE HTML TABLE STYLES (for BenchmarkTable) */
-  /* ============================================= */
-
-  /* For native HTML tables with custom-data-table class */
-  .custom-data-table th {
-    @apply border-r border-b border-r-(--color-table-col-border) border-b-(--color-border-strong) px-3 py-3 text-center text-[0.65rem] font-semibold tracking-[0.05em] text-(--color-text-secondary) uppercase;
-  }
-
-  .custom-data-table th:last-child {
-    @apply border-r-0;
-  }
-
-  .custom-data-table th:first-child {
-    @apply pl-4 text-left;
-  }
-
-  .custom-data-table td {
-    @apply border-r border-(--color-table-row-border) px-3 py-3 text-center text-[0.875rem] text-(--color-text-primary);
-  }
-
-  .custom-data-table td:last-child {
-    @apply border-r-0;
-  }
-
-  .custom-data-table td:first-child {
-    @apply pl-4 text-left font-medium;
-  }
-
-  .custom-data-table tr:nth-child(even) {
-    @apply bg-(--color-table-stripe);
-  }
-
-  .custom-data-table tr:hover {
-    @apply bg-(--color-table-hover);
   }
 
   /* ============================================= */

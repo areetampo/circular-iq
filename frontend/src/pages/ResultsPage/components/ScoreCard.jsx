@@ -30,7 +30,7 @@ export default function ScoreCard({
   };
 
   return (
-    <div className="mt-8 border-t border-border pt-8">
+    <div>
       {/* Section heading with icon */}
       <div className="mb-6 flex items-center justify-between">
         <SectionHeading

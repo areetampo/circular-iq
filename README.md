@@ -169,7 +169,7 @@ Live analytics from the `scoring_results_log` table (all scoring calls — authe
 │       ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
 │       ├── pages/
 │       │   ├── AssessmentComparisonPage/components/   # Tab components + ComparisonSkeleton + ChangeIndicator
-│       │   ├── DashboardPage/components/              # StatCard, ChartPanel, SectionDivider, SolutionCard, etc.
+│       │   ├── DashboardPage/components/              # StatCard, ChartPanel, SolutionCard, etc.
 │       │   ├── LandingPage/components/                # BusinessContextContainer, EvaluationParametersContainer, etc.
 │       │   ├── MyAssessmentsPage/components/          # AssessmentListItem, FilterBar, IndustryFilterChip
 │       │   └── ResultsPage/components/                # ScoreOverview, WeightedScoreCard, AuditSummary, DatabaseEvidence, etc.

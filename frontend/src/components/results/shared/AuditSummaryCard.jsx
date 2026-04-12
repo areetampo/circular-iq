@@ -9,7 +9,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
   const isTransparent = variant === 'transparent';
 
   return (
-    <div className="mt-8 border-t border-(--color-border-ui) pt-8">
+    <div>
       <SectionHeading
         variant="small"
         icon={

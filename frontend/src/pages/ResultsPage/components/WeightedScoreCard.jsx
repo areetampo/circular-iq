@@ -2,8 +2,7 @@ import { TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
-import { parameterGroups } from '@/constants/evaluationData';
-import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
+import { getParameterStyling, getProgressBarColor } from '@/constants/groupStyleConfig';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 
@@ -11,7 +10,7 @@ export function WeightedScoreCard({ actualResult }) {
   if (!actualResult?.weighted_score_card) return null;
 
   return (
-    <div className="mt-8 border-t border-border pt-8">
+    <div>
       <SectionHeading
         variant="small"
         icon={<TrendingUp className="size-4 text-(--color-accent)" />}
@@ -40,29 +39,14 @@ export function WeightedScoreCard({ actualResult }) {
                 className={cn(
                   'inline-flex items-center gap-2 rounded-2xl px-1.5 py-0.5',
                   'border-[1.5px] text-[0.68rem] font-bold tracking-[0.08rem] uppercase',
-                  (() => {
-                    const category = Object.entries(parameterGroups).find(([, factors]) =>
-                      factors.includes(key),
-                    )?.[0];
-                    const cfg = GROUP_STYLE_CONFIG[category] || DEFAULT_CONFIG;
-                    return cn(cfg.paramBg, cfg.paramTextColor, cfg.paramBorder);
-                  })(),
+                  getParameterStyling(key),
                 )}
               >
                 {formatFactorName(key)}
               </div>
               <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-border">
                 <div
-                  className={cn(
-                    'h-1.5 rounded-full',
-                    (() => {
-                      const category = Object.entries(parameterGroups).find(([, factors]) =>
-                        factors.includes(key),
-                      )?.[0];
-                      const cfg = GROUP_STYLE_CONFIG[category] || DEFAULT_CONFIG;
-                      return cfg.paramTextColor.replace('text-', 'bg-');
-                    })(),
-                  )}
+                  className={cn('h-1.5 rounded-full', getProgressBarColor(key))}
                   style={{ width: `${factor.raw_score}%` }}
                 />
               </div>
@@ -80,7 +64,7 @@ export function WeightedScoreCard({ actualResult }) {
       </div>
 
       {/* Bottom summary */}
-      <div className="mt-6 flex justify-between border-t border-border pt-4 text-sm text-(--color-text-muted) [&>span]:font-medium [&>span>span]:font-semibold [&>span>span]:text-(--color-text-primary)">
+      <div className="mt-6 flex justify-between pt-4 text-sm text-(--color-text-muted) [&>span]:font-medium [&>span>span]:font-semibold [&>span>span]:text-(--color-text-primary)">
         <span>
           Top contributor:{' '}
           <span>{formatFactorName(actualResult.weighted_score_card.top_contributor)}</span>

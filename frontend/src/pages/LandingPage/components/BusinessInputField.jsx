@@ -26,7 +26,7 @@ export default function BusinessInputField({
             {label}
           </Label>
           <BadgeInfo
-            className="info-icon mt-px shrink-0 cursor-pointer text-(--color-accent) transition-all duration-200 hover:scale-110"
+            className="info-icon text-(--color-accent)"
             size={20}
             strokeWidth={2}
             onClick={onInfoClick}

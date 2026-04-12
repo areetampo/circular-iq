@@ -10,10 +10,14 @@ import { titleize } from '@/lib/formatting';
  */
 export function FieldDisplayCard({ label, value, helpText }) {
   return (
-    <div className="rounded-xl border-[1.5px] border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.25)] p-4">
-      <div className="mb-1 text-xs font-bold tracking-wide text-[#2d5a3d] uppercase">{label}</div>
-      <div className="text-sm font-bold text-(--color-text-primary)">{titleize(value || '')}</div>
-      <div className="mt-1 text-sm text-(--color-text-muted) italic">{helpText}</div>
+    <div className="rounded-xl border-[1.5px] border-(--color-border-ui) p-4">
+      <div className="mb-1 text-sm font-semibold tracking-wide text-[#2d5a3d] uppercase">
+        {label}
+      </div>
+      <div className="text-sm font-medium text-(--color-text-primary)">{titleize(value || '')}</div>
+      <div className="mt-1 text-sm wrap-break-word text-(--color-text-muted) italic">
+        {helpText}
+      </div>
     </div>
   );
 }
