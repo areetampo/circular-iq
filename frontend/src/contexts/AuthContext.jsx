@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { FRONTEND_CONFIG } from '@/config';
+import { clearEvaluationState, getSessionId } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
 const API_URL = FRONTEND_CONFIG.apiBaseUrl;
@@ -69,6 +70,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false); // Track if initial auth check is done
 
   /**
    * Sign out the current user
@@ -86,36 +88,108 @@ export function AuthProvider({ children }) {
   /**
    * Handle authentication state changes
    * Fetches profile when user is authenticated
+   * Only clears session state on actual auth events (login/logout), not initialization
    */
-  const handleAuthChange = useCallback(async (newSession) => {
-    if (newSession) {
-      setSession(newSession);
+  const handleAuthChange = useCallback(
+    async (newSession) => {
+      const wasAuthenticated = isAuthenticated;
+      const isNowAuthenticated = !!newSession;
 
-      // Extract username from user_metadata for immediate UI update
-      const username = newSession.user?.user_metadata?.username || null;
-      const userWithUsername = {
-        ...newSession.user,
-        username, // Add username directly to user object
-      };
+      // Determine if this is an actual auth event (not initialization)
+      const isAuthEvent = hasInitialized;
 
-      setUser(userWithUsername);
-      setIsAuthenticated(true);
+      if (newSession) {
+        setSession(newSession);
 
-      // Fetch full user profile from backend (includes additional profile data)
-      const profileData = await fetchUserProfile(newSession.access_token);
-      setProfile(profileData || { username }); // Fallback to metadata username if profile fetch fails
+        // Extract username from user_metadata for immediate UI update
+        const username = newSession.user?.user_metadata?.username || null;
+        const userWithUsername = {
+          ...newSession.user,
+          username, // Add username directly to user object
+        };
 
-      // After login, do NOT auto-save or mutate persisted session state here.
-      // The UI (AppSessionManager) will inspect `session_evaluation_state` and
-      // prompt the user when appropriate. Leave persisted session alone.
-      // (No-op — kept intentionally concise for readability.)
-    } else {
-      setSession(null);
-      setUser(null);
-      setProfile(null);
-      setIsAuthenticated(false);
-    }
-  }, []);
+        setUser(userWithUsername);
+        setIsAuthenticated(true);
+
+        // Only clear session state on actual login event (not page reload/session restoration)
+        if (isAuthEvent && !wasAuthenticated) {
+          try {
+            const cleared = clearEvaluationState();
+            logger.info('[SESSION_STATE_CLEARED_ON_LOGIN]', {
+              cleared,
+              userId: newSession.user.id,
+              wasAuthenticated,
+              isNowAuthenticated,
+              isAuthEvent,
+            });
+          } catch (error) {
+            logger.warn('[SESSION_STATE_CLEAR_FAILED_ON_LOGIN]', error);
+          }
+
+          // Renew session_id when user logs in to separate anonymous and authenticated sessions
+          try {
+            const oldSessionId = localStorage.getItem('session_id');
+            const newSessionId = getSessionId(true); // Force renewal
+            logger.info('[SESSION_ID_RENEWED]', {
+              oldSessionId,
+              newSessionId,
+              userId: newSession.user.id,
+              wasAuthenticated,
+              isNowAuthenticated,
+              isAuthEvent,
+            });
+          } catch (error) {
+            logger.warn('[SESSION_ID_RENEWAL_FAILED]', error);
+          }
+        } else {
+          // Session restoration - don't clear anything
+          logger.info('[SESSION_RESTORED]', {
+            userId: newSession.user.id,
+            wasAuthenticated,
+            isNowAuthenticated,
+            isAuthEvent,
+          });
+        }
+
+        // Fetch full user profile from backend (includes additional profile data)
+        const profileData = await fetchUserProfile(newSession.access_token);
+        setProfile(profileData || { username }); // Fallback to metadata username if profile fetch fails
+
+        // After login, do NOT auto-save or mutate persisted session state here.
+        // The UI (AppSessionManager) will inspect `session_evaluation_state` and
+        // prompt the user when appropriate. Leave persisted session alone.
+        // (No-op - kept intentionally concise for readability.)
+      } else {
+        // Only clear session state on actual logout event (not initialization)
+        if (isAuthEvent && wasAuthenticated) {
+          try {
+            const cleared = clearEvaluationState();
+            logger.info('[SESSION_STATE_CLEARED_ON_LOGOUT]', {
+              cleared,
+              wasAuthenticated,
+              isNowAuthenticated,
+              isAuthEvent,
+            });
+          } catch (error) {
+            logger.warn('[SESSION_STATE_CLEAR_FAILED_ON_LOGOUT]', error);
+          }
+        } else {
+          // Initial state or non-auth event
+          logger.info('[SESSION_CLEARED_ON_INIT]', {
+            wasAuthenticated,
+            isNowAuthenticated,
+            isAuthEvent,
+          });
+        }
+
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setIsAuthenticated(false);
+      }
+    },
+    [isAuthenticated, hasInitialized],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -143,11 +217,13 @@ export function AuthProvider({ children }) {
 
           // Mark initialization as finished immediately (do not wait for background tasks)
           setAuthLoading(false);
+          setHasInitialized(true);
         }
       } catch (error) {
         logger.error('[AUTH_INIT_ERROR]', error);
         if (isMounted) {
           setAuthLoading(false);
+          setHasInitialized(true);
         }
       }
     };

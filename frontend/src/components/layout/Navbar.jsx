@@ -1,29 +1,21 @@
-import { Avatar, Dropdown, DropdownTrigger, Separator } from '@heroui/react';
+import { Avatar, Dropdown, Separator, Tooltip } from '@heroui/react';
 import { Menu } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, SiteLogo, SiteName } from '@/components/common';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
+import {
+  getTooltipTextForNavItemsSecondary,
+  navigationItems,
+  navItemsSecondary,
+} from '@/constants/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/utils/cn';
+import { getSession } from '@/utils/session';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
-  const dropdownRef = useRef(null);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-
-  const { openMobileNavigationDrawer } = useGlobalDrawer();
-
-  const navigationItems = [
-    { id: 'assessments', name: 'My Assessments', path: '/assessments' },
-    { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
-    { id: 'guide', name: 'Guide', path: '/guide' },
-    { id: 'share', name: 'Share', path: '/assessments/share' },
-    { id: 'compare', name: 'Compare', path: '/assessments/compare' },
-  ];
 
   const handleSignOut = async () => {
     try {
@@ -33,18 +25,6 @@ export default function Navbar() {
       console.error('Sign out error:', error);
     }
   };
-
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const isActivePath = (path) => {
     const currentPath = location.pathname;
@@ -113,31 +93,48 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right side - Profile Avatar or Auth */}
-          <div className="flex items-center gap-4">
-            <div className="hidden md:block">
-              {isAuthenticated ? (
-                /* Profile Avatar Dropdown */
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Avatar
-                      size="sm"
-                      className={cn(
-                        'cursor-pointer transition-all duration-200 hover:scale-105',
-                        'shadow-sm',
-                        'border border-(--color-danger)/50',
-                        'bg-(--color-accent-light)',
-                        'text-(--color-accent)',
-                      )}
-                      aria-label="Profile menu"
-                    >
-                      <Avatar.Fallback className="bg-(--color-accent-light) font-medium text-(--color-accent)">
-                        {getUserInitials()}
-                      </Avatar.Fallback>
-                    </Avatar>
-                  </DropdownTrigger>
-                  <Dropdown.Popover>
-                    <Dropdown.Menu>
+          {/* Right side - Profile Avatar or Hamburger menu */}
+          <div className="flex items-center gap-0">
+            {!isAuthenticated && (
+              <Button variant="ghost" size="sm" className="hidden md:block" as={Link} to="/auth">
+                Sign In
+              </Button>
+            )}
+
+            <Dropdown>
+              <Dropdown.Trigger>
+                {isAuthenticated ? (
+                  <Avatar
+                    size="sm"
+                    className={cn(
+                      'cursor-pointer transition-all duration-200 hover:scale-105',
+                      'shadow-sm',
+                      'border border-(--color-danger)/50',
+                      'bg-(--color-accent-light)',
+                      'text-(--color-accent)',
+                      'hidden md:block',
+                    )}
+                    aria-label="Profile menu"
+                  >
+                    <Avatar.Fallback className="bg-(--color-accent-light) font-medium text-(--color-accent)">
+                      {getUserInitials()}
+                    </Avatar.Fallback>
+                  </Avatar>
+                ) : (
+                  <Button
+                    variant="ghastly"
+                    size="sm"
+                    aria-label="Desktop hamburger menu"
+                    className="hidden hover:bg-transparent! md:-mr-4 md:block"
+                  >
+                    <Menu size={16} />
+                  </Button>
+                )}
+              </Dropdown.Trigger>
+              <Dropdown.Popover placement="bottom end">
+                <Dropdown.Menu>
+                  {isAuthenticated && (
+                    <>
                       <Dropdown.Item
                         key="user-info"
                         className="cursor-auto! py-2 hover:bg-(--color-accent-light)!"
@@ -161,38 +158,168 @@ export default function Navbar() {
                       </Dropdown.Item>
 
                       <Separator className="my-2" variant="secondary" />
+                    </>
+                  )}
 
+                  {navItemsSecondary.map((item) => {
+                    const sessionData = getSession();
+                    const hasResults = Boolean(sessionData?.results);
+                    const isDisabled = item.condition === 'hasResults' && !hasResults;
+
+                    return (
                       <Dropdown.Item
-                        key="sign-out"
-                        className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-(--color-error) transition-colors hover:bg-(--color-danger-soft-ui)"
-                        onPress={() => {
-                          handleSignOut();
-                          setIsProfileDropdownOpen(false);
-                        }}
+                        key={item.id}
+                        // isDisabled classes present in index.css
+                        isDisabled={isDisabled}
                       >
-                        Sign out
+                        <Tooltip delay={0} className="w-full">
+                          <Tooltip.Trigger className="w-full">
+                            {item.type === 'link' && !isDisabled ? (
+                              <Link to={item.path} className="flex w-full">
+                                {item.name}
+                              </Link>
+                            ) : (
+                              /* When disabled, we render a span so there is no 'to' attribute for the browser to find */
+                              <span className="flex w-full cursor-not-allowed">{item.name}</span>
+                            )}
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>
+                            <p className="whitespace-pre-line">
+                              {getTooltipTextForNavItemsSecondary(item, sessionData)}
+                            </p>
+                          </Tooltip.Content>
+                        </Tooltip>
                       </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown.Popover>
-                </Dropdown>
-              ) : (
-                /* Auth Buttons */
-                <div className="hidden items-center gap-3 md:flex">
-                  <Button variant="ghastly" size="md" to="/auth" as={Link}>
-                    Sign in
-                  </Button>
-                </div>
-              )}
-            </div>
+                    );
+                  })}
 
-            {/* Mobile Hamburger Menu */}
-            <button
-              onClick={openMobileNavigationDrawer}
-              className="text-(--color-text-secondary) transition-colors *:cursor-pointer hover:text-(--color-text-primary) md:hidden"
-              aria-label="Open mobile navigation menu"
-            >
-              <Menu size={20} />
-            </button>
+                  <Separator className="my-2" variant="secondary" />
+
+                  <Dropdown.Item
+                    key="handle-auth"
+                    className={cn(
+                      isAuthenticated
+                        ? 'text-(--color-error)! hover:bg-(--color-danger-soft-ui)!'
+                        : 'text-(--color-success)! hover:bg-(--color-success-soft-ui)!',
+                    )}
+                    onPress={isAuthenticated ? handleSignOut : undefined}
+                  >
+                    {isAuthenticated ? <span>Sign out</span> : <Link to="/auth">Sign in</Link>}
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
+
+            {/* Mobile Navigation Dropdown */}
+            <Dropdown>
+              <Dropdown.Trigger>
+                <Button
+                  variant="ghastly"
+                  size="md"
+                  aria-label="Mobile navigation menu"
+                  className="w-full md:hidden"
+                >
+                  <Menu size={20} />
+                </Button>
+              </Dropdown.Trigger>
+              <Dropdown.Popover
+                placement="bottom end"
+                style={{ minWidth: '180px' }} // ← prevents width collapse on open
+                motionProps={{
+                  variants: {
+                    enter: { opacity: 1, y: 0, transition: { duration: 0.15 } },
+                    exit: { opacity: 0, y: -4, transition: { duration: 0.1 } },
+                  },
+                }}
+              >
+                <Dropdown.Menu>
+                  {isAuthenticated && (
+                    <>
+                      <Dropdown.Item
+                        key="user-info"
+                        className="cursor-auto! py-2 hover:bg-(--color-accent-light)!"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar
+                            size="md"
+                            className="bg-(--color-accent-light) text-(--color-accent)"
+                          >
+                            <Avatar.Fallback className="bg-[rgba(184,145,106,0.2)] font-medium text-(--color-accent)">
+                              {getUserInitials()}
+                            </Avatar.Fallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium text-(--color-text-primary)">
+                              {getUsername()}
+                            </p>
+                            <p className="text-xs text-(--color-text-muted)">Signed in</p>
+                          </div>
+                        </div>
+                      </Dropdown.Item>
+
+                      <Separator className="my-2" variant="secondary" />
+                    </>
+                  )}
+
+                  {navigationItems.map((item) => {
+                    const isActive = isActivePath(item.path);
+                    return (
+                      <Dropdown.Item key={item.id}>
+                        <Link key={item.id} to={item.path}>
+                          <span className={cn(isActive && 'text-black')}>{item.name}</span>
+                        </Link>
+                      </Dropdown.Item>
+                    );
+                  })}
+
+                  {navItemsSecondary.map((item) => {
+                    const sessionData = getSession();
+                    const hasResults = Boolean(sessionData?.results);
+                    const isDisabled = item.condition === 'hasResults' && !hasResults;
+
+                    return (
+                      <Dropdown.Item
+                        key={item.id}
+                        // isDisabled classes present in index.css
+                        isDisabled={isDisabled}
+                      >
+                        <Tooltip delay={0} className="w-full">
+                          <Tooltip.Trigger className="w-full">
+                            {item.type === 'link' && !isDisabled ? (
+                              <Link to={item.path} className="flex w-full">
+                                {item.name}
+                              </Link>
+                            ) : (
+                              /* When disabled, we render a span so there is no 'to' attribute for the browser to find */
+                              <span className="flex w-full cursor-not-allowed">{item.name}</span>
+                            )}
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>
+                            <p className="whitespace-pre-line">
+                              {getTooltipTextForNavItemsSecondary(item, sessionData)}
+                            </p>
+                          </Tooltip.Content>
+                        </Tooltip>
+                      </Dropdown.Item>
+                    );
+                  })}
+
+                  <Separator className="my-2" variant="secondary" />
+
+                  <Dropdown.Item
+                    key="handle-auth"
+                    className={cn(
+                      isAuthenticated
+                        ? 'text-(--color-error)! hover:bg-(--color-danger-soft-ui)!'
+                        : 'text-(--color-success)! hover:bg-(--color-success-soft-ui)!',
+                    )}
+                    onPress={isAuthenticated ? handleSignOut : undefined}
+                  >
+                    {isAuthenticated ? <span>Sign out</span> : <Link to="/auth">Sign in</Link>}
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
           </div>
         </div>
       </nav>

@@ -528,59 +528,59 @@ export default function DashboardPage() {
         <section>
           <DashboardSectionHeading label="BENCHMARK INTELLIGENCE" />
 
-          <ChartPanel isLoading={globalLoading} chartHeight="300px">
-            {marketTableRows.length > 0 ? (
-              <Table>
-                <Table.ScrollContainer>
-                  <Table.Content aria-label="Market benchmark table">
-                    <Table.Header>
-                      <Table.Column className="px-3 py-2 text-left font-semibold text-(--color-text-muted)">
-                        Industry
-                      </Table.Column>
-                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                        Count
-                      </Table.Column>
-                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                        Avg Score
-                      </Table.Column>
-                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                        Market Share
-                      </Table.Column>
-                    </Table.Header>
-                    <Table.Body>
-                      {marketTableRows.map((row) => (
-                        <Table.Row key={row.industry}>
-                          <Table.Cell className="px-3 py-2 font-medium text-(--color-text-primary)">
-                            {row.industry}
-                          </Table.Cell>
-                          <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
-                            {row.count?.toLocaleString() ?? 0}
-                          </Table.Cell>
-                          <Table.Cell
-                            className={cn(
-                              'px-3 py-2 text-right tabular-nums',
-                              row.avgScore >= 75
-                                ? 'text-[#4a7c59]'
-                                : row.avgScore >= 50
-                                  ? 'text-[#b07d3a]'
-                                  : 'text-[#8b3a3a]',
-                            )}
-                          >
-                            {row.avgScore?.toFixed(1) ?? 0}%
-                          </Table.Cell>
-                          <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
-                            {row.marketShare?.toFixed(1) ?? 0}%
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Content>
-                </Table.ScrollContainer>
-              </Table>
-            ) : (
+          {marketTableRows.length > 0 ? (
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Market benchmark table">
+                  <Table.Header>
+                    <Table.Column className="px-3 py-2 text-left font-semibold text-(--color-text-muted)">
+                      Industry
+                    </Table.Column>
+                    <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                      Count
+                    </Table.Column>
+                    <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                      Avg Score
+                    </Table.Column>
+                    <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                      Market Share
+                    </Table.Column>
+                  </Table.Header>
+                  <Table.Body>
+                    {marketTableRows.map((row) => (
+                      <Table.Row key={row.industry}>
+                        <Table.Cell className="px-3 py-2 font-medium text-(--color-text-primary)">
+                          {row.industry}
+                        </Table.Cell>
+                        <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
+                          {row.count?.toLocaleString() ?? 0}
+                        </Table.Cell>
+                        <Table.Cell
+                          className={cn(
+                            'px-3 py-2 text-right tabular-nums',
+                            row.avgScore >= 75
+                              ? 'text-[#4a7c59]'
+                              : row.avgScore >= 50
+                                ? 'text-[#b07d3a]'
+                                : 'text-[#8b3a3a]',
+                          )}
+                        >
+                          {row.avgScore?.toFixed(1) ?? 0}%
+                        </Table.Cell>
+                        <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
+                          {row.marketShare?.toFixed(1) ?? 0}%
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+            </Table>
+          ) : (
+            <ChartPanel isLoading={globalLoading} chartHeight="300px">
               <EmptyChart />
-            )}
-          </ChartPanel>
+            </ChartPanel>
+          )}
         </section>
       )}
 

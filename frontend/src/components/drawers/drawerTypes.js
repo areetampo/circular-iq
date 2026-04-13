@@ -9,7 +9,6 @@ export const DRAWERS = {
   SAMPLE_TEST_CASES_HEADING_INFO: 'test-cases-heading',
   SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS: 'test-case',
   RESULTS_DATABASE_EVIDENCE_DETAILS: 'evidence-details',
-  MOBILE_NAVIGATION: 'mobile-navigation',
 };
 
 export default DRAWERS;

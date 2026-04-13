@@ -11,6 +11,7 @@ import { Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useMemo } from 'react';
 
+import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
@@ -67,22 +68,20 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
                 </AlertDialog.Body>
 
                 <AlertDialog.Footer>
-                  <button
-                    onClick={close}
-                    className="flex-1 rounded-lg border border-(--color-border-strong) py-2.5 text-sm text-(--color-text-secondary) transition-colors hover:bg-(--color-accent-light)"
-                  >
+                  <Button variant="ghost" className="flex-1" onClick={close}>
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="flex-1"
                     onClick={() => {
                       if (onConfirm) onConfirm();
                       close();
                     }}
-                    className="flex-1 rounded-lg bg-(--color-error) py-2.5 text-sm text-white transition-opacity hover:opacity-90"
                     disabled={isLoading}
                   >
                     Delete
-                  </button>
+                  </Button>
                 </AlertDialog.Footer>
               </>
             )}

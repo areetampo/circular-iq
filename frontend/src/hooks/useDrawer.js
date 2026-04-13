@@ -72,7 +72,5 @@ export default function useDrawer() {
 
     openResultsDatabaseEvidenceDetailsDrawer: (evidenceData) =>
       openDrawer(DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS, evidenceData),
-
-    openMobileNavigationDrawer: () => openDrawer(DRAWERS.MOBILE_NAVIGATION),
   };
 }

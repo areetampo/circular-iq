@@ -31,7 +31,9 @@
 } */
 
 @theme {
-  /* ----- FONTS ----- */
+  /* ============================================= */
+  /*  FONTS                                       */
+  /* ============================================= */
   --font-sans: 'Fredoka';
   /* --font-sans: 'DM Sans', sans-serif; */
 
@@ -49,7 +51,9 @@
   --font-sniglet: 'Sniglet';
   --font-jua: 'Jua';
 
-  /* ----- CUSTOM COLOR SCALES ----- */
+  /* ============================================= */
+  /*  CUSTOM COLOR SCALES                         */
+  /* ============================================= */
   /* Primary (Emerald/Green for circular economy theme) */
   --color-primary-50: #f0f8f5;
   --color-primary-100: #ddf0eb;
@@ -84,7 +88,9 @@
   --color-secondary-800: #1e40af;
   --color-secondary-900: #1e3a8a;
 
-  /* ----- ANIMATIONS ----- */
+  /* ============================================= */
+  /*  ANIMATIONS                                  */
+  /* ============================================= */
   --animate-slide-in: slideIn 0.3s ease-out;
   --animate-slide-up: slideUp 0.3s ease-out;
   --animate-bounce-scale: bounceScale 1s ease-in-out;
@@ -92,7 +98,9 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
-  /* ----- SHADOWS ----- */
+  /* ============================================= */
+  /*  SHADOWS                                     */
+  /* ============================================= */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
   --shadow-navbar-scroll: 0 1px 20px oklch(0.18 0.015 60 / 0.08);
@@ -105,7 +113,9 @@
   --shadow-checkbox: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-input-focus: 0 0 0 3px oklch(0.68 0.08 68 / 0.14);
 
-  /* ----- BREAKPOINTS ----- */
+  /* ============================================= */
+  /*  BREAKPOINTS                                 */
+  /* ============================================= */
   --breakpoint-xxs: 400px;
   --breakpoint-xs: 480px;
   --breakpoint-xs_sm: 540px;
@@ -287,12 +297,20 @@
   --color-error-soft-hover: rgba(139, 58, 58, 0.12);
 
   /* Table surface tones */
-  --color-table-bg: rgba(250, 248, 245, 0.5);
-  --color-table-header-bg: rgba(220, 200, 175, 0.4);
-  --color-table-stripe: rgba(180, 160, 130, 0.05);
-  --color-table-hover: rgba(200, 180, 150, 0.2);
-  --color-table-col-border: rgba(180, 160, 130, 0.15);
-  --color-table-row-border: rgba(180, 160, 130, 0.12);
+  --color-table-bg: transparent;
+  --color-table-border: rgba(180, 160, 130, 0.45);
+  --color-table-header-text: rgb(0, 0, 0, 0.8);
+  --color-table-header-bg: rgba(195, 178, 155, 0.3);
+  --color-table-col-border: rgba(180, 160, 130, 0.2);
+  --color-table-row-border: rgba(180, 160, 130, 0.15);
+  --color-table-cell-border: rgba(180, 160, 130, 0.13);
+  --color-table-stripe: rgba(180, 160, 130, 0.1);
+  --color-table-hover: rgba(180, 160, 130, 0.2);
+  --color-table-col-hover: rgba(184, 145, 106, 0.1);
+  --color-table-footer-border: rgba(180, 160, 130, 0.25);
+
+  /* Dropdown */
+  --dropdown-item-hover: #e8ddcb;
 
   /* Alert dialog icon backgrounds */
   --color-icon-success-bg: rgba(45, 90, 61, 0.1);
@@ -519,7 +537,9 @@
     @apply bg-(--color-selection);
   }
 
-  /* ----- PERFORMANCE OPTIMIZATIONS ----- */
+  /* ============================================= */
+  /*  PERFORMANCE OPTIMIZATIONS                   */
+  /* ============================================= */
   button,
   [role='button'] {
     @apply antialiased;
@@ -627,7 +647,9 @@ textarea:focus-visible {
   /*  COMPONENT OVERRIDES (HEROUI & CUSTOM CLASSES)        */
   /* ============================================= */
 
-  /* ----- TOAST ----- */
+  /* ============================================= */
+  /*  TOAST                                       */
+  /* ============================================= */
   .toast {
     @apply z-9999! flex! min-h-12! w-full! items-center! justify-center! gap-3! rounded-3xl! border! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! transition-all! duration-200! ease-out! dark:border-white/80!;
   }
@@ -659,7 +681,9 @@ textarea:focus-visible {
     @apply hidden!;
   }
 
-  /* ----- TOAST VARIANTS ----- */
+  /* ============================================= */
+  /*  TOAST VARIANTS                              */
+  /* ============================================= */
   .toast--default,
   .toast--accent {
     @apply border! border-(--color-border-strong)! bg-(--color-toast-bg)!;
@@ -713,7 +737,9 @@ textarea:focus-visible {
     @apply text-(--color-text-secondary)!;
   }
 
-  /* ----- CHIP ----- */
+  /* ============================================= */
+  /*  CHIP                                        */
+  /* ============================================= */
   [data-slot='base'].chip {
     @apply rounded-md! font-sans! text-[11px]! font-medium! tracking-[0.01em]! transition-all! duration-150! ease-in-out!;
   }
@@ -746,7 +772,9 @@ textarea:focus-visible {
     @apply h-5! rounded-md! border! border-(--color-border-faint)! bg-(--color-chip-bg-faint)! px-1.75! text-[10px]! font-semibold! tracking-[0.06em]! text-(--color-text-secondary)! uppercase!;
   }
 
-  /* ----- DRAWER OVERRIDES ----- */
+  /* ============================================= */
+  /*  DRAWER OVERRIDES                            */
+  /* ============================================= */
   .drawer__backdrop,
   [data-slot='backdrop'].drawer__backdrop,
   .drawer__backdrop--opaque,
@@ -826,7 +854,9 @@ textarea:focus-visible {
     @apply border-(--color-drawer-item-border)!;
   }
 
-  /* ----- SEARCHFIELD ----- */
+  /* ============================================= */
+  /*  SEARCHFIELD                                 */
+  /* ============================================= */
 
   /* Root wrapper */
   [data-slot='search-field'] {
@@ -909,12 +939,36 @@ textarea:focus-visible {
     @apply font-sans text-[0.75rem] text-(--color-error);
   }
 
-  /* ----- DROPDOWN ----- */
+  /* ============================================= */
+  /*  DROPDOWN                                    */
+  /* ============================================= */
   .dropdown__popover {
     @apply bg-(--color-app-bg)!;
+
+    /* Target all menu items */
+    [data-slot='menu-item'] {
+      @apply w-full cursor-pointer px-4 py-2 text-(--color-text-primary)/70 transition-colors hover:bg-(--dropdown-item-hover) hover:text-(--color-text-primary);
+      /* 1. Kill the default container padding */
+      @apply p-0!;
+      /* 2. Target the 'base' or 'wrapper' slot where content lives */
+      /* HeroUI typically uses a wrapper div inside the item */
+      & > * {
+        @apply flex h-full w-full items-center px-4 py-2;
+      }
+      /* 3. Ensure links inside take up the full padded area */
+      a {
+        @apply flex h-full w-full items-center;
+      }
+      /* Target specifically the disabled state */
+      &[data-disabled='true'] {
+        @apply pointer-events-none cursor-not-allowed text-(--color-text-muted) opacity-50 hover:bg-transparent;
+      }
+    }
   }
 
-  /* ----- POPOVER ----- */
+  /* ============================================= */
+  /*  POPOVER                                     */
+  /* ============================================= */
   .popover {
     @apply rounded-2xl! bg-(--color-app-bg)!;
   }
@@ -925,7 +979,9 @@ textarea:focus-visible {
     @apply px-2! py-1! font-sniglet! text-base! font-normal!;
   }
 
-  /* ----- NUMBER FIELD ----- */
+  /* ============================================= */
+  /*  NUMBER FIELD                                */
+  /* ============================================= */
   [data-slot='group'].number-field__group,
   .number-field__group {
     @apply overflow-visible! rounded-none! border-none! bg-transparent! shadow-none! transition-none!;
@@ -964,7 +1020,9 @@ textarea:focus-visible {
     content: none !important;
   }
 
-  /* ----- BUTTON ----- */
+  /* ============================================= */
+  /*  BUTTON                                      */
+  /* ============================================= */
   .button,
   [data-slot='button'] {
     @apply transform-none! rounded-md font-sans text-[14px] font-medium tracking-[0.01em] transition-[background-color,border-color,color,opacity] duration-150 ease-in-out;
@@ -994,7 +1052,9 @@ textarea:focus-visible {
     @apply bg-(--accent-soft)! text-(--foreground)!;
   }
 
-  /* ----- INPUT FIELDS ----- */
+  /* ============================================= */
+  /*  INPUT FIELDS                                */
+  /* ============================================= */
   [data-slot='input-wrapper'],
   [data-slot='main-wrapper'],
   .input__input-wrapper {
@@ -1012,7 +1072,9 @@ textarea:focus-visible {
     @apply items-start!;
   }
 
-  /* ----- TEXTFIELD ----- */
+  /* ============================================= */
+  /*  TEXTFIELD                                   */
+  /* ============================================= */
   .textfield {
     @apply flex flex-col gap-1;
   }
@@ -1050,7 +1112,9 @@ textarea:focus-visible {
     @apply px-1 text-xs font-medium text-(--color-error);
   }
 
-  /* ----- TEXTAREA ----- */
+  /* ============================================= */
+  /*  TEXTAREA                                    */
+  /* ============================================= */
   .textarea {
     @apply rounded-2xl! px-4! py-3! font-mono! text-xs! font-medium! shadow-sm! ring-1! ring-transparent! transition-all! duration-300! ease-in-out! ring-inset!;
   }
@@ -1065,7 +1129,9 @@ textarea:focus-visible {
     @apply text-(--color-text-muted);
   }
 
-  /* ----- CARD ----- */
+  /* ============================================= */
+  /*  CARD                                        */
+  /* ============================================= */
   [data-slot='base'].card,
   .card {
     @apply rounded-2xl! border! border-border! bg-surface!;
@@ -1087,13 +1153,17 @@ textarea:focus-visible {
     @apply bg-(--color-bg-card)!;
   }
 
-  /* ----- ACCORDION ----- */
+  /* ============================================= */
+  /*  ACCORDION                                    */
+  /* ============================================= */
   /* Let HeroUI handle all accordion animations natively */
   .accordion__trigger {
     @apply transition-colors! duration-300! hover:bg-(--color-accent-light)!;
   }
 
-  /* ----- PAGINATION ----- */
+  /* ============================================= */
+  /*  PAGINATION                                  */
+  /* ============================================= */
   .pagination {
     @apply flex! w-full! items-center! justify-between! font-sans! text-(--color-text-secondary)!;
   }
@@ -1164,7 +1234,9 @@ textarea:focus-visible {
     @apply shadow-none! outline-none!;
   }
 
-  /* ----- CHECKBOX CONTROL ----- */
+  /* ============================================= */
+  /*  CHECKBOX CONTROL                            */
+  /* ============================================= */
   .checkbox,
   [data-slot='checkbox'] {
     @apply inline-flex! items-center! gap-3!;
@@ -1277,7 +1349,9 @@ textarea:focus-visible {
     @apply border-(--color-checkbox-hover)! bg-(--color-checkbox-hover-bg)!;
   }
 
-  /* ----- SELECT ----- */
+  /* ============================================= */
+  /*  SELECT                                      */
+  /* ============================================= */
   .select__trigger {
     @apply flex! h-9 min-h-9 transform-none! items-center! rounded-xl border-[1.5px] border-(--color-border-strong) bg-(--color-select-bg) px-3 font-sans! text-[13px] text-(--color-text-primary) shadow-none! transition-[border-color]! duration-75! ease-in-out!;
   }
@@ -1343,14 +1417,18 @@ textarea:focus-visible {
     @apply shadow-none! outline-none!;
   }
 
-  /* ----- POPOVER / LISTBOX ----- */
+  /* ============================================= */
+  /*  POPOVER / LISTBOX                           */
+  /* ============================================= */
   [data-slot='base'].popover-content,
   [data-slot='base'].listbox {
     @apply rounded-lg! border border-border! bg-surface!;
     box-shadow: var(--shadow-modal) !important;
   }
 
-  /* ----- MODAL / ALERT DIALOG ----- */
+  /* ============================================= */
+  /*  MODAL / ALERT DIALOG                        */
+  /* ============================================= */
   [data-slot='wrapper'].modal-wrapper,
   .modal__wrapper {
     @apply bg-(--color-modal-backdrop)! backdrop-blur-[6px];
@@ -1361,7 +1439,9 @@ textarea:focus-visible {
     box-shadow: var(--shadow-modal) !important;
   }
 
-  /* ----- ALERT DIALOG OVERRIDES ----- */
+  /* ============================================= */
+  /*  ALERT DIALOG OVERRIDES                      */
+  /* ============================================= */
   [data-slot='base'].alert-dialog__dialog,
   .alert-dialog__dialog {
     @apply border-0! outline-0!;
@@ -1465,7 +1545,9 @@ textarea:focus-visible {
     @apply bg-white!;
   }
 
-  /* ----- PROGRESS / SLIDER ----- */
+  /* ============================================= */
+  /*  PROGRESS / SLIDER                           */
+  /* ============================================= */
   [data-slot='track'].slider__track {
     @apply bg-(--accent-soft);
   }
@@ -1476,7 +1558,9 @@ textarea:focus-visible {
     @apply border-(--accent) bg-(--accent);
   }
 
-  /* ----- SEPARATOR ----- */
+  /* ============================================= */
+  /*  SEPARATOR                                   */
+  /* ============================================= */
   .separator--horizontal {
     @apply h-[1.5px]!;
   }
@@ -1490,7 +1574,9 @@ textarea:focus-visible {
     @apply bg-(--color-border-ui)!;
   }
 
-  /* ----- SCROLLBAR HIDE ----- */
+  /* ============================================= */
+  /*  SCROLLBAR HIDE                              */
+  /* ============================================= */
   .scrollbar-hide {
     /* Firefox */
     scrollbar-width: none;
@@ -1509,7 +1595,9 @@ textarea:focus-visible {
     background: transparent;
   }
 
-  /* ----- SKELETON ----- */
+  /* ============================================= */
+  /*  SKELETON                                    */
+  /* ============================================= */
   [data-slot='skeleton'],
   .skeleton {
     @apply rounded-md;
@@ -1523,7 +1611,9 @@ textarea:focus-visible {
     @apply animate-[warm-shimmer_2.2s_ease-in-out_infinite]!;
   }
 
-  /* ----- TOOLTIP ----- */
+  /* ============================================= */
+  /*  TOOLTIP                                     */
+  /* ============================================= */
   .tooltip {
     @apply rounded-md border border-(--color-border-faint) bg-(--color-tooltip-bg) px-2 py-1 text-center text-xs font-medium text-(--color-text-primary) shadow-sm backdrop-blur-sm;
   }
@@ -1540,10 +1630,6 @@ textarea:focus-visible {
     @apply border-r-2 border-r-(--color-accent-border);
   }
 
-  .tooltip__arrow {
-    @apply border-(--color-border-faint) bg-(--color-tooltip-bg);
-  }
-
   .tooltip[data-entering] {
     @apply scale-100 opacity-100 transition-all duration-150 ease-out;
   }
@@ -1552,7 +1638,9 @@ textarea:focus-visible {
     @apply scale-95 opacity-0 transition-all duration-100 ease-in;
   }
 
-  /* ----- DIALOG / MODAL / DRAWER / POPOVER / TOOLTIP FONT OVERRIDES ----- */
+  /* ============================================= */
+  /*  DIALOG / MODAL / DRAWER / POPOVER / TOOLTIP FONT OVERRIDES */
+  /* ============================================= */
   [data-slot='dialog'],
   [data-slot='alert-dialog'],
   [data-slot='modal'],
@@ -1584,7 +1672,9 @@ textarea:focus-visible {
     @apply italic!;
   }
 
-  /* ----- NAVBAR (FLOATING PILL) ----- */
+  /* ============================================= */
+  /*  NAVBAR (FLOATING PILL)                      */
+  /* ============================================= */
   nav[data-scrolled='true'] {
     @apply bg-(--color-navbar-bg-scrolled)! shadow-(--shadow-navbar-scroll);
   }
@@ -1598,10 +1688,6 @@ textarea:focus-visible {
 
   .info-icon {
     @apply shrink-0 cursor-pointer transition-all duration-200 hover:scale-[1.05];
-  }
-
-  .label-overline {
-    @apply font-sans text-xs font-bold tracking-[0.14em] text-(--color-text-muted) uppercase;
   }
 
   .metric-value {
@@ -1640,7 +1726,9 @@ textarea:focus-visible {
     @apply text-(--score-low);
   }
 
-  /* ----- SWITCH OVERRIDES ----- */
+  /* ============================================= */
+  /*  SWITCH OVERRIDES                            */
+  /* ============================================= */
   .switch__control {
     @apply border! border-(--color-switch-border)! bg-(--color-switch-track)!;
   }
@@ -1671,66 +1759,109 @@ textarea:focus-visible {
     @apply border-none! bg-(--color-switch-thumb-disabled)!;
   }
 
-  /* ----- HEROUI TABLE OVERRIDES FOR BEIGE THEME ----- */
-  [data-slot='table'] {
-    @apply overflow-hidden! rounded-xl! border-0! bg-transparent!;
+  /* ============================================= */
+  /*  TABLE OVERRIDES                              */
+  /* ============================================= */
+
+  /* Root Table Container */
+  .table-root {
+    @apply overflow-hidden! bg-transparent! shadow-none!;
   }
 
-  /* HeroUI Table Style Overrides - Transparent & Beige Theme */
-  [data-slot='table-content'] {
-    @apply rounded-xl! border-0! bg-transparent!;
+  /* The actual <table> element */
+  .table__content {
+    @apply w-full! rounded-2xl! border-[1.5px]! border-(--color-table-border)! bg-(--color-table-bg)!;
   }
 
-  [data-slot='table-header'] {
-    @apply border-b-2! border-[rgba(180,160,130,0.35)]! bg-[rgba(220,200,175,0.5)]! backdrop-blur-[6px]!;
-  }
-
-  [data-slot='table-column'] {
-    @apply border-r! border-[rgba(180,160,130,0.25)]! bg-transparent! px-5! py-4! text-left! text-[0.7rem]! font-semibold! tracking-[0.05em]! text-[#3d3530]! uppercase!;
-  }
-
-  [data-slot='table-column']:last-child {
-    @apply border-r-0!;
-  }
-
-  [data-slot='table-column'].text-center {
-    @apply text-center!;
-  }
-
-  [data-slot='table-row'] {
-    @apply border-b! border-[rgba(180,160,130,0.18)]! transition-colors! duration-200!;
-  }
-
-  [data-slot='table-row']:last-child {
-    @apply border-b-0!;
-  }
-
-  [data-slot='table-row']:nth-child(even) {
-    @apply bg-[rgba(245,240,232,0.45)]!;
-  }
-
-  [data-slot='table-row']:hover {
-    @apply bg-[rgba(184,145,106,0.06)]!;
-  }
-
-  [data-slot='table-cell'] {
-    @apply border-r! border-[rgba(180,160,130,0.15)]! bg-transparent! px-5! py-3.5! text-sm! text-[#1a1510]!;
-  }
-
-  [data-slot='table-cell']:last-child {
-    @apply border-r-0!;
-  }
-
-  [data-slot='table-cell'].text-center {
-    @apply text-center!;
-  }
-
-  [data-slot='table-cell'].font-medium {
-    @apply font-medium!;
-  }
-
-  [data-slot='header'] {
+  /* Table Header (thead) */
+  .table__header {
     @apply bg-(--color-table-header-bg)!;
+  }
+
+  /* Table Column Header (th) */
+  .table__column {
+    @apply border-r-[1.5px]! border-r-(--color-table-col-border)! bg-transparent! px-4! py-3.5! text-left! font-sans! text-[10px]! font-bold! tracking-[0.12em]! text-(--color-text-muted)! uppercase! last:border-r-0!;
+  }
+
+  /* Target child columns specifically for centering */
+  .table__header .table__column {
+    @apply text-center! font-sniglet! text-[0.9rem]! font-light! text-(--color-table-header-text)!;
+  }
+
+  /* Interactive States for Columns */
+  .table__column[data-allows-sorting='true'] {
+    @apply cursor-pointer! transition-colors! duration-100! ease-in-out! select-none!;
+  }
+
+  .table__column[data-allows-sorting='true']:hover {
+    @apply bg-(--color-table-col-hover)! text-(--color-accent)!;
+  }
+
+  /* Table Body (tbody) */
+  .table__body {
+    @apply bg-transparent!;
+  }
+
+  /* Table Row (tr) */
+  .table__row {
+    @apply border-b-[1.5px]! border-b-(--color-table-row-border)! bg-transparent! transition-colors! duration-100! ease-in-out! last:border-b-0!;
+  }
+
+  .table__row:nth-child(even) {
+    @apply bg-(--color-table-stripe)!;
+  }
+
+  .table__row:hover,
+  .table__row[data-hovered='true'] {
+    @apply bg-(--color-table-hover)!;
+  }
+
+  /* Remove rounding from the top of the first row's cells on hover */
+  .table__row:first-child:hover .table__cell,
+  .table__row:first-child[data-hovered='true'] .table__cell {
+    @apply rounded-t-none!;
+  }
+
+  /* Remove rounding from the bottom of the last row's cells on hover */
+  .table__row:last-child:hover .table__cell,
+  .table__row:last-child[data-hovered='true'] .table__cell {
+    @apply rounded-b-none!;
+  }
+
+  /* Ensure the Table Content container handles the overall rounding instead */
+  .table__content {
+    @apply overflow-hidden! rounded-2xl!;
+  }
+
+  .table__row[data-selected='true'] {
+    @apply border-l-2! border-l-(--color-accent)! bg-(--color-accent-light)!;
+  }
+
+  /* Table Cell (td) */
+  .table__cell {
+    @apply border-r-[1.5px]! border-r-(--color-table-cell-border)! bg-transparent! px-4! py-2.5! text-center! font-sans! text-[13px]! leading-snug! text-(--color-text-primary)! last:border-r-0!;
+  }
+
+  /* Focus States */
+  .table__row:focus-visible,
+  .table__cell:focus-visible,
+  .table__row[data-focus-visible='true'] {
+    @apply rounded-none! outline-2! -outline-offset-2! outline-(--color-accent)!;
+  }
+
+  /* Footer */
+  .table__footer {
+    @apply border-t-2! border-t-(--color-table-footer-border)! bg-transparent! px-4! py-2!;
+  }
+
+  /* Resizer */
+  .table__column-resizer {
+    @apply w-px! cursor-col-resize! bg-(--color-border-strong)! opacity-0! transition-opacity! duration-150!;
+  }
+
+  .table__column:hover .table__column-resizer,
+  .table__column-resizer[data-resizing='true'] {
+    @apply bg-(--color-accent)! opacity-100!;
   }
 
   /* ============================================= */

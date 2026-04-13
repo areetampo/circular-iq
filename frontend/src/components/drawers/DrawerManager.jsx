@@ -5,7 +5,6 @@ import {
   BusinessSolutionInfoDrawer,
   EvaluationCriteriaDrawer,
   EvaluationParametersHeadingInfoDrawer,
-  MobileNavigationDrawer,
   ResultsDatabaseEvidenceDetailsDrawer,
   SampleTestCasesHeadingInfoDrawer,
   SpecificEvaluationParameterInfoDrawer,
@@ -58,9 +57,6 @@ export default function DrawerManager() {
 
     case DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS:
       return <ResultsDatabaseEvidenceDetailsDrawer data={data || {}} />;
-
-    case DRAWERS.MOBILE_NAVIGATION:
-      return <MobileNavigationDrawer />;
 
     default:
       logger.warn('Unknown drawer type:', type);

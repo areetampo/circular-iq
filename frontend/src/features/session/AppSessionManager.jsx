@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DIALOGS from '@/components/dialogs/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useAuth } from '@/hooks/useAuth';
+import { getSessionId } from '@/lib/storage';
 import { getSession } from '@/utils/session';
 
 /**
@@ -18,6 +19,7 @@ export function AppSessionManager() {
   const { isAuthenticated } = useAuth();
   const hasCheckedOnLoad = useRef(false);
   const hasShownInputsToast = useRef(false); // track home-input-toast display
+  const currentSessionId = useRef(getSessionId()); // Track session ID changes
 
   useEffect(() => {
     // Only run once on component mount (page load)
@@ -133,6 +135,20 @@ export function AppSessionManager() {
       hasShownInputsToast.current = true;
     }
   }, [location.pathname]);
+
+  // Monitor session ID changes when authentication state changes
+  useEffect(() => {
+    const newSessionId = getSessionId();
+    if (newSessionId !== currentSessionId.current) {
+      console.log('[SESSION_ID_CHANGED]', {
+        oldSessionId: currentSessionId.current,
+        newSessionId,
+        isAuthenticated,
+        timestamp: new Date().toISOString(),
+      });
+      currentSessionId.current = newSessionId;
+    }
+  }, [isAuthenticated]);
 
   // Post-login automatic save prompt intentionally disabled.
   // Users must explicitly click the Save button on the Results page to save.

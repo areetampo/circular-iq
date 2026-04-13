@@ -23,43 +23,47 @@ const SESSION_EXPIRY_DAYS = 30;
 
 /**
  * Get or create session ID for user tracking
+ * @param {boolean} forceRenew - Force creation of new session ID even if one exists
  * @returns {string} Session ID
  */
-export function getSessionId() {
+export function getSessionId(forceRenew = false) {
   try {
     const legacyKey = 'gtg_session_id';
     const oldCeKey = 'ce_session_id';
 
-    // Prefer the new key, but fallback to legacy keys and migrate if present
-    let sid = localStorage.getItem(SESSION_ID_KEY);
-    if (sid) return sid;
+    // If force renew is requested, skip all existing IDs and create new one
+    if (!forceRenew) {
+      // Prefer the new key, but fallback to legacy keys and migrate if present
+      let sid = localStorage.getItem(SESSION_ID_KEY);
+      if (sid) return sid;
 
-    // Try old ce_session_id key
-    const oldSid = localStorage.getItem(oldCeKey);
-    if (oldSid) {
-      try {
-        localStorage.setItem(SESSION_ID_KEY, oldSid);
-        localStorage.removeItem(oldCeKey);
-      } catch (e) {
-        logger.warn('Failed to migrate old session ID:', e);
+      // Try old ce_session_id key
+      const oldSid = localStorage.getItem(oldCeKey);
+      if (oldSid) {
+        try {
+          localStorage.setItem(SESSION_ID_KEY, oldSid);
+          localStorage.removeItem(oldCeKey);
+        } catch (e) {
+          logger.warn('Failed to migrate old session ID:', e);
+        }
+        return oldSid;
       }
-      return oldSid;
+
+      // Try legacy key
+      const legacySid = localStorage.getItem(legacyKey);
+      if (legacySid) {
+        try {
+          localStorage.setItem(SESSION_ID_KEY, legacySid);
+          localStorage.removeItem(legacyKey);
+        } catch (e) {
+          logger.warn('Failed to migrate legacy session ID:', e);
+        }
+        return legacySid;
+      }
     }
 
-    // Try legacy key
-    const legacySid = localStorage.getItem(legacyKey);
-    if (legacySid) {
-      try {
-        localStorage.setItem(SESSION_ID_KEY, legacySid);
-        localStorage.removeItem(legacyKey);
-      } catch (e) {
-        logger.warn('Failed to migrate legacy session ID:', e);
-      }
-      return legacySid;
-    }
-
-    // Create new one when none present
-    sid = generateSimpleUUID();
+    // Create new session ID (either when none present or when force renewing)
+    const sid = generateSimpleUUID();
     try {
       localStorage.setItem(SESSION_ID_KEY, sid);
     } catch (e) {

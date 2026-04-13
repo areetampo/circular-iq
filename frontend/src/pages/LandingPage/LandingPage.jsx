@@ -695,7 +695,7 @@ export default function LandingPage() {
 
                   {/* Error Display */}
                   {error && (
-                    <div className="flex w-3/5 animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+                    <div className="flex w-fit animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
                       <CircleX size={16} strokeWidth={2.5} />
                       {error}
                     </div>

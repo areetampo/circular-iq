@@ -5,7 +5,9 @@ function DashboardSectionHeading({ label, count }) {
   return (
     <div className="my-8">
       <div className="flex items-baseline justify-between pb-2">
-        <span className="label-overline pl-2 font-mono! text-sm! uppercase!">{label}</span>
+        <span className="pl-2 font-mono text-sm font-bold tracking-[0.14em] text-(--color-text-muted) uppercase">
+          {label}
+        </span>
         {count != null && <span className="text-sm text-(--color-text-muted)">{count}0</span>}
       </div>
       <Separator variant="secondary" />

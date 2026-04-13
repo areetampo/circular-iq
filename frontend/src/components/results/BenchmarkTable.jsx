@@ -50,21 +50,21 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
             <Table.Content aria-label="Benchmark comparison table">
               <Table.Header>
                 <Table.Column className="px-4 py-3">Factor</Table.Column>
-                <Table.Column className="p-3 text-center">Your Score</Table.Column>
-                <Table.Column className="p-3 text-center">25th %ile</Table.Column>
-                <Table.Column className="p-3 text-center">50th %ile</Table.Column>
-                <Table.Column className="p-3 text-center">75th %ile</Table.Column>
-                <Table.Column className="px-4 py-3 text-center">Status</Table.Column>
+                <Table.Column className="p-3">Your Score</Table.Column>
+                <Table.Column className="p-3">25th %ile</Table.Column>
+                <Table.Column className="p-3">50th %ile</Table.Column>
+                <Table.Column className="p-3">75th %ile</Table.Column>
+                <Table.Column className="px-4 py-3">Status</Table.Column>
               </Table.Header>
               <Table.Body>
                 {rows.map((row) => (
                   <Table.Row key={row.factor}>
                     <Table.Cell className="font-medium">{row.displayName}</Table.Cell>
-                    <Table.Cell className="text-center">{row.userScore ?? '—'}</Table.Cell>
-                    <Table.Cell className="text-center">{row.p25 ?? '—'}</Table.Cell>
-                    <Table.Cell className="text-center">{row.p50 ?? '—'}</Table.Cell>
-                    <Table.Cell className="text-center">{row.p75 ?? '—'}</Table.Cell>
-                    <Table.Cell className="text-center">
+                    <Table.Cell>{row.userScore ?? '—'}</Table.Cell>
+                    <Table.Cell>{row.p25 ?? '—'}</Table.Cell>
+                    <Table.Cell>{row.p50 ?? '—'}</Table.Cell>
+                    <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
+                    <Table.Cell>
                       <Chip
                         variant="info"
                         color={row.statusColor}

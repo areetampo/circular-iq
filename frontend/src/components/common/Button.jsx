@@ -58,10 +58,10 @@ const variantStyles = {
     'transition-colors duration-150',
   ].join(' '),
   danger: [
-    'bg-transparent text-[var(--color-error)]',
+    'bg-(--color-error) text-white',
     'border border-[rgba(139,58,58,0.3)]',
-    'hover:bg-[rgba(139,58,58,0.06)]',
-    'transition-colors duration-150',
+    'hover:opacity-90',
+    'transition-opacity duration-150',
   ].join(' '),
   'results-action': [
     'bg-transparent text-[var(--color-text-secondary)]',

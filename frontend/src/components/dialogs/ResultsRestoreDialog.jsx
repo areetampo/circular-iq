@@ -144,23 +144,22 @@ function ResultsRestoreDialogContent() {
               >
                 <RefreshCw size={20} />
               </AlertDialog.Icon>
-              <AlertDialog.Heading>Restore previously calculated results?</AlertDialog.Heading>
+              <AlertDialog.Heading>Restore your previous results?</AlertDialog.Heading>
             </AlertDialog.Header>
 
             <AlertDialog.Body className="text-center text-sm/relaxed text-(--color-text-secondary)">
-              Your inputs are already saved locally — you can restore calculated results below or
-              continue from your saved inputs.
+              Your inputs are automatically saved, but we also found a completed calculation from a
+              previous session. Would you like to restore those results now?
               <div className="mt-4 flex items-center gap-3 rounded-xl border-2 border-dashed border-[rgba(180,160,130,0.3)] p-1 px-2">
                 <FileCheck className="size-5 shrink-0 text-(--color-text-muted)" />
                 <p className="text-xs font-medium text-black/60">
                   {hasResults ? (
                     <>
-                      You have unsaved calculated results from
-                      <br />
-                      {formatTimestamp(sessionData?.results?.processing_info?.timestamp)}
+                      Completed calculation found from
+                      <br />[{formatTimestamp(sessionData?.results?.processing_info?.timestamp)}]
                     </>
                   ) : (
-                    'No calculated results found to restore.'
+                    'No unsaved results found to restore.'
                   )}
                 </p>
               </div>

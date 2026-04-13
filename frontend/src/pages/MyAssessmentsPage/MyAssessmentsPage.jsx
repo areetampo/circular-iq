@@ -772,7 +772,7 @@ export default function MyAssessmentsPage() {
       {/* Section heading */}
       {stats_totalAssessments > 0 && (
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-(--color-text-primary)">
+          <h2 className="pl-2 font-display text-xl font-semibold text-(--color-text-primary)">
             My Assessments
           </h2>
         </div>

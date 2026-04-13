@@ -13,15 +13,21 @@ import {
   Lightbulb,
   MoveRight,
   Target,
+  TextSearch,
   X,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Chip } from '@/components/common';
 import { getParameterStyling } from '@/constants/groupStyleConfig.js';
 import { cn } from '@/utils/cn';
 
 import { GUIDE_PAGE_CONTENT } from './content/guidePageContent.js';
+
+// Reusable Section Heading Component
+const SectionHeading = ({ children }) => (
+  <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">{children}</h2>
+);
 
 // Parameter category border colors
 const PARAM_CATEGORY_BORDER = {
@@ -142,6 +148,7 @@ const NavItem = ({ item, level, activeId, onNavigate }) => {
   const isActive = activeId === item.id;
   return (
     <button
+      data-id={item.id}
       onClick={() => onNavigate(item.id)}
       className={cn(
         'relative flex w-full cursor-pointer items-center text-left transition-colors duration-150',
@@ -159,48 +166,91 @@ const NavItem = ({ item, level, activeId, onNavigate }) => {
   );
 };
 
-// Helper function to determine if a section should be open (showing its children)
-const isSectionOpen = (section, activeId) =>
-  activeId === section.id || (section.children?.some((c) => c.id === activeId) ?? false);
-
 // Mobile Navigation component
 const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
+  const navRef = React.useRef(null);
+
+  useEffect(() => {
+    if (!navRef.current || !mobileOpen) return;
+    const activeEl = navRef.current.querySelector(`[data-id="${activeId}"]`);
+    if (!activeEl) return;
+
+    const container = navRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    const padding = 40;
+
+    if (itemRect.bottom > containerRect.bottom - padding) {
+      container.scrollTo({
+        top: container.scrollTop + itemRect.bottom - containerRect.bottom + padding,
+        behavior: 'smooth',
+      });
+    } else if (itemRect.top < containerRect.top + padding) {
+      container.scrollTo({
+        top: container.scrollTop - (containerRect.top - itemRect.top + padding),
+        behavior: 'smooth',
+      });
+    }
+  }, [activeId, mobileOpen]);
+
   const getCurrentSectionLabel = () => {
-    const allItems = NAV_TREE.flatMap((section) => [section, ...(section.children || [])]);
-    const current = allItems.find((item) => item.id === activeId);
-    return current?.label || 'Overview';
+    for (const section of NAV_TREE) {
+      if (section.id === activeId) return section.label;
+      const child = section.children?.find((c) => c.id === activeId);
+      if (child) return `${section.label} / ${child.label}`;
+    }
+    return 'Overview';
   };
 
   const scrollToId = (id) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const headerOffset = 80; // matches sticky header + some breathing room
-    const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
-    window.scrollTo({ top, behavior: 'smooth' });
-    setMobileOpen(false); // Close mobile menu after navigation
+    setMobileOpen(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const headerOffset = 80;
+        const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      });
+    });
   };
 
   return (
-    <div className="sticky top-18 z-20 flex w-full justify-center">
-      <div className="w-4/5 rounded-xl border border-(--color-border-ui) bg-(--color-bg) shadow-lg lg:hidden">
+    <div className="sticky top-20 right-4 z-20 mt-6 flex w-full justify-end">
+      <div className="min-w-2/5 rounded-xl border border-(--color-border-ui) bg-(--color-bg) shadow-lg lg:hidden">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-(--color-text-primary)"
+          className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-(--color-text-primary)"
         >
-          <span>{getCurrentSectionLabel()}</span>
+          <span
+            className="min-w-0 flex-1 truncate text-left text-sm"
+            style={{ fontSize: 'clamp(0.65rem, 2.5vw, 0.875rem)' }}
+          >
+            {getCurrentSectionLabel()}
+          </span>
           {mobileOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
         {mobileOpen && (
-          <div className="border-t border-(--color-border-ui) bg-(--color-bg) px-4 py-2">
-            {NAV_TREE.map((section) => (
-              <React.Fragment key={section.id}>
-                <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
-                {isSectionOpen(section, activeId) &&
-                  section.children?.map((child) => (
-                    <div
-                      key={child.id}
-                      className="ml-3 border-l border-(--color-border-faint) pl-3"
-                    >
+          <div
+            className={cn(
+              'overflow-hidden border-t border-(--color-border-ui) transition-none',
+              mobileOpen ? 'max-h-72' : 'max-h-0 border-t-0',
+            )}
+          >
+            <div
+              ref={navRef}
+              className="scrollbar-hide overflow-y-auto bg-(--color-bg) px-4 py-2 pb-4"
+              style={{
+                maxHeight: '18rem',
+                maskImage:
+                  'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+              }}
+            >
+              {NAV_TREE.map((section) => (
+                <React.Fragment key={section.id}>
+                  <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
+                  {section.children?.map((child) => (
+                    <div key={child.id} className="ml-3 border-l border-(--color-border-faint)">
                       <NavItem
                         item={child}
                         level="sub"
@@ -209,8 +259,9 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
                       />
                     </div>
                   ))}
-              </React.Fragment>
-            ))}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -220,16 +271,45 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
 
 // Desktop Navigation component
 const DesktopNav = ({ activeId, onNavigate }) => {
+  // Add a ref to the scroll container
+  const navRef = useRef(null);
+
+  // Scroll the active nav item into view whenever activeId changes
+  useEffect(() => {
+    if (!navRef.current) return;
+    const activeEl = navRef.current.querySelector(`[data-id="${activeId}"]`);
+    if (!activeEl) return;
+
+    const container = navRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    const padding = 40;
+
+    if (itemRect.bottom > containerRect.bottom - padding) {
+      container.scrollTo({
+        top: container.scrollTop + itemRect.bottom - containerRect.bottom + padding,
+        behavior: 'smooth',
+      });
+    } else if (itemRect.top < containerRect.top + padding) {
+      container.scrollTo({
+        top: container.scrollTop - (containerRect.top - itemRect.top + padding),
+        behavior: 'smooth',
+      });
+    }
+  }, [activeId]);
+
   return (
     <nav className="-mt-10 hidden w-52 shrink-0 lg:block">
       <div className="sticky top-40">
-        <p className="label-overline mb-3">On this page</p>
+        <p className="mb-3 font-rough text-sm font-bold tracking-[0.14em] text-(--color-text-muted) uppercase">
+          On this page
+        </p>
         {/*
           Scroll container: fixed max-height, hidden scrollbar, CSS fade shadows.
           The mask-image creates the top/bottom fade effect that HeroUI ScrollShadow provides.
           It fades from transparent at top/bottom edges to fully visible in the middle.
         */}
-        <ScrollShadow className="scrollbar-hide max-h-105" hideScrollBar size={40}>
+        <ScrollShadow ref={navRef} className="scrollbar-hide max-h-105" hideScrollBar size={40}>
           <div className="border-l border-(--color-border-ui) pt-2 pb-10">
             {NAV_TREE.map((section) => (
               <React.Fragment key={section.id}>
@@ -256,7 +336,7 @@ const DesktopNav = ({ activeId, onNavigate }) => {
 const OverviewSection = () => {
   return (
     <section id="overview" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">Overview</h2>
+      <SectionHeading>Overview</SectionHeading>
       <p className="mb-2 text-sm text-(--color-text-muted)">
         Learn how our AI-powered circular economy assessment works
       </p>
@@ -424,9 +504,7 @@ const OverviewSection = () => {
 // Getting Started Section
 const GettingStartedSection = () => (
   <section id="getting-started" className="scroll-mt-24">
-    <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-      Getting Started
-    </h2>
+    <SectionHeading>Getting Started</SectionHeading>
     <p className="mb-2 text-sm text-(--color-text-muted)">
       {GUIDE_PAGE_CONTENT.gettingStarted.subtitle}
     </p>
@@ -533,9 +611,7 @@ const GettingStartedSection = () => (
 const BusinessProblemSection = () => {
   return (
     <section id="business-problem" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-        Business Problem
-      </h2>
+      <SectionHeading>Business Problem</SectionHeading>
       {GUIDE_PAGE_CONTENT.businessProblem.intro && (
         <p className="mb-8 max-w-2xl text-sm/relaxed text-(--color-text-secondary)">
           {GUIDE_PAGE_CONTENT.businessProblem.intro}
@@ -625,9 +701,7 @@ const BusinessProblemSection = () => {
 const BusinessSolutionSection = () => {
   return (
     <section id="business-solution" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-        Business Solution
-      </h2>
+      <SectionHeading>Business Solution</SectionHeading>
       {GUIDE_PAGE_CONTENT.businessSolution.intro && (
         <p className="mb-8 max-w-2xl text-sm/relaxed text-(--color-text-secondary)">
           {GUIDE_PAGE_CONTENT.businessSolution.intro}
@@ -776,9 +850,7 @@ const BusinessSolutionSection = () => {
 const BusinessContextSection = () => {
   return (
     <section id="business-context" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-        Business Context
-      </h2>
+      <SectionHeading>Business Context</SectionHeading>
       {GUIDE_PAGE_CONTENT.businessContext.intro ? (
         <p className="mb-8 max-w-2xl text-sm/relaxed text-(--color-text-secondary)">
           {GUIDE_PAGE_CONTENT.businessContext.intro}
@@ -851,9 +923,7 @@ const BusinessContextSection = () => {
 const EvaluationCriteriaSection = () => {
   return (
     <section id="evaluation-criteria" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-        Evaluation Criteria
-      </h2>
+      <SectionHeading>Evaluation Criteria</SectionHeading>
       <p className="mb-2 text-sm text-(--color-text-secondary)">
         Three core value dimensions with specific factors
       </p>
@@ -971,9 +1041,7 @@ const EvaluationCriteriaSection = () => {
 const EvaluationParametersSection = () => {
   return (
     <section id="evaluation-parameters" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-        Evaluation Parameters
-      </h2>
+      <SectionHeading>Evaluation Parameters</SectionHeading>
       <p className="mb-2 text-sm text-(--color-text-secondary)">
         Detailed scoring guidelines for each evaluation factor
       </p>
@@ -1153,9 +1221,7 @@ const R_STRATEGY_COLORS = {
 // Scoring & Benchmarking Section
 const ScoringBenchmarkingSection = () => (
   <section id="scoring-benchmarking" className="scroll-mt-24">
-    <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-      Scoring & Benchmarking
-    </h2>
+    <SectionHeading>Scoring & Benchmarking</SectionHeading>
     <p className="mb-2 text-sm text-(--color-text-muted)">
       {GUIDE_PAGE_CONTENT.scoringBenchmarking.subtitle}
     </p>
@@ -1309,9 +1375,7 @@ const ScoringBenchmarkingSection = () => (
 // Understanding Results Section
 const UnderstandingResultsSection = () => (
   <section id="understanding-results" className="scroll-mt-24">
-    <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-      Understanding Results
-    </h2>
+    <SectionHeading>Understanding Results</SectionHeading>
     <p className="mb-2 text-sm text-(--color-text-muted)">
       {GUIDE_PAGE_CONTENT.understandingResults.subtitle}
     </p>
@@ -1357,22 +1421,26 @@ const UnderstandingResultsSection = () => (
       <p className="mb-4 text-sm/relaxed text-(--color-text-secondary)">
         {GUIDE_PAGE_CONTENT.understandingResults.improvementRoadmapDetail.howGenerated}
       </p>
-      <Table variant="secondary">
+      <Table>
         <Table.ScrollContainer>
           <Table.Content aria-label="Action fields table">
             <Table.Header>
-              <Table.Column>Field</Table.Column>
-              <Table.Column>Description</Table.Column>
+              <Table.Column className="px-3 py-2 font-semibold text-(--color-text-muted)">
+                Field
+              </Table.Column>
+              <Table.Column className="px-3 py-2 font-semibold text-(--color-text-muted)">
+                Description
+              </Table.Column>
             </Table.Header>
             <Table.Body>
               {GUIDE_PAGE_CONTENT.understandingResults.improvementRoadmapDetail.actionFields.map(
                 (f) => (
                   <Table.Row key={f.field}>
-                    <Table.Cell>
+                    <Table.Cell className="px-3 py-2">
                       <p className="text-xs font-semibold text-(--color-accent)">{f.field}</p>
                     </Table.Cell>
-                    <Table.Cell>
-                      <p className="text-xs text-(--color-text-muted)">{f.desc}</p>
+                    <Table.Cell className="px-3 py-2">
+                      <p className="text-xs text-(--color-text-primary)/60">{f.desc}</p>
                     </Table.Cell>
                   </Table.Row>
                 ),
@@ -1393,9 +1461,9 @@ const UnderstandingResultsSection = () => (
         {GUIDE_PAGE_CONTENT.understandingResults.sdgDetail.commonSDGs.map((sdg) => (
           <div
             key={sdg.goal}
-            className="flex items-start gap-3 rounded-lg border border-(--color-border-faint) bg-(--color-surface-raised) px-4 py-3"
+            className="flex items-start gap-3 rounded-xl border border-(--color-border-ui) bg-(--color-accent-soft-ui) px-4 py-3"
           >
-            <span className="shrink-0 rounded-md border border-(--color-info)/20 bg-(--color-info-soft) px-2 py-0.5 font-mono text-[11px] font-bold text-(--color-info)">
+            <span className="shrink-0 rounded-md border border-(--color-info)/50 bg-(--color-info-soft) px-2 py-0.5 font-mono text-[11px] font-bold text-(--color-info)">
               {sdg.goal}
             </span>
             <div>
@@ -1467,9 +1535,7 @@ const UnderstandingResultsSection = () => (
 const SampleTestCasesSection = () => {
   return (
     <section id="sample-test-cases" className="scroll-mt-24">
-      <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">
-        Sample Test Cases
-      </h2>
+      <SectionHeading>Sample Test Cases</SectionHeading>
       <p className="mb-2 text-sm text-(--color-text-muted)">
         Real circular economy business examples for reference
       </p>
@@ -1503,7 +1569,7 @@ const SampleTestCasesSection = () => {
               key={step.num}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-surface-raised) font-mono text-xs font-bold text-(--color-accent)">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-warning-soft-ui) font-mono text-xs font-bold text-(--color-accent)">
                 {step.num}
               </div>
               <div>
@@ -1632,8 +1698,9 @@ export default function GuidePage() {
     <div className="mx-auto mt-8 max-w-6xl">
       {/* Page header */}
       <div className="mb-8 flex items-center justify-between pl-8">
-        <h2 className="font-display text-3xl font-semibold text-(--color-text-primary)">
-          Circular Economy Evaluation Guide
+        <h2 className="flex items-center gap-3 text-3xl font-semibold text-mist-900 *:font-display">
+          <span>Circular Economy Evaluation Guide</span>
+          <TextSearch strokeWidth={2.5} size={32} className="mt-1" />
         </h2>
       </div>
 
