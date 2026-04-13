@@ -9,6 +9,29 @@ import { getSessionId } from '@/lib/storage';
 import { getSession } from '@/utils/session';
 
 /**
+ * Check if the results restore dialog is muted
+ * @returns {boolean} True if dialog is muted and not expired
+ */
+function isDialogMuted() {
+  const isMuted = localStorage.getItem('results_restore_dialog_muted') === 'true';
+  const expirationTime = localStorage.getItem('results_restore_dialog_muted_expiration');
+
+  if (!isMuted || !expirationTime) {
+    return false;
+  }
+
+  // Check if expiration time has passed
+  if (Date.now() > parseInt(expirationTime, 10)) {
+    // Clean up expired mute settings
+    localStorage.removeItem('results_restore_dialog_muted');
+    localStorage.removeItem('results_restore_dialog_muted_expiration');
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Global session manager that shows restore prompt ONLY on page load/refresh
  * NOT on SPA navigation
  */
@@ -105,6 +128,11 @@ export function AppSessionManager() {
 
     // Mark as checked before showing dialog
     hasCheckedOnLoad.current = true;
+
+    // Check if dialog is muted before showing
+    if (isDialogMuted()) {
+      return;
+    }
 
     // Show restore dialog (only for sessions that include results)
     openResultsRestoreDialog({

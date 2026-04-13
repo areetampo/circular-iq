@@ -154,4 +154,84 @@ describe('AppSessionManager (pending-save post-login)', () => {
 
     await waitFor(() => expect(toast.info).toHaveBeenCalled());
   });
+
+  it('does not show restore dialog when muted', () => {
+    // Mock localStorage to return muted state
+    const currentTime = Date.now();
+    const futureTime = currentTime + 5 * 60 * 1000; // 5 minutes from now
+
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: vi.fn((key) => {
+          if (key === 'results_restore_dialog_muted') return 'true';
+          if (key === 'results_restore_dialog_muted_expiration') return futureTime.toString();
+          return null;
+        }),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+      writable: true,
+    });
+
+    // Mock session with results
+    vi.mock('@/utils/session', () => ({
+      getSession: () => ({
+        inputs: { businessProblem: 'test', businessSolution: 'solution' },
+        results: { overall_score: 42 },
+        timestamp: new Date().toISOString(),
+      }),
+    }));
+
+    render(
+      <MemoryRouter>
+        <AppSessionManager />
+      </MemoryRouter>,
+    );
+
+    // Should not call openResultsRestoreDialog when muted
+    expect(openRestoreSpy).not.toHaveBeenCalled();
+  });
+
+  it('shows restore dialog when mute has expired', () => {
+    // Mock localStorage to return expired muted state
+    const pastTime = Date.now() - 5 * 60 * 1000; // 5 minutes ago
+
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: vi.fn((key) => {
+          if (key === 'results_restore_dialog_muted') return 'true';
+          if (key === 'results_restore_dialog_muted_expiration') return pastTime.toString();
+          return null;
+        }),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+      writable: true,
+    });
+
+    // Mock session with results
+    vi.mock('@/utils/session', () => ({
+      getSession: () => ({
+        inputs: { businessProblem: 'test', businessSolution: 'solution' },
+        results: { overall_score: 42 },
+        timestamp: new Date().toISOString(),
+      }),
+    }));
+
+    render(
+      <MemoryRouter>
+        <AppSessionManager />
+      </MemoryRouter>,
+    );
+
+    // Should call openResultsRestoreDialog when mute has expired
+    expect(openRestoreSpy).toHaveBeenCalledWith({
+      sessionData: {
+        inputs: { businessProblem: 'test', businessSolution: 'solution' },
+        results: { overall_score: 42 },
+        timestamp: expect.any(String),
+      },
+      onDismiss: expect.any(Function),
+    });
+  });
 });

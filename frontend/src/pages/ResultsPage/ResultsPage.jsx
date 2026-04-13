@@ -881,48 +881,45 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 Save assessment to enable sharing
               </span>
             ) : (
-              <div className="group/checkbox w-fit">
-                <Checkbox
-                  id={`assessment-public-toggle-${currentData.id}`}
-                  isSelected={
-                    optimisticIsPublic !== null
-                      ? optimisticIsPublic
-                      : currentData?.is_public || false
-                  }
-                  onChange={handleTogglePublic}
-                  isDisabled={isUpdatingPublic}
-                >
-                  <Checkbox.Content>
-                    <Label
-                      htmlFor={`assessment-public-toggle-${currentData.id}`}
-                      className="cursor-pointer transition-colors group-hover/checkbox:text-(--color-text-primary)"
-                    >
-                      <p className="text-[0.8125rem] font-medium opacity-80">
-                        Public sharing{' '}
-                        <span className="ml-0.5 text-[0.7rem] opacity-70">
-                          (
-                          {(
-                            optimisticIsPublic !== null
-                              ? optimisticIsPublic
-                              : currentData?.is_public || false
-                          )
-                            ? 'on'
-                            : 'off'}
-                          )
-                        </span>
-                      </p>
-                    </Label>
-                  </Checkbox.Content>
-                  <Checkbox.Control
-                    className={cn(
-                      'origin-left scale-90',
-                      'group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)',
-                    )}
+              <Checkbox
+                id={`assessment-public-toggle-${currentData.id}`}
+                isSelected={
+                  optimisticIsPublic !== null ? optimisticIsPublic : currentData?.is_public || false
+                }
+                onChange={handleTogglePublic}
+                isDisabled={isUpdatingPublic}
+                className="group/checkbox w-fit"
+              >
+                <Checkbox.Content>
+                  <Label
+                    htmlFor={`assessment-public-toggle-${currentData.id}`}
+                    className="cursor-pointer transition-colors group-hover/checkbox:text-(--color-text-primary)"
                   >
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                </Checkbox>
-              </div>
+                    <p className="text-[0.8125rem] font-medium opacity-80">
+                      Public sharing{' '}
+                      <span className="ml-0.5 text-[0.7rem] opacity-70">
+                        (
+                        {(
+                          optimisticIsPublic !== null
+                            ? optimisticIsPublic
+                            : currentData?.is_public || false
+                        )
+                          ? 'on'
+                          : 'off'}
+                        )
+                      </span>
+                    </p>
+                  </Label>
+                </Checkbox.Content>
+                <Checkbox.Control
+                  className={cn(
+                    'origin-left scale-90',
+                    'group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)',
+                  )}
+                >
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+              </Checkbox>
             )}
 
             {/* Share URL section */}

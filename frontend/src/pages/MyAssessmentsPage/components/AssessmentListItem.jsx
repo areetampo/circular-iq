@@ -181,47 +181,45 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
         {/* Controls */}
         <div className="flex items-center gap-3">
           {/* Select to compare checkbox */}
-          <div className="group/checkbox">
-            <Checkbox
-              id={`select-to-compare-${assessment.id}`}
-              isSelected={isSelected}
-              onChange={() => onToggleSelect(assessment.id)}
-            >
-              <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              <Checkbox.Content className="-ml-1.5">
-                <Label
-                  htmlFor={`select-to-compare-${assessment.id}`}
-                  className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
-                >
-                  Select to compare
-                </Label>
-              </Checkbox.Content>
-            </Checkbox>
-          </div>
+          <Checkbox
+            id={`select-to-compare-${assessment.id}`}
+            isSelected={isSelected}
+            onChange={() => onToggleSelect(assessment.id)}
+            className="group/checkbox"
+          >
+            <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content className="-ml-1.5">
+              <Label
+                htmlFor={`select-to-compare-${assessment.id}`}
+                className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
+              >
+                Select to compare
+              </Label>
+            </Checkbox.Content>
+          </Checkbox>
 
           {/* Public/Private checkbox */}
-          <div className="group/checkbox">
-            <Checkbox
-              id={`public-toggle-${assessment.id}`}
-              isSelected={assessment.is_public}
-              onChange={() => handleTogglePublic(assessment.id)}
-              disabled={togglingPublic === assessment.id}
-            >
-              <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              <Checkbox.Content className="-ml-1.5">
-                <Label
-                  htmlFor={`public-toggle-${assessment.id}`}
-                  className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
-                >
-                  Public
-                </Label>
-              </Checkbox.Content>
-            </Checkbox>
-          </div>
+          <Checkbox
+            id={`public-toggle-${assessment.id}`}
+            isSelected={assessment.is_public}
+            onChange={() => handleTogglePublic(assessment.id)}
+            disabled={togglingPublic === assessment.id}
+            className="group/checkbox"
+          >
+            <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content className="-ml-1.5">
+              <Label
+                htmlFor={`public-toggle-${assessment.id}`}
+                className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
+              >
+                Public
+              </Label>
+            </Checkbox.Content>
+          </Checkbox>
         </div>
       </div>
     </div>

@@ -1,11 +1,11 @@
-import { AlertDialog } from '@heroui/react';
+import { AlertDialog, Checkbox } from '@heroui/react';
 import { FileCheck, RefreshCw } from 'lucide-react';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { formatTimestamp } from '@/lib/formatting';
+import { cleanUrl, formatTimestamp } from '@/lib/formatting';
 
 /**
  * Session Restore Dialog
@@ -21,6 +21,10 @@ function ResultsRestoreDialogContent() {
   const { isDialogOpen, dialog, onClose } = useGlobalDialog();
   const navigate = useNavigate();
   const isClosingRef = useRef(false);
+
+  // State for checkboxes
+  const [clearResults, setClearResults] = useState(false);
+  const [muteDialog, setMuteDialog] = useState(false);
 
   const sessionData = dialog?.data?.sessionData;
 
@@ -67,6 +71,23 @@ function ResultsRestoreDialogContent() {
     if (isClosingRef.current) return;
 
     try {
+      // Clear results if checkbox is selected
+      if (clearResults) {
+        const sessionData = JSON.parse(localStorage.getItem('session_evaluation_state') || '{}');
+        if (sessionData.results) {
+          delete sessionData.results;
+          localStorage.setItem('session_evaluation_state', JSON.stringify(sessionData));
+        }
+      }
+
+      // Set mute dialog in localStorage if checkbox is selected
+      if (muteDialog) {
+        localStorage.setItem('results_restore_dialog_muted', 'true');
+        // Set expiration for 10 minutes from now
+        const expirationTime = Date.now() + 10 * 60 * 1000;
+        localStorage.setItem('results_restore_dialog_muted_expiration', expirationTime.toString());
+      }
+
       // Stay on the same page when canceling
       navigate(location.pathname);
       isClosingRef.current = true;
@@ -76,12 +97,20 @@ function ResultsRestoreDialogContent() {
       isClosingRef.current = true;
       onClose();
     }
-  }, [onClose, navigate]);
+  }, [onClose, navigate, clearResults, muteDialog]);
 
   const handleRestoreResults = useCallback(async () => {
     if (isClosingRef.current) return;
 
     try {
+      // Set mute dialog in localStorage if checkbox is selected
+      if (muteDialog) {
+        localStorage.setItem('results_restore_dialog_muted', 'true');
+        // Set expiration for 10 minutes from now
+        const expirationTime = Date.now() + 10 * 60 * 1000;
+        localStorage.setItem('results_restore_dialog_muted_expiration', expirationTime.toString());
+      }
+
       const resultsData =
         sessionData?.results || sessionData?.calculatedResults || sessionData?.result_json;
       navigate('/results', {
@@ -107,7 +136,7 @@ function ResultsRestoreDialogContent() {
       isClosingRef.current = true;
       onClose();
     }
-  }, [sessionData, navigate, onClose]);
+  }, [sessionData, navigate, onClose, muteDialog]);
 
   const handleBackdropChange = useCallback(
     (newOpen) => {
@@ -163,21 +192,54 @@ function ResultsRestoreDialogContent() {
                   )}
                 </p>
               </div>
+              {/* Checkboxes section */}
+              <div className="mt-4 flex flex-col gap-3">
+                <Checkbox
+                  isSelected={clearResults}
+                  onChange={setClearResults}
+                  className="group/checkbox text-xs"
+                >
+                  <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Content>Clear calculated results</Checkbox.Content>
+                </Checkbox>
+
+                <Checkbox
+                  isSelected={muteDialog}
+                  onChange={setMuteDialog}
+                  className="group/checkbox text-xs"
+                >
+                  <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Content>
+                    <div className="text-default-600 leading-tight">
+                      Don&apos;t show this again for 10 minutes - your results will remain
+                      accessible via the navigation menu at{' '}
+                      <span className="inline whitespace-nowrap">
+                        {cleanUrl(window.location.origin)}/results
+                      </span>
+                    </div>
+                  </Checkbox.Content>
+                </Checkbox>
+              </div>
             </AlertDialog.Body>
 
             <AlertDialog.Footer>
-              <Button variant="ghost" onPress={handleCancel} className="flex-1">
-                Cancel
-              </Button>
-
-              <Button
-                variant="teal"
-                onPress={handleRestoreResults}
-                isDisabled={!hasResults}
-                className="flex-1"
-              >
-                Restore Results
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="ghost" onPress={handleCancel} className="flex-1">
+                  Cancel
+                </Button>
+                <Button
+                  variant="teal"
+                  onPress={handleRestoreResults}
+                  isDisabled={!hasResults || clearResults}
+                  className="flex-1"
+                >
+                  Restore Results
+                </Button>
+              </div>
             </AlertDialog.Footer>
           </AlertDialog.Dialog>
         </AlertDialog.Container>
