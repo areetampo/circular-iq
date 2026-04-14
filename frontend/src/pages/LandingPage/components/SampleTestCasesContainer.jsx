@@ -236,9 +236,9 @@ export default function SampleTestCasesContainer({
               'group relative flex cursor-pointer flex-col gap-3 rounded-xl p-3',
               'border-2 transition-all duration-200',
               isSelected
-                ? 'border-(--color-accent)/70 bg-accent-100/10 shadow-sm'
-                : 'border-(--color-border-strong)/80 bg-(--color-bg-card)' +
-                    ' hover:border-(--color-accent)/60 hover:shadow-sm',
+                ? 'border-(--color-accent-alpha-70) bg-(--color-accent-100-10) shadow-sm'
+                : 'border-(--color-border-strong-alpha-80) bg-(--color-bg-card)' +
+                    ' hover:border-(--color-accent-alpha-60) hover:shadow-sm',
             )}
           >
             {/* Header: index pill + title + check */}

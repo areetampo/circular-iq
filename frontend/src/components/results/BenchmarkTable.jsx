@@ -1,5 +1,4 @@
 import { Table } from '@heroui/react';
-import { MoveDown, MoveUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
@@ -43,90 +42,54 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
   }
 
   return (
-    <>
-      <div className="mt-2 overflow-x-auto">
-        <Table>
-          <Table.ScrollContainer>
-            <Table.Content aria-label="Benchmark comparison table">
-              <Table.Header>
-                <Table.Column className="px-4 py-3">Factor</Table.Column>
-                <Table.Column className="p-3">Your Score</Table.Column>
-                <Table.Column className="p-3">25th %ile</Table.Column>
-                <Table.Column className="p-3">50th %ile</Table.Column>
-                <Table.Column className="p-3">75th %ile</Table.Column>
-                <Table.Column className="px-4 py-3">Status</Table.Column>
-              </Table.Header>
-              <Table.Body>
-                {rows.map((row) => (
-                  <Table.Row key={row.factor}>
-                    <Table.Cell className="font-medium">{row.displayName}</Table.Cell>
-                    <Table.Cell>{row.userScore ?? '—'}</Table.Cell>
-                    <Table.Cell>{row.p25 ?? '—'}</Table.Cell>
-                    <Table.Cell>{row.p50 ?? '—'}</Table.Cell>
-                    <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
-                    <Table.Cell>
-                      <Chip
-                        variant="info"
-                        color={row.statusColor}
-                        className={`${
-                          row.status === 'above_average'
-                            ? `border-[rgba(74,124,89,0.3)]! bg-[rgba(74,124,89,0.15)]! text-[#4a7c59]!`
-                            : ''
-                        } ${
-                          row.status === 'average'
-                            ? `border-[rgba(176,125,58,0.3)]! bg-[rgba(176,125,58,0.15)]! text-[#b07d3a]!`
-                            : ''
-                        } ${
-                          row.status === 'below_average'
-                            ? `border-[rgba(139,58,58,0.3)]! bg-[rgba(139,58,58,0.15)]! text-[#8b3a3a]!`
-                            : ''
-                        }`}
-                      >
-                        {row.statusLabel}
-                      </Chip>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Content>
-          </Table.ScrollContainer>
-        </Table>
-      </div>
-
-      {(opportunities?.length > 0 || strengths?.length > 0) && (
-        <div className="mt-8">
-          {opportunities?.length > 0 && (
-            <div className="mb-3">
-              <div className="mb-2 text-sm font-medium text-(--foreground)">
-                Opportunities to Improve
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {opportunities.map((text) => (
-                  <Chip key={text} variant="status" color="warning">
-                    <MoveUp size={14} />
-                    <span>{text}</span>
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {strengths?.length > 0 && (
-            <div>
-              <div className="mb-2 text-sm font-bold text-(--foreground)">Strengths</div>
-              <div className="flex flex-wrap gap-2">
-                {strengths.map((text) => (
-                  <Chip key={text} variant="status" color="success">
-                    <MoveDown size={14} />
-                    <span>{text}</span>
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </>
+    <div className="mt-2 overflow-x-auto">
+      <Table>
+        <Table.ScrollContainer>
+          <Table.Content aria-label="Benchmark comparison table">
+            <Table.Header>
+              <Table.Column className="px-4 py-3">Factor</Table.Column>
+              <Table.Column className="p-3">Your Score</Table.Column>
+              <Table.Column className="p-3">25th %ile</Table.Column>
+              <Table.Column className="p-3">50th %ile</Table.Column>
+              <Table.Column className="p-3">75th %ile</Table.Column>
+              <Table.Column className="px-4 py-3">Status</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {rows.map((row) => (
+                <Table.Row key={row.factor}>
+                  <Table.Cell className="font-medium">{row.displayName}</Table.Cell>
+                  <Table.Cell>{row.userScore ?? '—'}</Table.Cell>
+                  <Table.Cell>{row.p25 ?? '—'}</Table.Cell>
+                  <Table.Cell>{row.p50 ?? '—'}</Table.Cell>
+                  <Table.Cell>{row.p75 ?? '—'}</Table.Cell>
+                  <Table.Cell>
+                    <Chip
+                      variant="info"
+                      color={row.statusColor}
+                      className={`${
+                        row.status === 'above_average'
+                          ? `border-(--color-success-border)! bg-(--color-success-soft-15)! text-(--color-success)!`
+                          : ''
+                      } ${
+                        row.status === 'average'
+                          ? `border-(--color-warning-border)! bg-(--color-warning-soft-15)! text-(--color-warning)!`
+                          : ''
+                      } ${
+                        row.status === 'below_average'
+                          ? `border-(--color-error-border)! bg-(--color-error-soft-15)! text-(--color-error)!`
+                          : ''
+                      }`}
+                    >
+                      {row.statusLabel}
+                    </Chip>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
+      </Table>
+    </div>
   );
 }
 

@@ -460,7 +460,7 @@ export default function MyAssessmentsPage() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border-2 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5"
+              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5"
             >
               <Skeleton animationType="shimmer" className="mb-3 h-3 w-20 rounded-sm" />
               <Skeleton animationType="shimmer" className="mb-2 h-8 w-16 rounded-sm" />
@@ -478,7 +478,7 @@ export default function MyAssessmentsPage() {
             </div>
             <Skeleton
               animationType="shimmer"
-              className="h-9 w-full rounded-xl bg-[rgba(245,240,232,0.6)] pr-4 pl-9"
+              className="h-9 w-full rounded-xl bg-(--color-input-bg) pr-4 pl-9"
             />
           </div>
 
@@ -488,14 +488,14 @@ export default function MyAssessmentsPage() {
             <div className="max-w-50 flex-1">
               <Skeleton
                 animationType="shimmer"
-                className="h-9 w-full rounded-md bg-[rgba(245,240,232,0.6)] pr-10"
+                className="h-9 w-full rounded-md bg-(--color-input-bg) pr-10"
               />
             </div>
 
             {/* Compare button skeleton */}
             <Skeleton
               animationType="shimmer"
-              className="h-9 w-32 rounded-md bg-[rgba(245,240,232,0.6)]"
+              className="h-9 w-32 rounded-md bg-(--color-input-bg)"
             />
           </div>
 
@@ -507,7 +507,7 @@ export default function MyAssessmentsPage() {
                 <Skeleton
                   key={i}
                   animationType="shimmer"
-                  className="h-6 w-20 rounded-full bg-[rgba(245,240,232,0.6)]"
+                  className="h-6 w-20 rounded-full bg-(--color-input-bg)"
                 />
               ))}
           </div>
@@ -557,7 +557,7 @@ export default function MyAssessmentsPage() {
     // No assessments at all (stats_totalAssessments === 0)
     if (stats_totalAssessments === 0) {
       return (
-        <div className="mt-16 rounded-2xl border-4 border-dashed border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.3)] p-12 text-center">
+        <div className="mt-16 rounded-2xl border-4 border-dashed border-(--color-border-ui) bg-(--color-bg-card-light) p-12 text-center">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
           <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
             No assessments yet
@@ -576,7 +576,7 @@ export default function MyAssessmentsPage() {
     // Filtered results returned empty
     if (assessments.length === 0) {
       return (
-        <div className="mt-10 rounded-2xl border-4 border-dashed border-[rgba(180,160,130,0.3)] bg-[rgba(245,240,232,0.3)] p-12 text-center">
+        <div className="mt-10 rounded-2xl border-4 border-dashed border-(--color-border-ui) bg-(--color-bg-card-light) p-12 text-center">
           <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
           <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
             No assessments found
@@ -704,8 +704,8 @@ export default function MyAssessmentsPage() {
                 size="sm"
                 classNames={{
                   trigger:
-                    'border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) pr-10',
-                  popover: 'bg-[rgba(245,240,232,0.95)] border-[rgba(180,160,130,0.28)]',
+                    'border-(--color-border-strong-alpha-80) bg-(--color-input-bg) text-(--color-text-primary) pr-10',
+                  popover: 'bg-(--color-select-popover-bg) border-(--color-border-strong-alpha-80)',
                 }}
               >
                 <Select.Trigger>

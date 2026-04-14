@@ -281,7 +281,7 @@ export async function exportAssessmentPDF(assessment, options = {}) {
   const pdf = new jsPDF('p', 'mm', 'a4');
 
   // Add Header
-  pdf.setFillColor(5, 150, 105); // #059669 (Emerald-600)
+  pdf.setFillColor(5, 150, 105); // #059669
   pdf.rect(0, 0, pageWidth, headerHeight, 'F');
 
   pdf.setTextColor(255, 255, 255);
@@ -303,7 +303,7 @@ export async function exportAssessmentPDF(assessment, options = {}) {
     scale: 2,
     logging: false,
     useCORS: true,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'white',
   });
 
   const imgData = canvas.toDataURL('image/png');

@@ -4,7 +4,7 @@ export function ComparisonSkeleton() {
   return (
     <div className="mt-6 w-full space-y-0">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
-      <div className="sticky top-0 z-9999 border-b border-border bg-(--color-bg) px-6 py-4">
+      <div className="sticky top-0 z-9999 border-y border-border bg-(--color-bg) px-6 py-4">
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div>
             <div className="mb-1 h-8 w-64 rounded-lg" />

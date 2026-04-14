@@ -1,5 +1,5 @@
 /* ============================================= */
-/*  IMPORTS & CONFIGURATION                      */
+/*  index.css                                    */
 /* ============================================= */
 
 /* Google Fonts - loaded in index.html */
@@ -32,6 +32,10 @@
 
 @theme {
   /* ============================================= */
+  /*  BASE COLOR VALUES                           */
+  /* ============================================= */
+
+  /* ============================================= */
   /*  FONTS                                       */
   /* ============================================= */
   --font-sans: 'Fredoka';
@@ -52,7 +56,7 @@
   --font-jua: 'Jua';
 
   /* ============================================= */
-  /*  CUSTOM COLOR SCALES                         */
+  /*  CUSTOM COLOR SCALES (referencing base colors) */
   /* ============================================= */
   /* Primary (Emerald/Green for circular economy theme) */
   --color-primary-50: #f0f8f5;
@@ -99,7 +103,7 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
   /* ============================================= */
-  /*  SHADOWS                                     */
+  /*  SHADOWS (using base shadow colors)           */
   /* ============================================= */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
@@ -233,153 +237,346 @@
 /* ============================================= */
 
 :root {
-  --color-bg: #f5f0e8;
-  --color-bg-card: rgba(245, 240, 232, 0.7);
-  --color-bg-elevated: rgba(240, 234, 224, 0.85);
-  --color-border-ui: rgba(180, 160, 130, 0.3);
-  --color-border-strong: rgba(180, 160, 130, 0.35);
-  --color-switch-track: #e8d4c0;
-  --color-switch-track-on: #dcc8b4;
-  --color-switch-track-hover: #e0d0c0;
-  --color-switch-track-on-hover: #d4a574;
-  --color-switch-track-disabled: #f0f0f0;
-  --color-switch-thumb-disabled: #e0e0e0;
-  --color-drawer-border: rgba(180, 160, 130, 0.22);
-  --color-drawer-body-border: rgba(180, 160, 130, 0.16);
+  /* ============================================= */
+  /*  BASE COLOR VALUES                           */
+  /* ============================================= */
+
+  /* Primary Colors */
+  --base-primary-50: #f0f8f5;
+  --base-primary-100: #ddf0eb;
+  --base-primary-200: #c1e6ca;
+  --base-primary-300: #a5ddb0;
+  --base-primary-400: #6bc86f;
+  --base-primary-500: #34a83a;
+  --base-primary-600: #2d9432;
+  --base-primary-700: #26802a;
+  --base-primary-800: #1f6c23;
+  --base-primary-900: #1a581d;
+
+  /* Accent Colors */
+  --base-accent-50: #fff9f0;
+  --base-accent-100: #ffe0b2;
+  --base-accent-200: #ffc880;
+  --base-accent-300: #ffb74d;
+  --base-accent-400: #ffa726;
+  --base-accent-500: #ff9800;
+  --base-accent-600: #f57c00;
+  --base-accent-700: #e65100;
+
+  /* Secondary Colors */
+  --base-secondary-50: #eff6ff;
+  --base-secondary-100: #dbeafe;
+  --base-secondary-200: #bfdbfe;
+  --base-secondary-300: #93c5fd;
+  --base-secondary-400: #60a5fa;
+  --base-secondary-500: #3b82f6;
+  --base-secondary-600: #2563eb;
+  --base-secondary-700: #1d4ed8;
+  --base-secondary-800: #1e40af;
+  --base-secondary-900: #1e3a8a;
+
+  /* Neutral/Base Colors */
+  --base-white: #ffffff;
+  --base-black: #000000;
+  --base-gray-50: #f9f9f9;
+  --base-gray-100: #f0f0f0;
+  --base-gray-200: #e0e0e0;
+  --base-gray-300: #d0d0d0;
+  --base-gray-400: #b0b0b0;
+  --base-gray-500: #999999;
+  --base-gray-600: #666666;
+  --base-gray-700: #333333;
+  --base-gray-800: #1a1a1a;
+  --base-gray-900: #0a0a0a;
+
+  /* ============================================= */
+  /*  THEME VARIABLES                             */
+  /* ============================================= */
+
+  /* Theme Colors */
+  --theme-bg-primary: #f5f0e8;
+  --theme-bg-secondary: #fefaf5;
+  --theme-bg-card: rgba(245, 240, 232, 0.7);
+  --theme-bg-card-light: rgba(245, 240, 232, 0.5);
+  --theme-bg-card-hover: rgba(245, 240, 232, 0.6);
+  --theme-bg-elevated: rgba(240, 234, 224, 0.85);
+  --theme-bg-grid: #d4c5b0;
+  --theme-text-primary: #1a1510;
+  --theme-text-secondary: #5a4f42;
+  --theme-text-muted: #9a8f82;
+  --theme-accent: #b8916a;
+  --theme-accent-hover: #a07850;
+
+  /* Border Colors */
+  --theme-border-light: rgba(180, 160, 130, 0.3);
+  --theme-border-strong: rgba(180, 160, 130, 0.35);
+  --theme-border-subtle: rgba(180, 160, 130, 0.25);
+  --theme-border-faint: rgba(180, 160, 130, 0.2);
+  --theme-border-black-20: rgba(0, 0, 0, 0.2);
+  --theme-accent-hover-strong: rgba(184, 145, 106, 0.2);
+  --theme-accent-hover-border: rgba(184, 145, 106, 0.4);
+  --theme-accent-border-selected: rgba(184, 145, 106, 0.5);
+
+  /* Shadow Base Colors */
+  --shadow-base-dark: rgba(0, 0, 0, 0.08);
+  --shadow-base-theme: rgba(26, 21, 16, 0.1);
+  --shadow-base-theme-strong: rgba(26, 21, 16, 0.14);
+  --shadow-base-border: rgba(180, 160, 130, 0.1);
+
+  /* Additional Theme Colors */
+  --theme-switch-track: #e8d4c0;
+  --theme-switch-track-on: #dcc8b4;
+  --theme-switch-track-hover: #e0d0c0;
+  --theme-switch-track-on-hover: #d4a574;
+  --theme-checkbox: #8b6f47;
+  --theme-checkbox-hover: #6b5537;
+  --theme-textarea-ring: #735c3f;
+  --theme-scrollbar-thumb: #cebeab;
+  --theme-dropdown-hover: #e8ddcb;
+  --theme-icon-accent: #7a5c2e;
+  --theme-icon-success: #2d5a3d;
+  --theme-icon-danger: #7a3b2e;
+  --theme-drawer-body: #3d3530;
+  --theme-drawer-close-icon: #6b5f56;
+  --theme-success: #4a7c59;
+  --theme-success-hover: #355940;
+  --theme-warning: #b07d3a;
+  --theme-error: #8b3a3a;
+  --theme-danger: #8b3a3a;
+
+  /* Additional UI Colors */
+  --theme-checkbox-bg: #8b6f4722;
+  --theme-checkbox-hover-bg: #8b6f4777;
+  --theme-toast-success-bg: #f0f5ef;
+  --theme-toast-success-text: #2d5a3b;
+  --theme-toast-warning-text: #8b5e2c;
+  --theme-toast-danger-bg: #fef1f0;
+  --theme-toast-info-bg: #f8f6f3;
+  --theme-toast-warning-bg: #fef6e8;
+  --theme-drawer-border: rgba(180, 160, 130, 0.22);
+  --theme-drawer-body-border: rgba(180, 160, 130, 0.16);
+  --theme-drawer-close-hover-bg: rgba(180, 160, 130, 0.22);
+  --theme-select-bg: rgba(245, 240, 232, 0.65);
+  --theme-select-bg-hover: rgba(245, 240, 232, 0.85);
+  --theme-select-popover-bg: rgba(247, 243, 237, 0.98);
+  --theme-input-bg: rgba(245, 240, 232, 0.6);
+  --theme-chip-bg: rgba(180, 160, 130, 0.1);
+  --theme-chip-bg-faint: rgba(180, 160, 130, 0.08);
+  --theme-tooltip-bg: rgba(245, 240, 232, 0.95);
+  --theme-accent-ghost: rgba(184, 145, 106, 0.06);
+  --theme-accent-border: rgba(184, 145, 106, 0.3);
+  --theme-success-border: rgba(74, 124, 89, 0.25);
+  --theme-warning-border: rgba(176, 125, 58, 0.25);
+  --theme-error-border: rgba(139, 58, 58, 0.25);
+  --theme-error-soft-hover: rgba(139, 58, 58, 0.12);
+  --theme-success-soft-ui: rgba(74, 124, 89, 0.08);
+  --theme-warning-soft-ui: rgba(176, 125, 58, 0.08);
+  --theme-error-soft-ui: rgba(139, 58, 58, 0.08);
+  --theme-danger-soft-ui: rgba(139, 58, 58, 0.08);
+  --theme-table-border: rgba(180, 160, 130, 0.45);
+  --theme-table-header-text: rgb(0, 0, 0, 0.8);
+  --theme-table-header-bg: rgba(195, 178, 155, 0.3);
+  --theme-table-col-border: rgba(180, 160, 130, 0.2);
+  --theme-table-row-border: rgba(180, 160, 130, 0.15);
+  --theme-table-cell-border: rgba(180, 160, 130, 0.13);
+  --theme-table-stripe: rgba(180, 160, 130, 0.1);
+  --theme-table-hover: rgba(180, 160, 130, 0.2);
+  --theme-table-col-hover: rgba(184, 145, 106, 0.1);
+  --theme-table-footer-border: rgba(180, 160, 130, 0.25);
+  --theme-icon-success-bg: rgba(45, 90, 61, 0.1);
+  --theme-icon-warning-bg: rgba(122, 92, 46, 0.12);
+  --theme-icon-danger-bg: rgba(122, 58, 46, 0.1);
+  --theme-dialog-switch-border: rgba(180, 160, 130, 0.32);
+  --theme-dialog-switch-bg: rgba(180, 160, 130, 0.22);
+  --theme-dialog-switch-border-on: rgba(45, 90, 61, 0.45);
+  --theme-dialog-switch-bg-on: rgba(45, 90, 61, 0.3);
+  --theme-drawer-handle: rgba(180, 160, 130, 0.28);
+  --theme-drawer-callout-border: rgba(45, 90, 61, 0.35);
+  --theme-drawer-item-border: rgba(180, 160, 130, 0.14);
+  --theme-border-ghost: rgba(180, 160, 130, 0.1);
+  --theme-surface-overlay-sm: rgba(180, 160, 130, 0.12);
+  --theme-surface-overlay-md: rgba(180, 160, 130, 0.18);
+  --theme-progress-track: rgba(180, 160, 130, 0.2);
+  --theme-accent-light-mid: rgba(184, 145, 106, 0.15);
+  --theme-option-hover: rgba(139, 111, 71, 0.15);
+  --theme-switch-border: rgba(139, 69, 19, 0.2);
+  --theme-switch-border-on: rgba(139, 69, 19, 0.3);
+  --theme-switch-border-thumb: rgba(139, 69, 19, 0.15);
+  --theme-switch-border-disabled: rgba(139, 69, 19, 0.1);
+  --theme-accent-light: rgba(184, 145, 106, 0.12);
+  --theme-accent-soft-ui: rgba(184, 145, 106, 0.08);
+  --theme-accent-focus-ring: rgba(184, 145, 106, 0.14);
+  --theme-surface-skeleton: rgba(180, 160, 130, 0.15);
+
+  /* Drawer Icon Colors */
+  --theme-drawer-icon-slate-bg: rgba(74, 85, 104, 0.1);
+  --theme-drawer-icon-slate-text: #4a5568;
+  --theme-drawer-icon-success-bg: rgba(45, 90, 61, 0.1);
+  --theme-drawer-icon-success-text: #2d5a3d;
+  --theme-drawer-icon-accent-bg: rgba(180, 160, 130, 0.12);
+  --theme-drawer-icon-accent-text: #7a5c2e;
+  --theme-drawer-icon-warning-bg: rgba(122, 91, 46, 0.1);
+  --theme-drawer-icon-warning-text: #7a5c2e;
+
+  /* ============================================= */
+  /*  DESIGN TOKENS (CSS CUSTOM PROPERTIES)        */
+  /* ============================================= */
+
+  --color-bg: var(--theme-bg-primary);
+  --color-bg-card: var(--theme-bg-card);
+  --color-bg-card-light: var(--theme-bg-card-light);
+  --color-bg-card-hover: var(--theme-bg-card-hover);
+  --color-bg-grid: var(--theme-bg-grid);
+  --color-bg-elevated: var(--theme-bg-elevated);
+  --color-border-ui: var(--theme-border-light);
+  --color-border-strong: var(--theme-border-strong);
+  --color-switch-track: var(--theme-switch-track);
+  --color-switch-track-on: var(--theme-switch-track-on);
+  --color-switch-track-hover: var(--theme-switch-track-hover);
+  --color-switch-track-on-hover: var(--theme-switch-track-on-hover);
+  --color-switch-track-disabled: var(--base-gray-100);
+  --color-switch-thumb-disabled: var(--base-gray-200);
+  --color-drawer-border: var(--theme-drawer-border);
+  --color-drawer-body-border: var(--theme-drawer-body-border);
 
   /* UI Component Colors */
-  --color-checkbox: #8b6f47;
-  --color-checkbox-bg: #8b6f4722;
-  --color-checkbox-hover: #6b5537;
-  --color-checkbox-hover-bg: #8b6f4777;
-  --color-pagination-active: #8b6f47;
-  --color-textarea-ring: #735c3f;
-  --color-toast-bg: #fefaf5;
-  --color-toast-success-bg: #f0f5ef;
-  --color-toast-success-text: #2d5a3b;
-  --color-toast-warning-text: #8b5e2c;
-  --color-toast-danger-bg: #fef1f0;
-  --color-toast-info-bg: #f8f6f3;
+  --color-checkbox: var(--theme-checkbox);
+  --color-checkbox-bg: var(--theme-checkbox-bg);
+  --color-checkbox-hover: var(--theme-checkbox-hover);
+  --color-checkbox-hover-bg: var(--theme-checkbox-hover-bg);
+  --color-pagination-active: var(--theme-checkbox);
+  --color-textarea-ring: var(--theme-textarea-ring);
+  --color-toast-bg: var(--theme-bg-secondary);
+  --color-toast-success-bg: var(--theme-toast-success-bg);
+  --color-toast-success-text: var(--theme-toast-success-text);
+  --color-toast-warning-text: var(--theme-toast-warning-text);
+  --color-toast-danger-bg: var(--theme-toast-danger-bg);
+  --color-toast-info-bg: var(--theme-toast-info-bg);
   --color-modal-backdrop: oklch(0.18 0.015 60 / 0.35);
   --color-alert-backdrop: rgba(26, 21, 16, 0.08);
-  --color-alert-bg: #f5f0e8;
-  --color-drawer-bg: #f5f0e8;
-  --color-drawer-heading: #1a1510;
-  --color-drawer-body: #3d3530;
-  --color-drawer-body-em: #5a4f42;
-  --color-drawer-close-icon: #6b5f56;
-  --color-drawer-close-hover-bg: rgba(180, 160, 130, 0.22);
-  --color-drawer-close-hover-text: #1a1510;
-  --color-app-bg: #f5f0e8;
-  --color-scrollbar-thumb: #cebeab;
-  --color-scrollbar-track: #f5f0e8;
-  --color-scrollbar-thumb-hover: #b8916a;
-  --color-select-bg: rgba(245, 240, 232, 0.65);
-  --color-select-bg-hover: rgba(245, 240, 232, 0.85);
-  --color-select-popover-bg: rgba(247, 243, 237, 0.98);
-  --color-input-bg: rgba(245, 240, 232, 0.6);
+  --color-alert-bg: var(--theme-bg-primary);
+  --color-drawer-bg: var(--theme-bg-primary);
+  --color-drawer-heading: var(--theme-text-primary);
+  --color-drawer-body: var(--theme-drawer-body);
+  --color-drawer-body-em: var(--theme-text-secondary);
+  --color-drawer-close-icon: var(--theme-drawer-close-icon);
+  --color-drawer-close-hover-bg: var(--theme-drawer-close-hover-bg);
+  --color-drawer-close-hover-text: var(--theme-text-primary);
+  --color-app-bg: var(--theme-bg-primary);
+  --color-scrollbar-thumb: var(--theme-scrollbar-thumb);
+  --color-scrollbar-track: var(--theme-bg-primary);
+  --color-scrollbar-thumb-hover: var(--theme-accent);
+  --color-select-bg: var(--theme-select-bg);
+  --color-select-bg-hover: var(--theme-select-bg-hover);
+  --color-select-popover-bg: var(--theme-select-popover-bg);
+  --color-input-bg: var(--theme-input-bg);
 
   /* Chip surface tones */
-  --color-chip-bg: rgba(180, 160, 130, 0.1);
-  --color-chip-bg-faint: rgba(180, 160, 130, 0.08);
+  --color-chip-bg: var(--theme-chip-bg);
+  --color-chip-bg-faint: var(--theme-chip-bg-faint);
 
   /* Tooltip */
-  --color-tooltip-bg: rgba(245, 240, 232, 0.95);
+  --color-tooltip-bg: var(--theme-tooltip-bg);
 
   /* Accent ghost (very subtle hover) */
-  --color-accent-ghost: rgba(184, 145, 106, 0.06);
-  --color-accent-border: rgba(184, 145, 106, 0.3);
+  --color-accent-ghost: var(--theme-accent-ghost);
+  --color-accent-border: var(--theme-accent-border);
+  --color-accent-border-selected: var(--theme-accent-border-selected);
 
   /* Semantic status borders */
-  --color-success-border: rgba(74, 124, 89, 0.25);
-  --color-warning-border: rgba(176, 125, 58, 0.25);
-  --color-error-border: rgba(139, 58, 58, 0.25);
-  --color-error-soft-hover: rgba(139, 58, 58, 0.12);
+  --color-success-border: var(--theme-success-border);
+  --color-warning-border: var(--theme-warning-border);
+  --color-error-border: var(--theme-error-border);
+  --color-error-soft-hover: var(--theme-error-soft-hover);
 
   /* Table surface tones */
   --color-table-bg: transparent;
-  --color-table-border: rgba(180, 160, 130, 0.45);
-  --color-table-header-text: rgb(0, 0, 0, 0.8);
-  --color-table-header-bg: rgba(195, 178, 155, 0.3);
-  --color-table-col-border: rgba(180, 160, 130, 0.2);
-  --color-table-row-border: rgba(180, 160, 130, 0.15);
-  --color-table-cell-border: rgba(180, 160, 130, 0.13);
-  --color-table-stripe: rgba(180, 160, 130, 0.1);
-  --color-table-hover: rgba(180, 160, 130, 0.2);
-  --color-table-col-hover: rgba(184, 145, 106, 0.1);
-  --color-table-footer-border: rgba(180, 160, 130, 0.25);
+  --color-table-border: var(--theme-table-border);
+  --color-table-header-text: var(--theme-table-header-text);
+  --color-table-header-bg: var(--theme-table-header-bg);
+  --color-table-col-border: var(--theme-table-col-border);
+  --color-table-row-border: var(--theme-table-row-border);
+  --color-table-cell-border: var(--theme-table-cell-border);
+  --color-table-stripe: var(--theme-table-stripe);
+  --color-table-hover: var(--theme-table-hover);
+  --color-table-col-hover: var(--theme-table-col-hover);
+  --color-table-footer-border: var(--theme-table-footer-border);
 
   /* Dropdown */
-  --dropdown-item-hover: #e8ddcb;
+  --dropdown-item-hover: var(--theme-dropdown-hover);
 
   /* Alert dialog icon backgrounds */
-  --color-icon-success-bg: rgba(45, 90, 61, 0.1);
-  --color-icon-warning-bg: rgba(122, 92, 46, 0.12);
-  --color-icon-danger-bg: rgba(122, 58, 46, 0.1);
+  --color-icon-success-bg: var(--theme-icon-success-bg);
+  --color-icon-warning-bg: var(--theme-icon-warning-bg);
+  --color-icon-danger-bg: var(--theme-icon-danger-bg);
 
   /* Dialog-scoped switch colors */
-  --color-dialog-switch-border: rgba(180, 160, 130, 0.32);
-  --color-dialog-switch-bg: rgba(180, 160, 130, 0.22);
-  --color-dialog-switch-border-on: rgba(45, 90, 61, 0.45);
-  --color-dialog-switch-bg-on: rgba(45, 90, 61, 0.3);
+  --color-dialog-switch-border: var(--theme-dialog-switch-border);
+  --color-dialog-switch-bg: var(--theme-dialog-switch-bg);
+  --color-dialog-switch-border-on: var(--theme-dialog-switch-border-on);
+  --color-dialog-switch-bg-on: var(--theme-dialog-switch-bg-on);
 
   /* Drawer micro-tones */
-  --color-drawer-handle: rgba(180, 160, 130, 0.28);
-  --color-drawer-callout-border: rgba(45, 90, 61, 0.35);
-  --color-drawer-item-border: rgba(180, 160, 130, 0.14);
+  --color-drawer-handle: var(--theme-drawer-handle);
+  --color-drawer-callout-border: var(--theme-drawer-callout-border);
+  --color-drawer-item-border: var(--theme-drawer-item-border);
 
   /* Semantic overlay / border tones */
-  --color-border-faint: rgba(180, 160, 130, 0.2);
-  --color-border-subtle: rgba(180, 160, 130, 0.25);
-  --color-border-ghost: rgba(180, 160, 130, 0.1);
-  --color-surface-overlay-sm: rgba(180, 160, 130, 0.12);
-  --color-surface-overlay-md: rgba(180, 160, 130, 0.18);
-  --color-accent-light-mid: rgba(184, 145, 106, 0.15);
-  --color-option-hover: rgba(139, 111, 71, 0.15);
+  --color-border-ghost: var(--theme-border-ghost);
+  --color-border-faint: var(--theme-border-faint);
+  --color-border-subtle: var(--theme-border-subtle);
+  --color-border-card: rgba(180, 160, 130, 0.18);
+  --color-surface-overlay-sm: var(--theme-surface-overlay-sm);
+  --color-surface-overlay-md: var(--theme-surface-overlay-md);
+  --color-progress-track: var(--theme-progress-track);
+  --color-skeleton-base: oklch(0.9 0.018 78);
+  --color-accent-light-mid: var(--theme-accent-light-mid);
+  --color-option-hover: var(--theme-option-hover);
 
   /* Switch border tones */
-  --color-switch-border: rgba(139, 69, 19, 0.2);
-  --color-switch-border-on: rgba(139, 69, 19, 0.3);
-  --color-switch-border-thumb: rgba(139, 69, 19, 0.15);
-  --color-switch-border-disabled: rgba(139, 69, 19, 0.1);
+  --color-switch-border: var(--theme-switch-border);
+  --color-switch-border-on: var(--theme-switch-border-on);
+  --color-switch-border-thumb: var(--theme-switch-border-thumb);
+  --color-switch-border-disabled: var(--theme-switch-border-disabled);
 
   /* Alert dialog icon colors */
-  --color-icon-accent: #7a5c2e;
-  --color-icon-success: #2d5a3d;
-  --color-icon-danger: #7a3b2e;
+  --color-icon-accent: var(--theme-icon-accent);
+  --color-icon-success: var(--theme-icon-success);
+  --color-icon-danger: var(--theme-icon-danger);
 
   /* Toast colors */
-  --color-toast-warning-bg: #fef6e8;
+  --color-toast-warning-bg: var(--theme-toast-warning-bg);
 
   /* Skeleton shimmer */
-  --color-skeleton-base: oklch(0.9 0.018 78);
   --color-skeleton-shine: oklch(0.93 0.022 80);
 
   /* Selection highlight */
   --color-selection: oklch(0.68 0.08 68 / 0.18);
 
-  --color-text-primary: #1a1510;
-  --color-text-secondary: #5a4f42;
-  --color-text-muted: #9a8f82;
-  --color-accent: #b8916a;
-  --color-accent-light: rgba(184, 145, 106, 0.12);
-  --color-accent-hover: #a07850;
-  --color-accent-soft-ui: rgba(184, 145, 106, 0.08);
-  --color-success: #4a7c59;
+  /* Critical missing text and accent colors */
+  --color-text-primary: var(--theme-text-primary);
+  --color-text-secondary: var(--theme-text-secondary);
+  --color-text-muted: var(--theme-text-muted);
+  --color-accent: var(--theme-accent);
+  --color-accent-hover: var(--theme-accent-hover);
+
+  --color-success: var(--theme-success);
   --color-success-b: #64a678;
-  --color-success-hover: #355940;
-  --color-success-soft-ui: rgba(74, 124, 89, 0.08);
-  --color-warning: #b07d3a;
+  --color-success-hover: var(--theme-success-hover);
+  --color-success-soft-ui: var(--theme-success-soft-ui);
+  --color-warning: var(--theme-warning);
   --color-warning-b: #efdac1;
-  --color-warning-soft-ui: rgba(176, 125, 58, 0.08);
-  --color-error: #8b3a3a;
+  --color-warning-soft-ui: var(--theme-warning-soft-ui);
+  --color-warning-soft-mid: rgba(176, 125, 58, 0.2);
+  --color-error: var(--theme-error);
   --color-error-b: #ebc9c9;
-  --color-error-soft-ui: rgba(139, 58, 58, 0.08);
-  --color-danger: #8b3a3a;
+  --color-error-soft-ui: var(--theme-error-soft-ui);
+  --color-danger: var(--theme-danger);
   --color-danger-b: #c75353;
-  --color-danger-soft-ui: rgba(139, 58, 58, 0.08);
+  --color-danger-soft-ui: var(--theme-danger-soft-ui);
   --color-info: #455771;
   --color-info-b: #b3c8e452;
+  --color-info-soft: rgba(69, 87, 113, 0.06);
   --color-info-soft-ui: oklch(from var(--color-info) l c h / 0.08);
   --color-muted: #9a8f82;
   --color-subtle: #9a8f82;
@@ -407,6 +604,176 @@
   --chart-4: #8b3a3a;
   --chart-5: #5a4f42;
   --chart-6: #9a8f82;
+
+  /* Additional Hardcoded Color Variables */
+  /* Bright/Accent Colors */
+  --color-purple: #9c27b0;
+  --color-pink: #e91e63;
+  --color-cyan: #00bcd4;
+  --color-deep-orange: #ff5722;
+  --color-light-green: #8bc34a;
+
+  /* Score/Status Colors */
+  /* Original strategy alignment colors (preserved) */
+  --color-score-high: #6b8f71;
+  --color-score-mid: #7a9eb5;
+  --color-score-low: #d4b896;
+  --color-score-fail: #c4956a;
+  /* Original parameter consistency colors (preserved) */
+  --color-parameter-high: #6b8f71;
+  --color-parameter-mid: #7a9eb5;
+  --color-parameter-low: #d4b896;
+  --color-parameter-fail: #c4956a;
+
+  /* UI Border Colors */
+  --color-border-tooltip: rgba(180, 160, 130, 0.28);
+
+  /* Background Colors */
+
+  /* Text Colors */
+  --color-text-dark-green: var(--theme-icon-success);
+  --color-text-label: var(--theme-icon-success);
+  --color-text-black-77: #00000077;
+
+  /* Shadow/Overlay Colors */
+  --color-shadow-dark: rgba(0, 0, 0, 0.08);
+
+  /* Additional Material Colors for Dashboard */
+  --color-material-plum: #7a5c7a;
+  --color-material-ocean: #3a6b8b;
+  --color-material-warm: #8b5e3a;
+  --color-material-sage: #6b8b5a;
+  --color-material-slate: #5a7a9a;
+
+  /* Score Colors with Opacity */
+  --color-score-high-opacity: rgba(74, 124, 89, 0.75);
+  --color-score-mid-opacity: rgba(176, 125, 58, 0.75);
+  --color-score-low-opacity: rgba(139, 58, 58, 0.75);
+
+  /* ============================================= */
+  /*  ADDITIONAL HARDCODED COLOR VARIABLES          */
+  /* ============================================= */
+
+  /* Chip Variant Colors */
+  --color-chip-strategy-bg: #c3e6c3;
+  --color-chip-strategy-text: #1a4016;
+  --color-chip-strategy-border: #a8d2a8;
+  --color-chip-materials-bg: #e0d4c0;
+  --color-chip-materials-text: #3a2c18;
+  --color-chip-materials-border: #d0c0b0;
+  --color-chip-factor-bg: #d4c8b8;
+  --color-chip-factor-text: #3a2f1f;
+  --color-chip-factor-border: #c0b4a4;
+
+  /* Access Type Colors */
+  --color-access-public-bg: #e8f5e8;
+  --color-access-public-text: rgba(45, 90, 45, 0.7);
+  --color-access-public-border: rgba(45, 90, 45, 0.2);
+  --color-access-private-bg: #ffe8e8;
+  --color-access-private-text: rgba(165, 42, 42, 0.7);
+  --color-access-private-border: rgba(165, 42, 42, 0.2);
+
+  /* Match Variant Colors */
+  --color-match-strong-bg: #b8e6b8;
+  --color-match-strong-text: #1a4016;
+  --color-match-strong-border: #b8e6b8;
+  --color-match-decent-bg: #e6d4b8;
+  --color-match-decent-text: #7a4c1a;
+  --color-match-decent-border: #e6d4b8;
+  --color-match-weak-bg: #f8d7d7;
+  --color-match-weak-text: #7f1d1d;
+  --color-match-weak-border: #f8d7d7;
+  --color-match-default-bg: #d4c8b8;
+  --color-match-default-text: #2a1f0f;
+  --color-match-default-border: #c0b4a4;
+
+  /* Severity Colors */
+  --color-severity-high-bg: #f8d7d7;
+  --color-severity-high-text: #7f1d1d;
+  --color-severity-high-border: #fca5a5;
+  --color-severity-medium-bg: #fef3c7;
+  --color-severity-medium-text: #92400e;
+  --color-severity-medium-border: #fde68a;
+  --color-severity-low-bg: #d1fae5;
+  --color-severity-low-text: #065f46;
+  --color-severity-low-border: #a7f3d0;
+
+  /* Chart and Visualization Colors */
+  --color-chart-stroke: rgba(245, 240, 232, 0.8);
+  --color-chart-grid-strong: rgba(180, 160, 130, 0.6);
+  --color-chart-grid: rgba(180, 160, 130, 0.15);
+  --color-chart-grid-semantic: rgba(180, 160, 130, 0.12);
+  --color-chart-axis: rgba(180, 160, 130, 0.3);
+  --color-chart-cursor: rgba(180, 160, 130, 0.08);
+  --color-chart-cursor-line: rgba(180, 160, 130, 0.3);
+
+  /* General UI Colors */
+  --color-ui-brown: #8b6f47; /* Used by LoaderIcon.jsx via getComputedStyle */
+  --color-ui-brown-ssr: #8b6f47;
+  --color-bg-success-light: #e8f5e9;
+  --color-bg-info-light: #e3f2fd;
+  --color-bg-warning-light: #fff3e0;
+  --color-bg-danger-light: #ffebee;
+
+  /* Dark Mode Colors */
+  --color-dark-bg: #0a0a0a;
+  --color-dark-text: #fafafa;
+
+  /* Border and Hover Colors */
+  --color-border-dark-20: var(--theme-border-black-20);
+  --color-hover-accent-strong: var(--theme-accent-hover-strong);
+  --color-hover-subtle: var(--theme-surface-overlay-sm);
+  --color-accent-hover-border: var(--theme-accent-hover-border);
+  --color-accent-light: var(--theme-accent-light);
+  --color-accent-soft-ui: var(--theme-accent-soft-ui);
+  --color-accent-focus-ring: var(--theme-accent-focus-ring);
+
+  /* Pre-computed rgba variables for opacity modifiers (Tailwind v4 compatibility) */
+  --color-accent-alpha-60: rgba(184, 145, 106, 0.6);
+  --color-accent-alpha-70: rgba(184, 145, 106, 0.7);
+  --color-accent-alpha-50: rgba(184, 145, 106, 0.5);
+  --color-border-strong-alpha-80: rgba(180, 160, 130, 0.28); /* 0.35 * 0.8 = 0.28 */
+  --color-warning-alpha-5: rgba(176, 125, 58, 0.05);
+  --color-info-alpha-20: rgba(69, 87, 113, 0.2);
+  --color-info-alpha-50: rgba(69, 87, 113, 0.5);
+  --color-success-alpha-50: rgba(74, 124, 89, 0.5);
+
+  /* New variables from ui-105 fixes */
+  --color-bg-card-faint: rgba(245, 240, 232, 0.45);
+  --color-bg-card-selected: rgba(245, 240, 232, 0.55);
+  --color-success-soft-15: rgba(74, 124, 89, 0.15); /* for BenchmarkTable */
+  --color-warning-soft-15: rgba(176, 125, 58, 0.15); /* for BenchmarkTable */
+  --color-error-soft-15: rgba(139, 58, 58, 0.15); /* for BenchmarkTable */
+  --color-success-chip-bg: rgba(74, 124, 89, 0.1); /* for HeroUI chip overrides */
+  --color-warning-chip-bg: rgba(176, 125, 58, 0.1); /* for HeroUI chip overrides */
+  --color-error-chip-bg: rgba(139, 58, 58, 0.1); /* for HeroUI chip overrides */
+  --color-accent-soft-10: rgba(184, 145, 106, 0.1); /* for ghost button + guide tiers */
+
+  /* Drawer Icon Design Tokens */
+  --color-drawer-icon-slate-bg: var(--theme-drawer-icon-slate-bg);
+  --color-drawer-icon-slate-text: var(--theme-drawer-icon-slate-text);
+  --color-drawer-icon-success-bg: var(--theme-drawer-icon-success-bg);
+  --color-drawer-icon-success-text: var(--theme-drawer-icon-success-text);
+  --color-drawer-icon-accent-bg: var(--theme-drawer-icon-accent-bg);
+  --color-drawer-icon-accent-text: var(--theme-drawer-icon-accent-text);
+  --color-drawer-icon-warning-bg: var(--theme-drawer-icon-warning-bg);
+  --color-drawer-icon-warning-text: var(--theme-drawer-icon-warning-text);
+
+  /* Skeleton Pulse Design Tokens */
+  --color-skeleton-pulse-sm: rgba(180, 160, 130, 0.1);
+  --color-skeleton-pulse-md: rgba(180, 160, 130, 0.15);
+  --color-skeleton-pulse-lg: rgba(180, 160, 130, 0.2);
+
+  /* Soft-10 Design Tokens */
+  --color-success-soft-10: rgba(74, 124, 89, 0.1);
+  --color-info-soft-10: rgba(69, 87, 113, 0.1);
+  --color-warning-soft-10: rgba(176, 125, 58, 0.1);
+
+  /* Pre-computed rgba variables moved from @theme */
+  --color-accent-100-10: rgba(255, 224, 178, 0.1);
+  --color-error-border-strong: rgba(139, 58, 58, 0.3);
+  --color-bg-alpha-50: rgba(245, 240, 232, 0.5);
+  --color-bg-alpha-60: rgba(245, 240, 232, 0.6);
 }
 
 /* ============================================= */
@@ -441,7 +808,7 @@
   }
 
   .dark body {
-    @apply bg-[#0a0a0a] text-[#fafafa];
+    @apply bg-(--color-dark-bg) text-(--color-dark-text);
   }
 
   /* Kill all default browser focus outlines */
@@ -759,13 +1126,13 @@ textarea:focus-visible {
     @apply h-6! rounded-md! border! border-(--color-border-subtle)! bg-(--color-chip-bg)! px-2.5! text-[11px]! font-medium! text-(--color-text-secondary)!;
   }
   [data-slot='base'].chip[data-variant='info'][data-color='success'] {
-    @apply border! border-(--color-success-border)! bg-[rgba(74,124,89,0.1)]! text-(--color-success)!;
+    @apply border! border-(--color-success-border)! bg-(--color-success-chip-bg)! text-(--color-success)!;
   }
   [data-slot='base'].chip[data-variant='info'][data-color='warning'] {
-    @apply border! border-(--color-warning-border)! bg-[rgba(176,125,58,0.1)]! text-(--color-warning)!;
+    @apply border! border-(--color-warning-border)! bg-(--color-warning-chip-bg)! text-(--color-warning)!;
   }
   [data-slot='base'].chip[data-variant='info'][data-color='danger'] {
-    @apply border! border-(--color-error-border)! bg-[rgba(139,58,58,0.1)]! text-(--color-error)!;
+    @apply border! border-(--color-error-border)! bg-(--color-error-chip-bg)! text-(--color-error)!;
   }
 
   [data-slot='base'].chip[data-variant='status'] {
@@ -1011,7 +1378,7 @@ textarea:focus-visible {
   }
   .number-field__decrement-button:hover,
   .number-field__increment-button:hover {
-    @apply bg-(--color-accent-light) text-(--color-accent);
+    @apply bg-(--color-accent-light)! text-(--color-accent)!;
   }
 
   .number-field__input::after,

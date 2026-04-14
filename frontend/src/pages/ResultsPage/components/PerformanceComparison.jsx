@@ -17,7 +17,7 @@ export function PerformanceComparison({ resolvedRadarData, radarConfigs, detailL
             </div>
           </div>
 
-          <div className="w-full rounded-3xl border-0 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4">
+          <div className="w-full rounded-3xl border-0 border-(--color-border-card) bg-(--color-bg-card-light) p-4">
             <RadarChart
               data={resolvedRadarData}
               radarConfigs={radarConfigs}

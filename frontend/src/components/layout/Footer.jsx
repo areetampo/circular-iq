@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Copyright } from 'lucide-react';
+import { Citrus, Copyright } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { SITE_FULL_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
@@ -66,7 +66,7 @@ export default function Footer() {
                   </a>
                 ))}
                 <p className="max-w-xs text-xs/relaxed text-(--color-text-secondary) italic">
-                  ~ Made by Areeb and Mahit ~
+                  ~ Made by Areeb and Mahit <Citrus className="ml-0.75 inline" size={12} /> ~
                 </p>
               </div>
             </motion.div>

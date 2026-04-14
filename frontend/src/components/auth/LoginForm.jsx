@@ -98,7 +98,7 @@ export function LoginForm({ onSwitchToSignup }) {
                   type="text"
                   placeholder="username"
                   disabled={isLoading}
-                  className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
+                  className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -133,7 +133,7 @@ export function LoginForm({ onSwitchToSignup }) {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••"
                     disabled={isLoading}
-                    className="h-10.5 w-full rounded-[9px] border border-[rgba(180,160,130,0.35)] bg-[rgba(245,240,232,0.5)] px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_rgba(184,145,106,0.14)] focus:outline-none"
+                    className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
                     autoComplete="current-password"
                     maxLength={30}
                   />

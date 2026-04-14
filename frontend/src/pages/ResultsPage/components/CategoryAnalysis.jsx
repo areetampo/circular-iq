@@ -7,10 +7,10 @@ import { cn } from '@/utils/cn';
 export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
   const getScoreColor = (numValue) => {
     return numValue >= 75
-      ? '#4a7c59' // muted green
+      ? 'var(--color-success)' // green
       : numValue >= 50
-        ? '#b07d3a' // muted amber
-        : '#8b3a3a'; // muted red
+        ? 'var(--color-warning)' // amber
+        : 'var(--color-error)'; // red
   };
 
   return (
@@ -35,7 +35,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
             return (
               <div
                 key={key}
-                className="rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4"
+                className="rounded-2xl border-2 border-(--color-border-card) bg-(--color-bg-card-light) p-4"
               >
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex-1">
@@ -45,13 +45,14 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                     <p className="mt-0.5 text-sm text-(--color-text-muted)">{category.desc}</p>
                   </div>
                   <div
-                    className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-lg font-medium text-[${badgeColor}]`}
+                    className="ml-4 rounded-lg border border-(--color-border-card) bg-transparent px-3 py-1 text-lg font-medium"
+                    style={{ color: badgeColor }}
                   >
                     {numValue}
                   </div>
                 </div>
 
-                <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(180,160,130,0.2)]">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-(--color-progress-track)">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       numValue >= 75 ? 'opacity-70' : 'opacity-60'
@@ -66,7 +67,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
             );
           })}
           {/* Business Viability Category */}
-          <div className="rounded-2xl border-2 border-[rgba(180,160,130,0.18)] bg-[rgba(245,240,232,0.5)] p-4">
+          <div className="rounded-2xl border-2 border-(--color-border-card) bg-(--color-bg-card-light) p-4">
             <div className="mb-2 flex items-center justify-between">
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-(--color-text-primary)">
@@ -77,13 +78,14 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                 </p>
               </div>
               <div
-                className={`ml-4 rounded-lg border border-[rgba(180,160,130,0.18)] bg-transparent px-3 py-1 text-lg font-medium text-[${getScoreColor(resolvedBusinessViabilityScore)}]`}
+                className="ml-4 rounded-lg border border-(--color-border-card) bg-transparent px-3 py-1 text-lg font-medium"
+                style={{ color: getScoreColor(resolvedBusinessViabilityScore) }}
               >
                 {resolvedBusinessViabilityScore}
               </div>
             </div>
 
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(180,160,130,0.2)]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-(--color-progress-track)">
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-500',

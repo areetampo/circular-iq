@@ -41,8 +41,11 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(45,90,61,0.1)]">
-                  <Icon className="size-4 text-[#2d5a3d]" strokeWidth={1.75} />
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-drawer-icon-success-bg)">
+                  <Icon
+                    className="size-4 text-(--color-drawer-icon-success-text)"
+                    strokeWidth={1.75}
+                  />
                 </div>
                 <div>
                   <Drawer.Heading>{SPECIFIC_PARAMETER_CONTENT.heading}</Drawer.Heading>

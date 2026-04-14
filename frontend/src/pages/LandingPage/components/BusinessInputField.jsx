@@ -48,7 +48,7 @@ export default function BusinessInputField({
         {...register(fieldName)}
         disabled={loading}
         /* Keep the className minimal to avoid conflicts */
-        className="textarea min-h-35 w-full rounded-xl! bg-[rgba(245,240,232,0.5)] p-4 font-mono text-(--color-text-primary) transition-all duration-200"
+        className="textarea min-h-35 w-full rounded-xl! bg-(--color-bg-card-light) p-4 font-mono text-(--color-text-primary) transition-all duration-200"
         onBlur={(e) => {
           register(fieldName).onBlur(e);
           if (flushAutosave) flushAutosave();

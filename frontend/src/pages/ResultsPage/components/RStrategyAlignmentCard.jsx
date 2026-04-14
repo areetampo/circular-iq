@@ -12,10 +12,10 @@ export function RStrategyAlignmentCard({ actualResult }) {
     actualResult.r_strategy_alignment;
 
   const getScoreColor = (score) => {
-    if (score >= 75) return '#6b8f71';
-    if (score >= 55) return '#7a9eb5';
-    if (score >= 35) return '#d4b896';
-    return '#c4956a';
+    if (score >= 75) return 'var(--color-score-high)';
+    if (score >= 55) return 'var(--color-score-mid)';
+    if (score >= 35) return 'var(--color-score-low)';
+    return 'var(--color-score-fail)';
   };
 
   return (

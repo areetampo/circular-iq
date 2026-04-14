@@ -106,7 +106,7 @@ export default function ErrorDisplay({
       <div
         className={cn(
           'w-full max-w-lg rounded-4xl bg-transparent p-8',
-          `border-4 border-dashed border-(--color-danger)/20`,
+          `border-4 border-dashed border-(--color-error-soft-ui)`,
         )}
       >
         {/* Icon + title */}
@@ -146,7 +146,7 @@ export default function ErrorDisplay({
 
         {/* Error details (dev only) */}
         {import.meta.env.DEV && errorDetails && (
-          <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-(--color-danger)/10 p-3">
+          <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-(--color-error-soft-ui) p-3">
             <CopyButton
               value={errorDetailsMsg}
               size={16}

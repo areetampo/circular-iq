@@ -2,27 +2,56 @@
  * Chart utility functions to reduce code duplication
  */
 
+/**
+ * Resolves CSS variable strings to actual color values at render time
+ * @param {string} varString - CSS variable string (e.g., 'var(--color-primary)')
+ * @param {string} fallback - Default hex color if variable is not found
+ * @returns {string} - Resolved color value
+ */
+export function resolveCSSVar(varString, fallback = '#000000') {
+  if (typeof window === 'undefined') return fallback; // SSR fallback
+  if (!varString || !varString.startsWith('var(')) return varString;
+
+  const varName = varString.slice(4, -1); // Extract '--color-primary' from 'var(--color-primary)'
+  const cssValue = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  return cssValue || fallback;
+}
+
 // ─── Colours ──────────────────────────────────────────────────────────────────
-export const TIER_COLORS = [
-  '#4a7c59', // success green
-  '#5a4f42', // text secondary
-  '#b07d3a', // warning amber
-  '#8b3a3a', // error red
-  '#9a8f82', // text muted
+// Factory functions to resolve CSS variables at render time
+export const getTierColors = () => [
+  resolveCSSVar('var(--chart-2)', '#4a7c59'), // muted forest green
+  resolveCSSVar('var(--color-info)', '#455771'), // slate blue (matches actual --color-info value)
+  resolveCSSVar('var(--chart-3)', '#b07d3a'), // muted amber
+  resolveCSSVar('var(--chart-4)', '#8b3a3a'), // muted terracotta
+  resolveCSSVar('var(--chart-6)', '#9a8f82'), // text muted
 ];
 
-export const RISK_COLORS = ['#4a7c59', '#b07d3a', '#8b3a3a', '#9a8f82'];
-
-export const SCORE_COLORS = ['#8b3a3a', '#b07d3a', '#5a4f42', '#4a7c59'];
-
-export const SCALE_COLORS = [
-  '#8b3a3a', // error red
-  '#b07d3a', // warning amber
-  '#5a4f42', // text secondary
-  '#4a7c59', // success green
-  '#b8916a', // warm accent brown
-  '#9a8f82', // text muted
+export const getRiskColors = () => [
+  resolveCSSVar('var(--chart-2)', '#4a7c59'),
+  resolveCSSVar('var(--chart-3)', '#b07d3a'),
+  resolveCSSVar('var(--chart-4)', '#8b3a3a'),
+  resolveCSSVar('var(--chart-6)', '#9a8f82'),
 ];
+
+export const getScoreColors = () => [
+  resolveCSSVar('var(--chart-4)', '#8b3a3a'),
+  resolveCSSVar('var(--chart-3)', '#b07d3a'),
+  resolveCSSVar('var(--color-info)', '#5a7a9a'), // fixed from --chart-5
+  resolveCSSVar('var(--chart-2)', '#4a7c59'),
+];
+
+export const getScaleColors = () => [
+  resolveCSSVar('var(--chart-4)', '#8b3a3a'), // muted terracotta
+  resolveCSSVar('var(--chart-3)', '#b07d3a'), // muted amber
+  resolveCSSVar('var(--color-info)', '#5a7a9a'), // fixed from --chart-5
+  resolveCSSVar('var(--chart-2)', '#4a7c59'), // muted forest green
+  resolveCSSVar('var(--chart-1)', '#b8916a'), // warm accent brown
+  resolveCSSVar('var(--chart-6)', '#9a8f82'), // text muted
+];
+
+// Note: Use getter functions directly instead of Proxy exports
+// Example: getTierColors()[0] instead of TIER_COLORS[0]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -179,7 +179,7 @@ function ResultsRestoreDialogContent() {
             <AlertDialog.Body className="text-center text-sm/relaxed text-(--color-text-secondary)">
               Your inputs are automatically saved, but we also found a completed calculation from a
               previous session. Would you like to restore those results now?
-              <div className="mt-4 flex items-center gap-3 rounded-xl border-2 border-dashed border-[rgba(180,160,130,0.3)] p-1 px-2">
+              <div className="mt-4 flex items-center gap-3 rounded-xl border-2 border-dashed border-(--color-border-ui) p-1 px-2">
                 <FileCheck className="size-5 shrink-0 text-(--color-text-muted)" />
                 <p className="text-xs font-medium text-black/60">
                   {hasResults ? (

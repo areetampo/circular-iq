@@ -356,7 +356,7 @@ const OverviewSection = () => {
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {GUIDE_PAGE_CONTENT.overview.methodologyItems.map((item, idx) => (
-            <div key={idx} className="rounded-xl bg-(--color-warning)/5 p-4">
+            <div key={idx} className="rounded-xl bg-(--color-warning-alpha-5) p-4">
               <div className="w-fit rounded-lg bg-(--color-bg) p-2">
                 <item.icon className="size-5 text-(--color-accent)" />
               </div>
@@ -653,7 +653,7 @@ const BusinessProblemSection = () => {
       {/* Writing Tips */}
       <div id="problem-tips" className="mt-10 scroll-mt-24">
         <h3 className="mb-4 font-sniglet text-lg text-(--color-text-primary)">Writing Tips</h3>
-        <div className="rounded-lg border border-(--color-info)/20 bg-(--color-info-soft-ui) p-4">
+        <div className="rounded-lg border border-(--color-info-alpha-20) bg-(--color-info-soft-ui) p-4">
           <p className="mb-3 text-xs font-bold tracking-wider text-(--color-info) uppercase">
             Writing Tips
           </p>
@@ -688,7 +688,7 @@ const BusinessProblemSection = () => {
           <p className="text-sm font-medium text-(--color-text-primary)">
             Minimum 200 characters required
           </p>
-          <p className="text-xs text-black/75">
+          <p className="text-xs text-(--color-text-muted)">
             Longer descriptions help the AI provide more accurate analysis and better scoring.
           </p>
         </div>
@@ -837,7 +837,7 @@ const BusinessSolutionSection = () => {
           <p className="text-sm font-medium text-(--color-text-primary)">
             Minimum 200 characters required
           </p>
-          <p className="text-xs text-black/75">
+          <p className="text-xs text-(--color-text-muted)">
             Longer descriptions help the AI provide more accurate analysis and better scoring.
           </p>
         </div>
@@ -1240,10 +1240,10 @@ const ScoringBenchmarkingSection = () => (
               'flex items-start gap-4 px-4 py-3.5',
               i !== GUIDE_PAGE_CONTENT.scoringBenchmarking.tiers.length - 1 &&
                 'border-b-[1.5px] border-(--color-border-faint)',
-              tier.color === 'success' && 'bg-(--color-success)/10',
-              tier.color === 'info' && 'bg-(--color-info)/10',
-              tier.color === 'warning' && 'bg-(--color-warning)/10',
-              tier.color === 'accent' && 'bg-(--color-accent)/10',
+              tier.color === 'success' && 'bg-(--color-success-soft-10)',
+              tier.color === 'info' && 'bg-(--color-info-soft-10)',
+              tier.color === 'warning' && 'bg-(--color-warning-soft-10)',
+              tier.color === 'accent' && 'bg-(--color-accent-soft-10)',
             )}
           >
             <div className="flex w-24 shrink-0 flex-col gap-1">
@@ -1396,7 +1396,7 @@ const UnderstandingResultsSection = () => (
               key={i}
               className="flex items-start gap-4 rounded-xl bg-(--color-warning-soft-ui) p-4"
             >
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-warning)/20 font-mono text-xs font-bold">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-warning-soft-mid) font-mono text-xs font-bold">
                 {i + 1}
               </div>
               <div>
@@ -1440,7 +1440,7 @@ const UnderstandingResultsSection = () => (
                       <p className="text-xs font-semibold text-(--color-accent)">{f.field}</p>
                     </Table.Cell>
                     <Table.Cell className="px-3 py-2">
-                      <p className="text-xs text-(--color-text-primary)/60">{f.desc}</p>
+                      <p className="text-xs text-(--color-text-muted)">{f.desc}</p>
                     </Table.Cell>
                   </Table.Row>
                 ),
@@ -1463,7 +1463,7 @@ const UnderstandingResultsSection = () => (
             key={sdg.goal}
             className="flex items-start gap-3 rounded-xl border border-(--color-border-ui) bg-(--color-accent-soft-ui) px-4 py-3"
           >
-            <span className="shrink-0 rounded-md border border-(--color-info)/50 bg-(--color-info-soft) px-2 py-0.5 font-mono text-[11px] font-bold text-(--color-info)">
+            <span className="shrink-0 rounded-md border border-(--color-info-alpha-50) bg-(--color-info-soft) px-2 py-0.5 font-mono text-[11px] font-bold text-(--color-info)">
               {sdg.goal}
             </span>
             <div>
@@ -1569,7 +1569,7 @@ const SampleTestCasesSection = () => {
               key={step.num}
               className="flex items-start gap-3 border-b border-(--color-border-faint) py-3 last:border-b-0"
             >
-              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-warning-soft-ui) font-mono text-xs font-bold text-(--color-accent)">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-full border border-(--color-border-ui) bg-(--color-warning-soft-10) font-mono text-xs font-bold text-(--color-accent)">
                 {step.num}
               </div>
               <div>

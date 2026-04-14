@@ -145,7 +145,7 @@ export function ResultsActionBar({
             strokeWidth={2.5}
             description="ID"
             noBorder
-            color="#00000077"
+            color="var(--color-text-black-77)"
           />
         )}
       </div>

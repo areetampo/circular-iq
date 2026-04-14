@@ -46,8 +46,12 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(74,85,104,0.1)]">
-                  <PencilLine size={16} className="text-[#4a5568]" strokeWidth={1.75} />
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-drawer-icon-slate-bg)">
+                  <PencilLine
+                    size={16}
+                    className="text-(--color-drawer-icon-slate-text)"
+                    strokeWidth={1.75}
+                  />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading font-mono">{title}</Drawer.Heading>

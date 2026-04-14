@@ -7,7 +7,7 @@
  * CONFIGURATION (change these values in the config object below):
  *   - cellSize: number (px) – spacing between grid lines (default 60)
  *   - lineWidth: number (px) – thickness of the lines (default 0.6)
- *   - strokeStyle: string – colour of the lines (default '#d4c5b0')
+ *   - strokeStyle: string – colour of the lines (default 'var(--color-bg-grid)')
  *   - globalAlpha: number – transparency of the lines (default 0.18)
  *   - speedX: number – horizontal translation speed (px per frame, default 0.08)
  *   - speedY: number – vertical translation speed (px per frame, default 0.08)
@@ -31,7 +31,7 @@ class MovingGrid {
     this.config = {
       cellSize: 30, // grid spacing
       lineWidth: 0.8,
-      strokeStyle: '#d4c5b0',
+      strokeStyle: 'var(--color-bg-grid)',
       globalAlpha: 0.2, // line color opacity
       speedX: -0.25,
       speedY: -0.25,
@@ -63,12 +63,42 @@ class MovingGrid {
     const { width, height } = this.canvas;
     const { cellSize, lineWidth, strokeStyle, globalAlpha, segmentGap, rotation } = this.config;
 
+    // Resolve CSS variable for canvas context
+    const resolvedStrokeStyle = strokeStyle.startsWith('var(')
+      ? (() => {
+          const varName = strokeStyle.slice(4, -1).trim();
+          // Try to get from :root first (accessible via getComputedStyle)
+          let value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+
+          // If value is another CSS variable reference, resolve it recursively
+          if (value.startsWith('var(')) {
+            const nestedVarName = value.slice(4, -1).trim();
+            const nestedValue = getComputedStyle(document.documentElement)
+              .getPropertyValue(nestedVarName)
+              .trim();
+            value = nestedValue || '#d4c5b0';
+          }
+
+          // If not found, it might be a @theme variable, use fallback
+          if (!value) {
+            // Map common @theme variables to their fallback values
+            const themeFallbacks = {
+              '--color-bg-grid': '#d4c5b0',
+              '--theme-bg-grid': '#d4c5b0',
+            };
+            value = themeFallbacks[varName] || '#d4c5b0';
+          }
+
+          return value;
+        })()
+      : strokeStyle;
+
     this.ctx.save();
     this.ctx.translate(width / 2, height / 2);
     this.ctx.rotate((rotation * Math.PI) / 180);
 
     this.ctx.lineWidth = lineWidth;
-    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeStyle = resolvedStrokeStyle;
     this.ctx.globalAlpha = globalAlpha;
 
     const diag = Math.sqrt(width * width + height * height);

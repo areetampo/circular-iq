@@ -153,7 +153,7 @@ function BusinessContextContainer({
           control={control}
           render={({ field }) => (
             <div
-              className="flex cursor-pointer items-center justify-between rounded-xl border-2 border-(--color-warning)/15 px-4 py-3 transition-colors duration-150"
+              className="flex cursor-pointer items-center justify-between rounded-xl border-2 border-(--color-warning-border) px-4 py-3 transition-colors duration-150"
               onClick={() => field.onChange(!field.value)}
             >
               <div className="flex items-center gap-3">

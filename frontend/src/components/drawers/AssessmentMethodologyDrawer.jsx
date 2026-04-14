@@ -37,8 +37,12 @@ export default function AssessmentMethodologyDrawer() {
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(45,90,61,0.1)]">
-                  <ChartSpline size={16} className="text-[#2d5a3d]" strokeWidth={1.75} />
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-drawer-icon-success-bg)">
+                  <ChartSpline
+                    size={16}
+                    className="text-(--color-drawer-icon-success-text)"
+                    strokeWidth={1.75}
+                  />
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
@@ -158,11 +162,11 @@ export default function AssessmentMethodologyDrawer() {
                             .map((dataset, dsIdx) => (
                               <div
                                 key={dsIdx}
-                                className="flex flex-col gap-2 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-success)/5 px-2 py-1 text-[0.7rem] leading-relaxed text-(--color-text-muted) [&>*:last-child]:mt-auto"
+                                className="flex flex-col gap-2 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-success-soft-ui) px-2 py-1 text-[0.7rem] leading-relaxed text-(--color-text-muted) [&>*:last-child]:mt-auto"
                               >
                                 <div className="mb-1 flex flex-col justify-center gap-1 font-medium text-(--color-text-secondary)">
                                   <span>{dataset.name}</span>
-                                  <span className="w-fit rounded-lg bg-(--color-success-b)/10 px-1.5 py-0.5 text-[0.7rem] text-(--color-text-secondary)">
+                                  <span className="w-fit rounded-lg bg-(--color-success-soft-10) px-1.5 py-0.5 text-[0.7rem] text-(--color-text-secondary)">
                                     {dataset.count}
                                   </span>
                                 </div>
@@ -185,7 +189,7 @@ export default function AssessmentMethodologyDrawer() {
               </div>
 
               {/* Disclaimer */}
-              <div className="flex items-start gap-3 rounded-xl bg-(--color-danger)/10 p-4">
+              <div className="flex items-start gap-3 rounded-xl bg-(--color-error-soft-ui) p-4">
                 <TriangleAlert
                   size={20}
                   strokeWidth={2}

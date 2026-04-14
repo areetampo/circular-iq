@@ -11,7 +11,7 @@ import { titleize } from '@/lib/formatting';
 export function FieldDisplayCard({ label, value, helpText }) {
   return (
     <div className="rounded-xl border-[1.5px] border-(--color-border-ui) p-4">
-      <div className="mb-1 text-sm font-semibold tracking-wide text-[#2d5a3d] uppercase">
+      <div className="mb-1 text-sm font-semibold tracking-wide text-(--color-text-label) uppercase">
         {label}
       </div>
       <div className="text-sm font-medium text-(--color-text-primary)">{titleize(value || '')}</div>

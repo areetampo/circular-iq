@@ -14,14 +14,16 @@ const variantStyles = {
   filter: [
     'font-medium text-xs',
     'border transition-all duration-200 cursor-pointer',
-    'hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
+    'hover:border-(--color-accent) hover:text-(--color-accent)',
   ].join(' '),
 
   // Public/Private chips - simple design for AssessmentListItem
   // Minimal, clean appearance with color tints
-  'access-type': ['text-[0.625rem] font-medium text-xs border', 'transition-all duration-200'].join(
-    ' ',
-  ),
+  'access-type': [
+    'text-[0.625rem] font-medium text-xs border',
+    'transition-all duration-200',
+    'opacity-85',
+  ].join(' '),
 
   // Source chips - for database evidence cards
   // Clean, informational style with distinct appearance
@@ -40,8 +42,8 @@ const variantStyles = {
   // Eco-themed styling with distinct appearance
   strategy: [
     'font-medium text-xs',
-    'bg-[#c3e6c3] text-[#1a4016]',
-    'border border-[#a8d2a8]',
+    'bg-(--color-chip-strategy-bg) text-(--color-chip-strategy-text)',
+    'border border-(--color-chip-strategy-border)',
     'transition-all duration-200',
   ].join(' '),
 
@@ -49,8 +51,8 @@ const variantStyles = {
   // Different styling to distinguish from source chips
   materials: [
     'font-medium text-xs',
-    'bg-[#e0d4c0] text-[#3a2c18]',
-    'border border-[#d0c0b0]',
+    'bg-(--color-chip-materials-bg) text-(--color-chip-materials-text)',
+    'border border-(--color-chip-materials-border)',
     'transition-all duration-200',
   ].join(' '),
 
@@ -58,8 +60,8 @@ const variantStyles = {
   // Used throughout results pages
   factor: [
     'font-medium text-xs',
-    'bg-[#d4c8b8] text-[#3a2f1f]',
-    'border border-[#c0b4a4]',
+    'bg-(--color-chip-factor-bg) text-(--color-chip-factor-text)',
+    'border border-(--color-chip-factor-border)',
     'transition-all duration-200',
   ].join(' '),
 
@@ -67,8 +69,8 @@ const variantStyles = {
   // Can be combined with color prop
   status: [
     'font-semibold text-xs tracking-wider uppercase',
-    'bg-[#d4c8b8] text-[#3a2f1f]',
-    'border border-[#c0b4a4]',
+    'bg-(--color-chip-factor-bg) text-(--color-chip-factor-text)',
+    'border border-(--color-chip-factor-border)',
     'transition-all duration-200',
   ].join(' '),
 
@@ -76,16 +78,16 @@ const variantStyles = {
   // Neutral, clean style
   info: [
     'font-medium text-xs',
-    'bg-[#d4c8b8] text-[#3a2f1f]',
-    'border border-[#c0b4a4]',
+    'bg-(--color-chip-factor-bg) text-(--color-chip-factor-text)',
+    'border border-(--color-chip-factor-border)',
     'transition-all duration-200',
   ].join(' '),
 
   // Case reference chips - for case numbers and references
   case: [
     'text-xs',
-    'bg-[#d4c8b8] text-[#3a2f1f]',
-    'border border-[#c0b4a4]',
+    'bg-(--color-chip-factor-bg) text-(--color-chip-factor-text)',
+    'border border-(--color-chip-factor-border)',
     'transition-all duration-200',
   ].join(' '),
 
@@ -109,68 +111,83 @@ const sizeStyles = {
 const getColorOverrides = (variant, color, active) => {
   if (variant === 'filter') {
     return active
-      ? 'border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent-light)]'
-      : 'border-(--color-border-ui) text-[var(--color-text-muted)] bg-transparent';
+      ? 'border-(--color-accent) text-(--color-accent) bg-(--color-accent-light)'
+      : 'border-(--color-border-ui) text-(--color-text-muted) bg-transparent';
   }
 
   if (variant === 'access-type') {
     switch (color) {
       case 'public':
-        return 'bg-[#e8f5e8] text-[#2d5a2d]/70 border-[#2d5a2d]/20';
+        return {
+          backgroundColor: 'var(--color-access-public-bg)',
+          color: 'var(--color-access-public-text)',
+          borderColor: 'var(--color-access-public-border)',
+          borderWidth: 1,
+        };
       case 'private':
-        return 'bg-[#ffe8e8] text-[#a52a2a]/70 border-[#a52a2a]/20';
+        return {
+          backgroundColor: 'var(--color-access-private-bg)',
+          color: 'var(--color-access-private-text)',
+          borderColor: 'var(--color-access-private-border)',
+          borderWidth: 1,
+        };
       default:
-        return 'bg-transparent text-[var(--color-text-secondary)] border border-[var(--color-border-ui)]';
+        return {
+          backgroundColor: 'transparent',
+          color: 'var(--color-text-secondary)',
+          borderColor: 'var(--color-border-ui)',
+          borderWidth: 1,
+        };
     }
   }
 
   if (variant === 'match') {
     switch (color) {
       case 'strong':
-        return 'bg-[#b8e6b8] text-[#1a4016] border-[#b8e6b8]';
+        return 'bg-(--color-match-strong-bg) text-(--color-match-strong-text) border-(--color-match-strong-border)';
       case 'decent':
-        return 'bg-[#e6d4b8] text-[#7a4c1a] border-[#e6d4b8]';
+        return 'bg-(--color-match-decent-bg) text-(--color-match-decent-text) border-(--color-match-decent-border)';
       case 'weak':
-        return 'bg-[#f8d7d7] text-[#7f1d1d] border-[#f8d7d7]';
+        return 'bg-(--color-match-weak-bg) text-(--color-match-weak-text) border-(--color-match-weak-border)';
       default:
-        return 'bg-[#d4c8b8] text-[#2a1f0f] border-[#c0b4a4]';
+        return 'bg-(--color-match-default-bg) text-(--color-match-default-text) border-(--color-match-default-border)';
     }
   }
 
   if (variant === 'severity') {
     switch (color) {
       case 'high':
-        return 'bg-[#f8d7d7] text-[#7f1d1d] border-[#fca5a5]';
+        return 'bg-(--color-severity-high-bg) text-(--color-severity-high-text) border-(--color-severity-high-border)';
       case 'medium':
-        return 'bg-[#fef3c7] text-[#92400e] border-[#fde68a]';
+        return 'bg-(--color-severity-medium-bg) text-(--color-severity-medium-text) border-(--color-severity-medium-border)';
       case 'low':
-        return 'bg-[#d1fae5] text-[#065f46] border-[#a7f3d0]';
+        return 'bg-(--color-severity-low-bg) text-(--color-severity-low-text) border-(--color-severity-low-border)';
       default:
-        return 'bg-[#d4c8b8] text-[#2a1f0f] border-[#c0b4a4]';
+        return 'bg-(--color-match-default-bg) text-(--color-match-default-text) border-(--color-match-default-border)';
     }
   }
 
   if (variant === 'status') {
     switch (color) {
       case 'success':
-        return 'bg-[rgba(74,124,89,0.15)] text-[#4a7c59] border-[rgba(74,124,89,0.3)]';
+        return 'bg-(--color-success-soft-ui) text-(--color-success) border-(--color-success-border)';
       case 'warning':
-        return 'bg-[rgba(176,125,58,0.15)] text-[#b07d3a] border-[rgba(176,125,58,0.3)]';
+        return 'bg-(--color-warning-soft-ui) text-(--color-warning) border-(--color-warning-border)';
       case 'danger':
-        return 'bg-[rgba(139,58,58,0.15)] text-[#8b3a3a] border-[rgba(139,58,58,0.3)]';
+        return 'bg-(--color-error-soft-ui) text-(--color-error) border-(--color-error-border)';
       default:
-        return 'bg-[#e0d4c0] text-[#3a2c18] border-[#d0c0b0]';
+        return 'bg-(--color-chip-materials-bg) text-(--color-chip-materials-text) border-(--color-chip-materials-border)';
     }
   }
 
   if (color && variant !== 'match' && variant !== 'severity' && variant !== 'status') {
     switch (color) {
       case 'success':
-        return 'border-[var(--color-success)] text-[var(--color-success)]';
+        return 'border-(--color-success) text-(--color-success)';
       case 'warning':
-        return 'border-[var(--color-warning)] text-[var(--color-warning)]';
+        return 'border-(--color-warning) text-(--color-warning)';
       case 'danger':
-        return 'border-[var(--color-error)] text-[var(--color-error)]';
+        return 'border-(--color-error) text-(--color-error)';
       default:
         return '';
     }
@@ -211,13 +228,31 @@ export const Chip = forwardRef(function Chip(
   const variantClasses = variantStyles[variant] || variantStyles.info;
   const colorOverrides = getColorOverrides(variant, color, active);
 
+  // For access-type variant, use inline styles instead of Tailwind classes with opacity modifiers
+  const accessTypeStyles =
+    variant === 'access-type' && colorOverrides.backgroundColor
+      ? {
+          backgroundColor: colorOverrides.backgroundColor,
+          color: colorOverrides.color,
+          borderColor: colorOverrides.borderColor,
+          borderWidth: colorOverrides.borderWidth,
+        }
+      : {};
+
   return (
     <HeroChip
       ref={ref}
-      className={cn(baseClasses, variantClasses, resolvedSize, colorOverrides, className)}
+      className={cn(
+        baseClasses,
+        variantClasses,
+        resolvedSize,
+        variant === 'access-type' ? '' : colorOverrides,
+        className,
+      )}
       variant="flat"
       size={undefined}
       onClick={onClick}
+      style={accessTypeStyles}
       {...props}
     >
       <span className="flex items-center justify-center truncate">{children}</span>

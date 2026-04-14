@@ -10,21 +10,25 @@ import {
 } from 'recharts';
 
 import { ChartContainer, ChartLegendContent, ChartTooltipContent } from '@/components/ui/chart';
+import { resolveCSSVar } from '@/utils/chartHelpers';
 import { cn } from '@/utils/cn';
 
-// Warm palette fallback — never use MUI-default bright blues/reds
-const WARM_FALLBACK_COLORS = [
-  '#b8916a', // bronze/tan
-  '#4a7c59', // forest green
-  '#8b3a3a', // terracotta
-  '#5a7a9a', // slate blue
-  '#b07d3a', // amber
-  '#7a5c7a', // plum
-  '#3a6b8b', // ocean blue
-  '#8b5e3a', // warm brown
-  '#6b8b5a', // sage
-  '#9a6b4b', // tan
+// Warm palette fallback — factory function to resolve at render time
+const getWarmFallbackColors = () => [
+  resolveCSSVar('var(--chart-1)', '#b8916a'), // bronze/tan
+  resolveCSSVar('var(--chart-2)', '#4a7c59'), // forest green
+  resolveCSSVar('var(--chart-4)', '#8b3a3a'), // muted terracotta
+  resolveCSSVar('var(--color-material-slate)', '#5a7a9a'), // slate blue
+  resolveCSSVar('var(--chart-3)', '#b07d3a'), // muted amber
+  resolveCSSVar('var(--color-material-plum)', '#7a5c7a'), // plum
+  resolveCSSVar('var(--color-material-ocean)', '#3a6b8b'), // ocean blue
+  resolveCSSVar('var(--color-material-warm)', '#b8916a'), // warm brown
+  resolveCSSVar('var(--color-material-sage)', '#6b8b5a'), // sage
+  resolveCSSVar('var(--chart-6)', '#9a8f82'), // tan
 ];
+
+// Note: Use getter function directly instead of Proxy export
+// Example: getWarmFallbackColors() instead of WARM_FALLBACK_COLORS
 
 export default function PieChart({
   data = [],
@@ -62,7 +66,7 @@ export default function PieChart({
     );
   }
 
-  const palette = colors?.length ? colors : WARM_FALLBACK_COLORS;
+  const palette = colors?.length ? colors : getWarmFallbackColors();
 
   // Config for ChartContainer and tooltip
   const config = Object.fromEntries(
@@ -93,7 +97,7 @@ export default function PieChart({
             outerRadius="62%"
             paddingAngle={data.length > 1 ? 2 : 0}
             strokeWidth={data.length > 1 ? 1 : 0}
-            stroke="rgba(245,240,232,0.8)"
+            stroke="var(--color-chart-stroke)"
           >
             {data.map((_, i) => (
               <Cell key={i} fill={palette[i % palette.length]} />

@@ -14,11 +14,11 @@ function StatCard({ title, value, subtext, loading }) {
 
   if (loading) {
     return (
-      <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.3)] bg-transparent p-5">
-        <div className="h-7 w-16 animate-pulse rounded-md bg-[rgba(180,160,130,0.2)]" />
-        <div className="mt-2 h-2.5 w-20 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
+      <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent p-5">
+        <div className="h-7 w-16 animate-pulse rounded-md bg-(--color-skeleton-pulse-lg)" />
+        <div className="mt-2 h-2.5 w-20 animate-pulse rounded-md bg-(--color-skeleton-pulse-md)" />
         {subtext && (
-          <div className="mt-1 h-3.5 w-24 animate-pulse rounded-md bg-[rgba(180,160,130,0.15)]" />
+          <div className="mt-1 h-3.5 w-24 animate-pulse rounded-md bg-(--color-skeleton-pulse-md)" />
         )}
       </div>
     );
@@ -27,7 +27,7 @@ function StatCard({ title, value, subtext, loading }) {
   const formattedValue = formatValue(value);
 
   return (
-    <div className="rounded-3xl border-2 border-[rgba(180,160,130,0.3)] bg-transparent p-5">
+    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent p-5">
       <p className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
         {title}
       </p>

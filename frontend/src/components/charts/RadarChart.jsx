@@ -10,11 +10,15 @@ import {
 } from 'recharts';
 
 import { ChartContainer, ChartLegendContent, ChartTooltipContent } from '@/components/ui/chart';
+import { resolveCSSVar } from '@/utils/chartHelpers';
 
 const FONT_FAMILY = 'JetBrains Mono, monospace';
 
 // Two distinct warm palette colors — green for "Your Idea", bronze for "Market Average"
-const SERIES_COLORS = ['#4a7c59', '#b8916a'];
+const getSeriesColors = () => [
+  resolveCSSVar('var(--color-success)', '#34a83a'),
+  resolveCSSVar('var(--color-accent)', '#b8916a'),
+];
 
 function RadarChartComponent({
   data,
@@ -42,7 +46,11 @@ function RadarChartComponent({
       cfg.dataKey,
       {
         label: cfg.name,
-        color: colors?.[i] || SERIES_COLORS[i] || cfg.stroke || SERIES_COLORS[0],
+        color: colors?.[i]
+          ? colors[i]
+          : getSeriesColors()[i]
+            ? getSeriesColors()[i]
+            : cfg.stroke || getSeriesColors()[0],
       },
     ]),
   );
@@ -58,20 +66,25 @@ function RadarChartComponent({
           margin={{ top: 5, right: 20, bottom: 5, left: 20 }}
           outerRadius="90%"
         >
-          <PolarGrid stroke="rgba(180,160,130,0.6)" strokeWidth={1} />
+          <PolarGrid stroke="var(--color-chart-grid-strong)" strokeWidth={1} />
           <PolarAngleAxis
             dataKey={axisKey}
             tick={{
               fontFamily: FONT_FAMILY,
               fontSize: 15,
               fontWeight: 500,
-              fill: '#5a4f42',
+              fill: 'var(--color-text-secondary)',
             }}
             tickLine={false}
           />
-          <Tooltip content={<ChartTooltipContent />} />
+          <Tooltip
+            content={<ChartTooltipContent />}
+            cursor={{ fill: 'var(--color-chart-cursor)' }}
+          />
           {radarConfigs.map((cfg, i) => {
-            const seriesColor = colors?.[i] || SERIES_COLORS[i] || cfg.stroke || SERIES_COLORS[0];
+            const seriesColor = colors?.[i]
+              ? colors[i]
+              : getSeriesColors()[i] || cfg.stroke || getSeriesColors()[0];
             const isFirst = i === 0;
 
             return (

@@ -116,8 +116,10 @@ export default function LoaderIcon({ color = '#8b6f47', isButton = false }) {
   // Resolve CSS variable at render time
   const accentColor = useMemo(() => {
     if (typeof window === 'undefined') return '#8b6f47'; // SSR fallback
-    const cssValue = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    return cssValue || '#8b6f47'; // Use brown if CSS variable is empty/invalid
+    const cssValue = getComputedStyle(document.documentElement)
+      .getPropertyValue('--color-ui-brown')
+      .trim();
+    return cssValue || '#8b6f47'; // Use fallback if CSS variable is empty/invalid
   }, []);
 
   // Get loaders with resolved color

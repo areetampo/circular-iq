@@ -64,10 +64,10 @@ function ChartTooltipContent({
 
   return (
     <div
-      className={`min-w-30 rounded-lg border border-(--color-border-ui) bg-[rgba(247,243,237,0.97)] p-2 font-mono text-xs text-[#1a1510] shadow-sm ${className || ''}`}
+      className={`min-w-30 rounded-lg border border-(--color-border-ui) bg-(--color-tooltip-bg) p-2 font-mono text-xs text-(--color-text-primary) shadow-sm ${className || ''}`}
     >
       {!hideLabel && label && (
-        <p className="mb-1 text-[11px] leading-tight font-semibold text-[#5a4f42]">
+        <p className="mb-1 text-[11px] leading-tight font-semibold text-(--color-text-secondary)">
           {labelFormatter ? labelFormatter(label, payload) : label}
         </p>
       )}
@@ -95,8 +95,10 @@ function ChartTooltipContent({
                   style={{ backgroundColor: color }}
                 />
               )}
-              <span className="text-[#5a4f42]">{displayName}</span>
-              <span className="ml-auto pl-2 font-semibold text-[#1a1510]">{displayValue}</span>
+              <span className="text-(--color-text-secondary)">{displayName}</span>
+              <span className="ml-auto pl-2 font-semibold text-(--color-text-primary)">
+                {displayValue}
+              </span>
             </div>
           );
         })}
@@ -111,7 +113,7 @@ function ChartLegendContent({ payload, className }) {
 
   return (
     <div
-      className={`flex flex-wrap justify-center gap-4 pt-2 font-mono text-[13px] font-medium text-[#5a4f42] ${className || ''}`}
+      className={`flex flex-wrap justify-center gap-4 pt-2 font-mono text-[13px] font-medium text-(--color-text-secondary) ${className || ''}`}
     >
       {payload.map((item, i) => (
         <div key={i} className="flex items-center gap-1.5">

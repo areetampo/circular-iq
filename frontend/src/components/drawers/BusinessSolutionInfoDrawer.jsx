@@ -51,8 +51,12 @@ export default function BusinessSolutionInfoDrawer() {
             )}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(180,160,130,0.12)]">
-                  <ClipboardMinus size={16} className="text-[#7a5c2e]" strokeWidth={1.75} />
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-drawer-icon-accent-bg)">
+                  <ClipboardMinus
+                    size={16}
+                    className="text-(--color-drawer-icon-accent-text)"
+                    strokeWidth={1.75}
+                  />
                 </div>
                 <div>
                   <Drawer.Heading>{BUSINESS_SOLUTION_CONTENT.title}</Drawer.Heading>

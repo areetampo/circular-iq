@@ -1,7 +1,7 @@
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, MoveDown, MoveUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { SectionHeading } from '@/components/common';
+import { Chip, SectionHeading } from '@/components/common';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 
 export function GapAnalysisCard({ result, variant = 'default' }) {
@@ -9,6 +9,7 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
   if (!gapAnalysis?.has_benchmarks) return null;
 
   const isTransparent = variant === 'transparent';
+  const { opportunities, strengths } = gapAnalysis;
 
   return (
     <div className="first:mt-0 first:border-0 first:pt-0">
@@ -29,20 +30,39 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
         strengths={gapAnalysis.strengths}
       />
 
-      {/* {(
-        <div className="mt-6 flex flex-wrap gap-2">
-          {gapAnalysis.opportunities?.map((factor) => (
-            <Chip key={factor} variant="status" color="warning">
-              ↑ {formatFactorName(factor)}
-            </Chip>
-          ))}
-          {gapAnalysis.strengths?.map((factor) => (
-            <Chip key={factor} variant="status" color="success">
-              ↓ {formatFactorName(factor)}
-            </Chip>
-          ))}
+      {(opportunities?.length > 0 || strengths?.length > 0) && (
+        <div className="mt-8 flex flex-col gap-3">
+          {opportunities?.length > 0 && (
+            <div className="mb-3">
+              <div className="mb-2 pl-2 text-sm font-medium text-(--foreground)">
+                Opportunities to Improve
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {opportunities.map((text) => (
+                  <Chip key={text} variant="status" color="warning">
+                    <MoveUp size={14} />
+                    <span>{text}</span>
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {strengths?.length > 0 && (
+            <div>
+              <div className="mb-2 pl-2 text-sm font-medium text-(--foreground)">Strengths</div>
+              <div className="flex flex-wrap gap-2">
+                {strengths.map((text) => (
+                  <Chip key={text} variant="status" color="success">
+                    <MoveDown size={14} />
+                    <span>{text}</span>
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )} */}
+      )}
     </div>
   );
 }

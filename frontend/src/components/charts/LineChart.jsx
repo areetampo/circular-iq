@@ -20,7 +20,7 @@ const TICK_STYLE = {
   fontFamily: FONT_FAMILY,
   fontSize: 13,
   fontWeight: 500,
-  fill: '#5a4f42',
+  fill: 'var(--color-text-secondary)',
 };
 
 export default function LineChart({
@@ -80,12 +80,12 @@ export default function LineChart({
     <ChartContainer config={config} className={className} style={{ height }} aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsLineChart data={data} margin={{ top: 16, right: 24, bottom: 24, left: 8 }}>
-          <CartesianGrid vertical={false} stroke="rgba(180,160,130,0.15)" strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
           <XAxis
             dataKey={xAxisKey}
             tick={TICK_STYLE}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(180,160,130,0.3)' }}
+            axisLine={{ stroke: 'var(--color-chart-axis)' }}
             tickFormatter={formatXLabel}
             interval="preserveStartEnd"
           />
@@ -98,7 +98,7 @@ export default function LineChart({
           />
           <Tooltip
             content={<ChartTooltipContent />}
-            cursor={{ stroke: 'rgba(180,160,130,0.3)', strokeWidth: 1 }}
+            cursor={{ stroke: 'var(--color-chart-cursor-line)', strokeWidth: 1 }}
           />
           {showLegend && lines.length > 1 && (
             <Legend
@@ -106,7 +106,7 @@ export default function LineChart({
                 fontFamily: FONT_FAMILY,
                 fontSize: 13,
                 fontWeight: 500,
-                color: '#5a4f42',
+                color: 'var(--color-text-secondary)',
                 paddingTop: 8,
               }}
             />

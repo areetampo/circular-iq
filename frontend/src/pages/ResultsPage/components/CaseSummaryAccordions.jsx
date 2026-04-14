@@ -34,7 +34,7 @@ function AccordionItem({ id, icon, iconColor, title, description, children }) {
 function ContextField({ label, value }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-(--color-text-primary)/65">{label}</span>
+      <span className="text-sm text-(--color-text-muted)">{label}</span>
       <span className="font-mono text-sm text-(--color-text-muted)">{value}</span>
     </div>
   );
@@ -70,7 +70,7 @@ export function CaseSummaryAccordions({
           title="Problem"
           description="What the assessment identifies as the problem"
         >
-          <p className="py-2 text-sm/relaxed text-(--color-text-primary)/65">
+          <p className="py-2 text-sm/relaxed text-(--color-text-muted)">
             {businessProblem || 'Not available'}
           </p>
         </AccordionItem>
@@ -83,7 +83,7 @@ export function CaseSummaryAccordions({
           title="Solution"
           description="What the assessment proposes as the solution"
         >
-          <p className="py-2 text-sm/relaxed text-(--color-text-primary)/65">
+          <p className="py-2 text-sm/relaxed text-(--color-text-muted)">
             {businessSolution || 'Not available'}
           </p>
         </AccordionItem>
@@ -141,7 +141,7 @@ export function CaseSummaryAccordions({
             <div className="space-y-2 py-2">
               {parameterEntries.map((entry) => (
                 <div key={entry.key} className="flex items-center justify-between">
-                  <span className="text-sm text-(--color-text-primary)/65">{entry.label}</span>
+                  <span className="text-sm text-(--color-text-muted)">{entry.label}</span>
                   <span className="font-mono text-sm text-(--color-text-muted)">{entry.value}</span>
                 </div>
               ))}

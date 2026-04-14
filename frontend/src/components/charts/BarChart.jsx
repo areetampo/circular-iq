@@ -20,7 +20,7 @@ const TICK_STYLE = {
   fontFamily: FONT_FAMILY,
   fontSize: 13,
   fontWeight: 500,
-  fill: '#5a4f42',
+  fill: 'var(--color-text-secondary)',
 };
 
 export default function BarChart({
@@ -83,12 +83,12 @@ export default function BarChart({
           margin={{ top: 16, right: 16, bottom: xAxisLabel ? 40 : 24, left: 8 }}
           barCategoryGap="20%"
         >
-          <CartesianGrid vertical={false} stroke="rgba(180,160,130,0.15)" strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
           <XAxis
             dataKey={xAxisKey}
             tick={TICK_STYLE}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(180,160,130,0.3)' }}
+            axisLine={{ stroke: 'var(--color-chart-axis)' }}
             label={
               xAxisLabel
                 ? { value: xAxisLabel, position: 'insideBottom', offset: -8, style: TICK_STYLE }
@@ -108,14 +108,17 @@ export default function BarChart({
             }
             width={36}
           />
-          <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(180,160,130,0.08)' }} />
+          <Tooltip
+            content={<ChartTooltipContent />}
+            cursor={{ fill: 'var(--color-chart-cursor)' }}
+          />
           {shouldShowLegend && (
             <Legend
               wrapperStyle={{
                 fontFamily: FONT_FAMILY,
                 fontSize: 13,
                 fontWeight: 500,
-                color: '#5a4f42',
+                color: 'var(--color-text-secondary)',
                 paddingTop: 8,
               }}
             />

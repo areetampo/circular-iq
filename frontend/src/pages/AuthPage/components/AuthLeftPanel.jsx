@@ -11,7 +11,7 @@ const TRUST_SIGNALS = [
 
 export default function AuthLeftPanel() {
   return (
-    <div className="relative hidden min-h-screen flex-col justify-center gap-8 bg-(--color-bg)/50 px-12 md_lg:flex lg:px-16">
+    <div className="relative hidden min-h-screen flex-col justify-center gap-8 bg-(--color-bg-alpha-50) px-12 md_lg:flex lg:px-16">
       <AuthBrandHeader />
 
       {/* Large editorial headline */}

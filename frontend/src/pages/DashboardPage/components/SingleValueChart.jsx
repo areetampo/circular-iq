@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 function SingleValueChart({ value, label, sublabel }) {
   return (
     <div className="flex flex-col items-center gap-2 py-8">
-      <p className="font-mono text-5xl leading-none font-semibold tracking-tight text-[#1a1510]">
+      <p className="font-mono text-5xl leading-none font-semibold tracking-tight text-(--color-text-primary)">
         {value}
       </p>
       <p className="mt-1 font-mono text-xs tracking-widest text-stone-500 uppercase">{label}</p>

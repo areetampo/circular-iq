@@ -11,10 +11,10 @@ export function ParameterConsistencyCard({ actualResult }) {
   const { score, rating, interpretation, issues } = actualResult.parameter_consistency;
 
   const getScoreColor = (score) => {
-    if (score >= 85) return '#6b8f71';
-    if (score >= 65) return '#7a9eb5';
-    if (score >= 40) return '#d4b896';
-    return '#c4956a';
+    if (score >= 85) return 'var(--color-parameter-high)';
+    if (score >= 65) return 'var(--color-parameter-mid)';
+    if (score >= 40) return 'var(--color-parameter-low)';
+    return 'var(--color-parameter-fail)';
   };
 
   return (
@@ -29,7 +29,7 @@ export function ParameterConsistencyCard({ actualResult }) {
       {issues.length > 0 && (
         <div className="space-y-2">
           {issues.map((issue, i) => (
-            <div key={i} className="rounded-xl bg-(--color-warning)/20 px-4 py-2">
+            <div key={i} className="rounded-xl bg-(--color-warning-soft-mid) px-4 py-2">
               <p className="text-sm">{issue.issue}</p>
               <div className="mt-1 flex flex-wrap gap-1">
                 {issue.factors.map((f) => (

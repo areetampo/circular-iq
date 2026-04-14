@@ -22,7 +22,7 @@ const sizeMap = {
 
 // Reusable StatCard component
 const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
-  <div className="flex flex-col gap-1 rounded-2xl border-2 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5">
+  <div className="flex flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
     <span className="text-[0.725rem] font-semibold tracking-[0.12em] text-(--color-text-muted) uppercase">
       {label}
     </span>
@@ -95,7 +95,7 @@ export function StatsGrid({
       />
 
       {/* Top Industry Card */}
-      <div className="flex flex-col gap-1 rounded-2xl border-2 border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.5)] p-5">
+      <div className="flex flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
         <span className="text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
           Top {displayIndustries.length > 1 ? 'Industries' : 'Industry'}
         </span>
@@ -136,7 +136,7 @@ export function StatsGrid({
                       return (
                         <div
                           key={index}
-                          className="flex w-full items-center justify-between rounded-sm px-2 py-1 hover:bg-[rgba(180,160,130,0.1)]"
+                          className="flex w-full items-center justify-between rounded-sm px-2 py-1 hover:bg-(--color-chip-bg)"
                         >
                           <span className="text-xs">{titleize(industryName)}</span>
                           <span className="ml-2 text-xs text-(--color-text-muted)">{count}</span>

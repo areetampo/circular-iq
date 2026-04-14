@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn';
  * Animated copy icon that transitions to checkmark when clicked
  *
  * @param {boolean} hasCopied - Whether the icon should show checkmark state
- * @param {string} color - Color for the icons (default: '#000000')
+ * @param {string} color - Color for the icons (default: 'var(--color-text-primary)')
  * @param {number} size - Size for the icons in pixels (default: 16)
  * @param {number} strokeWidth - Stroke width for the icons (default: 2)
  */
@@ -51,7 +51,7 @@ CopyIcon.propTypes = {
   copyIconClassname: PropTypes.string,
   /** Whether the icon should show checkmark state */
   hasCopied: PropTypes.bool,
-  /** Color for the icons (default: '#000000') */
+  /** Color for the icons (default: 'var(--color-text-primary)') */
   color: PropTypes.string,
   /** Size for the icons in pixels (default: 16) */
   size: PropTypes.number,

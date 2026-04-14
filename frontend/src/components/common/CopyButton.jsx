@@ -13,7 +13,7 @@ import { CopyIcon } from './CopyIcon';
  * @param {boolean} disabled - Disable the button
  * @param {string} className - Additional CSS classes
  * @param {string} description - Optional description text for box mode
- * @param {string} color - Color for the icons (default: '#000000')
+ * @param {string} color - Color for the icons (default: 'var(--color-text-primary)')
  * @param {number} size - Size for the icons in pixels (default: 16)
  * @param {boolean} noBorder - Remove border from box mode
  */
@@ -48,7 +48,7 @@ export default function CopyButton({
       <button
         onClick={handleClick}
         className={cn(
-          'flex cursor-pointer items-center justify-center rounded-md transition-all duration-200 hover:bg-[rgba(184,145,106,0.15)] disabled:cursor-not-allowed disabled:opacity-50',
+          'flex cursor-pointer items-center justify-center rounded-md transition-all duration-200 hover:bg-(--color-accent-light-mid) disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         disabled={disabled}
@@ -70,11 +70,11 @@ export default function CopyButton({
     <button
       onClick={handleClick}
       className={cn(
-        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-[rgba(184,145,106,0.15)] disabled:cursor-not-allowed disabled:opacity-50',
+        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-(--color-accent-light-mid) disabled:cursor-not-allowed disabled:opacity-50',
         noBorder ? '' : 'border-[1.5px]',
         className,
       )}
-      style={!noBorder ? { borderColor: 'rgba(0, 0, 0, 0.2)' } : {}}
+      style={!noBorder ? { borderColor: 'var(--color-border-dark-20)' } : {}}
       disabled={disabled}
       {...props}
     >
@@ -103,7 +103,7 @@ CopyButton.propTypes = {
   copyIconClassname: PropTypes.string,
   /** Optional description text for box mode */
   description: PropTypes.string,
-  /** Color for the icons (default: '#000000') */
+  /** Color for the icons (default: 'var(--color-text-primary)') */
   color: PropTypes.string,
   /** Size for the icons */
   size: PropTypes.number,

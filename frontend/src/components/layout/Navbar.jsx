@@ -63,7 +63,7 @@ export default function Navbar() {
     <>
       {/* Main Navbar - full width sticky top bar */}
       <nav className="sticky top-3 z-50 h-13 px-8">
-        <div className="mx-auto flex h-full max-w-6xl items-center justify-between rounded-full border border-(--color-border-strong) bg-(--color-bg)/60 px-6 shadow-sm backdrop-blur-3xl">
+        <div className="mx-auto flex h-full max-w-6xl items-center justify-between rounded-full border border-(--color-border-strong) bg-(--color-bg-alpha-60) px-6 shadow-sm backdrop-blur-3xl">
           {/* Logo + Site Name */}
           <div className="flex items-center gap-1">
             <SiteLogo />
@@ -116,7 +116,7 @@ export default function Navbar() {
                     )}
                     aria-label="Profile menu"
                   >
-                    <Avatar.Fallback className="bg-(--color-accent-light) font-medium text-(--color-accent)">
+                    <Avatar.Fallback className="bg-(--color-hover-accent-strong) font-medium text-(--color-accent)">
                       {getUserInitials()}
                     </Avatar.Fallback>
                   </Avatar>
@@ -144,7 +144,7 @@ export default function Navbar() {
                             size="md"
                             className="bg-(--color-accent-light) text-(--color-accent)"
                           >
-                            <Avatar.Fallback className="bg-[rgba(184,145,106,0.2)] font-medium text-(--color-accent)">
+                            <Avatar.Fallback className="bg-(--color-hover-accent-strong) font-medium text-(--color-accent)">
                               {getUserInitials()}
                             </Avatar.Fallback>
                           </Avatar>
@@ -244,7 +244,7 @@ export default function Navbar() {
                             size="md"
                             className="bg-(--color-accent-light) text-(--color-accent)"
                           >
-                            <Avatar.Fallback className="bg-[rgba(184,145,106,0.2)] font-medium text-(--color-accent)">
+                            <Avatar.Fallback className="bg-(--color-hover-accent-strong) font-medium text-(--color-accent)">
                               {getUserInitials()}
                             </Avatar.Fallback>
                           </Avatar>

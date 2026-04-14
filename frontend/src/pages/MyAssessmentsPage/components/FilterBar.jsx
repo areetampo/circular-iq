@@ -47,8 +47,8 @@ export function FilterBar({
             size="sm"
             classNames={{
               trigger:
-                'border-[rgba(180,160,130,0.28)] bg-[rgba(245,240,232,0.6)] text-(--color-text-primary) pr-10',
-              popover: 'bg-[rgba(245,240,232,0.95)] border-[rgba(180,160,130,0.28)]',
+                'border-(--color-border-strong-alpha-80) bg-(--color-input-bg) text-(--color-text-primary) pr-10',
+              popover: 'bg-(--color-select-popover-bg) border-(--color-border-strong-alpha-80)',
             }}
           >
             <Select.Trigger>

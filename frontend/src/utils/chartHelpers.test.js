@@ -3,10 +3,10 @@
  */
 
 import {
-  RISK_COLORS,
-  SCALE_COLORS,
-  SCORE_COLORS,
-  TIER_COLORS,
+  getRiskColors,
+  getScaleColors,
+  getScoreColors,
+  getTierColors,
   transformGeoDistribution,
   transformIndustryDistribution,
   transformMaterialDistribution,
@@ -313,16 +313,17 @@ describe('chartHelpers', () => {
 
   describe('Color constants', () => {
     it('should export color arrays', () => {
-      expect(TIER_COLORS).toHaveLength(5);
-      expect(RISK_COLORS).toHaveLength(4);
-      expect(SCORE_COLORS).toHaveLength(4);
-      expect(SCALE_COLORS).toHaveLength(6);
+      expect(getTierColors()).toHaveLength(5);
+      expect(getRiskColors()).toHaveLength(4);
+      expect(getScoreColors()).toHaveLength(4);
+      expect(getScaleColors()).toHaveLength(6);
     });
 
     it('should contain CSS color variables', () => {
-      expect(TIER_COLORS[0]).toBe('#4a7c59');
-      expect(RISK_COLORS[0]).toBe('#4a7c59');
-      expect(SCORE_COLORS[0]).toBe('#8b3a3a');
+      expect(getTierColors()[0]).toBe('#4a7c59'); // fallback for var(--chart-2)
+      expect(getTierColors()[1]).toBe('#455771'); // fallback for var(--color-info) - matches actual value
+      expect(getRiskColors()[0]).toBe('#4a7c59'); // fallback for var(--chart-2)
+      expect(getScoreColors()[0]).toBe('#8b3a3a'); // fallback for var(--chart-4)
     });
   });
 });

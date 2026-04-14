@@ -12,10 +12,11 @@ import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSo
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { useAuth } from '@/hooks/useAuth';
 import {
-  RISK_COLORS,
-  SCALE_COLORS,
-  SCORE_COLORS,
-  TIER_COLORS,
+  getRiskColors,
+  getScaleColors,
+  getScoreColors,
+  getTierColors,
+  resolveCSSVar,
   transformGeoDistribution,
   transformIndustryDistribution,
   transformMaterialDistribution,
@@ -27,7 +28,7 @@ import {
   usableBar,
   usablePie,
 } from '@/utils/chartHelpers';
-import { chartTheme } from '@/utils/chartTheme';
+import { getChartTheme } from '@/utils/chartTheme';
 import { cn } from '@/utils/cn';
 
 import {
@@ -38,17 +39,19 @@ import {
   StatCard,
 } from './components';
 
-// Material colors for pie chart
-const MATERIAL_COLORS = [
-  '#5a7a9a', // muted slate blue
-  '#8b3a3a', // dark terracotta / rust
-  '#4a7c59', // dark forest green
-  '#b07d3a', // dark amber
-  '#7a5c7a', // muted plum
-  '#3a6b8b', // deep ocean blue
-  '#8b5e3a', // warm brown
-  '#6b8b5a', // sage green
+// Material colors for pie chart - factory function to resolve at render time
+const getMaterialColors = () => [
+  resolveCSSVar('var(--color-material-slate)', '#5a7a9a'), // muted slate blue
+  resolveCSSVar('var(--chart-4)', '#8b3a3a'), // muted terracotta
+  resolveCSSVar('var(--chart-2)', '#4a7c59'), // dark forest green
+  resolveCSSVar('var(--color-material-ocean)', '#3a6b8b'), // ocean blue
+  resolveCSSVar('var(--color-material-sage)', '#6b8b5a'), // sage
+  resolveCSSVar('var(--chart-3)', '#b07d3a'), // muted amber
+  resolveCSSVar('var(--chart-1)', '#b8916a'), // warm accent brown
+  resolveCSSVar('var(--chart-6)', '#9a8f82'), // text muted
 ];
+
+// Note: Use getMaterialColors() directly instead of Proxy export
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
@@ -243,6 +246,7 @@ export default function DashboardPage() {
     if (data.length === 1 || !usablePie(data)) {
       return <SingleValueChart label={data[0]?.name} value={data[0]?.value} />;
     }
+
     return (
       <PieChart
         data={data}
@@ -260,7 +264,7 @@ export default function DashboardPage() {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="mx-auto mt-4 max-w-7xl space-y-12 px-4 pb-16 sm:px-6">
+    <div className="mx-auto mt-4 max-w-6xl space-y-12 px-4 pb-16 sm:px-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 pt-8">
         <div>
@@ -283,7 +287,7 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       <section>
         <DashboardSectionHeading label="SEARCH SOLUTIONS" />
-        WIP
+        <div className="my-16 text-center text-2xl font-semibold">WIP</div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -304,49 +308,7 @@ export default function DashboardPage() {
           <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
         </div>
 
-        <div className="space-y-8">
-          {/* Doc distribution charts — each full width */}
-          {!docLoading && docStats && (
-            <>
-              <ChartPanel
-                title="Documents by Industry"
-                isLoading={docLoading}
-                chartHeight="230px"
-                className="mb-4"
-              >
-                {docStats.byIndustry && docStats.byIndustry.length > 0 ? (
-                  <BarChart
-                    data={transformIndustryDistribution(docStats.byIndustry)}
-                    xAxisKey="name"
-                    barConfigs={[
-                      { dataKey: 'value', fill: chartTheme.colors[0], name: 'Documents' },
-                    ]}
-                    height={230}
-                    showGrid
-                  />
-                ) : (
-                  <EmptyChart />
-                )}
-              </ChartPanel>
-
-              <ChartPanel title="Documents by Material" isLoading={docLoading} chartHeight="230px">
-                {docStats.byMaterial && docStats.byMaterial.length > 0 ? (
-                  <BarChart
-                    data={transformMaterialDistribution(docStats.byMaterial)}
-                    xAxisKey="name"
-                    barConfigs={[
-                      { dataKey: 'value', fill: chartTheme.colors[1], name: 'Documents' },
-                    ]}
-                    height={230}
-                    showGrid
-                  />
-                ) : (
-                  <EmptyChart />
-                )}
-              </ChartPanel>
-            </>
-          )}
-        </div>
+        <div className="my-16 text-center text-2xl font-semibold">WIP</div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -414,13 +376,13 @@ export default function DashboardPage() {
         {/* Row A: 3 donuts with single-value fallback */}
         <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="250px">
-            {renderPieOrSingle(scoreDistData, SCORE_COLORS, 'Score data unavailable')}
+            {renderPieOrSingle(scoreDistData, getScoreColors(), 'Score data unavailable')}
           </ChartPanel>
           <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="250px">
-            {renderPieOrSingle(tierDistData, TIER_COLORS, 'Tier data unavailable')}
+            {renderPieOrSingle(tierDistData, getTierColors(), 'Tier data unavailable')}
           </ChartPanel>
           <ChartPanel title="Risk Distribution" isLoading={globalLoading} chartHeight="250px">
-            {renderPieOrSingle(riskDistData, RISK_COLORS, 'Risk data unavailable')}
+            {renderPieOrSingle(riskDistData, getRiskColors(), 'Risk data unavailable')}
           </ChartPanel>
         </div>
 
@@ -436,7 +398,9 @@ export default function DashboardPage() {
               <LineChart
                 data={weeklyData}
                 xAxisKey="period"
-                lines={[{ dataKey: 'count', stroke: chartTheme.colors[0], name: 'Assessments' }]}
+                lines={[
+                  { dataKey: 'count', stroke: getChartTheme().colors[0], name: 'Assessments' },
+                ]}
                 height={270}
                 showLegend={false}
               />
@@ -456,7 +420,7 @@ export default function DashboardPage() {
               <BarChart
                 data={strategyData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[0], name: 'Count' }]}
+                barConfigs={[{ dataKey: 'value', fill: getChartTheme().colors[0], name: 'Count' }]}
                 height={270}
                 showGrid
               />
@@ -476,7 +440,9 @@ export default function DashboardPage() {
                 <BarChart
                   data={industryBarData}
                   xAxisKey="name"
-                  barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[1], name: 'Count' }]}
+                  barConfigs={[
+                    { dataKey: 'count', fill: getChartTheme().colors[1], name: 'Count' },
+                  ]}
                   height={250}
                   showGrid
                 />
@@ -493,7 +459,7 @@ export default function DashboardPage() {
             chartHeight="230px"
             className="mb-4"
           >
-            {renderPieOrSingle(materialData, MATERIAL_COLORS, 'No material data')}
+            {renderPieOrSingle(materialData, getMaterialColors(), 'No material data')}
           </ChartPanel>
 
           <ChartPanel
@@ -506,7 +472,7 @@ export default function DashboardPage() {
               <BarChart
                 data={geoData}
                 xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: chartTheme.colors[2], name: 'Count' }]}
+                barConfigs={[{ dataKey: 'value', fill: getChartTheme().colors[2], name: 'Count' }]}
                 height={230}
                 showGrid
               />
@@ -516,7 +482,7 @@ export default function DashboardPage() {
           </ChartPanel>
 
           <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="230px">
-            {renderPieOrSingle(scaleData, SCALE_COLORS, 'No scale data')}
+            {renderPieOrSingle(scaleData, getScaleColors(), 'No scale data')}
           </ChartPanel>
         </div>
       </section>
@@ -559,10 +525,10 @@ export default function DashboardPage() {
                           className={cn(
                             'px-3 py-2 text-right tabular-nums',
                             row.avgScore >= 75
-                              ? 'text-[#4a7c59]'
+                              ? 'text-(--color-success)'
                               : row.avgScore >= 50
-                                ? 'text-[#b07d3a]'
-                                : 'text-[#8b3a3a]',
+                                ? 'text-(--color-warning)'
+                                : 'text-(--color-error)',
                           )}
                         >
                           {row.avgScore?.toFixed(1) ?? 0}%
@@ -628,7 +594,9 @@ export default function DashboardPage() {
                   <BarChart
                     data={userIndustryData}
                     xAxisKey="name"
-                    barConfigs={[{ dataKey: 'count', fill: chartTheme.colors[2], name: 'Count' }]}
+                    barConfigs={[
+                      { dataKey: 'count', fill: getChartTheme().colors[2], name: 'Count' },
+                    ]}
                     height={250}
                     showGrid
                   />
@@ -650,7 +618,7 @@ export default function DashboardPage() {
                     height={250}
                     showLegend={true}
                     innerRadius={0}
-                    colors={RISK_COLORS}
+                    colors={getRiskColors()}
                     label={false}
                     labelLine={false}
                   />
@@ -675,7 +643,7 @@ export default function DashboardPage() {
                 height={250}
                 showLegend={true}
                 innerRadius={0}
-                colors={RISK_COLORS}
+                colors={getRiskColors()}
               />
             </ChartPanel>
           </div>

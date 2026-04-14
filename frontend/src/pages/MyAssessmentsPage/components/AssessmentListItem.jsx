@@ -46,10 +46,10 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
     <div
       className={cn(
         `group relative mb-2 block rounded-xl border-2 p-4 transition-all duration-200`,
-        `bg-[rgba(245,240,232,0.45)] hover:bg-[rgba(245,240,232,0.6)]`,
+        `bg-(--color-bg-card-faint) hover:bg-(--color-bg-card-hover)`,
         isSelected
-          ? `border-[rgba(184,145,106,0.5)] bg-[rgba(245,240,232,0.55)] shadow-[0_0_0_2px_rgba(184,145,106,0.15)]`
-          : `border-[rgba(180,160,130,0.22)] hover:border-[rgba(184,145,106,0.4)]`,
+          ? `border-(--color-accent-border-selected) bg-(--color-bg-card-selected) shadow-[0_0_0_2px_var(--color-accent-light-mid)]`
+          : `border-(--color-drawer-border) hover:border-(--color-accent-hover-border)`,
       )}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
     >
@@ -57,7 +57,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       <div className="flex items-start gap-3">
         {/* Title and metadata section */}
         <div className="min-w-0 flex-1">
-          <h3 className="mb-1 w-fit truncate font-sniglet text-xl/tight font-medium text-(--color-text-primary)">
+          <h3 className="mb-1 w-fit truncate font-sniglet text-2xl/tight font-medium text-(--color-text-primary)">
             <Link to={assessmentLink}>{assessment.title || 'Untitled Assessment'}</Link>
           </h3>
           <p className="mb-2 text-[0.75rem] text-(--color-text-muted)">{formattedDate}</p>
@@ -163,7 +163,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       </div>
 
       {/* Bottom row with additional stats and controls */}
-      <div className="mt-3 flex items-center justify-between border-t border-[rgba(180,160,130,0.15)] pt-2">
+      <div className="mt-3 flex items-center justify-between border-t border-(--color-table-row-border) pt-2">
         {/* Additional stats */}
         <div className="flex items-center gap-3 text-[0.7rem] text-(--color-text-muted) [&>span]:font-mono">
           {assessment.technical_feasibility && (
@@ -252,7 +252,7 @@ AssessmentListItem.propTypes = {
 
 // Skeleton Components
 export const AssessmentCardSkeleton = () => (
-  <div className="group relative mb-2 cursor-pointer rounded-xl border-2 border-[rgba(180,160,130,0.22)] bg-[rgba(245,240,232,0.45)] p-4 transition-all duration-200">
+  <div className="group relative mb-2 cursor-pointer rounded-xl border-2 border-(--color-drawer-border) bg-(--color-bg-card-faint) p-4 transition-all duration-200">
     {/* Main content row */}
     <div className="flex items-start gap-3">
       {/* Title and metadata section */}
@@ -301,7 +301,7 @@ export const AssessmentCardSkeleton = () => (
     </div>
 
     {/* Bottom row with additional stats and controls */}
-    <div className="mt-3 flex items-center justify-between border-t border-[rgba(180,160,130,0.15)] pt-3">
+    <div className="mt-3 flex items-center justify-between border-t border-(--color-table-row-border) pt-3">
       {/* Additional stats skeleton */}
       <div className="flex items-center gap-3">
         <Skeleton animationType="shimmer" className="h-3 w-16 rounded-sm" />

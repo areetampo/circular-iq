@@ -874,7 +874,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div className="rounded-xl border-2 border-[rgba(180,160,130,0.18)] px-3 py-1">
+          <div className="rounded-xl border-2 border-(--color-border-card) px-3 py-1">
             {/* Toggle row */}
             {isResultsRoute ? (
               <span className="text-[0.8125rem] font-medium opacity-80">

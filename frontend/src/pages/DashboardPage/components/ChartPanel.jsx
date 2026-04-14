@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 function ChartPanel({ title, children, isLoading, error, chartHeight }) {
   return (
-    <div className="w-full rounded-[14px] border-2 border-[rgba(180,160,130,0.3)] bg-transparent p-4">
+    <div className="w-full rounded-[14px] border-2 border-(--color-border-ui) bg-transparent p-4">
       {title && (
         <div className="mb-4 text-[0.9375rem] font-semibold text-(--color-text-secondary)">
           {title}
@@ -10,7 +10,7 @@ function ChartPanel({ title, children, isLoading, error, chartHeight }) {
       )}
 
       {isLoading ? (
-        <div className="h-50 w-full animate-pulse rounded-md bg-[rgba(180,160,130,0.1)]" />
+        <div className="h-50 w-full animate-pulse rounded-md bg-(--color-skeleton-pulse-sm)" />
       ) : error ? (
         <div className="p-4 text-center">
           <p className="text-(--color-error)">Error loading chart</p>
