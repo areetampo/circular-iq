@@ -76,11 +76,12 @@ END $$;
 CREATE TABLE IF NOT EXISTS user_assessments (
   -- ── Identity ────────────────────────────────────────────────────────────────
   id                          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id                     UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id                     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   session_id                  TEXT,          -- kept for guest sessions
 
   -- ── User-supplied inputs ─────────────────────────────────────────────────────
   title                       TEXT NOT NULL CHECK (title != ''),
+  UNIQUE (user_id, title),
   business_problem            TEXT NOT NULL CHECK (business_problem != ''),
   business_solution           TEXT NOT NULL CHECK (business_solution != ''),
   evaluation_parameters       JSONB,         -- raw 8-factor scores user entered

@@ -83,14 +83,10 @@ export function LoginForm({ onSwitchToSignup }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.username}>
-                <div className="flex h-4 items-center gap-1.5 pl-2">
-                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-                    Username
-                  </Label>
+                <div>
+                  <Label>Username</Label>
                   {errors.username && (
-                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
-                      {errors.username.message}
-                    </FieldError>
+                    <FieldError className="hidden">{errors.username.message}</FieldError>
                   )}
                 </div>
                 <Input
@@ -98,7 +94,6 @@ export function LoginForm({ onSwitchToSignup }) {
                   type="text"
                   placeholder="username"
                   disabled={isLoading}
-                  className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -117,14 +112,10 @@ export function LoginForm({ onSwitchToSignup }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.password}>
-                <div className="flex h-4 items-center gap-1.5 pl-2">
-                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-                    Password
-                  </Label>
+                <div>
+                  <Label>Password</Label>
                   {errors.password && (
-                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
-                      {errors.password.message}
-                    </FieldError>
+                    <FieldError className="hidden">{errors.password.message}</FieldError>
                   )}
                 </div>
                 <div className="relative">
@@ -133,14 +124,14 @@ export function LoginForm({ onSwitchToSignup }) {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••"
                     disabled={isLoading}
-                    className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
+                    className="w-full"
                     autoComplete="current-password"
                     maxLength={30}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 transform text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 transform cursor-pointer text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -151,7 +142,7 @@ export function LoginForm({ onSwitchToSignup }) {
         </div>
 
         {/* Submit Button */}
-        <Button variant="primary" fullWidth isLoading={isLoading} onPress={handleSubmit(onSubmit)}>
+        <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
           Sign in
         </Button>
       </Form>
@@ -172,7 +163,7 @@ export function LoginForm({ onSwitchToSignup }) {
       {/* Error display */}
       <div className="relative mt-4 flex min-h-10 items-center justify-center">
         {submitError && (
-          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
             <CircleX size={16} strokeWidth={2.5} />
             {submitError}
           </div>

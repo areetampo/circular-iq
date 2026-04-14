@@ -8,15 +8,12 @@
  * @property {number} similarity
  * @property {number|null} rrf_score
  */
-import { FRONTEND_CONFIG } from '@/config';
 import {
   safeValidateAssessmentsList,
   validateAssessment,
 } from '@/features/assessments/api/assessmentSchema';
 import { buildApiUrl } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabase';
-
-const API_URL = FRONTEND_CONFIG.apiBaseUrl;
 
 /**
  * Add Authorization header with bearer token if session exists

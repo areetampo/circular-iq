@@ -582,7 +582,7 @@ export default function LandingPage() {
                                 Business Context
                               </span>
                               <BadgeInfo
-                                className="info-icon text-(--color-accent)"
+                                className="icon--info text-(--color-accent)"
                                 size={20}
                                 strokeWidth={2}
                                 onClick={(e) => {
@@ -632,7 +632,7 @@ export default function LandingPage() {
                                 Evaluation Parameters
                               </span>
                               <BadgeInfo
-                                className="info-icon text-(--color-success)"
+                                className="icon--info text-(--color-success)"
                                 size={20}
                                 strokeWidth={2}
                                 onClick={(e) => {
@@ -695,9 +695,9 @@ export default function LandingPage() {
 
                   {/* Error Display */}
                   {error && (
-                    <div className="flex w-fit animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+                    <div className="flex w-fit animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
                       <CircleX size={16} strokeWidth={2.5} />
-                      {error}
+                      {error}, please try again.
                     </div>
                   )}
                 </div>
@@ -723,7 +723,7 @@ export default function LandingPage() {
                                 Sample Test Cases
                               </span>
                               <BadgeInfo
-                                className="info-icon mt-px text-(--color-accent)"
+                                className="icon--info mt-px text-(--color-accent)"
                                 size={20}
                                 strokeWidth={2}
                                 onClick={(e) => {

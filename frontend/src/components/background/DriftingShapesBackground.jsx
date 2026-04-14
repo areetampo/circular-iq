@@ -177,5 +177,5 @@ export default function DriftingShapesBackground() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="shape-canvas" />;
+  return <canvas ref={canvasRef} className="app__shape-canvas" />;
 }

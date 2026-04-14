@@ -69,7 +69,7 @@ const ValidationRule = ({ isValid, hasInput, children }) => (
   <div
     className={cn(
       'flex items-center gap-1.5 [&>*:first-child]:mt-0.5',
-      !hasInput ? 'text-(--color-checkbox)' : isValid ? 'text-green-800' : 'text-red-800',
+      !hasInput ? 'text-(--color-checkbox)' : isValid ? 'text-green-900' : 'text-red-900',
     )}
   >
     {!hasInput ? (
@@ -79,8 +79,7 @@ const ValidationRule = ({ isValid, hasInput, children }) => (
     ) : (
       <CircleX size={14} strokeWidth={2.5} />
     )}
-
-    <span>{children}</span>
+    <span className="font-medium">{children}</span>
   </div>
 );
 
@@ -192,14 +191,10 @@ export function SignupForm({ onSwitchToLogin }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.username}>
-                <div className="flex h-4 items-center gap-1.5 pl-2">
-                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-                    Username
-                  </Label>
+                <div>
+                  <Label>Username</Label>
                   {errors.username && (
-                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
-                      {errors.username.message}
-                    </FieldError>
+                    <FieldError className="hidden">{errors.username.message}</FieldError>
                   )}
                 </div>
                 <Input
@@ -207,7 +202,6 @@ export function SignupForm({ onSwitchToLogin }) {
                   type="text"
                   placeholder="username"
                   disabled={isLoading}
-                  className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
                   autoComplete="username"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -216,7 +210,7 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted)">
+          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
             {[
               {
                 validate: () => validateUsernameLength(formData.username || ''),
@@ -249,14 +243,10 @@ export function SignupForm({ onSwitchToLogin }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.password}>
-                <div className="flex h-4 items-center gap-1.5 pl-2">
-                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-                    Password
-                  </Label>
+                <div>
+                  <Label>Password</Label>
                   {errors.password && (
-                    <FieldError className="hidden pb-0.5 text-[0.675rem]! leading-none text-(--color-error) lowercase">
-                      {errors.password.message}
-                    </FieldError>
+                    <FieldError className="hidden">{errors.password.message}</FieldError>
                   )}
                 </div>
                 <div className="relative">
@@ -265,13 +255,13 @@ export function SignupForm({ onSwitchToLogin }) {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="•••••"
                     disabled={isLoading}
-                    className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
+                    className="w-full"
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 transform text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 transform cursor-pointer text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -279,7 +269,7 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted)">
+          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
             {[
               {
                 validate: () => validatePasswordLength(formData.password || ''),
@@ -308,14 +298,10 @@ export function SignupForm({ onSwitchToLogin }) {
             control={control}
             render={({ field }) => (
               <TextField isInvalid={!!errors.confirmPassword}>
-                <div className="flex h-4 items-center gap-1.5 pl-2">
-                  <Label className="block font-sans text-[0.6875rem] font-semibold tracking-[0.08em] text-(--color-text-muted) uppercase">
-                    Confirm Password
-                  </Label>
+                <div>
+                  <Label>Confirm Password</Label>
                   {errors.confirmPassword && (
-                    <FieldError className="hidden pb-0.5 text-xs text-(--color-error) lowercase">
-                      {errors.confirmPassword.message}
-                    </FieldError>
+                    <FieldError className="hidden">{errors.confirmPassword.message}</FieldError>
                   )}
                 </div>
                 <div className="relative">
@@ -324,13 +310,13 @@ export function SignupForm({ onSwitchToLogin }) {
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="••••••"
                     disabled={isLoading}
-                    className="h-10.5 w-full rounded-[9px] border border-(--color-border-strong) bg-(--color-bg-card-light) px-4 pr-10 font-sans text-[0.875rem] text-(--color-text-primary) transition-colors duration-150 placeholder:text-(--color-text-muted) focus:border-(--color-accent) focus:shadow-[0_0_0_3px_var(--color-accent-focus-ring)] focus:outline-none"
+                    className="w-full"
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 transform text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 transform cursor-pointer text-(--color-text-muted) transition-colors hover:text-(--color-text-primary)"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -338,7 +324,7 @@ export function SignupForm({ onSwitchToLogin }) {
               </TextField>
             )}
           />
-          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted)">
+          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
             {[
               {
                 validate: () =>
@@ -358,7 +344,7 @@ export function SignupForm({ onSwitchToLogin }) {
         </div>
 
         {/* Submit Button */}
-        <Button variant="primary" fullWidth isLoading={isLoading} onPress={handleSubmit(onSubmit)}>
+        <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
           Create Account
         </Button>
       </Form>
@@ -379,7 +365,7 @@ export function SignupForm({ onSwitchToLogin }) {
       {/* Error display */}
       <div className="relative mt-4 flex min-h-10 items-center justify-center">
         {submitError && (
-          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm text-(--color-error) duration-200 zoom-in-95 fade-in">
+          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
             <CircleX size={16} strokeWidth={2.5} />
             {submitError}
           </div>

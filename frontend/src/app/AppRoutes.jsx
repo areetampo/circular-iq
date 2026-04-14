@@ -81,7 +81,7 @@ export default function AppRoutes() {
         <Route
           path="/"
           element={
-            <div className="app-bg flex min-h-screen flex-col">
+            <div className="app__bg flex min-h-screen flex-col">
               <DriftingShapesBackground />
               <Navbar />
               <main className="flex-1">

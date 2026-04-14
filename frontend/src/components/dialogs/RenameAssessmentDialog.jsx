@@ -16,10 +16,10 @@
  * });
  */
 
-import { AlertDialog, Input } from '@heroui/react';
+import { AlertDialog, FieldError, Input, Label, TextField } from '@heroui/react';
 import { Pencil } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -34,15 +34,16 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
 
   const [name, setName] = useState(defaultName);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get callbacks from dialog data
+  // Get callback from dialog data with stable reference
   const onRename = dialog?.data?.onRename;
-  const isLoading = dialog?.data?.isLoading || false;
 
   useEffect(() => {
     if (isDialogOpen) {
       setName(defaultName);
       setError('');
+      setIsSubmitting(false);
     }
   }, [isDialogOpen, defaultName]);
 
@@ -64,22 +65,29 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
     return null;
   };
 
-  const handleSubmit = async (close) => {
-    const validationError = validateName(name);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    try {
-      if (onRename) {
-        await onRename(name.trim());
+  const handleSubmit = useCallback(
+    async (close) => {
+      const validationError = validateName(name);
+      if (validationError) {
+        setError(validationError);
+        return;
       }
-      close();
-    } catch (err) {
-      setError(err?.message || 'Rename failed. Please try again.');
-    }
-  };
+
+      setError('');
+      setIsSubmitting(true);
+      try {
+        if (onRename) {
+          await onRename(name.trim());
+        }
+        close();
+      } catch (err) {
+        setError(err?.message || 'Rename failed. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [name, dialog?.data?.onRename],
+  );
 
   return (
     <AlertDialog>
@@ -110,31 +118,32 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                 </AlertDialog.Header>
 
                 <AlertDialog.Body className="space-y-4">
-                  <label
-                    htmlFor="assessment-name"
-                    className="ml-2 text-[0.7rem] font-semibold tracking-widest text-(--color-text-secondary) uppercase"
-                  >
-                    new name
-                  </label>
-                  <Input
-                    id="assessment-name"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setError('');
-                    }}
-                    placeholder="Enter assessment name"
-                    className="mt-2 w-full"
-                    isInvalid={!!error}
-                    errorMessage={error}
-                  />
+                  <TextField isInvalid={!!error}>
+                    <div>
+                      <Label>New Name</Label>
+                      {error && <FieldError>{error}</FieldError>}
+                    </div>
+                    <Input
+                      id="assessment-name"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        setError('');
+                      }}
+                      placeholder="Enter assessment name"
+                      maxLength={100}
+                      spellCheck={false}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                    />
+                  </TextField>
                 </AlertDialog.Body>
 
                 <AlertDialog.Footer>
                   <Button
                     variant="ghost"
                     onPress={() => close()}
-                    isDisabled={isLoading}
+                    isDisabled={isSubmitting}
                     className="flex-1"
                   >
                     Cancel
@@ -142,7 +151,8 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                   <Button
                     variant="dialog-primary"
                     onPress={() => handleSubmit(close)}
-                    isLoading={isLoading}
+                    isLoading={isSubmitting}
+                    isDisabled={isSubmitting}
                     className="flex-1"
                   >
                     Rename

@@ -26,8 +26,8 @@ window.logger = logger;
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <div id="app-root" className="app-bg">
-        <div className="app-content">
+      <div id="app-root" className="app__bg">
+        <div className="app__content">
           <App />
         </div>
       </div>

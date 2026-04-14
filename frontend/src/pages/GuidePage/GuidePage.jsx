@@ -1071,7 +1071,7 @@ const EvaluationParametersSection = () => {
               <div
                 key={key}
                 className={cn(
-                  'card-lift cursor-pointer rounded-xl border-[1.5px] p-4',
+                  'card--lift cursor-pointer rounded-xl border-[1.5px] p-4',
                   getParameterStyling(key),
                 )}
                 style={{
@@ -1124,7 +1124,7 @@ const EvaluationParametersSection = () => {
                   </Accordion.Trigger>
                 </Accordion.Heading>
                 <Accordion.Panel>
-                  <Accordion.Body>
+                  <Accordion.Body className="mt-2">
                     <div className="space-y-4">
                       {/* Scoring Scale */}
                       <div>

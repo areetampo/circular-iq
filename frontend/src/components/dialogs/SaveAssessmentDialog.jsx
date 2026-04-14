@@ -16,7 +16,7 @@
  * });
  */
 
-import { AlertDialog, Input } from '@heroui/react';
+import { AlertDialog, FieldError, Input, Label, TextField } from '@heroui/react';
 import { Save } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -129,22 +129,24 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                 </AlertDialog.Header>
 
                 <AlertDialog.Body className="text-sm">
-                  {/* Name input */}
-                  <label className="mb-1.5 ml-2 block text-[0.7rem] font-semibold tracking-widest text-(--color-text-secondary) uppercase">
-                    Name
-                  </label>
-                  <Input
-                    placeholder="e.g., Recycled Plastic Packaging Project"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setError('');
-                    }}
-                    maxLength={100}
-                    className="w-full rounded-lg border border-(--color-border-strong) bg-transparent px-4 py-2.5 text-sm text-(--color-text-primary) transition-colors focus:border-(--color-accent) focus:outline-none"
-                    fullWidth
-                  />
-                  {error && <p className="mt-1 text-xs text-(--color-error)">{error}</p>}
+                  <TextField isInvalid={!!error}>
+                    <div>
+                      <Label>Name</Label>
+                      {error && <FieldError>{error}</FieldError>}
+                    </div>
+                    <Input
+                      placeholder="e.g., Recycled Plastic Packaging Project"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        setError('');
+                      }}
+                      maxLength={100}
+                      spellCheck={false}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                    />
+                  </TextField>
                 </AlertDialog.Body>
 
                 <AlertDialog.Footer>
@@ -168,7 +170,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                     isDisabled={isSubmitting}
                     className="flex-1"
                   >
-                    {isSubmitting ? 'Saving...' : 'Save'}
+                    Save
                   </Button>
                 </AlertDialog.Footer>
               </>

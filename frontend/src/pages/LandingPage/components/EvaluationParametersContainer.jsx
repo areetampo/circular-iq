@@ -78,7 +78,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   aria-label={`View details drawer for ${parameterLabels[paramKey].label}`}
                 >
                   {parameterLabels[paramKey].label}
-                  <Info className="info-icon" size={18} strokeWidth={2} />
+                  <Info className="icon--info" size={18} strokeWidth={2} />
                 </Label>
 
                 <NumberField.Group className="my-1.5 flex h-8 items-center gap-1">

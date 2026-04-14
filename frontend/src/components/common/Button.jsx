@@ -184,12 +184,24 @@ export const Button = forwardRef(function Button(
     className,
   );
 
-  const content = isLoading ? (
-    <span className="flex w-full items-center justify-center gap-2">
-      <Spinner size={size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : 'md'} />
+  const content = (
+    <span className="relative inline-flex items-center justify-center">
+      {/* Original children – hidden when loading, but still occupy space */}
+      <span
+        className={
+          isLoading ? 'invisible' : 'relative inline-flex items-center justify-center gap-1.5'
+        }
+      >
+        {children}
+      </span>
+
+      {/* Spinner – absolutely positioned over the same area */}
+      {isLoading && (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <Spinner size={size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : 'md'} />
+        </span>
+      )}
     </span>
-  ) : (
-    children
   );
 
   // Render anchor (link) – manual handling

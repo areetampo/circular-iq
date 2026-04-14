@@ -1,4 +1,4 @@
-import { Input, Label, TextField } from '@heroui/react';
+import { FieldError, Input, Label, TextField } from '@heroui/react';
 import { MoveLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -145,48 +145,50 @@ export default function CompareForm() {
         <div className="grid grid-cols-1 gap-6">
           {/* Assessment ID 1 */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label className="ml-2 text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase">
-                First Assessment ID
-              </Label>
-              {showEmptyError.id1 && (
-                <span className="text-xs font-medium text-(--color-error)">
-                  {!publicId1.trim() ? 'is required' : 'has invalid format'}
-                </span>
-              )}
-            </div>
-            <TextField className="w-full" name="public-id-1" isInvalid={showEmptyError.id1}>
+            <TextField
+              className="w-full space-y-0.5"
+              name="public-id-1"
+              isInvalid={showEmptyError.id1}
+            >
+              <div>
+                <Label>First Assessment ID</Label>
+                {showEmptyError.id1 && (
+                  <FieldError>
+                    {!publicId1.trim() ? 'is required' : 'has invalid format'}
+                  </FieldError>
+                )}
+              </div>
               <Input
                 id="public-id-1"
                 value={publicId1}
                 onChange={handleInputChange(setPublicId1, 'id1')}
                 placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                 size="lg"
-                className="w-full rounded-md border-2 border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted)"
               />
             </TextField>
           </div>
 
           {/* Assessment ID 2 */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label className="ml-2 text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase">
-                Second Assessment ID
-              </Label>
-              {showEmptyError.id2 && (
-                <span className="text-xs font-medium text-(--color-error)">
-                  {!publicId2.trim() ? 'is required' : 'has invalid format'}
-                </span>
-              )}
-            </div>
-            <TextField className="w-full" name="public-id-2" isInvalid={showEmptyError.id2}>
+            <TextField
+              className="w-full space-y-0.5"
+              name="public-id-2"
+              isInvalid={showEmptyError.id2}
+            >
+              <div>
+                <Label>Second Assessment ID</Label>
+                {showEmptyError.id2 && (
+                  <FieldError>
+                    {!publicId2.trim() ? 'is required' : 'has invalid format'}
+                  </FieldError>
+                )}
+              </div>
               <Input
                 id="public-id-2"
                 value={publicId2}
                 onChange={handleInputChange(setPublicId2, 'id2')}
                 placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                 size="lg"
-                className="w-full rounded-md border-2 border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted)"
               />
             </TextField>
           </div>

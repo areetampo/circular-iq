@@ -60,6 +60,8 @@ import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
 import { getSession, saveSession } from '@/utils/session';
 
+import { formatTimestamp } from '../../lib/formatting';
+
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
   const navigate = useNavigate();
@@ -122,7 +124,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     [],
   );
 
-  const [selectedTab, setSelectedTab] = useState('summary');
   const [sessionRestored, setSessionRestored] = useState(() => {
     // Initialize from sessionStorage to persist across page navigations
     return sessionStorage.getItem('sessionRestoredOnce') === 'true';
@@ -374,11 +375,11 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               )
             : null;
           if (duplicate) {
-            throw new Error('You already have an assessment with that name');
+            throw new Error('Name already exists');
           }
         } catch (errCheck) {
           // If the check itself failed due to network/auth, allow create to proceed
-          if (errCheck.message === 'You already have an assessment with that name') throw errCheck;
+          if (errCheck.message === 'Name already exists') throw errCheck;
           logger.warn('Duplicate name check failed, proceeding to create:', errCheck?.message);
         }
 
@@ -588,7 +589,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
     const base = source.caseName || source.projectTitle || industryVal || 'Assessment';
 
-    const date = new Date().toISOString().split('T')[0];
+    const date = formatTimestamp(new Date());
     return `${base} - ${date}`;
   }, [isViewFromMyAssessments, fetchedAssessment, currentData]);
 
@@ -653,9 +654,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
               )
             : null;
-          if (dup) throw new Error('You already have an assessment with that name');
+          if (dup) throw new Error('Name already exists');
         } catch (checkErr) {
-          if (checkErr.message === 'You already have an assessment with that name') throw checkErr;
+          if (checkErr.message === 'Name already exists') throw checkErr;
           logger.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
         }
 

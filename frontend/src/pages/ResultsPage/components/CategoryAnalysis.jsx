@@ -45,7 +45,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                     <p className="mt-0.5 text-sm text-(--color-text-muted)">{category.desc}</p>
                   </div>
                   <div
-                    className="ml-4 rounded-lg border border-(--color-border-card) bg-transparent px-3 py-1 text-lg font-medium"
+                    className="ml-4 rounded-lg bg-transparent px-3 py-1 text-lg font-medium"
                     style={{ color: badgeColor }}
                   >
                     {numValue}

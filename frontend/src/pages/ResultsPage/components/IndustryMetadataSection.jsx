@@ -1,8 +1,8 @@
+import { Store } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { FieldDisplayCard } from '@/pages/ResultsPage/components/FieldDisplayCard';
 import { SectionHeading } from '@/components/common';
-import { Store } from 'lucide-react';
+import { FieldDisplayCard } from '@/pages/ResultsPage/components/FieldDisplayCard';
 
 export function IndustryMetadataSection({ actualResult, fieldHelp }) {
   if (!actualResult.metadata) return null;

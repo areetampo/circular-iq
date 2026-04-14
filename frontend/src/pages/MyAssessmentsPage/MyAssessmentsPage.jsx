@@ -311,7 +311,7 @@ export default function MyAssessmentsPage() {
             a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
         )
       ) {
-        const msg = 'You already have an assessment with that name';
+        const msg = 'Name already exists';
         toast.danger(msg, { timeout: 4000 });
         throw new Error(msg);
       }

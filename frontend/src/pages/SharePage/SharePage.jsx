@@ -1,4 +1,4 @@
-import { Input, Label, TextField } from '@heroui/react';
+import { FieldError, Input, Label, TextField } from '@heroui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -86,17 +86,13 @@ export default function SharePage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label className="ml-2 text-xs font-semibold tracking-wide text-(--color-text-secondary) uppercase">
-              Assessment ID
-            </Label>
-            {(showEmptyError || error) && (
-              <span className="text-xs font-medium text-(--color-error)">
-                {showEmptyError ? 'is required' : 'has invalid format'}
-              </span>
-            )}
-          </div>
           <TextField className="w-full" name="public-id" isInvalid={showEmptyError || !!error}>
+            <div>
+              <Label>Assessment ID</Label>
+              {(showEmptyError || error) && (
+                <FieldError>{showEmptyError ? 'is required' : 'has invalid format'}</FieldError>
+              )}
+            </div>
             <Input
               id="public-id"
               value={publicId}
@@ -113,7 +109,6 @@ export default function SharePage() {
               }}
               placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
-              className="w-full rounded-md border-2 border-(--color-border-strong) bg-transparent text-(--color-text-primary) transition-all outline-none placeholder:text-(--color-text-muted)"
             />
           </TextField>
         </div>
