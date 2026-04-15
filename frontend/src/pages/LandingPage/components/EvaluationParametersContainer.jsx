@@ -188,7 +188,6 @@ function EvaluationParametersContainer({
   evalParamsExpandedKeys,
   setEvalParamsExpandedKeys,
 }) {
-  const { openEvaluationParametersHeadingInfoDrawer } = useGlobalDrawer();
   const groupEntries = Object.entries(parameterGroups);
 
   return (
@@ -204,11 +203,7 @@ function EvaluationParametersContainer({
           const cfg = GROUP_STYLE_CONFIG[groupName] ?? DEFAULT_CONFIG;
 
           return (
-            <Accordion.Item
-              key={groupIdx}
-              id={groupName}
-              className={cn('group/item', groupIdx > 0 && `border-t border-border`)}
-            >
+            <Accordion.Item key={groupIdx} id={groupName} className={cn('group/item')}>
               <Accordion.Heading>
                 <Accordion.Trigger className="flex items-center gap-3 px-5 py-3">
                   <cfg.Icon
@@ -248,7 +243,11 @@ function EvaluationParametersContainer({
                         {idx < group.length - 1 && (
                           <div className="flex items-center justify-center">
                             <div className="my-2 hidden w-px self-stretch bg-border md:block" />
-                            <Separator orientation="horizontal" className="w-5/6 md:hidden" />
+                            <Separator
+                              orientation="horizontal"
+                              variant="secondary"
+                              className="w-2/3 md:hidden"
+                            />
                           </div>
                         )}
                       </React.Fragment>

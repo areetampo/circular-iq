@@ -1538,6 +1538,10 @@
   [data-slot='trigger'].accordion__trigger {
     @apply transition-colors! duration-300! hover:bg-(--color-accent-light)!;
   }
+  /* separator between accordion items */
+  .accordion__item::after {
+    @apply h-[1.5px] bg-(--color-border-ui);
+  }
 
   /* ============================================= */
   /*  PAGINATION                                  */
@@ -1733,7 +1737,7 @@
   /* ============================================= */
 
   input:not([type='checkbox']):not([type='radio']) {
-    @apply rounded-md border! border-(--color-border-strong)! bg-(--color-input-bg)! font-sans! text-(--color-text-primary)! transition-[border-color]! duration-150!;
+    @apply rounded-md border! border-(--color-border-strong)! bg-(--color-input-bg)! text-(--color-text-primary)! transition-[border-color]! duration-150!;
   }
   input:focus {
     @apply border-(--accent)! shadow-[0_0_0_3px_var(--color-accent-light)]! outline-none!;
