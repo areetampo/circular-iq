@@ -1,5 +1,5 @@
 import { Table } from '@heroui/react';
-import { Globe, RefreshCw } from 'lucide-react';
+import { Globe, RotateCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -277,7 +277,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Button onClick={refetchGlobal} disabled={globalLoading} variant="teal">
-          <RefreshCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
+          <RotateCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
           Refresh
         </Button>
       </div>
